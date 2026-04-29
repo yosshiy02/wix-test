@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>モバイルパーツ選択UI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: sans-serif;
+      background-color: #f8f8f8;
+    }
+
+    .scroll-indicator {
+      position: fixed;
+      right: 0%;
+      transform: none;
+      font-size: 16px;
+      color: #aaa;
+      pointer-events: none;
+      opacity: 0.6;
+      animation: bounce 1.2s infinite;
+      z-index: 999;
+    }
+
+    .scroll-indicator.top {
+      top: 6px;
+      animation-name: bounce-up;
+    }
+
+    .scroll-indicator.bottom {
+      bottom: 6px;
+      animation-name: bounce-down;
+    }
+
+    @keyframes bounce-down {
+      0%, 100% { transform:translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    @keyframes bounce-up {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    #layers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    .control-row {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .label-box {
+      width: auto;
+      min-width: 60px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input[type="color"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    select {
+      flex: 1;
+      min-width: 100px;
+      height: 32px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .selected-thumb-box {
+      display: none;
+      width: 32px;
+      height: 32px;
+      border: 2px solid #007aff;
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+      box-sizing: border-box;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: opacity 0.2s; 
+    }
+    .selected-thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .texture-grid {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    
+    .texture-thumb {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      width: 44px;
+      height: 44px;
+      overflow: hidden;
+      transition: transform 0.1s, border 0.2s, box-shadow 0.2s;
+    }
+    .texture-thumb:active {
+      transform: scale(0.9);
+    }
+    .texture-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ⭐ 現在選択中のサムネイルを光らせるスタイル */
+    .texture-thumb.active {
+      border: 2px solid #007aff;
+      box-shadow: 0 0 8px rgba(0, 122, 255, 0.6);
+      transform: scale(1.05); 
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-indicator top">▲</div>
+  <div class="scroll-indicator bottom">▼</div>
+
+  <div id="layers-container"></div>
+
+  <script>
+    let currentColors2 = {};
+    let currentTextures2 = {};
+    let selectedTexturesInfoMobile = {};
+    let textureNamesForReport = null;
+    
+    function setupMobileControls(item) {
+      const container = document.getElementById("layers-container");
+      container.innerHTML = "";
+
+      currentColors2 = {};
+      currentTextures2 = {};
+      selectedTexturesInfoMobile = {};
+
+      const textures = item.allTextures || [];
+
+      // ✅ 底レイヤー
+      if (item.layerBase && Array.isArray(item.layerBaseColors)) {
+        const group = document.createElement("div");
+        group.className = "control-group";
+        const row = document.createElement("div");
+        row.className = "control-row";
+
+        const labelBox = document.createElement("div");
+        labelBox.className = "label-box";
+        labelBox.textContent = "底 🎨";
+        row.appendChild(labelBox);
+
+        item.layerBaseColors.forEach(color => {
+          const btn = document.createElement("button");
+          btn.style.backgroundColor = color;
+          btn.style.width = "30px";
+          btn.style.height = "30px";
+          btn.style.border = "2px solid #ccc";
+          btn.style.borderRadius = "6px";
+          btn.style.cursor = "pointer";
+          
+          btn.addEventListener("click", () => {
+            currentColors2["layerBase"] = color;
+            currentTextures2["layerBase"] = null;
+            selectedTexturesInfoMobile["layerBase"] = { color };
+            notifyHtml2();
+          });
+          row.appendChild(btn);
+        });
+
+        group.appendChild(row);
+        container.appendChild(group);
+      }
+
+      const layerFields = [
+        "layerA", "layerB", "layerC", "layerD", "layerE", "layerF", "layerG", 
+        "layerLineA", "layerLineB", "layerInsole", "layerCounter", "layerUra", "layerFrame"
+      ];
+
+      const labelMap = {
+        layerLineA: "フチ巻A",
+        layerLineB: "フチ巻B",
+        layerInsole: "インソール",
+        layerCounter: "かかと",
+        layerUra: "裏地"
+      };
+
+      layerFields.forEach((key) => {
+        if (key === "layerFrame") return; 
+        if (item[key]) {
+          const labelText = labelMap[key] || key.replace("layer", "");
+          createMobileLayerControls(key, labelText, container, textures);
+        }
+      });
+    }
+
+    function createMobileLayerControls(layerKey, labelText, container, allTextures) {
+      // 🧠 【重要】記憶用メモリー（ここで各レイヤーの履歴を保持します）
+      let memTitle = "none";
+      let memFieldKey = null;
+      let memUrl = null;
+      let memColor = "#ebebeb";
+
+      // 初期値の読み込み
+      const saved = selectedTexturesInfoMobile[layerKey] || {};
+      if (saved.color) memColor = saved.color;
+      if (saved.title) memTitle = saved.title;
+      if (saved.fieldKey) memFieldKey = saved.fieldKey;
+
+      if (memTitle !== "none" && memFieldKey) {
+        const t = allTextures.find(x => x.title === memTitle);
+        if (t && t[memFieldKey]) memUrl = t[memFieldKey];
+      }
+
+      const group = document.createElement("div");
+      group.className = "control-group";
+      const row = document.createElement("div");
+      row.className = "control-row";
+
+      // 🔷 ラベル
+      const labelBox = document.createElement("div");
+      labelBox.className = "label-box";
+      labelBox.textContent = labelText;
+      row.appendChild(labelBox); 
+
+      // 🔷 生地ラジオ
+      const textureRadio = document.createElement("input");
+      textureRadio.type = "radio";
+      textureRadio.name = `mode_${layerKey}`;
+      textureRadio.value = "texture";
+      row.appendChild(textureRadio);
+
+      // 🔷 生地セレクト
+      const fabricSelect = document.createElement("select");
+      fabricSelect.disabled = true;
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "none";
+      defaultOpt.textContent = "生地選択";
+      fabricSelect.appendChild(defaultOpt);
+
+      const seenTitles = new Set();
+      const uniqueOrderedTitles = [];
+      for (const tex of allTextures) {
+        if (tex.title && !seenTitles.has(tex.title)) {
+          seenTitles.add(tex.title);
+          uniqueOrderedTitles.push(tex.title);
+        }
+      }
+      uniqueOrderedTitles.forEach(title => {
+        const opt = document.createElement("option");
+        opt.value = title;
+        opt.textContent = title;
+        fabricSelect.appendChild(opt);
+      });
+      row.appendChild(fabricSelect);
+
+      // ⭐ 選択済みサムネ箱
+      const selectedThumbBox = document.createElement("div");
+      selectedThumbBox.className = "selected-thumb-box";
+      const selectedThumbImg = document.createElement("img");
+      selectedThumbBox.appendChild(selectedThumbImg);
+      row.appendChild(selectedThumbBox);
+
+      // 🔶 色ラジオ
+      const colorRadio = document.createElement("input");
+      colorRadio.type = "radio";
+      colorRadio.name = `mode_${layerKey}`;
+      colorRadio.value = "color";
+      row.appendChild(colorRadio);
+      row.appendChild(document.createTextNode("🎨"));
+
+      // 🔶 カラーピッカー
+      const colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.value = memColor;
+      colorInput.disabled = true;
+      colorInput.addEventListener("input", (e) => {
+        memColor = e.target.value; // メモリーを更新
+        if (colorRadio.checked) {
+          currentColors2[layerKey] = memColor;
+          currentTextures2[layerKey] = null;
+          selectedTexturesInfoMobile[layerKey] = { color: memColor };
+          notifyHtml2();
+        }
+      });
+      row.appendChild(colorInput);
+
+      group.appendChild(row);
+
+      const textureGrid = document.createElement("div");
+      textureGrid.className = "texture-grid";
+      group.appendChild(textureGrid);
+
+      // 📸 グリッドを開く
+      function openGrid(title) {
+        textureGrid.innerHTML = "";
+        
+        if (title === "none") {
+          textureGrid.style.display = "none";
+          selectedThumbBox.style.display = "none";
+          if (textureRadio.checked) {
+            currentTextures2[layerKey] = null;
+            selectedTexturesInfoMobile[layerKey] = {};
+            notifyHtml2();
+          }
+          return;
+        }
+
+        textureGrid.style.display = "flex";
+        selectedThumbBox.style.display = "none";
+
+        const selected = allTextures.find(t => t.title === title);
+        if (!selected) return;
+
+        Object.keys(selected).forEach(key => {
+          if (key.startsWith("texture") && selected[key]) {
+            const url = selected[key];
+            const thumb = document.createElement("div");
+            thumb.className = "texture-thumb";
+            
+            // ⭐ メモリーと一致するものは青枠で光らせる！
+            if (key === memFieldKey && title === memTitle) {
+              thumb.classList.add("active");
+            }
+
+            const img = document.createElement("img");
+            img.src = url;
+            thumb.appendChild(img);
+
+            thumb.addEventListener("click", () => {
+              commitSelection(title, key, url);
+            });
+            textureGrid.appendChild(thumb);
+          }
+        });
+      }
+
+      // 📸 サムネを確定
+      function commitSelection(title, fieldKey, url) {
+        // メモリーを更新
+        memTitle = title;
+        memFieldKey = fieldKey;
+        memUrl = url;
+
+        fabricSelect.value = title;              
+        textureGrid.style.display = "none";      
+        selectedThumbImg.src = url;              
+        selectedThumbBox.style.display = "block";
+        selectedThumbBox.style.opacity = "1";             
+        selectedThumbBox.style.pointerEvents = "auto";    
+
+        if (textureRadio.checked) {
+          const texImg = new Image();
+          texImg.crossOrigin = "anonymous";
+          texImg.src = url;
+          texImg.onload = () => {
+            currentTextures2[layerKey] = texImg;
+            currentColors2[layerKey] = null;
+            selectedTexturesInfoMobile[layerKey] = { title, fieldKey };
+            notifyHtml2();
+          };
+        }
+      }
+
+      fabricSelect.addEventListener("change", (e) => {
+        openGrid(e.target.value);
+      });
+
+      selectedThumbBox.addEventListener("click", () => {
+        openGrid(fabricSelect.value);
+      });
+
+      // 🎨 色ラジオ選択時
+      colorRadio.addEventListener("change", () => {
+        if (colorRadio.checked) {
+          colorInput.disabled = false;
+          fabricSelect.disabled = true;
+          textureGrid.style.display = "none";
+          
+          selectedThumbBox.style.opacity = "0.5";
+          selectedThumbBox.style.pointerEvents = "none"; 
+          
+          colorInput.value = memColor;
+          currentTextures2[layerKey] = null;
+          currentColors2[layerKey] = memColor;
+          // 生地の情報は消さず、送信するデータだけ色モードにする
+          selectedTexturesInfoMobile[layerKey] = { color: memColor };
+          notifyHtml2();
+        }
+      });
+
+      // 🎯 生地ラジオ選択時
+      textureRadio.addEventListener("change", () => {
+        if (textureRadio.checked) {
+          colorInput.disabled = true;
+          fabricSelect.disabled = false;
+          
+          selectedThumbBox.style.opacity = "1";
+          selectedThumbBox.style.pointerEvents = "auto";
+
+          if (memTitle !== "none" && memFieldKey && memUrl) {
+            // ⭐ 記憶があれば、直接サムネイルを復活させる（リストは開かない）
+            commitSelection(memTitle, memFieldKey, memUrl);
+          } else {
+            openGrid(fabricSelect.value);
+          }
+        }
+      });
+
+      container.appendChild(group);
+
+      // 初期起動時の復元
+      if (saved?.color) {
+        colorRadio.checked = true;
+        colorRadio.dispatchEvent(new Event("change"));
+      } else if (saved?.title && saved?.fieldKey) {
+        textureRadio.checked = true;
+        textureRadio.dispatchEvent(new Event("change"));
+      }
+    }
+
+    function notifyHtml2() {
+      const textureUrlMap = {};
+      for (const key in currentTextures2) {
+        textureUrlMap[key] = currentTextures2[key]?.src || null;
+      }
+      window.parent.postMessage({
+        fromHtml4: true,
+        currentColors2,
+        currentTextureUrls2: textureUrlMap,
+        selectedTexturesInfo: selectedTexturesInfoMobile,
+        reportTextureNames: textureNamesForReport
+      }, "*");
+    }
+
+    window.addEventListener("message", (event) => {
+      const item = event.data;
+      if (item && item.allTextures) {
+        setupMobileControls(item);
+      }
+    });
+
+    window.onload = () => {
+      setupMobileControls({
+        layerBase: true, layerA: true, layerB: true, layerLineA: true, layerInsole: true, layerCounter: true, layerUra: true,
+        layerBaseColors: ["#000000", "#FFFFFF", "#FF0000", "#0000FF", "#FFFF00"],
+        allTextures: [
+          { title: "キャンバス", textureA: "https://dummyimage.com/60x60/cccccc/00&text=C1", textureB: "https://dummyimage.com/60x60/cccccc/00&text=C2" },
+          { title: "レザー", textureA: "https://dummyimage.com/60x60/8b4513/fff&text=L1", textureB: "https://dummyimage.com/60x60/8b4513/fff&text=L2" },
+          { title: "デニム", textureA: "https://dummyimage.com/60x60/1e90ff/fff&text=D1", textureB: "https://dummyimage.com/60x60/1e90ff/fff&text=D2" }
+        ]
+      });
+    };
+  </script>
+</body>
+</html>

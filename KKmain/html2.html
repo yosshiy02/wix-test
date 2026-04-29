@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>モバイル合成キャンバス</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #f8f8f8;
+    }
+    #html2-canvas-container {
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+      padding: 20px 0;
+      text-align: center;
+    }
+    #html2-canvas {
+      width: 280px;
+      height: 280px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      display: block;
+      margin: 0 auto;
+    }
+   
+
+ </style>
+</head>
+<body>
+  <div id="html2-canvas-container">
+    <canvas id="html2-canvas" width="400" height="400"></canvas>
+  </div>
+
+  <script>
+    const canvas2 = document.getElementById("html2-canvas");
+    const ctx2 = canvas2.getContext("2d");
+
+    let currentColors2 = {};
+    let currentTextures2 = {};
+    let selectedTexturesInfo = {};
+    let textureNamesForReport = null;
+    let textureNamesForReportRecords = [];
+    let latestLayerUrls2 = {};
+    let isDrawing = false;           // 現在描画中かどうか
+    let pendingLayerUrls = null;     // 後から来た最新リクエストの一時保存
+
+    function toFullWidth(str) {
+      return str.replace(/[A-Za-z0-9]/g, s =>
+        String.fromCharCode(s.charCodeAt(0) + 0xFEE0)
+      );
+    }
+
+    function drawLayerMobile(img, color = null, textureImg = null) {
+      const off = document.createElement("canvas");
+      off.width = canvas2.width;
+      off.height = canvas2.height;
+      const octx = off.getContext("2d");
+
+      if (textureImg) {
+        console.log("🖼️ テクスチャ描画開始");
+        octx.drawImage(textureImg, 0, 0, canvas2.width, canvas2.height);
+        octx.globalCompositeOperation = "destination-in";
+        octx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
+      } else if (color) {
+        console.log("🎨 色描画開始:", color);
+        octx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
+        octx.globalCompositeOperation = "source-in";
+        octx.fillStyle = color;
+        octx.fillRect(0, 0, canvas2.width, canvas2.height);
+      } else {
+       console.log("🖤 通常のマスク描画");
+        octx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
+      }
+
+      ctx2.drawImage(off, 0, 0);
+    }
+
+    function drawAllLayersMobile(layerUrls) {
+  // 📌 最新のリクエストを常に保存（上書き）
+  pendingLayerUrls = layerUrls;
+
+  if (isDrawing) {
+    console.log("⏳ 描画中 → 最新リクエストを予約");
+    return;  // 今は描画せず、終わった後に再実行
+  }
+
+  // ✅ 描画を開始
+  isDrawing = true;
+
+  // 🎯 現時点で描くべきレイヤーセットを確定
+  const currentRequest = pendingLayerUrls;
+  pendingLayerUrls = null;  // 次の描画に備えて初期化
+
+  ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+  const keys = [
+    "layerBase", "layerA", "layerB", "layerC",
+    "layerD", "layerE", "layerF", "layerG",
+    "layerLineA", "layerLineB", "layerInsole", "layerCounter", "layerUra",
+    "layerFrame", "layerInfo"
+  ];
+
+  let index = 0;
+
+  // 🔄 再帰的に順番にレイヤーを描く
+  function drawNext() {
+    if (index >= keys.length) {
+      isDrawing = false; // 描画終了
+
+      if (pendingLayerUrls) {
+        console.log("🔁 予約された最新描画を実行");
+        drawAllLayersMobile(pendingLayerUrls);  // ← 最新を即実行
+      } else {
+        updateInfoArea(); // 🧾 最終情報描画
+      }
+      return;
+    }
+
+    const key = keys[index++];
+    const url = currentRequest[key];
+
+    if (!url) return drawNext();  // URLなし → スキップ
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = url;
+
+    img.onload = () => {
+      drawLayerMobile(img, currentColors2[key], currentTextures2[key]);
+      drawNext();  // 次のレイヤーへ
+    };
+
+    img.onerror = () => {
+      console.warn(`❌ 読み込み失敗: ${key}`);
+      drawNext();  // エラーでも次へ進む
+    };
+  }
+
+  drawNext(); // 最初のレイヤー描画スタート
+}
+  
+    window.addEventListener("message", (event) => {
+     //
+      const item = event.data;
+     
+      console.log("🧪 html4 で受信した layerBaseColors:", item.layerBaseColors);
+      
+      if (item.fromHtml4 && item.realTimeTextureNames) {
+      
+      console.log("🆗 realTimeTextureNames を受信:", item.realTimeTextureNames);
+      console.log("✅ fromHtml4受信内容", item);
+      //
+      const output = [];
+
+      for (const layerKey in item.realTimeTextureNames) {
+  const name = item.realTimeTextureNames[layerKey] || "未定義";
+  const label = layerKey.replace("layer", "").toUpperCase();
+  output.push(`${label}：${name}`);
+
+  // ここで selectedTexturesInfo に name を書き込み
+  if (!selectedTexturesInfo[layerKey]) {
+    selectedTexturesInfo[layerKey] = {};
+  }
+  selectedTexturesInfo[layerKey].resolvedName = name;
+}
+
+     //
+
+      
+
+     
+        selectedTexturesInfo = item.selectedTexturesInfo || {};
+        currentColors2 = item.currentColors2 || {};
+        currentTextures2 = {};
+        
+
+        if (selectedTexturesInfo.layerBase?.color && !currentColors2.layerBase) {
+  currentColors2.layerBase = selectedTexturesInfo.layerBase.color;
+}
+
+        console.log("🧾 item.reportTextureNames =", item.reportTextureNames);
+        textureNamesForReport = item.reportTextureNames || null;
+
+        console.log("📌 代入後 textureNamesForReport =", textureNamesForReport);
+
+        for (const key in item.currentTextureUrls2) {
+          const url = item.currentTextureUrls2[key];
+          if (!url) continue;
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = url;
+          currentTextures2[key] = img;
+        }
+
+        for (const key in selectedTexturesInfo) {
+    const info = selectedTexturesInfo[key];
+    const fieldKey = info?.fieldKey;
+
+    console.log("🧪 fieldKey:", fieldKey);
+
+    if (fieldKey && textureNamesForReport) {
+      const suffix = fieldKey.slice(-1).toUpperCase(); // 例: textureB → B
+      const nameKey = `textureName${suffix}`;
+      const textureName = textureNamesForReport[nameKey];
+      if (textureName) {
+        info.resolvedName = textureName;
+      }
+    }
+  }
+
+        drawAllLayersMobile(latestLayerUrls2);
+        updateInfoArea(); // ← INFO描画の更新も忘れず呼ぶ！
+        return;
+      }
+
+      if (item.fromMobileSave && item.mobileDate && item.fileName) {
+  textureNamesForReport = item.reportTextureNames;
+  textureNamesForReportRecords = [item.reportTextureRecord];
+  selectedTexturesInfo = item.selectedTexturesInfo || {};
+
+  // ✅ Wixログから category & textureName を注入
+  for (const key in selectedTexturesInfo) {
+    const info = selectedTexturesInfo[key];
+    if (info?.fieldKey && textureNamesForReport) {
+      const suffix = info.fieldKey.slice(-1).toUpperCase();       // 例: "textureB" → "B"
+      const nameKey = `textureName${suffix}`;                     // 例: textureNameB
+      const textureName = textureNamesForReport[nameKey];
+      const category = textureNamesForReport.__category || "";
+
+      if (textureName) {
+        info.resolvedName = textureName;
+      }
+      if (category) {
+        info.category = category;
+      }
+    }
+  }
+
+  generateMobileReportImage(item.fileName, item.mobileDate, item.selectedSize);
+  return;
+}
+
+           const layerKeys = ["layerBase", "layerA", "layerB", "layerC", "layerD", "layerE", "layerF", "layerG", "layerLineA", "layerLineB", "layerInsole", "layerCounter", "layerUra", "layerFrame", "layerInfo"];
+
+      latestLayerUrls2 = {};
+      layerKeys.forEach(key => {
+        if (item[key]) latestLayerUrls2[key] = item[key];
+      });
+
+      drawAllLayersMobile(latestLayerUrls2);
+    });
+
+    function drawCanvasImageToReport(ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 595, 842);
+      ctx.drawImage(canvas2, 20, 160, 250, 250);
+    }
+
+
+    
+    function drawInfoToReport(ctx, fileName, reportDate, selectedSize) {
+  ctx.fillStyle = "#000000";
+  ctx.font = "16px sans-serif";
+  ctx.fillText(`日付：${reportDate}`, 20, 24);
+  ctx.fillText(`ファイル名：${fileName}`, 20, 44);
+  ctx.fillText(`サイズ：${selectedSize} cm`, 20, 64);
+
+  const leftLabels = ["BASE", "A", "B", "C"];
+  const rightLabels = ["D", "E", "F", "G"];
+  let leftY = 440;
+  let rightY = 440;
+
+  Object.keys(selectedTexturesInfo).forEach(key => {
+    const label = key.replace("layer", "").toUpperCase();
+    const info = selectedTexturesInfo[key];
+    const line = info?.reportLine || `${label}：未定義`;
+
+    if (leftLabels.includes(label)) {
+      ctx.fillText(line, 20, leftY);
+      leftY += 20;
+    } else {
+      ctx.fillText(line, 320, rightY);
+      rightY += 20;
+    }
+  });
+}
+
+
+    function generateMobileReportImage(fileName, mobileDate, selectedSize) {
+      console.log("🧾 レポート作成開始", fileName, mobileDate, selectedSize);
+
+      const reportCanvas = document.createElement("canvas");
+      reportCanvas.width = 595;
+      reportCanvas.height = 842;
+      const ctx = reportCanvas.getContext("2d");
+
+      drawCanvasImageToReport(ctx);
+      drawInfoToReport(ctx, fileName, mobileDate, selectedSize);
+
+      const jpegDataUrl = reportCanvas.toDataURL("image/jpeg", 0.95);
+
+      const link = document.createElement("a");
+      link.href = jpegDataUrl;
+      link.download = `${fileName}_${mobileDate}.jpg`;
+      link.click();
+
+      parent.postMessage({
+        saveDone: true,
+        reportImageDataUrl: jpegDataUrl,
+        fileName,
+        reportDate: mobileDate,
+        selectedTexturesInfo
+      }, "*");
+    }
+   
+    function updateInfoArea() {
+    const keys = ["layerBase", "layerA", "layerB", "layerC", "layerD", "layerE", "layerF", "layerG", "layerLineA", "layerLineB", "layerInsole", "layerCounter", "layerUra"];
+
+  const texts = [];
+
+  for (const key of keys) {
+    if (!latestLayerUrls2[key]) continue; // 描画されていないレイヤーは除外
+
+    const label = key.replace("layer", "").toUpperCase();
+    const info = selectedTexturesInfo[key];
+
+    if (info?.color) {
+      texts.push(`${label}：${info.color}`);
+    } else if (info?.resolvedName) {
+      texts.push(`${label}：${info.resolvedName}`);
+    } else {
+      texts.push(`${label}：未定義`);
+    }
+  }
+
+  // 表示テキストの結合
+  const fullText = texts.join("　"); // 全角スペースで区切る
+
+  // キャンバスの上部10%に表示
+  const areaHeight = canvas2.height * 0.1;
+  ctx2.fillStyle = "#ffffff";
+  ctx2.fillRect(0, 0, canvas2.width, areaHeight);
+
+  ctx2.fillStyle = "#000000";
+
+  // 自動フォントサイズ調整（長ければ縮小）
+  let fontSize = 14;
+  ctx2.font = `${fontSize}px sans-serif`;
+  while (ctx2.measureText(fullText).width > canvas2.width - 10 && fontSize > 6) {
+    fontSize--;
+    ctx2.font = `${fontSize}px sans-serif`;
+  }
+
+  ctx2.textBaseline = "top";
+  ctx2.fillText(fullText, 5, 2);
+}
+
+  </script>
+</body>
+</html>

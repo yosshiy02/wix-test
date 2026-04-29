@@ -1,0 +1,1986 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>商品総合HTML</title>
+  <style>
+  :root{
+    --border:#dcdcdc;
+    --bg:#ffffff;
+    --muted:#666666;
+    --text:#111111;
+    --panel:#ffffff;
+    --panelAlt:#fafafa;
+    --drop:#fafafa;
+    --dropActive:#f0f6ff;
+    --accent:#2a6df4;
+    --danger:#c62828;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+  }
+
+  .wrap{
+    width:100%;
+    padding:14px;
+  }
+
+  .layoutTop{
+    display:grid;
+    grid-template-columns:240px minmax(520px, 1fr) 260px;
+    gap:14px;
+    align-items:start;
+    margin-bottom:14px;
+  }
+
+  .leftCol,
+  .centerCol,
+  .rightCol{
+    min-width:0;
+  }
+
+  .stack{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+.section{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--panel);
+  padding:14px;
+  margin-bottom:14px;
+}
+
+.shopBrandSection{
+  width:240px;
+}
+  .section:last-child{
+    margin-bottom:0;
+  }
+
+  .sectionTitle{
+    font-size:18px;
+    font-weight:700;
+    line-height:1.4;
+    margin:0 0 12px 0;
+  }
+
+  .subTitle{
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 8px 0;
+    font-weight:700;
+  }
+
+  .muted{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+  }
+
+  .list{
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fff;
+    overflow:hidden;
+  }
+
+  .brandRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    border-bottom:1px solid #eee;
+    background:var(--panelAlt);
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .brandRow:last-child{
+    border-bottom:none;
+  }
+
+  .brandRow:hover{
+    background:#f3f7ff;
+  }
+
+  .brandRow input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    margin:0;
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+
+  .empty{
+    border:1px dashed var(--border);
+    border-radius:10px;
+    padding:12px;
+    color:var(--muted);
+    font-size:13px;
+    background:#fff;
+  }
+.mainImageSection{
+  width:180px;
+}
+  .drop{
+    border:2px dashed #d0d0d0;
+    border-radius:12px;
+    background:var(--drop);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    user-select:none;
+  }
+
+  .drop.active{
+    background:var(--dropActive);
+    border-color:var(--accent);
+  }
+
+.dropMain{
+  width:140px;
+  aspect-ratio:1 / 1;
+}
+  .dropSquare{
+    width:112px;
+    aspect-ratio:1 / 1;
+  }
+
+  .dropHint{
+    color:#777;
+    font-size:12px;
+    text-align:center;
+    padding:10px;
+    line-height:1.4;
+  }
+
+  .preview{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    background:#fff;
+  }
+
+  .dropClear{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:28px;
+    height:28px;
+    border-radius:999px;
+    border:1px solid #d0d0d0;
+    background:#fff;
+    color:#555;
+    font-size:18px;
+    line-height:26px;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+    z-index:10;
+  }
+
+  .dropClear:hover{
+    border-color:var(--danger);
+    color:var(--danger);
+  }
+
+  .note{
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.6;
+  }
+
+.row{
+  border:1px solid #d0d0d0;
+  border-radius:10px;
+  padding:8px;
+  margin:8px 0;
+  background:#fff;
+}
+
+#mediaGalleryRoot .row{
+  width:180px;
+  margin:0;
+  flex:0 0 auto;
+}
+
+  .rowHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+
+  .rowTitle{
+    font-size:11px;
+    color:#777;
+    user-select:none;
+  }
+
+.headBtns{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+#mediaGalleryRoot .headBtns{
+  flex-wrap:nowrap;
+}
+#mediaGalleryRoot .headBtns .btn{
+  min-width:56px;
+  padding:6px 10px;
+}
+  .btn{
+    appearance:none;
+    border:1px solid #d0d0d0;
+    background:#fff;
+    border-radius:9px;
+    padding:6px 10px;
+    font-size:13px;
+    cursor:pointer;
+    line-height:1;
+    user-select:none;
+  }
+
+  .btn:active{
+    transform:translateY(1px);
+  }
+
+  .btnPrimary{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+
+  .btnDanger{
+    border-color:var(--danger);
+    color:var(--danger);
+  }
+
+  .footer{
+    display:flex;
+    justify-content:flex-end;
+    margin:10px 0 4px;
+  }
+
+ .colorGrid{
+  display:grid;
+  grid-template-columns:240px 112px 112px;
+  gap:8px;
+  align-items:start;
+}
+.colorRowsSection{
+  width:520px;
+}
+  .label{
+    font-size:11px;
+    color:#777;
+    margin:0 0 4px 0;
+    user-select:none;
+  }
+
+  input[type="text"],
+  textarea,
+  select{
+    font-family:inherit;
+  }
+
+  input[type="text"]{
+    width:100%;
+    box-sizing:border-box;
+    padding:8px 10px;
+    border:1px solid #d0d0d0;
+    border-radius:10px;
+    font-size:14px;
+    outline:none;
+    height:36px;
+    line-height:1.2;
+  }
+
+  select{
+    width:100%;
+    box-sizing:border-box;
+    padding:8px 10px;
+    border:1px solid #d0d0d0;
+    border-radius:10px;
+    font-size:14px;
+    outline:none;
+    height:36px;
+    line-height:1.2;
+    background:#fff;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus,
+  .editor:focus{
+    border-color:var(--accent);
+    outline:none;
+  }
+
+.mediaDropWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+#mediaGalleryRoot{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:flex-start;
+}
+
+  .productBox{
+    display:block;
+  }
+
+  .previewBox{
+    width:120px;
+    height:120px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#f7f7f7;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:14px;
+  }
+
+  .previewBox img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    background:#ffffff;
+  }
+
+  .previewEmpty{
+    font-size:12px;
+    color:#777;
+    text-align:center;
+    padding:10px;
+    line-height:1.6;
+  }
+
+  .field{
+    margin-bottom:16px;
+  }
+
+  .field:last-child{
+    margin-bottom:0;
+  }
+
+  .productNo{
+    min-height:42px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fafafa;
+    padding:10px 12px;
+    font-size:14px;
+    line-height:1.5;
+    word-break:break-word;
+  }
+
+  .plainBox{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#ffffff;
+    padding:12px 14px;
+    font-size:15px;
+    line-height:1.6;
+    color:#111;
+    resize:vertical;
+  }
+
+  .descriptionBox{
+    min-height:72px;
+  }
+
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:10px 10px 0 0;
+    background:#f8f8f8;
+  }
+
+  .toolBtn,
+  .toolSelect{
+    height:36px;
+    border:1px solid #cfcfcf;
+    border-radius:8px;
+    background:#fff;
+    color:#111;
+    font-size:14px;
+  }
+
+  .toolBtn{
+    min-width:36px;
+    padding:0 10px;
+    cursor:pointer;
+  }
+
+  .toolBtn:hover,
+  .toolSelect:hover{
+    background:#f1f1f1;
+  }
+
+  .toolSelect{
+    padding:0 10px;
+    cursor:pointer;
+  }
+
+  .editor{
+    border:1px solid var(--border);
+    border-top:0;
+    border-radius:0 0 10px 10px;
+    padding:14px;
+    font-size:15px;
+    line-height:1.9;
+    background:#fff;
+    white-space:normal;
+    word-break:break-word;
+    min-height:72px;
+  }
+
+  .editorCatch{
+    min-height:72px;
+    line-height:1.6;
+  }
+
+  .editorTexts{
+    min-height:220px;
+    line-height:1.9;
+  }
+
+  .editor:empty:before{
+    content:attr(data-placeholder);
+    color:#999;
+  }
+
+  .editor p{
+    margin:0 0 12px 0;
+  }
+
+  .editor p:last-child{
+    margin-bottom:0;
+  }
+
+  .statusText{
+    margin-top:12px;
+    font-size:12px;
+    color:#666;
+    line-height:1.6;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+
+  .viewMoreToggle{
+    appearance:none;
+    border:1px solid #d0d0d0;
+    background:#fff;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:14px;
+    cursor:pointer;
+    line-height:1.2;
+  }
+
+  .viewMoreToggle:active{
+    transform:translateY(1px);
+  }
+.fieldCompact{
+  width:140px;
+}
+
+.inlineMetaBox{
+  display:grid;
+  grid-template-columns:1.35fr 1fr 1fr 1fr;
+  gap:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  padding:12px;
+  margin-bottom:16px;
+}
+
+.inlineMetaBox .field{
+  margin-bottom:0;
+}.viewMorePanel{
+    display:none;
+    margin-top:10px;
+  }
+.titleBrandCol #titleInput,
+.titleBrandCol #brandListBox{
+  width:100%;
+}
+
+.shopBrandInline{
+  margin-top:10px;
+}
+  .viewMorePanel.open{
+    display:block;
+  }
+
+  .confirmOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    z-index:9999;
+  }
+
+  .confirmOverlay.open{
+    display:flex;
+  }
+
+  .confirmBox{
+    width:100%;
+    max-width:420px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fff;
+    padding:16px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
+  }
+
+  .confirmText{
+    font-size:14px;
+    line-height:1.7;
+    color:#111;
+    white-space:pre-wrap;
+    word-break:break-word;
+    margin-bottom:14px;
+  }
+
+  .confirmBtns{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  .metaGrid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px;
+    margin-bottom:16px;
+  }
+
+.checkPanel{
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  padding:10px 12px;
+  width:120px;
+}
+
+  .checkList{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 14px;
+  }
+
+  .checkItem{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    line-height:1.4;
+    color:#111;
+    user-select:none;
+  }
+
+  .checkItem input{
+    width:16px;
+    height:16px;
+    margin:0;
+    cursor:pointer;
+  }
+
+ .checkGrid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:6px 0;
+}
+
+  @media (max-width: 1200px){
+    .layoutTop{
+      grid-template-columns:220px minmax(420px, 1fr) 240px;
+    }
+  }
+
+  @media (max-width: 980px){
+    .layoutTop{
+      grid-template-columns:1fr;
+    }
+
+    .metaGrid{
+      grid-template-columns:1fr;
+    }
+
+    .checkGrid{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px){
+    .colorGrid{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:
+        "color color"
+        "d1 d2";
+    }
+
+    .colColor{
+      grid-area:color;
+    }
+
+    .colD1{
+      grid-area:d1;
+    }
+
+    .colD2{
+      grid-area:d2;
+    }
+
+    .dropSquare{
+      width:100%;
+      max-width:140px;
+    }
+
+    .colD1 .dropSquare{
+      justify-self:start;
+    }
+
+    .colD2 .dropSquare{
+      justify-self:end;
+    }
+.colorRowsSection{
+  width:260px;
+}
+    .checkGrid{
+      grid-template-columns:1fr 1fr;
+    }
+
+    .headBtns{
+      width:100%;
+    }
+
+    .confirmBtns{
+      flex-direction:column-reverse;
+    }
+
+    .confirmBtns .btn{
+      width:100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+            <div class="inlineMetaBox">
+           <div class="field">
+  <div class="label">title</div>
+  <input type="text" id="titleInput" placeholder="数字のみ" />
+
+  <div style="margin-top:10px;">
+    <div class="label">Shop Brand</div>
+    <div class="subTitle">BrandSettings のブランド一覧</div>
+    <div id="brandListBox" class="list"></div>
+  </div>
+</div>
+
+            <div class="field fieldCompact">
+              <div class="label">ブランド</div>
+              <select id="brandSelect">
+                <option value="">ブランドを選択</option>
+              </select>
+              <div style="margin-top:8px;">
+                <button type="button" id="showListBtn" class="btn">表示</button>
+              </div>
+            </div>
+
+            <div class="field fieldCompact">
+              <div class="label">slughead</div>
+              <input type="text" id="slugheadInput" placeholder="slughead" />
+            </div>
+
+            <div class="field fieldCompact">
+              <div class="label">価格</div>
+              <input type="text" id="priceInput" placeholder="価格" />
+            </div>
+          </div>
+
+   <section class="section mainImageSection">
+  <h2 class="sectionTitle">Main Image</h2>
+      <div id="mainDrop" class="drop dropMain">
+        <div id="mainHint" class="dropHint">メイン画像を<br>ドロップ</div>
+        <div id="mainClear" class="dropClear" style="display:none;">×</div>
+      </div>
+      <div class="note">※ 画像を入れ直す場合は「×」でクリアできます。</div>
+    </section>
+  <section class="section">
+      <h2 class="sectionTitle">Media Gallery</h2>
+      <div id="mediaGalleryRoot"></div>
+      <div class="footer">
+        <button type="button" id="addMediaRowBtn" class="btn btnPrimary">＋追加</button>
+      </div>
+    </section>
+<section class="section colorRowsSection">
+  <h2 class="sectionTitle">Color Rows</h2>
+      <div id="colorRowsRoot"></div>
+      <div class="footer">
+        <button type="button" id="addColorRowBtn" class="btn btnPrimary">＋追加</button>
+      </div>
+    </section>
+
+   
+
+    <section class="section">
+      <h2 class="sectionTitle">Pinterest Feed</h2>
+      <div class="headBtns">
+        <button type="button" id="generateParentBtn" class="btn btnPrimary">Pinterest親フィード生成</button>
+        <button type="button" id="generateVariantBtn" class="btn btnPrimary">Pinterest子フィード生成</button>
+      </div>
+      <div id="pinterestMsg" class="statusText"></div>
+    </section>
+
+   
+
+        <div>
+            
+
+  
+
+
+
+          <div class="metaGrid">
+            <div class="field">
+              <div class="label">公開先</div>
+              <div class="checkPanel">
+                <div class="checkList" id="liveviewCheckList">
+                  <label class="checkItem">
+                    <input type="checkbox" id="liveviewShop" value="shop" />
+                    <span>Shop</span>
+                  </label>
+                  <label class="checkItem">
+                    <input type="checkbox" id="liveviewLinkCatalog" value="linkCatalog" />
+                    <span>Link Catalog</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">サイズ</div>
+            <div class="checkPanel">
+              <div class="checkGrid" id="sizeCheckList"></div>
+            </div>
+          </div>
+
+       
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">View More</div>
+        <button type="button" id="viewMoreToggle" class="viewMoreToggle">View More を開く</button>
+        <div id="viewMorePanel" class="viewMorePanel">
+ <section class="section">
+      <h2 class="sectionTitle">セールステキスト入力</h2>
+
+      <div class="productBox">
+        <div class="previewBox">
+          <div class="previewEmpty" id="salesPreviewEmpty">メイン画像なし</div>
+          <img id="salesMainPreview" src="" alt="" style="display:none;" />
+        </div>
+     <div class="field">
+            <div class="label">商品番号</div>
+            <div class="productNo" id="productNoBox"></div>
+          </div>
+          <div class="field">
+            <div class="label">description</div>
+            <textarea id="descriptionEditor" class="plainBox descriptionBox" placeholder="description を入力"></textarea>
+          </div>
+
+          <div class="field">
+            <div class="label">salesCatch</div>
+            <div class="toolbar">
+              <button type="button" class="toolBtn" data-cmd="bold" data-target="salesCatchEditor"><b>B</b></button>
+              <button type="button" class="toolBtn" data-cmd="italic" data-target="salesCatchEditor"><i>I</i></button>
+              <button type="button" class="toolBtn" data-cmd="underline" data-target="salesCatchEditor"><u>U</u></button>
+
+              <select id="catchFontSizeSelect" class="toolSelect">
+                <option value="">文字サイズ</option>
+                <option value="2">小</option>
+                <option value="3">標準</option>
+                <option value="4">やや大</option>
+                <option value="5">大</option>
+                <option value="6">特大</option>
+              </select>
+
+              <button type="button" class="toolBtn" data-cmd="justifyLeft" data-target="salesCatchEditor">左</button>
+              <button type="button" class="toolBtn" data-cmd="justifyCenter" data-target="salesCatchEditor">中</button>
+              <button type="button" class="toolBtn" data-cmd="justifyRight" data-target="salesCatchEditor">右</button>
+              <button type="button" class="toolBtn" id="clearCatchButton">クリア</button>
+            </div>
+            <div id="salesCatchEditor" class="editor editorCatch" contenteditable="true" data-placeholder="salesCatch を入力"></div>
+          </div>
+
+          <div class="field">
+            <div class="label">salesTexts</div>
+            <div class="toolbar">
+              <button type="button" class="toolBtn" data-cmd="bold" data-target="salesTextsEditor"><b>B</b></button>
+              <button type="button" class="toolBtn" data-cmd="italic" data-target="salesTextsEditor"><i>I</i></button>
+              <button type="button" class="toolBtn" data-cmd="underline" data-target="salesTextsEditor"><u>U</u></button>
+
+              <select id="textsFontSizeSelect" class="toolSelect">
+                <option value="">文字サイズ</option>
+                <option value="2">小</option>
+                <option value="3">標準</option>
+                <option value="4">やや大</option>
+                <option value="5">大</option>
+                <option value="6">特大</option>
+              </select>
+
+              <button type="button" class="toolBtn" data-cmd="justifyLeft" data-target="salesTextsEditor">左</button>
+              <button type="button" class="toolBtn" data-cmd="justifyCenter" data-target="salesTextsEditor">中</button>
+              <button type="button" class="toolBtn" data-cmd="justifyRight" data-target="salesTextsEditor">右</button>
+              <button type="button" class="toolBtn" data-cmd="insertUnorderedList" data-target="salesTextsEditor">・</button>
+              <button type="button" class="toolBtn" data-cmd="insertOrderedList" data-target="salesTextsEditor">1.</button>
+              <button type="button" class="toolBtn" id="clearTextsButton">クリア</button>
+            </div>
+            <div id="salesTextsEditor" class="editor editorTexts" contenteditable="true" data-placeholder="salesTexts を入力"></div>
+          </div>
+
+          <div class="field">
+            <div class="label">View More 本文</div>
+            <div id="viewMoreEditor" class="editor editorTexts" contenteditable="true" data-placeholder="View More を入力"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="footer">
+        <button type="button" id="decisionBtn" class="btn btnPrimary">決定</button>
+      </div>
+
+      
+    </section>
+  </div>
+
+  <div id="confirmOverlay" class="confirmOverlay">
+    <div class="confirmBox">
+      <div id="confirmText" class="confirmText"></div>
+     <div class="confirmBtns">
+  <button type="button" id="confirmNoBtn" class="btn">いいえ</button>
+  <button type="button" id="confirmYesBtn" class="btn btnPrimary">はい</button>
+  <button type="button" id="responseOkBtn" class="btn btnPrimary" style="display:none;">OK</button>
+</div>
+    </div>
+  </div>
+
+  <script>
+    const SIZE_OPTIONS = [
+      { label:"21.5cm", value:"21.5" },
+      { label:"22.0cm", value:"22.0" },
+      { label:"22.5cm", value:"22.5" },
+      { label:"23.0cm", value:"23.0" },
+      { label:"23.5cm", value:"23.5" },
+      { label:"24.0cm", value:"24.0" },
+      { label:"24.5cm", value:"24.5" },
+      { label:"25.0cm", value:"25.0" },
+      { label:"S", value:"S" },
+      { label:"M", value:"M" },
+      { label:"L", value:"L" },
+      { label:"LL", value:"LL" }
+    ];
+
+    let brandList = [];
+    let brandOptions = [];
+    let currentShopBrand = "";
+
+    let currentMainImageUrl = "";
+    let currentMainObjectUrl = "";
+
+    let colorRows = [];
+    let mediagalleryRows = [];
+
+    let currentProductNo = "";
+    let currentSalesMainImage = "";
+let pendingConfirmType = "";
+let pendingConfirmPayload = null;
+let currentDialogMode = "";
+let pinterestBusy = false;
+
+    let currentTitle = "";
+    let currentBrandValue = "";
+    let currentSlughead = "";
+    let currentPrice = "";
+    let currentLiveviews = [];
+    let currentSizes = [];
+
+    function uid(){
+      return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    }
+
+    function postToWix(msg){
+      try{ window.parent?.postMessage(msg, "*"); }catch{}
+    }
+
+    function normalizePrefix(v){
+      return String(v ?? "").trim().toLowerCase();
+    }
+
+    function parseShopBrand(csv){
+      return String(csv ?? "")
+        .split(",")
+        .map(s => normalizePrefix(s))
+        .filter(Boolean);
+    }
+
+    function unique(arr){
+      return [...new Set(arr)];
+    }
+
+    function buildShopBrandFromChecked(){
+      const checked = Array.from(document.querySelectorAll('input[data-prefix]:checked'))
+        .map(el => normalizePrefix(el.getAttribute("data-prefix")))
+        .filter(Boolean);
+      return unique(checked).join(",");
+    }
+
+    function renderBrandList(){
+      const box = document.getElementById("brandListBox");
+      const selectedSet = new Set(parseShopBrand(currentShopBrand));
+
+      if (!Array.isArray(brandList) || brandList.length === 0){
+        box.className = "";
+        box.innerHTML = '<div class="empty">ブランド一覧がありません</div>';
+        return;
+      }
+
+      box.className = "list";
+      box.innerHTML = "";
+
+      brandList.forEach((item, index) => {
+        const name = String(item?.name ?? "").trim();
+        const prefix = normalizePrefix(item?.prefix);
+        if (!name || !prefix) return;
+
+        const row = document.createElement("label");
+        row.className = "brandRow";
+        row.setAttribute("for", `brand_${index}`);
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.id = `brand_${index}`;
+        cb.checked = selectedSet.has(prefix);
+        cb.setAttribute("data-prefix", prefix);
+        cb.addEventListener("change", () => {
+          currentShopBrand = buildShopBrandFromChecked();
+          postToWix({ type:"shopBrandChanged", reason:"checkbox", shopBrand: currentShopBrand });
+        });
+
+        const span = document.createElement("span");
+        span.textContent = name;
+
+        row.appendChild(cb);
+        row.appendChild(span);
+        box.appendChild(row);
+      });
+    }
+
+    function renderBrandSelect(){
+      const el = document.getElementById("brandSelect");
+      const current = String(currentBrandValue || "");
+      el.innerHTML = '<option value="">ブランドを選択</option>';
+
+      (Array.isArray(brandOptions) ? brandOptions : []).forEach((item) => {
+        const value = String(item?.value ?? "").trim();
+        const label = String(item?.label ?? value).trim();
+        if (!value) return;
+
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        if (value === current) opt.selected = true;
+        el.appendChild(opt);
+      });
+
+      el.value = current;
+    }
+
+    function renderSizeChecks(){
+      const root = document.getElementById("sizeCheckList");
+      const selected = new Set((Array.isArray(currentSizes) ? currentSizes : []).map(v => String(v)));
+
+      root.innerHTML = "";
+      SIZE_OPTIONS.forEach((item, index) => {
+const row = document.createElement("div");
+row.className = "checkItem";
+
+const cb = document.createElement("input");
+cb.type = "checkbox";
+cb.id = `size_${index}`;
+cb.value = String(item.value);
+cb.checked = selected.has(String(item.value));
+cb.addEventListener("change", () => {
+  currentSizes = Array.from(root.querySelectorAll('input[type="checkbox"]:checked')).map(el => String(el.value));
+  postToWix({ type:"sizeCheckChanged", values: currentSizes.slice() });
+});
+
+const span = document.createElement("span");
+span.textContent = String(item.label);
+
+row.appendChild(cb);
+row.appendChild(span);
+root.appendChild(row);
+      });
+    }
+
+    function setLiveviewChecks(values){
+      const arr = Array.isArray(values) ? values.map(v => String(v)) : [];
+      currentLiveviews = arr.slice();
+      document.getElementById("liveviewShop").checked = arr.includes("shop");
+      document.getElementById("liveviewLinkCatalog").checked = arr.includes("linkCatalog");
+    }
+
+    function collectLiveviews(){
+      const vals = [];
+      if (document.getElementById("liveviewShop").checked) vals.push("shop");
+      if (document.getElementById("liveviewLinkCatalog").checked) vals.push("linkCatalog");
+      currentLiveviews = vals.slice();
+      return vals;
+    }
+
+      function bindProductBasicEvents(){
+      document.getElementById("titleInput").addEventListener("input", (e) => {
+        currentTitle = String(e.target.value || "");
+        postToWix({ type:"titleChanged", value: currentTitle });
+      });
+
+      document.getElementById("brandSelect").addEventListener("change", (e) => {
+        currentBrandValue = String(e.target.value || "");
+        postToWix({ type:"brandDropdownChanged", value: currentBrandValue });
+      });
+
+      document.getElementById("slugheadInput").addEventListener("input", (e) => {
+        currentSlughead = String(e.target.value || "");
+        postToWix({ type:"slugheadChanged", value: currentSlughead });
+      });
+
+      document.getElementById("priceInput").addEventListener("input", (e) => {
+        currentPrice = String(e.target.value || "");
+        postToWix({ type:"priceChanged", value: currentPrice });
+      });
+
+      document.getElementById("liveviewShop").addEventListener("change", () => {
+        postToWix({ type:"liveviewCheckChanged", values: collectLiveviews() });
+      });
+
+      document.getElementById("liveviewLinkCatalog").addEventListener("change", () => {
+        postToWix({ type:"liveviewCheckChanged", values: collectLiveviews() });
+      });
+    }
+
+    function setActive(drop, on){
+      if (!drop) return;
+      if (on) drop.classList.add("active");
+      else drop.classList.remove("active");
+    }
+
+    function readAsBytes(file){
+      return file.arrayBuffer().then(buf => Array.from(new Uint8Array(buf)));
+    }
+
+    function clearCurrentMainObjectUrl(){
+      try{ if (currentMainObjectUrl) URL.revokeObjectURL(currentMainObjectUrl); }catch{}
+      currentMainObjectUrl = "";
+    }
+
+    function setSalesPreviewImage(url){
+      const empty = document.getElementById("salesPreviewEmpty");
+      const img = document.getElementById("salesMainPreview");
+      if (!url){
+        img.src = "";
+        img.style.display = "none";
+        empty.style.display = "block";
+      } else {
+        img.src = url;
+        img.style.display = "block";
+        empty.style.display = "none";
+      }
+    }
+
+    function setMainImage(url, options = {}){
+      const box = document.getElementById("mainDrop");
+      const hint = document.getElementById("mainHint");
+      const clear = document.getElementById("mainClear");
+      const existing = box.querySelector("img.preview");
+      if (existing) existing.remove();
+
+      if (!url){
+        hint.style.display = "";
+        clear.style.display = "none";
+        currentMainImageUrl = "";
+        if (options.clearObjectUrl !== false) clearCurrentMainObjectUrl();
+        setSalesPreviewImage("");
+        return;
+      }
+
+      const img = document.createElement("img");
+      img.className = "preview";
+      img.src = url;
+      box.appendChild(img);
+      hint.style.display = "none";
+      clear.style.display = "block";
+      currentMainImageUrl = url;
+      setSalesPreviewImage(url);
+    }
+
+    function initMainDrop(){
+      const box = document.getElementById("mainDrop");
+      const clear = document.getElementById("mainClear");
+
+      clear.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMainImage("");
+        postToWix({ type:"mainimageCleared" });
+      });
+
+      box.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        setActive(box, true);
+      });
+      box.addEventListener("dragleave", () => setActive(box, false));
+      box.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        setActive(box, false);
+        const f = e.dataTransfer?.files?.[0];
+        if (!f || !/^image\//i.test(f.type)) return;
+
+        try{
+          clearCurrentMainObjectUrl();
+          currentMainObjectUrl = URL.createObjectURL(f);
+          setMainImage(currentMainObjectUrl, { clearObjectUrl:false });
+
+          const bytes = await readAsBytes(f);
+          postToWix({
+            type: "mainimageDropped",
+            bytes,
+            mimeType: String(f.type || ""),
+            fileName: String(f.name || "")
+          });
+        }catch{}
+      });
+    }
+
+    function makeColorRow(row){
+      return {
+        id: String(row?.id || row?._id || uid()),
+        color: String(row?.color || ""),
+        img1Url: String(row?.img1Url || ""),
+        img2Url: String(row?.img2Url || "")
+      };
+    }
+
+    function makeMediaRow(row){
+      return {
+        id: String(row?.id || row?._id || uid()),
+        imgUrl: String(row?.imgUrl || "")
+      };
+    }
+
+    function createImageDrop({ area, rowId, slot, currentUrl, square = true, onClear, onDrop }){
+      const box = document.createElement("div");
+      box.className = "drop " + (square ? "dropSquare" : "dropMain");
+
+      const hint = document.createElement("div");
+      hint.className = "dropHint";
+      hint.innerHTML = "画像を<br>ドロップ";
+
+      let objectUrl = "";
+
+      function clearObjectUrl(){
+        try{ if (objectUrl) URL.revokeObjectURL(objectUrl); }catch{}
+        objectUrl = "";
+      }
+
+      function setPreview(url){
+        box.innerHTML = "";
+        if (!url){
+          box.appendChild(hint);
+          return;
+        }
+        const img = document.createElement("img");
+        img.className = "preview";
+        img.src = url;
+        box.appendChild(img);
+
+        const clr = document.createElement("div");
+        clr.className = "dropClear";
+        clr.textContent = "×";
+        clr.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearObjectUrl();
+          setPreview("");
+          if (typeof onClear === "function") onClear();
+        });
+        box.appendChild(clr);
+      }
+
+      setPreview(currentUrl);
+
+      box.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        setActive(box, true);
+      });
+      box.addEventListener("dragleave", () => setActive(box, false));
+      box.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        setActive(box, false);
+
+        const f = e.dataTransfer?.files?.[0];
+        if (!f || !/^image\//i.test(f.type)) return;
+
+        try{
+          clearObjectUrl();
+          objectUrl = URL.createObjectURL(f);
+          setPreview(objectUrl);
+          const bytes = await readAsBytes(f);
+          if (typeof onDrop === "function") {
+            onDrop({
+              area,
+              rowId: String(rowId || ""),
+              slot: Number(slot || 0),
+              bytes,
+              mimeType: String(f.type || ""),
+              fileName: String(f.name || "")
+            });
+          }
+        }catch{}
+      });
+
+      return box;
+    }
+
+    function renderColorRows(){
+      const root = document.getElementById("colorRowsRoot");
+      root.innerHTML = "";
+
+      if (!Array.isArray(colorRows) || colorRows.length === 0){
+        colorRows = [ makeColorRow({}) ];
+      }
+
+      colorRows.forEach((r, idx) => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "row";
+
+        const head = document.createElement("div");
+        head.className = "rowHead";
+
+        const title = document.createElement("div");
+        title.className = "rowTitle";
+        title.textContent = "行 " + (idx + 1);
+        head.appendChild(title);
+
+        const headBtns = document.createElement("div");
+        headBtns.className = "headBtns";
+
+        const upd = document.createElement("button");
+        upd.type = "button";
+        upd.className = "btn btnPrimary";
+        upd.textContent = "更新";
+        upd.addEventListener("click", () => {
+          postToWix({ type:"requestColorRowUpdate", rowId:String(r.id || "") });
+        });
+        headBtns.appendChild(upd);
+
+const del = document.createElement("button");
+del.type = "button";
+del.className = "btn btnDanger";
+del.textContent = "削除";
+del.addEventListener("click", () => {
+  const rowId = String(r.id || "");
+  if (colorRows.length <= 1) {
+    colorRows = [ makeColorRow({}) ];
+  } else {
+    colorRows = colorRows.filter(x => String(x.id || "") !== rowId);
+  }
+  renderColorRows();
+  notifyHeight();
+  postToWix({ type:"requestColorRowDelete", rowId });
+});
+headBtns.appendChild(del);
+
+        head.appendChild(headBtns);
+        rowEl.appendChild(head);
+
+        const grid = document.createElement("div");
+        grid.className = "colorGrid";
+
+        const colA = document.createElement("div");
+        colA.className = "colColor";
+        const la = document.createElement("div");
+        la.className = "label";
+        la.textContent = "Color";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = String(r.color || "");
+        input.addEventListener("input", (e) => {
+          postToWix({
+            type:"patchColorRow",
+            rowId:String(r.id || ""),
+            patch:{ color: String(e.target.value || "") }
+          });
+        });
+        colA.appendChild(la);
+        colA.appendChild(input);
+
+        const colB = document.createElement("div");
+        colB.className = "colD1";
+        const lb = document.createElement("div");
+        lb.className = "label";
+        lb.textContent = "DROP 1";
+        colB.appendChild(lb);
+        colB.appendChild(createImageDrop({
+          area: "colorRows",
+          rowId: r.id,
+          slot: 1,
+          currentUrl: r.img1Url || "",
+          square: true,
+          onClear: () => {
+            postToWix({ type:"clearColorRowImage", rowId:String(r.id || ""), slot:1 });
+          },
+          onDrop: (payload) => {
+            postToWix({
+              type:"colorRowImageDropped",
+              rowId: payload.rowId,
+              slot: payload.slot,
+              bytes: payload.bytes,
+              mimeType: payload.mimeType,
+              fileName: payload.fileName
+            });
+          }
+        }));
+
+        const colC = document.createElement("div");
+        colC.className = "colD2";
+        const lc = document.createElement("div");
+        lc.className = "label";
+        lc.textContent = "DROP 2";
+        colC.appendChild(lc);
+        colC.appendChild(createImageDrop({
+          area: "colorRows",
+          rowId: r.id,
+          slot: 2,
+          currentUrl: r.img2Url || "",
+          square: true,
+          onClear: () => {
+            postToWix({ type:"clearColorRowImage", rowId:String(r.id || ""), slot:2 });
+          },
+          onDrop: (payload) => {
+            postToWix({
+              type:"colorRowImageDropped",
+              rowId: payload.rowId,
+              slot: payload.slot,
+              bytes: payload.bytes,
+              mimeType: payload.mimeType,
+              fileName: payload.fileName
+            });
+          }
+        }));
+
+        grid.appendChild(colA);
+        grid.appendChild(colB);
+        grid.appendChild(colC);
+        rowEl.appendChild(grid);
+        root.appendChild(rowEl);
+      });
+    }
+
+    function renderMediaRows(){
+      const root = document.getElementById("mediaGalleryRoot");
+      root.innerHTML = "";
+
+      if (!Array.isArray(mediagalleryRows) || mediagalleryRows.length === 0){
+        mediagalleryRows = [ makeMediaRow({}) ];
+      }
+
+      mediagalleryRows.forEach((r, idx) => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "row";
+
+        const head = document.createElement("div");
+        head.className = "rowHead";
+
+        const title = document.createElement("div");
+        title.className = "rowTitle";
+        title.textContent = "行 " + (idx + 1);
+        head.appendChild(title);
+
+        const headBtns = document.createElement("div");
+        headBtns.className = "headBtns";
+
+        const upd = document.createElement("button");
+        upd.type = "button";
+        upd.className = "btn btnPrimary";
+        upd.textContent = "更新";
+        upd.addEventListener("click", () => {
+          postToWix({ type:"requestMediaGalleryRowUpdate", rowId:String(r.id || "") });
+        });
+        headBtns.appendChild(upd);
+
+ const del = document.createElement("button");
+del.type = "button";
+del.className = "btn btnDanger";
+del.textContent = "削除";
+del.addEventListener("click", () => {
+  const rowId = String(r.id || "");
+  if (mediagalleryRows.length <= 1) {
+    mediagalleryRows = [ makeMediaRow({}) ];
+  } else {
+    mediagalleryRows = mediagalleryRows.filter(x => String(x.id || "") !== rowId);
+  }
+  renderMediaRows();
+  notifyHeight();
+  postToWix({ type:"requestMediaGalleryRowDelete", rowId });
+});
+headBtns.appendChild(del);
+
+        head.appendChild(headBtns);
+        rowEl.appendChild(head);
+
+        const wrap = document.createElement("div");
+        wrap.className = "mediaDropWrap";
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = "IMAGE";
+        wrap.appendChild(label);
+        wrap.appendChild(createImageDrop({
+          area: "mediagallery",
+          rowId: r.id,
+          slot: 1,
+          currentUrl: r.imgUrl || "",
+          square: true,
+          onClear: () => {
+            postToWix({ type:"clearMediaGalleryRowImage", rowId:String(r.id || "") });
+          },
+          onDrop: (payload) => {
+            postToWix({
+              type:"mediaGalleryRowImageDropped",
+              rowId: payload.rowId,
+              bytes: payload.bytes,
+              mimeType: payload.mimeType,
+              fileName: payload.fileName
+            });
+          }
+        }));
+        rowEl.appendChild(wrap);
+
+        root.appendChild(rowEl);
+      });
+    }
+
+    function safeText(v){
+      return String(v ?? "");
+    }
+
+    function safeHtml(v){
+      return String(v ?? "");
+    }
+
+    function normalizeEditorHtml(html){
+      const s = String(html ?? "").trim();
+      if (!s) return "";
+      if (s === "<br>") return "";
+      if (s === "<div><br></div>") return "";
+      if (s === "<p><br></p>") return "";
+      return s;
+    }
+
+    function setStatus(text){
+  openResponseBox(String(text ?? "").trim());
+}
+    function setPinterestMsg(text){
+      document.getElementById("pinterestMsg").textContent = String(text ?? "").trim();
+      notifyHeight();
+    }
+
+      function setPinterestBusy(isBusy){
+      pinterestBusy = !!isBusy;
+      document.getElementById("generateParentBtn").disabled = pinterestBusy;
+      document.getElementById("generateVariantBtn").disabled = pinterestBusy;
+    }
+
+function openConfirmBox(text, confirmType, payload){
+  currentDialogMode = "confirm";
+  pendingConfirmType = String(confirmType || "");
+  pendingConfirmPayload = payload ?? null;
+
+  document.getElementById("confirmText").textContent = String(text || "");
+  document.getElementById("confirmNoBtn").style.display = "";
+  document.getElementById("confirmYesBtn").style.display = "";
+  document.getElementById("responseOkBtn").style.display = "none";
+  document.getElementById("confirmOverlay").classList.add("open");
+  notifyHeight();
+}
+
+function openResponseBox(text){
+  currentDialogMode = "response";
+  pendingConfirmType = "";
+  pendingConfirmPayload = null;
+
+  document.getElementById("confirmText").textContent = String(text || "");
+  document.getElementById("confirmNoBtn").style.display = "none";
+  document.getElementById("confirmYesBtn").style.display = "none";
+  document.getElementById("responseOkBtn").style.display = "";
+  document.getElementById("confirmOverlay").classList.add("open");
+  notifyHeight();
+}
+
+function closeConfirmBox(){
+  currentDialogMode = "";
+  pendingConfirmType = "";
+  pendingConfirmPayload = null;
+  document.getElementById("confirmText").textContent = "";
+  document.getElementById("confirmNoBtn").style.display = "";
+  document.getElementById("confirmYesBtn").style.display = "";
+  document.getElementById("responseOkBtn").style.display = "none";
+  document.getElementById("confirmOverlay").classList.remove("open");
+  notifyHeight();
+}
+
+    function notifyHeight(){
+
+    }
+    function sendSalesChange(){
+      postToWix({
+        type: "salesTextChanged",
+        productNo: String(currentProductNo || "").trim(),
+        description: safeText(document.getElementById("descriptionEditor").value),
+        salesCatch: normalizeEditorHtml(document.getElementById("salesCatchEditor").innerHTML),
+        salesTexts: normalizeEditorHtml(document.getElementById("salesTextsEditor").innerHTML),
+        viewMore: normalizeEditorHtml(document.getElementById("viewMoreEditor").innerHTML)
+      });
+      notifyHeight();
+    }
+
+    function setProductInfo(data){
+      currentProductNo = String(data?.productNo ?? "").trim();
+      currentSalesMainImage = String(data?.mainImageUrl ?? "").trim();
+      document.getElementById("productNoBox").textContent = currentProductNo || "";
+      setSalesPreviewImage(currentSalesMainImage);
+      notifyHeight();
+    }
+
+      function setSalesEditorValues(data){
+      document.getElementById("descriptionEditor").value = safeText(data?.description);
+      document.getElementById("salesCatchEditor").innerHTML = safeHtml(data?.salesCatch);
+      document.getElementById("salesTextsEditor").innerHTML = safeHtml(data?.salesTexts);
+      document.getElementById("viewMoreEditor").innerHTML = safeHtml(data?.viewMore);
+      notifyHeight();
+    }
+
+
+      function setProductBasics(data){
+      if (Object.prototype.hasOwnProperty.call(data, "title")) {
+        currentTitle = String(data.title ?? "");
+        document.getElementById("titleInput").value = currentTitle;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "brandOptions")) {
+        brandOptions = Array.isArray(data.brandOptions) ? data.brandOptions.slice() : [];
+        renderBrandSelect();
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "brand")) {
+        currentBrandValue = String(data.brand ?? "");
+        renderBrandSelect();
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "slughead")) {
+        currentSlughead = String(data.slughead ?? "");
+        document.getElementById("slugheadInput").value = currentSlughead;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "priceText")) {
+        currentPrice = String(data.priceText ?? "");
+        document.getElementById("priceInput").value = currentPrice;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "liveviews")) {
+        setLiveviewChecks(Array.isArray(data.liveviews) ? data.liveviews : []);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "sizes")) {
+        currentSizes = Array.isArray(data.sizes) ? data.sizes.map(v => String(v)) : [];
+        renderSizeChecks();
+      }
+    }
+
+    function focusEditorById(targetId){
+      const el = document.getElementById(targetId === "salesTextsEditor" ? "salesTextsEditor" : "salesCatchEditor");
+      el.focus();
+      return el;
+    }
+
+    function execForTarget(command, targetId, value){
+      focusEditorById(targetId);
+      document.execCommand(command, false, value);
+      sendSalesChange();
+    }
+
+    function initSalesEditor(){
+      document.querySelectorAll(".toolBtn[data-cmd]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const cmd = btn.getAttribute("data-cmd");
+          const targetId = btn.getAttribute("data-target") || "salesCatchEditor";
+          execForTarget(cmd, targetId);
+        });
+      });
+
+      document.getElementById("catchFontSizeSelect").addEventListener("change", () => {
+        const v = String(document.getElementById("catchFontSizeSelect").value || "").trim();
+        if (!v) return;
+        execForTarget("fontSize", "salesCatchEditor", v);
+        document.getElementById("catchFontSizeSelect").value = "";
+      });
+
+      document.getElementById("textsFontSizeSelect").addEventListener("change", () => {
+        const v = String(document.getElementById("textsFontSizeSelect").value || "").trim();
+        if (!v) return;
+        execForTarget("fontSize", "salesTextsEditor", v);
+        document.getElementById("textsFontSizeSelect").value = "";
+      });
+
+      document.getElementById("clearCatchButton").addEventListener("click", () => {
+        document.getElementById("salesCatchEditor").innerHTML = "";
+        sendSalesChange();
+      });
+
+      document.getElementById("clearTextsButton").addEventListener("click", () => {
+        document.getElementById("salesTextsEditor").innerHTML = "";
+        sendSalesChange();
+      });
+
+        document.getElementById("descriptionEditor").addEventListener("input", sendSalesChange);
+      document.getElementById("salesCatchEditor").addEventListener("input", sendSalesChange);
+      document.getElementById("salesTextsEditor").addEventListener("input", sendSalesChange);
+      document.getElementById("viewMoreEditor").addEventListener("input", sendSalesChange);
+
+      document.getElementById("viewMoreToggle").addEventListener("click", () => {
+        const panel = document.getElementById("viewMorePanel");
+        const btn = document.getElementById("viewMoreToggle");
+        const open = panel.classList.contains("open");
+
+        if (open) {
+          panel.classList.remove("open");
+          btn.textContent = "View More を開く";
+        } else {
+          panel.classList.add("open");
+          btn.textContent = "View More を閉じる";
+        }
+
+        notifyHeight();
+      });
+    }
+
+ function initButtons(){
+const addColorRowBtn = document.getElementById("addColorRowBtn");
+if (addColorRowBtn) {
+  addColorRowBtn.addEventListener("click", () => {
+    colorRows.push(makeColorRow({}));
+    renderColorRows();
+    notifyHeight();
+    postToWix({ type:"addColorRow" });
+  });
+}
+
+const addMediaRowBtn = document.getElementById("addMediaRowBtn");
+if (addMediaRowBtn) {
+  addMediaRowBtn.addEventListener("click", () => {
+    mediagalleryRows.push(makeMediaRow({}));
+    renderMediaRows();
+    notifyHeight();
+    postToWix({ type:"addMediaGalleryRow" });
+  });
+}
+  const showListBtn = document.getElementById("showListBtn");
+  if (showListBtn) {
+    showListBtn.addEventListener("click", () => {
+      postToWix({ type:"showListClick" });
+    });
+  }
+
+  const decisionBtn = document.getElementById("decisionBtn");
+  if (decisionBtn) {
+    decisionBtn.addEventListener("click", () => {
+      postToWix({ type:"decisionClick" });
+    });
+  }
+
+  const confirmYesBtn = document.getElementById("confirmYesBtn");
+  if (confirmYesBtn) {
+    confirmYesBtn.addEventListener("click", () => {
+      postToWix({
+        type:"confirmDialogResult",
+        confirmed:true,
+        confirmType: pendingConfirmType,
+        payload: pendingConfirmPayload
+      });
+      closeConfirmBox();
+    });
+  }
+const responseOkBtn = document.getElementById("responseOkBtn");
+if (responseOkBtn) {
+  responseOkBtn.addEventListener("click", () => {
+    closeConfirmBox();
+  });
+}
+  const confirmNoBtn = document.getElementById("confirmNoBtn");
+  if (confirmNoBtn) {
+    confirmNoBtn.addEventListener("click", () => {
+      postToWix({
+        type:"confirmDialogResult",
+        confirmed:false,
+        confirmType: pendingConfirmType,
+        payload: pendingConfirmPayload
+      });
+      closeConfirmBox();
+    });
+  }
+
+  const generateParentBtn = document.getElementById("generateParentBtn");
+  if (generateParentBtn) {
+    generateParentBtn.addEventListener("click", () => {
+      postToWix({ type:"pinterestFeedGenerateClick", mode:"parent" });
+    });
+  }
+
+  const generateVariantBtn = document.getElementById("generateVariantBtn");
+  if (generateVariantBtn) {
+    generateVariantBtn.addEventListener("click", () => {
+      postToWix({ type:"pinterestFeedGenerateClick", mode:"variant" });
+    });
+  }
+}
+
+    function applyState(data){
+      if (Array.isArray(data.brands)) {
+        brandList = data.brands.slice();
+      }
+      if (Object.prototype.hasOwnProperty.call(data, "currentShopBrand")) {
+        currentShopBrand = String(data.currentShopBrand ?? "");
+      }
+      if (Object.prototype.hasOwnProperty.call(data, "mainImageUrl")) {
+        clearCurrentMainObjectUrl();
+        setMainImage(String(data.mainImageUrl || ""), { clearObjectUrl:false });
+      }
+      if (Array.isArray(data.colorRows)) {
+        colorRows = data.colorRows.map(makeColorRow);
+      }
+      if (Array.isArray(data.mediagalleryRows)) {
+        mediagalleryRows = data.mediagalleryRows.map(makeMediaRow);
+      }
+
+      renderBrandList();
+      renderColorRows();
+      renderMediaRows();
+
+      setProductInfo({
+        productNo: data.productNo,
+        mainImageUrl: Object.prototype.hasOwnProperty.call(data, "mainImageUrl") ? String(data.mainImageUrl || "") : currentSalesMainImage
+      });
+
+         setProductBasics({
+        title: data.title,
+        brandOptions: data.brandOptions,
+        brand: data.brand,
+        slughead: data.slughead,
+        priceText: data.priceText,
+        liveviews: data.liveviews,
+        sizes: data.sizes
+      });
+
+setSalesEditorValues({
+  description: data.description,
+  salesCatch: data.salesCatch,
+  salesTexts: data.salesTexts
+});
+    }
+
+    window.addEventListener("message", (event) => {
+      const d = event?.data;
+      if (!d || typeof d !== "object") return;
+
+      if (d.type === "initProductSummary" || d.type === "setProductSummaryState") {
+        applyState(d);
+        return;
+      }
+
+      if (d.type === "setCurrentShopBrand") {
+        currentShopBrand = String(d.currentShopBrand ?? "");
+        renderBrandList();
+        return;
+      }
+
+      if (d.type === "setBrandList") {
+        brandList = Array.isArray(d.brands) ? d.brands.slice() : [];
+        renderBrandList();
+        return;
+      }
+
+      if (d.type === "setBrandOptions") {
+        brandOptions = Array.isArray(d.options) ? d.options.slice() : [];
+        renderBrandSelect();
+        return;
+      }
+
+      if (d.type === "setProductBasics") {
+        setProductBasics(d);
+        return;
+      }
+
+      if (d.type === "mainimageSetUrl") {
+        clearCurrentMainObjectUrl();
+        setMainImage(String(d.url || ""), { clearObjectUrl:false });
+        return;
+      }
+
+      if (d.type === "setColorRows") {
+        colorRows = Array.isArray(d.rows) ? d.rows.map(makeColorRow) : [ makeColorRow({}) ];
+        renderColorRows();
+        return;
+      }
+
+          if (d.type === "setMediaGalleryRows") {
+        mediagalleryRows = Array.isArray(d.rows) ? d.rows.map(makeMediaRow) : [ makeMediaRow({}) ];
+        renderMediaRows();
+        return;
+      }
+
+      if (d.type === "pinterestFeedSetResponse") {
+        setPinterestMsg(d.message || "");
+        return;
+      }
+
+      if (d.type === "setResponseText") {
+        setStatus(d.text || "");
+        return;
+      }
+
+      if (d.type === "pinterestFeedSetBusy") {
+        setPinterestBusy(!!d.busy);
+        return;
+      }
+
+  if (d.type === "setSalesEditorData") {
+  setProductInfo(d);
+  setProductBasics(d);
+  setSalesEditorValues(d);
+  return;
+}
+
+      if (d.type === "setSalesProductInfo") {
+        setProductInfo(d);
+        setProductBasics(d);
+        return;
+      }
+
+        if (d.type === "setSalesEditorValues") {
+        setSalesEditorValues(d);
+        return;
+      }
+
+      if (d.type === "openConfirmDialog") {
+        openConfirmBox(d.text || "", d.confirmType || "", d.payload || null);
+        return;
+      }
+
+      if (d.type === "closeConfirmDialog") {
+        closeConfirmBox();
+        return;
+      }
+
+      if (d.type === "clearSalesEditor") {
+            currentProductNo = "";
+        currentSalesMainImage = "";
+        currentTitle = "";
+        currentBrandValue = "";
+        currentSlughead = "";
+        currentPrice = "";
+        currentLiveviews = [];
+        currentSizes = [];
+
+        document.getElementById("productNoBox").textContent = "";
+        setSalesPreviewImage("");
+        document.getElementById("titleInput").value = "";
+        document.getElementById("brandSelect").value = "";
+        document.getElementById("slugheadInput").value = "";
+        document.getElementById("priceInput").value = "";
+        setLiveviewChecks([]);
+        renderSizeChecks();
+
+          document.getElementById("descriptionEditor").value = "";
+        document.getElementById("salesCatchEditor").innerHTML = "";
+        document.getElementById("salesTextsEditor").innerHTML = "";
+        document.getElementById("viewMoreEditor").innerHTML = "";
+        document.getElementById("viewMorePanel").classList.remove("open");
+        document.getElementById("viewMoreToggle").textContent = "View More を開く";
+        setStatus("クリアしました。");
+        return;
+      }
+    });
+
+   
+window.addEventListener("load", () => {
+  initMainDrop();
+  initButtons();
+  initSalesEditor();
+  bindProductBasicEvents();
+
+  renderBrandList();
+  renderBrandSelect();
+  renderSizeChecks();
+  renderColorRows();
+  renderMediaRows();
+  setLiveviewChecks([]);
+  closeConfirmBox();
+  setPinterestBusy(false);
+  setPinterestMsg("");
+
+  postToWix({ type:"productSummaryReady" });
+  postToWix({ type:"pinterestFeedIframeReady" });
+});
+  </script>
+</body>
+</html>
