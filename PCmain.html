@@ -346,7 +346,35 @@
         /* =========================================
            Philosophy
         ========================================= */
-        .philosophy { padding: 180px 5%; display: flex; align-items: center; justify-content: center; gap: 100px; max-width: 1400px; margin: 0 auto; }
+        /* ✨ 画面幅いっぱいのグレーレンガ背景 */
+        .philosophy-wrap {
+            width: 100%;
+            /* グレーのレンガ調の高画質フリー画像 */
+            background-image: url('https://images.unsplash.com/photo-1511253819057-54070da6da7e?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* スクロール時に背景が固定されるパララックス効果 */
+            position: relative;
+        }
+        /* ✨ 文字を読みやすくするための上品な白の半透明オーバーレイ */
+        .philosophy-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(248, 248, 248, 0.82); /* 透過度82%のプラチナホワイト */
+            z-index: 0;
+        }
+        .philosophy { 
+            position: relative; 
+            z-index: 1; /* 背景オーバーレイより上に表示させる */
+            padding: 180px 5%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 100px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
         .philosophy-img { flex: 1; height: 800px; }
         .philosophy-img img { filter: grayscale(100%) opacity(0.8); }
         .philosophy-text { flex: 1; padding: 40px; }
