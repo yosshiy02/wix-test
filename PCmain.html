@@ -1822,10 +1822,19 @@
         window.addEventListener("message", (event) => {
             const data = event.data || {};
 
+            // ヒーロー画像の変更
             if (data.type === "setHeroImage" && data.heroImageUrl) {
                 const heroBg = document.querySelector(".hero-bg");
                 if (heroBg) {
                     heroBg.style.backgroundImage = `url("${data.heroImageUrl}")`;
+                }
+            }
+
+            // 「The Origin of Style」画像の変更
+            if (data.type === "setPhilosophyImage" && data.philosophyImageUrl) {
+                const philosophyImg = document.querySelector(".philosophy-img img");
+                if (philosophyImg) {
+                    philosophyImg.src = data.philosophyImageUrl;
                 }
             }
         });
