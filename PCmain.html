@@ -780,6 +780,36 @@
             line-height: 1;
         }
 
+        /* 追加: シネマオーバーレイのスタイル（初期は正方形） */
+        .rasim-cinema-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: clamp(300px, 45vh, 500px);
+            height: clamp(300px, 45vh, 500px);
+            background: rgba(17,17,17,0.94);
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            /* 幅と高さが2秒かけてじわーっと広がるトランジション */
+            transition: width 2s cubic-bezier(0.22, 1, 0.36, 1), height 2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s, visibility 0.5s;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+        }
+        .rasim-cinema-overlay.is-playing {
+            opacity: 1;
+            visibility: visible;
+        }
+        .rasim-cinema-overlay.is-expanding {
+            /* モーダルの大きさに合わせて広がる設定 */
+            width: 90vw;
+            height: 90vh;
+        }
+
         .pc-modal-info {
             position: relative;
             z-index: 2;
@@ -1247,6 +1277,8 @@
     
     <!-- PC専用ブランドモーダル：アーカイブでも再利用 -->
     <div class="pc-brand-modal" id="brandModal">
+        <!-- 追加: Rasi:m専用の正方形から広がるシネマオーバーレイ -->
+        <div class="rasim-cinema-overlay" id="rasimCinemaOverlay"></div>
         <div class="pc-modal-panel">
             <div class="pc-modal-watermark" id="modalWatermark">BRAND</div>
 
@@ -1929,23 +1961,86 @@
             document.body.classList.add('modal-open');
             renderModalImage(0);
 
-            // 追加: モーダルが確実に表示されてから Assemble（集める）アニメーションを発動する
-            if(!isArchive) {
-                 // 追加: モーダルのレイアウトが画面上で確定するまでほんの少し（50ミリ秒）待つことで位置ズレを防止
-                 setTimeout(() => {
-                     play3DAssemble(modalTitle);
-                 }, 50);
+            const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
+            const modalPanel = document.querySelector('.pc-modal-panel');
+
+            // 追加: レシームで、かつコードが送られてきている時だけの特別シネマ演出
+            if (!isArchive && brandId === 'rasim' && window.customBrandAnimations && window.customBrandAnimations['rasim']) {
+                // いつもの説明文や画像は一旦隠して触れないようにする
+                modalPanel.style.opacity = '0';
+                modalPanel.style.pointerEvents = 'none';
+
+                // シネマ幕を正方形で表示し、コードを流し込む
+                cinemaOverlay.innerHTML = window.customBrandAnimations['rasim'];
+                cinemaOverlay.style.background = data.theme.bg; // レシームのミモザイエローに合わせる
+                cinemaOverlay.classList.remove('is-expanding');
+                cinemaOverlay.classList.add('is-playing');
+
+                // アニメーションがクライマックスを迎える頃（13.5秒後）に、正方形からモーダルの大きさへじわーっと広がる
+                window.rasimExpandTimer = setTimeout(() => {
+                    cinemaOverlay.classList.add('is-expanding');
+                }, 13500);
+
+                // 広がりきった頃（15.5秒後）にシネマ幕をフワッと消し、いつものパネルと文字集結を出す
+                window.rasimFinishTimer = setTimeout(() => {
+                    cinemaOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                        cinemaOverlay.innerHTML = '';
+                        cinemaOverlay.style.opacity = '';
+                    }, 500);
+
+                    modalPanel.style.opacity = '1';
+                    modalPanel.style.pointerEvents = 'auto';
+
+                    setTimeout(() => { play3DAssemble(modalTitle); }, 50);
+                    gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+                    gsap.fromTo('.modal-anim:not(#modalTitle)',
+                        { y: 30, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
+                    );
+                }, 15500);
+
+            } else {
+                // 他のブランドやアーカイブの時は、シネマ幕を隠していつも通りに表示
+                modalPanel.style.opacity = '1';
+                modalPanel.style.pointerEvents = 'auto';
+                if (cinemaOverlay) {
+                    cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                    cinemaOverlay.innerHTML = '';
+                }
+
+                // 修正: モーダルの位置が画面上で確定するまでほんの少し待ってから、正確な座標へ文字を集める
+                if(!isArchive) {
+                     setTimeout(() => {
+                         play3DAssemble(modalTitle);
+                     }, 50);
+                }
+
+                // ✨ 3Dアニメーションと被らないように、タイトル以外の要素だけを下からフワッと出す
+                gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+                gsap.fromTo('.modal-anim:not(#modalTitle)',
+                    { y: 30, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
+                );
+            }
+        }
+ 
+        function closeBrandModal() {
+            // 追加: シネマ再生中に閉じられた時のための安全リセット
+            clearTimeout(window.rasimExpandTimer);
+            clearTimeout(window.rasimFinishTimer);
+            const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
+            if (cinemaOverlay) {
+                cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                cinemaOverlay.innerHTML = '';
+            }
+            const modalPanel = document.querySelector('.pc-modal-panel');
+            if (modalPanel) {
+                modalPanel.style.opacity = '1';
+                modalPanel.style.pointerEvents = 'auto';
             }
 
-            // ✨ 3Dアニメーションと被らないように、タイトル以外の要素だけを下からフワッと出す
-            gsap.killTweensOf('.modal-anim:not(#modalTitle)');
-            gsap.fromTo('.modal-anim:not(#modalTitle)',
-                { y: 30, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
-            );
-        }
-
-        function closeBrandModal() {
             // ✨ モーダルを閉じる時：タイトルを散らして（Scatter）、カードの文字を元に戻す（Assemble）
             play3DScatter(modalTitle);
             
@@ -2107,6 +2202,12 @@
                 if (philosophyImg) {
                     philosophyImg.src = data.philosophyImageUrl;
                 }
+            }
+
+            // 追加: Veloから送られてきた専用アニメーションコードを受け取って保存
+            if (data.type === "setCustomAnimation" && data.brand && data.htmlCode) {
+                window.customBrandAnimations = window.customBrandAnimations || {};
+                window.customBrandAnimations[data.brand] = data.htmlCode;
             }
         });
         
