@@ -1561,36 +1561,52 @@
             
             gsap.set(chars, { opacity: 0 }); // 本物の文字は見えなくしておく
 
+            // 変更: ダミーの総数を3倍の量で計算する
+            const totalClones = chars.length * 3;
+            let cloneIndex = 0;
+
             chars.forEach(char => {
                 const rect = char.getBoundingClientRect();
-                const clone = char.cloneNode(true); // 分身を作る
-                document.body.appendChild(clone); // 画面の最前面（カード枠の外）に置く
-                
-                // 本物と全く同じ見た目・位置に設定
                 const compStyle = window.getComputedStyle(char);
-                gsap.set(clone, {
-                    position: "fixed", top: rect.top, left: rect.left,
-                    width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
-                    color: compStyle.color, fontSize: compStyle.fontSize,
-                    fontFamily: compStyle.fontFamily, fontWeight: compStyle.fontWeight,
-                    letterSpacing: compStyle.letterSpacing,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    opacity: 1
-                });
+                
+                // 変更: ループを回して1文字につき3つの分身を作り、散らばる量を3倍にする
+                for (let i = 0; i < 3; i++) {
+                    const clone = char.cloneNode(true); // 分身を作る
+                    document.body.appendChild(clone); // 画面の最前面（カード枠の外）に置く
+                    
+                    // 追加: 円形（360度）に均等に散らばるよう、角度と距離を計算
+                    const angle = (cloneIndex / totalClones) * Math.PI * 2;
+                    const radius = 800 + Math.random() * 600; // 中心からの距離
+                    const destX = Math.cos(angle) * radius;
+                    const destY = Math.sin(angle) * radius;
+                    cloneIndex++;
+                    
+                    // 本物と全く同じ見た目・位置に設定
+                    gsap.set(clone, {
+                        position: "fixed", top: rect.top, left: rect.left,
+                        width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
+                        color: compStyle.color, fontSize: compStyle.fontSize,
+                        fontFamily: compStyle.fontFamily, fontWeight: compStyle.fontWeight,
+                        letterSpacing: compStyle.letterSpacing,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        opacity: 1
+                    });
 
-                // 分身を画面全体に向かって散らす
-                gsap.to(clone, { 
-                    opacity: 0, filter: "blur(8px)", 
-                    x: () => (Math.random() - 0.5) * 1500, 
-                    y: () => (Math.random() - 0.5) * 1500, 
-                    z: () => (Math.random() - 0.5) * 1000 + 500, 
-                    rotationX: () => (Math.random() - 0.5) * 720,
-                    rotationY: () => (Math.random() - 0.5) * 720,
-                    rotationZ: () => (Math.random() - 0.5) * 720,
-                    duration: () => Math.random() * 0.4 + 1.8, 
-                    ease: "power3.out", delay: () => Math.random() * 0.15,
-                    onComplete: () => clone.remove() // 散り終わったら分身を消す
-                });
+                    // 分身を画面全体に向かって散らす
+                    gsap.to(clone, { 
+                        opacity: 0, filter: "blur(8px)", 
+                        x: destX, // 変更: ランダムではなく計算した円周上のX座標へ
+                        y: destY, // 変更: ランダムではなく計算した円周上のY座標へ
+                        z: () => (Math.random() - 0.5) * 1500 + 1000, 
+                        scale: () => Math.random() * 5 + 6, 
+                        rotationX: () => (Math.random() - 0.5) * 720,
+                        rotationY: () => (Math.random() - 0.5) * 720,
+                        rotationZ: () => (Math.random() - 0.5) * 720,
+                        duration: () => Math.random() * 0.6 + 2.4, // 変更: 1.8秒→2.4秒ベースにして少しゆっくりと飛ばす
+                        ease: "power3.out", delay: () => Math.random() * 0.15,
+                        onComplete: () => clone.remove() // 散り終わったら分身を消す
+                    });
+                }
             });
         }
 
@@ -1599,45 +1615,62 @@
             const chars = targetElement.querySelectorAll('.char-wrap');
             if(chars.length === 0) return;
             
-            gsap.set(chars, { opacity: 0 }); // 集まり終わるまで本物は隠す
+            // 追加: モーダルのタイトル（散らばった時のド派手な文字）のスタイル情報を取得
+            const modalTitleStyle = window.getComputedStyle(document.getElementById('modalTitle'));
+            
+            // 本物は集まり終わるまで隠しておく
+            gsap.set(chars, { opacity: 0 });
 
             chars.forEach(char => {
                 const rect = char.getBoundingClientRect();
-                const clone = char.cloneNode(true);
-                document.body.appendChild(clone);
                 
-                const compStyle = window.getComputedStyle(char);
-                gsap.set(clone, {
-                    position: "fixed", top: rect.top, left: rect.left,
-                    width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
-                    color: compStyle.color, fontSize: compStyle.fontSize,
-                    fontFamily: compStyle.fontFamily, fontWeight: compStyle.fontWeight,
-                    letterSpacing: compStyle.letterSpacing,
-                    display: "flex", alignItems: "center", justifyContent: "center"
-                });
+                // 変更: 3倍の量にするため、1文字につき3つの分身を作る
+                for (let i = 0; i < 3; i++) {
+                    const clone = char.cloneNode(true);
+                    
+                    // カードの中ではなく、画面の最前面に追加して枠をはみ出させる
+                    document.body.appendChild(clone);
+                    
+                    // 変更: 色・フォント・影などを「散らばった時のスタイル（modalTitleStyle）」で上書きする
+                    gsap.set(clone, {
+                        position: "fixed", top: rect.top, left: rect.left,
+                        width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
+                        color: modalTitleStyle.color, 
+                        fontSize: modalTitleStyle.fontSize,
+                        fontFamily: modalTitleStyle.fontFamily, 
+                        fontWeight: modalTitleStyle.fontWeight,
+                        fontStyle: modalTitleStyle.fontStyle,
+                        textShadow: modalTitleStyle.textShadow,
+                        letterSpacing: modalTitleStyle.letterSpacing,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        opacity: 1
+                    });
 
-                // バラバラの遠くの位置から、本来の位置（x:0, y:0）へ集める
-                gsap.fromTo(clone, 
-                    { 
-                        opacity: 0, filter: "blur(8px)",
-                        x: () => (Math.random() - 0.5) * 1500, 
-                        y: () => (Math.random() - 0.5) * 1500, 
-                        z: () => (Math.random() - 0.5) * 1000 + 500,
-                        rotationX: () => (Math.random() - 0.5) * 720,
-                        rotationY: () => (Math.random() - 0.5) * 720,
-                        rotationZ: () => (Math.random() - 0.5) * 720
-                    }, 
-                    { 
-                        opacity: 1, filter: "blur(0px)",
-                        x: 0, y: 0, z: 0, rotationX: 0, rotationY: 0, rotationZ: 0,
-                        duration: () => Math.random() * 0.4 + 2.0, 
-                        ease: "power3.out", delay: () => Math.random() * 0.2,
-                        onComplete: () => {
-                            clone.remove(); // 分身を消して
-                            gsap.set(char, { opacity: 1 }); // 本物を表示する
+                    // 画面全体のバラバラな位置から、定位置（x:0, y:0）へ集める
+                    gsap.fromTo(clone, 
+                        { 
+                            opacity: 0, filter: "blur(8px)",
+                            x: () => (Math.random() - 0.5) * 2000, 
+                            y: () => (Math.random() - 0.5) * 2000, 
+                            z: () => (Math.random() - 0.5) * 1500 + 1000, // 変更: さらに手前（Z軸）から飛ばす
+                            scale: () => Math.random() * 5 + 6, // 変更: 6倍〜11倍の超巨大なスケールからスタート
+                            rotationX: () => (Math.random() - 0.5) * 720,
+                            rotationY: () => (Math.random() - 0.5) * 720,
+                            rotationZ: () => (Math.random() - 0.5) * 720
+                        }, 
+                        { 
+                            opacity: 1, filter: "blur(0px)",
+                            x: 0, y: 0, z: 0, scale: 1,
+                            rotationX: 0, rotationY: 0, rotationZ: 0,
+                            duration: () => Math.random() * 0.4 + 2.0, 
+                            ease: "power3.out", delay: () => Math.random() * 0.2,
+                            onComplete: () => {
+                                clone.remove(); // 到着したら分身を消して
+                                gsap.set(char, { opacity: 1 }); // 本物を表示する
+                            }
                         }
-                    }
-                );
+                    );
+                }
             });
         }
 
@@ -1870,7 +1903,7 @@
                  // 和美月などのHTMLタグ入りタイトルをプレーンテキストにしてから分割
                  modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, ''); 
                  splitText(modalTitle);
-                 play3DAssemble(modalTitle);
+                 // 削除: ここで呼ぶとモーダルが非表示状態なので位置がおかしくなるため下に移動
             }
 
             /* ✨ 変更：長文記事内で <br> などのタグを使えるように innerHTML に変更 */
@@ -1896,6 +1929,14 @@
             document.body.classList.add('modal-open');
             renderModalImage(0);
 
+            // 追加: モーダルが確実に表示されてから Assemble（集める）アニメーションを発動する
+            if(!isArchive) {
+                 // 追加: モーダルのレイアウトが画面上で確定するまでほんの少し（50ミリ秒）待つことで位置ズレを防止
+                 setTimeout(() => {
+                     play3DAssemble(modalTitle);
+                 }, 50);
+            }
+
             // ✨ 3Dアニメーションと被らないように、タイトル以外の要素だけを下からフワッと出す
             gsap.killTweensOf('.modal-anim:not(#modalTitle)');
             gsap.fromTo('.modal-anim:not(#modalTitle)',
@@ -1907,9 +1948,29 @@
         function closeBrandModal() {
             // ✨ モーダルを閉じる時：タイトルを散らして（Scatter）、カードの文字を元に戻す（Assemble）
             play3DScatter(modalTitle);
+            
+            // 追加: 3秒間、他のカードにマウスが乗ってもホバー反応しないように全体をロックする
+            const grid = document.querySelector('.brands-grid');
+            if (grid) grid.style.pointerEvents = 'none';
+
+            // 追加: 破片が戻る間にスクロールされて位置がズレないよう、スクロールもロックする
+            const scroller = document.getElementById('main-scroller');
+            if (scroller) scroller.style.overflowY = 'hidden';
+
             if(currentActiveCard) {
                 const cardNameElement = currentActiveCard.querySelector('.brand-name');
                 if(cardNameElement) play3DAssemble(cardNameElement);
+                
+                // 変更: ホバー維持の解除を、アニメーションが完全に終わる「3秒後」まで遅らせる
+                setTimeout(() => {
+                    if (currentActiveCard) {
+                        currentActiveCard.style.pointerEvents = '';
+                        currentActiveCard.querySelectorAll(':not(.char-wrap)').forEach(el => el.style.transitionDelay = '');
+                        currentActiveCard = null; // リセットもここで行う
+                    }
+                    if (grid) grid.style.pointerEvents = ''; // 全体ロックも解除
+                    if (scroller) scroller.style.overflowY = 'auto'; // スクロールロックも解除
+                }, 3000);
             }
 
             gsap.to('.modal-anim:not(#modalTitle)', {
@@ -1921,7 +1982,7 @@
                 onComplete: () => {
                     modal.classList.remove('is-open');
                     document.body.classList.remove('modal-open');
-                    currentActiveCard = null; // 変数をリセット
+                    // 削除: currentActiveCard = null; (上のsetTimeoutの中に移動したため)
                 }
             });
         }
@@ -1968,6 +2029,10 @@
             card.addEventListener('click', () => {
                 // ✨ クリックされたカードを記憶して、文字を散らす（Scatter）！
                 currentActiveCard = card;
+                
+                // 追加: モーダルが開くまでの間、カードのホバー解除とクリックをブロックして崩れを防ぐ
+                card.style.pointerEvents = 'none';
+                card.querySelectorAll(':not(.char-wrap)').forEach(el => el.style.transitionDelay = '0.4s');
                 
                 if(brandNameElement && !brandNameElement.classList.contains('nagomi-kanji')) {
                     play3DScatter(brandNameElement);
