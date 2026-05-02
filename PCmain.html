@@ -346,27 +346,37 @@
         /* =========================================
            Philosophy
         ========================================= */
-        /* ✨ 画面幅いっぱいのグレーレンガ背景 */
+        /* ✨ 初期状態（背景は透明。変化スピードを3秒にして超ゆっくりに） */
         .philosophy-wrap {
             width: 100%;
-            /* グレーのレンガ調の高画質フリー画像 */
-            background-image: url('https://images.unsplash.com/photo-1511253819057-54070da6da7e?auto=format&fit=crop&q=80&w=2000');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed; /* スクロール時に背景が固定されるパララックス効果 */
-            position: relative;
+            background-color: transparent;
+            transition: background-color 2s var(--ease-silk);
         }
-        /* ✨ 文字を読みやすくするための上品な白の半透明オーバーレイ */
-        .philosophy-wrap::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(248, 248, 248, 0.82); /* 透過度82%のプラチナホワイト */
-            z-index: 0;
+
+        /* ✨ 到達時：背景をダークグレージュに変更 */
+        .philosophy-wrap.is-active {
+            background-color: #55504C; /* ダークグレージュ */
         }
+
+        /* ✨ 文字色がゆっくり（3秒）変わる・戻るためのベース設定 */
+        .philosophy-wrap .section-title,
+        .philosophy-wrap .quote {
+            transition: color 2s var(--ease-silk) !important;
+        }
+        .philosophy-wrap .text-line {
+            transition: color 3s var(--ease-silk), transform 1s ease !important;
+        }
+
+        /* ✨ 到達時：文字色を白に変更 */
+        .philosophy-wrap.is-active .section-title,
+        .philosophy-wrap.is-active .quote {
+            color: #FFFFFF;
+        }
+        .philosophy-wrap.is-active .text-line {
+            color: #E0E0E0 !important;
+        }
+
         .philosophy { 
-            position: relative; 
-            z-index: 1; /* 背景オーバーレイより上に表示させる */
             padding: 180px 5%; 
             display: flex; 
             align-items: center; 
@@ -375,8 +385,20 @@
             max-width: 1400px; 
             margin: 0 auto; 
         }
+
         .philosophy-img { flex: 1; height: 800px; }
-        .philosophy-img img { filter: grayscale(100%) opacity(0.8); }
+        
+        /* ✨ 初期状態：白黒。背景と同じく「3秒」かけてじわーっと変化するベース設定 */
+        .philosophy-wrap .philosophy-img img { 
+            filter: grayscale(100%) opacity(0.8) !important; 
+            transition: filter 3s var(--ease-silk) !important; 
+        }
+        
+        /* ✨ 到達時：じわーっとカラーに変化 */
+        .philosophy-wrap.is-active .philosophy-img img { 
+            filter: grayscale(0%) opacity(0.95) !important; 
+        }
+        
         .philosophy-text { flex: 1; padding: 40px; }
         
         /* ✨ スクロール連動：下から上へゆっくり伸びる金の縦ライン（Quote用） */
@@ -436,9 +458,11 @@
         ========================================= */
         .brands-section { padding: 150px 0; }
         .brands-grid { 
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; 
+            /* ✨ gapを 15px にして、カード同士を少しだけ離す */
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; 
             max-width: 1800px; margin: 0 auto; 
-            background: var(--border-color); border: 2px solid var(--border-color); 
+            /* ✨ 背景の線を消し、透明な隙間を作る */
+            background: transparent; border: none; 
             transition: border-color 0.8s, background 0.8s;
         }
         
@@ -472,8 +496,8 @@
         body.theme-lumi .logo, body.theme-lumi .hero-char, body.theme-lumi .section-title, body.theme-lumi .philosophy-text h2, body.theme-lumi .quote, body.theme-lumi a { color: #E0E0E0; }
         body.theme-lumi .brands-grid { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
 
-        /* Rasiːmの親背景色をミモザイエローに */
-        body.theme-rasim { background-color: #F4D03F; color: #111111; }
+        /* Rasiːmの親背景色をミモザイエローに（少し薄く上品なイエローに統一） */
+        body.theme-rasim { background-color: #F7DB69; color: #111111; }
         body.theme-rasim .text-line, body.theme-rasim .collection-intro .text-line { color: #555555; }
         
         /* 和美月の親背景色をもっと分かりやすい紫に */
@@ -777,6 +801,23 @@
             line-height: 1;
             letter-spacing: 0.12em;
             margin-bottom: 24px;
+            /* ✨ 3Dエフェクトの親コンテナ（モーダル用） */
+            perspective: 1500px;
+            transform-style: preserve-3d;
+        }
+        
+        /* ✨ 3Dエフェクトの親コンテナ（カード用） */
+        .brand-name {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        /* ✨ 1文字ごとのアニメーション用クラス */
+        .char-wrap {
+            display: inline-block;
+            will-change: transform, opacity, filter;
+            /* 空白文字の幅を確保 */
+            white-space: pre; 
         }
 
         .pc-brand-modal[data-active-brand="nagomitsuki"] .pc-modal-title {
@@ -1259,18 +1300,20 @@
         </header>
 
         <!-- Philosophy -->
-        <section id="philosophy" class="philosophy">
-            <div class="philosophy-img img-reveal"><img src="https://picsum.photos/seed/archWhite/800/1000?grayscale" alt="Holding HQ" class="para-img"></div>
-            <div class="philosophy-text">
-                <h2 class="section-title" style="margin: 0 0 50px 0; text-align: left;">The Origin<br>of Style</h2>
-                <div class="text-line-wrap"><span class="text-line">私たちは、あなただけの「原点」を探求します。</span></div>
-                <div class="text-line-wrap"><span class="text-line">身に纏うもの、手に取るもの、そのすべてが</span></div>
-                <div class="text-line-wrap"><span class="text-line">自己のアイデンティティを形作るピースです。</span></div>
-                <div class="text-line-wrap"><span class="text-line">それぞれのブランドが持つ、揺るぎないフィロソフィー。</span></div>
-                <div class="text-line-wrap"><span class="text-line">それらを結集し、次世代のスタンダードを構築します。</span></div>
-                <p class="quote">"Style is a reflection of your origin."</p>
-            </div>
-        </section>
+        <div class="philosophy-wrap">
+            <section id="philosophy" class="philosophy">
+                <div class="philosophy-img img-reveal"><img src="https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg" alt="Holding HQ" class="para-img"></div>
+                <div class="philosophy-text">
+                    <h2 class="section-title" style="margin: 0 0 50px 0; text-align: left;">The Origin<br>of Style</h2>
+                    <div class="text-line-wrap"><span class="text-line">私たちは、あなただけの「原点」を探求します。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">身に纏うもの、手に取るもの、そのすべてが</span></div>
+                    <div class="text-line-wrap"><span class="text-line">自己のアイデンティティを形作るピースです。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">それぞれのブランドが持つ、揺るぎないフィロソフィー。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">それらを結集し、次世代のスタンダードを構築します。</span></div>
+                    <p class="quote">"Style is a reflection of your origin."</p>
+                </div>
+            </section>
+        </div>
 
         <!-- INFORMATION -->
         <section class="information" id="information">
@@ -1494,6 +1537,110 @@
         // ✨ Wixのiframe内部でのスクロール検知に対応させる
         ScrollTrigger.defaults({ scroller: "#main-scroller" });
 
+        // ✨ 追加：現在開いているカードの要素を保持する変数
+        let currentActiveCard = null;
+
+        // ✨ 追加：テキストを1文字ずつ <span> で囲む共通関数
+        function splitText(element) {
+            if (element.hasAttribute('data-split')) return; // 既に分割済みならスキップ
+            const text = element.innerText;
+            element.innerHTML = '';
+            text.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.className = 'char-wrap';
+                span.innerText = char;
+                element.appendChild(span);
+            });
+            element.setAttribute('data-split', 'true');
+        }
+
+        // ✨ 追加：文字のクローンを作り、画面全体にScatter（散らす）
+        function play3DScatter(targetElement) {
+            const chars = targetElement.querySelectorAll('.char-wrap');
+            if(chars.length === 0) return;
+            
+            gsap.set(chars, { opacity: 0 }); // 本物の文字は見えなくしておく
+
+            chars.forEach(char => {
+                const rect = char.getBoundingClientRect();
+                const clone = char.cloneNode(true); // 分身を作る
+                document.body.appendChild(clone); // 画面の最前面（カード枠の外）に置く
+                
+                // 本物と全く同じ見た目・位置に設定
+                const compStyle = window.getComputedStyle(char);
+                gsap.set(clone, {
+                    position: "fixed", top: rect.top, left: rect.left,
+                    width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
+                    color: compStyle.color, fontSize: compStyle.fontSize,
+                    fontFamily: compStyle.fontFamily, fontWeight: compStyle.fontWeight,
+                    letterSpacing: compStyle.letterSpacing,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    opacity: 1
+                });
+
+                // 分身を画面全体に向かって散らす
+                gsap.to(clone, { 
+                    opacity: 0, filter: "blur(8px)", 
+                    x: () => (Math.random() - 0.5) * 1500, 
+                    y: () => (Math.random() - 0.5) * 1500, 
+                    z: () => (Math.random() - 0.5) * 1000 + 500, 
+                    rotationX: () => (Math.random() - 0.5) * 720,
+                    rotationY: () => (Math.random() - 0.5) * 720,
+                    rotationZ: () => (Math.random() - 0.5) * 720,
+                    duration: () => Math.random() * 0.4 + 1.8, 
+                    ease: "power3.out", delay: () => Math.random() * 0.15,
+                    onComplete: () => clone.remove() // 散り終わったら分身を消す
+                });
+            });
+        }
+
+        // ✨ 追加：分身を作って散らばった状態から、本来の位置へAssemble（集める）
+        function play3DAssemble(targetElement) {
+            const chars = targetElement.querySelectorAll('.char-wrap');
+            if(chars.length === 0) return;
+            
+            gsap.set(chars, { opacity: 0 }); // 集まり終わるまで本物は隠す
+
+            chars.forEach(char => {
+                const rect = char.getBoundingClientRect();
+                const clone = char.cloneNode(true);
+                document.body.appendChild(clone);
+                
+                const compStyle = window.getComputedStyle(char);
+                gsap.set(clone, {
+                    position: "fixed", top: rect.top, left: rect.left,
+                    width: rect.width, height: rect.height, margin: 0, zIndex: 9999,
+                    color: compStyle.color, fontSize: compStyle.fontSize,
+                    fontFamily: compStyle.fontFamily, fontWeight: compStyle.fontWeight,
+                    letterSpacing: compStyle.letterSpacing,
+                    display: "flex", alignItems: "center", justifyContent: "center"
+                });
+
+                // バラバラの遠くの位置から、本来の位置（x:0, y:0）へ集める
+                gsap.fromTo(clone, 
+                    { 
+                        opacity: 0, filter: "blur(8px)",
+                        x: () => (Math.random() - 0.5) * 1500, 
+                        y: () => (Math.random() - 0.5) * 1500, 
+                        z: () => (Math.random() - 0.5) * 1000 + 500,
+                        rotationX: () => (Math.random() - 0.5) * 720,
+                        rotationY: () => (Math.random() - 0.5) * 720,
+                        rotationZ: () => (Math.random() - 0.5) * 720
+                    }, 
+                    { 
+                        opacity: 1, filter: "blur(0px)",
+                        x: 0, y: 0, z: 0, rotationX: 0, rotationY: 0, rotationZ: 0,
+                        duration: () => Math.random() * 0.4 + 2.0, 
+                        ease: "power3.out", delay: () => Math.random() * 0.2,
+                        onComplete: () => {
+                            clone.remove(); // 分身を消して
+                            gsap.set(char, { opacity: 1 }); // 本物を表示する
+                        }
+                    }
+                );
+            });
+        }
+
         // 画像の読み込み完了後にScrollTriggerを更新（iframe環境でのズレ防止）
         window.addEventListener("load", () => {
             ScrollTrigger.refresh();
@@ -1553,6 +1700,7 @@
                 if(!isMenuOpen && mainScroller.scrollTop > 100) menuWrap.classList.add('is-idle');
             }, 1000);
         });
+        
         const modal = document.getElementById('brandModal');
         const modalClose = document.getElementById('modalClose');
         const modalTitle = document.getElementById('modalTitle');
@@ -1591,7 +1739,7 @@
                     "https://images.pexels.com/photos/6560986/pexels-photo-6560986.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
                     "https://picsum.photos/seed/r3/800/800"
                 ],
-                theme: { bg: "rgba(253,248,225,0.98)", text: "#111111", btn: "#ffffff", btnText: "#111111" }
+                theme: { bg: "rgba(247, 219, 105, 0.98)", text: "#111111", btn: "#ffffff", btnText: "#111111" }
             },
             "helmetty": {
                 cat: "POP & CUTE",
@@ -1641,7 +1789,6 @@
                 ],
                 theme: { bg: "rgba(234,232,227,0.95)", text: "#555555", btn: "#C9B075", btnText: "#ffffff" }
             },
-            // ▼ 追加：アーカイブ用のデータ（<br>タグで長文を記述可能） ▼
             "arc1": {
                 cat: "2025 SPRING / SUMMER",
                 watermark: "25SS",
@@ -1702,7 +1849,6 @@
             currentModalImages = data.images;
             currentModalIndex = 0;
             
-            // ✨ 追加：アーカイブの場合は専用クラスを付与
             if (isArchive) {
                 modal.classList.add('is-archive-mode');
             } else {
@@ -1717,10 +1863,18 @@
 
             modalCat.textContent = data.cat;
             modalWatermark.textContent = data.watermark;
+
+            // ✨ タイトル文字をセットした後、1文字ずつに分割して 3D Assemble アニメーションを実行
             modalTitle.innerHTML = data.titleHTML;
+            if(!isArchive) {
+                 // 和美月などのHTMLタグ入りタイトルをプレーンテキストにしてから分割
+                 modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, ''); 
+                 splitText(modalTitle);
+                 play3DAssemble(modalTitle);
+            }
+
             /* ✨ 変更：長文記事内で <br> などのタグを使えるように innerHTML に変更 */
             modalDesc.innerHTML = data.desc;
-
             modalThumbs.innerHTML = '';
 
             currentModalImages.forEach((src, index) => {
@@ -1742,15 +1896,23 @@
             document.body.classList.add('modal-open');
             renderModalImage(0);
 
-            gsap.killTweensOf('.modal-anim');
-            gsap.fromTo('.modal-anim',
+            // ✨ 3Dアニメーションと被らないように、タイトル以外の要素だけを下からフワッと出す
+            gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+            gsap.fromTo('.modal-anim:not(#modalTitle)',
                 { y: 30, opacity: 0 },
-                { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.1 }
+                { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
             );
         }
 
         function closeBrandModal() {
-            gsap.to('.modal-anim', {
+            // ✨ モーダルを閉じる時：タイトルを散らして（Scatter）、カードの文字を元に戻す（Assemble）
+            play3DScatter(modalTitle);
+            if(currentActiveCard) {
+                const cardNameElement = currentActiveCard.querySelector('.brand-name');
+                if(cardNameElement) play3DAssemble(cardNameElement);
+            }
+
+            gsap.to('.modal-anim:not(#modalTitle)', {
                 y: 24,
                 opacity: 0,
                 duration: 0.35,
@@ -1759,6 +1921,7 @@
                 onComplete: () => {
                     modal.classList.remove('is-open');
                     document.body.classList.remove('modal-open');
+                    currentActiveCard = null; // 変数をリセット
                 }
             });
         }
@@ -1796,9 +1959,24 @@
         });
 
         brandCards.forEach(card => {
+            // ✨ 準備：各カードのブランド名を1文字ずつに分割しておく
+            const brandNameElement = card.querySelector('.brand-name');
+            if(brandNameElement && !brandNameElement.classList.contains('nagomi-kanji')) {
+                splitText(brandNameElement);
+            }
+
             card.addEventListener('click', () => {
-                // ブランド時は第2引数をfalse（通常モード）に
-                openBrandModal(card.getAttribute('data-brand'), false);
+                // ✨ クリックされたカードを記憶して、文字を散らす（Scatter）！
+                currentActiveCard = card;
+                
+                if(brandNameElement && !brandNameElement.classList.contains('nagomi-kanji')) {
+                    play3DScatter(brandNameElement);
+                }
+
+                // 少し遅れて（破片が飛んでから）モーダルを開く
+                setTimeout(() => {
+                    openBrandModal(card.getAttribute('data-brand'), false);
+                }, 300);
             });
         });
 
@@ -1886,12 +2064,21 @@
             }
         });
 
+        // ✨ Philosophyセクションに近づいた時に背景をレンガに動的変更
+        ScrollTrigger.create({
+            trigger: ".philosophy-wrap",
+            start: "top 65%", // セクションの頭が画面の上から65%の位置に来たら発動
+            end: "bottom 35%", // セクションが通り過ぎたら戻す
+            toggleClass: "is-active"
+        });
+
         // 4. 共通アニメーション
         gsap.utils.toArray('.img-reveal').forEach(container => {
             const img = container.querySelector('img');
             const tl = gsap.timeline({ scrollTrigger: { trigger: container, start: "top 80%", toggleActions: "play reverse play reverse" }});
-            tl.fromTo(container, { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 1.2, ease: "power4.inOut" });
-            tl.fromTo(img, { scale: 1.3 }, { scale: 1, duration: 1.2, ease: "power4.inOut" }, "<");
+            // ✨ ロール出現をやめ、少し下からフワッと浮かび上がる上品なフェードインに変更
+            tl.fromTo(container, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.8, ease: "power3.out" });
+            tl.fromTo(img, { scale: 1.15 }, { scale: 1, duration: 1.8, ease: "power3.out" }, "<");
         });
         gsap.utils.toArray('.text-line').forEach(text => {
             gsap.fromTo(text, { y: "100%" }, { y: "0%", duration: 1, ease: "power3.out", scrollTrigger: { trigger: text.parentElement, start: "top 90%", toggleActions: "play reverse play reverse" }});
@@ -1964,9 +2151,28 @@
                 once: false 
             });
         });
+    // ローカルプレビュー（VSC）用のWixシミュレーター 
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Wixのiframe環境以外（VSCのローカル環境など）でのみテスト送信を実行
+            if (!window.location.hostname.includes('wixsite.com') && !window.location.hostname.includes('editor.wix.com')) {
+                setTimeout(() => {
+                    // 1. ヒーロー画像をシミュレート送信
+                    window.postMessage({
+                        type: "setHeroImage",
+                        heroImageUrl: "https://static.wixstatic.com/media/414ae9_d482c0a6f03e4b138311cc5daa37771b~mv2.jpg"
+                    }, "*");
+
+                    // 2. Philosophy（The Origin of Style）画像をシミュレート送信
+                    window.postMessage({
+                        type: "setPhilosophyImage",
+                        philosophyImageUrl: "https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg"
+                    }, "*");
+                }, 500); // 0.5秒遅延させてWixの挙動を再現
+            }
+        });
+
 
     </script>
 </body>
 </html>
-
-
