@@ -1976,12 +1976,12 @@
                 cinemaOverlay.classList.remove('is-expanding');
                 cinemaOverlay.classList.add('is-playing');
 
-                // 変更: ミモザのラインが引かれ始めるタイミング（8.0秒後）に合わせて幕をじわーっと広げる
+                // 変更: さんかく（コロン）が表示され始めるタイミング（7.0秒後）に合わせて幕を広げ始める
                 window.rasimExpandTimer = setTimeout(() => {
                     cinemaOverlay.classList.add('is-expanding');
-                }, 8000);
+                }, 7000);
 
-                // 変更: 広がりきってロゴが完成した頃（10.0秒後）にシネマ幕をフワッと消し、いつものパネルを出す
+                // 変更: ®マーク（R）が出きった1秒後（12.5秒後）にシネマ幕をフワッと消し、いつものパネルを出す
                 window.rasimFinishTimer = setTimeout(() => {
                     cinemaOverlay.style.opacity = '0';
                     setTimeout(() => {
@@ -1999,7 +1999,7 @@
                         { y: 30, opacity: 0 },
                         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
                     );
-                }, 10000);
+                }, 12500);
 
             } else {
                 // 他のブランドやアーカイブの時は、シネマ幕を隠していつも通りに表示
