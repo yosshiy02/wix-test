@@ -810,6 +810,33 @@
             height: 90vh;
         }
 
+        /* 追加: スキップボタンのスタイル */
+        .cinema-skip-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            z-index: 4001; /* シネマ幕より手前に配置 */
+            background: rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s, background 0.3s, border-color 0.3s;
+        }
+        .cinema-skip-btn.is-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .cinema-skip-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            border-color: #ffffff;
+        }
+
         .pc-modal-info {
             position: relative;
             z-index: 2;
@@ -1277,6 +1304,8 @@
     
     <!-- PC専用ブランドモーダル：アーカイブでも再利用 -->
     <div class="pc-brand-modal" id="brandModal">
+        <!-- 追加: ムービースキップボタン -->
+        <button class="cinema-skip-btn" id="cinemaSkipBtn">SKIP MOVIE <span>&raquo;</span></button>
         <!-- 追加: Rasi:m専用の正方形から広がるシネマオーバーレイ -->
         <div class="rasim-cinema-overlay" id="rasimCinemaOverlay"></div>
         <div class="pc-modal-panel">
@@ -1571,6 +1600,49 @@
 
         // ✨ 追加：現在開いているカードの要素を保持する変数
         let currentActiveCard = null;
+
+        // 追加: スキップボタンのクリックイベント
+        window.addEventListener('DOMContentLoaded', () => {
+            const skipBtn = document.getElementById('cinemaSkipBtn');
+            if (skipBtn) {
+                skipBtn.addEventListener('click', () => {
+                    // 進行中のタイマーを強制終了
+                    clearTimeout(window.rasimExpandTimer);
+                    clearTimeout(window.rasimFinishTimer);
+                    
+                    const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
+                    const modalPanel = document.querySelector('.pc-modal-panel');
+                    const modalTitle = document.getElementById('modalTitle');
+                    
+                    // スキップボタンを隠す
+                    skipBtn.classList.remove('is-visible');
+
+                    // シネマ幕をフェードアウト
+                    if (cinemaOverlay) {
+                        cinemaOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                            cinemaOverlay.innerHTML = '';
+                            cinemaOverlay.style.opacity = '';
+                        }, 500);
+                    }
+
+                    // いつものパネルを即座に表示
+                    if (modalPanel) {
+                        modalPanel.style.opacity = '1';
+                        modalPanel.style.pointerEvents = 'auto';
+                    }
+
+                    // 文字集結アニメーションを即座に開始
+                    setTimeout(() => { play3DAssemble(modalTitle); }, 50);
+                    gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+                    gsap.fromTo('.modal-anim:not(#modalTitle)',
+                        { y: 30, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
+                    );
+                });
+            }
+        });
 
         // ✨ 追加：テキストを1文字ずつ <span> で囲む共通関数
         function splitText(element) {
@@ -1976,6 +2048,10 @@
                 cinemaOverlay.classList.remove('is-expanding');
                 cinemaOverlay.classList.add('is-playing');
 
+                // 追加: 再生中はスキップボタンを表示する
+                const skipBtn = document.getElementById('cinemaSkipBtn');
+                if (skipBtn) skipBtn.classList.add('is-visible');
+
                 // 変更: さんかく（コロン）が表示され始めるタイミング（7.0秒後）に合わせて幕を広げ始める
                 window.rasimExpandTimer = setTimeout(() => {
                     cinemaOverlay.classList.add('is-expanding');
@@ -1983,6 +2059,8 @@
 
                 // 変更: ®マーク（R）が出きった1秒後（12.5秒後）にシネマ幕をフワッと消し、いつものパネルを出す
                 window.rasimFinishTimer = setTimeout(() => {
+                    if (skipBtn) skipBtn.classList.remove('is-visible'); // 追加: 自然終了時はスキップボタンを隠す
+                    
                     cinemaOverlay.style.opacity = '0';
                     setTimeout(() => {
                         cinemaOverlay.classList.remove('is-playing', 'is-expanding');
@@ -2030,6 +2108,11 @@
             // 追加: シネマ再生中に閉じられた時のための安全リセット
             clearTimeout(window.rasimExpandTimer);
             clearTimeout(window.rasimFinishTimer);
+            
+            // 追加: 途中で閉じた場合もスキップボタンを隠す
+            const skipBtn = document.getElementById('cinemaSkipBtn');
+            if (skipBtn) skipBtn.classList.remove('is-visible');
+            
             const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
             if (cinemaOverlay) {
                 cinemaOverlay.classList.remove('is-playing', 'is-expanding');
