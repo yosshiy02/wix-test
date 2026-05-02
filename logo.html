@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>優雅なラグジュアリー・ロゴムービー（本編フォント復元・1px版）</title>
+<title>Rasi:m Cinematic Animation</title>
 <style>
   body {
     display: flex;
@@ -11,8 +11,7 @@
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #ffffff;
-    /* 全体フォントはご指定の完成形ベースに戻しました */
+    background-color: #ffffff; /* 白背景 */
     font-family: "Didot", "Bodoni MT", "Times New Roman", serif;
     overflow: hidden;
     position: relative;
@@ -27,7 +26,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    animation: prologueFadeOut 2s ease-in-out 7s both;
+    animation: prologueFadeOut 2s ease-in-out 3.5s both; /* 変更: 4.5s -> 3.5s */
   }
 
   .raceme-wrapper {
@@ -50,12 +49,11 @@
     font-size: 13px;
     color: #888;
     letter-spacing: 12px;
-    /* ここだけは日本語の明朝体を維持して優雅に */
     font-family: "Yu Mincho", "MS Mincho", "Hiragino Mincho ProN", serif; 
     font-weight: 300;
     margin-right: -12px;
     transform-origin: top center;
-    animation: bottomRubyZoomIn 2.5s cubic-bezier(0.25, 1, 0.5, 1) 1.0s both;
+    animation: bottomRubyZoomIn 2s cubic-bezier(0.25, 1, 0.5, 1) 0.8s both;
   }
 
   .intro-message {
@@ -63,9 +61,8 @@
     font-size: 20px;
     color: #666;
     letter-spacing: 6px;
-    /* 日本語部分も明朝体ベースで統一 */
     font-family: "Yu Mincho", "MS Mincho", "Hiragino Mincho ProN", serif;
-    animation: elegantFadeLeft 4s cubic-bezier(0.25, 1, 0.5, 1) 1.5s both;
+    animation: elegantFadeLeft 2.5s cubic-bezier(0.25, 1, 0.5, 1) 1.5s both; 
   }
 
   @keyframes slowFadeIn {
@@ -88,10 +85,8 @@
     100% { opacity: 0; filter: blur(15px); transform: scale(1.05); visibility: hidden; }
   }
 
-
   /* =========================================
      【本編】Rasi:m のアニメーション設定
-     ★ここから下のスタイルは元の「完成形」に復元しています
      ========================================= */
   .cinema-container {
     text-align: center;
@@ -99,6 +94,9 @@
     flex-direction: column;
     align-items: center;
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .logo-wrapper {
@@ -106,12 +104,10 @@
     position: relative;
   }
 
-  /* ★元の完成形の設定を復元し、文字間隔を 1px に修正 */
   .logo-text {
     font-size: 90px;
     font-weight: normal;
-    letter-spacing: 1px; /* 各文字の間隔を 1px に設定 */
-    
+    letter-spacing: 1px; 
     color: transparent;
     background-image: linear-gradient(
       75deg, 
@@ -124,9 +120,7 @@
     background-size: 200% auto;
     background-clip: text;
     -webkit-background-clip: text;
-    
-    animation: metalShine 5s cubic-bezier(0.25, 1, 0.5, 1) 8.0s both;
-    
+    animation: metalShine 4s cubic-bezier(0.25, 1, 0.5, 1) 4.5s both; /* 変更: 5.5s -> 4.5s */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -140,8 +134,7 @@
     gap: 14px;
     margin: 0 4px;
     transform: translateY(10px);
-    
-    animation: elegantSettle 2.5s cubic-bezier(0.21, 1.0, 0.45, 1.0) 9.5s both;
+    animation: elegantSettle 2s cubic-bezier(0.21, 1.0, 0.45, 1.0) 6.0s both; /* 変更: 7.0s -> 6.0s */
   }
 
   .tri-top {
@@ -158,7 +151,6 @@
     border-bottom: 9px solid #111111;
   }
 
-  /* ®マークは引き続き美しいフォントを維持 */
   .trademark {
     font-family: "Garamond", "Didot", serif; 
     font-size: 16px; 
@@ -166,8 +158,7 @@
     color: #444444; 
     margin-top: 25px; 
     margin-left: 8px; 
-    
-    animation: fadeTrademark 2s ease-out 13.0s both;
+    animation: fadeTrademark 2s ease-out 8.5s both; /* 変更: 9.5s -> 8.5s */
   }
 
   .mimosa-line {
@@ -175,8 +166,7 @@
     background-color: #e6c229;
     margin-top: 10px;
     width: 0%;
-    
-    animation: drawLine 2.5s cubic-bezier(0.25, 1, 0.5, 1) 10.5s both;
+    animation: drawLine 2s cubic-bezier(0.25, 1, 0.5, 1) 7.0s both; /* 変更: 8.0s -> 7.0s */
   }
 
   .subtitle {
@@ -184,12 +174,9 @@
     font-size: 14px;
     color: #333333;
     letter-spacing: 6px;
-    
-    animation: focusIn 3s cubic-bezier(0.25, 1, 0.5, 1) 11.5s both;
+    animation: focusIn 2s cubic-bezier(0.25, 1, 0.5, 1) 8.0s both; /* 変更: 9.0s -> 8.0s */
   }
 
-  /* --- 本編アニメーション・キーフレーム --- */
-  
   @keyframes metalShine {
     0% { background-position: 200% center; opacity: 0; filter: blur(6px); transform: scale(0.98); }
     40% { opacity: 1; filter: blur(0px); }
@@ -221,38 +208,27 @@
 
   <!-- 【序章】Raceme と メッセージ -->
   <div class="prologue-container">
-    
     <div class="raceme-wrapper">
-      <div class="intro-raceme">Raceme</div>
-      <!-- 下に配置され、優雅な明朝体になった「レシーム」 -->
+      <div class="intro-raceme" style="font-family: 'Didot', 'Bodoni MT', 'Times New Roman', serif;">Raceme</div>
       <div class="ruby-bottom">レシーム</div>
     </div>
-    
-    <div class="intro-message">
-      花の穂に、想いをのせて…
-    </div>
+    <div class="intro-message">花の穂に、想いをのせて…</div>
   </div>
 
   <!-- 【本編】完成形のロゴアニメーション -->
-  <div class="cinema-container">
+  <div class="cinema-container" style="font-family: 'Didot', 'Bodoni MT', 'Times New Roman', serif;">
     <div class="logo-wrapper">
-      <!-- フォントと文字間隔(1px)を復元したロゴテキスト -->
       <div class="logo-text">
         Rasi
-        <!-- 黒の上下さんかく -->
         <div class="colon">
           <div class="tri-top"></div>
           <div class="tri-bottom"></div>
         </div>
         m
       </div>
-      <!-- Garamond/Didotで描かれた®マーク -->
       <div class="trademark">&reg;</div>
     </div>
-    
-    <!-- ミモザイエローのライン -->
     <div class="mimosa-line"></div>
-    
     <div class="subtitle">MADE IN JAPAN</div>
   </div>
 

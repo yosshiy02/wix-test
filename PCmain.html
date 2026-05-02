@@ -1976,12 +1976,12 @@
                 cinemaOverlay.classList.remove('is-expanding');
                 cinemaOverlay.classList.add('is-playing');
 
-                // アニメーションがクライマックスを迎える頃（13.5秒後）に、正方形からモーダルの大きさへじわーっと広がる
+                // 変更: ミモザのラインが引かれ始めるタイミング（8.0秒後）に合わせて幕をじわーっと広げる
                 window.rasimExpandTimer = setTimeout(() => {
                     cinemaOverlay.classList.add('is-expanding');
-                }, 13500);
+                }, 8000);
 
-                // 広がりきった頃（15.5秒後）にシネマ幕をフワッと消し、いつものパネルと文字集結を出す
+                // 変更: 広がりきってロゴが完成した頃（10.0秒後）にシネマ幕をフワッと消し、いつものパネルを出す
                 window.rasimFinishTimer = setTimeout(() => {
                     cinemaOverlay.style.opacity = '0';
                     setTimeout(() => {
@@ -1999,7 +1999,7 @@
                         { y: 30, opacity: 0 },
                         { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
                     );
-                }, 15500);
+                }, 10000);
 
             } else {
                 // 他のブランドやアーカイブの時は、シネマ幕を隠していつも通りに表示
