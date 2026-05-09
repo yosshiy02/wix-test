@@ -1,0 +1,623 @@
+<!-- ファイル名：MainImageHtml -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MobileMainImageHtml</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      overflow: hidden;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: block;
+    }
+
+    .mobile-ui-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    .image-section {
+      width: 100%;
+      height: 100%;
+      padding: 8px;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto auto auto;
+      gap: 8px;
+      background: transparent;
+    }
+
+    .image-frame {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      background: transparent;
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      border: none;
+      box-shadow: none;
+      padding: 10px 10px 2px;
+    }
+
+    .main-image {
+      width: 100%;
+      height: 100%;
+      display: none;
+      object-fit: contain;
+      object-position: center center;
+      background: transparent;
+      padding: 14px;
+      animation: fadeImage 0.28s ease;
+    }
+
+    @keyframes fadeImage {
+      from {
+        opacity: 0;
+        transform: scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .main-next-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #222;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 34px;
+      text-align: center;
+      cursor: pointer;
+      display: none;
+      z-index: 5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .main-next-btn:active {
+      transform: translateY(-50%) scale(0.96);
+    }
+
+    .change-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+    }
+
+    .change-btn {
+      position: relative;
+      flex: 0 0 146px;
+      width: 146px;
+      height: 48px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,0.88);
+      border-radius: 999px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(245,245,245,0.96) 32%, rgba(228,228,228,0.96) 68%, rgba(255,255,255,0.98) 100%);
+      color: #111111;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      line-height: 46px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        inset 0 -1px 0 rgba(0,0,0,0.08);
+      display: none;
+      overflow: hidden;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        opacity 0.18s ease,
+        filter 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(4px);
+    }
+
+    .change-btn::before {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 10px;
+      right: 10px;
+      height: 46%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.18));
+      pointer-events: none;
+    }
+
+    .change-btn::after {
+      content: "";
+      position: absolute;
+      top: -55%;
+      left: -38%;
+      width: 34%;
+      height: 210%;
+      transform: rotate(24deg);
+      background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.18) 40%,
+        rgba(255,255,255,0.92) 50%,
+        rgba(255,255,255,0.18) 60%,
+        rgba(255,255,255,0) 100%
+      );
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .change-btn:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.16),
+        inset 0 1px 0 rgba(255,255,255,0.98),
+        inset 0 -1px 0 rgba(0,0,0,0.08),
+        0 0 0 1px rgba(255,255,255,0.35);
+      filter: brightness(1.02);
+    }
+
+    .change-btn:hover::after {
+      opacity: 1;
+      animation: shineSweep 0.9s ease;
+    }
+
+    .change-btn:active {
+      transform: scale(0.975);
+      box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 -1px 0 rgba(0,0,0,0.08);
+    }
+
+    @keyframes shineSweep {
+      0% {
+        left: -42%;
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      100% {
+        left: 112%;
+        opacity: 0;
+      }
+    }
+
+    .thumb-area {
+      position: relative;
+      min-height: 98px;
+    }
+
+    .thumbs {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 50px 4px 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scroll-behavior: smooth;
+    }
+
+    .thumbs::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .thumbs::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 999px;
+    }
+
+    .thumb-btn {
+      flex: 0 0 90px;
+      width: 90px;
+      height: 90px;
+      padding: 0;
+      border: 1px solid rgba(0, 0, 0, 0.10);
+      border-radius: 12px;
+      background: #ffffff;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .thumb-btn:active {
+      transform: scale(0.97);
+    }
+
+    .thumb-btn.active {
+      border: 2px solid #222222;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+    }
+
+    .thumb-btn img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      background: #ffffff;
+    }
+
+    .thumb-fade-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 42px;
+      height: 90px;
+      pointer-events: none;
+      border-radius: 0 12px 12px 0;
+      background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.92) 68%, rgba(255,255,255,1));
+      display: none;
+    }
+
+    .thumb-more {
+      position: absolute;
+      top: 30px;
+      right: 4px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.96);
+      color: #222;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 32px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      cursor: pointer;
+      display: none;
+      z-index: 3;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .thumb-more:active {
+      transform: scale(0.96);
+    }
+
+    .guide {
+      min-height: 14px;
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #666666;
+      text-align: center;
+      letter-spacing: 0.01em;
+      overflow: hidden;
+    }
+
+    .empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777777;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      background: transparent;
+      position: absolute;
+      inset: 0;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-ui-wrap">
+    <section class="image-section">
+      <div class="image-frame">
+        <img id="mainImage" class="main-image" src="" alt="">
+        <div id="emptyState" class="empty">画像がありません</div>
+        <button id="mainNextBtn" class="main-next-btn" type="button" aria-label="次の商品へ">›</button>
+      </div>
+
+      <div class="change-row">
+        <button id="changeBtn" class="change-btn" type="button">VIEW切替</button>
+      </div>
+
+      <div class="thumb-area">
+        <div id="thumbs" class="thumbs"></div>
+        <div id="thumbFadeRight" class="thumb-fade-right"></div>
+        <button id="thumbMore" class="thumb-more" type="button" aria-label="次の商品へ">›</button>
+      </div>
+
+      <div id="guide" class="guide"></div>
+    </section>
+  </div>
+
+  <script>
+    const mainImage = document.getElementById("mainImage");
+    const emptyState = document.getElementById("emptyState");
+    const thumbs = document.getElementById("thumbs");
+    const thumbFadeRight = document.getElementById("thumbFadeRight");
+    const thumbMore = document.getElementById("thumbMore");
+    const mainNextBtn = document.getElementById("mainNextBtn");
+    const guide = document.getElementById("guide");
+    const changeBtn = document.getElementById("changeBtn");
+
+    let currentItems = [];
+    let currentIndex = 0;
+    let showingAlt = false;
+
+    function normalizeSrc(value) {
+      if (!value) return "";
+
+      if (typeof value === "string") {
+        if (value.startsWith("wix:image://v1/")) {
+          const m = value.match(/^wix:image:\/\/v1\/([^\/#?]+)(?:\/.*)?$/);
+          return m ? "https://static.wixstatic.com/media/" + m[1] : "";
+        }
+        return value;
+      }
+
+      const s =
+        value?.src ||
+        value?.originalImage ||
+        value?.url ||
+        value?.image?.url ||
+        value?.image ||
+        "";
+
+      if (typeof s === "string" && s.startsWith("wix:image://v1/")) {
+        const m = s.match(/^wix:image:\/\/v1\/([^\/#?]+)(?:\/.*)?$/);
+        return m ? "https://static.wixstatic.com/media/" + m[1] : "";
+      }
+
+      return typeof s === "string" ? s : "";
+    }
+
+    function normalizeItem(item) {
+      if (!item) return null;
+
+      if (typeof item === "string") {
+        const src = normalizeSrc(item);
+        if (!src) return null;
+
+        return {
+          src,
+          altSrc: "",
+          thumbSrc: src,
+          title: "",
+          productId: "",
+          type: "image",
+          brandText: "",
+          productNoText: "",
+          colorHtml: "",
+          titleText: "",
+          priceText: ""
+        };
+      }
+
+      const src = normalizeSrc(item.originalImage || item.src || item);
+      if (!src) return null;
+
+      const altSrc = normalizeSrc(item.hoverImage || "");
+      const thumbSrc = normalizeSrc(item.originalImage || item.src || item) || src;
+
+      return {
+        src,
+        altSrc,
+        thumbSrc,
+        title: String(item.title || ""),
+        productId: String(item.productId || ""),
+        type: typeof item.type === "string" ? item.type : "image",
+        brandText: String(item.brandText || ""),
+        productNoText: String(item.productNoText || ""),
+        colorHtml: String(item.colorHtml || ""),
+        titleText: String(item.titleText || ""),
+        priceText: String(item.priceText || item.priceTaxIn || item.formattedPrice || item.price || "")
+      };
+    }
+
+    function updateOverflowHint() {
+      const hasOverflow = thumbs.scrollWidth > thumbs.clientWidth + 2;
+      const isAtEnd = thumbs.scrollLeft + thumbs.clientWidth >= thumbs.scrollWidth - 2;
+      const hasMulti = currentItems.length > 1;
+
+      if (!hasMulti) {
+        thumbFadeRight.style.display = "none";
+        thumbMore.style.display = "none";
+        mainNextBtn.style.display = "none";
+        guide.textContent = "";
+        return;
+      }
+
+      thumbMore.style.display = "block";
+      mainNextBtn.style.display = "block";
+      thumbFadeRight.style.display = hasOverflow && !isAtEnd ? "block" : "none";
+      guide.textContent = "";
+    }
+
+    function updateChangeButton() {
+      const item = currentItems[currentIndex];
+      const hasAlt = !!(item && item.altSrc);
+
+      changeBtn.style.display = hasAlt ? "inline-block" : "none";
+      changeBtn.textContent = showingAlt ? "元へ" : "VIEW切替";
+    }
+
+    function notifyParentItemChanged(reason = "select") {
+      const item = currentItems[currentIndex];
+      if (!item) return;
+
+      const currentImageSrc = showingAlt
+        ? String(item.altSrc || item.src || "")
+        : String(item.src || "");
+
+      window.parent.postMessage({
+        type: "mobileImageChanged",
+        reason,
+        isAlt: !!showingAlt,
+        currentImageSrc,
+        item: {
+          title: String(item.title || ""),
+          productId: String(item.productId || ""),
+          brandText: String(item.brandText || ""),
+          productNoText: String(item.productNoText || ""),
+          colorHtml: String(item.colorHtml || ""),
+          titleText: String(item.titleText || ""),
+          priceText: String(item.priceText || "")
+        }
+      }, "*");
+    }
+
+    function setMainImage(index, useAlt = false, reason = "select") {
+      currentIndex = index;
+      const item = currentItems[index];
+      const hasAlt = !!(item && item.altSrc);
+      showingAlt = hasAlt ? !!useAlt : false;
+
+      const src = showingAlt ? (item?.altSrc || item?.src || "") : (item?.src || "");
+
+      if (!src) {
+        mainImage.src = "";
+        mainImage.alt = "";
+        mainImage.style.display = "none";
+        emptyState.style.display = "flex";
+      } else {
+        mainImage.src = src;
+        mainImage.alt = item?.title || "";
+        mainImage.style.display = "block";
+        emptyState.style.display = "none";
+      }
+
+      Array.from(thumbs.children).forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+      });
+
+      updateChangeButton();
+      updateOverflowHint();
+      notifyParentItemChanged(reason);
+    }
+
+    function toggleCurrentItemImage() {
+      const item = currentItems[currentIndex];
+      if (!item || !item.altSrc) return;
+      setMainImage(currentIndex, !showingAlt, "toggle");
+    }
+
+    function scrollThumbIntoView(index) {
+      const btn = thumbs.children[index];
+      if (!btn || typeof btn.scrollIntoView !== "function") return;
+
+      btn.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+
+    function goToNextItem() {
+      if (!currentItems.length) return;
+      const nextIndex = (currentIndex + 1) % currentItems.length;
+      setMainImage(nextIndex, false, "select");
+      scrollThumbIntoView(nextIndex);
+      requestAnimationFrame(updateOverflowHint);
+    }
+
+    function renderThumbs() {
+      thumbs.innerHTML = "";
+
+      currentItems.forEach((item, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "thumb-btn" + (i === currentIndex ? " active" : "");
+        btn.dataset.index = String(i);
+
+        const img = document.createElement("img");
+        img.src = item.thumbSrc || item.src;
+        img.alt = item.title || ("thumbnail-" + (i + 1));
+
+        btn.appendChild(img);
+        btn.addEventListener("click", () => {
+          setMainImage(i, false, "select");
+          requestAnimationFrame(updateOverflowHint);
+        });
+
+        thumbs.appendChild(btn);
+      });
+
+      thumbs.style.display = currentItems.length > 1 ? "flex" : "none";
+      requestAnimationFrame(updateOverflowHint);
+    }
+
+    function setGalleryItems(items) {
+      currentItems = (Array.isArray(items) ? items : [])
+        .map(normalizeItem)
+        .filter(Boolean);
+
+      currentIndex = 0;
+      showingAlt = false;
+      renderThumbs();
+
+      if (currentItems.length > 0) {
+        setMainImage(0, false, "select");
+      } else {
+        mainImage.src = "";
+        mainImage.alt = "";
+        mainImage.style.display = "none";
+        emptyState.style.display = "flex";
+        updateChangeButton();
+        updateOverflowHint();
+      }
+    }
+
+    changeBtn.addEventListener("click", toggleCurrentItemImage);
+    thumbMore.addEventListener("click", goToNextItem);
+    mainNextBtn.addEventListener("click", goToNextItem);
+    thumbs.addEventListener("scroll", updateOverflowHint);
+    window.addEventListener("resize", updateOverflowHint);
+
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+
+      if (data.type === "setGalleryItems") {
+        setGalleryItems(data.items || []);
+      }
+
+      if (data.type === "setImages") {
+        setGalleryItems(data.images || []);
+      }
+    });
+
+    setGalleryItems([]);
+  </script>
+</body>
+</html>

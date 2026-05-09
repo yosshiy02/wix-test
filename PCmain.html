@@ -796,8 +796,9 @@
             overflow: hidden;
             opacity: 0;
             visibility: hidden;
+            clip-path: inset(0 round 0px);
             /* 変更: 7.0秒から12.5秒にかけて、5.5秒間かけてゆっくりと広がるように設定 */
-            transition: width 5.5s cubic-bezier(0.22, 1, 0.36, 1), height 5.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s, visibility 0.5s;
+            transition: width 5.5s cubic-bezier(0.22, 1, 0.36, 1), height 5.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s, visibility 0.5s, clip-path 1.15s cubic-bezier(0.22, 1, 0.36, 1);
             box-shadow: 0 30px 80px rgba(0,0,0,0.35);
         }
         .rasim-cinema-overlay.is-playing {
@@ -808,6 +809,23 @@
             /* モーダルの大きさに合わせて広がる設定 */
             width: 90vw;
             height: 90vh;
+        }
+        .rasim-cinema-overlay.is-helmetty {
+            width: 90vw;
+            height: 90vh;
+            background: rgba(17,17,17,0.94);
+            clip-path: inset(0 round 0px);
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .rasim-cinema-overlay.is-helmetty::before {
+            content: none;
+        }
+        .rasim-cinema-overlay.is-helmetty.is-expanding::before {
+            content: none;
+        }
+        .rasim-cinema-overlay.is-helmetty > * {
+            position: relative;
+            z-index: 1;
         }
 
         /* 追加: スキップボタンのスタイル */
@@ -1609,6 +1627,9 @@
                     // 進行中のタイマーを強制終了
                     clearTimeout(window.rasimExpandTimer);
                     clearTimeout(window.rasimFinishTimer);
+                    clearTimeout(window.helmettyExpandTimer);
+                    clearTimeout(window.helmettyStartTimer);
+                    clearTimeout(window.helmettyFinishTimer);
                     
                     const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
                     const modalPanel = document.querySelector('.pc-modal-panel');
@@ -1621,9 +1642,10 @@
                     if (cinemaOverlay) {
                         cinemaOverlay.style.opacity = '0';
                         setTimeout(() => {
-                            cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                            cinemaOverlay.classList.remove('is-playing', 'is-expanding', 'is-helmetty');
                             cinemaOverlay.innerHTML = '';
                             cinemaOverlay.style.opacity = '';
+                            cinemaOverlay.style.background = '';
                         }, 500);
                     }
 
@@ -2036,56 +2058,97 @@
             const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
             const modalPanel = document.querySelector('.pc-modal-panel');
 
-            // 追加: レシームで、かつコードが送られてきている時だけの特別シネマ演出
-            if (!isArchive && brandId === 'rasim' && window.customBrandAnimations && window.customBrandAnimations['rasim']) {
+            // 追加: レシーム・HELMETTYで、かつコードが送られてきている時だけの特別シネマ演出
+            if (!isArchive && (brandId === 'rasim' || brandId === 'helmetty') && window.customBrandAnimations && window.customBrandAnimations[brandId]) {
                 // いつもの説明文や画像は一旦隠して触れないようにする
                 modalPanel.style.opacity = '0';
                 modalPanel.style.pointerEvents = 'none';
-
-                // シネマ幕を正方形で表示し、コードを流し込む
-                cinemaOverlay.innerHTML = window.customBrandAnimations['rasim'];
-                cinemaOverlay.style.background = '#ffffff'; // 変更: オープニングムービーに合わせて背景を真っ白にする
-                cinemaOverlay.classList.remove('is-expanding');
-                cinemaOverlay.classList.add('is-playing');
 
                 // 追加: 再生中はスキップボタンを表示する
                 const skipBtn = document.getElementById('cinemaSkipBtn');
                 if (skipBtn) skipBtn.classList.add('is-visible');
 
-                // 変更: さんかく（コロン）が表示され始めるタイミング（7.0秒後）に合わせて幕を広げ始める
-                window.rasimExpandTimer = setTimeout(() => {
-                    cinemaOverlay.classList.add('is-expanding');
-                }, 7000);
+                cinemaOverlay.classList.remove('is-expanding', 'is-helmetty');
 
-                // 変更: ®マーク（R）が出きった1秒後（12.5秒後）にシネマ幕をフワッと消し、いつものパネルを出す
-                window.rasimFinishTimer = setTimeout(() => {
-                    if (skipBtn) skipBtn.classList.remove('is-visible'); // 追加: 自然終了時はスキップボタンを隠す
-                    
-                    cinemaOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        cinemaOverlay.classList.remove('is-playing', 'is-expanding');
-                        cinemaOverlay.innerHTML = '';
-                        cinemaOverlay.style.opacity = '';
-                    }, 500);
+                if (brandId === 'helmetty') {
+                    // HELMETTYは先に暗幕から星型で白背景を広げ、そのあと本体アニメを開始する
+                    cinemaOverlay.innerHTML = '';
+                    cinemaOverlay.style.background = '';
+                    cinemaOverlay.classList.add('is-playing', 'is-helmetty');
 
-                    modalPanel.style.opacity = '1';
-                    modalPanel.style.pointerEvents = 'auto';
+                    window.helmettyExpandTimer = setTimeout(() => {
+                        cinemaOverlay.classList.add('is-expanding');
+                    }, 40);
 
-                    setTimeout(() => { play3DAssemble(modalTitle); }, 50);
-                    gsap.killTweensOf('.modal-anim:not(#modalTitle)');
-                    gsap.fromTo('.modal-anim:not(#modalTitle)',
-                        { y: 30, opacity: 0 },
-                        { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
-                    );
-                }, 12500);
+                    window.helmettyStartTimer = setTimeout(() => {
+                        cinemaOverlay.innerHTML = window.customBrandAnimations[brandId];
+                    }, 1150);
+
+                    window.helmettyFinishTimer = setTimeout(() => {
+                        if (skipBtn) skipBtn.classList.remove('is-visible');
+                        
+                        cinemaOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            cinemaOverlay.classList.remove('is-playing', 'is-expanding', 'is-helmetty');
+                            cinemaOverlay.innerHTML = '';
+                            cinemaOverlay.style.opacity = '';
+                            cinemaOverlay.style.background = '';
+                        }, 500);
+
+                        modalPanel.style.opacity = '1';
+                        modalPanel.style.pointerEvents = 'auto';
+
+                        setTimeout(() => { play3DAssemble(modalTitle); }, 50);
+                        gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+                        gsap.fromTo('.modal-anim:not(#modalTitle)',
+                            { y: 30, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
+                        );
+                    }, 9500);
+
+                } else {
+                    // シネマ幕を正方形で表示し、コードを流し込む
+                    cinemaOverlay.innerHTML = window.customBrandAnimations[brandId];
+                    cinemaOverlay.style.background = '#ffffff'; // 変更: オープニングムービーに合わせて背景を真っ白にする
+                    cinemaOverlay.classList.add('is-playing');
+
+                    // 変更: さんかく（コロン）が表示され始めるタイミング（7.0秒後）に合わせて幕を広げ始める
+                    window.rasimExpandTimer = setTimeout(() => {
+                        cinemaOverlay.classList.add('is-expanding');
+                    }, 7000);
+
+                    // 変更: ®マーク（R）が出きった1秒後（12.5秒後）にシネマ幕をフワッと消し、いつものパネルを出す
+                    window.rasimFinishTimer = setTimeout(() => {
+                        if (skipBtn) skipBtn.classList.remove('is-visible'); // 追加: 自然終了時はスキップボタンを隠す
+                        
+                        cinemaOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                            cinemaOverlay.innerHTML = '';
+                            cinemaOverlay.style.opacity = '';
+                        }, 500);
+
+                        modalPanel.style.opacity = '1';
+                        modalPanel.style.pointerEvents = 'auto';
+
+                        setTimeout(() => { play3DAssemble(modalTitle); }, 50);
+                        gsap.killTweensOf('.modal-anim:not(#modalTitle)');
+                        gsap.fromTo('.modal-anim:not(#modalTitle)',
+                            { y: 30, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
+                        );
+                    }, 12500);
+                }
 
             } else {
                 // 他のブランドやアーカイブの時は、シネマ幕を隠していつも通りに表示
                 modalPanel.style.opacity = '1';
                 modalPanel.style.pointerEvents = 'auto';
                 if (cinemaOverlay) {
-                    cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                    cinemaOverlay.classList.remove('is-playing', 'is-expanding', 'is-helmetty');
                     cinemaOverlay.innerHTML = '';
+                    cinemaOverlay.style.background = '';
+                    cinemaOverlay.style.opacity = '';
                 }
 
                 // 修正: モーダルの位置が画面上で確定するまでほんの少し待ってから、正確な座標へ文字を集める
@@ -2108,6 +2171,9 @@
             // 追加: シネマ再生中に閉じられた時のための安全リセット
             clearTimeout(window.rasimExpandTimer);
             clearTimeout(window.rasimFinishTimer);
+            clearTimeout(window.helmettyExpandTimer);
+            clearTimeout(window.helmettyStartTimer);
+            clearTimeout(window.helmettyFinishTimer);
             
             // 追加: 途中で閉じた場合もスキップボタンを隠す
             const skipBtn = document.getElementById('cinemaSkipBtn');
@@ -2115,8 +2181,10 @@
             
             const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
             if (cinemaOverlay) {
-                cinemaOverlay.classList.remove('is-playing', 'is-expanding');
+                cinemaOverlay.classList.remove('is-playing', 'is-expanding', 'is-helmetty');
                 cinemaOverlay.innerHTML = '';
+                cinemaOverlay.style.background = '';
+                cinemaOverlay.style.opacity = '';
             }
             const modalPanel = document.querySelector('.pc-modal-panel');
             if (modalPanel) {
@@ -2400,27 +2468,7 @@
                 once: false 
             });
         });
-    // ローカルプレビュー（VSC）用のWixシミュレーター 
-
-        window.addEventListener('DOMContentLoaded', () => {
-            // Wixのiframe環境以外（VSCのローカル環境など）でのみテスト送信を実行
-            if (!window.location.hostname.includes('wixsite.com') && !window.location.hostname.includes('editor.wix.com')) {
-                setTimeout(() => {
-                    // 1. ヒーロー画像をシミュレート送信
-                    window.postMessage({
-                        type: "setHeroImage",
-                        heroImageUrl: "https://static.wixstatic.com/media/414ae9_d482c0a6f03e4b138311cc5daa37771b~mv2.jpg"
-                    }, "*");
-
-                    // 2. Philosophy（The Origin of Style）画像をシミュレート送信
-                    window.postMessage({
-                        type: "setPhilosophyImage",
-                        philosophyImageUrl: "https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg"
-                    }, "*");
-                }, 500); // 0.5秒遅延させてWixの挙動を再現
-            }
-        });
-
+ 
 
     </script>
 </body>

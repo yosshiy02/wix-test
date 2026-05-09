@@ -13,6 +13,7 @@ import { setMetaTags, setTitle } from "wix-seo-frontend";
 import {
   DEBUG,
   variantNames,
+  BRAND_PREFIX,
   BRAND_CONFIG,
   CheckoutSectionId,
   MobileCloseButtonId,
@@ -42,6 +43,7 @@ import {
   firstNonEmptyValue,
   buildProductSpecList,
   getImport307GalleryImages,
+  normalizeCategoryKey,
   getSizeFromLineItem,
   getColorFromName,
   getLineItemUnitPrice,
@@ -115,96 +117,8 @@ let currentBrandLogoUrl = "";
 let currentProductNoText = "";
 let currentColorHtml = "";
 let currentSalesCatchHtml = "";
-let currentSalesTextsHtml = "";
 let currentSelectedSize = "";
 let currentPurchaseResponse = "";
-
-let __openItemRequestId = 0;
-
-function beginOpenItemRequest(label = "") {
-  __openItemRequestId += 1;
-  const requestId = __openItemRequestId;
-  console.log("[OPENITEM][begin]", { requestId, label });
-  return requestId;
-}
-
-function invalidateOpenItemRequests(label = "") {
-  __openItemRequestId += 1;
-  console.log("[OPENITEM][invalidate]", { latest: __openItemRequestId, label });
-}
-
-function isOpenItemRequestAlive(requestId) {
-  return requestId === __openItemRequestId;
-}
-
-let __productSwitchRequestId = 0;
-let __stockUpdateTimer = null;
-
-function beginProductSwitchRequest(productName) {
-  __productSwitchRequestId += 1;
-  const requestId = __productSwitchRequestId;
-
-  console.log("[PRODUCT-SWITCH][begin]", {
-    requestId,
-    productName
-  });
-
-  return requestId;
-}
-
-function isCurrentProductRequest(requestId, productName) {
-  return (
-    requestId === __productSwitchRequestId &&
-    String(productName || "").trim() === String(productNameID || "").trim()
-  );
-}
-
-function skipStaleProductRequest(requestId, productName, label) {
-  if (isCurrentProductRequest(requestId, productName)) return false;
-
-  console.log("[PRODUCT-SWITCH][stale-skip]", {
-    requestId,
-    latestRequestId: __productSwitchRequestId,
-    productName,
-    currentProductNameID: productNameID,
-    label
-  });
-
-  return true;
-}
-
-function scheduleStockUpdateForCurrentProduct(requestId, targetProductNameID) {
-  if (__stockUpdateTimer) {
-    clearTimeout(__stockUpdateTimer);
-  }
-
-  __stockUpdateTimer = setTimeout(async () => {
-    if (skipStaleProductRequest(requestId, targetProductNameID, "before stock update")) return;
-
-    try {
-      const cartData = await getCartSnapshot();
-
-      if (skipStaleProductRequest(requestId, targetProductNameID, "after getCartSnapshot")) return;
-
-      const res = await fetchAndLogVariants(targetProductNameID, cartData);
-
-      if (skipStaleProductRequest(requestId, targetProductNameID, "after fetchAndLogVariants")) return;
-      if (!res) return;
-
-      await updateDropdownAndStockDisplay(
-        targetProductNameID,
-        res.tempStock,
-        res.productId,
-        res.variants,
-        cartData
-      );
-    } catch (error) {
-      if (!skipStaleProductRequest(requestId, targetProductNameID, "stock update error")) {
-        console.error('バリアント情報の取得中にエラーが発生しました:', error);
-      }
-    }
-  }, 120);
-}
 
 let currentG1G2BrandKey = "";
 let currentG1G2ShopKey = "";
@@ -217,8 +131,6 @@ const PREVIEW_SHOP_FALLBACK = {
   all: "false"
 };
 
-let __pcBrandBoxPayload = null;
-
 // ======================================================
 // G1/G2 強制 HELMETTY モード
 // いったん G1G2 を HELMETTY 固定にする
@@ -227,7 +139,7 @@ const FORCE_G1G2_HELMETTY_MODE = true;
 const FORCE_G1G2_BRAND_KEY = "HELMETTY";
 const FORCE_G1G2_SHOP_KEY = "HELMETTY";
 const FORCE_G1G2_ALL_VALUE = "false";
-let currentG1G2CategoryPrefix = "";
+const FORCE_G1G2_CATEGORY_PREFIX = "he";
 
 function isForceHelmettyMode() {
   return FORCE_G1G2_HELMETTY_MODE === true;
@@ -237,11 +149,6 @@ function filterForceHelmettyRows(items = []) {
   const source = Array.isArray(items) ? items : [];
 
   if (!isForceHelmettyMode()) {
-    return source;
-  }
-
-  const prefix = String(currentG1G2CategoryPrefix || "").trim().toLowerCase();
-  if (!prefix) {
     return source;
   }
 
@@ -255,7 +162,7 @@ function filterForceHelmettyRows(items = []) {
       ""
     ).trim().toLowerCase();
 
-    return raw.startsWith(prefix) || raw.includes(`/${prefix}`);
+    return raw.startsWith(FORCE_G1G2_CATEGORY_PREFIX) || raw.includes(`/${FORCE_G1G2_CATEGORY_PREFIX}`);
   });
 }
 
@@ -268,18 +175,6 @@ function getQueryValueWithPreviewFallback(key, fallbackValue = "") {
   }
 
   return "";
-}
-
-function normalizeCategoryKeyByPrefix(rawCategoryKey, prefixValue) {
-  const key = String(rawCategoryKey ?? "").toLowerCase().trim();
-  if (!key) return "";
-
-  const prefix = String(prefixValue || "").toLowerCase().trim();
-  if (!prefix) return key;
-
-  if (key.startsWith(prefix)) return key;
-
-  return (prefix + key).toLowerCase();
 }
 
 function getActiveCartUiHtml() {
@@ -348,76 +243,6 @@ if (data.type === "purchaseBuyNow") {
   await openSharedCartSection();
   return;
 }
-  });
-}
-
-function postPcBrandBoxPayload() {
-  if (isMobile) return;
-
-  const html = $w("#PcBrandBoxHtml");
-  if (!html || typeof html.postMessage !== "function") return;
-  if (!__pcBrandBoxPayload) return;
-
-  html.postMessage({
-    type: "brandBoxData",
-    payload: __pcBrandBoxPayload
-  });
-}
-
-function pushPcBrandBoxHtml(brandSettingsItem = {}, fallbackBrand = "") {
-  if (isMobile) return;
-
-  __pcBrandBoxPayload = {
-    brand: String(brandSettingsItem.brand || fallbackBrand || ""),
-    brandPrefix: String(brandSettingsItem.brandPrefix || ""),
-    brandLogoUrl: currentBrandLogoUrl || toHtmlImageSrc(brandSettingsItem.brandLogo),
-
-    linkTop: String(brandSettingsItem.linkTop || ""),
-    linkPolicy: String(brandSettingsItem.linkPolicy || ""),
-    linkForm: String(brandSettingsItem.linkForm || ""),
-    linkNotice: String(brandSettingsItem.linkNotice || ""),
-    linkLink: String(brandSettingsItem.linkLink || ""),
-    linkInsta: String(brandSettingsItem.linkInsta || ""),
-    instaLinkUrl: String(brandSettingsItem.instaLink || ""),
-
-    colorBoxBg: String(brandSettingsItem.colorBoxBg || ""),
-    colorBoxText: String(brandSettingsItem.colorBoxText || ""),
-    colorButtonBg: String(brandSettingsItem.colorButtonBg || ""),
-    colorButtonText: String(brandSettingsItem.colorButtonText || ""),
-    colorButtonBorder: String(brandSettingsItem.colorButtonBorder || ""),
-
-    boxTop: String(brandSettingsItem.boxTop || ""),
-    boxPolicy: String(brandSettingsItem.boxPolicy || ""),
-    boxForm: String(brandSettingsItem.boxForm || ""),
-    boxNotice: String(brandSettingsItem.boxNotice || ""),
-    boxLink: String(brandSettingsItem.boxLink || ""),
-    instaLink: "Instagram"
-  };
-
-  postPcBrandBoxPayload();
-}
-
-function setupPcBrandBoxHtml() {
-  if (isMobile) return;
-
-  const html = $w("#PcBrandBoxHtml");
-  if (!html || typeof html.onMessage !== "function") return;
-
-  html.onMessage((event) => {
-    const data = event?.data;
-    if (!data || typeof data !== "object") return;
-
-    if (data.type === "ready") {
-      postPcBrandBoxPayload();
-      return;
-    }
-
-    if (data.type === "brandBoxClick") {
-      const url = String(data.url || "").trim();
-      if (!url) return;
-
-      wixLocation.to(url);
-    }
   });
 }
 
@@ -507,56 +332,34 @@ payload: {
 
 function pushMainImages(items = []) {
   if (isMobile) return;
+  if (!$w("#mainGalleryHtml") || typeof $w("#mainGalleryHtml").postMessage !== "function") return;
 
-  const html = $w("#mainGalleryHtml");
-  if (!html || typeof html.postMessage !== "function") {
-    console.warn("[G1G2][mainGalleryHtml] not found or postMessage unsupported");
-    return;
-  }
-
-  html.postMessage({
-    channel: "mainGallery",
+  $w("#mainGalleryHtml").postMessage({
     type: "setGalleryItems",
     items: Array.isArray(items) ? items : [],
-    brand: currentG1G2BrandKey,
-    brandKey: currentG1G2BrandKey,
-    selectedBrand: currentG1G2BrandKey,
-    shop: currentG1G2ShopKey,
-    all: currentG1G2AllValue,
-    hideBrandSelect: false,
-    showBrandSelect: true,
-    brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
-      value: key,
-      label: BRAND_CONFIG[key]?.mbBrandText || key
-    }))
+    brand: brandKey,
+    shop: shopKey,
+    all: allValue,
+    hideBrandSelect: String(shopKey || "").trim().toUpperCase() === "HELMETTY"
   });
 
-  html.postMessage({
-    channel: "mainGallery",
+  $w("#mainGalleryHtml").postMessage({
     type: "setOtherProductsButtonDisabled",
     disabled: true,
-    brand: currentG1G2BrandKey,
-    brandKey: currentG1G2BrandKey,
-    selectedBrand: currentG1G2BrandKey,
-    shop: currentG1G2ShopKey,
-    all: currentG1G2AllValue,
-    hideBrandSelect: false,
-    showBrandSelect: true,
-    brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
-      value: key,
-      label: BRAND_CONFIG[key]?.mbBrandText || key
-    }))
+    brand: brandKey,
+    shop: shopKey,
+    all: allValue,
+    hideBrandSelect: String(shopKey || "").trim().toUpperCase() === "HELMETTY"
   });
 
   console.log("[G1G2][mainGalleryHtml] setGalleryItems sent", {
     itemsLength: Array.isArray(items) ? items.length : 0,
-    brand: currentG1G2BrandKey,
-    shop: currentG1G2ShopKey,
-    all: currentG1G2AllValue,
-    hideBrandSelect: currentG1G2HideBrandSelect
+    brand: brandKey,
+    shop: shopKey,
+    all: allValue,
+    hideBrandSelect: String(shopKey || "").trim().toUpperCase() === "HELMETTY"
   });
 }
-
 function pushMobileMainImages(items) {
   if (!isMobile) return;
 
@@ -566,25 +369,15 @@ function pushMobileMainImages(items) {
           const title = String(item?.title || "");
           const lastSpaceIndex = title.lastIndexOf(" ");
           const extractedText = lastSpaceIndex >= 0 ? title.substring(lastSpaceIndex + 1) : title;
-          
-          // ▼ 2枚目の画像データ（Hover画像）を探して合体させる
-          const hoverItem = galleryHoverItems.find(h =>
-            h.title === item.title ||
-            String(h.productId || "") === String(item.productId || "") ||
-            String(h.slug || "") === String(item.slug || "")
-          ) || {};
 
           return {
             ...item,
-            hoverImage: item.hoverImage || hoverItem.hoverImage || hoverItem.src || hoverItem.originalImage || null,
             brandText: currentBrandText || "",
             productNoText: currentProductNoText || "",
             colorHtml: `<div style="font-size: 18px;">${extractedText}</div>`
           };
         })
       : [];
-
-    console.log("[MobileMainImageHtml][first item check]", mobileItems[0]);
 
     $w("#MobileMainImageHtml").postMessage({
       type: "setGalleryItems",
@@ -599,29 +392,23 @@ function pushInitialPreviewImageDirect(item) {
   const payload = [item];
 
   const sendPc = () => {
-    const html = $w("#mainGalleryHtml");
-
-    if (html && typeof html.postMessage === "function") {
-      html.postMessage({
-        channel: "mainGallery",
+    if ($w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").postMessage === "function") {
+      $w("#mainGalleryHtml").postMessage({
         type: "setGalleryItems",
         items: payload,
-        brand: currentG1G2BrandKey,
-        brandKey: currentG1G2BrandKey,
-        shop: currentG1G2ShopKey,
-        all: currentG1G2AllValue,
-        hideBrandSelect: currentG1G2HideBrandSelect
+        brand: brandKey,
+        shop: shopKey,
+        all: allValue,
+        hideBrandSelect: String(shopKey || "").trim().toUpperCase() === "HELMETTY"
       });
 
-      html.postMessage({
-        channel: "mainGallery",
+      $w("#mainGalleryHtml").postMessage({
         type: "setOtherProductsButtonDisabled",
         disabled: true,
-        brand: currentG1G2BrandKey,
-        brandKey: currentG1G2BrandKey,
-        shop: currentG1G2ShopKey,
-        all: currentG1G2AllValue,
-        hideBrandSelect: currentG1G2HideBrandSelect
+        brand: brandKey,
+        shop: shopKey,
+        all: allValue,
+        hideBrandSelect: String(shopKey || "").trim().toUpperCase() === "HELMETTY"
       });
     }
   };
@@ -649,30 +436,6 @@ function pushInitialPreviewImageDirect(item) {
   } else {
     sendPc();
   }
-}
-
-function pushPCMainImageHtml(items = []) {
-  if (isMobile) return;
-
-  const html = $w("#MainImageHtml");
-  if (!html || typeof html.postMessage !== "function") {
-    console.warn("[MainImageHtml] not found or postMessage unsupported");
-    return;
-  }
-
-  // ▼ PC用も同様に2枚目の画像データ（Hover画像）を合体させて送る
-  const payloadItems = (Array.isArray(items) ? items : []).map(item => {
-    const hoverItem = galleryHoverItems.find(h => h.title === item.title) || {};
-    return {
-      ...item,
-      hoverImage: item.hoverImage || hoverItem.src || hoverItem.originalImage || null
-    };
-  });
-
-  html.postMessage({
-    type: "setGalleryItems",
-    items: payloadItems
-  });
 }
 
 function pushMobileCatalogInfo() {
@@ -780,7 +543,7 @@ async function getSoleMaterialByTitle(title) {
   return String(result.items?.[0]?.soleMaterial || "").trim();
 }
 
-async function postProductInfoToHtml(salesData = null, infoItem = null, isAlive = null) {
+async function postProductInfoToHtml(salesData = null, infoItem = null) {
   const html = isMobile ? $w("#MobileProductInfoHtml") : $w("#ProductInfoHtml");
   if (!html || typeof html.postMessage !== "function") return false;
   if (!infoItem) return false;
@@ -808,11 +571,6 @@ async function postProductInfoToHtml(salesData = null, infoItem = null, isAlive 
   console.log("[INFOHTML] currentBrandLogoUrl =", currentBrandLogoUrl);
   console.log("[INFOHTML] brandLogoUrl =", brandLogoUrl);
   console.log("[INFOHTML] mainImage2 =", mainImage2);
-
-  if (typeof isAlive === "function" && !isAlive()) {
-    console.log("[OPENITEM][stale skip] before productInfo postMessage");
-    return false;
-  }
 
   html.postMessage({
     type: "productInfo",
@@ -1284,28 +1042,6 @@ if (isMobile && $w("#MobileMainImageHtml") && typeof $w("#MobileMainImageHtml").
     }
   });
 }
-
-// ▼ 追加：PC版スライダー（MainImageHtml）で画像（色）が切り替わった際の通知を受信し、在庫を更新する
-if (!isMobile && $w("#MainImageHtml") && typeof $w("#MainImageHtml").onMessage === "function") {
-  $w("#MainImageHtml").onMessage(async (event) => {
-    const data = event?.data;
-    if (!data || typeof data !== "object") return;
-
-    // HTML側からの通知名が imageChanged または mobileImageChanged であることを想定
-    if (data.type === "imageChanged" || data.type === "mobileImageChanged") {
-      const changedItem = data.item || {};
-      
-      // ▼ 安全装置：今と同じ商品（色）の連続通知なら無視してストップ（ループ防止）
-      if (String(changedItem.title || "").trim() === String(productNameID || "").trim()) {
-        return;
-      }
-      
-      updateText({ item: changedItem });
-      postCatalogTitleFromItem(changedItem);
-    }
-  });
-}
-
   setupViewBasedOnDevice();
   setupEventHandlers();           // ギャラリーのクリック/選択イベントなど
 
@@ -1317,7 +1053,6 @@ safeOnClick($w("#backToMainButton"), async () => {
   setupCartEventHandlers();       // カートイベント
   setupMobileCartUI();
   setupCartUiHtml();
-  setupPcBrandBoxHtml();
 
   const productInfoHtml = isMobile ? $w("#MobileProductInfoHtml") : $w("#ProductInfoHtml");
   if (productInfoHtml && typeof productInfoHtml.onMessage === "function") {
@@ -1359,981 +1094,8 @@ safeOnClick($w("#backToMainButton"), async () => {
   }
 
 if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessage === "function") {
-  $w("#mainGalleryHtml").onMessage(async (event) => {
+  $w("#mainGalleryHtml").onMessage((event) => {
     const data = event?.data || {};
-
-    console.log("[mainGalleryHtml][onMessage received]", {
-      type: data.type,
-      channel: data.channel,
-      data
-    });
-
-    // ▼重複して処理を妨害していたブロックを無効化
-    if (data.type === "openItem_DISABLE") {
-      console.log("[mainGalleryHtml][openItem collapse start]", data);
-
-      await $w("#G1G2GallerySection").collapse();
-
-      console.log("[mainGalleryHtml][openItem collapse done]", {
-        collapsed: $w("#G1G2GallerySection").collapsed
-      });
-
-      return;
-    }
-
-    if (data.type === "openCategory") {
-      const categoryKeyFromMainGallery = String(data.categoryKey || "").trim();
-
-      console.log("[mainGalleryHtml][openCategory received]", {
-        categoryKey: categoryKeyFromMainGallery,
-        channel: data.channel
-      });
-
-      if (!categoryKeyFromMainGallery) {
-        console.warn("[mainGalleryHtml][openCategory] categoryKey が空です", data);
-        return;
-      }
-
-      const categoryGalleryState = await loadCategoryGalleryFromPayload({
-        slug: categoryKeyFromMainGallery
-      });
-
-      if (!categoryGalleryState) {
-        console.warn("[mainGalleryHtml][openCategory] categoryGalleryState が取得できません", {
-          categoryKey: categoryKeyFromMainGallery
-        });
-        return;
-      }
-
-      console.log("[mainGalleryHtml][openCategory] G2商品送信完了", {
-        categoryKey,
-        selectedKey,
-        galleryNormalItemsLength: galleryNormalItems.length,
-        firstItem: galleryNormalItems[0]
-      });
-
-      setTimeout(() => {
-        if (galleryNormalItems.length > 0) {
-          const firstItem = galleryNormalItems[0];
-          productNameID = firstItem.title;
-
-          currentBrandText = String(
-            firstItem.brand ||
-            firstItem.brandText ||
-            currentBrandText ||
-            ""
-          );
-
-          postCatalogTitleFromItem({
-            ...firstItem,
-            brandText: currentBrandText,
-            productNoText: currentProductNoText,
-            priceText: firstItem.priceTaxIn || firstItem.formattedPrice || firstItem.price || ""
-          });
-
-          pushCatalogInfo();
-        }
-      }, 0);
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      const clickedItem = data.item || {};
-
-      const clickedTitle = String(clickedItem.title || "").trim();
-      const clickedProductId = String(clickedItem.productId || "").trim();
-      const clickedSlug = String(clickedItem.slug || "").toLowerCase().trim();
-      const clickedCategoryKey = String(clickedItem.categoryKey || "").toLowerCase().trim();
-
-      console.log("[mainGalleryHtml][openItem received]", {
-        clickedTitle,
-        clickedProductId,
-        clickedSlug,
-        clickedCategoryKey,
-        raw: clickedItem
-      });
-
-      const openItemRequestId = beginOpenItemRequest(clickedTitle || clickedSlug || clickedProductId);
-
-      if (clickedCategoryKey) {
-        categoryKey = clickedCategoryKey;
-        currentItem = clickedCategoryKey;
-      }
-
-      const fastSelectedGalleryItem =
-        galleryNormalItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedSlug && String(item.slug || "").toLowerCase().trim() === clickedSlug) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-        ) || {
-          src: String(clickedItem.image || clickedItem.src || clickedItem.originalImage || ""),
-          originalImage: String(clickedItem.image || clickedItem.src || clickedItem.originalImage || ""),
-          hoverImage: String(clickedItem.hoverImage || ""),
-          title: clickedTitle,
-          productId: clickedProductId,
-          brand: String(clickedItem.brand || ""),
-          slug: clickedSlug,
-          priceTaxIn: String(clickedItem.priceText || clickedItem.price || ""),
-          formattedPrice: String(clickedItem.priceText || clickedItem.price || ""),
-          price: String(clickedItem.priceText || clickedItem.price || ""),
-          type: "image"
-        };
-
-      if (fastSelectedGalleryItem.src || fastSelectedGalleryItem.originalImage) {
-        galleryNormalItems = [
-          fastSelectedGalleryItem,
-          ...galleryNormalItems.filter(item =>
-            !(
-              (fastSelectedGalleryItem.productId && String(item.productId || "") === String(fastSelectedGalleryItem.productId || "")) ||
-              (fastSelectedGalleryItem.slug && String(item.slug || "").toLowerCase().trim() === String(fastSelectedGalleryItem.slug || "").toLowerCase().trim()) ||
-              (fastSelectedGalleryItem.title && String(item.title || "").trim() === String(fastSelectedGalleryItem.title || "").trim())
-            )
-          )
-        ];
-
-        galleryItems = galleryNormalItems.slice();
-
-        pushPCMainImageHtml(galleryNormalItems);
-
-        await collapseIfPossible($w("#G1G2GallerySection"));
-        await expandIfPossible($w("#MainSection"));
-
-        if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-          await $w("#anchor1").scrollTo();
-        }
-      }
-
-      let productResultLocal = null;
-      let productLocal = null;
-
-      try {
-        if (clickedProductId) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("_id", clickedProductId)
-            .limit(1)
-            .find();
-        }
-
-        if ((!productResultLocal || productResultLocal.items.length === 0) && clickedSlug) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("slug", clickedSlug)
-            .limit(1)
-            .find();
-        }
-
-        if ((!productResultLocal || productResultLocal.items.length === 0) && clickedTitle) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("name", clickedTitle)
-            .limit(1)
-            .find();
-        }
-
-        productLocal = productResultLocal?.items?.[0] || null;
-      } catch (e) {
-        console.error("[mainGalleryHtml][openItem] Stores/Products 取得失敗", e);
-      }
-
-      if (openItemRequestId !== __openItemRequestId) {
-        console.log("[mainGalleryHtml][openItem stale skip after product query]", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      if (productLocal) {
-        productNameID = String(productLocal.name || clickedTitle || "");
-        selectedKey = extractSelectedKeyFromSlug(productLocal.slug);
-        itemSlug = String(productLocal.slug || "");
-        await updateCurrentBrandLogoUrl(productLocal.brand);
-
-        if (openItemRequestId !== __openItemRequestId) {
-          console.log("[mainGalleryHtml][openItem stale skip after brand logo]", {
-            openItemRequestId,
-            latest: __openItemRequestId,
-            clickedTitle
-          });
-          return;
-        }
-      } else {
-        productNameID = clickedTitle;
-
-        if (clickedSlug) {
-          selectedKey = extractSelectedKeyFromSlug(clickedSlug);
-          itemSlug = clickedSlug;
-        }
-      }
-
-      if (!productNameID) {
-        console.warn("[mainGalleryHtml][openItem] productNameID が空です", {
-          clickedItem,
-          productLocal
-        });
-        return;
-      }
-
-      const selectedGalleryItem =
-        galleryNormalItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-        ) || {
-          src: toHtmlImageSrc(productLocal?.mainMedia) || String(clickedItem.image || ""),
-          originalImage: toHtmlImageSrc(productLocal?.mainMedia) || String(clickedItem.image || ""),
-          hoverImage: (productLocal?.mediaItems && productLocal.mediaItems.length > 1) 
-            ? toHtmlImageSrc(productLocal.mediaItems[1].src || productLocal.mediaItems[1].url) 
-            : null,
-          title: productNameID,
-          productId: String(productLocal?._id || clickedProductId || ""),
-          brand: String(productLocal?.brand || clickedItem.brand || ""),
-          priceTaxIn: String(clickedItem.priceText || ""),
-          formattedPrice: String(clickedItem.priceText || ""),
-          price: String(clickedItem.priceText || ""),
-          type: "image"
-        };
-
-      galleryNormalItems = [
-        selectedGalleryItem,
-        ...galleryNormalItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      const selectedHoverItem = galleryHoverItems.find(item =>
-        (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-        (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-      ) || {
-        ...selectedGalleryItem,
-        src: selectedGalleryItem.hoverImage || selectedGalleryItem.src || selectedGalleryItem.originalImage || "",
-        originalImage: selectedGalleryItem.hoverImage || selectedGalleryItem.src || selectedGalleryItem.originalImage || ""
-      };
-
-      galleryHoverItems = [
-        selectedHoverItem,
-        ...galleryHoverItems.filter(item =>
-          !(
-            (selectedHoverItem.productId && String(item.productId || "") === String(selectedHoverItem.productId || "")) ||
-            (selectedHoverItem.title && String(item.title || "").trim() === String(selectedHoverItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryItems = galleryNormalItems.slice();
-
-      currentBrandText = String(
-        productLocal?.brand ||
-        selectedGalleryItem.brand ||
-        clickedItem.brand ||
-        currentBrandText ||
-        ""
-      );
-
-      const categoryItemLocal = categoriesResult.items.find(
-        item => String(item.slug || "").toLowerCase().trim() === String(categoryKey || "").toLowerCase().trim()
-      );
-
-      currentProductNoText = categoryItemLocal ? String(categoryItemLocal.description || "") : "";
-
-      const selectedDisplayItem = {
-        ...selectedGalleryItem,
-        brandText: currentBrandText,
-        productNoText: currentProductNoText,
-        priceText: selectedGalleryItem.priceText || selectedGalleryItem.priceTaxIn || selectedGalleryItem.formattedPrice || selectedGalleryItem.price || clickedItem.priceText || ""
-      };
-
-      pushPCMainImageHtml(galleryNormalItems);
-
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      updateText({ item: selectedDisplayItem });
-      postCatalogTitleFromItem(selectedDisplayItem);
-      pushCatalogInfo();
-
-      let salesDataLocal = null;
-
-      const salesTextQueryLocal = await wixData.query("ProductSalesTexts")
-        .eq("title", currentItem)
-        .find();
-
-      if (salesTextQueryLocal.items.length > 0) {
-        salesDataLocal = salesTextQueryLocal.items[0];
-      } else {
-        const normKeyLocal = String(currentItem || "").trim().toLowerCase();
-        const retryLocal = await wixData.query("ProductSalesTexts")
-          .contains("title", currentItem)
-          .find();
-
-        if (retryLocal.items.length > 0) {
-          salesDataLocal = retryLocal.items.find(x => ((x.title || "").trim().toLowerCase() === normKeyLocal)) || null;
-        }
-
-        if (!salesDataLocal && retryLocal.items.length > 0) {
-          salesDataLocal = retryLocal.items[0];
-        }
-      }
-
-      if (productLocal) {
-        applyPinterestMeta({
-          product: productLocal,
-          salesData: salesDataLocal,
-          currentItem,
-          selectedKey
-        });
-      }
-
-      const selectedInfoItemLocal = await getImport307InfoItemBySlug(currentItem);
-
-      if (!isOpenItemRequestAlive(openItemRequestId)) {
-        console.log("[OPENITEM][stale skip] before productInfo", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      const productInfoPostedLocal = await postProductInfoToHtml(
-        salesDataLocal,
-        selectedInfoItemLocal,
-        () => isOpenItemRequestAlive(openItemRequestId)
-      );
-
-      if (salesDataLocal) {
-        currentSalesCatchHtml = salesDataLocal.salesCatch || "";
-        currentSalesTextsHtml = salesDataLocal.salesTexts || "";
-
-        if (salesDataLocal.salesCatch) {
-          $w("#salesCatch").html = salesDataLocal.salesCatch;
-        } else {
-          $w("#salesCatch").text = "";
-        }
-
-        if (productInfoPostedLocal) {
-          pushMobileCatalogInfo();
-        } else if (isMobile) {
-        } else {
-        }
-
-        pushMobileCatalogInfo();
-      } else {
-        currentSalesCatchHtml = "";
-        currentSalesTextsHtml = "";
-        $w("#salesCatch").text = "";
-        pushMobileCatalogInfo();
-      }
-
-      setPurchaseResponse('');
-
-      if (!isOpenItemRequestAlive(openItemRequestId)) {
-        console.log("[OPENITEM][stale skip] before stock", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      const cartDataLocal = await getCartSnapshot();
-
-      if (!isOpenItemRequestAlive(openItemRequestId)) {
-        console.log("[OPENITEM][stale skip] after cart snapshot", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      const resLocal = await fetchAndLogVariants(productNameID, cartDataLocal);
-
-      if (!isOpenItemRequestAlive(openItemRequestId)) {
-        console.log("[OPENITEM][stale skip] after stock fetch", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      if (resLocal) {
-        await updateDropdownAndStockDisplay(
-          productNameID,
-          resLocal.tempStock,
-          resLocal.productId,
-          resLocal.variants,
-          cartDataLocal
-        );
-      } else {
-        console.warn("[mainGalleryHtml][openItem] 在庫取得失敗 productNameID =", productNameID);
-        showNoStock();
-      }
-
-      // ▼画像反映後にセクションを切り替える処理を追加
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      console.log("[mainGalleryHtml][openItem received]", data.item || {});
-
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      const clickedItem = data.item || {};
-
-      const clickedTitle = String(clickedItem.title || "").trim();
-      const clickedProductId = String(clickedItem.productId || "").trim();
-      const clickedSlug = String(clickedItem.slug || "").toLowerCase().trim();
-      const clickedCategoryKey = String(clickedItem.categoryKey || "").toLowerCase().trim();
-
-      console.log("[mainGalleryHtml][openItem received]", {
-        clickedTitle,
-        clickedProductId,
-        clickedSlug,
-        clickedCategoryKey,
-        raw: clickedItem
-      });
-
-      const openItemRequestId = beginOpenItemRequest(clickedTitle || clickedSlug || clickedProductId);
-
-      if (clickedCategoryKey) {
-        categoryKey = clickedCategoryKey;
-        currentItem = clickedCategoryKey;
-      }
-
-      let productResultLocal = null;
-      let productLocal = null;
-
-      try {
-        if (clickedProductId) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("_id", clickedProductId)
-            .limit(1)
-            .find();
-        }
-
-        if ((!productResultLocal || productResultLocal.items.length === 0) && clickedSlug) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("slug", clickedSlug)
-            .limit(1)
-            .find();
-        }
-
-        if ((!productResultLocal || productResultLocal.items.length === 0) && clickedTitle) {
-          productResultLocal = await wixData.query("Stores/Products")
-            .eq("name", clickedTitle)
-            .limit(1)
-            .find();
-        }
-
-        productLocal = productResultLocal?.items?.[0] || null;
-      } catch (e) {
-        console.error("[mainGalleryHtml][openItem] Stores/Products 取得失敗", e);
-      }
-
-      if (!isOpenItemRequestAlive(openItemRequestId)) {
-        console.log("[OPENITEM][stale skip] after product query", {
-          openItemRequestId,
-          latest: __openItemRequestId,
-          clickedTitle
-        });
-        return;
-      }
-
-      if (productLocal) {
-          productNameID = String(productLocal.name || clickedTitle || "");
-        selectedKey = extractSelectedKeyFromSlug(productLocal.slug);
-        itemSlug = String(productLocal.slug || "");
-        await updateCurrentBrandLogoUrl(productLocal.brand);
-
-        if (!isOpenItemRequestAlive(openItemRequestId)) {
-          console.log("[OPENITEM][stale skip] after brand logo", {
-            openItemRequestId,
-            latest: __openItemRequestId,
-            clickedTitle
-          });
-          return;
-        }
-      } else {
-
-        productNameID = clickedTitle;
-
-        if (clickedSlug) {
-          selectedKey = extractSelectedKeyFromSlug(clickedSlug);
-          itemSlug = clickedSlug;
-        }
-      }
-
-      if (!productNameID) {
-        console.warn("[mainGalleryHtml][openItem] productNameID が空です", {
-          clickedItem,
-          productLocal
-        });
-        return;
-      }
-
-      const selectedGalleryItem =
-        galleryNormalItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedSlug && String(item.slug || "").toLowerCase().trim() === clickedSlug) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-        ) || {
-          src: toHtmlImageSrc(productLocal?.mainMedia) || String(clickedItem.image || ""),
-          originalImage: toHtmlImageSrc(productLocal?.mainMedia) || String(clickedItem.image || ""),
-          hoverImage: null,
-          title: productNameID,
-          productId: String(productLocal?._id || clickedProductId || ""),
-          brand: String(productLocal?.brand || clickedItem.brand || ""),
-          slug: String(productLocal?.slug || clickedSlug || ""),
-          priceTaxIn: String(clickedItem.priceText || ""),
-          formattedPrice: String(clickedItem.priceText || ""),
-          price: String(clickedItem.priceText || ""),
-          type: "image"
-        };
-
-      galleryNormalItems = [
-        selectedGalleryItem,
-        ...galleryNormalItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.slug && String(item.slug || "").toLowerCase().trim() === String(selectedGalleryItem.slug || "").toLowerCase().trim()) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      // ▼ ★ 2枚目の画像のリストには、間違えて1枚目を入れずに、ちゃんと2枚目（hover用）を探して入れる！
-      const selectedHoverItem = galleryHoverItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedSlug && String(item.slug || "").toLowerCase().trim() === clickedSlug) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-      ) || selectedGalleryItem;
-
-      galleryHoverItems = [
-        selectedHoverItem,
-        ...galleryHoverItems.filter(item =>
-          !(
-            (selectedHoverItem.productId && String(item.productId || "") === String(selectedHoverItem.productId || "")) ||
-            (selectedHoverItem.slug && String(item.slug || "").toLowerCase().trim() === String(selectedHoverItem.slug || "").toLowerCase().trim()) ||
-            (selectedHoverItem.title && String(item.title || "").trim() === String(selectedHoverItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryItems = galleryNormalItems.slice();
-
-      currentBrandText = String(
-        productLocal?.brand ||
-        selectedGalleryItem.brand ||
-        clickedItem.brand ||
-        currentBrandText ||
-        ""
-      );
-
-      const categoryItemLocal = categoriesResult.items.find(
-        item => String(item.slug || "").toLowerCase().trim() === String(categoryKey || "").toLowerCase().trim()
-      );
-
-      currentProductNoText = categoryItemLocal ? String(categoryItemLocal.description || "") : "";
-
-      const selectedDisplayItem = {
-        ...selectedGalleryItem,
-        brandText: currentBrandText,
-        productNoText: currentProductNoText,
-        priceText: selectedGalleryItem.priceText || selectedGalleryItem.priceTaxIn || selectedGalleryItem.formattedPrice || selectedGalleryItem.price || clickedItem.priceText || ""
-      };
-
-      if ($w("#MainImageHtml") && typeof $w("#MainImageHtml").postMessage === "function") {
-        $w("#MainImageHtml").postMessage({
-          type: "setGalleryItems",
-          items: galleryNormalItems
-        });
-      }
-
-      updateText({ item: selectedDisplayItem });
-      postCatalogTitleFromItem(selectedDisplayItem);
-      pushCatalogInfo();
-
-      let salesDataLocal = null;
-
-      const salesTextQueryLocal = await wixData.query("ProductSalesTexts")
-        .eq("title", currentItem)
-        .find();
-
-      if (salesTextQueryLocal.items.length > 0) {
-        salesDataLocal = salesTextQueryLocal.items[0];
-      } else {
-        const normKeyLocal = String(currentItem || "").trim().toLowerCase();
-        const retryLocal = await wixData.query("ProductSalesTexts")
-          .contains("title", currentItem)
-          .find();
-
-        if (retryLocal.items.length > 0) {
-          salesDataLocal = retryLocal.items.find(x => ((x.title || "").trim().toLowerCase() === normKeyLocal)) || null;
-        }
-
-        if (!salesDataLocal && retryLocal.items.length > 0) {
-          salesDataLocal = retryLocal.items[0];
-        }
-      }
-
-      if (productLocal) {
-        applyPinterestMeta({
-          product: productLocal,
-          salesData: salesDataLocal,
-          currentItem,
-          selectedKey
-        });
-      }
-
-      const selectedInfoItemLocal = await getImport307InfoItemBySlug(currentItem);
-      const productInfoPostedLocal = await postProductInfoToHtml(salesDataLocal, selectedInfoItemLocal);
-
-      if (salesDataLocal) {
-        currentSalesCatchHtml = salesDataLocal.salesCatch || "";
-        currentSalesTextsHtml = salesDataLocal.salesTexts || "";
-
-        if (salesDataLocal.salesCatch) {
-          $w("#salesCatch").html = salesDataLocal.salesCatch;
-        } else {
-          $w("#salesCatch").text = "";
-        }
-
-        if (productInfoPostedLocal) {
-          pushMobileCatalogInfo();
-        } else if (isMobile) {
-        } else {
-        }
-
-        pushMobileCatalogInfo();
-      } else {
-        currentSalesCatchHtml = "";
-        currentSalesTextsHtml = "";
-        $w("#salesCatch").text = "";
-        pushMobileCatalogInfo();
-      }
-
-      setPurchaseResponse('');
-
-      const cartDataLocal = await getCartSnapshot();
-      const resLocal = await fetchAndLogVariants(productNameID, cartDataLocal);
-
-      if (resLocal) {
-        await updateDropdownAndStockDisplay(
-          productNameID,
-          resLocal.tempStock,
-          resLocal.productId,
-          resLocal.variants,
-          cartDataLocal
-        );
-      } else {
-        console.warn("[mainGalleryHtml][openItem] 在庫取得失敗 productNameID =", productNameID);
-        showNoStock();
-      }
-
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      const clickedItem = data.item || {};
-
-      const clickedTitle = String(clickedItem.title || "").trim();
-      const clickedProductId = String(clickedItem.productId || "").trim();
-      const clickedBrand = String(clickedItem.brand || "").trim();
-      const clickedCategoryKey = String(clickedItem.categoryKey || "").toLowerCase().trim();
-      const clickedPriceText = String(clickedItem.priceText || "").trim();
-      const clickedImage = String(clickedItem.image || "").trim();
-
-      console.log("[mainGalleryHtml][openItem received]", {
-        clickedTitle,
-        clickedProductId,
-        clickedBrand,
-        clickedCategoryKey,
-        clickedPriceText,
-        clickedImage,
-        raw: clickedItem
-      });
-
-      if (!clickedTitle && !clickedProductId) {
-        console.warn("[mainGalleryHtml][openItem] 商品特定情報が空です", clickedItem);
-        return;
-      }
-
-      if (clickedCategoryKey) {
-        categoryKey = clickedCategoryKey;
-        currentItem = clickedCategoryKey;
-      }
-
-      const selectedGalleryItem =
-        galleryNormalItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-        ) || {
-          src: clickedImage,
-          originalImage: clickedImage,
-          hoverImage: null,
-          title: clickedTitle,
-          productId: clickedProductId,
-          brand: clickedBrand,
-          priceTaxIn: clickedPriceText,
-          formattedPrice: clickedPriceText,
-          price: clickedPriceText,
-          type: "image"
-        };
-
-      productNameID = String(selectedGalleryItem.title || clickedTitle || "");
-
-      currentBrandText = String(
-        selectedGalleryItem.brand ||
-        clickedBrand ||
-        currentBrandText ||
-        ""
-      );
-
-      const categoryItemLocal = categoriesResult.items.find(
-        item => String(item.slug || "").toLowerCase().trim() === String(categoryKey || "").toLowerCase().trim()
-      );
-
-      currentProductNoText = categoryItemLocal ? String(categoryItemLocal.description || "") : "";
-
-      galleryNormalItems = [
-        selectedGalleryItem,
-        ...galleryNormalItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryHoverItems = [
-        selectedGalleryItem,
-        ...galleryHoverItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryItems = galleryNormalItems.slice();
-
-      const selectedDisplayItem = {
-        ...selectedGalleryItem,
-        brandText: currentBrandText,
-        productNoText: currentProductNoText,
-        priceText: selectedGalleryItem.priceText || selectedGalleryItem.priceTaxIn || selectedGalleryItem.formattedPrice || selectedGalleryItem.price || clickedPriceText || ""
-      };
-
-      if ($w("#MainImageHtml") && typeof $w("#MainImageHtml").postMessage === "function") {
-        $w("#MainImageHtml").postMessage({
-          type: "setGalleryItems",
-          items: galleryNormalItems
-        });
-      }
-
-      updateText({ item: selectedDisplayItem });
-      postCatalogTitleFromItem(selectedDisplayItem);
-      pushCatalogInfo();
-
-      setPurchaseResponse('');
-
-      const cartDataLocal = await getCartSnapshot();
-      const resLocal = await fetchAndLogVariants(productNameID, cartDataLocal);
-
-      if (resLocal) {
-        await updateDropdownAndStockDisplay(
-          productNameID,
-          resLocal.tempStock,
-          resLocal.productId,
-          resLocal.variants,
-          cartDataLocal
-        );
-      } else {
-        console.warn("[mainGalleryHtml][openItem] 在庫取得失敗 productNameID =", productNameID);
-        showNoStock();
-      }
-
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      const clickedItem = data.item || {};
-
-      const clickedTitle = String(clickedItem.title || "").trim();
-      const clickedProductId = String(clickedItem.productId || "").trim();
-      const clickedBrand = String(clickedItem.brand || "").trim();
-      const clickedCategoryKey = String(clickedItem.categoryKey || "").toLowerCase().trim();
-      const clickedPriceText = String(clickedItem.priceText || "").trim();
-      const clickedImage = String(clickedItem.image || "").trim();
-
-      console.log("[mainGalleryHtml][openItem received]", {
-        clickedTitle,
-        clickedProductId,
-        clickedBrand,
-        clickedCategoryKey,
-        clickedPriceText,
-        clickedImage,
-        raw: clickedItem
-      });
-
-      if (!clickedTitle && !clickedProductId) {
-        console.warn("[mainGalleryHtml][openItem] 商品特定情報が空です", clickedItem);
-        return;
-      }
-
-      if (clickedCategoryKey) {
-        categoryKey = clickedCategoryKey;
-        currentItem = clickedCategoryKey;
-      }
-
-      const selectedGalleryItem =
-        galleryNormalItems.find(item =>
-          (clickedProductId && String(item.productId || "") === clickedProductId) ||
-          (clickedTitle && String(item.title || "").trim() === clickedTitle)
-        ) || {
-          src: clickedImage,
-          originalImage: clickedImage,
-          hoverImage: null,
-          title: clickedTitle,
-          productId: clickedProductId,
-          brand: clickedBrand,
-          priceTaxIn: clickedPriceText,
-          formattedPrice: clickedPriceText,
-          price: clickedPriceText,
-          type: "image"
-        };
-
-      productNameID = String(selectedGalleryItem.title || clickedTitle || "");
-
-      currentBrandText = String(
-        selectedGalleryItem.brand ||
-        clickedBrand ||
-        currentBrandText ||
-        ""
-      );
-
-      const categoryItemLocal = categoriesResult.items.find(
-        item => String(item.slug || "").toLowerCase().trim() === String(categoryKey || "").toLowerCase().trim()
-      );
-
-      currentProductNoText = categoryItemLocal ? String(categoryItemLocal.description || "") : "";
-
-      galleryNormalItems = [
-        selectedGalleryItem,
-        ...galleryNormalItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryHoverItems = [
-        selectedGalleryItem,
-        ...galleryHoverItems.filter(item =>
-          !(
-            (selectedGalleryItem.productId && String(item.productId || "") === String(selectedGalleryItem.productId || "")) ||
-            (selectedGalleryItem.title && String(item.title || "").trim() === String(selectedGalleryItem.title || "").trim())
-          )
-        )
-      ];
-
-      galleryItems = galleryNormalItems.slice();
-
-      const selectedDisplayItem = {
-        ...selectedGalleryItem,
-        brandText: currentBrandText,
-        productNoText: currentProductNoText,
-        priceText: selectedGalleryItem.priceText || selectedGalleryItem.priceTaxIn || selectedGalleryItem.formattedPrice || selectedGalleryItem.price || clickedPriceText || ""
-      };
-
-      if ($w("#MainImageHtml") && typeof $w("#MainImageHtml").postMessage === "function") {
-        $w("#MainImageHtml").postMessage({
-          type: "setGalleryItems",
-          items: galleryNormalItems
-        });
-      }
-
-      updateText({ item: selectedDisplayItem });
-      postCatalogTitleFromItem(selectedDisplayItem);
-      pushCatalogInfo();
-
-      setPurchaseResponse('');
-
-      const cartDataLocal = await getCartSnapshot();
-      const resLocal = await fetchAndLogVariants(productNameID, cartDataLocal);
-
-      if (resLocal) {
-        await updateDropdownAndStockDisplay(
-          productNameID,
-          resLocal.tempStock,
-          resLocal.productId,
-          resLocal.variants,
-          cartDataLocal
-        );
-      } else {
-        console.warn("[mainGalleryHtml][openItem] 在庫取得失敗 productNameID =", productNameID);
-        showNoStock();
-      }
-
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      await expandIfPossible($w("#MainSection"));
-
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
-      }
-
-      return;
-    }
-
-    if (data.type === "openItem") {
-      await collapseIfPossible($w("#G1G2GallerySection"));
-      return;
-    }
-
-    if (data.type === "openItem") {
-      await $w("#G1G2GallerySection").collapse();
-      return;
-    }
-
     if (data.type !== "mobileImageChanged") return;
 
     const item = data.item || {};
@@ -2362,9 +1124,15 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
   if (!isMobile) {
   }
 
-  // ▼ 全デバイス共通：#viewChange ボタンで 1枚目/2枚目 切替
-  safeOnClick($w("#viewChange"), toggleMobileGallery, "#viewChange");
-  await expandIfPossible($w("#viewChange"));
+  // ▼ モバイル限定：#viewChange ボタンで 1枚目/2枚目 切替
+  if (isMobile) {
+    safeOnClick($w("#viewChange"), toggleMobileGallery, "#viewChange");
+    // 初期ラベルはエディタ設定をそのまま使用（上書きしない）
+    await expandIfPossible($w("#viewChange"));
+  } else {
+    // PC/タブレットはボタンを隠す（存在する場合のみ）
+    await collapseIfPossible($w("#viewChange"));
+  }
 
 await expandIfPossible($w("#section2"));
 
@@ -2441,6 +1209,8 @@ let brandKey    = isForceHelmettyMode()
 
   const __hasSelectedParam = (typeof wixLocation.query.selected === "string") && (wixLocation.query.selected.trim() !== "");
 
+  categoryKey = normalizeCategoryKey(categoryKey, brandKey);
+
 const allValue = isForceHelmettyMode()
   ? FORCE_G1G2_ALL_VALUE
   : ((String(getQueryValueWithPreviewFallback("all", PREVIEW_SHOP_FALLBACK.all) || "").toLowerCase() === "true") ? "true" : "false");
@@ -2450,26 +1220,7 @@ const shopKey = isForceHelmettyMode()
   ? FORCE_G1G2_SHOP_KEY
   : (getQueryValueWithPreviewFallback("shop", PREVIEW_SHOP_FALLBACK.shop) || String(brandKey || "").trim());
 
-// ▼ BrandSettings.brandPrefix を唯一のprefixとして使用
-const brandSettingsRes = await wixData.query("BrandSettings").eq("brand", shopKey).limit(1).find();
-const brandSettingsItem = brandSettingsRes.items?.[0] || {};
-const shopPrefixFromBrandSettings = String(brandSettingsItem.brandPrefix || "").trim().toLowerCase();
-currentG1G2CategoryPrefix = shopPrefixFromBrandSettings;
-currentBrandLogoUrl = toHtmlImageSrc(brandSettingsItem.brandLogo);
-
-categoryKey = normalizeCategoryKeyByPrefix(categoryKey, shopPrefixFromBrandSettings);
-
 const isBrandMatagi = (allValue === "true");
-
-// ▼ 強制 HELMETTY モードでは、URLに category が無い初期表示でも BrandSettings.brandPrefix + 001 を開く
-if (isForceHelmettyMode() && !categoryKey) {
-  categoryKey = normalizeCategoryKeyByPrefix("001", shopPrefixFromBrandSettings);
-}
-
-currentG1G2BrandKey = String(brandKey || "").trim();
-currentG1G2ShopKey = String(shopKey || "").trim();
-currentG1G2AllValue = String(allValue || "false").trim();
-currentG1G2HideBrandSelect = false;
 
 console.log("[G1G2-FORCE][HELMETTY MODE]", {
   force: isForceHelmettyMode(),
@@ -2478,14 +1229,7 @@ console.log("[G1G2-FORCE][HELMETTY MODE]", {
   brandKey,
   shopKey,
   allValue,
-  prefix: currentG1G2CategoryPrefix
-});
-
-console.log("[G1G2-STATE][resolved-before-initial-push]", {
-  currentG1G2BrandKey,
-  currentG1G2ShopKey,
-  currentG1G2AllValue,
-  currentG1G2HideBrandSelect
+  prefix: FORCE_G1G2_CATEGORY_PREFIX
 });
 
 const initialItemSlug = `${categoryKey}-${selectedKey}`;
@@ -2504,12 +1248,6 @@ if (__hasSelectedParam && initialItemSlug !== "-") {
       const initialProduct = initialMainImageResult.items[0];
       const initialMainImageItem = buildGalleryItemFromStoreProduct(initialProduct);
 
-      const initialHoverImage = initialProduct.mediaItems && initialProduct.mediaItems.length > 1
-        ? toHtmlImageSrc(initialProduct.mediaItems[1].src || initialProduct.mediaItems[1].url)
-        : initialMainImageItem.hoverImage;
-
-      initialMainImageItem.hoverImage = initialMainImageItem.hoverImage || initialHoverImage;
-
       galleryNormalItems = [initialMainImageItem];
       galleryHoverItems = [initialMainImageItem];
       galleryItems = [initialMainImageItem];
@@ -2524,6 +1262,12 @@ if (__hasSelectedParam && initialItemSlug !== "-") {
     console.error("初期メイン画像の先出し失敗:", e);
   }
 }
+
+  currentG1G2BrandKey = String(brandKey || "").trim();
+  currentG1G2ShopKey = String(shopKey || "").trim();
+  currentG1G2AllValue = String(allValue || "false").trim();
+  currentG1G2HideBrandSelect =
+    String(currentG1G2ShopKey || "").trim().toUpperCase() === "HELMETTY";
 
   console.log("🔎 URLから取得した category:", categoryKey);
   console.log("🔎 URLから取得した selected:", selectedKey);
@@ -2568,21 +1312,10 @@ if (data.type === "backToMainButton") {
 }
      if (data.type !== "categoryClick") return;
 
-     invalidateOpenItemRequests("categoryClick");
-
-     // ▼ データの読み込み・G2の更新が完了するのを待つ
      const categoryGalleryState = await loadCategoryGalleryFromPayload(data.payload || {});
       if (!categoryGalleryState) return;
 
-     // ▼ 更新が完了してから、詳細画面を閉じてG1/G2ギャラリーセクションをパッと表示する（チラつき防止）
-     await collapseIfPossible($w("#MainSection"));
-     await expandIfPossible($w("#G1G2GallerySection"));
-
-     if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-       await $w("#anchor1").scrollTo();
-     }
-
-const { matchedItemsLocal, queryResultsLocalPromise, brandLogoUpdatePromise } = categoryGalleryState;
+const { matchedItemsLocal, queryResultsLocal } = categoryGalleryState;
       let salesDataLocal = null;
 
       const salesTextQueryLocal = await wixData.query("ProductSalesTexts").eq("title", currentItem).find();
@@ -2603,10 +1336,6 @@ const { matchedItemsLocal, queryResultsLocalPromise, brandLogoUpdatePromise } = 
         }
       }
 
-const queryResultsLocal = queryResultsLocalPromise
-  ? await queryResultsLocalPromise
-  : { items: [] };
-
 if (queryResultsLocal.items.length > 0) {
   const product = queryResultsLocal.items[0];
 
@@ -2625,10 +1354,6 @@ if (queryResultsLocal.items.length > 0) {
     selectedKey
   });
 }
-if (brandLogoUpdatePromise) {
-  await brandLogoUpdatePromise;
-}
-
 const selectedInfoItemLocal = await getImport307InfoItemBySlug(currentItem);
 const productInfoPostedLocal = await postProductInfoToHtml(salesDataLocal, selectedInfoItemLocal);
 
@@ -2713,10 +1438,7 @@ pushCatalogInfo();
 if (isMobile && $w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
   await $w("#mobileUiAnchor").scrollTo();
 }
-      // ▼ G1に強制的に戻ってしまう原因だった全体の再構築処理を削除し、メニューのアクティブ状態だけを更新
-      if ($w("#categoryThumbnailMenu") && typeof $w("#categoryThumbnailMenu").postMessage === "function") {
-        $w("#categoryThumbnailMenu").postMessage({ type: "setActiveCategory", categoryKey: categoryKey });
-      }
+      await postCategoryThumbnailMenu(categoryKey);
 
       if (isMobile && menuOpen) {
         await closeMobileMenu();
@@ -2765,7 +1487,11 @@ if (isMobile && $w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo =
     console.warn("⚠️ #categoryThumbnailMenu が見つからないか、onMessage 非対応です。");
   }
 
-// ▼ BrandSettings は上部で取得済み
+// ▼ 追加：BrandSettings から categoryNameText 用の brandPrefix を取得
+const brandSettingsRes = await wixData.query("BrandSettings").eq("brand", shopKey).limit(1).find();
+const brandSettingsItem = brandSettingsRes.items?.[0] || {};
+const shopPrefixFromBrandSettings = String(brandSettingsItem.brandPrefix || "").trim().toLowerCase();
+currentBrandLogoUrl = toHtmlImageSrc(brandSettingsItem.brandLogo);
 console.log("[BrandSettings] brandSettingsItem =", brandSettingsItem);
 console.log("[BrandSettings] brandLogo raw =", brandSettingsItem.brandLogo);
 console.log("[BrandSettings] currentBrandLogoUrl =", currentBrandLogoUrl);
@@ -2778,8 +1504,6 @@ console.log("[G1G2-DEBUG][brand-settings]", {
   brandLogoRaw: brandSettingsItem.brandLogo,
   currentBrandLogoUrl
 });
-
-pushPcBrandBoxHtml(brandSettingsItem, shopKey || brandKey);
 
 const cfg = BRAND_CONFIG[brandKey];
 currentBrandText = String(
@@ -2822,26 +1546,14 @@ if (cfg) {
 }
 
 // ▼ 戻るボタン遷移（cfgの有無に関係なく必ず登録）
-const goBackToG1 = async () => {
-  invalidateOpenItemRequests("goBackToG1");
+const goBackToG1 = () => {
+  const resolvedShopKey =
+    String(shopKey || "").trim()
+    || String(brandKey || "").trim();
 
-  await collapseIfPossible($w("#MainSection"));
-  await expandIfPossible($w("#G1G2GallerySection"));
-
-  // ▼ カテゴリ選択状態をリセットし、G1の初期データ（カテゴリ一覧）をギャラリーに再送信して強制的にG1に戻す
-  categoryKey = "";
-  currentItem = "";
-  await postCategoryThumbnailMenu("");
-
-  if (isMobile) {
-    if ($w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
-      await $w("#mobileUiAnchor").scrollTo();
-    }
-  } else {
-    if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-      await $w("#anchor1").scrollTo();
-    }
-  }
+  wixLocation.to(
+    `https://www.hatodaiya.com/linkshop-all?brand=${encodeURIComponent(resolvedShopKey)}&shop=${encodeURIComponent(resolvedShopKey)}&all=${allValue}`
+  );
 };
 
 safeOnClick($w("#back-A-Button"), goBackToG1, "#back-A-Button");
@@ -2854,38 +1566,11 @@ async function loadCategoryGalleryFromPayload(payload = {}) {
   const slug = String(payload.slug || "").toLowerCase().trim();
   if (!slug) return null;
 
-  categoryKey = slug;
+  categoryKey = normalizeCategoryKey(slug, shopKey);
   currentItem = categoryKey;
 
-  const productsForG2Result = await getAllProductsForCount();
-  const matchedItemsLocal = filterProductsByCategoryKey(productsForG2Result.items || [], categoryKey)
-    .map((product) => {
-      const firstImage = product.mediaItems && product.mediaItems.length > 0
-        ? toHtmlImageSrc(product.mediaItems[0].src || product.mediaItems[0].url)
-        : "";
-      const src = firstImage;
-      const taxInPrice = Math.floor(Number(product.price || 0) * 1.1);
-
-      // ▼ 2枚目の画像があれば取得する
-      const secondImage = product.mediaItems && product.mediaItems.length > 1 
-        ? toHtmlImageSrc(product.mediaItems[1].src || product.mediaItems[1].url) 
-        : null;
-
-      return {
-        src,
-        originalImage: src,
-        hoverImage: secondImage,
-        title: String(product.name || ""),
-        productId: String(product._id || ""),
-        brand: product.brand,
-        priceTaxIn: taxInPrice,
-        formattedPrice: "税込 " + taxInPrice.toLocaleString() + "円",
-        price: "税込 " + taxInPrice.toLocaleString() + "円",
-        slug: String(product.slug || ""),
-        type: "image"
-      };
-    })
-    .filter((item) => !!item.src);
+  const clickedPageData = await getInitialPageData(categoryKey, brandKey, shopKey, allValue);
+  const matchedItemsLocal = clickedPageData?.success ? (clickedPageData.items || []) : [];
 
   const firstSlug = String(matchedItemsLocal[0]?.slug || "");
   selectedKey = extractSelectedKeyFromSlug(firstSlug);
@@ -2893,12 +1578,12 @@ async function loadCategoryGalleryFromPayload(payload = {}) {
   itemSlug = buildItemSlug(categoryKey, selectedKey);
   targetTitle = buildTargetTitle(currentItem, selectedKey);
 
-  const queryResultsLocalPromise = wixData.query("Stores/Products").eq("slug", itemSlug).find();
+  const queryResultsLocal = await wixData.query("Stores/Products").eq("slug", itemSlug).find();
 
   console.log("matchedItemsLocal[0]", matchedItemsLocal[0]);
   console.log("matchedItemsLocal[0].brand", matchedItemsLocal[0]?.brand);
 
-  const brandLogoUpdatePromise = updateCurrentBrandLogoUrl(matchedItemsLocal[0]?.brand);
+  await updateCurrentBrandLogoUrl(matchedItemsLocal[0]?.brand);
 
   const galleryStateLocal = buildGalleryStateFromProducts(matchedItemsLocal, itemSlug);
   galleryNormalItems = galleryStateLocal.galleryNormalItems;
@@ -2908,38 +1593,12 @@ async function loadCategoryGalleryFromPayload(payload = {}) {
   if (isMobile) {
     pushMobileMainImages(galleryNormalItems);
   } else {
-    const mainGalleryHtml = $w("#mainGalleryHtml");
-
-    if (mainGalleryHtml && typeof mainGalleryHtml.postMessage === "function") {
-      mainGalleryHtml.postMessage({
-        channel: "mainGallery",
-        type: "g2",
-        brand: currentG1G2BrandKey,
-        brandKey: currentG1G2BrandKey,
-        selectedBrand: currentG1G2BrandKey,
-        shop: currentG1G2ShopKey,
-        all: currentG1G2AllValue,
-        hideBrandSelect: false,
-        showBrandSelect: true,
-        brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
-          value: key,
-          label: BRAND_CONFIG[key]?.mbBrandText || key
-        })),
-        activeCategoryKey: categoryKey,
-        items: galleryNormalItems.map((item) => ({
-          ...item,
-          image: item.image || item.src || "",
-          price: item.priceText || item.priceTaxIn || item.formattedPrice || item.price || "",
-          text: item.text || item.description || ""
-        }))
-      });
-    }
+    pushMainImages(galleryNormalItems);
   }
 
   return {
     matchedItemsLocal,
-    queryResultsLocalPromise,
-    brandLogoUpdatePromise
+    queryResultsLocal
   };
 }
 
@@ -3012,46 +1671,24 @@ console.log("[G1G2-DEBUG][categoriesResult]", {
 productsResult.items.forEach(p => {
   if (p?._id && p?.src) productMainMediaById.set(p._id, p.src);
 });
-
-let __allProductsCache = null; // ▼ 高速化のためのキャッシュ変数
-let __allProductsFetchPromise = null;
-
 async function getAllProductsForCount() {
-  // ▼ 既にデータがあればDB通信せずに即座に返す（高速化）
-  if (__allProductsCache) {
-    return { items: __allProductsCache };
-  }
+  try {
+    let allItems = [];
+    let result = await wixData.query("Stores/Products").ascending("name").limit(100).find();
 
-  if (__allProductsFetchPromise) {
-    return __allProductsFetchPromise;
-  }
+    allItems = allItems.concat(result.items || []);
 
-  __allProductsFetchPromise = (async () => {
-    try {
-      let allItems = [];
-      let result = await wixData.query("Stores/Products").ascending("name").limit(100).find();
-
+    while (result.hasNext()) {
+      result = await result.next();
       allItems = allItems.concat(result.items || []);
-
-      while (result.hasNext()) {
-        result = await result.next();
-        allItems = allItems.concat(result.items || []);
-      }
-
-      __allProductsCache = allItems; // ▼ 取得したデータを記憶しておく
-      return { items: allItems };
-    } catch (e) {
-      console.error("件数表示用 Stores/Products 全件取得失敗:", e);
-      return { items: [] };
-    } finally {
-      __allProductsFetchPromise = null;
     }
-  })();
 
-  return __allProductsFetchPromise;
+    return { items: allItems };
+  } catch (e) {
+    console.error("件数表示用 Stores/Products 全件取得失敗:", e);
+    return { items: [] };
+  }
 }
-
-getAllProductsForCount();
 
 async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
   const html = $w("#categoryThumbnailMenu");
@@ -3068,13 +1705,15 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
           ? options.shopPrefix
           : (
               isForceHelmettyMode()
-                ? currentG1G2CategoryPrefix
-                : shopPrefixFromBrandSettings
+                ? FORCE_G1G2_CATEGORY_PREFIX
+                : (shopPrefixFromBrandSettings || BRAND_PREFIX[String(shopKey || "").trim()] || "")
             ),
         allValue: isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue
       });
 
-  const categoriesForMenu = rawCategoriesForMenu;
+  const categoriesForMenu = isForceHelmettyMode()
+    ? filterForceHelmettyRows(rawCategoriesForMenu)
+    : rawCategoriesForMenu;
 
   const productsForCountResult = options.productsForCountResult || await getAllProductsForCount();
 
@@ -3088,17 +1727,16 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     countColor: "#C71585"
   });
 
-  const htmlItems = htmlItemsRaw;
+  const htmlItems = isForceHelmettyMode()
+    ? filterForceHelmettyRows(htmlItemsRaw)
+    : htmlItemsRaw;
 
   const payloadBrand = isForceHelmettyMode() ? FORCE_G1G2_BRAND_KEY : brandKey;
   const payloadShop = isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey;
   const payloadAll = isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue;
-  const payloadHideBrandSelect = false;
-
-  const payloadBrandOptions = Object.keys(BRAND_CONFIG).map((key) => ({
-    value: key,
-    label: BRAND_CONFIG[key]?.mbBrandText || key
-  }));
+  const payloadHideBrandSelect = isForceHelmettyMode()
+    ? true
+    : String(shopKey || "").trim().toUpperCase() === "HELMETTY";
 
   console.log("[G1G2-DEBUG][postCategoryThumbnailMenu]", {
     activeCategoryKey,
@@ -3130,55 +1768,10 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     type: "setCategories",
     items: htmlItems,
     brand: payloadBrand,
-    selectedBrand: payloadBrand,
     shop: payloadShop,
     all: payloadAll,
-    hideBrandSelect: payloadHideBrandSelect,
-    showBrandSelect: true,
-    brandOptions: payloadBrandOptions
+    hideBrandSelect: payloadHideBrandSelect
   });
-
-  const mainGalleryCategories = categoriesForMenu.map((item) => {
-    const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
-    const count = Number(countMapForMenu[key] || 0);
-
-    return {
-      key,
-      name: String(item.description || item.title || key),
-      count,
-      sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
-      thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
-      description: String(item.description || item.title || key),
-      items: [],
-      raw: item
-    };
-  });
-
-  const mainGalleryHtml = $w("#mainGalleryHtml");
-  if (mainGalleryHtml && typeof mainGalleryHtml.postMessage === "function") {
-    mainGalleryHtml.postMessage({
-      channel: "mainGallery",
-      type: "g1",
-      brand: payloadBrand,
-      brandKey: payloadBrand,
-      shop: payloadShop,
-      all: payloadAll,
-      hideBrandSelect: payloadHideBrandSelect,
-      brandLogoUrl: currentBrandLogoUrl,
-      activeCategoryKey: "",
-      categories: mainGalleryCategories
-    });
-
-    console.log("✅ mainGalleryHtmlへG1カテゴリ送信完了:", mainGalleryCategories.length, "件", {
-      brand: payloadBrand,
-      shop: payloadShop,
-      all: payloadAll,
-      hideBrandSelect: payloadHideBrandSelect,
-      categories: mainGalleryCategories
-    });
-  } else {
-    console.warn("⚠️ #mainGalleryHtml が見つからないか、postMessage 非対応です。");
-  }
 
   console.log("✅ HTMLへカテゴリ送信完了:", htmlItems.length, "件");
 
@@ -3305,20 +1898,22 @@ setTimeout(async () => {
     // ★URLを読み直さない（ログで shopNameFromUrl が空になっていたため）
     const shopNameFromUrl = String(shopKey || "").trim();
 
-    // ★BrandSettings の brandPrefix を使用
+    // ★BrandSettings の brandPrefix（例: "he"）を優先し、無い時だけ BRAND_PREFIX で補完
     const shopPrefixFromUrl =
-      String(shopPrefixFromBrandSettings || "")
+      String(shopPrefixFromBrandSettings || BRAND_PREFIX[shopNameFromUrl] || "")
         .trim()
         .toLowerCase();
 
     // ★Import307 は Promise.all 側で shop=true を取っている前提
 const rawCategories = filterG1CategoriesForShop(categoriesResult.items || [], {
   shopKey: isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey,
-  shopPrefix: isForceHelmettyMode() ? currentG1G2CategoryPrefix : shopPrefixFromUrl,
+  shopPrefix: isForceHelmettyMode() ? FORCE_G1G2_CATEGORY_PREFIX : shopPrefixFromUrl,
   allValue: isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue
 });
 
-const categories = rawCategories;
+const categories = isForceHelmettyMode()
+  ? filterForceHelmettyRows(rawCategories)
+  : rawCategories;
 
 console.log("[G1G2-DEBUG][filterG1CategoriesForShop]", {
   shopKey,
@@ -3330,7 +1925,7 @@ console.log("[G1G2-DEBUG][filterG1CategoriesForShop]", {
   forceHelmetty: isForceHelmettyMode(),
   shopPrefixFromBrandSettings,
   shopPrefixFromUrl,
-  forcedPrefix: isForceHelmettyMode() ? currentG1G2CategoryPrefix : shopPrefixFromUrl,
+  forcedPrefix: isForceHelmettyMode() ? FORCE_G1G2_CATEGORY_PREFIX : shopPrefixFromUrl,
   sourceLength: (categoriesResult.items || []).length,
   rawFilteredLength: rawCategories.length,
   filteredLength: categories.length,
@@ -3911,16 +2506,8 @@ function updateText(event) {
   const itemData = event.item;
   if (!itemData) return;
 
-  // ▼ 安全装置：今と同じ商品ならこれ以上奥へ進ませない（ループ完全防止）
-  const newProductNameID = String(itemData.title || "").trim();
-  if (newProductNameID === String(productNameID || "").trim()) {
-    return;
-  }
-
   DEBUG && console.log(itemData);
-  productNameID = newProductNameID;
-
-  const productSwitchRequestId = beginProductSwitchRequest(productNameID);
+  productNameID = itemData.title;
 
   const lastSpaceIndex = productNameID.lastIndexOf(' ');
   const extractedText = productNameID.substring(lastSpaceIndex + 1);
@@ -3932,18 +2519,26 @@ function updateText(event) {
   pushCatalogInfo();
 
   if (isMobile) {
-    postMobileCatalogTitleFromItem({
-      ...itemData,
-      brandText: currentBrandText,
-      productNoText: currentProductNoText,
-      colorHtml: currentColorHtml,
-      priceText: itemData.priceTaxIn || itemData.formattedPrice || itemData.price || ""
-    });
-  }
+postMobileCatalogTitleFromItem({
+  ...itemData,
+  brandText: currentBrandText,
+  productNoText: currentProductNoText,
+  colorHtml: currentColorHtml,
+  priceText: itemData.priceTaxIn || itemData.formattedPrice || itemData.price || ""
+});
 
   console.log("カート処理で使う、productNameID", productNameID);
 
-  scheduleStockUpdateForCurrentProduct(productSwitchRequestId, productNameID);
+  getCartSnapshot()
+    .then((cartData) => fetchAndLogVariants(productNameID, cartData).then((res) => ({ cartData, res })))
+    .then(({ cartData, res }) => {
+      if (!res) return;
+      updateDropdownAndStockDisplay(productNameID, res.tempStock, res.productId, res.variants, cartData);
+    })
+    .catch((error) => {
+      console.error('バリアント情報の取得中にエラーが発生しました:', error);
+    });
+}
 }
 
 async function fetchProductAndVariants(productName) {
@@ -3977,33 +2572,20 @@ async function fetchProductAndVariants(productName) {
   }
 }
 
-async function fetchAndLogVariants(targetProductNameID, cartData) {
+async function fetchAndLogVariants(productNameID, cartData) {
   try {
-    const requestProductNameID = String(targetProductNameID || "").trim();
-    const isStaleStockRequest = () =>
-      requestProductNameID !== String(productNameID || "").trim();
-
-    if (isStaleStockRequest()) {
-      return null;
-    }
-
-    console.log("[STOCK] fetchAndLogVariants:start productNameID =", requestProductNameID);
+    console.log("[STOCK] fetchAndLogVariants:start productNameID =", productNameID);
 
     let product;
-    if (cache.productByName.has(requestProductNameID)) {
-      product = cache.productByName.get(requestProductNameID);
+    if (cache.productByName.has(productNameID)) {
+      product = cache.productByName.get(productNameID);
       console.log("[STOCK] product cache hit =", {
         _id: product?._id,
         name: product?.name,
         slug: product?.slug
       });
     } else {
-      const pr = await wixData.query("Stores/Products").eq("name", requestProductNameID).find();
-
-      if (isStaleStockRequest()) {
-        return null;
-      }
-
+      const pr = await wixData.query("Stores/Products").eq("name", productNameID).find();
       console.log("[STOCK] Stores/Products eq(name) result count =", pr.items.length);
       console.log("[STOCK] Stores/Products eq(name) names =", pr.items.map(x => ({
         _id: x._id,
@@ -4012,12 +2594,12 @@ async function fetchAndLogVariants(targetProductNameID, cartData) {
       })));
 
       if (pr.items.length === 0) {
-        console.error("[STOCK] 指定された商品が見つかりませんでした productNameID =", requestProductNameID);
+        console.error("[STOCK] 指定された商品が見つかりませんでした productNameID =", productNameID);
         return null;
       }
 
       product = pr.items[0];
-      cache.productByName.set(requestProductNameID, product);
+      cache.productByName.set(productNameID, product);
       console.log("[STOCK] product selected =", {
         _id: product?._id,
         name: product?.name,
@@ -4034,11 +2616,6 @@ async function fetchAndLogVariants(targetProductNameID, cartData) {
       console.log("[STOCK] variants cache hit count =", variants.length);
     } else {
       const vr = await wixData.query("Stores/Variants").eq("productId", productId).find();
-
-      if (isStaleStockRequest()) {
-        return null;
-      }
-
       variants = vr.items;
       cache.variantsByProductId.set(productId, variants);
       console.log("[STOCK] Stores/Variants eq(productId) count =", variants.length);
@@ -4050,13 +2627,9 @@ async function fetchAndLogVariants(targetProductNameID, cartData) {
       })));
     }
 
-    if (isStaleStockRequest()) {
-      return null;
-    }
-
     const variantQuantitiesInCart = {};
     for (const item of (cartData?.lineItems || [])) {
-      if (item.name === requestProductNameID) {
+      if (item.name === productNameID) {
         const variantName = item.options.find(opt => opt.option === "サイズ")?.selection;
         if (variantName) {
           variantQuantitiesInCart[variantName] = (variantQuantitiesInCart[variantName] ?? 0) + item.quantity;
@@ -4166,24 +2739,12 @@ function setupPasswordProtectedActions() {
   }, "#submitPassword");
 }
 
-/* ▼ 追加：ギャラリー切替関数（PC/モバイル共通） */
+/* ▼ 追加：モバイル用ギャラリー切替関数 */
 function toggleMobileGallery() {
   if (!galleryNormalItems.length || !galleryHoverItems.length) return;
 
   mobileViewAlt = !mobileViewAlt;
 
-  const targetItems = mobileViewAlt ? galleryHoverItems : galleryNormalItems;
-
-  if (isMobile) {
-    pushMobileMainImages(targetItems);
-  } else {
-    // ▼ PCの場合は MainImageHtml の画像を切り替える
-    if ($w("#MainImageHtml") && typeof $w("#MainImageHtml").postMessage === "function") {
-      $w("#MainImageHtml").postMessage({
-        type: "setGalleryItems",
-        items: targetItems
-      });
-    }
-  }
+  // ボタンラベル：初期はエディタ設定を尊重。トグル時のみ分かりやすさのため更新（Button要素の場合）
+ 
 } 
-

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PcBrandBoxHtml</title>
+<style>
+    :root {
+      --box-bg: #ffe4e1;
+      --box-text: #f00098;
+      --button-bg: #ffe5e5;
+      --button-text: #c71585;
+      --button-border: #ff00c8;
+      --line: rgba(255, 255, 255, 0.55);
+      --shadow-soft: 0 18px 40px rgba(105, 26, 78, 0.12);
+      --shadow-strong: 0 24px 60px rgba(105, 26, 78, 0.18);
+
+      --gm-bg: #f8f3eb;
+      --gm-panel: #ffffff;
+      --gm-ink: #201c18;
+      --gm-muted: rgba(32, 28, 24, 0.58);
+      --gm-soft: rgba(32, 28, 24, 0.1);
+      --gm-line: rgba(32, 28, 24, 0.16);
+      --gm-hover: var(--button-text);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+      font-family:
+        "Helvetica Neue",
+        Arial,
+        "Yu Gothic",
+        "Hiragino Sans",
+        "Meiryo",
+        sans-serif;
+    }
+
+    body {
+      color: var(--gm-ink);
+    }
+
+    .brand-bar {
+      width: 100%;
+      min-height: 174px;
+      position: relative;
+      isolation: isolate;
+      color: var(--gm-ink);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      grid-template-rows: auto auto;
+      grid-template-areas:
+        "copy logo"
+        "links logo";
+      align-items: center;
+      gap: 22px 34px;
+      padding: 26px 34px 24px;
+      overflow: hidden;
+      background: var(--gm-panel);
+      border-top: 1px solid var(--gm-line);
+      border-bottom: 1px solid var(--gm-line);
+    }
+
+    .brand-bar::before {
+      content: "";
+      position: absolute;
+      left: 34px;
+      right: 34px;
+      top: 18px;
+      height: 1px;
+      background: var(--gm-soft);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .brand-bar::after {
+      content: "";
+      position: absolute;
+      left: 34px;
+      right: 34px;
+      bottom: 18px;
+      height: 1px;
+      background: var(--gm-soft);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .brand-left {
+      grid-area: copy / copy / links / links;
+      min-width: 0;
+      display: contents;
+      position: relative;
+    }
+
+    .shop-copy {
+      grid-area: copy;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 0.72fr) minmax(220px, 0.28fr);
+      grid-template-areas:
+        "eyebrow sub"
+        "main sub";
+      column-gap: 34px;
+      row-gap: 10px;
+      position: relative;
+      padding-left: 0;
+      align-items: end;
+    }
+
+    .shop-copy::before {
+      content: none;
+    }
+
+    .shop-eyebrow {
+      grid-area: eyebrow;
+      font-family:
+        "Helvetica Neue",
+        Arial,
+        "Yu Gothic",
+        "Hiragino Sans",
+        sans-serif;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      color: var(--gm-muted);
+      opacity: 1;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .shop-message {
+      grid-area: main;
+      margin: 0;
+      font-family:
+        "Hiragino Mincho ProN",
+        "Yu Mincho",
+        "Yu Gothic",
+        "Hiragino Sans",
+        "Meiryo",
+        serif;
+      font-size: clamp(30px, 3.2vw, 48px);
+      line-height: 1.05;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-wrap: balance;
+      color: var(--gm-ink);
+      text-shadow: none;
+      text-transform: none;
+    }
+
+    .shop-subline {
+      grid-area: sub;
+      align-self: end;
+      font-family:
+        "Helvetica Neue",
+        Arial,
+        "Yu Gothic",
+        "Hiragino Sans",
+        sans-serif;
+      font-size: 13px;
+      line-height: 1.72;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--gm-muted);
+      opacity: 1;
+      white-space: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 320px;
+      padding-bottom: 3px;
+    }
+
+    .brand-links {
+      grid-area: links;
+      min-width: 0;
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 12px 0 0;
+      overflow: visible;
+      isolation: isolate;
+      font-family:
+        "Helvetica Neue",
+        Arial,
+        "Yu Gothic",
+        "Hiragino Sans",
+        sans-serif;
+    }
+
+    .brand-links::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: var(--gm-line);
+      pointer-events: none;
+    }
+
+    .brand-link {
+      appearance: none;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 30px 0 0;
+      margin: 0 20px 0 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--gm-ink);
+      font: inherit;
+      font-size: clamp(17px, 1.35vw, 22px);
+      line-height: 1;
+      font-weight: 400;
+      letter-spacing: 0.015em;
+      text-decoration: none;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      opacity: 0.94;
+      box-shadow: none;
+      border-radius: 0;
+      text-align: left;
+      transition:
+        color 0.22s ease,
+        opacity 0.22s ease,
+        transform 0.22s ease;
+    }
+
+    .brand-link::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 30px;
+      bottom: 4px;
+      height: 1px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      opacity: 0.82;
+      pointer-events: none;
+      transition: transform 0.24s ease;
+    }
+
+    .brand-link::after {
+      content: "/";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-52%);
+      color: rgba(32, 28, 24, 0.34);
+      font-size: clamp(16px, 1.2vw, 20px);
+      line-height: 1;
+      font-weight: 300;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .brand-link:last-child {
+      padding-right: 0;
+      margin-right: 0;
+    }
+
+    .brand-link:last-child::after {
+      content: "";
+    }
+
+    .brand-link:hover {
+      color: var(--gm-hover);
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .brand-link:hover::before {
+      transform: scaleX(1);
+    }
+
+    .brand-link:active {
+      transform: translateY(0);
+      opacity: 0.64;
+    }
+
+    .brand-logo-wrap {
+      grid-area: logo;
+      width: 100%;
+      height: 118px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-logo {
+      display: block;
+      width: min(470px, 100%);
+      max-height: 126px;
+      object-fit: contain;
+      transform: translateX(6px) rotate(0deg);
+      filter: none;
+    }
+
+    .brand-logo-placeholder {
+      width: 100%;
+      max-width: 340px;
+      height: 88px;
+      border: 0;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      opacity: 0.58;
+      background: transparent;
+      color: var(--gm-muted);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .brand-bar {
+        grid-template-columns: minmax(0, 1fr) 220px;
+        grid-template-areas:
+          "copy logo"
+          "links logo";
+        gap: 18px 18px;
+        min-height: 152px;
+        padding: 22px 18px 20px;
+      }
+
+      .brand-bar::before {
+        left: 18px;
+        right: 18px;
+        top: 16px;
+      }
+
+      .brand-bar::after {
+        left: 18px;
+        right: 18px;
+        bottom: 16px;
+      }
+
+      .shop-copy {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "eyebrow"
+          "main"
+          "sub";
+        row-gap: 8px;
+      }
+
+      .shop-message {
+        font-size: clamp(24px, 3.4vw, 34px);
+      }
+
+      .shop-subline {
+        font-size: 12px;
+        max-width: 460px;
+      }
+
+      .brand-links {
+        padding-top: 10px;
+      }
+
+      .brand-link {
+        min-height: 32px;
+        font-size: clamp(15px, 1.8vw, 18px);
+        padding-right: 22px;
+        margin-right: 13px;
+      }
+
+      .brand-link::before {
+        right: 22px;
+      }
+
+      .brand-link::after {
+        font-size: 16px;
+      }
+
+      .brand-logo-wrap {
+        height: 82px;
+      }
+
+      .brand-logo {
+        max-height: 90px;
+        width: min(270px, 100%);
+        transform: translateX(2px) rotate(0deg);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .brand-bar {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "copy"
+          "links"
+          "logo";
+        gap: 14px;
+        min-height: auto;
+        padding: 18px 16px 16px;
+      }
+
+      .brand-bar::before {
+        left: 16px;
+        right: 16px;
+      }
+
+      .brand-bar::after {
+        left: 16px;
+        right: 16px;
+      }
+
+      .shop-message {
+        font-size: clamp(21px, 7vw, 31px);
+      }
+
+      .shop-subline {
+        white-space: normal;
+        max-width: none;
+      }
+
+      .brand-links {
+        row-gap: 8px;
+      }
+
+      .brand-link {
+        min-height: 28px;
+        font-size: clamp(14px, 4.2vw, 18px);
+        padding-right: 18px;
+        margin-right: 10px;
+      }
+
+      .brand-link::before {
+        right: 18px;
+      }
+
+      .brand-link::after {
+        font-size: 15px;
+      }
+
+      .brand-logo-wrap {
+        justify-content: flex-start;
+        height: 62px;
+      }
+
+      .brand-logo {
+        width: min(310px, 96%);
+        max-height: 72px;
+        transform: none;
+      }
+    }
+</style>
+</head>
+<body>
+  <section class="brand-bar" id="brandBar">
+    <div class="brand-left">
+      <div class="shop-copy">
+        <div class="shop-eyebrow" id="shopEyebrow">HELMETTY ONLINE STORE</div>
+        <p class="shop-message" id="shopMessage">今日の足もと、少しだけ楽しく。</p>
+        <div class="shop-subline" id="shopSubline">かわいくて、気分が上がるシューズを集めました。</div>
+      </div>
+
+      <nav class="brand-links" id="brandLinks" aria-label="ブランドリンク"></nav>
+    </div>
+
+    <div class="brand-logo-wrap">
+      <img id="brandLogo" class="brand-logo is-hidden" src="" alt="" />
+      <div id="brandLogoPlaceholder" class="brand-logo-placeholder">LOGO</div>
+    </div>
+  </section>
+
+  <script>
+    const brandBar = document.getElementById("brandBar");
+    const shopEyebrow = document.getElementById("shopEyebrow");
+    const shopMessage = document.getElementById("shopMessage");
+    const shopSubline = document.getElementById("shopSubline");
+    const brandLinks = document.getElementById("brandLinks");
+    const brandLogo = document.getElementById("brandLogo");
+    const brandLogoPlaceholder = document.getElementById("brandLogoPlaceholder");
+
+    let currentPayload = {};
+
+    const defaultPayload = {
+      brand: "HELMETTY",
+      brandPrefix: "he",
+      brandLogo: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
+      colorBoxBg: "#ffe4e1",
+      colorBoxText: "#f00098",
+      colorBackBg: "#f8f9b3",
+      colorBackBorder: "#ffb8b8",
+      colorBackText: "#f98080",
+      colorButtonBg: "#ffe5e5",
+      colorButtonText: "#c71585",
+      colorButtonBorder: "#ff00c8",
+      catchEyebrow: "HELMETTY ONLINE STORE",
+      catchMain: "今日の足もとに、ちょっとした遊び心を。",
+      catchSub: "かわいくて、気分が上がるシューズを集めました。",
+      linkTop: "/helmetty-top",
+      linkPolicy: "/policy",
+      linkForm: "/contact",
+      linkNotice: "/notice",
+      linkLink: "/onlinestore-top",
+      linkInsta: "https://www.instagram.com/helmetty_shop",
+      instaLink: "INSTAGRAM"
+    };
+
+    function postToParent(payload) {
+      if (window.parent === window) return;
+      window.parent.postMessage({
+        channel: "PcBrandBoxHtml",
+        ...payload
+      }, "*");
+    }
+
+    function valueOf(...values) {
+      for (const value of values) {
+        const text = String(value || "").trim();
+        if (text) return text;
+      }
+      return "";
+    }
+
+    function toStaticWixImageUrl(value) {
+      const src = String(value || "").trim();
+      if (!src) return "";
+
+      if (!src.startsWith("wix:image://v1/")) return src;
+
+      const body = src.replace("wix:image://v1/", "");
+      const mediaId = body.split("/")[0];
+
+      if (!mediaId) return "";
+
+      return `https://static.wixstatic.com/media/${mediaId}`;
+    }
+
+    function applyCssVars(payload) {
+      const boxBg = valueOf(payload.colorBoxBg, defaultPayload.colorBoxBg);
+      const boxText = valueOf(payload.colorBoxText, defaultPayload.colorBoxText);
+      const backBg = valueOf(payload.colorBackBg, defaultPayload.colorBackBg);
+      const backBorder = valueOf(payload.colorBackBorder, defaultPayload.colorBackBorder);
+      const backText = valueOf(payload.colorBackText, defaultPayload.colorBackText);
+      const buttonBg = valueOf(payload.colorButtonBg, defaultPayload.colorButtonBg);
+      const buttonText = valueOf(payload.colorButtonText, defaultPayload.colorButtonText);
+      const buttonBorder = valueOf(payload.colorButtonBorder, defaultPayload.colorButtonBorder);
+
+      document.documentElement.style.setProperty("--box-bg", boxBg);
+      document.documentElement.style.setProperty("--box-text", boxText);
+      document.documentElement.style.setProperty("--button-bg", buttonBg);
+      document.documentElement.style.setProperty("--button-text", buttonText);
+      document.documentElement.style.setProperty("--button-border", buttonBorder);
+
+      document.documentElement.style.setProperty("--gm-bg", backBg);
+      document.documentElement.style.setProperty("--gm-panel", boxBg);
+      document.documentElement.style.setProperty("--gm-ink", boxText);
+      document.documentElement.style.setProperty("--gm-muted", backText);
+      document.documentElement.style.setProperty("--gm-soft", backBorder);
+      document.documentElement.style.setProperty("--gm-line", buttonBorder);
+      document.documentElement.style.setProperty("--gm-hover", buttonText);
+    }
+
+    function makeButton({ action, label, url }) {
+      const normalizedUrl = String(url || "").trim();
+      if (!normalizedUrl) return null;
+
+      const link = document.createElement("a");
+      link.className = "brand-link";
+      link.textContent = label;
+      link.href = normalizedUrl;
+      link.dataset.action = action;
+      link.dataset.url = normalizedUrl;
+
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (normalizedUrl === "#") return;
+
+        postToParent({
+          type: "brandBoxClick",
+          action,
+          url: normalizedUrl,
+          brand: String(currentPayload.brand || "")
+        });
+      });
+
+      return link;
+    }
+
+    function bindInteractiveGlow(root) {
+      if (!root) return;
+
+      root.addEventListener("pointermove", (event) => {
+        const rect = root.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+        root.style.setProperty("--pointer-x", `${x}%`);
+        root.style.setProperty("--pointer-y", `${y}%`);
+      });
+
+      root.addEventListener("pointerleave", () => {
+        root.style.setProperty("--pointer-x", "72%");
+        root.style.setProperty("--pointer-y", "50%");
+      });
+    }
+
+    function bindButtonGlow(scope) {
+      if (!scope) return;
+
+      scope.addEventListener("pointermove", (event) => {
+        const link = event.target.closest(".brand-link");
+        if (!link) return;
+
+        const scopeRect = scope.getBoundingClientRect();
+        const linkRect = link.getBoundingClientRect();
+
+        const scopeX = ((event.clientX - scopeRect.left) / scopeRect.width) * 100;
+        const x = ((event.clientX - linkRect.left) / linkRect.width) * 100;
+        const y = ((event.clientY - linkRect.top) / linkRect.height) * 100;
+
+        scope.style.setProperty("--trail-x", `${scopeX}%`);
+        link.style.setProperty("--local-x", `${x}%`);
+        link.style.setProperty("--local-y", `${y}%`);
+      });
+
+      scope.addEventListener("pointerleave", () => {
+        scope.style.setProperty("--trail-x", "0%");
+      });
+    }
+
+    function renderLinks(payload) {
+      brandLinks.innerHTML = "";
+
+      const links = [
+        {
+          action: "top",
+          label: "BRAND TOP",
+          url: payload.linkTop
+        },
+        {
+          action: "policy",
+          label: "GUIDE",
+          url: payload.linkPolicy
+        },
+        {
+          action: "form",
+          label: "CONTACT",
+          url: payload.linkForm
+        },
+        {
+          action: "notice",
+          label: "NEWS",
+          url: payload.linkNotice
+        },
+        {
+          action: "link",
+          label: "ONLINE STORE",
+          url: payload.linkLink
+        },
+        {
+          action: "insta",
+          label: valueOf(payload.instaLink, defaultPayload.instaLink),
+          url: payload.linkInsta || payload.instaLinkUrl
+        }
+      ];
+
+      links.forEach((link) => {
+        const button = makeButton(link);
+        if (button) brandLinks.appendChild(button);
+      });
+    }
+
+    function renderLogo(payload) {
+      const logoUrl = toStaticWixImageUrl(valueOf(
+        payload.brandLogoUrl,
+        payload.logoSrc,
+        payload.logo,
+        payload.brandLogo
+      ));
+
+      if (logoUrl) {
+        brandLogo.src = logoUrl;
+        brandLogo.alt = valueOf(payload.brand, "brand logo");
+        brandLogo.classList.remove("is-hidden");
+        brandLogoPlaceholder.classList.add("is-hidden");
+      } else {
+        brandLogo.removeAttribute("src");
+        brandLogo.alt = "";
+        brandLogo.classList.add("is-hidden");
+        brandLogoPlaceholder.textContent = valueOf(payload.brand, "LOGO");
+        brandLogoPlaceholder.classList.remove("is-hidden");
+      }
+    }
+
+    function render(payload = {}) {
+      currentPayload = {
+        ...defaultPayload,
+        ...payload
+      };
+
+      applyCssVars(currentPayload);
+
+      shopEyebrow.textContent = valueOf(currentPayload.catchEyebrow, defaultPayload.catchEyebrow);
+      shopMessage.textContent = valueOf(currentPayload.catchMain, defaultPayload.catchMain);
+      shopSubline.textContent = valueOf(currentPayload.catchSub, defaultPayload.catchSub);
+
+      renderLinks(currentPayload);
+      renderLogo(currentPayload);
+    }
+
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+      if (!data || typeof data !== "object") return;
+
+      if (data.type !== "brandBoxData") return;
+
+      render(data.payload || {});
+    });
+
+    render(defaultPayload);
+    bindInteractiveGlow(brandBar);
+    bindButtonGlow(brandLinks);
+
+    postToParent({
+      type: "ready"
+    });
+  </script>
+</body>
+</html>
