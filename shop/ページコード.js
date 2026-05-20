@@ -7,6 +7,7 @@ import { session } from "wix-storage";
 import wixLocation from "wix-location";
 import { createSquarePaymentLink } from 'backend/squareCheckout.jsw';
 import { getInitialPageData } from 'backend/products.jsw';
+import { getHelmettyBrandBoxPayload } from 'backend/shop_back/menuService.jsw';
 import { initCartHtmlBridge } from "public/cartHtmlBridge";
 import { setMetaTags, setTitle } from "wix-seo-frontend";
 
@@ -557,6 +558,23 @@ payload: {
   console.log("[SEND][MobileCombinedHtml][catalogInfo] message =", message);
 
   $w("#MobileCombinedHtml").postMessage(message);
+}
+
+async function postHelmettyBrandBoxDataToMainGallery() {
+  if (isMobile) return;
+
+  const html = $w("#mainGalleryHtml");
+  if (!html || typeof html.postMessage !== "function") return;
+
+  try {
+    const payload = await getHelmettyBrandBoxPayload();
+    html.postMessage({
+      type: "brandBoxData",
+      payload
+    });
+  } catch (e) {
+    console.error("[mainGalleryHtml][brandBoxData] send failed:", e);
+  }
 }
 
 function pushMainImages(items = []) {
@@ -3018,6 +3036,17 @@ currentG1G2BrandKey = String(brandKey || "").trim();
 currentG1G2ShopKey = String(shopKey || "").trim();
 currentG1G2AllValue = String(allValue || "false").trim();
 currentG1G2HideBrandSelect = !(String(shopKey || "").trim().toUpperCase() === "HATODAIYA" && currentG1G2BrandSelectBrands.length > 1);
+
+if (
+  !isMobile &&
+  (
+    isForceHelmettyMode() ||
+    String(brandKey || "").trim().toUpperCase() === "HELMETTY" ||
+    String(shopKey || "").trim().toUpperCase() === "HELMETTY"
+  )
+) {
+  postHelmettyBrandBoxDataToMainGallery();
+}
 
 console.log("[G1G2-FORCE][HELMETTY MODE]", {
   force: isForceHelmettyMode(),
