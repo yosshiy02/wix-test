@@ -1,3 +1,4 @@
+// backend/shop_back/menu_back/HELMETTY_MENU.js
 export function getHelmettyMenuPayload() {
     return {
             brand: "HELMETTY",
