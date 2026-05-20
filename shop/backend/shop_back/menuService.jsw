@@ -1,5 +1,84 @@
-import { getHelmettyMenuPayload } from 'backend/shop_back/menu_back/HELMETTY_MENU.js';
+import wixData from 'wix-data';
+import { getHelmettyHtml } from 'backend/shop_back/menu_back/HELMETTY_MENU.js';
 
-export function getHelmettyBrandBoxPayload() {
-    return getHelmettyMenuPayload();
+function toStaticWixImageUrl(value) {
+    const src = String(value || '').trim();
+    if (!src) {
+        return '';
+    }
+
+    if (!src.startsWith('wix:image://v1/')) {
+        return src;
+    }
+
+    const body = src.replace('wix:image://v1/', '');
+    const mediaId = body.split('/')[0];
+
+    if (!mediaId) {
+        return '';
+    }
+
+    return `https://static.wixstatic.com/media/${mediaId}`;
+}
+
+function mapBrandSettingsToMenuSettings(item = {}) {
+    return {
+        brand: String(item.brand || '').trim(),
+        brandPrefix: String(item.brandPrefix || '').trim(),
+        brandLogo: toStaticWixImageUrl(item.brandLogo),
+        colorBoxBg: String(item.colorBoxBg || '').trim(),
+        colorBoxText: String(item.colorBoxText || '').trim(),
+        colorBackBg: String(item.colorBackBg || '').trim(),
+        colorBackBorder: String(item.colorBackBorder || '').trim(),
+        colorBackText: String(item.colorBackText || '').trim(),
+        colorButtonBg: String(item.colorButtonBg || '').trim(),
+        colorButtonText: String(item.colorButtonText || '').trim(),
+        colorButtonBorder: String(item.colorButtonBorder || '').trim(),
+        linkTop: String(item.linkTop || '').trim(),
+        linkPolicy: String(item.linkPolicy || '').trim(),
+        linkForm: String(item.linkForm || '').trim(),
+        linkNotice: String(item.linkNotice || '').trim(),
+        linkLink: String(item.linkLink || '').trim(),
+        linkInsta: String(item.linkInsta || '').trim(),
+        instaLink: String(item.instaLink || '').trim()
+    };
+}
+
+async function fetchBrandSettings({ brand, brandPrefix }) {
+    const brandKey = String(brand || '').trim();
+    const prefixKey = String(brandPrefix || '').trim();
+
+    if (brandKey) {
+        const byBrand = await wixData.query('BrandSettings')
+            .eq('brand', brandKey)
+            .limit(1)
+            .find();
+
+        if (byBrand.items?.[0]) {
+            return byBrand.items[0];
+        }
+    }
+
+    if (prefixKey) {
+        const byPrefix = await wixData.query('BrandSettings')
+            .eq('brandPrefix', prefixKey)
+            .limit(1)
+            .find();
+
+        if (byPrefix.items?.[0]) {
+            return byPrefix.items[0];
+        }
+    }
+
+    return null;
+}
+
+export async function getHelmettyBrandBoxHtml(options = {}) {
+    const brand = String(options.brand || 'HELMETTY').trim();
+    const brandPrefix = String(options.brandPrefix || '').trim();
+
+    const item = await fetchBrandSettings({ brand, brandPrefix });
+    const settings = mapBrandSettingsToMenuSettings(item || { brand, brandPrefix });
+
+    return getHelmettyHtml(settings);
 }

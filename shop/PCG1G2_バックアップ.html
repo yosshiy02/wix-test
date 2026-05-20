@@ -18,11 +18,21 @@
             --radius-md: 18px;
             --radius-sm: 14px;
 
-        }
-
-        .helmetty-brand-box-host {
-            width: 100%;
-            margin: 0 auto;
+            --box-bg: #fff1f0;
+            --box-text: #ff8acb;
+            --button-bg: #fff6f6;
+            --button-text: #e68ab8;
+            --button-border: #ffc7ee;
+            --line: rgba(255, 255, 255, 0.72);
+            --shadow-soft: 0 1.125rem 2.5rem rgba(105, 26, 78, 0.07);
+            --shadow-strong: 0 1.5rem 3.75rem rgba(105, 26, 78, 0.1);
+            --gm-bg: #fbf7f2;
+            --gm-panel: #ffffff;
+            --gm-ink: #a86b8d;
+            --gm-muted: rgba(168, 107, 141, 0.5);
+            --gm-soft: rgba(168, 107, 141, 0.08);
+            --gm-line: rgba(168, 107, 141, 0.14);
+            --gm-hover: var(--button-text);
         }
 
         * {
@@ -510,7 +520,541 @@
             font-weight: 700;
         }
 
-        /* HELMETTY brand box styles are provided by backend HTML */
+        .brand-bar {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            min-height: 2rem;
+            margin: 0 auto 0;
+            padding: 1.25rem 2rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 22.5rem;
+            grid-template-areas:
+                "copy logo"
+                "links links";
+            gap: 0.125rem 2.125rem;
+            align-items: start;
+            align-content: start;
+            overflow: visible;
+            isolation: isolate;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94)),
+                linear-gradient(90deg, rgba(255, 241, 240, 0.26), rgba(255, 255, 255, 0.82));
+            color: var(--gm-ink);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(216, 203, 184, 0.75);
+            border-radius: 36px;
+            animation: brandPanelBreath 7.8s ease-in-out infinite;
+        }
+
+        .brand-bar::before,
+        .brand-bar::after {
+            content: "";
+            position: absolute;
+            left: 2.125rem;
+            right: 2.125rem;
+            height: 0.0625rem;
+            background: var(--gm-soft);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .brand-bar::before {
+            top: 1.125rem;
+        }
+
+        .brand-bar::after {
+            bottom: 1.125rem;
+        }
+
+        .brand-left {
+            min-width: 0;
+            display: contents;
+            position: relative;
+        }
+
+        .shop-copy {
+            grid-area: copy;
+            min-width: 0;
+            max-width: 47.5rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas:
+                "eyebrow"
+                "main"
+                "sub";
+            row-gap: 0.5625rem;
+            position: relative;
+            padding: 0.125rem 0 0.125rem 1.375rem;
+            align-items: start;
+            align-content: start;
+            align-content: start;
+            border-left: 0.0625rem solid color-mix(in srgb, var(--gm-ink) 28%, transparent);
+            animation: copyBlockIn 0.72s cubic-bezier(.2,.82,.24,1) both;
+        }
+
+        .shop-copy::before {
+            content: "";
+            position: absolute;
+            left: -0.25rem;
+            top: 0.25rem;
+            width: 0.4375rem;
+            height: 0.4375rem;
+            border-radius: 999rem;
+            background: var(--button-border);
+            opacity: 0.55;
+            box-shadow: 0 0 0 0.3125rem color-mix(in srgb, var(--button-border) 14%, transparent);
+            pointer-events: none;
+        }
+
+        .shop-eyebrow {
+            grid-area: eyebrow;
+            width: fit-content;
+            max-width: 100%;
+            font-size: 0.6875rem;
+            line-height: 1;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            color: color-mix(in srgb, var(--gm-ink) 72%, #ffffff);
+            opacity: 1;
+            white-space: nowrap;
+            text-transform: uppercase;
+            padding: 0.4375rem 0.625rem 0.375rem;
+            background: color-mix(in srgb, var(--box-bg) 62%, #ffffff);
+            border: 0.0625rem solid color-mix(in srgb, var(--button-border) 32%, #ffffff);
+            border-radius: 999rem;
+            box-shadow: 0 0.5rem 1.125rem rgba(168, 107, 141, 0.06);
+            animation: copyLineIn 0.58s cubic-bezier(.2,.82,.24,1) 0.08s both;
+        }
+
+        .shop-message {
+            grid-area: main;
+            margin: 0;
+            min-width: 0;
+            max-width: 100%;
+            font-family:
+                "Hiragino Mincho ProN",
+                "Yu Mincho",
+                "Yu Gothic",
+                "Hiragino Sans",
+                "Meiryo",
+                serif;
+            font-size: clamp(0.8125rem, 2.1vw, 2.25rem);
+            line-height: 1.18;
+            font-weight: 500;
+            letter-spacing: 0.045em;
+            white-space: nowrap;
+            color: color-mix(in srgb, var(--gm-ink) 78%, #3f2433);
+            text-shadow:
+                0 0.0625rem 0 rgba(255, 255, 255, 0.7),
+                0 0.5rem 1.125rem rgba(168, 107, 141, 0.07);
+            text-transform: none;
+            animation: copyMainIn 0.78s cubic-bezier(.2,.82,.24,1) 0.16s both;
+        }
+
+        .shop-subline {
+            grid-area: sub;
+            align-self: start;
+            font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
+            line-height: 1.75;
+            font-weight: 400;
+            letter-spacing: 0.055em;
+            color: color-mix(in srgb, var(--gm-muted) 80%, #5c344a);
+            opacity: 1;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 35rem;
+            padding-bottom: 0;
+            animation: copyLineIn 0.68s cubic-bezier(.2,.82,.24,1) 0.28s both;
+        }
+
+        .brand-links {
+            grid-area: links;
+            min-width: 0;
+            position: relative;
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-top: 0.5rem;
+            padding: 0.125rem clamp(1.125rem, 2.8vw, 3rem) 0;
+            overflow: visible;
+            isolation: isolate;
+            font-family:
+                "Helvetica Neue",
+                Arial,
+                "Yu Gothic",
+                "Hiragino Sans",
+                sans-serif;
+        }
+
+        .brand-links::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            width: auto;
+            height: 0.0625rem;
+            background: var(--gm-line);
+            transform: none;
+            pointer-events: none;
+        }
+
+        .brand-link {
+            --tab-bg: color-mix(in srgb, var(--gm-ink) 62%, #ffffff);
+            --tab-hover: color-mix(in srgb, var(--gm-hover) 68%, #ffffff);
+            --tab-ink: rgba(92, 52, 74, 0.92);
+            --tab-drop-bg: color-mix(in srgb, var(--tab-bg) 46%, #ffffff);
+            --tab-drop-hover: color-mix(in srgb, var(--tab-hover) 46%, #ffffff);
+            appearance: none;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            min-height: 3.25rem;
+            padding: 0 clamp(0.375rem, 0.9vw, 0.875rem);
+            margin: 0 0.625rem 0 0;
+            border: 0;
+            outline: 0;
+            background: var(--tab-bg);
+            color: var(--tab-ink);
+            font: inherit;
+            font-size: clamp(0.6875rem, 1.08vw, 1rem);
+            line-height: 1;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+            opacity: 1;
+            box-shadow: 0 0.625rem 1.375rem rgba(168, 107, 141, 0.06);
+            border-radius: 0;
+            text-align: center;
+            text-shadow:
+                0 0.0625rem 0 rgba(255, 255, 255, 0.55),
+                0 0 0.625rem rgba(255, 255, 255, 0.35);
+            transform: translateY(0);
+            transform-origin: center center;
+            overflow: visible;
+            will-change: transform;
+            backface-visibility: hidden;
+            animation: linkRiseIn 0.54s cubic-bezier(.2,.82,.24,1) both;
+            transition:
+                background-color 0.28s ease,
+                color 0.22s ease,
+                opacity 0.22s ease,
+                transform 0.28s cubic-bezier(.73,.32,.34,1.5),
+                box-shadow 0.28s ease;
+        }
+
+        .brand-link:nth-child(1) {
+            --tab-bg: color-mix(in srgb, var(--box-text) 58%, #ffffff);
+            --tab-hover: color-mix(in srgb, var(--button-text) 66%, #ffffff);
+            animation-delay: 0.34s;
+        }
+
+        .brand-link:nth-child(2) {
+            --tab-bg: #9ecfe0;
+            --tab-hover: #83c0d4;
+            animation-delay: 0.4s;
+        }
+
+        .brand-link:nth-child(3) {
+            --tab-bg: #e8aaaa;
+            --tab-hover: #dc9696;
+            animation-delay: 0.46s;
+        }
+
+        .brand-link:nth-child(4) {
+            --tab-bg: #efd093;
+            --tab-hover: #e6c176;
+            animation-delay: 0.52s;
+        }
+
+        .brand-link:nth-child(5) {
+            --tab-bg: #c7df91;
+            --tab-hover: #b7d978;
+            animation-delay: 0.58s;
+        }
+
+        .brand-link-label {
+            position: relative;
+            z-index: 4;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            pointer-events: none;
+        }
+
+        .brand-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            height: 0.625rem;
+            background: var(--tab-drop-bg);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform: scaleY(1);
+            transform-origin: center top;
+            opacity: 1;
+            pointer-events: none;
+            transition:
+                height 0.24s cubic-bezier(.73,.32,.34,1.5),
+                background-color 0.28s ease,
+                opacity 0.22s ease;
+        }
+
+        .brand-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.72);
+            clip-path: polygon(0 100%, 100% 100%, 50% 0);
+            opacity: 0.92;
+            pointer-events: none;
+            transition:
+                height 0.22s 0.12s ease-out,
+                opacity 0.22s ease;
+        }
+
+        .brand-link:last-child {
+            margin-right: 0;
+        }
+
+        .brand-link:hover,
+        .brand-link.is-open,
+        .brand-link.is-closing {
+            background: var(--tab-hover);
+            color: var(--tab-ink);
+            opacity: 1;
+            box-shadow: 0 1rem 1.75rem rgba(168, 107, 141, 0.1);
+        }
+
+        .brand-link:hover,
+        .brand-link.is-open,
+        .brand-link.is-closing {
+            transform: translateY(-0.25rem);
+        }
+
+        .brand-link:hover::before,
+        .brand-link.is-open::before,
+        .brand-link.is-closing::before {
+            background: var(--tab-drop-hover);
+            height: 0;
+            opacity: 0;
+            animation: none;
+        }
+
+        .brand-link:hover::after,
+        .brand-link.is-open::after,
+        .brand-link.is-closing::after {
+            height: 0;
+        }
+
+        .brand-link:active {
+            transform: translateY(-0.125rem);
+            opacity: 0.78;
+        }
+
+        .brand-link-dropdown {
+            --dropdown-tail: 1.125rem;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            z-index: 30;
+            display: grid;
+            gap: 0;
+            height: 0;
+            padding: 0;
+            overflow: hidden;
+            background: var(--tab-drop-bg);
+            color: var(--tab-ink);
+            box-shadow: 0 1.125rem 1.75rem rgba(168, 107, 141, 0.08);
+            opacity: 0;
+            transform: translateY(0) scaleY(0);
+            transform-origin: center top;
+            pointer-events: none;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            clip-path: polygon(
+                0 0,
+                100% 0,
+                100% calc(100% - var(--dropdown-tail)),
+                50% 100%,
+                0 calc(100% - var(--dropdown-tail))
+            );
+            transition:
+                height 0.52s cubic-bezier(.22,.72,.24,1),
+                padding 0.52s cubic-bezier(.22,.72,.24,1),
+                background-color 0.24s ease,
+                opacity 0.32s ease,
+                transform 0.52s cubic-bezier(.22,.72,.24,1);
+        }
+
+        .brand-link.is-open .brand-link-dropdown {
+            height: var(--dropdown-height, 9.75rem);
+            padding: 0.625rem 0 2.375rem;
+            background: var(--tab-drop-hover);
+            opacity: 1;
+            transform: translateY(0) scaleY(1);
+            pointer-events: auto;
+            animation: dropdownOpenBounce 0.96s cubic-bezier(.18,.9,.2,1) both;
+        }
+
+        .brand-link.is-closing .brand-link-dropdown {
+            height: 0;
+            padding: 0;
+            background: var(--tab-drop-hover);
+            opacity: 0;
+            transform: translateY(0) scaleY(0.02);
+            pointer-events: none;
+            animation: none;
+        }
+
+        .brand-link-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 2.625rem;
+            padding: 0.75rem 0.875rem;
+            font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
+            line-height: 1.28;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-align: center;
+            white-space: normal;
+            color: rgba(92, 52, 74, 0.78);
+            text-shadow:
+                0 0.0625rem 0 rgba(255, 255, 255, 0.5),
+                0 0 0.5rem rgba(255, 255, 255, 0.28);
+            opacity: 0;
+            transform: translateY(-0.375rem);
+            border-bottom: 0.0625rem solid rgba(92, 52, 74, 0.12);
+            transition:
+                opacity 0.34s ease,
+                transform 0.44s cubic-bezier(.2,.82,.24,1),
+                background-color 0.22s ease;
+        }
+
+        .brand-link-dropdown-item:hover {
+            background: rgba(92, 52, 74, 0.13);
+        }
+
+        .brand-link-dropdown-item span {
+            min-width: 0;
+            white-space: normal;
+            line-height: 1.25;
+        }
+
+        .brand-link-dropdown-item.is-current-shop {
+            background: rgba(92, 52, 74, 0.18);
+            font-weight: 900;
+            box-shadow: inset 0 0 0 0.0625rem rgba(92, 52, 74, 0.18);
+        }
+
+        .brand-link-current-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.25rem;
+            padding: 0.1875rem 0.375rem;
+            border-radius: 999rem;
+            background: rgba(92, 52, 74, 0.18);
+            font-size: 0.625rem;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+        }
+
+        .brand-link-dropdown-item:last-child {
+            border-bottom: 0;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item,
+        .brand-link.is-closing .brand-link-dropdown-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item {
+            animation: dropdownItemPop 0.42s cubic-bezier(.18,.9,.2,1) both;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item:nth-child(1) {
+            animation-delay: 0.04s;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item:nth-child(2) {
+            animation-delay: 0.08s;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item:nth-child(4) {
+            animation-delay: 0.16s;
+        }
+
+        .brand-link.is-open .brand-link-dropdown-item:nth-child(5) {
+            animation-delay: 0.2s;
+        }
+
+        .brand-logo-wrap {
+            grid-area: logo;
+            width: 100%;
+            height: 7.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-logo {
+            display: block;
+            width: min(29.375rem, 100%);
+            max-height: 7.875rem;
+            object-fit: contain;
+            transform: translateX(0.375rem) rotate(0deg);
+            filter: none;
+            animation: none;
+        }
+
+        .brand-logo-placeholder {
+            width: 100%;
+            max-width: 21.25rem;
+            height: 5.5rem;
+            border: 0;
+            display: grid;
+            place-items: center;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            opacity: 0.58;
+            background: transparent;
+            color: var(--gm-muted);
+        }
+
+        .brand-logo.is-hidden,
+        .brand-logo-placeholder.is-hidden {
+            display: none !important;
+        }
 
     .g2-grid {
     display: grid;
@@ -589,6 +1133,114 @@
             font-weight: 700;
         }
 
+        @keyframes brandPanelBreath {
+            0%,
+            100% {
+                background-position:
+                    0% 50%,
+                    0 0,
+                    0 0;
+            }
+
+            50% {
+                background-position:
+                    100% 50%,
+                    0 0,
+                    0 0;
+            }
+        }
+
+        @keyframes copyBlockIn {
+            from {
+                opacity: 0;
+                transform: translateY(0.625rem);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes copyLineIn {
+            from {
+                opacity: 0;
+                transform: translateY(0.5rem);
+                filter: blur(0.25rem);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes copyMainIn {
+            from {
+                opacity: 0;
+                transform: translateY(0.75rem);
+                letter-spacing: 0.09em;
+                filter: blur(0.3125rem);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                letter-spacing: 0.04em;
+                filter: blur(0);
+            }
+        }
+
+        @keyframes linkRiseIn {
+            from {
+                opacity: 0;
+                transform: translateY(0.75rem);
+                filter: blur(0.3125rem);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes dropdownOpenBounce {
+            0% {
+                transform: translateY(0) scaleY(0.02);
+            }
+
+            54% {
+                transform: translateY(0) scaleY(1.16);
+            }
+
+            74% {
+                transform: translateY(0) scaleY(0.97);
+            }
+
+            100% {
+                transform: translateY(0) scaleY(1);
+            }
+        }
+
+        @keyframes dropdownItemPop {
+            0% {
+                opacity: 0;
+                transform: translateY(-0.5rem) scale(0.96);
+            }
+
+            70% {
+                opacity: 1;
+                transform: translateY(0.0625rem) scale(1.025);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         @keyframes trailFade {
             0% {
                 opacity: .9;
@@ -664,6 +1316,79 @@
         }
 
         @media (max-width: 980px) {
+            .brand-bar {
+                grid-template-columns: minmax(0, 1fr) 13.75rem;
+                grid-template-areas:
+                    "copy logo"
+                    "links links";
+                gap: 0.125rem 1.125rem;
+                min-height: 9.5rem;
+                padding: 1.375rem 1.125rem 1.25rem;
+                border-radius: 28px;
+            }
+
+
+            .brand-bar::before {
+                left: 1.125rem;
+                right: 1.125rem;
+                top: 1rem;
+            }
+
+            .brand-bar::after {
+                left: 1.125rem;
+                right: 1.125rem;
+                bottom: 1rem;
+            }
+
+            .shop-copy {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "eyebrow"
+                    "main"
+                    "sub";
+                row-gap: 0.5rem;
+                max-width: 38.75rem;
+                padding-left: 1.125rem;
+            }
+
+            .shop-message {
+                font-size: clamp(1.375rem, 3.2vw, 1.9375rem);
+            }
+
+            .shop-subline {
+                font-size: 0.75rem;
+                max-width: 32.5rem;
+            }
+
+            .brand-links {
+                margin-top: -0.25rem;
+                padding: 0.125rem 0.875rem 0;
+                transform: none;
+            }
+
+            .brand-link {
+                flex: 0 0 8.25rem;
+                width: 8.25rem;
+                min-height: 2.75rem;
+                font-size: clamp(0.6875rem, 1.6vw, 0.875rem);
+                padding: 0 0.75rem;
+                margin: 0 0.5rem 1rem 0;
+            }
+
+            .brand-link::before {
+                right: 0;
+            }
+
+            .brand-logo-wrap {
+                height: 5.125rem;
+            }
+
+            .brand-logo {
+                max-height: 5.625rem;
+                width: min(16.875rem, 100%);
+                transform: translateX(0.125rem) rotate(0deg);
+            }
+
             .layout.is-g2-active { grid-template-columns: 1fr; }
             .g1-home { grid-template-columns: 1fr; }
             .g1-list { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -680,6 +1405,84 @@
 
         @media (max-width: 640px) {
             .shell { padding: 14px; }
+            .brand-bar {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "copy"
+                    "links"
+                    "logo";
+                gap: 0.5rem;
+                min-height: auto;
+                padding: 1.125rem 1rem 1rem;
+                border-radius: 24px;
+            }
+
+            .brand-bar::before,
+            .brand-bar::after {
+                left: 1rem;
+                right: 1rem;
+            }
+
+            .shop-copy {
+                padding-left: 1rem;
+            }
+
+            .shop-copy::before {
+                width: 0.375rem;
+                height: 0.375rem;
+                top: 0.3125rem;
+            }
+
+            .shop-eyebrow {
+                font-size: 0.625rem;
+                letter-spacing: 0.18em;
+                padding: 0.375rem 0.5625rem 0.3125rem;
+            }
+
+            .shop-message {
+                font-size: clamp(1.25rem, 6.2vw, 1.75rem);
+                line-height: 1.22;
+            }
+
+            .shop-subline {
+                white-space: normal;
+                max-width: none;
+                font-size: 0.75rem;
+                line-height: 1.65;
+            }
+
+            .brand-links {
+                row-gap: 0.5rem;
+                margin-top: -0.125rem;
+                padding: 0.125rem 0 0;
+                transform: none;
+            }
+
+            .brand-link {
+                flex: 0 0 8.625rem;
+                width: 8.625rem;
+                min-height: 2.75rem;
+                font-size: clamp(0.6875rem, 3.4vw, 0.875rem);
+                padding: 0 0.625rem;
+                margin: 0 0.5rem 1rem 0;
+            }
+
+            .brand-link::before {
+                right: 0;
+                height: 0.5625rem;
+            }
+
+            .brand-logo-wrap {
+                justify-content: flex-start;
+                height: 3.875rem;
+            }
+
+            .brand-logo {
+                width: min(19.375rem, 96%);
+                max-height: 4.5rem;
+                transform: none;
+            }
+
             .frame { border-radius: 24px; }
             .g1-panel, .g2-panel { padding: 20px; }
             .g1-list, .g2-grid { grid-template-columns: 1fr; }
@@ -691,7 +1494,22 @@
 </head>
 <body>
     <div class="shell">
-        <div id="helmettyBrandBoxHost" class="helmetty-brand-box-host"></div>
+        <section class="brand-bar" id="brandBar">
+            <div class="brand-left">
+                <div class="shop-copy">
+                    <div class="shop-eyebrow" id="shopEyebrow">HELMETTY ONLINE STORE</div>
+                    <p class="shop-message" id="shopMessage">今日の足もと、少しだけ楽しく。</p>
+                    <div class="shop-subline" id="shopSubline">かわいくて、気分が上がるシューズを集めました。</div>
+                </div>
+
+                <nav class="brand-links" id="brandLinks" aria-label="ブランドリンク"></nav>
+            </div>
+
+            <div class="brand-logo-wrap">
+                <img id="brandLogo" class="brand-logo is-hidden" src="" alt="" />
+                <div id="brandLogoPlaceholder" class="brand-logo-placeholder">LOGO</div>
+            </div>
+        </section>
 
         <div class="frame">
             <main class="layout">
@@ -810,26 +1628,304 @@
         const g1Panel = document.querySelector(".g1-panel");
         const g1Home = document.querySelector(".g1-home");
         const g1BrandPanel = document.querySelector(".g1-brand-panel");
-        const helmettyBrandBoxHost = document.getElementById("helmettyBrandBoxHost");
+        const brandBar = document.getElementById("brandBar");
+        const shopEyebrow = document.getElementById("shopEyebrow");
+        const shopMessage = document.getElementById("shopMessage");
+        const shopSubline = document.getElementById("shopSubline");
+        const brandLinks = document.getElementById("brandLinks");
+        const brandLogo = document.getElementById("brandLogo");
+        const brandLogoPlaceholder = document.getElementById("brandLogoPlaceholder");
 
-        function mountHelmettyBrandBoxHtml(html) {
-            if (!helmettyBrandBoxHost) {
+        let currentBrandBannerPayload = {};
+
+        const defaultBrandBannerPayload = {
+            brand: "HELMETTY",
+            brandPrefix: "he",
+            brandLogo: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
+            colorBoxBg: "#fff1f0",
+            colorBoxText: "#ff8acb",
+            colorBackBg: "#fffbd1",
+            colorBackBorder: "#ffd6d6",
+            colorBackText: "#e89aaa",
+            colorButtonBg: "#fff6f6",
+            colorButtonText: "#e68ab8",
+            colorButtonBorder: "#ffc7ee",
+            catchEyebrow: "HELMETTY ONLINE STORE",
+            catchMain: "今日の足もとに、ちょっとした遊び心を。",
+            catchSub: "かわいくて、気分が上がるシューズを集めました。",
+            linkTop: "/helmetty-top",
+            linkPolicy: "/policy",
+            linkForm: "/contact",
+            linkNotice: "/notice",
+            linkLink: "/onlinestore-top",
+            linkInsta: "https://www.instagram.com/helmetty_shop",
+            instaLink: "INSTAGRAM"
+        };
+
+        function postBrandBannerToParent(payload) {
+            if (window.parent === window) {
                 return;
             }
 
-            helmettyBrandBoxHost.innerHTML = String(html || "");
+            window.parent.postMessage({
+                channel: "PcBrandBoxHtml",
+                ...payload
+            }, "*");
+        }
 
-            helmettyBrandBoxHost.querySelectorAll("script").forEach((oldScript) => {
-                const script = document.createElement("script");
+        function brandBannerValueOf(...values) {
+            for (const value of values) {
+                const text = String(value || "").trim();
+                if (text) {
+                    return text;
+                }
+            }
 
-                if (oldScript.src) {
-                    script.src = oldScript.src;
+            return "";
+        }
+
+        function toStaticWixImageUrl(value) {
+            const src = String(value || "").trim();
+            if (!src) {
+                return "";
+            }
+
+            if (!src.startsWith("wix:image://v1/")) {
+                return src;
+            }
+
+            const body = src.replace("wix:image://v1/", "");
+            const mediaId = body.split("/")[0];
+
+            if (!mediaId) {
+                return "";
+            }
+
+            return `https://static.wixstatic.com/media/${mediaId}`;
+        }
+
+        function applyBrandBannerCssVars(payload) {
+            const boxBg = brandBannerValueOf(payload.colorBoxBg, defaultBrandBannerPayload.colorBoxBg);
+            const boxText = brandBannerValueOf(payload.colorBoxText, defaultBrandBannerPayload.colorBoxText);
+            const backBg = brandBannerValueOf(payload.colorBackBg, defaultBrandBannerPayload.colorBackBg);
+            const backBorder = brandBannerValueOf(payload.colorBackBorder, defaultBrandBannerPayload.colorBackBorder);
+            const backText = brandBannerValueOf(payload.colorBackText, defaultBrandBannerPayload.colorBackText);
+            const buttonBg = brandBannerValueOf(payload.colorButtonBg, defaultBrandBannerPayload.colorButtonBg);
+            const buttonText = brandBannerValueOf(payload.colorButtonText, defaultBrandBannerPayload.colorButtonText);
+            const buttonBorder = brandBannerValueOf(payload.colorButtonBorder, defaultBrandBannerPayload.colorButtonBorder);
+
+            document.documentElement.style.setProperty("--box-bg", boxBg);
+            document.documentElement.style.setProperty("--box-text", boxText);
+            document.documentElement.style.setProperty("--button-bg", buttonBg);
+            document.documentElement.style.setProperty("--button-text", buttonText);
+            document.documentElement.style.setProperty("--button-border", buttonBorder);
+            document.documentElement.style.setProperty("--gm-bg", backBg);
+            document.documentElement.style.setProperty("--gm-panel", boxBg);
+            document.documentElement.style.setProperty("--gm-ink", boxText);
+            document.documentElement.style.setProperty("--gm-muted", backText);
+            document.documentElement.style.setProperty("--gm-soft", backBorder);
+            document.documentElement.style.setProperty("--gm-line", buttonBorder);
+            document.documentElement.style.setProperty("--gm-hover", buttonText);
+        }
+
+         function getBrandBannerDummyDropdownItems(action) {
+            const dummyMap = {
+                top: ["ストアTOPへ"],
+                policy: ["特定商取引法に基づく表記", "プライバシーポリシー"],
+                form: ["お問い合わせ"],
+                notice: ["NEW", "RESTOCK", "EVENT", "SALE"],
+                link: ["OFFICIAL LINKSHOP TOP", "HELMETTY", "HATODAIYA", "Rasiːm"],
+                insta: [
+                    `<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.4" fill="currentColor"/></svg><span>INSTAGRAM</span>`,
+                    `<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M11.2 17.6c.35-1.42.7-2.84 1.04-4.25.48.9 1.38 1.34 2.48 1.34 2.42 0 4.08-2.18 4.08-5.02 0-2.16-1.84-4.17-4.78-4.17-3.58 0-5.38 2.45-5.38 4.5 0 1.24.47 2.35 1.48 2.76.17.07.32 0 .37-.18.04-.13.12-.45.16-.59.05-.18.03-.25-.1-.41-.29-.35-.48-.8-.48-1.45 0-1.82 1.36-3.45 3.55-3.45 1.94 0 3 1.18 3 2.77 0 2.08-.92 3.83-2.28 3.83-.75 0-1.32-.62-1.14-1.39.22-.92.64-1.92.64-2.59 0-.6-.32-1.1-.99-1.1-.78 0-1.41.81-1.41 1.89 0 .69.23 1.16.23 1.16s-.8 3.4-.94 4c-.28 1.18-.04 2.63-.02 2.77.01.08.12.1.17.04.07-.09.95-1.17 1.25-2.25z" fill="#fff"/></svg><span>PINTEREST（公開予定）</span>`,
+                    `<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h4.7l4.08 5.62L17.58 4H20l-6.05 7.08L20.5 20h-4.7l-4.35-5.98L6.33 20H4l6.27-7.35L4 4zm3.32 1.74 9.34 12.52h1.48L8.78 5.74H7.32z" fill="currentColor"/></svg><span>X（公開予定）</span>`,
+                    `<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3c.35 2.36 1.7 3.76 4 3.92v3.24c-1.38.13-2.64-.32-3.86-1.09v5.98c0 3.02-1.84 5.08-4.64 5.08-2.55 0-4.5-1.78-4.5-4.12 0-2.6 2.1-4.34 5.08-4.1v3.32c-.88-.14-1.62.28-1.62 1.02 0 .64.52 1.08 1.2 1.08.82 0 1.26-.48 1.26-1.58V3h3.08z" fill="currentColor"/></svg><span>TIKTOK（公開予定）</span>`
+                ]
+            };
+
+            return dummyMap[action] || ["DETAIL", "MORE"];
+        }
+
+
+        function makeBrandBannerButton({ action, label, url }) {
+            const normalizedUrl = String(url || "").trim();
+            if (!normalizedUrl) {
+                return null;
+            }
+
+            const link = document.createElement("a");
+            link.className = "brand-link";
+            link.href = normalizedUrl;
+            link.dataset.action = action;
+            link.dataset.url = normalizedUrl;
+
+            const labelEl = document.createElement("span");
+            labelEl.className = "brand-link-label";
+            labelEl.textContent = label;
+
+            const dropdown = document.createElement("span");
+            dropdown.className = "brand-link-dropdown";
+            dropdown.setAttribute("aria-hidden", "true");
+
+            const dropdownItems = getBrandBannerDummyDropdownItems(action);
+            const dropdownHeight = dropdownItems.length * 2.625 + 3.25;
+
+            link.style.setProperty("--dropdown-height", `${dropdownHeight}rem`);
+
+            dropdownItems.forEach((text) => {
+                const item = document.createElement("span");
+                item.className = "brand-link-dropdown-item";
+
+                const currentShopName = String(currentBrandBannerPayload.brand || "")
+                    .replace("Rasiːm", "Rasi:m")
+                    .trim()
+                    .toLowerCase();
+
+                const dropdownShopName = String(text || "")
+                    .replace("Rasiːm", "Rasi:m")
+                    .trim()
+                    .toLowerCase();
+
+                if (action === "link" && currentShopName && dropdownShopName === currentShopName) {
+                    item.classList.add("is-current-shop");
+                    item.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 16.6 4.9 12.3l1.7-1.7 2.6 2.6 8.2-8.2 1.7 1.7-9.9 9.9z" fill="currentColor"/></svg><span>${text}</span><span class="brand-link-current-badge">NOW</span>`;
                 } else {
-                    script.textContent = oldScript.textContent;
+                    item.innerHTML = text;
                 }
 
-                oldScript.replaceWith(script);
+                dropdown.appendChild(item);
             });
+
+            let closeTimer = null;
+
+            function openMenu() {
+                if (closeTimer) {
+                    window.clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+
+                link.classList.remove("is-closing");
+                link.classList.add("is-open");
+                dropdown.setAttribute("aria-hidden", "false");
+            }
+
+            function closeMenu() {
+                if (closeTimer) {
+                    window.clearTimeout(closeTimer);
+                }
+
+                link.classList.remove("is-open");
+                link.classList.add("is-closing");
+                dropdown.setAttribute("aria-hidden", "true");
+
+                closeTimer = window.setTimeout(() => {
+                    link.classList.remove("is-closing");
+                    closeTimer = null;
+                }, 520);
+            }
+
+            link.appendChild(labelEl);
+            link.appendChild(dropdown);
+
+            link.addEventListener("mouseenter", openMenu);
+            link.addEventListener("mouseleave", closeMenu);
+            link.addEventListener("focus", openMenu);
+            link.addEventListener("blur", closeMenu);
+
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                if (normalizedUrl === "#") {
+                    return;
+                }
+
+                postBrandBannerToParent({
+                    type: "brandBoxClick",
+                    action,
+                    url: normalizedUrl,
+                    brand: String(currentBrandBannerPayload.brand || "")
+                });
+            });
+
+            return link;
+        }
+
+        function renderBrandBannerLinks(payload) {
+            brandLinks.innerHTML = "";
+
+            const links = [
+                {
+                    action: "top",
+                    label: "TOP",
+                    url: payload.linkTop
+                },
+                {
+                    action: "link",
+                    label: "LINKSTORE",
+                    url: payload.linkLink
+                },
+                {
+                    action: "insta",
+                    label: "SNS",
+                    url: payload.linkInsta || payload.instaLinkUrl
+                },
+                {
+                    action: "policy",
+                    label: "GUIDE",
+                    url: payload.linkPolicy
+                },
+                {
+                    action: "form",
+                    label: "CONTACT",
+                    url: payload.linkForm
+                }
+            ];
+
+            links.forEach((link) => {
+                const button = makeBrandBannerButton(link);
+                if (button) {
+                    brandLinks.appendChild(button);
+                }
+            });
+        }
+
+
+        function renderBrandBannerLogo(payload) {
+            const logoUrl = toStaticWixImageUrl(brandBannerValueOf(
+                payload.brandLogoUrl,
+                payload.logoSrc,
+                payload.logo,
+                payload.brandLogo
+            ));
+
+            if (logoUrl) {
+                brandLogo.src = logoUrl;
+                brandLogo.alt = brandBannerValueOf(payload.brand, "brand logo");
+                brandLogo.classList.remove("is-hidden");
+                brandLogoPlaceholder.classList.add("is-hidden");
+            } else {
+                brandLogo.removeAttribute("src");
+                brandLogo.alt = "";
+                brandLogo.classList.add("is-hidden");
+                brandLogoPlaceholder.textContent = brandBannerValueOf(payload.brand, "LOGO");
+                brandLogoPlaceholder.classList.remove("is-hidden");
+            }
+        }
+
+        function renderBrandBanner(payload = {}) {
+            currentBrandBannerPayload = {
+                ...defaultBrandBannerPayload,
+                ...payload
+            };
+
+            applyBrandBannerCssVars(currentBrandBannerPayload);
+
+            shopEyebrow.textContent = brandBannerValueOf(currentBrandBannerPayload.catchEyebrow, defaultBrandBannerPayload.catchEyebrow);
+            shopMessage.textContent = brandBannerValueOf(currentBrandBannerPayload.catchMain, defaultBrandBannerPayload.catchMain);
+            shopSubline.textContent = brandBannerValueOf(currentBrandBannerPayload.catchSub, defaultBrandBannerPayload.catchSub);
+
+            renderBrandBannerLinks(currentBrandBannerPayload);
+            renderBrandBannerLogo(currentBrandBannerPayload);
         }
 
         window.addEventListener("message", (event) => {
@@ -838,11 +1934,11 @@
                 return;
             }
 
-            if (data.type !== "brandBoxHtml") {
+            if (data.type !== "brandBoxData") {
                 return;
             }
 
-            mountHelmettyBrandBoxHtml(data.html || "");
+            renderBrandBanner(data.payload || {});
         });
 
         const mockBrands = [
@@ -1901,6 +2997,9 @@ document.body.appendChild(sourceButton);
         backButton.addEventListener("click", backToG1);
         g1BackButton.addEventListener("click", backToG1);
 
+        renderBrandBanner(defaultBrandBannerPayload);
+
+        postBrandBannerToParent({ type: "ready" });
         postToParent({ type: "ready" });
         renderBrandList();
         renderG1();

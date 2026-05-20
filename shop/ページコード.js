@@ -7,7 +7,7 @@ import { session } from "wix-storage";
 import wixLocation from "wix-location";
 import { createSquarePaymentLink } from 'backend/squareCheckout.jsw';
 import { getInitialPageData } from 'backend/products.jsw';
-import { getHelmettyBrandBoxPayload } from 'backend/shop_back/menuService.jsw';
+import { getHelmettyBrandBoxHtml } from 'backend/shop_back/menuService.jsw';
 import { initCartHtmlBridge } from "public/cartHtmlBridge";
 import { setMetaTags, setTitle } from "wix-seo-frontend";
 
@@ -560,20 +560,24 @@ payload: {
   $w("#MobileCombinedHtml").postMessage(message);
 }
 
-async function postHelmettyBrandBoxDataToMainGallery() {
+async function postHelmettyBrandBoxHtmlToMainGallery(brand, brandPrefix) {
   if (isMobile) return;
 
   const html = $w("#mainGalleryHtml");
   if (!html || typeof html.postMessage !== "function") return;
 
   try {
-    const payload = await getHelmettyBrandBoxPayload();
+    const brandBoxHtml = await getHelmettyBrandBoxHtml({
+      brand: String(brand || "").trim(),
+      brandPrefix: String(brandPrefix || "").trim()
+    });
+
     html.postMessage({
-      type: "brandBoxData",
-      payload
+      type: "brandBoxHtml",
+      html: brandBoxHtml
     });
   } catch (e) {
-    console.error("[mainGalleryHtml][brandBoxData] send failed:", e);
+    console.error("[mainGalleryHtml][brandBoxHtml] send failed:", e);
   }
 }
 
@@ -3045,7 +3049,10 @@ if (
     String(shopKey || "").trim().toUpperCase() === "HELMETTY"
   )
 ) {
-  postHelmettyBrandBoxDataToMainGallery();
+  postHelmettyBrandBoxHtmlToMainGallery(
+    String(brandKey || shopKey || "HELMETTY").trim(),
+    String(shopPrefixFromBrandSettings || "").trim()
+  );
 }
 
 console.log("[G1G2-FORCE][HELMETTY MODE]", {
