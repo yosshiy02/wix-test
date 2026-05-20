@@ -1,0 +1,3265 @@
+<!-- ファイル名：mobilemainGalleryHtml -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G1 G2 Mock</title>
+<style>
+    :root {
+        --bg: #f6f1e8;
+        --panel: rgba(255, 252, 247, 0.94);
+        --text: #2f241c;
+        --muted: #7a6a5d;
+        --accent: #b86d3c;
+        --accent-deep: #8f4e23;
+        --shadow: 0 4.8% 10.67% rgba(74, 49, 30, 0.12);
+        --radius-lg: 7.47%;
+        --radius-md: 4.8%;
+        --radius-sm: 3.73%;
+
+        --menu-bg: #ffe5e5;
+        --menu-text: #c71585;
+        --menu-border: #ff00c8;
+        --line: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        height: 100%;
+        overscroll-behavior: none;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+        color: var(--text);
+        background: transparent;
+        scrollbar-gutter: stable;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
+    .mobile-brand-box {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 12% minmax(0, 1fr) 30%;
+        grid-template-rows: auto;
+        align-items: center;
+        column-gap: 3%;
+        padding: 4.2% 3.2%;
+        overflow: visible;
+        isolation: isolate;
+        background:
+            radial-gradient(
+                circle at 8% 50%,
+                color-mix(in srgb, var(--menu-bg) 58%, transparent),
+                transparent 40%
+            ),
+            linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--menu-bg) 38%, var(--bg)),
+                color-mix(in srgb, var(--menu-border) 18%, var(--menu-bg))
+            );
+        border-bottom: 0.16em solid color-mix(in srgb, var(--menu-border) 34%, transparent);
+    }
+
+    .mobile-brand-box::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+            linear-gradient(
+                90deg,
+                color-mix(in srgb, var(--menu-border) 26%, transparent),
+                transparent 42%,
+                color-mix(in srgb, var(--menu-bg) 32%, transparent)
+            );
+        opacity: 0.64;
+        pointer-events: none;
+    }
+
+    .mobile-brand-box::after {
+        content: "";
+        position: absolute;
+        left: 3.2%;
+        right: 3.2%;
+        bottom: 0;
+        height: 0.12em;
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                color-mix(in srgb, var(--menu-border) 54%, transparent),
+                transparent
+            );
+        pointer-events: none;
+    }
+
+    .menu-button {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+        align-self: end;
+        appearance: none;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 4;
+        width: min(57%, 9.4em);
+        height: 5.6em;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--menu-text);
+        font: inherit;
+        font-size: 60%;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-align: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow: none;
+        transform: translateY(0);
+        perspective: 24em;
+        transform-style: preserve-3d;
+        animation: none;
+    }
+
+    .menu-button::before,
+    .menu-button::after {
+        content: none;
+    }
+
+    .menu-door-label {
+        position: absolute;
+        left: 50%;
+        top: -24%;
+        z-index: 5;
+        display: inline-grid;
+        place-items: center;
+        min-width: 54%;
+        padding: 0.26em 0.48em 0.22em;
+        border: 0.08em solid color-mix(in srgb, var(--menu-border) 64%, var(--menu-text));
+        border-radius: 999em;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.86),
+                color-mix(in srgb, var(--menu-bg) 72%, #ffffff)
+            );
+        box-shadow:
+            0 0.12em 0.24em rgba(0, 0, 0, 0.14),
+            inset 0 0 0 0.06em rgba(255, 255, 255, 0.58);
+        transform: translateX(-50%);
+        color: var(--menu-text);
+        font-size: 86%;
+        line-height: 1;
+        letter-spacing: 0.16em;
+        text-shadow:
+            0 0.08em 0.12em rgba(255, 255, 255, 0.74),
+            0 0.12em 0.24em rgba(0, 0, 0, 0.08);
+        pointer-events: none;
+    }
+
+    .menu-door-ground {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 0;
+        height: 0.12em;
+        z-index: 0;
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                color-mix(in srgb, var(--menu-border) 54%, var(--text)),
+                transparent
+            );
+        opacity: 0.62;
+        pointer-events: none;
+    }
+
+    .menu-door-cover {
+        position: absolute;
+        left: 4%;
+        right: 0;
+        bottom: 0;
+        height: 100%;
+        z-index: 3;
+        isolation: isolate;
+        border: 0.1em solid rgba(190, 151, 105, 0.32);
+        border-radius: 1.9em 1.9em 0.08em 0.08em;
+        background:
+            linear-gradient(
+                180deg,
+                #fffdf7 0%,
+                #fff8e8 58%,
+                #f8ecd2 100%
+            );
+        box-shadow:
+            0 0.34em 0.68em rgba(0, 0, 0, 0.14),
+            inset 0 0 0 0.08em rgba(255, 255, 255, 0.72),
+            inset 0.18em 0 0 rgba(190, 151, 105, 0.1),
+            inset -0.18em 0 0 rgba(190, 151, 105, 0.1);
+        transform: none;
+        transform-style: preserve-3d;
+        pointer-events: none;
+    }
+
+    .menu-door-cover::before {
+        content: "";
+        position: absolute;
+        left: 20%;
+        right: 20%;
+        top: 12%;
+        bottom: 0;
+        z-index: 1;
+        border-radius: 999em 999em 0.08em 0.08em;
+        border: 0.12em solid rgba(170, 124, 78, 0.56);
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.18),
+                rgba(110, 72, 42, 0.04)
+            );
+        box-shadow:
+            inset 0.14em 0 0 rgba(170, 124, 78, 0.16),
+            inset -0.14em 0 0 rgba(170, 124, 78, 0.14),
+            inset 0 -0.12em 0.22em rgba(110, 72, 42, 0.08);
+    }
+
+    .menu-door-cover::after {
+        content: none;
+    }
+
+    .menu-house-stairs {
+        position: absolute;
+        left: 30%;
+        right: 24%;
+        top: 26%;
+        bottom: 10%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 1;
+    }
+
+    .menu-house-stairs::before {
+        content: "";
+        position: absolute;
+        left: 4%;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 0;
+        background:
+            linear-gradient(
+                135deg,
+                #efcfaa 0%,
+                #e3b782 52%,
+                #cf965b 100%
+            );
+        opacity: 1;
+        clip-path: polygon(0% 100%, 100% 18%, 100% 100%);
+        box-shadow:
+            inset 0 0.06em 0 rgba(255, 241, 219, 0.62),
+            inset 0 -0.08em 0 rgba(128, 79, 36, 0.16);
+    }
+
+    .menu-house-stairs span {
+        position: absolute;
+        height: 0.26em;
+        border-radius: 0.08em 0.08em 0.04em 0.04em;
+        background:
+            linear-gradient(
+                180deg,
+                #f0b86f 0%,
+                #d8893e 58%,
+                #bd6d2d 100%
+            );
+        box-shadow:
+            0 0.06em 0.12em rgba(94, 55, 25, 0.28),
+            inset 0 0.06em 0 rgba(255, 232, 190, 0.78),
+            inset 0 -0.05em 0 rgba(111, 60, 22, 0.22);
+        transform-origin: left center;
+    }
+
+    .menu-house-stairs span::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 0.34em;
+        border-radius: 0 0 0.06em 0.06em;
+        background:
+            linear-gradient(
+                180deg,
+                #a85f26 0%,
+                #7c431b 100%
+            );
+        box-shadow:
+            inset 0.08em 0 0 rgba(255, 220, 174, 0.16),
+            inset 0 -0.05em 0 rgba(67, 32, 12, 0.26);
+    }
+
+    .menu-house-stairs span:nth-child(1) {
+        left: 4%;
+        top: 78%;
+        width: 34%;
+        opacity: 0.96;
+    }
+
+    .menu-house-stairs span:nth-child(2) {
+        left: 20%;
+        top: 60%;
+        width: 34%;
+        opacity: 0.9;
+    }
+
+    .menu-house-stairs span:nth-child(3) {
+        left: 38%;
+        top: 42%;
+        width: 34%;
+        opacity: 0.84;
+    }
+
+    .menu-house-stairs span:nth-child(4) {
+        left: 56%;
+        top: 24%;
+        width: 34%;
+        opacity: 0.78;
+    }
+
+    .menu-inner-door {
+        position: absolute;
+        left: 20%;
+        right: 20%;
+        top: 12%;
+        bottom: 0;
+        z-index: 5;
+        border: 0.08em solid rgba(55, 130, 168, 0.68);
+        border-radius: 999em 999em 0.08em 0.08em;
+        background:
+            linear-gradient(
+                180deg,
+                #bfeeff 0%,
+                #7fd1ec 58%,
+                #58b8d8 100%
+            );
+        box-shadow:
+            0 0.16em 0.32em rgba(0, 0, 0, 0.12),
+            inset 0 0 0 0.08em rgba(255, 255, 255, 0.46),
+            inset 0.14em 0 0 rgba(255, 255, 255, 0.2),
+            inset -0.14em 0 0 rgba(35, 105, 140, 0.2);
+        transform-origin: left center;
+        transform: rotateY(0deg);
+        transform-style: preserve-3d;
+        transition: transform 0.62s cubic-bezier(.2,.7,.1,1.08);
+        pointer-events: none;
+    }
+
+    .menu-inner-door::before {
+        content: "";
+        position: absolute;
+        inset: 16% 16% 14%;
+        border-radius: 999em 999em 0.06em 0.06em;
+        border: 0.06em solid rgba(255, 255, 255, 0.5);
+        background:
+            linear-gradient(
+                115deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.42) 42%,
+                rgba(255, 255, 255, 0.08) 58%,
+                transparent 100%
+            );
+    }
+
+    .menu-inner-door::after {
+        content: "";
+        position: absolute;
+        right: 15%;
+        top: 58%;
+        width: 0.4em;
+        height: 0.4em;
+        border-radius: 50%;
+        background:
+            radial-gradient(
+                circle at 35% 32%,
+                rgba(255, 255, 255, 0.98),
+                #f8b8d9 64%,
+                #d36ba7 100%
+            );
+        box-shadow:
+            0 0 0 0.08em rgba(255, 255, 255, 0.42),
+            0 0.08em 0.22em rgba(0, 0, 0, 0.2);
+    }
+
+    .menu-door-shadow {
+        position: absolute;
+        left: 20%;
+        right: 20%;
+        top: 12%;
+        bottom: 0;
+        z-index: 4;
+        border-radius: 999em 999em 0.08em 0.08em;
+        background:
+            linear-gradient(
+                90deg,
+                rgba(0, 0, 0, 0.2) 0%,
+                rgba(0, 0, 0, 0.12) 38%,
+                transparent 82%
+            );
+        opacity: 0;
+        transform-origin: left center;
+        transform: rotateY(0deg);
+        transition:
+            opacity 0.62s cubic-bezier(.2,.7,.1,1.08),
+            transform 0.62s cubic-bezier(.2,.7,.1,1.08);
+        pointer-events: none;
+    }
+
+    .menu-button:active {
+        opacity: 0.96;
+        transform: translateY(1%);
+    }
+
+    .menu-button.is-door-open .menu-inner-door {
+        transform: rotateY(-112deg);
+    }
+
+    .menu-button.is-door-open .menu-door-shadow {
+        opacity: 0.24;
+        transform: rotateY(-42deg);
+    }
+
+    .brand-area {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: stretch;
+        align-self: center;
+        position: relative;
+        min-width: 0;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        gap: 0.14em;
+        padding: 1.8% 2.4%;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .brand-area::before {
+        display: none;
+    }
+
+    .brand-area::after {
+        content: "";
+        display: block;
+        width: 68%;
+        height: 0.08em;
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                color-mix(in srgb, var(--menu-border) 48%, var(--text)),
+                transparent
+            );
+        opacity: 0;
+        transform: scaleX(0.12);
+        transform-origin: center;
+        animation: brandLineEntrance 0.72s ease 0.46s forwards;
+        transition:
+            width 0.36s ease,
+            opacity 0.36s ease,
+            transform 0.36s ease;
+    }
+
+    .mobile-brand-box.is-menu-active .brand-area::after {
+        opacity: 0.38;
+        transform: scaleX(0.82);
+    }
+
+    .mobile-brand-box.is-scrolled .brand-area::after {
+        width: 54%;
+        opacity: 0.34;
+    }
+
+    .brand-logo-wrap {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+    }
+
+    .brand-logo {
+        display: block;
+        width: auto;
+        max-width: 68%;
+        max-height: 3em;
+        object-fit: contain;
+        filter:
+            drop-shadow(0 0.08em 0.12em rgba(255, 255, 255, 0.72))
+            drop-shadow(0 0.12em 0.22em rgba(0, 0, 0, 0.08));
+    }
+
+    .brand-text {
+        display: block;
+        width: 100%;
+        color: var(--text);
+        font-family:
+            "Times New Roman",
+            "Yu Mincho",
+            "Hiragino Mincho ProN",
+            serif;
+        line-height: 1;
+        font-weight: 600;
+        text-align: center;
+        text-shadow:
+            0 0.08em 0.16em rgba(255, 255, 255, 0.76),
+            0 0.12em 0.28em rgba(0, 0, 0, 0.08);
+        opacity: 1;
+        transform: translateY(0);
+        animation: none;
+        transition:
+            opacity 0.36s ease,
+            transform 0.36s ease,
+            letter-spacing 0.36s ease;
+    }
+
+    .brand-text .brand-line-hd {
+        display: block;
+        font-size: 74%;
+        line-height: 1;
+        letter-spacing: 0.34em;
+        opacity: 0.82;
+        transition:
+            letter-spacing 0.36s ease,
+            opacity 0.36s ease;
+    }
+
+    .brand-text .brand-line-store {
+        display: block;
+        margin-top: 0.22em;
+        font-size: 92%;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        white-space: nowrap;
+        transition:
+            letter-spacing 0.36s ease,
+            opacity 0.36s ease;
+    }
+
+    .mobile-brand-box.is-menu-active .brand-text {
+        opacity: 0.72;
+        transform: translateY(0) scale(0.985);
+    }
+
+    .banner-shine {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .banner-shine::before {
+        content: "";
+        position: absolute;
+        top: -42%;
+        left: -58%;
+        width: 38%;
+        height: 184%;
+        background:
+            linear-gradient(
+                115deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.06) 28%,
+                rgba(255, 255, 255, 0.92) 48%,
+                rgba(255, 255, 255, 0.22) 62%,
+                transparent 100%
+            );
+        filter: blur(0.035em);
+        transform: translateX(0) skewX(-18deg);
+        opacity: 0;
+    }
+
+    .mobile-brand-box.is-menu-active .banner-shine::before {
+        animation: bannerShineRun 0.72s ease-out forwards;
+    }
+
+    .mobile-brand-box.is-scrolled .brand-text .brand-line-hd {
+        letter-spacing: 0.28em;
+        opacity: 0.68;
+    }
+
+    .mobile-brand-box.is-scrolled .brand-text .brand-line-store {
+        letter-spacing: 0.13em;
+        opacity: 0.86;
+    }
+
+    .brand-sub {
+        display: none;
+        width: 100%;
+        color: var(--muted);
+        font-size: 62%;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mobile-brand-box.logo-missing .brand-logo-wrap {
+        display: none;
+    }
+
+    .mobile-brand-box.logo-missing .brand-text {
+        display: block;
+    }
+
+    .mobile-brand-box.has-sub .brand-sub {
+        display: block;
+    }
+
+    .shell {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        padding: 0.6%;
+        padding-bottom: 0;
+        overflow: hidden;
+    }
+
+    .frame {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        min-height: 0;
+        margin: 0 auto;
+        background: var(--panel);
+        border: 0;
+        border-radius: 1.2%;
+        box-shadow: none;
+        overflow: hidden;
+        backdrop-filter: none;
+    }
+
+    body.is-menu-open .frame {
+        display: none;
+    }
+
+    body.is-menu-open .shell {
+        height: auto;
+        overflow: hidden;
+        display: block;
+        overscroll-behavior: none;
+    }
+
+    .integrated-mobile-menu {
+        display: block;
+        width: 100%;
+        max-height: 0;
+        padding: 0 10px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        overflow: hidden;
+        overscroll-behavior: none;
+        background:
+            radial-gradient(circle at 18% 10%, rgba(231,183,166,0.22), transparent 34%),
+            radial-gradient(circle at 86% 16%, rgba(201,217,200,0.18), transparent 30%),
+            linear-gradient(180deg, rgba(255,248,241,0.98), rgba(244,231,217,0.98));
+        transition:
+            opacity 0.34s ease,
+            visibility 0s linear 0.34s;
+    }
+
+    body.is-menu-open .integrated-mobile-menu {
+        max-height: none;
+        padding: 12px 10px 24px;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        overflow: hidden;
+        overscroll-behavior: none;
+        transition:
+            opacity 0.34s ease,
+            visibility 0s linear 0s;
+    }
+
+    .integrated-menu-sheet {
+        width: 100%;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.72);
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,0.68), transparent 28%),
+            linear-gradient(180deg, rgba(255,248,241,0.98) 0%, rgba(244,231,217,0.98) 100%);
+        box-shadow:
+            0 20px 42px rgba(74, 45, 20, 0.16),
+            0 8px 18px rgba(74, 45, 20, 0.08);
+        overflow: hidden;
+        opacity: 0;
+        transform: translateX(108%);
+        transition:
+            transform 0.62s cubic-bezier(.22,1,.36,1),
+            opacity 0.34s ease;
+        will-change: transform, opacity;
+    }
+
+    body.is-menu-open .integrated-menu-sheet {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .integrated-menu-inner {
+        padding: 12px 12px 14px;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
+    .integrated-menu-hero {
+        position: relative;
+        padding: 8px 10px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        overflow: hidden;
+        background:
+            linear-gradient(135deg, rgba(243,216,191,0.96) 0%, rgba(255,249,244,0.97) 44%, rgba(231,183,166,0.82) 100%);
+        border: 1px solid rgba(210,154,99,0.24);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.86),
+            0 10px 20px rgba(165,109,63,0.12);
+    }
+
+    .integrated-menu-hero-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        position: relative;
+        z-index: 1;
+        min-height: 34px;
+    }
+
+    .integrated-menu-brand-block {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .integrated-menu-title-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        flex: 0 0 auto;
+        background:
+            linear-gradient(135deg, rgba(210,154,99,0.26) 0%, rgba(171,109,58,0.18) 100%);
+        border: 1px solid rgba(171,109,58,0.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.72),
+            0 6px 12px rgba(165,109,63,0.10);
+    }
+
+    .integrated-menu-title-mark svg {
+        width: 15px;
+        height: 15px;
+        stroke: #ab6d3a;
+        stroke-width: 1.9;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .integrated-menu-eyebrow {
+        margin: 0;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        line-height: 1.1;
+        color: #ab6d3a;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .integrated-menu-close {
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(171,109,58,0.16);
+        background: linear-gradient(180deg, rgba(255,255,255,0.90) 0%, rgba(248,234,220,0.92) 100%);
+        border-radius: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.86),
+            0 8px 16px rgba(165,109,63,0.10);
+    }
+
+    .integrated-menu-close-icon {
+        position: relative;
+        width: 12px;
+        height: 12px;
+    }
+
+    .integrated-menu-close-icon::before,
+    .integrated-menu-close-icon::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 0;
+        width: 2px;
+        height: 12px;
+        background: #6b4a30;
+        border-radius: 999px;
+    }
+
+    .integrated-menu-close-icon::before {
+        transform: rotate(45deg);
+    }
+
+    .integrated-menu-close-icon::after {
+        transform: rotate(-45deg);
+    }
+
+    .integrated-menu-section {
+        margin-top: 12px;
+    }
+
+    .integrated-menu-section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 4px 10px;
+    }
+
+    .integrated-menu-section-title {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        letter-spacing: 0.18em;
+        color: #ab6d3a;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .integrated-menu-link-list {
+        display: grid;
+        gap: 9px;
+    }
+
+    .integrated-menu-link-row {
+        width: 100%;
+        border: 1px solid rgba(210,154,99,0.22);
+        border-radius: 16px;
+        padding: 10px 11px;
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.78),
+            0 8px 14px rgba(165,109,63,0.08);
+        font: inherit;
+        color: #2d2218;
+    }
+
+    .integrated-menu-link-row.top {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(230,241,249,0.97) 52%, rgba(201,223,240,0.92) 100%);
+    }
+
+    .integrated-menu-link-row.instagram {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(246,231,246,0.96) 54%, rgba(231,183,166,0.90) 100%);
+    }
+
+    .integrated-menu-link-row.contact {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(236,245,237,0.96) 54%, rgba(201,217,200,0.92) 100%);
+    }
+
+    .integrated-menu-link-row.linkshop {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,243,224,0.97) 50%, rgba(241,207,141,0.90) 100%);
+    }
+
+    .integrated-menu-link-lead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    .integrated-menu-icon-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.72),
+            0 4px 8px rgba(0,0,0,0.05);
+        border: 1px solid rgba(255,255,255,0.52);
+        background: linear-gradient(135deg, rgba(241,207,141,0.54) 0%, rgba(243,216,191,0.46) 100%);
+    }
+
+    .integrated-menu-icon-badge svg {
+        width: 18px;
+        height: 18px;
+        stroke: #ab6d3a;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .integrated-menu-link-main {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .integrated-menu-link-title {
+        margin: 0 0 2px 0;
+        font-size: 13px;
+        line-height: 1.3;
+        font-weight: 800;
+        color: #2d2218;
+    }
+
+    .integrated-menu-link-sub {
+        margin: 0;
+        font-size: 10px;
+        line-height: 1.2;
+        color: #7f6a58;
+        word-break: break-word;
+    }
+
+    .integrated-menu-arrow {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(210,154,99,0.18) 0%, rgba(171,109,58,0.26) 100%);
+        position: relative;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+        z-index: 1;
+    }
+
+    .integrated-menu-arrow::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 7px;
+        height: 7px;
+        border-top: 2px solid #ab6d3a;
+        border-right: 2px solid #ab6d3a;
+        transform: translate(-62%, -50%) rotate(45deg);
+    }
+
+    .integrated-menu-bottom-close {
+        margin-top: 14px;
+        width: 100%;
+        min-height: 38px;
+        border-radius: 14px;
+        border: 1px solid rgba(171,109,58,0.16);
+        background:
+            linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,231,217,0.96) 100%);
+        color: #6b4a30;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.82),
+            0 8px 16px rgba(165,109,63,0.08);
+        font-family: inherit;
+    }
+
+    .layout,
+    .layout.is-g2-active {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        overflow: hidden;
+    }
+
+    .g1-panel,
+    .g2-panel {
+        height: 100%;
+        min-height: 0;
+        padding: 1.2%;
+    }
+
+    .g2-panel.is-hidden {
+        display: none;
+    }
+
+    .g1-panel.is-hidden {
+        display: none;
+    }
+
+    .g1-panel {
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background: rgba(250, 245, 237, 0.82);
+        border-bottom: 0.27% solid rgba(216,203,184,.85);
+    }
+
+    .g1-home {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.2%;
+        align-items: start;
+        padding-bottom: 360px;
+    }
+
+    .g1-brand-panel {
+        position: relative;
+        display: grid;
+        gap: 0.53%;
+        width: 48%;
+        justify-self: start;
+        margin-left: 0;
+        padding: 0;
+        border-radius: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .brand-select-title {
+        font-size: 75%;
+        font-weight: 700;
+        color: var(--accent-deep);
+        line-height: 1.2;
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .g1-brand-panel.is-returning {
+        animation: brandPanelReturn 2.4s cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .g1-brand-panel.is-returning-start {
+        opacity: 0;
+        transform: translateX(-23.33%);
+    }
+
+    .g1-brand-panel.is-hidden-during-return {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .brand-return-overlay {
+        position: fixed;
+        z-index: 70;
+        pointer-events: none;
+        animation: brandPanelReturn 2.4s cubic-bezier(.16,.84,.2,1) forwards;
+    }
+
+    .brand-return-overlay::after {
+        content: "";
+        position: absolute;
+        inset: 5.56% -10% 5.56% 5.56%;
+        border-radius: 11.11%;
+        background: linear-gradient(90deg, rgba(184,109,60,.22), rgba(184,109,60,.08) 48%, rgba(184,109,60,0));
+        filter: blur(6.67%);
+        pointer-events: none;
+        animation: brandPanelTrail 2.4s ease forwards;
+    }
+
+    .g1-brand-panel.is-returning::after {
+        content: "";
+        position: absolute;
+        inset: 5.56% -10% 5.56% 5.56%;
+        border-radius: 11.11%;
+        background: linear-gradient(90deg, rgba(184,109,60,.22), rgba(184,109,60,.08) 48%, rgba(184,109,60,0));
+        filter: blur(6.67%);
+        pointer-events: none;
+        animation: brandPanelTrail 2.4s ease forwards;
+    }
+
+    .layout.is-g2-active .g1-brand-panel {
+        display: grid;
+    }
+
+    .g1-home.is-brand-select-hidden .g1-brand-panel {
+        display: none;
+    }
+
+    .brand-toggle {
+        appearance: none;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 2.13%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--accent-deep);
+        font: inherit;
+        font-size: 81.25%;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .brand-toggle-left {
+        display: none;
+    }
+
+    #brandToggleLabel.brand-toggle-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        height: clamp(48px, 16vw, 72px);
+        overflow: hidden;
+    }
+
+    #brandToggleLabel.brand-toggle-logo svg {
+        display: block;
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+    }
+
+    #brandToggleLabel.brand-toggle-logo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    #brandToggleIcon {
+        flex: 0 0 auto;
+    }
+
+    .g1-brand-options {
+        display: none;
+        gap: 2.13%;
+        overflow: visible;
+        padding-bottom: 0;
+    }
+
+    .g1-brand-panel.is-open .g1-brand-options {
+        display: grid;
+    }
+
+    .g1-brand-chip {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        padding: 0;
+        border: 0.27% solid rgba(184,109,60,.14);
+        border-radius: 3.73%;
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+        cursor: pointer;
+        overflow: hidden;
+        flex: none;
+        transition: transform .36s cubic-bezier(.2,.82,.24,1), box-shadow .36s ease, border-color .36s ease, background .36s ease;
+    }
+
+    .g1-brand-chip.is-active {
+        border-color: rgba(184,109,60,.42);
+        background: rgba(255,248,240,.96);
+        box-shadow: 0 2.67% 5.33% rgba(184,109,60,.12);
+        transform: translateX(0) scale(1.02);
+    }
+
+    .g1-brand-chip-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 100%;
+        height: clamp(44px, 14.93vw, 68px);
+        background: transparent;
+        border: 0;
+        overflow: hidden;
+    }
+
+    .g1-brand-chip.is-active .g1-brand-chip-logo {
+        border-color: rgba(184,109,60,.28);
+        height: clamp(48px, 16vw, 72px);
+    }
+
+    .g1-brand-chip-logo svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        transition: transform .36s cubic-bezier(.2,.82,.24,1);
+    }
+
+    .g1-brand-chip-logo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .g1-brand-chip.is-active .g1-brand-chip-logo svg {
+        transform: scale(1.08);
+    }
+
+    .g1-brand-chip.is-active .g1-brand-chip-logo img {
+        transform: scale(1.08);
+    }
+
+    .g1-brand-chip.is-switching-out {
+        transform: translateX(-5.56%) scale(.98);
+        opacity: .7;
+    }
+
+    .g1-brand-chip.is-switching-in {
+        animation: brandChipIn .52s cubic-bezier(.18,.78,.22,1) forwards;
+    }
+
+    .g1-brand-chip-count {
+        display: none;
+    }
+
+    .g1-brand-panel strong {
+        font-size: 68.75%;
+    }
+
+    .g1-content {
+        min-width: 0;
+    }
+
+    .g2-panel {
+        height: calc(100vh - var(--mobile-brand-box-height, 0px));
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-top: 0;
+        padding-bottom: 360px;
+        -webkit-overflow-scrolling: touch;
+        background:
+            radial-gradient(circle at top right, rgba(184,109,60,.1), transparent 24%),
+            linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,242,233,.9));
+    }
+
+    .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 3.2%;
+        margin-bottom: 3.73%;
+    }
+
+    .section-head.is-hidden {
+        display: none;
+    }
+
+    .back-link,
+    .button {
+        appearance: none;
+        border: 0.27% solid rgba(184,109,60,.22);
+        background: rgba(255,255,255,.86);
+        color: var(--accent-deep);
+        border-radius: 999%;
+        padding: 2.67% 3.73%;
+        font: inherit;
+        font-size: 81.25%;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    #g1BackButton {
+        width: 100%;
+        justify-content: center;
+        padding: 3.2% 4.27%;
+        font-size: 81.25%;
+        font-weight: 800;
+        transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+
+    #g1BackButton:hover {
+        transform: translateY(-3%);
+        filter: saturate(1.06);
+    }
+
+    .back-link.is-hidden {
+        display: none;
+    }
+
+    .button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff7f0;
+    }
+
+    .g1-list,
+    .layout.is-g2-active .g1-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.2%;
+        align-content: start;
+    }
+
+    .g1-item,
+    .layout.is-g2-active .g1-item {
+        position: relative;
+        width: 100%;
+        border: 0;
+        border-radius: 2.2%;
+        padding: 1.2%;
+        background: rgba(255,255,255,.82);
+        cursor: pointer;
+        text-align: left;
+        overflow: visible;
+    }
+
+    .g1-item::after {
+        content: "";
+        position: absolute;
+        inset: 2.67%;
+        border-radius: calc(var(--radius-md) - 1.07%);
+        background: linear-gradient(90deg, rgba(184,109,60,.18), rgba(184,109,60,.06) 50%, rgba(184,109,60,0));
+        opacity: 0;
+        transform: translateX(0) scaleX(.92);
+        transform-origin: left center;
+        pointer-events: none;
+        filter: blur(2.67%);
+    }
+
+    .g1-item.is-trailing::after {
+        opacity: 1;
+        animation: trailFade 1.3s ease forwards;
+    }
+
+    .g1-item.is-brand-entering {
+        opacity: 0;
+        transform: translateY(6.11%) scale(.97);
+        animation: brandSwapIn .58s cubic-bezier(.18,.78,.22,1) forwards;
+    }
+
+    .layout.is-g2-active .g1-item {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .g1-thumb,
+    .layout.is-g2-active .g1-thumb {
+        aspect-ratio: 1/1;
+        width: 100%;
+        border-radius: 3.2%;
+        margin-bottom: 2.13%;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #eadfce;
+        grid-row: auto;
+    }
+
+    .layout.is-g2-active .g1-title,
+    .layout.is-g2-active .g1-meta,
+    .layout.is-g2-active .g1-price,
+    .layout.is-g2-active .g1-text {
+        grid-column: auto;
+        align-self: auto;
+    }
+
+    .layout.is-g2-active .g1-size,
+    .layout.is-g2-active .g1-price,
+    .layout.is-g2-active .g1-text {
+        display: none;
+    }
+
+    .g1-item.is-g2-moving .g1-size,
+    .g1-item.is-g2-moving .g1-price,
+    .g1-item.is-g2-moving .g1-text {
+        display: none;
+    }
+
+    .g1-title {
+        display: block;
+        font-size: 81.25%;
+        font-weight: 700;
+        margin-bottom: 0.8%;
+    }
+
+    .g1-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.07% 2.13%;
+        font-size: 68.75%;
+        color: var(--muted);
+    }
+
+    .g1-price {
+        display: block;
+        margin-top: 1.6%;
+        font-size: 87.5%;
+        font-weight: 700;
+        color: var(--accent-deep);
+    }
+
+    .g1-text {
+        display: none;
+        margin: 2.13% 0 0;
+        font-size: 75%;
+        line-height: 1.6;
+        color: var(--muted);
+    }
+
+    .g2-topbar {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 1.6%;
+        margin-bottom: 1.07%;
+        flex-wrap: nowrap;
+    }
+
+    .g2-lead {
+        display: flex;
+        flex-basis: auto;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 2.13%;
+        flex: 0 0 auto;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .g2-target {
+        width: 23.47%;
+        max-width: 23.47%;
+        flex: 0 0 23.47%;
+        border-radius: 3.73%;
+        border: 0.27% dashed rgba(184,109,60,.32);
+        background: rgba(255,255,255,.58);
+        padding: 1.6%;
+    }
+
+    .g2-target-thumb {
+        aspect-ratio: 1/1;
+        width: 100%;
+        border-radius: 3.2%;
+        background: #eadfce center / cover no-repeat;
+    }
+
+    .g2-target-copy {
+        margin-top: 1.6%;
+        color: var(--muted);
+        font-size: 68.75%;
+        line-height: 1.5;
+    }
+
+    .g2-target-copy strong {
+        display: block;
+        color: var(--accent-deep);
+        font-size: 75%;
+        margin-bottom: 0.53%;
+    }
+
+    .g2-copy {
+        min-width: 0;
+        margin-top: 0;
+        flex: 1;
+    }
+
+    .g2-copy strong {
+        display: block;
+        font-size: 56.25%;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--accent-deep);
+        margin-bottom: 0.53%;
+    }
+
+    .g2-copy h3 {
+        margin: 0 0 1.07%;
+        font-size: 100%;
+        line-height: 1.1;
+    }
+
+    .g2-copy p {
+        display: none;
+    }
+
+    .actions {
+        display: flex;
+        gap: 0;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 0;
+    }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 2.13%;
+        padding: 2.67% 3.73%;
+        border-radius: 999%;
+        background: rgba(184,109,60,.1);
+        color: var(--accent-deep);
+        font-size: 87.5%;
+        font-weight: 700;
+    }
+
+    .g2-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.13%;
+    }
+
+    .card {
+        display: grid;
+        grid-template-columns: 35.2% minmax(0, 1fr);
+        border-radius: 4.8%;
+        border: 0.27% solid rgba(216,203,184,.9);
+        background: rgba(255,255,255,.92);
+        overflow: hidden;
+        min-height: 0;
+        align-items: start;
+    }
+
+    .card.is-dealing {
+        opacity: 0;
+        transform: translateX(14.4%) translateY(-1.6%) rotate(2.5deg) scale(.98);
+        animation: dealCard .9s cubic-bezier(.18,.78,.22,1) forwards;
+    }
+
+    .card-media {
+        aspect-ratio: 1 / 1;
+        min-height: 0;
+        height: auto;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: transparent;
+    }
+
+    .card-body {
+        display: grid;
+        align-content: start;
+        gap: 1.6%;
+        padding: 2.67% 2.93% 2.67%;
+    }
+
+    .card-kicker {
+        font-size: 68.75%;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--accent-deep);
+    }
+
+    .card-title {
+        margin: 0;
+        font-size: 106.25%;
+    }
+
+    .card-text {
+        margin: 0;
+        font-size: 81.25%;
+        line-height: 1.6;
+        color: var(--muted);
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1.6%;
+        font-size: 81.25%;
+    }
+
+    .tag {
+        display: inline-flex;
+        padding: 1.6% 2.67%;
+        border-radius: 999%;
+        background: #f3ebe0;
+        color: var(--accent-deep);
+        font-size: 68.75%;
+        font-weight: 700;
+    }
+
+    @keyframes trailFade {
+        0% {
+            opacity: .9;
+            transform: translateX(0) scaleX(.92);
+        }
+        55% {
+            opacity: .42;
+            transform: translateX(-10.67%) scaleX(1.38);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(-18.13%) scaleX(1.78);
+        }
+    }
+
+    @keyframes dealCard {
+        0% {
+            opacity: 0;
+            transform: translateX(14.4%) translateY(-1.6%) rotate(2.5deg) scale(.98);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) translateY(0) rotate(0) scale(1);
+        }
+    }
+
+    @keyframes brandSwapIn {
+        0% {
+            opacity: 0;
+            transform: translateY(6.11%) scale(.97);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes brandChipIn {
+        0% {
+            opacity: .65;
+            transform: translateX(6.67%) scale(.98);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @keyframes brandPanelReturn {
+        0% {
+            opacity: 0;
+            transform: translateX(-23.33%);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes brandPanelTrail {
+        0% {
+            opacity: .95;
+            transform: translateX(0) scaleX(.92);
+        }
+        60% {
+            opacity: .38;
+            transform: translateX(-10%) scaleX(1.18);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(-15.56%) scaleX(1.34);
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="shell">
+        <header class="mobile-brand-box" id="mobileBrandBox">
+            <span class="banner-shine" aria-hidden="true"></span>
+
+            <button id="menuButton" class="menu-button" type="button">
+                <span class="menu-door-ground" aria-hidden="true"></span>
+                <span class="menu-door-cover" aria-hidden="true">
+                    <span class="menu-door-label">MENU</span>
+                    <span class="menu-house-stairs" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                    <span class="menu-door-shadow" aria-hidden="true"></span>
+                    <span class="menu-inner-door" aria-hidden="true"></span>
+                </span>
+            </button>
+
+            <div class="brand-area">
+                <div class="brand-logo-wrap">
+                    <img id="brandLogo" class="brand-logo" src="" alt="" />
+                </div>
+                <div id="brandText" class="brand-text">HELMETTY</div>
+                <div id="brandSub" class="brand-sub"></div>
+            </div>
+        </header>
+
+        <div class="frame">
+            <main class="layout">
+                <section class="g1-panel">
+                    <div class="g1-home">
+<aside class="g1-brand-panel">
+    <div class="brand-select-title">ブランドを選ぶ</div>
+<button id="brandToggle" class="brand-toggle" type="button">
+    <span class="brand-toggle-left">Brand :</span>
+    <span id="brandToggleLabel" class="brand-toggle-logo"></span>
+    <span id="brandToggleIcon">▼</span>
+</button>
+    <div id="brandList" class="g1-brand-options"></div>
+</aside>
+                        <div class="g1-content">
+                           <div id="g1Head" class="section-head is-hidden" style="display: none;">
+    <button id="g1BackButton" class="back-link is-hidden" type="button">リストに戻る</button>
+</div>
+                            <div id="g1List" class="g1-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="g2Panel" class="g2-panel is-hidden">
+                    <div class="g2-topbar">
+                        <div class="g2-lead">
+                            <div id="g2Target" class="g2-target">
+                                <div id="g2TargetThumb" class="g2-target-thumb"></div>
+                                <div id="g2TargetCopy" class="g2-target-copy">
+                                    <strong>-</strong>
+                                    <span>Selected category</span>
+                                </div>
+                            </div>
+                            <div class="g2-copy">
+                                <strong>Selected Category</strong>
+                                <h3 id="g2Title"></h3>
+                                <p id="g2Description"></p>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button id="backButton" class="button" type="button">リストに戻る</button>
+                        </div>
+                    </div>
+                    <div id="g2Grid" class="g2-grid"></div>
+                </section>
+            </main>
+        </div>
+
+        <div id="integratedMobileMenu" class="integrated-mobile-menu">
+            <section class="integrated-menu-sheet" aria-hidden="true">
+                <div class="integrated-menu-inner">
+                    <div class="integrated-menu-hero">
+                        <div class="integrated-menu-hero-top">
+                            <div class="integrated-menu-brand-block">
+                                <div class="integrated-menu-title-mark" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M4 7h16"></path>
+                                        <path d="M4 12h16"></path>
+                                        <path d="M4 17h10"></path>
+                                    </svg>
+                                </div>
+                                <p class="integrated-menu-eyebrow">Mobile Navigation</p>
+                            </div>
+
+                            <button id="integratedMenuCloseTop" class="integrated-menu-close" type="button" aria-label="閉じる">
+                                <span class="integrated-menu-close-icon"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <section class="integrated-menu-section">
+                        <div class="integrated-menu-section-head">
+                            <h2 class="integrated-menu-section-title">Links</h2>
+                        </div>
+
+                        <div class="integrated-menu-link-list">
+                            <button id="integratedMenuTop" class="integrated-menu-link-row top" type="button">
+                                <div class="integrated-menu-link-lead">
+                                    <div class="integrated-menu-icon-badge" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M4 11.5L12 5l8 6.5"></path>
+                                            <path d="M7.5 10.5v8h9v-8"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="integrated-menu-link-main">
+                                        <p class="integrated-menu-link-title">サイトのTOPへ戻る</p>
+                                        <p class="integrated-menu-link-sub">サイトのトップへ</p>
+                                    </div>
+                                </div>
+                                <span class="integrated-menu-arrow"></span>
+                            </button>
+
+                            <a id="integratedMenuInstagram" class="integrated-menu-link-row instagram" href="https://www.instagram.com/hatodaiya" target="_blank" rel="noopener noreferrer">
+                                <div class="integrated-menu-link-lead">
+                                    <div class="integrated-menu-icon-badge" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24">
+                                            <rect x="4.5" y="4.5" width="15" height="15" rx="4.2"></rect>
+                                            <circle cx="12" cy="12" r="3.6"></circle>
+                                            <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none"></circle>
+                                        </svg>
+                                    </div>
+                                    <div class="integrated-menu-link-main">
+                                        <p class="integrated-menu-link-title">Instagram</p>
+                                        <p class="integrated-menu-link-sub">HATODAIYA公式インスタグラムはこちら。</p>
+                                    </div>
+                                </div>
+                                <span class="integrated-menu-arrow"></span>
+                            </a>
+
+                            <button id="integratedMenuContact" class="integrated-menu-link-row contact" type="button">
+                                <div class="integrated-menu-link-lead">
+                                    <div class="integrated-menu-icon-badge" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M4 7.5l8 6 8-6"></path>
+                                            <rect x="4" y="6.5" width="16" height="11" rx="2.3"></rect>
+                                        </svg>
+                                    </div>
+                                    <div class="integrated-menu-link-main">
+                                        <p class="integrated-menu-link-title">Contact</p>
+                                        <p class="integrated-menu-link-sub">お問い合わせフォームはこちら。</p>
+                                    </div>
+                                </div>
+                                <span class="integrated-menu-arrow"></span>
+                            </button>
+
+                            <button id="integratedMenuLinkshop" class="integrated-menu-link-row linkshop" type="button">
+                                <div class="integrated-menu-link-lead">
+                                    <div class="integrated-menu-icon-badge" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M8 8.5V7.2A4 4 0 0 1 12 3.5a4 4 0 0 1 4 3.7v1.3"></path>
+                                            <path d="M5.5 8.5h13l-1.2 10a2 2 0 0 1-2 1.7H8.7a2 2 0 0 1-2-1.7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="integrated-menu-link-main">
+                                        <p class="integrated-menu-link-title">Link Shop</p>
+                                        <p class="integrated-menu-link-sub">公式オンラインストアや協賛・応援リンクショップなどの関連リンク集です。</p>
+                                    </div>
+                                </div>
+                                <span class="integrated-menu-arrow"></span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <button id="integratedMenuCloseBottom" class="integrated-menu-bottom-close" type="button">CLOSE MENU</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const mockCategories = [
+            {
+                key: "outer",
+                name: "Outer",
+                count: 4,
+                thumb: "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=900&q=80",
+                description: "軽めの羽織から主役アウターまで。G2では質感違いを並べる想定。",
+                items: [
+                    { brand: "Mock Brand", title: "Soft Layer Coat", text: "春先を意識した軽いロング丈。説明文はここに仮で配置。", price: "¥12,800", tag: "New", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Short Blouson", text: "少し丸みのあるシルエット。G2カードの情報量サンプル。", price: "¥10,400", tag: "Restock", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Utility Jacket", text: "ラフな見え方のワーク寄りアイテム。色違い展開の想定。", price: "¥11,900", tag: "3 Colors", image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Minimal Hood Zip", text: "シンプル寄りの見せ方。後で CTA や在庫表示も足せます。", price: "¥9,600", tag: "Basic", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80" }
+                ]
+            },
+            {
+                key: "tops",
+                name: "Tops",
+                count: 3,
+                thumb: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+                description: "Tシャツ、シャツ、ニット系のまとまり。比較しやすい見せ方で配置。",
+                items: [
+                    { brand: "Mock Brand", title: "Sheer Knit Top", text: "やわらかい透け感のある仮アイテム。短めの補足も入れています。", price: "¥6,400", tag: "Popular", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Relax Shirt", text: "写真とテキストのバランス確認用。カード長さも揃えやすい形です。", price: "¥7,900", tag: "2 Colors", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Line Rib Tee", text: "ベーシック枠の仮商品。ここは後で品番やカラーにも変更可能。", price: "¥4,980", tag: "Daily", image: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=900&q=80" }
+                ]
+            },
+            {
+                key: "bottoms",
+                name: "Bottoms",
+                count: 3,
+                thumb: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=80",
+                description: "ボトム中心の並び。価格・タグ・短文だけで見せる最小構成。",
+                items: [
+                    { brand: "Mock Brand", title: "Curve Tuck Pants", text: "少し立体感のあるシルエットを想定した仮名です。", price: "¥8,700", tag: "Wide", image: "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Soft Denim", text: "デニム系を混ぜたときの見え方確認用。", price: "¥9,200", tag: "Denim", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Calm Skirt", text: "女性寄りラインの仮アイテム。画像サイズ確認用。", price: "¥7,600", tag: "Flow", image: "https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=900&q=80" }
+                ]
+            },
+            {
+                key: "goods",
+                name: "Goods",
+                count: 4,
+                thumb: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
+                description: "雑貨や小物系。服以外でも G2 レイアウトが崩れないかの確認用です。",
+                items: [
+                    { brand: "Mock Brand", title: "Canvas Mini Bag", text: "雑貨系カードの雰囲気サンプル。", price: "¥3,900", tag: "Bag", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Metal Hair Clip", text: "小物が入った時の情報量確認用。", price: "¥1,800", tag: "Accessory", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Room Mist", text: "ライフスタイル寄りの仮アイテムも入れて幅を見ています。", price: "¥2,600", tag: "Home", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80" },
+                    { brand: "Mock Brand", title: "Square Pouch", text: "最後のカード。実データ化も想定。", price: "¥2,200", tag: "Pouch", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80" }
+                ]
+            }
+        ];
+
+        const MAIN_GALLERY_CHANNEL = "mainGallery";
+        const mobileBrandBox = document.getElementById("mobileBrandBox");
+        const menuButton = document.getElementById("menuButton");
+        const brandLogo = document.getElementById("brandLogo");
+        const brandText = document.getElementById("brandText");
+        const brandSub = document.getElementById("brandSub");
+        const g1List = document.getElementById("g1List");
+        const g2Grid = document.getElementById("g2Grid");
+        const g2Panel = document.getElementById("g2Panel");
+        const g2Title = document.getElementById("g2Title");
+        const g2Description = document.getElementById("g2Description");
+        const g2Target = document.getElementById("g2Target");
+        const g2TargetThumb = document.getElementById("g2TargetThumb");
+        const g2TargetCopy = document.getElementById("g2TargetCopy");
+        const backButton = document.getElementById("backButton");
+        const g1BackButton = document.getElementById("g1BackButton");
+        const g1Head = document.getElementById("g1Head");
+        const brandList = document.getElementById("brandList");
+        const layout = document.querySelector(".layout");
+        const g1Panel = document.querySelector(".g1-panel");
+        const g1Home = document.querySelector(".g1-home");
+        const g1BrandPanel = document.querySelector(".g1-brand-panel");
+const brandToggle = document.getElementById("brandToggle");
+const brandToggleLabel = document.getElementById("brandToggleLabel");
+const brandToggleIcon = document.getElementById("brandToggleIcon");
+const integratedMobileMenu = document.getElementById("integratedMobileMenu");
+const integratedMenuCloseTop = document.getElementById("integratedMenuCloseTop");
+const integratedMenuCloseBottom = document.getElementById("integratedMenuCloseBottom");
+const integratedMenuTop = document.getElementById("integratedMenuTop");
+const integratedMenuInstagram = document.getElementById("integratedMenuInstagram");
+const integratedMenuContact = document.getElementById("integratedMenuContact");
+const integratedMenuLinkshop = document.getElementById("integratedMenuLinkshop");
+
+const integratedMenuState = {
+    topUrl: "https://www.hatodaiya.com",
+    instagramUrl: "https://www.instagram.com/hatodaiya",
+    contactUrl: "https://www.hatodaiya.com/contact",
+    linkshopUrl: "https://www.hatodaiya.com/onlinestore-top"
+};
+        const mockBrands = [
+            {
+                key: "main",
+                name: "Main Brand",
+                meta: "Current",
+                logoSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 160" aria-hidden="true"><rect width="360" height="160" rx="24" fill="#f6efe4"/><rect x="16" y="16" width="328" height="128" rx="18" fill="#fffaf3" stroke="#d7c1ae"/><text x="180" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="4" fill="#8f4e23">MAIN BRAND</text></svg>`,
+                categoryMods: {
+                    outer: { name: "A", count: 3 },
+                    tops: { name: "B", count: 2 },
+                    bottoms: { name: "C", count: 6 }
+                }
+            },
+            {
+                key: "sub",
+                name: "Sub Label",
+                meta: "Mock",
+                logoSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 160" aria-hidden="true"><rect width="360" height="160" rx="24" fill="#efe7ff"/><rect x="16" y="16" width="328" height="128" rx="18" fill="#faf7ff" stroke="#c9b8ef"/><text x="180" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="4" fill="#59408d">SUB LABEL</text></svg>`,
+                categoryMods: {
+                    outer: { count: 3, name: "Outer+", description: "少しモード寄りの別ブランド用カテゴリ。" },
+                    tops: { count: 4, description: "シャープなトップス中心。ブランド切替確認用。" },
+                    goods: { count: 2, description: "小物寄りの別ブランド構成。" }
+                }
+            },
+            {
+                key: "archive",
+                name: "Archive Line",
+                meta: "Mock",
+                logoSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 160" aria-hidden="true"><rect width="360" height="160" rx="24" fill="#e7f1ee"/><rect x="16" y="16" width="328" height="128" rx="18" fill="#f8fcfb" stroke="#b9d1c8"/><text x="180" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" letter-spacing="3" fill="#47675b">ARCHIVE LINE</text></svg>`,
+                categoryMods: {
+                    outer: { name: "Archive Outer", count: 2, description: "アーカイブ向けの軽い羽織カテゴリ。" },
+                    bottoms: { count: 4, description: "アーカイブ向けのボトム中心構成。" },
+                    goods: { count: 2, description: "ホーム寄りグッズの仮カテゴリ。" }
+                }
+            }
+        ];
+
+        let activeCategoryKey = "";
+        let activeBrandKey = "main";
+        let isAnimating = false;
+        let isBrandSwitching = false;
+        let brandSwitchIncomingKey = "";
+               let externalBridgeEnabled = false;
+        let externalBrandName = "";
+        let externalBrandLogoUrl = "";
+        let externalBrands = [];
+        let externalCategories = [];
+        let externalG2Items = [];
+        let externalBackSyncTimer = 0;
+        let pendingExternalState = null;
+        let externalBackButtonStyle = null;
+        let externalHideBrandSelect = false;
+        let __mobileMainGalleryMetricsTimer = 0;
+        let __mobileMainGalleryLastHeight = 0;
+
+        function postToParent(payload) {
+            if (window.parent === window) {
+                return;
+            }
+            window.parent.postMessage({ channel: MAIN_GALLERY_CHANNEL, ...payload }, "*");
+        }
+
+        const defaultMobileBrandBoxPayload = {
+            brand: "HELMETTY",
+            brandText: "HD ONLINE STORE",
+            brandSub: "",
+            brandLogoUrl: "",
+
+            colorBg: "#ffffff",
+            colorText: "#111111",
+            colorMuted: "#6f6f6f",
+
+            menuBg: "#ffe5e5",
+            menuText: "#c71585",
+            menuBorder: "#ff00c8"
+        };
+
+        function valueOf(...values) {
+            for (const value of values) {
+                const text = String(value || "").trim();
+                if (text) return text;
+            }
+            return "";
+        }
+
+        function applyMobileBrandBoxCssVars(payload) {
+            document.documentElement.style.setProperty(
+                "--bg",
+                valueOf(payload.colorBg, defaultMobileBrandBoxPayload.colorBg)
+            );
+
+            document.documentElement.style.setProperty(
+                "--text",
+                valueOf(payload.colorText, defaultMobileBrandBoxPayload.colorText)
+            );
+
+            document.documentElement.style.setProperty(
+                "--muted",
+                valueOf(payload.colorMuted, defaultMobileBrandBoxPayload.colorMuted)
+            );
+
+            document.documentElement.style.setProperty(
+                "--menu-bg",
+                valueOf(payload.menuBg, payload.mobileMenuBg, defaultMobileBrandBoxPayload.menuBg)
+            );
+
+            document.documentElement.style.setProperty(
+                "--menu-text",
+                valueOf(payload.menuText, payload.mobileMenuText, defaultMobileBrandBoxPayload.menuText)
+            );
+
+            document.documentElement.style.setProperty(
+                "--menu-border",
+                valueOf(payload.menuBorder, payload.mobileMenuBorder, defaultMobileBrandBoxPayload.menuBorder)
+            );
+        }
+
+        function renderMobileBrandBox(payload = {}) {
+            const data = {
+                ...defaultMobileBrandBoxPayload,
+                ...payload
+            };
+
+            applyMobileBrandBoxCssVars(data);
+
+            const logoUrl = valueOf(
+                data.brandLogoUrl,
+                data.logoSrc,
+                data.logo,
+                data.brandLogo
+            );
+
+            const resolvedBrandText = "HD ONLINE STORE";
+
+            const resolvedBrandSub = valueOf(
+                data.brandSub,
+                data.subText,
+                ""
+            );
+
+            brandText.innerHTML = `
+                <span class="brand-line-hd">HD</span>
+                <span class="brand-line-store">ONLINE STORE</span>
+            `;
+            brandSub.textContent = resolvedBrandSub;
+
+            mobileBrandBox.classList.toggle("has-sub", !!resolvedBrandSub);
+
+            if (logoUrl) {
+                brandLogo.src = logoUrl;
+                brandLogo.alt = resolvedBrandText;
+                mobileBrandBox.classList.remove("logo-missing");
+            } else {
+                brandLogo.removeAttribute("src");
+                brandLogo.alt = "";
+                mobileBrandBox.classList.add("logo-missing");
+            }
+
+            scheduleMobileMainGalleryMetrics("renderMobileBrandBox");
+        }
+
+        function setIntegratedMenuOpen(open) {
+            if (!integratedMobileMenu) {
+                return;
+            }
+
+            integratedMobileMenu.querySelector(".integrated-menu-sheet")?.setAttribute("aria-hidden", open ? "false" : "true");
+        }
+
+        function updateIntegratedMenuData(payload = {}) {
+            if (typeof payload.topUrl === "string") {
+                integratedMenuState.topUrl = payload.topUrl;
+            }
+
+            if (typeof payload.instagramUrl === "string") {
+                integratedMenuState.instagramUrl = payload.instagramUrl;
+            }
+
+            if (integratedMenuInstagram) {
+                integratedMenuInstagram.href = integratedMenuState.instagramUrl || "https://www.instagram.com/hatodaiya";
+                integratedMenuInstagram.target = "_blank";
+                integratedMenuInstagram.rel = "noopener noreferrer";
+            }
+
+            if (typeof payload.contactUrl === "string") {
+                integratedMenuState.contactUrl = payload.contactUrl;
+            }
+
+            if (typeof payload.linkshopUrl === "string") {
+                integratedMenuState.linkshopUrl = payload.linkshopUrl;
+            }
+        }
+
+        function postIntegratedMenuAction(type, url = "") {
+            postToParent({
+                type,
+                url: String(url || "").trim()
+            });
+        }
+
+        menuButton.addEventListener("click", () => {
+            mobileBrandBox.classList.add("is-menu-active");
+            menuButton.classList.toggle("is-door-open");
+
+            window.setTimeout(() => {
+                mobileBrandBox.classList.remove("is-menu-active");
+            }, 780);
+
+            postToParent({
+                type: "toggleMobileMenu"
+            });
+        });
+
+        function debugToParent(label, detail = {}) {
+            postToParent({ type: "debug", label, detail });
+        }
+
+        function syncMobileBrandBoxHeightVar() {
+            const rect = mobileBrandBox ? mobileBrandBox.getBoundingClientRect() : null;
+            const height = rect ? Math.ceil(rect.height) : 0;
+            document.documentElement.style.setProperty("--mobile-brand-box-height", `${height}px`);
+        }
+
+        function getElementBottom(selector) {
+            const element = document.querySelector(selector);
+
+            if (!element) {
+                return 0;
+            }
+
+            const rect = element.getBoundingClientRect();
+            return Math.ceil(rect.bottom + window.scrollY);
+        }
+
+        function getLastElementBottom(selector) {
+            const elements = Array.from(document.querySelectorAll(selector));
+
+            if (!elements.length) {
+                return 0;
+            }
+
+            for (let index = elements.length - 1; index >= 0; index -= 1) {
+                const element = elements[index];
+                const rect = element.getBoundingClientRect();
+
+                if (rect.width || rect.height) {
+                    return Math.ceil(rect.bottom + window.scrollY);
+                }
+            }
+
+            return 0;
+        }
+
+        function getMobileChromeBottomBuffer() {
+            const visualViewport = window.visualViewport;
+            const visualViewportGap = visualViewport
+                ? Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)
+                : 0;
+
+            return Math.ceil(Math.max(260, visualViewportGap + 160));
+        }
+
+        function getMobileMainGalleryRawContentHeight() {
+            const brandBoxBottom = getElementBottom(".mobile-brand-box");
+
+            if (activeCategoryKey) {
+                return Math.ceil(Math.max(
+                    brandBoxBottom,
+                    getElementBottom(".g2-topbar"),
+                    getElementBottom(".g2-grid"),
+                    getLastElementBottom(".g2-grid .card")
+                ));
+            }
+
+            return Math.ceil(Math.max(
+                brandBoxBottom,
+                getElementBottom(".g1-brand-panel"),
+                getElementBottom(".g1-content"),
+                getElementBottom(".g1-list"),
+                getLastElementBottom(".g1-list .g1-item")
+            ));
+        }
+
+        function getMobileMainGalleryContentHeight() {
+            const brandBox = document.querySelector(".mobile-brand-box");
+            if (document.body.classList.contains("is-menu-open") && brandBox) {
+                const brandBoxBottom = getElementBottom(".mobile-brand-box");
+                const menuBottom = getElementBottom(".integrated-mobile-menu");
+                const height = Math.ceil(Math.max(
+                    brandBoxBottom,
+                    menuBottom
+                ));
+
+                return {
+                    rawContentHeight: height,
+                    bottomBuffer: 0,
+                    contentHeight: height
+                };
+            }
+
+            const brandBoxBottom = getElementBottom(".mobile-brand-box");
+
+            const rawContentHeight = getMobileMainGalleryRawContentHeight();
+            const bottomBuffer = getMobileChromeBottomBuffer();
+
+            return {
+                rawContentHeight,
+                bottomBuffer,
+                contentHeight: rawContentHeight + bottomBuffer
+            };
+        }
+
+        function postMobileMainGalleryMetrics(reason = "") {
+            syncMobileBrandBoxHeightVar();
+
+            const metrics = getMobileMainGalleryContentHeight();
+            const contentHeight = metrics.contentHeight;
+
+            if (!contentHeight) {
+                return;
+            }
+
+            if (Math.abs(contentHeight - __mobileMainGalleryLastHeight) < 4) {
+                return;
+            }
+
+            __mobileMainGalleryLastHeight = contentHeight;
+
+            postToParent({
+                type: "mobileMainGalleryMetrics",
+                payload: {
+                    reason,
+                    contentHeight,
+                    rawContentHeight: metrics.rawContentHeight,
+                    bottomBuffer: metrics.bottomBuffer,
+                    bodyScrollHeight: document.body.scrollHeight,
+                    documentScrollHeight: document.documentElement.scrollHeight,
+                    innerHeight: window.innerHeight,
+                    visualViewportHeight: window.visualViewport ? window.visualViewport.height : 0,
+                    visualViewportOffsetTop: window.visualViewport ? window.visualViewport.offsetTop : 0
+                }
+            });
+        }
+
+        function scheduleMobileMainGalleryMetrics(reason = "") {
+            if (__mobileMainGalleryMetricsTimer) {
+                window.clearTimeout(__mobileMainGalleryMetricsTimer);
+            }
+
+            window.requestAnimationFrame(() => {
+                __mobileMainGalleryMetricsTimer = window.setTimeout(() => {
+                    __mobileMainGalleryMetricsTimer = 0;
+                    postMobileMainGalleryMetrics(reason);
+                }, 80);
+            });
+        }
+
+        function applyBrandSelectVisibility() {
+            if (!g1Home) {
+                return;
+            }
+
+            g1Home.classList.toggle("is-brand-select-hidden", !!externalHideBrandSelect);
+        }
+
+               function applyExternalState(payload = {}) {
+            if (payload.type === "g2" && isAnimating) {
+                pendingExternalState = payload;
+                return;
+            }
+
+            if (payload.backButtonStyle) {
+                externalBackButtonStyle = payload.backButtonStyle;
+            }
+
+            if (typeof payload.hideBrandSelect === "boolean") {
+                externalHideBrandSelect = payload.hideBrandSelect;
+            }
+
+            const hasBrand =
+                typeof payload.brand === "string" &&
+                payload.brand.trim() !== "";
+            const hasBrandKey =
+                typeof payload.brandKey === "string" &&
+                payload.brandKey.trim() !== "";
+
+            const hasBrands = Array.isArray(payload.brands) && payload.brands.length > 0;
+            const hasCategories = Array.isArray(payload.categories) && payload.categories.length > 0;
+            const hasItems = Array.isArray(payload.items);
+
+            if (payload.type === "g1" && !hasCategories) {
+                externalBridgeEnabled = false;
+                externalCategories = [];
+                activeCategoryKey = "";
+                externalG2Items = [];
+                pendingExternalState = null;
+                isAnimating = false;
+
+                g1Panel.classList.remove("is-hidden");
+                g2Panel.classList.add("is-hidden");
+                g2Panel.style.visibility = "";
+                layout.classList.remove("is-g2-active");
+                g1Head.classList.add("is-hidden");
+                g1BackButton.classList.add("is-hidden");
+
+                renderBrandList();
+                renderG1();
+                renderG2();
+                applyBrandSelectVisibility();
+                return;
+            }
+
+            if (!hasBrand && !hasCategories && !hasItems) {
+                return;
+            }
+
+            externalBridgeEnabled = true;
+            if (hasBrands) {
+                externalBrands = payload.brands;
+            }
+
+            if (hasBrand) {
+                externalBrandName = payload.brand.trim();
+            }
+
+            if (typeof payload.brandLogoUrl === "string" && payload.brandLogoUrl.trim() !== "") {
+                externalBrandLogoUrl = payload.brandLogoUrl.trim();
+            }
+
+            if (hasBrandKey) {
+                activeBrandKey = payload.brandKey.trim();
+            } else if (hasBrand) {
+                activeBrandKey = externalBrandName;
+            }
+
+            if (hasCategories) {
+                externalCategories = payload.categories;
+            }
+
+            if (hasItems) {
+                externalG2Items = payload.items;
+            }
+
+            if (typeof payload.activeCategoryKey === "string") {
+                activeCategoryKey = payload.activeCategoryKey;
+            }
+
+            if (payload.type === "g1") {
+                activeCategoryKey = "";
+                externalG2Items = [];
+                pendingExternalState = null;
+                isAnimating = false;
+
+                g1Panel.classList.remove("is-hidden");
+                g2Panel.classList.add("is-hidden");
+                g2Panel.style.visibility = "";
+                layout.classList.remove("is-g2-active");
+                g1Head.classList.add("is-hidden");
+                g1BackButton.classList.add("is-hidden");
+            }
+
+                  renderBrandList();
+            renderG1();
+            renderG2(payload.type === "g2");
+            applyBrandSelectVisibility();
+            applyBackButtonStyle();
+
+            if (payload.type === "g1" && isBrandSwitching) {
+                window.setTimeout(() => {
+                    isBrandSwitching = false;
+                    brandSwitchIncomingKey = "";
+                }, 700);
+            }
+        }
+
+        window.addEventListener("message", (event) => {
+            const data = event.data || {};
+
+            if (data.type === "mobileBrandBoxData") {
+                renderMobileBrandBox(data.payload || {});
+                return;
+            }
+
+            if (data.type === "setMobileMenuState") {
+                menuButton.classList.toggle("is-door-open", !!data.open);
+                mobileBrandBox.classList.toggle("is-menu-active", !!data.open);
+                document.body.classList.toggle("is-menu-open", !!data.open);
+                setIntegratedMenuOpen(!!data.open);
+                __mobileMainGalleryLastHeight = 0;
+                postMobileMainGalleryMetrics("setMobileMenuState");
+                return;
+            }
+
+            if (data.type === "setMenuData") {
+                updateIntegratedMenuData(data.payload || {});
+                return;
+            }
+
+            if (data.type === "setProductScreenActive") {
+                if (data.active) {
+                    document.body.classList.add("is-menu-open");
+                } else {
+                    document.body.classList.remove("is-menu-open");
+                }
+                scheduleMobileMainGalleryMetrics("setProductScreenActive");
+                return;
+            }
+
+            if (data.type === "resetG1G2Scroll") {
+                window.scrollTo(0, 0);
+
+                if (g1Panel) {
+                    g1Panel.scrollTop = 0;
+                }
+
+                if (g2Panel) {
+                    g2Panel.scrollTop = 0;
+                }
+
+                scheduleMobileMainGalleryMetrics("resetG1G2Scroll");
+                return;
+            }
+
+            if (data.type === "mobileBrandBoxScroll") {
+                mobileBrandBox.classList.toggle("is-scrolled", !!data.scrolled);
+                return;
+            }
+
+            if (data.channel !== MAIN_GALLERY_CHANNEL || !data.type) {
+                return;
+            }
+            applyExternalState(data);
+        });
+
+        function buildExternalLogoHtml(name = "") {
+            const safeName = String(name || "LINK SHOP").replace(/[<>&"]/g, "");
+
+            if (externalBrandLogoUrl) {
+                return `<img src="${externalBrandLogoUrl}" alt="${safeName}" style="display:block;width:100%;height:100%;object-fit:contain;">`;
+            }
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 160" aria-hidden="true"><rect width="360" height="160" rx="24" fill="#f6efe4"/><rect x="16" y="16" width="328" height="128" rx="18" fill="#fffaf3" stroke="#d7c1ae"/><text x="180" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="2" fill="#8f4e23">${safeName}</text></svg>`;
+        }
+
+        function getActiveBrand() {
+            if (externalBridgeEnabled) {
+                const activeExternalBrand = externalBrands.find((brand) => brand.key === activeBrandKey)
+                    || externalBrands.find((brand) => brand.name === externalBrandName);
+                const resolvedName = activeExternalBrand?.name || externalBrandName || "Link Shop";
+
+                return {
+                    key: activeExternalBrand?.key || activeBrandKey || externalBrandName || "lnkshop",
+                    name: resolvedName,
+                    meta: "Live",
+                    logoSvg: activeExternalBrand?.logoSvg || buildExternalLogoHtml(resolvedName)
+                };
+            }
+            return mockBrands.find((brand) => brand.key === activeBrandKey) || mockBrands[0];
+        }
+function syncBrandToggle() {
+    const activeBrand = getActiveBrand();
+    brandToggleLabel.innerHTML = activeBrand.logoSvg || "";
+    brandToggleIcon.textContent = g1BrandPanel.classList.contains("is-open") ? "▲" : "▼";
+}
+        function getCurrentCategories() {
+            if (externalBridgeEnabled && externalCategories.length) {
+                return externalCategories;
+            }
+            const brand = getActiveBrand();
+            const imagePools = {
+                main: {
+                    a: [
+                        "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    b: [
+                        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    c: [
+                        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80"
+                    ]
+                },
+                sub: {
+                    a: [
+                        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    b: [
+                        "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    c: [
+                        "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80"
+                    ]
+                },
+                archive: {
+                    a: [
+                        "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    b: [
+                        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80"
+                    ],
+                    c: [
+                        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
+                        "https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=900&q=80"
+                    ]
+                }
+            };
+            const brandItemsMap = {
+                main: [
+                    { key: "main-a", pool: "a", name: "A", count: 3, sizeLabel: "22.0cm～24.5cm", description: "Main Brand の A。3カラー展開の仮データです。" },
+                    { key: "main-b", pool: "b", name: "B", count: 2, sizeLabel: "S M L LL", description: "Main Brand の B。2カラー展開の仮データです。" },
+                    { key: "main-c", pool: "c", name: "C", count: 6, sizeLabel: "22.5cm～25.0cm", description: "Main Brand の C。6カラー展開の仮データです。" }
+                ],
+                sub: [
+                    { key: "sub-a", pool: "a", name: "A", count: 4, sizeLabel: "S M L", description: "Sub Label の A。4カラー展開の仮データです。" },
+                    { key: "sub-b", pool: "b", name: "B", count: 3, sizeLabel: "22.0cm～24.5cm", description: "Sub Label の B。3カラー展開の仮データです。" },
+                    { key: "sub-c", pool: "c", name: "C", count: 5, sizeLabel: "S M L LL", description: "Sub Label の C。5カラー展開の仮データです。" }
+                ],
+                archive: [
+                    { key: "archive-a", pool: "a", name: "A", count: 2, sizeLabel: "22.0cm～23.5cm", description: "Archive Line の A。2カラー展開の仮データです。" },
+                    { key: "archive-b", pool: "b", name: "B", count: 6, sizeLabel: "S M L LL", description: "Archive Line の B。6カラー展開の仮データです。" },
+                    { key: "archive-c", pool: "c", name: "C", count: 4, sizeLabel: "22.5cm～25.0cm", description: "Archive Line の C。4カラー展開の仮データです。" }
+                ]
+            };
+            const selectedDefs = brandItemsMap[brand.key] || brandItemsMap.main;
+
+            return selectedDefs.map((definition) => {
+                const pool = imagePools[brand.key][definition.pool];
+                const items = Array.from({ length: definition.count }, (_, index) => {
+                    const image = pool[index % pool.length];
+                    return {
+                        brand: brand.name,
+                        title: `${definition.name} Color ${String(index + 1).padStart(2, "0")}`,
+                        text: `${brand.name} の ${definition.name}。カラー ${index + 1} の仮アイテムです。`,
+                        price: `¥${String(6200 + (index * 600))}`,
+                        tag: `Color ${index + 1}`,
+                        image
+                    };
+                });
+
+                return {
+                    key: definition.key,
+                    name: definition.name,
+                    count: definition.count,
+                    sizeLabel: definition.sizeLabel,
+                    thumb: pool[0],
+                    description: definition.description,
+                    items
+                };
+            });
+        }
+
+        function renderBrandList() {
+            brandList.innerHTML = "";
+            const brandsToRender = externalBridgeEnabled ? (externalBrands.length ? externalBrands : [getActiveBrand()]) : mockBrands;
+            debugToParent("renderBrandList", {
+                externalBridgeEnabled,
+                activeBrandKey,
+                brandsToRender: brandsToRender.map((brand) => ({
+                    key: brand.key,
+                    name: brand.name,
+                    itemCount: brand.itemCount
+                    
+                }))
+            });
+            const brandCategoryMap = externalBridgeEnabled
+                ? Object.fromEntries(brandsToRender.map((brand) => [brand.key, brand.key === activeBrandKey ? externalCategories : []]))
+                : (() => {
+                    const currentBrandKey = activeBrandKey;
+                    const map = Object.fromEntries(
+                        mockBrands.map((brand) => {
+                            activeBrandKey = brand.key;
+                            return [brand.key, getCurrentCategories()];
+                        })
+                    );
+                    activeBrandKey = currentBrandKey;
+                    return map;
+                })();
+
+            brandsToRender.forEach((brand) => {
+                const visibleCount = externalBridgeEnabled
+                    ? Number(brand.itemCount || 0)
+                    : (brandCategoryMap[brand.key] || []).length;
+                debugToParent("renderBrandList item", {
+                    key: brand.key,
+                    name: brand.name,
+                    visibleCount,
+                    isActive: brand.key === activeBrandKey,
+                    externalBridgeEnabled
+                });
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "g1-brand-chip" + (brand.key === activeBrandKey ? " is-active" : "");
+                if (brand.key === brandSwitchIncomingKey) {
+                    button.classList.add("is-switching-in");
+                }
+                button.innerHTML = `<span class="g1-brand-chip-logo">${brand.logoSvg}</span>`;
+    button.addEventListener("click", () => {
+    if (externalBridgeEnabled) {
+        if (brand.key === activeBrandKey) {
+            return;
+        }
+        debugToParent("HTML switchBrand click", {
+            current: activeBrandKey,
+            next: brand.key,
+            name: brand.name
+        });
+        animateExternalBrandSwitch(brand);
+        g1BrandPanel.classList.remove("is-open");
+        syncBrandToggle();
+        return;
+    }
+    animateBrandSwitch(brand.key);
+    g1BrandPanel.classList.remove("is-open");
+    syncBrandToggle();
+});
+                        brandList.appendChild(button);
+ 
+            });
+             syncBrandToggle();
+        }
+
+        function renderG1() {
+            g1List.innerHTML = "";
+
+            getCurrentCategories().forEach((category) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.dataset.key = category.key;
+                button.className = "g1-item" + (category.key === activeCategoryKey ? " is-active" : "");
+                button.innerHTML = `
+                    <div class="g1-thumb" style="background-image:url('${category.thumb}')"></div>
+                    <span class="g1-title">${category.name}</span>
+                    <span class="g1-meta">
+                        <span class="g1-colors">${category.count} colors</span>
+                        <span class="g1-size">${category.sizeLabel}</span>
+                    </span>
+                    <span class="g1-price">${category.preview?.price || category.items?.[0]?.price || ""}</span>
+                    <p class="g1-text">${category.preview?.text || category.items?.[0]?.text || ""}</p>
+                `;
+                if (isBrandSwitching && !activeCategoryKey) {
+                    button.classList.add("is-brand-entering");
+                    button.style.animationDelay = `${g1List.children.length * 110}ms`;
+                }
+                button.addEventListener("click", () => {
+                    if (isAnimating) {
+                        return;
+                    }
+                    if (externalBridgeEnabled) {
+                        externalG2Items = [];
+                        animateCategoryToG2(button, category);
+                        postToParent({ type: "openCategory", categoryKey: category.key });
+                        return;
+                    }
+                    animateCategoryToG2(button, category);
+                });
+                g1List.appendChild(button);
+            });
+
+            scheduleMobileMainGalleryMetrics("renderG1");
+        }
+
+        function syncG2Target(category) {
+            if (!category) {
+                g2TargetThumb.style.backgroundImage = "";
+                g2TargetCopy.innerHTML = "<strong>-</strong><span>Selected category</span>";
+                return;
+            }
+
+            const itemCount = externalBridgeEnabled && activeCategoryKey === category.key && externalG2Items.length
+                ? externalG2Items.length
+                : category.count;
+            g2TargetThumb.style.backgroundImage = `url('${category.thumb}')`;
+            g2TargetCopy.innerHTML = `<strong>${category.name}</strong><span>${itemCount} colors</span>`;
+        }
+
+        function pulseTrail(element) {
+            element.classList.remove("is-trailing");
+            void element.offsetWidth;
+            element.classList.add("is-trailing");
+            window.setTimeout(() => {
+                element.classList.remove("is-trailing");
+            }, 1300);
+        }
+
+        function animateBrandSwitch(nextBrandKey) {
+            if (isAnimating || activeCategoryKey || activeBrandKey === nextBrandKey) {
+                return;
+            }
+
+            const currentItems = Array.from(g1List.querySelectorAll(".g1-item"));
+            const currentBrandButtons = Array.from(brandList.querySelectorAll(".g1-brand-chip"));
+
+            currentItems.forEach((item, index) => {
+                item.style.transition = `transform 0.36s ease, opacity 0.36s ease`;
+                item.style.transitionDelay = `${index * 60}ms`;
+                item.style.transform = "translateY(-18px) scale(.98)";
+                item.style.opacity = "0";
+            });
+
+            currentBrandButtons.forEach((button) => {
+                button.classList.add("is-switching-out");
+            });
+
+            window.setTimeout(() => {
+                activeBrandKey = nextBrandKey;
+                brandSwitchIncomingKey = nextBrandKey;
+                isBrandSwitching = true;
+                renderBrandList();
+                renderG1();
+                window.setTimeout(() => {
+                    isBrandSwitching = false;
+                    brandSwitchIncomingKey = "";
+                }, 700);
+            }, 260);
+        }
+
+        function animateExternalBrandSwitch(brand) {
+            if (isAnimating || activeCategoryKey || activeBrandKey === brand.key) {
+                return;
+            }
+
+            const currentItems = Array.from(g1List.querySelectorAll(".g1-item"));
+            const currentBrandButtons = Array.from(brandList.querySelectorAll(".g1-brand-chip"));
+
+            currentItems.forEach((item, index) => {
+                item.style.transition = "transform 0.36s ease, opacity 0.36s ease";
+                item.style.transitionDelay = `${index * 60}ms`;
+                item.style.transform = "translateY(-18px) scale(.98)";
+                item.style.opacity = "0";
+            });
+
+            currentBrandButtons.forEach((button) => {
+                button.classList.add("is-switching-out");
+            });
+
+            window.setTimeout(() => {
+                activeBrandKey = brand.key;
+                externalBrandName = brand.name || brand.key;
+                brandSwitchIncomingKey = brand.key;
+                isBrandSwitching = true;
+                activeCategoryKey = "";
+                externalCategories = [];
+                externalG2Items = [];
+                debugToParent("HTML switchBrand postMessage", { type: "switchBrand", brand: brand.key });
+                postToParent({ type: "switchBrand", brand: brand.key });
+                renderBrandList();
+                renderG1();
+                renderG2();
+            }, 260);
+        }
+
+        function animateCategoryToG2(sourceButton, category) {
+            if (isAnimating) {
+                return;
+            }
+            isAnimating = true;
+            document.querySelectorAll(".brand-return-overlay").forEach(el => el.remove());
+
+            const buttons = Array.from(g1List.querySelectorAll(".g1-item"));
+            buttons.forEach((button) => {
+                button.classList.remove("is-brand-entering");
+                button.style.animationDelay = "";
+                button.style.animation = "none";
+            });
+            void g1List.offsetWidth;
+            buttons.forEach((button) => {
+                button.style.animation = "";
+            });
+
+            const firstRects = new Map(
+                buttons.map((button) => [button.dataset.key, button.getBoundingClientRect()])
+            );
+
+            activeCategoryKey = category.key;
+            syncG2Target(category);
+
+            g2Panel.classList.remove("is-hidden");
+            g2Panel.style.visibility = "hidden";
+            layout.classList.add("is-g2-active");
+            g1Head.classList.remove("is-hidden");
+            g1BackButton.classList.remove("is-hidden");
+            renderG2(false);
+
+            buttons.forEach((button) => {
+                if (button === sourceButton) {
+                    return;
+                }
+
+                const firstRect = firstRects.get(button.dataset.key);
+                const lastRect = button.getBoundingClientRect();
+                const deltaX = firstRect.left - lastRect.left;
+                const deltaY = firstRect.top - lastRect.top;
+
+                if (!deltaX && !deltaY) {
+                    return;
+                }
+
+                button.style.transition = "none";
+                button.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+                requestAnimationFrame(() => {
+                    pulseTrail(button);
+                    button.style.transition = "transform 0.82s cubic-bezier(.2,.82,.24,1)";
+                    button.style.transform = "translate(0, 0)";
+                });
+            });
+
+            const sourceRect = sourceButton.getBoundingClientRect();
+            const targetRect = g2Target.getBoundingClientRect();
+            const placeholder = document.createElement("div");
+
+            placeholder.style.width = `${sourceRect.width}px`;
+            placeholder.style.height = `${sourceRect.height}px`;
+            placeholder.style.borderRadius = getComputedStyle(sourceButton).borderRadius;
+
+            sourceButton.after(placeholder);
+
+            sourceButton.style.position = "fixed";
+            sourceButton.style.left = `${sourceRect.left}px`;
+            sourceButton.style.top = `${sourceRect.top}px`;
+            sourceButton.style.width = `${sourceRect.width}px`;
+            sourceButton.style.height = `${sourceRect.height}px`;
+            sourceButton.style.margin = "0";
+            sourceButton.style.zIndex = "50";
+            sourceButton.style.pointerEvents = "none";
+            sourceButton.style.transition = "left 0.8s cubic-bezier(.2,.82,.24,1), top 0.8s cubic-bezier(.2,.82,.24,1), width 0.8s cubic-bezier(.2,.82,.24,1), height 0.8s cubic-bezier(.2,.82,.24,1), box-shadow 0.8s ease";
+            sourceButton.style.boxShadow = "0 22px 48px rgba(74, 49, 30, 0.22)";
+            sourceButton.classList.add("is-g2-moving");
+            document.body.appendChild(sourceButton);
+            g2Target.style.visibility = "hidden";
+
+            requestAnimationFrame(() => {
+                pulseTrail(sourceButton);
+                sourceButton.style.left = `${targetRect.left}px`;
+                sourceButton.style.top = `${targetRect.top}px`;
+                sourceButton.style.width = `${targetRect.width}px`;
+                sourceButton.style.height = `${targetRect.height}px`;
+            });
+
+             sourceButton.addEventListener("transitionend", () => {
+                placeholder.remove();
+                sourceButton.classList.remove("is-g2-moving");
+                sourceButton.remove();
+                g2Target.style.visibility = "";
+                g2Panel.style.visibility = "";
+                g1Panel.classList.add("is-hidden");
+                isAnimating = false;
+                renderG1();
+                renderG2(true);
+                if (pendingExternalState) {
+                    const nextState = pendingExternalState;
+                    pendingExternalState = null;
+                    applyExternalState(nextState);
+                }
+            }, { once: true });
+        }
+
+           function animateBackToG1() {
+            if (isAnimating || !activeCategoryKey) {
+                return;
+            }
+
+            isAnimating = true;
+            g1Panel.classList.remove("is-hidden");
+
+            const currentKey = activeCategoryKey;
+            const currentCategory = getCurrentCategories().find((category) => category.key === currentKey);
+            const currentButtons = Array.from(g1List.querySelectorAll(".g1-item"));
+            const firstRects = new Map(
+                currentButtons.map((button) => [button.dataset.key, button.getBoundingClientRect()])
+            );
+            const targetRect = g2Target.getBoundingClientRect();
+
+            activeCategoryKey = "";
+            g1BrandPanel.classList.add("is-hidden-during-return");
+            renderG1();
+            renderG2();
+
+            const nextButtons = Array.from(g1List.querySelectorAll(".g1-item"));
+
+            nextButtons.forEach((button) => {
+                if (button.dataset.key === currentKey) {
+                    return;
+                }
+
+                const firstRect = firstRects.get(button.dataset.key);
+                const lastRect = button.getBoundingClientRect();
+
+                if (!firstRect || !lastRect) {
+                    return;
+                }
+
+                const deltaX = firstRect.left - lastRect.left;
+                const deltaY = firstRect.top - lastRect.top;
+
+                if (!deltaX && !deltaY) {
+                    return;
+                }
+
+                button.style.transition = "none";
+                button.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+                requestAnimationFrame(() => {
+                    pulseTrail(button);
+                    button.style.transition = "transform 0.82s cubic-bezier(.2,.82,.24,1)";
+                    button.style.transform = "translate(0, 0)";
+                });
+            });
+
+            const targetButton = nextButtons.find((button) => button.dataset.key === currentKey);
+
+            if (!currentCategory || !targetButton) {
+                isAnimating = false;
+                renderG1();
+                renderG2();
+                return;
+            }
+
+            const lastRect = targetButton.getBoundingClientRect();
+            const mover = targetButton.cloneNode(true);
+
+            mover.style.position = "fixed";
+            mover.style.left = `${targetRect.left}px`;
+            mover.style.top = `${targetRect.top}px`;
+            mover.style.width = `${targetRect.width}px`;
+            mover.style.height = `${targetRect.height}px`;
+            mover.style.margin = "0";
+            mover.style.zIndex = "50";
+            mover.style.pointerEvents = "none";
+            mover.style.transition = "left 0.8s cubic-bezier(.2,.82,.24,1), top 0.8s cubic-bezier(.2,.82,.24,1), width 0.8s cubic-bezier(.2,.82,.24,1), height 0.8s cubic-bezier(.2,.82,.24,1), box-shadow 0.8s ease";
+            mover.style.boxShadow = "0 22px 48px rgba(74, 49, 30, 0.22)";
+
+            targetButton.style.visibility = "hidden";
+            document.body.appendChild(mover);
+
+            requestAnimationFrame(() => {
+                pulseTrail(mover);
+                mover.style.left = `${lastRect.left}px`;
+                mover.style.top = `${lastRect.top}px`;
+                mover.style.width = `${lastRect.width}px`;
+                mover.style.height = `${lastRect.height}px`;
+            });
+
+            mover.addEventListener("transitionend", () => {
+                mover.remove();
+                targetButton.style.visibility = "";
+                isAnimating = false;
+
+                renderG1();
+                renderG2();
+                renderBrandList();
+                applyBrandSelectVisibility();
+
+                if (externalHideBrandSelect) {
+                    g1BrandPanel.classList.remove("is-hidden-during-return");
+                    return;
+                }
+
+                const brandRect = g1BrandPanel.getBoundingClientRect();
+                const brandOverlay = g1BrandPanel.cloneNode(true);
+
+                brandOverlay.className = "g1-brand-panel brand-return-overlay";
+                brandOverlay.style.left = `${brandRect.left}px`;
+                brandOverlay.style.top = `${brandRect.top}px`;
+                brandOverlay.style.width = `${brandRect.width}px`;
+                brandOverlay.style.height = `${brandRect.height}px`;
+
+                document.body.appendChild(brandOverlay);
+                window.setTimeout(() => {
+                    brandOverlay.remove();
+                    g1BrandPanel.classList.remove("is-hidden-during-return");
+                }, 2520);
+            }, { once: true });
+        }
+
+        function renderG2(withDeal = false) {
+            const current = getCurrentCategories().find((category) => category.key === activeCategoryKey);
+            if (!current) {
+                g2Panel.classList.add("is-hidden");
+                g2Panel.style.visibility = "";
+                g1Head.classList.add("is-hidden");
+                g1BackButton.classList.add("is-hidden");
+                layout.classList.remove("is-g2-active");
+                syncG2Target(null);
+                scheduleMobileMainGalleryMetrics("renderG2-empty");
+                return;
+            }
+
+            layout.classList.add("is-g2-active");
+            g2Panel.classList.remove("is-hidden");
+            g1Head.classList.remove("is-hidden");
+            g1BackButton.classList.remove("is-hidden");
+            syncG2Target(current);
+            g2Title.textContent = current.name;
+            g2Description.textContent = current.description;
+            g2Grid.innerHTML = "";
+
+            const itemsToRender = externalBridgeEnabled && activeCategoryKey === current.key && externalG2Items.length
+                ? externalG2Items
+                : (current.items || []);
+
+                       itemsToRender.forEach((item) => {
+                const article = document.createElement("article");
+                article.className = withDeal ? "card is-dealing" : "card";
+                if (withDeal) {
+                    article.style.animationDelay = `${220 + (g2Grid.children.length * 220)}ms`;
+                }
+                article.innerHTML = `
+                    <div class="card-media" style="background-image:url('${item.image || item.src || ""}')"></div>
+                    <div class="card-body">
+                        <span class="card-kicker">${item.brand || ""}</span>
+                        <h4 class="card-title">${item.title || ""}</h4>
+                        <p class="card-text">${item.text || item.description || ""}</p>
+                        <div class="card-footer">
+                            <strong>${item.price || ""}</strong>
+                            <span class="tag">${item.tag || ""}</span>
+                        </div>
+                    </div>
+                `;
+
+                article.style.cursor = "pointer";
+                article.addEventListener("click", () => {
+                    if (!externalBridgeEnabled) {
+                        return;
+                    }
+
+                    postToParent({
+                        type: "openItem",
+                        item: {
+                            ...item,
+                            title: String(item.title || "").trim(),
+                            brand: String(item.brand || "").trim(),
+                            slug: String(item.slug || "").trim(),
+                            categoryKey: String(activeCategoryKey || "").trim(),
+                            productId: String(item.productId || item._id || "").trim(),
+                            image: String(item.image || item.src || item.originalImage || "").trim(),
+                            src: String(item.src || item.image || item.originalImage || "").trim(),
+                            originalImage: String(item.originalImage || item.src || item.image || "").trim(),
+                            hoverImage: String(item.hoverImage || item.altSrc || "").trim(),
+                            price: String(item.price || item.priceText || item.priceTaxIn || item.formattedPrice || "").trim(),
+                            priceText: String(item.priceText || item.price || item.priceTaxIn || item.formattedPrice || "").trim(),
+                            priceTaxIn: String(item.priceTaxIn || item.priceText || item.price || item.formattedPrice || "").trim(),
+                            formattedPrice: String(item.formattedPrice || item.priceText || item.price || item.priceTaxIn || "").trim(),
+                            text: String(item.text || item.description || "").trim(),
+                            description: String(item.description || item.text || "").trim(),
+                            tag: String(item.tag || "").trim()
+                        }
+                    });
+                });
+
+                g2Grid.appendChild(article);
+            });
+
+            scheduleMobileMainGalleryMetrics("renderG2");
+        }
+        function applyBackButtonStyle() {
+            if (!externalBackButtonStyle) {
+                return;
+            }
+
+            [backButton, g1BackButton].forEach((button) => {
+                if (!button) {
+                    return;
+                }
+
+                if (externalBackButtonStyle.backgroundColor) {
+                    button.style.background = externalBackButtonStyle.backgroundColor;
+                    button.style.backgroundColor = externalBackButtonStyle.backgroundColor;
+                }
+
+                if (externalBackButtonStyle.color) {
+                    button.style.color = externalBackButtonStyle.color;
+                }
+
+                if (externalBackButtonStyle.borderColor) {
+                    button.style.borderColor = externalBackButtonStyle.borderColor;
+                }
+
+                if (externalBackButtonStyle.borderWidth) {
+                    button.style.borderWidth = externalBackButtonStyle.borderWidth;
+                }
+
+                if (externalBackButtonStyle.borderStyle) {
+                    button.style.borderStyle = externalBackButtonStyle.borderStyle;
+                }
+
+                button.style.boxShadow = "none";
+            });
+        }
+
+        function backToG1() {
+            if (externalBridgeEnabled) {
+                if (externalBackSyncTimer) {
+                    window.clearTimeout(externalBackSyncTimer);
+                }
+                animateBackToG1();
+                externalBackSyncTimer = window.setTimeout(() => {
+                    externalBackSyncTimer = 0;
+                    externalG2Items = [];
+                    postToParent({ type: "backToG1" });
+                }, 820);
+                return;
+            }
+            animateBackToG1();
+        }
+
+backButton.addEventListener("click", backToG1);
+g1BackButton.addEventListener("click", backToG1);
+
+brandToggle.addEventListener("click", () => {
+    g1BrandPanel.classList.toggle("is-open");
+    syncBrandToggle();
+    scheduleMobileMainGalleryMetrics("brandToggle");
+});
+
+integratedMenuCloseTop.addEventListener("click", () => {
+    postIntegratedMenuAction("closeMenu");
+});
+
+integratedMenuCloseBottom.addEventListener("click", () => {
+    postIntegratedMenuAction("closeMenu");
+});
+
+integratedMenuTop.addEventListener("click", () => {
+    postIntegratedMenuAction("openTop", integratedMenuState.topUrl);
+});
+
+integratedMenuInstagram.addEventListener("click", () => {
+    menuButton.classList.remove("is-door-open");
+    mobileBrandBox.classList.remove("is-menu-active");
+    document.body.classList.remove("is-menu-open");
+    setIntegratedMenuOpen(false);
+    postIntegratedMenuAction("closeMenu");
+});
+
+integratedMenuContact.addEventListener("click", () => {
+    postIntegratedMenuAction("openContact", integratedMenuState.contactUrl);
+});
+
+integratedMenuLinkshop.addEventListener("click", () => {
+    postIntegratedMenuAction("openLinkshop", integratedMenuState.linkshopUrl);
+});
+
+renderMobileBrandBox(defaultMobileBrandBoxPayload);
+postToParent({ type: "ready" });
+renderBrandList();
+renderG1();
+renderG2();
+applyBrandSelectVisibility();
+applyBackButtonStyle();
+scheduleMobileMainGalleryMetrics("initial");
+
+window.addEventListener("load", () => {
+    scheduleMobileMainGalleryMetrics("window-load");
+});
+
+window.addEventListener("resize", () => {
+    scheduleMobileMainGalleryMetrics("window-resize");
+});
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+        scheduleMobileMainGalleryMetrics("visualViewport-resize");
+    });
+
+    window.visualViewport.addEventListener("scroll", () => {
+        scheduleMobileMainGalleryMetrics("visualViewport-scroll");
+    });
+}
+    </script>
+</body>
+</html>

@@ -26,15 +26,10 @@
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      min-height: 100%;
       overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
       scrollbar-color: #e7e7e7 #ffffff;
       scrollbar-width: thin;
       background:
@@ -133,9 +128,8 @@
       border-radius: 0;
       box-shadow: var(--shadow);
       position: relative;
-      overflow: visible;
+      overflow: hidden;
     }
-
 
     .sheet::before {
       content: none;
@@ -146,7 +140,7 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
-      padding: 26px 18px 72px;
+      padding: 26px 18px 28px;
     }
 
     .layout-stage::before {
@@ -842,87 +836,28 @@
 
       const postBrandStopMetrics = () => {
         const brandArea = byId("brandarea");
-        const layoutStage = document.querySelector(".layout-stage");
+        if (!brandArea) return;
 
-        const visibleElements = layoutStage
-          ? Array.from(layoutStage.querySelectorAll("*")).filter((el) => {
-              const style = getComputedStyle(el);
-              const rect = el.getBoundingClientRect();
-
-              return (
-                el &&
-                !el.hidden &&
-                style.display !== "none" &&
-                style.visibility !== "hidden" &&
-                rect.width > 0 &&
-                rect.height > 0
-              );
-            })
-          : [];
-
-        const elementBottoms = visibleElements.map((el) => {
-          const rect = el.getBoundingClientRect();
-          const style = getComputedStyle(el);
-          const marginBottom = parseFloat(style.marginBottom || "0") || 0;
-
-          return Math.ceil(rect.bottom + window.scrollY + marginBottom);
-        });
-
-        if (layoutStage) {
-          const layoutRect = layoutStage.getBoundingClientRect();
-          const layoutStyle = getComputedStyle(layoutStage);
-          const paddingBottom = parseFloat(layoutStyle.paddingBottom || "0") || 0;
-
-          elementBottoms.push(
-            Math.ceil(layoutRect.bottom + window.scrollY + paddingBottom)
-          );
-        }
-
-        const contentHeight = Math.max(
-          1,
-          ...elementBottoms
+        const rect = brandArea.getBoundingClientRect();
+        const docTop = rect.top + window.scrollY;
+        const docHeight = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          document.body.offsetHeight,
+          document.documentElement.offsetHeight,
+          document.body.clientHeight,
+          document.documentElement.clientHeight
         );
-
-        let brandTop = 0;
-        let brandHeight = 0;
-
-        if (brandArea && !brandArea.hidden && getComputedStyle(brandArea).display !== "none") {
-          const rect = brandArea.getBoundingClientRect();
-          brandTop = Math.round(rect.top + window.scrollY);
-          brandHeight = Math.round(rect.height || brandArea.offsetHeight || 0);
-        }
 
         window.parent.postMessage({
           type: "brandStopMetrics",
           payload: {
-            brandTop,
-            brandHeight,
-            contentHeight: Math.round(contentHeight)
+            brandTop: Math.round(docTop),
+            brandHeight: Math.round(rect.height || brandArea.offsetHeight || 0),
+            contentHeight: Math.round(docHeight)
           }
         }, "*");
       };
-
-      const scheduleBrandStopMetrics = () => {
-        requestAnimationFrame(() => {
-          postBrandStopMetrics();
-          setTimeout(postBrandStopMetrics, 120);
-          setTimeout(postBrandStopMetrics, 500);
-          setTimeout(postBrandStopMetrics, 1000);
-        });
-      };
-
-      Array.from(document.images || []).forEach((img) => {
-        img.addEventListener("load", scheduleBrandStopMetrics);
-        img.addEventListener("error", scheduleBrandStopMetrics);
-      });
-
-      window.addEventListener("load", scheduleBrandStopMetrics);
-      window.addEventListener("resize", scheduleBrandStopMetrics);
-
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", scheduleBrandStopMetrics);
-        window.visualViewport.addEventListener("scroll", scheduleBrandStopMetrics);
-      }
 
       const applyProductInfo = (payload) => {
         if (!payload || typeof payload !== "object") return;
@@ -943,19 +878,13 @@
         setList("feature", payload.feature);
         updateBrandStopSpacer();
         updatePointsCount();
+        postBrandStopMetrics();
         window.dispatchEvent(new Event("resize"));
-        scheduleBrandStopMetrics();
       };
 
       window.addEventListener("message", (event) => {
         const data = event.data;
         if (!data || typeof data !== "object") return;
-
-        if (data.type === "requestBrandStopMetrics") {
-          scheduleBrandStopMetrics();
-          return;
-        }
-
         if (data.type !== "productInfo") return;
         applyProductInfo(data.payload);
       });
@@ -966,7 +895,6 @@
         setImage("mainpopup2", popup2Items[popup2Index]);
         setImage("mainimage2", popup2Items[popup2Index]);
         updateMobileSlideDots();
-        scheduleBrandStopMetrics();
       };
 
       byId("mainpopup2prev")?.addEventListener("click", (event) => {
@@ -986,8 +914,6 @@
       byId("mobileMain2Next")?.addEventListener("click", () => {
         movePopup2(1);
       });
-
-      scheduleBrandStopMetrics();
     })();
   </script>
 </body>

@@ -4,23 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PcBrandBoxHtml</title>
-<style>
+  <style>
     :root {
-      --box-bg: #ffe4e1;
-      --box-text: #f00098;
-      --button-bg: #ffe5e5;
-      --button-text: #c71585;
-      --button-border: #ff00c8;
-      --line: rgba(255, 255, 255, 0.55);
-      --shadow-soft: 0 18px 40px rgba(105, 26, 78, 0.12);
-      --shadow-strong: 0 24px 60px rgba(105, 26, 78, 0.18);
+      --box-bg: #fff1f0;
+      --box-text: #ff8acb;
+      --button-bg: #fff6f6;
+      --button-text: #e68ab8;
+      --button-border: #ffc7ee;
+      --line: rgba(255, 255, 255, 0.72);
+      --shadow-soft: 0 1.125rem 2.5rem rgba(105, 26, 78, 0.07);
+      --shadow-strong: 0 1.5rem 3.75rem rgba(105, 26, 78, 0.1);
 
-      --gm-bg: #f8f3eb;
+      --gm-bg: #fbf7f2;
       --gm-panel: #ffffff;
-      --gm-ink: #201c18;
-      --gm-muted: rgba(32, 28, 24, 0.58);
-      --gm-soft: rgba(32, 28, 24, 0.1);
-      --gm-line: rgba(32, 28, 24, 0.16);
+      --gm-ink: #a86b8d;
+      --gm-muted: rgba(168, 107, 141, 0.5);
+      --gm-soft: rgba(168, 107, 141, 0.08);
+      --gm-line: rgba(168, 107, 141, 0.14);
       --gm-hover: var(--button-text);
     }
 
@@ -31,9 +31,10 @@
     html,
     body {
       width: 100%;
+      min-height: 22.5rem;
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      overflow: visible;
       background: transparent;
       font-family:
         "Helvetica Neue",
@@ -49,52 +50,49 @@
     }
 
     .brand-bar {
-      width: 100%;
-      min-height: 174px;
       position: relative;
-      isolation: isolate;
-      color: var(--gm-ink);
+      width: 100%;
+      min-height: 22.5rem;
+      margin: 0;
+      padding: 2.125rem;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 340px;
-      grid-template-rows: auto auto;
+      grid-template-columns: minmax(0, 1fr) 22.5rem;
       grid-template-areas:
         "copy logo"
-        "links logo";
-      align-items: center;
-      gap: 22px 34px;
-      padding: 26px 34px 24px;
-      overflow: hidden;
-      background: var(--gm-panel);
-      border-top: 1px solid var(--gm-line);
-      border-bottom: 1px solid var(--gm-line);
+        "links links";
+      gap: 0.125rem 2.125rem;
+      align-items: start;
+      overflow: visible;
+      isolation: isolate;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94)),
+        linear-gradient(90deg, rgba(255, 241, 240, 0.26), rgba(255, 255, 255, 0.82));
+      color: var(--gm-ink);
+      box-shadow: var(--shadow-soft);
+      animation: brandPanelBreath 7.8s ease-in-out infinite;
     }
 
-    .brand-bar::before {
-      content: "";
-      position: absolute;
-      left: 34px;
-      right: 34px;
-      top: 18px;
-      height: 1px;
-      background: var(--gm-soft);
-      pointer-events: none;
-      z-index: -1;
-    }
-
+    .brand-bar::before,
     .brand-bar::after {
       content: "";
       position: absolute;
-      left: 34px;
-      right: 34px;
-      bottom: 18px;
-      height: 1px;
+      left: 2.125rem;
+      right: 2.125rem;
+      height: 0.0625rem;
       background: var(--gm-soft);
       pointer-events: none;
       z-index: -1;
     }
 
+    .brand-bar::before {
+      top: 1.125rem;
+    }
+
+    .brand-bar::after {
+      bottom: 1.125rem;
+    }
+
     .brand-left {
-      grid-area: copy / copy / links / links;
       min-width: 0;
       display: contents;
       position: relative;
@@ -103,38 +101,54 @@
     .shop-copy {
       grid-area: copy;
       min-width: 0;
+      max-width: 47.5rem;
       display: grid;
-      grid-template-columns: minmax(0, 0.72fr) minmax(220px, 0.28fr);
+      grid-template-columns: minmax(0, 1fr);
       grid-template-areas:
-        "eyebrow sub"
-        "main sub";
-      column-gap: 34px;
-      row-gap: 10px;
+        "eyebrow"
+        "main"
+        "sub";
+      row-gap: 0.5625rem;
       position: relative;
-      padding-left: 0;
-      align-items: end;
+      padding: 0.125rem 0 0.125rem 1.375rem;
+      align-items: start;
+      align-content: start;
+      border-left: 0.0625rem solid color-mix(in srgb, var(--gm-ink) 28%, transparent);
+      animation: copyBlockIn 0.72s cubic-bezier(.2,.82,.24,1) both;
     }
 
     .shop-copy::before {
-      content: none;
+      content: "";
+      position: absolute;
+      left: -0.25rem;
+      top: 0.25rem;
+      width: 0.4375rem;
+      height: 0.4375rem;
+      border-radius: 999rem;
+      background: var(--button-border);
+      opacity: 0.55;
+      box-shadow: 0 0 0 0.3125rem color-mix(in srgb, var(--button-border) 14%, transparent);
+      pointer-events: none;
     }
 
     .shop-eyebrow {
       grid-area: eyebrow;
-      font-family:
-        "Helvetica Neue",
-        Arial,
-        "Yu Gothic",
-        "Hiragino Sans",
-        sans-serif;
-      font-size: 12px;
+      width: fit-content;
+      max-width: 100%;
+      font-size: 0.6875rem;
       line-height: 1;
-      font-weight: 500;
-      letter-spacing: 0.28em;
-      color: var(--gm-muted);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: color-mix(in srgb, var(--gm-ink) 72%, #ffffff);
       opacity: 1;
       white-space: nowrap;
       text-transform: uppercase;
+      padding: 0.4375rem 0.625rem 0.375rem;
+      background: color-mix(in srgb, var(--box-bg) 62%, #ffffff);
+      border: 0.0625rem solid color-mix(in srgb, var(--button-border) 32%, #ffffff);
+      border-radius: 999rem;
+      box-shadow: 0 0.5rem 1.125rem rgba(168, 107, 141, 0.06);
+      animation: copyLineIn 0.58s cubic-bezier(.2,.82,.24,1) 0.08s both;
     }
 
     .shop-message {
@@ -147,36 +161,34 @@
         "Hiragino Sans",
         "Meiryo",
         serif;
-      font-size: clamp(30px, 3.2vw, 48px);
-      line-height: 1.05;
+      font-size: clamp(1.5rem, 2.45vw, 2.25rem);
+      line-height: 1.18;
       font-weight: 500;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.045em;
       text-wrap: balance;
-      color: var(--gm-ink);
-      text-shadow: none;
+      color: color-mix(in srgb, var(--gm-ink) 78%, #3f2433);
+      text-shadow:
+        0 0.0625rem 0 rgba(255, 255, 255, 0.7),
+        0 0.5rem 1.125rem rgba(168, 107, 141, 0.07);
       text-transform: none;
+      animation: copyMainIn 0.78s cubic-bezier(.2,.82,.24,1) 0.16s both;
     }
 
     .shop-subline {
       grid-area: sub;
-      align-self: end;
-      font-family:
-        "Helvetica Neue",
-        Arial,
-        "Yu Gothic",
-        "Hiragino Sans",
-        sans-serif;
-      font-size: 13px;
-      line-height: 1.72;
+      align-self: start;
+      font-size: 0.8125rem;
+      line-height: 1.75;
       font-weight: 400;
-      letter-spacing: 0.06em;
-      color: var(--gm-muted);
+      letter-spacing: 0.055em;
+      color: color-mix(in srgb, var(--gm-muted) 80%, #5c344a);
       opacity: 1;
       white-space: normal;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 320px;
-      padding-bottom: 3px;
+      max-width: 35rem;
+      padding-bottom: 0;
+      animation: copyLineIn 0.68s cubic-bezier(.2,.82,.24,1) 0.28s both;
     }
 
     .brand-links {
@@ -188,7 +200,8 @@
       align-items: center;
       justify-content: center;
       gap: 0;
-      padding: 12px 0 0;
+      margin-top: -0.375rem;
+      padding: 0.125rem clamp(1.125rem, 2.8vw, 3rem) 0;
       overflow: visible;
       isolation: isolate;
       font-family:
@@ -202,103 +215,312 @@
     .brand-links::before {
       content: "";
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 50%;
+      right: auto;
       top: 0;
-      height: 1px;
+      width: 100vw;
+      height: 0.0625rem;
       background: var(--gm-line);
+      transform: translateX(-50%);
       pointer-events: none;
     }
 
     .brand-link {
+      --tab-bg: color-mix(in srgb, var(--gm-ink) 62%, #ffffff);
+      --tab-hover: color-mix(in srgb, var(--gm-hover) 68%, #ffffff);
+      --tab-ink: rgba(92, 52, 74, 0.92);
+      --tab-drop-bg: color-mix(in srgb, var(--tab-bg) 46%, #ffffff);
+      --tab-drop-hover: color-mix(in srgb, var(--tab-hover) 46%, #ffffff);
+
       appearance: none;
       position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 38px;
-      padding: 0 30px 0 0;
-      margin: 0 20px 0 0;
+      flex: 0 0 clamp(9.375rem, 12.5vw, 11.75rem);
+      width: clamp(9.375rem, 12.5vw, 11.75rem);
+      min-height: 3.25rem;
+      padding: 0 0.875rem;
+      margin: 0 0.625rem 1.125rem 0;
       border: 0;
       outline: 0;
-      background: transparent;
-      color: var(--gm-ink);
+      background: var(--tab-bg);
+      color: var(--tab-ink);
       font: inherit;
-      font-size: clamp(17px, 1.35vw, 22px);
+      font-size: clamp(0.8125rem, 1.08vw, 1rem);
       line-height: 1;
-      font-weight: 400;
-      letter-spacing: 0.015em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-decoration: none;
       text-transform: uppercase;
       cursor: pointer;
       white-space: nowrap;
-      opacity: 0.94;
-      box-shadow: none;
+      opacity: 1;
+      box-shadow: 0 0.625rem 1.375rem rgba(168, 107, 141, 0.06);
       border-radius: 0;
-      text-align: left;
+      text-align: center;
+      text-shadow:
+        0 0.0625rem 0 rgba(255, 255, 255, 0.55),
+        0 0 0.625rem rgba(255, 255, 255, 0.35);
+      transform: translateY(0);
+      transform-origin: center center;
+      overflow: visible;
+      will-change: transform;
+      backface-visibility: hidden;
+      animation: linkRiseIn 0.54s cubic-bezier(.2,.82,.24,1) both;
       transition:
+        background-color 0.28s ease,
         color 0.22s ease,
         opacity 0.22s ease,
-        transform 0.22s ease;
+        transform 0.28s cubic-bezier(.73,.32,.34,1.5),
+        box-shadow 0.28s ease;
+    }
+
+    .brand-link:nth-child(1) {
+      --tab-bg: color-mix(in srgb, var(--box-text) 58%, #ffffff);
+      --tab-hover: color-mix(in srgb, var(--button-text) 66%, #ffffff);
+      animation-delay: 0.34s;
+    }
+
+    .brand-link:nth-child(2) {
+      --tab-bg: #9ecfe0;
+      --tab-hover: #83c0d4;
+      animation-delay: 0.4s;
+    }
+
+    .brand-link:nth-child(3) {
+      --tab-bg: #e8aaaa;
+      --tab-hover: #dc9696;
+      animation-delay: 0.46s;
+    }
+
+    .brand-link:nth-child(4) {
+      --tab-bg: #efd093;
+      --tab-hover: #e6c176;
+      animation-delay: 0.52s;
+    }
+
+    .brand-link:nth-child(5) {
+      --tab-bg: color-mix(in srgb, var(--button-text) 62%, #ffffff);
+      --tab-hover: color-mix(in srgb, var(--box-text) 62%, #ffffff);
+      animation-delay: 0.58s;
+    }
+
+    .brand-link:nth-child(6) {
+      --tab-bg: #c7df91;
+      --tab-hover: #b7d978;
+      animation-delay: 0.64s;
+    }
+
+    .brand-link-label {
+      position: relative;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      pointer-events: none;
     }
 
     .brand-link::before {
       content: "";
       position: absolute;
       left: 0;
-      right: 30px;
-      bottom: 4px;
-      height: 1px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: left;
-      opacity: 0.82;
+      right: 0;
+      top: 100%;
+      height: 0.625rem;
+      background: var(--tab-drop-bg);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform: scaleY(1);
+      transform-origin: center top;
+      opacity: 1;
       pointer-events: none;
-      transition: transform 0.24s ease;
+      transition:
+        height 0.24s cubic-bezier(.73,.32,.34,1.5),
+        background-color 0.28s ease,
+        opacity 0.22s ease;
     }
 
     .brand-link::after {
-      content: "/";
+      content: "";
       position: absolute;
+      left: 0;
       right: 0;
-      top: 50%;
-      transform: translateY(-52%);
-      color: rgba(32, 28, 24, 0.34);
-      font-size: clamp(16px, 1.2vw, 20px);
-      line-height: 1;
-      font-weight: 300;
-      opacity: 1;
+      bottom: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.72);
+      clip-path: polygon(0 100%, 100% 100%, 50% 0);
+      opacity: 0.92;
       pointer-events: none;
+      transition:
+        height 0.22s 0.12s ease-out,
+        opacity 0.22s ease;
     }
 
     .brand-link:last-child {
-      padding-right: 0;
       margin-right: 0;
     }
 
-    .brand-link:last-child::after {
-      content: "";
-    }
-
-    .brand-link:hover {
-      color: var(--gm-hover);
+    .brand-link:hover,
+    .brand-link.is-open,
+    .brand-link.is-closing {
+      background: var(--tab-hover);
+      color: var(--tab-ink);
       opacity: 1;
-      transform: translateY(-1px);
+      box-shadow: 0 1rem 1.75rem rgba(168, 107, 141, 0.1);
     }
 
-    .brand-link:hover::before {
-      transform: scaleX(1);
+    .brand-link:hover,
+    .brand-link.is-open {
+      transform: translateY(-0.25rem);
+    }
+
+    .brand-link.is-closing {
+      transform: translateY(-0.25rem);
+    }
+
+    .brand-link:hover::before,
+    .brand-link.is-open::before,
+    .brand-link.is-closing::before {
+      background: var(--tab-drop-hover);
+      height: 0;
+      opacity: 0;
+      animation: none;
+    }
+
+    .brand-link:hover::after,
+    .brand-link.is-open::after,
+    .brand-link.is-closing::after {
+      height: 0;
     }
 
     .brand-link:active {
+      transform: translateY(-0.125rem);
+      opacity: 0.78;
+    }
+
+    .brand-link-dropdown {
+      --dropdown-tail: 1.125rem;
+
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      z-index: 2;
+      display: grid;
+      gap: 0;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+      background: var(--tab-drop-bg);
+      color: var(--tab-ink);
+      box-shadow: 0 1.125rem 1.75rem rgba(168, 107, 141, 0.08);
+      opacity: 0;
+      transform: translateY(0) scaleY(0);
+      transform-origin: center top;
+      pointer-events: none;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% calc(100% - var(--dropdown-tail)),
+        50% 100%,
+        0 calc(100% - var(--dropdown-tail))
+      );
+      transition:
+        height 0.52s cubic-bezier(.22,.72,.24,1),
+        padding 0.52s cubic-bezier(.22,.72,.24,1),
+        background-color 0.24s ease,
+        opacity 0.32s ease,
+        transform 0.52s cubic-bezier(.22,.72,.24,1);
+    }
+
+    .brand-link.is-open .brand-link-dropdown {
+      height: var(--dropdown-height, 9.75rem);
+      padding: 0.625rem 0 2.375rem;
+      background: var(--tab-drop-hover);
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+      pointer-events: auto;
+      animation: dropdownOpenBounce 0.96s cubic-bezier(.18,.9,.2,1) both;
+    }
+
+    .brand-link.is-closing .brand-link-dropdown {
+      height: 0;
+      padding: 0;
+      background: var(--tab-drop-hover);
+      opacity: 0;
+      transform: translateY(0) scaleY(0.02);
+      pointer-events: none;
+      animation: none;
+    }
+
+    .brand-link-dropdown-item {
+      display: block;
+      min-height: 2.625rem;
+      padding: 0.75rem 0.875rem;
+      font-size: 0.8125rem;
+      line-height: 1.28;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-align: center;
+      white-space: nowrap;
+      color: currentColor;
+      text-shadow:
+        0 0.0625rem 0 rgba(255, 255, 255, 0.5),
+        0 0 0.5rem rgba(255, 255, 255, 0.28);
+      opacity: 0;
+      transform: translateY(-0.375rem);
+      border-bottom: 0.0625rem solid rgba(92, 52, 74, 0.12);
+      transition:
+        opacity 0.34s ease,
+        transform 0.44s cubic-bezier(.2,.82,.24,1),
+        background-color 0.22s ease;
+    }
+
+    .brand-link-dropdown-item:hover {
+      background: rgba(92, 52, 74, 0.13);
+    }
+
+    .brand-link-dropdown-item:last-child {
+      border-bottom: 0;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item,
+    .brand-link.is-closing .brand-link-dropdown-item {
+      opacity: 1;
       transform: translateY(0);
-      opacity: 0.64;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item {
+      animation: dropdownItemPop 0.42s cubic-bezier(.18,.9,.2,1) both;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item:nth-child(1) {
+      animation-delay: 0.04s;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item:nth-child(2) {
+      animation-delay: 0.08s;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item:nth-child(3) {
+      animation-delay: 0.12s;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item:nth-child(4) {
+      animation-delay: 0.16s;
+    }
+
+    .brand-link.is-open .brand-link-dropdown-item:nth-child(5) {
+      animation-delay: 0.2s;
     }
 
     .brand-logo-wrap {
       grid-area: logo;
       width: 100%;
-      height: 118px;
+      height: 7.375rem;
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -309,21 +531,22 @@
 
     .brand-logo {
       display: block;
-      width: min(470px, 100%);
-      max-height: 126px;
+      width: min(29.375rem, 100%);
+      max-height: 7.875rem;
       object-fit: contain;
-      transform: translateX(6px) rotate(0deg);
+      transform: translateX(0.375rem) rotate(0deg);
       filter: none;
+      animation: none;
     }
 
     .brand-logo-placeholder {
       width: 100%;
-      max-width: 340px;
-      height: 88px;
+      max-width: 21.25rem;
+      height: 5.5rem;
       border: 0;
       display: grid;
       place-items: center;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 500;
       letter-spacing: 0.22em;
       opacity: 0.58;
@@ -335,27 +558,174 @@
       display: none !important;
     }
 
-    @media (max-width: 900px) {
+    @keyframes brandPanelBreath {
+      0%,
+      100% {
+        background-position:
+          0% 50%,
+          0 0,
+          0 0;
+      }
+
+      50% {
+        background-position:
+          100% 50%,
+          0 0,
+          0 0;
+      }
+    }
+
+    @keyframes copyBlockIn {
+      from {
+        opacity: 0;
+        transform: translateY(0.625rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes copyLineIn {
+      from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+        filter: blur(0.25rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes copyMainIn {
+      from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+        letter-spacing: 0.09em;
+        filter: blur(0.3125rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        letter-spacing: 0.04em;
+        filter: blur(0);
+      }
+    }
+
+    @keyframes linkRiseIn {
+      from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+        filter: blur(0.3125rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+
+    @keyframes dropdownOpenBounce {
+      0% {
+        transform: translateY(0) scaleY(0.02);
+      }
+
+      54% {
+        transform: translateY(0) scaleY(1.16);
+      }
+
+      74% {
+        transform: translateY(0) scaleY(0.97);
+      }
+
+      100% {
+        transform: translateY(0) scaleY(1);
+      }
+    }
+
+    @keyframes dropdownCloseBounce {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+      }
+
+      24% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1.06);
+      }
+
+      72% {
+        opacity: 0.92;
+        transform: translateY(0) scaleY(0.18);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(0) scaleY(0.02);
+      }
+    }
+
+    @keyframes dropdownItemPop {
+      0% {
+        opacity: 0;
+        transform: translateY(-0.5rem) scale(0.96);
+      }
+
+      70% {
+        opacity: 1;
+        transform: translateY(0.0625rem) scale(1.025);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .brand-bar,
+      .shop-copy,
+      .shop-eyebrow,
+      .shop-message,
+      .shop-subline,
+      .brand-link,
+      .brand-link::before,
+      .brand-link-dropdown,
+      .brand-link-dropdown-item,
+      .brand-logo {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 56.25em) {
       .brand-bar {
-        grid-template-columns: minmax(0, 1fr) 220px;
+        grid-template-columns: minmax(0, 1fr) 13.75rem;
         grid-template-areas:
           "copy logo"
-          "links logo";
-        gap: 18px 18px;
-        min-height: 152px;
-        padding: 22px 18px 20px;
+          "links links";
+        gap: 0.125rem 1.125rem;
+        min-height: 9.5rem;
+        padding: 1.375rem 1.125rem 1.25rem;
       }
 
       .brand-bar::before {
-        left: 18px;
-        right: 18px;
-        top: 16px;
+        left: 1.125rem;
+        right: 1.125rem;
+        top: 1rem;
       }
 
       .brand-bar::after {
-        left: 18px;
-        right: 18px;
-        bottom: 16px;
+        left: 1.125rem;
+        right: 1.125rem;
+        bottom: 1rem;
       }
 
       .shop-copy {
@@ -364,110 +734,129 @@
           "eyebrow"
           "main"
           "sub";
-        row-gap: 8px;
+        row-gap: 0.5rem;
+        max-width: 38.75rem;
+        padding-left: 1.125rem;
       }
 
       .shop-message {
-        font-size: clamp(24px, 3.4vw, 34px);
+        font-size: clamp(1.375rem, 3.2vw, 1.9375rem);
       }
 
       .shop-subline {
-        font-size: 12px;
-        max-width: 460px;
+        font-size: 0.75rem;
+        max-width: 32.5rem;
       }
 
       .brand-links {
-        padding-top: 10px;
+        margin-top: -0.25rem;
+        padding: 0.125rem 0.875rem 0;
+        transform: none;
       }
 
       .brand-link {
-        min-height: 32px;
-        font-size: clamp(15px, 1.8vw, 18px);
-        padding-right: 22px;
-        margin-right: 13px;
+        flex: 0 0 8.25rem;
+        width: 8.25rem;
+        min-height: 2.75rem;
+        font-size: clamp(0.6875rem, 1.6vw, 0.875rem);
+        padding: 0 0.75rem;
+        margin: 0 0.5rem 1rem 0;
       }
 
       .brand-link::before {
-        right: 22px;
-      }
-
-      .brand-link::after {
-        font-size: 16px;
+        right: 0;
       }
 
       .brand-logo-wrap {
-        height: 82px;
+        height: 5.125rem;
       }
 
       .brand-logo {
-        max-height: 90px;
-        width: min(270px, 100%);
-        transform: translateX(2px) rotate(0deg);
+        max-height: 5.625rem;
+        width: min(16.875rem, 100%);
+        transform: translateX(0.125rem) rotate(0deg);
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 40em) {
       .brand-bar {
         grid-template-columns: 1fr;
         grid-template-areas:
           "copy"
           "links"
           "logo";
-        gap: 14px;
+        gap: 0.5rem;
         min-height: auto;
-        padding: 18px 16px 16px;
+        padding: 1.125rem 1rem 1rem;
       }
 
-      .brand-bar::before {
-        left: 16px;
-        right: 16px;
-      }
-
+      .brand-bar::before,
       .brand-bar::after {
-        left: 16px;
-        right: 16px;
+        left: 1rem;
+        right: 1rem;
+      }
+
+      .shop-copy {
+        padding-left: 1rem;
+      }
+
+      .shop-copy::before {
+        width: 0.375rem;
+        height: 0.375rem;
+        top: 0.3125rem;
+      }
+
+      .shop-eyebrow {
+        font-size: 0.625rem;
+        letter-spacing: 0.18em;
+        padding: 0.375rem 0.5625rem 0.3125rem;
       }
 
       .shop-message {
-        font-size: clamp(21px, 7vw, 31px);
+        font-size: clamp(1.25rem, 6.2vw, 1.75rem);
+        line-height: 1.22;
       }
 
       .shop-subline {
         white-space: normal;
         max-width: none;
+        font-size: 0.75rem;
+        line-height: 1.65;
       }
 
       .brand-links {
-        row-gap: 8px;
+        row-gap: 0.5rem;
+        margin-top: -0.125rem;
+        padding: 0.125rem 0 0;
+        transform: none;
       }
 
       .brand-link {
-        min-height: 28px;
-        font-size: clamp(14px, 4.2vw, 18px);
-        padding-right: 18px;
-        margin-right: 10px;
+        flex: 0 0 8.625rem;
+        width: 8.625rem;
+        min-height: 2.75rem;
+        font-size: clamp(0.6875rem, 3.4vw, 0.875rem);
+        padding: 0 0.625rem;
+        margin: 0 0.5rem 1rem 0;
       }
 
       .brand-link::before {
-        right: 18px;
-      }
-
-      .brand-link::after {
-        font-size: 15px;
+        right: 0;
+        height: 0.5625rem;
       }
 
       .brand-logo-wrap {
         justify-content: flex-start;
-        height: 62px;
+        height: 3.875rem;
       }
 
       .brand-logo {
-        width: min(310px, 96%);
-        max-height: 72px;
+        width: min(19.375rem, 96%);
+        max-height: 4.5rem;
         transform: none;
       }
     }
-</style>
+  </style>
 </head>
 <body>
   <section class="brand-bar" id="brandBar">
@@ -502,14 +891,14 @@
       brand: "HELMETTY",
       brandPrefix: "he",
       brandLogo: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
-      colorBoxBg: "#ffe4e1",
-      colorBoxText: "#f00098",
-      colorBackBg: "#f8f9b3",
-      colorBackBorder: "#ffb8b8",
-      colorBackText: "#f98080",
-      colorButtonBg: "#ffe5e5",
-      colorButtonText: "#c71585",
-      colorButtonBorder: "#ff00c8",
+      colorBoxBg: "#fff1f0",
+      colorBoxText: "#ff8acb",
+      colorBackBg: "#fffbd1",
+      colorBackBorder: "#ffd6d6",
+      colorBackText: "#e89aaa",
+      colorButtonBg: "#fff6f6",
+      colorButtonText: "#e68ab8",
+      colorButtonBorder: "#ffc7ee",
       catchEyebrow: "HELMETTY ONLINE STORE",
       catchMain: "今日の足もとに、ちょっとした遊び心を。",
       catchSub: "かわいくて、気分が上がるシューズを集めました。",
@@ -524,6 +913,7 @@
 
     function postToParent(payload) {
       if (window.parent === window) return;
+
       window.parent.postMessage({
         channel: "PcBrandBoxHtml",
         ...payload
@@ -535,6 +925,7 @@
         const text = String(value || "").trim();
         if (text) return text;
       }
+
       return "";
     }
 
@@ -577,16 +968,85 @@
       document.documentElement.style.setProperty("--gm-hover", buttonText);
     }
 
+    function getDummyDropdownItems(action) {
+      const dummyMap = {
+        top: ["ABOUT", "CONCEPT", "LOOK"],
+        policy: ["SHIPPING", "PAYMENT", "RETURN", "SIZE"],
+        form: ["MAIL", "FAQ", "SUPPORT"],
+        notice: ["NEW", "RESTOCK", "EVENT", "SALE"],
+        link: ["ALL ITEMS", "NEW ARRIVAL", "RANKING", "CATEGORY", "SALE"],
+        insta: ["POST", "STORY", "REELS"]
+      };
+
+      return dummyMap[action] || ["DETAIL", "MORE"];
+    }
+
     function makeButton({ action, label, url }) {
       const normalizedUrl = String(url || "").trim();
       if (!normalizedUrl) return null;
 
       const link = document.createElement("a");
       link.className = "brand-link";
-      link.textContent = label;
       link.href = normalizedUrl;
       link.dataset.action = action;
       link.dataset.url = normalizedUrl;
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "brand-link-label";
+      labelEl.textContent = label;
+
+      const dropdown = document.createElement("span");
+      dropdown.className = "brand-link-dropdown";
+      dropdown.setAttribute("aria-hidden", "true");
+
+      const dropdownItems = getDummyDropdownItems(action);
+      const dropdownHeight = dropdownItems.length * 2.625 + 3.25;
+
+      link.style.setProperty("--dropdown-height", `${dropdownHeight}rem`);
+
+      dropdownItems.forEach((text) => {
+        const item = document.createElement("span");
+        item.className = "brand-link-dropdown-item";
+        item.textContent = text;
+        dropdown.appendChild(item);
+      });
+
+      let closeTimer = null;
+
+      function openMenu() {
+        if (closeTimer) {
+          window.clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+
+        link.classList.remove("is-closing");
+        link.classList.add("is-open");
+        dropdown.setAttribute("aria-hidden", "false");
+      }
+
+      function closeMenu() {
+        if (closeTimer) {
+          window.clearTimeout(closeTimer);
+        }
+
+        link.classList.remove("is-open");
+        link.classList.add("is-closing");
+        dropdown.setAttribute("aria-hidden", "true");
+
+        closeTimer = window.setTimeout(() => {
+          link.classList.remove("is-closing");
+          closeTimer = null;
+        }, 520);
+      }
+
+      link.appendChild(labelEl);
+      link.appendChild(dropdown);
+
+      link.addEventListener("mouseenter", openMenu);
+      link.addEventListener("mouseleave", closeMenu);
+
+      link.addEventListener("focus", openMenu);
+      link.addEventListener("blur", closeMenu);
 
       link.addEventListener("click", (event) => {
         event.preventDefault();
@@ -602,48 +1062,6 @@
       });
 
       return link;
-    }
-
-    function bindInteractiveGlow(root) {
-      if (!root) return;
-
-      root.addEventListener("pointermove", (event) => {
-        const rect = root.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 100;
-        const y = ((event.clientY - rect.top) / rect.height) * 100;
-
-        root.style.setProperty("--pointer-x", `${x}%`);
-        root.style.setProperty("--pointer-y", `${y}%`);
-      });
-
-      root.addEventListener("pointerleave", () => {
-        root.style.setProperty("--pointer-x", "72%");
-        root.style.setProperty("--pointer-y", "50%");
-      });
-    }
-
-    function bindButtonGlow(scope) {
-      if (!scope) return;
-
-      scope.addEventListener("pointermove", (event) => {
-        const link = event.target.closest(".brand-link");
-        if (!link) return;
-
-        const scopeRect = scope.getBoundingClientRect();
-        const linkRect = link.getBoundingClientRect();
-
-        const scopeX = ((event.clientX - scopeRect.left) / scopeRect.width) * 100;
-        const x = ((event.clientX - linkRect.left) / linkRect.width) * 100;
-        const y = ((event.clientY - linkRect.top) / linkRect.height) * 100;
-
-        scope.style.setProperty("--trail-x", `${scopeX}%`);
-        link.style.setProperty("--local-x", `${x}%`);
-        link.style.setProperty("--local-y", `${y}%`);
-      });
-
-      scope.addEventListener("pointerleave", () => {
-        scope.style.setProperty("--trail-x", "0%");
-      });
     }
 
     function renderLinks(payload) {
@@ -736,8 +1154,6 @@
     });
 
     render(defaultPayload);
-    bindInteractiveGlow(brandBar);
-    bindButtonGlow(brandLinks);
 
     postToParent({
       type: "ready"

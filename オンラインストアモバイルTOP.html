@@ -72,6 +72,8 @@
 
             --layout-center-x: 50%;
             --layout-center-y: 50%;
+
+            --bottom-bar-guard: calc(env(safe-area-inset-bottom, 0px) + calc(180 * var(--ry)));
         }
 
 
@@ -87,6 +89,9 @@
             max-width: 100%;
             overflow-x: hidden;
             position: relative;
+            overscroll-behavior-x: none;
+            overscroll-behavior-y: none;
+            overscroll-behavior: none;
         }
 
         html.is-modal-open,
@@ -434,7 +439,7 @@
 
         .hero-scroll-down {
             position: absolute;
-            bottom: calc(20 * var(--ry));
+            bottom: calc(150 * var(--ry));
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -1151,7 +1156,7 @@
             padding:
                 calc(60 * var(--ry))
                 calc(16 * var(--rx))
-                calc(30 * var(--ry));
+                calc(calc(30 * var(--ry)) + var(--bottom-bar-guard));
             text-align: center;
             width: 100%;
         }
@@ -2554,7 +2559,7 @@
                 <div class="explore-btn">TAP</div>
             </div>
 
-            <div class="brand-card" data-brand="nagomitsuki" data-index="3">
+            <div class="brand-card" data-brand="nagomitsuki" data-index="3" style="display: none;">
                 <div class="brand-img-wrap"><img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=800&h=1000&q=80" alt="NAGOMITSUKI"></div>
                 <div class="brand-bg"></div>
                 <div class="brand-info">
@@ -2565,7 +2570,7 @@
                 <div class="explore-btn">TAP</div>
             </div>
 
-            <div class="brand-card" data-brand="metro" data-index="4">
+            <div class="brand-card" data-brand="metro" data-index="4" style="display: none;">
                 <div class="brand-img-wrap"><img src="https://picsum.photos/seed/metro/800/1000" alt="METRO"></div>
                 <div class="brand-bg"></div>
                 <div class="brand-info">
@@ -2575,7 +2580,7 @@
                 <div class="explore-btn">TAP</div>
             </div>
 
-            <div class="brand-card" data-brand="aura" data-index="5">
+            <div class="brand-card" data-brand="aura" data-index="5" style="display: none;">
                 <div class="brand-img-wrap"><img src="https://picsum.photos/seed/aura/800/1000" alt="AURA"></div>
                 <div class="brand-bg"></div>
                 <div class="brand-info">
@@ -2653,7 +2658,7 @@
                 <div class="t-thumb"><img src="https://picsum.photos/seed/arc1/400/500?grayscale" alt="Thumb"></div>
                 <div class="t-text">
                     <span class="t-meta">2025 SPRING / SUMMER</span>
-                    <h3 class="t-title">AWAKENING - 覚醒</h3>
+                    <h3 class="t-title">THE FIRST ORIGIN - 始動</h3>
                 </div>
             </a>
 
@@ -2661,23 +2666,23 @@
                 <div class="t-thumb"><img src="https://picsum.photos/seed/arc2/400/500?grayscale" alt="Thumb"></div>
                 <div class="t-text">
                     <span class="t-meta">2024 AUTUMN / WINTER</span>
-                    <h3 class="t-title">THE FIRST ORIGIN - 始動</h3>
+                    <h3 class="t-title">HELMETTY、LINKSHOP COLLECTION に登場</h3>
                 </div>
             </a>
 
             <a href="javascript:void(0);" class="thumb-list-item" data-brand="arc3">
                 <div class="t-thumb"><img src="https://picsum.photos/seed/arc3/400/500?grayscale" alt="Thumb"></div>
                 <div class="t-text">
-                    <span class="t-meta">2024 SPECIAL EDITION</span>
-                    <h3 class="t-title">AURA × METRO CAPSULE</h3>
+                    <span class="t-meta">2024 SUMMER</span>
+                    <h3 class="t-title">Rasiːm、LINKSHOP COLLECTION に登場</h3>
                 </div>
             </a>
 
             <a href="javascript:void(0);" class="thumb-list-item" data-brand="arc4">
                 <div class="t-thumb"><img src="https://picsum.photos/seed/arc4/400/500?grayscale" alt="Thumb"></div>
                 <div class="t-text">
-                    <span class="t-meta">2023 ARCHIVE EXHIBITION</span>
-                    <h3 class="t-title">PRE-LAUNCH VISUALS</h3>
+                    <span class="t-meta">2024 SPRING</span>
+                    <h3 class="t-title">HATODAIYA、LINKSHOP COLLECTION に登場</h3>
                 </div>
             </a>
         </div>
@@ -2751,6 +2756,46 @@
 
         setRealViewport();
 
+        let scrollChainStartY = 0;
+
+        function preventScrollChainToParent(event) {
+            if (!event.touches || event.touches.length !== 1) return;
+
+            const currentY = event.touches[0].clientY;
+            const deltaY = currentY - scrollChainStartY;
+            const scrollingElement = document.scrollingElement || document.documentElement;
+            const scrollTop = scrollingElement.scrollTop;
+            const scrollHeight = scrollingElement.scrollHeight;
+            const clientHeight = scrollingElement.clientHeight;
+            const isAtTop = scrollTop <= 0;
+            const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+            if ((isAtTop && deltaY > 0) || (isAtBottom && deltaY < 0)) {
+                event.preventDefault();
+            }
+        }
+
+        function preventWheelChainToParent(event) {
+            const scrollingElement = document.scrollingElement || document.documentElement;
+            const scrollTop = scrollingElement.scrollTop;
+            const scrollHeight = scrollingElement.scrollHeight;
+            const clientHeight = scrollingElement.clientHeight;
+            const isAtTop = scrollTop <= 0;
+            const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+            if ((isAtTop && event.deltaY < 0) || (isAtBottom && event.deltaY > 0)) {
+                event.preventDefault();
+            }
+        }
+
+        document.addEventListener('touchstart', (event) => {
+            if (!event.touches || event.touches.length !== 1) return;
+            scrollChainStartY = event.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', preventScrollChainToParent, { passive: false });
+        document.addEventListener('wheel', preventWheelChainToParent, { passive: false });
+
         window.addEventListener('resize', setRealViewport);
         window.addEventListener('orientationchange', () => {
             setTimeout(setRealViewport, 300);
@@ -2784,7 +2829,7 @@
             setTimeout(() => {
                 document.querySelector('.hero-bg').classList.add('is-loaded');
                 document.querySelector('.hero-scroll-down').classList.add('is-visible');
-            }, 2000);
+            }, 4000);
         }
 
         let hasStartedHeroAnimation = false;
@@ -2989,6 +3034,8 @@
         });
 
         gsap.utils.toArray('.brand-card').forEach(card => {
+            if (getComputedStyle(card).display === 'none') return;
+
             ScrollTrigger.create({
                 trigger: card,
                 start: "top 55%",
@@ -3305,6 +3352,10 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
             const data = galleryData[brandId];
             if (!data) return;
 
+            window.parent.postMessage({
+                type: 'lockParentScrollTop'
+            }, '*');
+
             // PC版のロジックに合わせ、アーカイブモードのクラス切り替えを追加
             if (isArchive) {
                 modal.classList.add('is-archive-mode');
@@ -3513,6 +3564,58 @@ window.parent.postMessage({
             }
         }
 
+        function centerBrandCardAtLayoutCenter(card) {
+            if (!card) return;
+
+            requestAnimationFrame(() => {
+                const rect = card.getBoundingClientRect();
+                const currentScrollY = window.scrollY || window.pageYOffset || 0;
+                const centerValue = getComputedStyle(document.documentElement).getPropertyValue('--layout-center-y').trim();
+
+                let targetY = window.innerHeight * 0.5;
+
+                if (centerValue.endsWith('%')) {
+                    targetY = window.innerHeight * (parseFloat(centerValue) / 100);
+                } else if (centerValue.endsWith('px')) {
+                    targetY = parseFloat(centerValue);
+                }
+
+                const cardCenterY = rect.top + (rect.height / 2);
+                const nextScrollY = currentScrollY + cardCenterY - targetY;
+
+                window.scrollTo({
+                    top: Math.max(0, nextScrollY),
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        function centerBrandCardAtLayoutCenter(card) {
+            if (!card) return;
+
+            const rect = card.getBoundingClientRect();
+            const currentScrollY = window.scrollY || window.pageYOffset || 0;
+            const centerValue = getComputedStyle(document.documentElement).getPropertyValue('--layout-center-y').trim();
+
+            let targetY = window.innerHeight * 0.5;
+
+            if (centerValue.endsWith('%')) {
+                targetY = window.innerHeight * (parseFloat(centerValue) / 100);
+            } else if (centerValue.endsWith('px')) {
+                targetY = parseFloat(centerValue);
+            }
+
+            const cardCenterY = rect.top + (rect.height / 2);
+            const nextScrollY = currentScrollY + cardCenterY - targetY;
+
+            window.scrollTo({
+                top: Math.max(0, nextScrollY),
+                left: 0,
+                behavior: 'auto'
+            });
+        }
+
         // ✨ 変更：PC版と同じ関数名（closeBrandModal）に変更
         function closeBrandModal() {
             const activeBrand = modal ? modal.getAttribute('data-active-brand') : '';
@@ -3540,14 +3643,25 @@ window.parent.postMessage({
             // ✨ 追加：閉じる時にタイトルを散らし、元のカードの文字へAssembleさせる
             play3DScatter(modalTitle);
             if(currentActiveCard) {
-                const cardNameElement = currentActiveCard.querySelector('.brand-name');
-                if(cardNameElement) play3DAssemble(cardNameElement);
+                const activeCard = currentActiveCard;
+                const cardNameElement = activeCard.querySelector('.brand-name');
+
+                unlockModalScroll();
+                centerBrandCardAtLayoutCenter(activeCard);
+
+                if(cardNameElement) {
+                    requestAnimationFrame(() => {
+                        play3DAssemble(cardNameElement);
+                    });
+                }
                 
                 // 追加: スクロールやホバー維持のロック解除を3秒遅らせる
                 setTimeout(() => {
                     currentActiveCard = null;
-                    // 変更: 文字が集結し終わった3秒後にスクロールロックを解除する
-                    unlockModalScroll();
+
+                    window.parent.postMessage({
+                        type: 'unlockParentScrollTop'
+                    }, '*');
                 }, 3000);
             }
 
@@ -3563,6 +3677,10 @@ window.parent.postMessage({
                     // 変更: アーカイブなどアニメーションがない場合はすぐにロック解除する
                     if (!currentActiveCard) {
                         unlockModalScroll();
+
+                        window.parent.postMessage({
+                            type: 'unlockParentScrollTop'
+                        }, '*');
                     }
                 }
             });
@@ -3578,6 +3696,10 @@ window.parent.postMessage({
             card.addEventListener('click', () => {
                 currentActiveCard = card;
 
+                window.parent.postMessage({
+                    type: 'lockParentScrollTop'
+                }, '*');
+
                 // 変更: アニメーション中に親がスライド（スクロール）しないように、クリックした瞬間にロックをかける
                 setRealViewport();
                 lockModalScroll();
@@ -3592,10 +3714,17 @@ window.parent.postMessage({
             });
         });
 
-        document.querySelectorAll('.archive-panel[data-brand], .thumb-list-item[data-brand]').forEach(item => {
+        document.querySelectorAll('.archive-panel[data-brand]').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault(); // デフォルトのジャンプを防ぐ
                 openBrandModal(item.getAttribute('data-brand'), true); // true でアーカイブモードとして開く
+            });
+        });
+
+        document.querySelectorAll('.thumb-list-item[data-brand]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault(); // デフォルトのジャンプを防ぐ
+                // openBrandModal(item.getAttribute('data-brand'), true); // true でアーカイブモードとして開く
             });
         });
 

@@ -16,21 +16,6 @@ import {
   BRAND_CONFIG,
   CheckoutSectionId,
   MobileCloseButtonId,
-  MobileCheckoutButtonId,
-  MobileSubtotalPriceId,
-  MobileShippingPriceId,
-  MobileDiscountPriceId,
-  MobileTotalPriceId,
-  MobileCartRepeaterId,
-  MCImgId,
-  MCNameId,
-  MCColorId,
-  MCSizeId,
-  MCPriceId,
-  MCPlusId,
-  MCMinId,
-  MCQtyId,
-  MCDeleteId,
   cartHideTargets as __cartHideTargets,
   formatYen,
   toHtmlImageSrc,
@@ -60,7 +45,7 @@ import {
   buildGalleryStateFromProducts
 } from "public/shop/gallery/G1G2.js";
 
-
+const cartHideTargets = __cartHideTargets.filter((id) => id !== "#mobileBlankSection");
 
 let __cartSnapshot = null;
 let __cartFetchPromise = null;
@@ -95,6 +80,7 @@ let isMobile;
 let productNameID; // グローバル変数として定義
 let description;   // グローバル変数として定義
 let menuOpen = false; // メニュー開閉状態
+let mobileMenuBeforeState = null;
 let mobileViewAlt = false; // モバイル用：false=1枚目, true=2枚目
 
 // ギャラリー配列（hover最適化：通常/hoverを事前生成して使い回し）
@@ -210,6 +196,7 @@ let currentG1G2BrandKey = "";
 let currentG1G2ShopKey = "";
 let currentG1G2AllValue = "false";
 let currentG1G2HideBrandSelect = false;
+let currentG1G2BrandSelectBrands = [];
 
 const PREVIEW_SHOP_FALLBACK = {
   brand: "HELMETTY",
@@ -217,13 +204,12 @@ const PREVIEW_SHOP_FALLBACK = {
   all: "false"
 };
 
-let __pcBrandBoxPayload = null;
 
 // ======================================================
 // G1/G2 強制 HELMETTY モード
 // いったん G1G2 を HELMETTY 固定にする
 // ======================================================
-const FORCE_G1G2_HELMETTY_MODE = true;
+const FORCE_G1G2_HELMETTY_MODE = false;
 const FORCE_G1G2_BRAND_KEY = "HELMETTY";
 const FORCE_G1G2_SHOP_KEY = "HELMETTY";
 const FORCE_G1G2_ALL_VALUE = "false";
@@ -283,7 +269,19 @@ function normalizeCategoryKeyByPrefix(rawCategoryKey, prefixValue) {
 }
 
 function getActiveCartUiHtml() {
-  return isMobile ? $w("#MobileCartUiHtml") : $w("#CartUiHtml");
+  return isMobile ? $w("#MobileCombinedHtml") : $w("#CartUiHtml");
+}
+
+function postMobileMainGalleryMessage(message) {
+  if (!isMobile) return;
+
+  const html = $w("#mobilemainGalleryHtml");
+  if (!html || typeof html.postMessage !== "function") {
+    console.warn("[G1G2][mobilemainGalleryHtml] not found or postMessage unsupported");
+    return;
+  }
+
+  html.postMessage(message);
 }
 
 function setPurchaseResponse(text) {
@@ -351,75 +349,129 @@ if (data.type === "purchaseBuyNow") {
   });
 }
 
-function postPcBrandBoxPayload() {
-  if (isMobile) return;
+let __mobileCombinedHeightTimer = null;
+let __mobileCombinedLastHeight = 0;
+let __mobileScreenMode = "g1g2";
 
-  const html = $w("#PcBrandBoxHtml");
-  if (!html || typeof html.postMessage !== "function") return;
-  if (!__pcBrandBoxPayload) return;
+function setupMobileCombinedHtmlMetrics() {
+  if (!isMobile) return;
 
-  html.postMessage({
-    type: "brandBoxData",
-    payload: __pcBrandBoxPayload
-  });
-}
-
-function pushPcBrandBoxHtml(brandSettingsItem = {}, fallbackBrand = "") {
-  if (isMobile) return;
-
-  __pcBrandBoxPayload = {
-    brand: String(brandSettingsItem.brand || fallbackBrand || ""),
-    brandPrefix: String(brandSettingsItem.brandPrefix || ""),
-    brandLogoUrl: currentBrandLogoUrl || toHtmlImageSrc(brandSettingsItem.brandLogo),
-
-    linkTop: String(brandSettingsItem.linkTop || ""),
-    linkPolicy: String(brandSettingsItem.linkPolicy || ""),
-    linkForm: String(brandSettingsItem.linkForm || ""),
-    linkNotice: String(brandSettingsItem.linkNotice || ""),
-    linkLink: String(brandSettingsItem.linkLink || ""),
-    linkInsta: String(brandSettingsItem.linkInsta || ""),
-    instaLinkUrl: String(brandSettingsItem.instaLink || ""),
-
-    colorBoxBg: String(brandSettingsItem.colorBoxBg || ""),
-    colorBoxText: String(brandSettingsItem.colorBoxText || ""),
-    colorButtonBg: String(brandSettingsItem.colorButtonBg || ""),
-    colorButtonText: String(brandSettingsItem.colorButtonText || ""),
-    colorButtonBorder: String(brandSettingsItem.colorButtonBorder || ""),
-
-    boxTop: String(brandSettingsItem.boxTop || ""),
-    boxPolicy: String(brandSettingsItem.boxPolicy || ""),
-    boxForm: String(brandSettingsItem.boxForm || ""),
-    boxNotice: String(brandSettingsItem.boxNotice || ""),
-    boxLink: String(brandSettingsItem.boxLink || ""),
-    instaLink: "Instagram"
-  };
-
-  postPcBrandBoxPayload();
-}
-
-function setupPcBrandBoxHtml() {
-  if (isMobile) return;
-
-  const html = $w("#PcBrandBoxHtml");
+  const html = $w("#MobileCombinedHtml");
   if (!html || typeof html.onMessage !== "function") return;
 
   html.onMessage((event) => {
     const data = event?.data;
     if (!data || typeof data !== "object") return;
+    if (data.type !== "mobileCombinedViewportMetrics") return;
 
-    if (data.type === "ready") {
-      postPcBrandBoxPayload();
+    const payload = data.payload || {};
+    const contentHeight = Number(payload.contentHeight || 0);
+
+    if (!contentHeight) return;
+
+    const targetHeight = Math.round(
+      Math.max(
+        420,
+        Math.min(12000, contentHeight)
+      )
+    );
+
+    if (Math.abs(targetHeight - __mobileCombinedLastHeight) < 8) {
       return;
     }
 
-    if (data.type === "brandBoxClick") {
-      const url = String(data.url || "").trim();
-      if (!url) return;
+    __mobileCombinedLastHeight = targetHeight;
 
-      wixLocation.to(url);
+    if (__mobileCombinedHeightTimer) {
+      clearTimeout(__mobileCombinedHeightTimer);
     }
+
+    __mobileCombinedHeightTimer = setTimeout(() => {
+      try {
+        if (__mobileScreenMode !== "combined") return;
+
+        html.height = targetHeight;
+
+        console.log("[MobileCombinedHtml][height applied]", {
+          targetHeight,
+          contentHeight,
+          payload
+        });
+      } catch (e) {
+        console.error("[MobileCombinedHtml][height apply failed]", e);
+      }
+    }, 80);
+
   });
 }
+
+
+
+let __mobileMainGalleryHeightTimer = null;
+let __mobileMainGalleryLastHeight = 0;
+
+function setupMobileMainGalleryHtmlMetrics() {
+  if (!isMobile) return;
+
+  const html = $w("#mobilemainGalleryHtml");
+  if (!html || typeof html.onMessage !== "function") return;
+
+  html.onMessage((event) => {
+    const data = event?.data;
+    if (!data || typeof data !== "object") return;
+    if (data.type !== "mobileMainGalleryMetrics") return;
+
+    const payload = data.payload || {};
+    const contentHeight = Number(payload.contentHeight || 0);
+
+    if (!contentHeight) return;
+
+    const targetHeight = Math.round(
+      Math.max(
+        80,
+        Math.min(12000, contentHeight)
+      )
+    );
+
+    if (Math.abs(targetHeight - __mobileMainGalleryLastHeight) < 8) {
+      return;
+    }
+
+    __mobileMainGalleryLastHeight = targetHeight;
+
+    if (__mobileMainGalleryHeightTimer) {
+      clearTimeout(__mobileMainGalleryHeightTimer);
+    }
+
+    __mobileMainGalleryHeightTimer = setTimeout(() => {
+      try {
+        html.height = targetHeight;
+
+        console.log("[mobilemainGalleryHtml][height applied]", {
+          targetHeight,
+          contentHeight,
+          payload
+        });
+
+        setTimeout(async () => {
+          if (!isMobile) return;
+          if (__mobileScreenMode !== "g1g2") return;
+          if (menuOpen) return;
+
+          const section = $w("#G1G2GallerySection");
+          if (!section || typeof section.scrollTo !== "function") return;
+
+          if (typeof section.collapsed === "boolean" && section.collapsed) return;
+
+          await section.scrollTo();
+        }, 120);
+      } catch (e) {
+        console.error("[mobilemainGalleryHtml][height apply failed]", e);
+      }
+    }, 80);
+  });
+}
+
 
 function pushCatalogInfo() {
   if ($w("#catalogInfoHtml") && typeof $w("#catalogInfoHtml").postMessage === "function") {
@@ -471,7 +523,7 @@ console.log("PC送信currentBrandText", currentBrandText);
 
 function postMobileCatalogTitleFromItem(item) {
   if (!isMobile) return;
-  if (!$w("#MobileCatalogTitleHtml") || typeof $w("#MobileCatalogTitleHtml").postMessage !== "function") return;
+  if (!$w("#MobileCombinedHtml") || typeof $w("#MobileCombinedHtml").postMessage !== "function") return;
   if (!item) return;
 
   const fallbackItem = galleryNormalItems.find(g =>
@@ -492,17 +544,19 @@ function postMobileCatalogTitleFromItem(item) {
 payload: {
   brandText: currentBrandText || item.brandText || "",
   titleText: title,
-  priceText: price
+  priceText: price,
+  colorHtml: item.colorHtml || currentColorHtml || ""
 }
   };
 
-  console.log("[SEND][MobileCatalogTitleHtml] raw item =", item);
-  console.log("[SEND][MobileCatalogTitleHtml] fallbackItem =", fallbackItem);
-  console.log("[SEND][MobileCatalogTitleHtml] title =", title);
-  console.log("[SEND][MobileCatalogTitleHtml] price =", price);
-  console.log("[SEND][MobileCatalogTitleHtml] message =", message);
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] raw item =", item);
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] fallbackItem =", fallbackItem);
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] title =", title);
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] price =", price);
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] colorHtml =", item.colorHtml || currentColorHtml || "");
+  console.log("[SEND][MobileCombinedHtml][catalogInfo] message =", message);
 
-  $w("#MobileCatalogTitleHtml").postMessage(message);
+  $w("#MobileCombinedHtml").postMessage(message);
 }
 
 function pushMainImages(items = []) {
@@ -523,8 +577,9 @@ function pushMainImages(items = []) {
     selectedBrand: currentG1G2BrandKey,
     shop: currentG1G2ShopKey,
     all: currentG1G2AllValue,
-    hideBrandSelect: false,
-    showBrandSelect: true,
+    hideBrandSelect: currentG1G2HideBrandSelect,
+    showBrandSelect: !currentG1G2HideBrandSelect,
+    brands: currentG1G2BrandSelectBrands,
     brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
       value: key,
       label: BRAND_CONFIG[key]?.mbBrandText || key
@@ -540,8 +595,9 @@ function pushMainImages(items = []) {
     selectedBrand: currentG1G2BrandKey,
     shop: currentG1G2ShopKey,
     all: currentG1G2AllValue,
-    hideBrandSelect: false,
-    showBrandSelect: true,
+    hideBrandSelect: currentG1G2HideBrandSelect,
+    showBrandSelect: !currentG1G2HideBrandSelect,
+    brands: currentG1G2BrandSelectBrands,
     brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
       value: key,
       label: BRAND_CONFIG[key]?.mbBrandText || key
@@ -560,7 +616,7 @@ function pushMainImages(items = []) {
 function pushMobileMainImages(items) {
   if (!isMobile) return;
 
-  if ($w("#MobileMainImageHtml") && typeof $w("#MobileMainImageHtml").postMessage === "function") {
+  if ($w("#MobileCombinedHtml") && typeof $w("#MobileCombinedHtml").postMessage === "function") {
     const mobileItems = Array.isArray(items)
       ? items.map(item => {
           const title = String(item?.title || "");
@@ -584,13 +640,140 @@ function pushMobileMainImages(items) {
         })
       : [];
 
-    console.log("[MobileMainImageHtml][first item check]", mobileItems[0]);
+    console.log("[MobileCombinedHtml][setGalleryItems][first item check]", mobileItems[0]);
 
-    $w("#MobileMainImageHtml").postMessage({
+    $w("#MobileCombinedHtml").postMessage({
       type: "setGalleryItems",
       items: mobileItems
     });
   }
+}
+
+function postG2OpenItemToMobileCombinedHtml(item) {
+  if (!isMobile) return;
+
+  const html = $w("#MobileCombinedHtml");
+  if (!html || typeof html.postMessage !== "function") {
+    console.warn("[G2->MobileCombinedHtml] #MobileCombinedHtml not found or postMessage unsupported");
+    return;
+  }
+
+  if (!item) return;
+
+  const clickedProductId = String(item.productId || "").trim();
+  const clickedSlug = String(item.slug || "").toLowerCase().trim();
+  const clickedTitle = String(item.title || "").trim();
+
+  const matchedGalleryItem = galleryNormalItems.find(galleryItem =>
+    (clickedProductId && String(galleryItem.productId || "").trim() === clickedProductId) ||
+    (clickedSlug && String(galleryItem.slug || "").toLowerCase().trim() === clickedSlug) ||
+    (clickedTitle && String(galleryItem.title || "").trim() === clickedTitle)
+  ) || null;
+
+  const title = String(
+    matchedGalleryItem?.title ||
+    item?.title ||
+    ""
+  );
+
+  const lastSpaceIndex = title.lastIndexOf(" ");
+  const extractedText = lastSpaceIndex >= 0 ? title.substring(lastSpaceIndex + 1) : title;
+
+  const hoverItem = galleryHoverItems.find(h =>
+    (clickedProductId && String(h.productId || "").trim() === clickedProductId) ||
+    (clickedSlug && String(h.slug || "").toLowerCase().trim() === clickedSlug) ||
+    (clickedTitle && String(h.title || "").trim() === clickedTitle)
+  ) || {};
+
+  const selectedSrc =
+    matchedGalleryItem?.src ||
+    matchedGalleryItem?.originalImage ||
+    matchedGalleryItem?.image ||
+    item.src ||
+    item.originalImage ||
+    item.image ||
+    "";
+
+  const selectedOriginalImage =
+    matchedGalleryItem?.originalImage ||
+    matchedGalleryItem?.src ||
+    matchedGalleryItem?.image ||
+    item.originalImage ||
+    item.src ||
+    item.image ||
+    selectedSrc;
+
+  const selectedHoverImage =
+    matchedGalleryItem?.hoverImage ||
+    item.hoverImage ||
+    hoverItem.hoverImage ||
+    hoverItem.src ||
+    hoverItem.originalImage ||
+    null;
+
+  const combinedItem = {
+    ...(matchedGalleryItem || {}),
+    ...item,
+    src: selectedSrc,
+    originalImage: selectedOriginalImage,
+    image: selectedSrc,
+    hoverImage: selectedHoverImage,
+    title,
+    productId: String(
+      matchedGalleryItem?.productId ||
+      item.productId ||
+      ""
+    ),
+    slug: String(
+      matchedGalleryItem?.slug ||
+      item.slug ||
+      ""
+    ),
+    brandText: currentBrandText || item.brandText || item.brand || matchedGalleryItem?.brandText || matchedGalleryItem?.brand || "",
+    productNoText: currentProductNoText || item.productNoText || matchedGalleryItem?.productNoText || "",
+    colorHtml: item.colorHtml || currentColorHtml || matchedGalleryItem?.colorHtml || `<div style="font-size: 18px;">${extractedText}</div>`,
+    priceText: item.priceText || item.priceTaxIn || item.formattedPrice || item.price || matchedGalleryItem?.priceText || matchedGalleryItem?.priceTaxIn || matchedGalleryItem?.formattedPrice || matchedGalleryItem?.price || ""
+  };
+
+  const hasCombinedImage = !!(
+    combinedItem.src ||
+    combinedItem.originalImage ||
+    combinedItem.image
+  );
+
+  const combinedItems = hasCombinedImage
+    ? [
+        combinedItem,
+        ...galleryNormalItems.filter(galleryItem =>
+          !(
+            (combinedItem.productId && String(galleryItem.productId || "") === String(combinedItem.productId || "")) ||
+            (combinedItem.slug && String(galleryItem.slug || "").toLowerCase().trim() === String(combinedItem.slug || "").toLowerCase().trim()) ||
+            (combinedItem.title && String(galleryItem.title || "").trim() === String(combinedItem.title || "").trim())
+          )
+        )
+      ]
+    : galleryNormalItems.slice();
+
+  console.log("[G2->MobileCombinedHtml] clicked item =", item);
+  console.log("[G2->MobileCombinedHtml] matchedGalleryItem =", matchedGalleryItem);
+  console.log("[G2->MobileCombinedHtml] combinedItem =", combinedItem);
+  console.log("[G2->MobileCombinedHtml] hasCombinedImage =", hasCombinedImage);
+  console.log("[G2->MobileCombinedHtml] combinedItems length =", combinedItems.length);
+
+  html.postMessage({
+    type: "catalogInfo",
+    payload: {
+      brandText: currentBrandText || combinedItem.brandText || "",
+      titleText: String(combinedItem.titleText || combinedItem.title || ""),
+      priceText: String(combinedItem.priceText || combinedItem.priceTaxIn || combinedItem.formattedPrice || combinedItem.price || ""),
+      colorHtml: String(combinedItem.colorHtml || currentColorHtml || "")
+    }
+  });
+
+  html.postMessage({
+    type: "setGalleryItems",
+    items: combinedItems
+  });
 }
 
 function pushInitialPreviewImageDirect(item) {
@@ -627,12 +810,12 @@ function pushInitialPreviewImageDirect(item) {
   };
 
   const sendMobile = () => {
-    if ($w("#MobileMainImageHtml") && typeof $w("#MobileMainImageHtml").postMessage === "function") {
+    if ($w("#MobileCombinedHtml") && typeof $w("#MobileCombinedHtml").postMessage === "function") {
       const title = String(item?.title || "");
       const lastSpaceIndex = title.lastIndexOf(" ");
       const extractedText = lastSpaceIndex >= 0 ? title.substring(lastSpaceIndex + 1) : title;
 
-      $w("#MobileMainImageHtml").postMessage({
+      $w("#MobileCombinedHtml").postMessage({
         type: "setGalleryItems",
         items: [{
           ...item,
@@ -678,20 +861,19 @@ function pushPCMainImageHtml(items = []) {
 function pushMobileCatalogInfo() {
   if (!isMobile) return;
 
-  const hasMobileCatalogInfo =
-    String(currentSalesCatchHtml || "").trim() !== "" ||
-    String(currentSalesTextsHtml || "").trim() !== "";
+  const html = $w("#MobileCombinedHtml");
+  if (!html || typeof html.postMessage !== "function") return;
 
-  if ($w("#MobileCatalogInfoSection")) {
-    if (menuOpen) {
-      $w("#MobileCatalogInfoSection").collapse();
-    } else if (hasMobileCatalogInfo) {
-      $w("#MobileCatalogInfoSection").expand();
-    } else {
-      $w("#MobileCatalogInfoSection").collapse();
+  html.postMessage({
+    type: "catalogInfo",
+    payload: {
+      brandText: currentBrandText,
+      productNoText: currentProductNoText,
+      colorHtml: currentColorHtml,
+      salesCatchHtml: currentSalesCatchHtml,
+      salesTextsHtml: currentSalesTextsHtml
     }
-  }
-
+  });
 }
 
 
@@ -781,9 +963,11 @@ async function getSoleMaterialByTitle(title) {
 }
 
 async function postProductInfoToHtml(salesData = null, infoItem = null, isAlive = null) {
-  const html = isMobile ? $w("#MobileProductInfoHtml") : $w("#ProductInfoHtml");
+  const html = isMobile ? $w("#MobileCombinedHtml") : $w("#ProductInfoHtml");
   if (!html || typeof html.postMessage !== "function") return false;
   if (!infoItem) return false;
+
+
 
   const mainImage1 = toHtmlImageSrc(infoItem.mainMedia);
   const popup2Items = getImport307GalleryImages(infoItem.mediaGallery || infoItem.mediagallery || infoItem.mediaItems);
@@ -797,7 +981,7 @@ async function postProductInfoToHtml(salesData = null, infoItem = null, isAlive 
   const brandLogoUrl =
     currentBrandLogoUrl ||
     toHtmlImageSrc(infoItem.brandlogo || infoItem.brandLogo || infoItem.logo);
-  console.log("[INFOHTML] target =", isMobile ? "#MobileProductInfoHtml" : "#ProductInfoHtml");
+  console.log("[INFOHTML] target =", isMobile ? "#MobileCombinedHtml" : "#ProductInfoHtml");
   console.log("[INFOHTML] infoItem.slug =", infoItem.slug);
   console.log("[INFOHTML] infoItem keys =", Object.keys(infoItem || {}));
   console.log("[INFOHTML] mainMedia raw =", infoItem.mainMedia);
@@ -896,32 +1080,118 @@ function safeOnClick(el, handler, name = "") {
 async function collapseIfPossible(el) {
   if (!el) return;
 
-  // 既に collapsed なら何もしない
-  if (typeof el.collapsed === "boolean" && el.collapsed) return;
-
   if (typeof el.collapse === "function") {
+    if (typeof el.collapsed === "boolean" && el.collapsed) return;
     await el.collapse();
     return;
   }
 
-  // collapse が無い要素は触らない（ここで hide は呼ばない）
-  console.warn("collapseIfPossible: collapse未対応の要素", el.id);
+  if (typeof el.hide === "function") {
+    if (typeof el.hidden === "boolean" && el.hidden) return;
+    await el.hide();
+    return;
+  }
+
+  console.warn("collapseIfPossible: collapse/hide未対応の要素", el.id);
 }
 
 async function expandIfPossible(el) {
   if (!el) return;
 
-  // 既に expand 済みなら何もしない
-  if (typeof el.collapsed === "boolean" && !el.collapsed) return;
-
   if (typeof el.expand === "function") {
+    if (typeof el.collapsed === "boolean" && !el.collapsed) return;
     await el.expand();
     return;
   }
 
-  // expand が無い要素は触らない（ここで show は呼ばない）
-  console.warn("expandIfPossible: expand未対応の要素", el.id);
+  if (typeof el.show === "function") {
+    if (typeof el.hidden === "boolean" && !el.hidden) return;
+    await el.show();
+    return;
+  }
+
+  console.warn("expandIfPossible: expand/show未対応の要素", el.id);
 }
+
+async function requestMobileCombinedHeight() {
+  const html = $w("#MobileCombinedHtml");
+  if (!html || typeof html.postMessage !== "function") return;
+
+  html.postMessage({ type: "requestCombinedHeight" });
+
+  setTimeout(() => {
+    if (__mobileScreenMode !== "combined") return;
+
+    const htmlLater = $w("#MobileCombinedHtml");
+    if (htmlLater && typeof htmlLater.postMessage === "function") {
+      htmlLater.postMessage({ type: "requestCombinedHeight" });
+    }
+  }, 120);
+
+  setTimeout(() => {
+    if (__mobileScreenMode !== "combined") return;
+
+    const htmlLater = $w("#MobileCombinedHtml");
+    if (htmlLater && typeof htmlLater.postMessage === "function") {
+      htmlLater.postMessage({ type: "requestCombinedHeight" });
+    }
+  }, 500);
+
+  setTimeout(() => {
+    if (__mobileScreenMode !== "combined") return;
+
+    const htmlLater = $w("#MobileCombinedHtml");
+    if (htmlLater && typeof htmlLater.postMessage === "function") {
+      htmlLater.postMessage({ type: "requestCombinedHeight" });
+    }
+  }, 1000);
+}
+
+async function openMobileCombinedScreen() {
+  if (!isMobile) return;
+
+  __mobileScreenMode = "combined";
+
+  await collapseIfPossible($w("#G1G2GallerySection"));
+  await collapseIfPossible($w("#mobilemainGalleryHtml"));
+  await collapseIfPossible($w("#CheckoutSection"));
+
+  await expandIfPossible($w("#MobileUiSection"));
+  await expandIfPossible($w("#MobileCombinedHtml"));
+
+  await requestMobileCombinedHeight();
+
+  if ($w("#MobileUiSection") && typeof $w("#MobileUiSection").scrollTo === "function") {
+    await $w("#MobileUiSection").scrollTo();
+  }
+
+  await wixWindow.scrollTo(0, 0);
+}
+
+async function openMobileG1G2Screen() {
+  if (!isMobile) return;
+
+  __mobileScreenMode = "g1g2";
+
+  await collapseIfPossible($w("#MobileUiSection"));
+  await collapseIfPossible($w("#MobileCombinedHtml"));
+  await collapseIfPossible($w("#CheckoutSection"));
+
+  await expandIfPossible($w("#G1G2GallerySection"));
+  await expandIfPossible($w("#mobilemainGalleryHtml"));
+
+  const bannerHtml = $w("#mobilemainGalleryHtml");
+  if (bannerHtml && typeof bannerHtml.postMessage === "function") {
+    bannerHtml.postMessage({ type: "setProductScreenActive", active: false });
+    bannerHtml.postMessage({ type: "resetG1G2Scroll" });
+  }
+
+  if ($w("#G1G2GallerySection") && typeof $w("#G1G2GallerySection").scrollTo === "function") {
+    await $w("#G1G2GallerySection").scrollTo();
+  }
+}
+
+
 
 
 // ✅ スタイル安全適用ヘルパー（存在チェック＆style存在チェック）
@@ -933,30 +1203,71 @@ function applyStyleIfPossible(selector, mutator) {
 }
 
 async function closeMobileMenu() {
-  const menuHtml = $w("#MobileMenuHtml");
+  const brandBoxHtml = $w("#mobilemainGalleryHtml");
 
-  if (menuHtml && typeof menuHtml.postMessage === "function") {
-    menuHtml.postMessage({ type: "closeMenu" });
+  __mobileMainGalleryLastHeight = 0;
+
+  if (brandBoxHtml && typeof brandBoxHtml.postMessage === "function") {
+    brandBoxHtml.postMessage({
+      type: "setMobileMenuState",
+      open: false
+    });
   }
 
-  await collapseIfPossible($w("#mobileBlankSection"));
+  if (mobileMenuBeforeState) {
+    if (mobileMenuBeforeState.MobileUiSection) {
+      await openMobileCombinedScreen();
+    } else if (mobileMenuBeforeState.G1G2GallerySection) {
+      await openMobileG1G2Screen();
+    } else {
+      await collapseIfPossible($w("#G1G2GallerySection"));
+      await collapseIfPossible($w("#mobilemainGalleryHtml"));
+      await collapseIfPossible($w("#MobileUiSection"));
+      await collapseIfPossible($w("#MobileCombinedHtml"));
+    }
+
+    if (mobileMenuBeforeState.CheckoutSection) {
+      await expandIfPossible($w("#CheckoutSection"));
+    } else {
+      await collapseIfPossible($w("#CheckoutSection"));
+    }
+  }
+
+  mobileMenuBeforeState = null;
   menuOpen = false;
   pushMobileCatalogInfo();
   console.log("📂 メニュー閉じ");
 }
 
 async function openMobileMenu() {
-  const menuHtml = $w("#MobileMenuHtml");
+  const brandBoxHtml = $w("#mobilemainGalleryHtml");
 
-  console.log("Blank Section Expanding...");
-  await $w("#mobileBlankSection").expand();
+  mobileMenuBeforeState = {
+    G1G2GallerySection: !$w("#G1G2GallerySection").collapsed,
+    mobilemainGalleryHtml: !$w("#mobilemainGalleryHtml").collapsed,
+    MobileUiSection: !$w("#MobileUiSection").collapsed,
+    MobileCombinedHtml: !$w("#MobileCombinedHtml").collapsed,
+    CheckoutSection: !$w("#CheckoutSection").collapsed
+  };
 
-  if ($w("#MobileCatalogInfoSection")) {
-    await collapseIfPossible($w("#MobileCatalogInfoSection"));
+  await expandIfPossible($w("#G1G2GallerySection"));
+  await expandIfPossible($w("#mobilemainGalleryHtml"));
+
+  await collapseIfPossible($w("#MobileUiSection"));
+  await collapseIfPossible($w("#MobileCombinedHtml"));
+  await collapseIfPossible($w("#CheckoutSection"));
+
+  __mobileMainGalleryLastHeight = 0;
+
+  if (brandBoxHtml) {
+    brandBoxHtml.height = 80;
   }
 
-  if (menuHtml && typeof menuHtml.postMessage === "function") {
-    menuHtml.postMessage({ type: "openMenu" });
+  if (brandBoxHtml && typeof brandBoxHtml.postMessage === "function") {
+    brandBoxHtml.postMessage({
+      type: "setMobileMenuState",
+      open: true
+    });
   }
 
   menuOpen = true;
@@ -970,7 +1281,6 @@ async function openMobileMenu() {
 
 // ---- MBカートを描画 ----
 let __isRenderingMobileCart = false;
-let __mobileCartRepeaterBound = false;
 
 async function renderMobileCart(cartData) {
   if (__isRenderingMobileCart) return;
@@ -1010,27 +1320,6 @@ const repeaterData = lineItems.map(li => {
 
 
 
-    const rep = $w(MobileCartRepeaterId);
-    if (rep) {
-      rep.data = repeaterData;
-    }
-
-    // 合計（送料/割引は現状0）
-    const shipping = 0;
-    const discount = 0;
-    const total = subtotal + shipping - discount;
-
-    const subEl = $w(MobileSubtotalPriceId);
-    if (subEl) subEl.text = formatYen(subtotal);
-
-    const shipEl = $w(MobileShippingPriceId);
-    if (shipEl) shipEl.text = formatYen(shipping);
-
-    const discEl = $w(MobileDiscountPriceId);
-    if (discEl) discEl.text = formatYen(discount);
-
-    const totalEl = $w(MobileTotalPriceId);
-    if (totalEl) totalEl.text = formatYen(total);
 // ▼ 追加：カート総数量を表示
     const totalCount = lineItems.reduce((sum, li) => sum + Number(li.quantity || 0), 0);
   } finally {
@@ -1047,7 +1336,7 @@ async function openCheckoutSection() {
   // ▼追加：初回だけ元状態を保存して、カート以外を閉じる
   if (!__cartViewPrev) {
     __cartViewPrev = {};
-    __cartHideTargets.forEach(id => {
+    cartHideTargets.forEach(id => {
       const el = $w(id);
       if (!el) return;
       if (typeof el.collapsed === "boolean") {
@@ -1056,7 +1345,7 @@ async function openCheckoutSection() {
     });
   }
 
-  for (const id of __cartHideTargets) {
+  for (const id of cartHideTargets) {
     await collapseIfPossible($w(id));
   }
   const sec = $w(CheckoutSectionId);
@@ -1092,7 +1381,7 @@ async function closeCheckoutSection() {
   await collapseIfPossible($w(CheckoutSectionId));
     // ▼追加：保存していた表示状態に復帰
   if (__cartViewPrev) {
-    for (const id of __cartHideTargets) {
+    for (const id of cartHideTargets) {
       const el = $w(id);
       if (!el) continue;
 
@@ -1115,111 +1404,18 @@ function setupMobileCartUI() {
   // 閉じるボタン
 safeOnClick($w(MobileCloseButtonId), async () => {
   await closeCheckoutSection();
-  if (isMobile) {
-    if ($w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
-      await $w("#mobileUiAnchor").scrollTo();
-    }
-  } else {
-    if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-      await $w("#anchor1").scrollTo();
-    }
-  }
+  return;
 }, "MobileCloseButton");
 
 safeOnClick($w("#MobileCloseButton2"), async () => {
   await closeCheckoutSection();
-  if (isMobile) {
-    if ($w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
-      await $w("#mobileUiAnchor").scrollTo();
-    }
-  } else {
-    if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-      await $w("#anchor1").scrollTo();
-    }
-  }
+  return;
 }, "MobileCloseButton2");
 
   // レジへ進む
-  safeOnClick($w(MobileCheckoutButtonId), async () => {
-  try {
-    const cartData = await getCartSnapshot();
-    const lineItems = cartData?.lineItems || [];
-    if (!lineItems.length) return;
-
-const cartItems = buildSquareCartItems(lineItems);
+  
 
 
-    if (!cartItems.length) return;
-
-    const internalOrderId = `WIX-${Date.now()}`;
-
-const u = new URL(wixLocation.url);
-u.searchParams.set("sqret", "1");                 // ←戻りフラグ
-u.searchParams.set("internalOrderId", internalOrderId); // ←二重実行防止キー（DB参照はしない）
-const redirectUrl = u.toString();
-
-const wixCartId = cartData?._id;
-
-const res = await createSquarePaymentLink({ cartItems, internalOrderId, redirectUrl, wixCartId });
-
-    if (res?.checkoutUrl) {
-      wixLocation.to(res.checkoutUrl);
-    }
-  } catch (e) {
-    console.error("Square遷移処理エラー:", e);
-  }
-}, "MobileCheckoutButton");
-
-
-  if (!__mobileCartRepeaterBound) {
-    const rep = $w(MobileCartRepeaterId);
-    if (rep) {
-      rep.onItemReady(($item, itemData) => {
-        const img = $item(MCImgId);
-        if (img) img.src = itemData.image || "";
-
-        const nm = $item(MCNameId);
-        if (nm) nm.text = itemData.name;
-
-        
-
-        const sz = $item(MCSizeId);
-        if (sz) sz.text = itemData.size ? `${itemData.size} cm` : "";
-
-       const sub = $item("#MCSubPrice");
-        if (sub) sub.text = formatYen(Number(itemData.unitPrice || 0) * Number(itemData.qty || 0));
-
-        const pr = $item(MCPriceId);
-        if (pr) pr.text = formatYen(itemData.unitPrice);
-
-        const q = $item(MCQtyId);
-        if (q) q.text = String(itemData.qty);
-
-        // ＋
-        safeOnClick($item(MCPlusId), async () => {
-          const newQty = Number(itemData.qty || 0) + 1;
-          await cart.updateLineItemQuantity(itemData.lineItemId, newQty);
-        }, "MCPlusButton");
-
-        // －
-        safeOnClick($item(MCMinId), async () => {
-          const newQty = Number(itemData.qty || 0) - 1;
-          if (newQty >= 1) {
-            await cart.updateLineItemQuantity(itemData.lineItemId, newQty);
-          } else {
-            await cart.removeProduct(itemData.lineItemId);
-          }
-        }, "MCMinButton");
-
-        // 削除
-        safeOnClick($item(MCDeleteId), async () => {
-          await cart.removeProduct(itemData.lineItemId);
-        }, "MCDelete");
-      });
-
-      __mobileCartRepeaterBound = true;
-    }
-  }
 }
 
 $w.onReady(async function () {
@@ -1257,8 +1453,8 @@ $w.onReady(async function () {
     console.log("📂 初期状態でモバイルメニュー非表示");
   }
 
-if (isMobile && $w("#MobileMainImageHtml") && typeof $w("#MobileMainImageHtml").onMessage === "function") {
-  $w("#MobileMainImageHtml").onMessage(async (event) => {
+if (isMobile && $w("#MobileCombinedHtml") && typeof $w("#MobileCombinedHtml").onMessage === "function") {
+  $w("#MobileCombinedHtml").onMessage(async (event) => {
     const data = event?.data;
     if (!data || typeof data !== "object") return;
 
@@ -1277,11 +1473,9 @@ if (isMobile && $w("#MobileMainImageHtml") && typeof $w("#MobileMainImageHtml").
     }
 
       if (data.type === "openOtherProducts") {
-      wixLocation.to(
-        `https://www.hatodaiya.com/linkshop-all?brand=${encodeURIComponent(shopKey)}&shop=${encodeURIComponent(shopKey)}&all=${allValue}`
-      );
-      return;
-    }
+        await goBackToG1();
+        return;
+      }
   });
 }
 
@@ -1306,20 +1500,19 @@ if (!isMobile && $w("#MainImageHtml") && typeof $w("#MainImageHtml").onMessage =
   });
 }
 
-  setupViewBasedOnDevice();
+  await setupViewBasedOnDevice();
   setupEventHandlers();           // ギャラリーのクリック/選択イベントなど
 
-safeOnClick($w("#backToMainButton"), async () => {
-  await $w("#mobileUiAnchor").scrollTo();
-}, "#backToMainButton");
+
 
   setupPasswordProtectedActions();// 管理系ボタン
   setupCartEventHandlers();       // カートイベント
   setupMobileCartUI();
   setupCartUiHtml();
-  setupPcBrandBoxHtml();
+  setupMobileCombinedHtmlMetrics();
+  setupMobileMainGalleryHtmlMetrics();
 
-  const productInfoHtml = isMobile ? $w("#MobileProductInfoHtml") : $w("#ProductInfoHtml");
+  const productInfoHtml = isMobile ? null : $w("#ProductInfoHtml");
   if (productInfoHtml && typeof productInfoHtml.onMessage === "function") {
     productInfoHtml.onMessage((event) => {
       const data = event?.data;
@@ -1330,7 +1523,9 @@ safeOnClick($w("#backToMainButton"), async () => {
       const brandHeight = Number(data.payload?.brandHeight || 0);
       const contentHeight = Number(data.payload?.contentHeight || 0);
 
-      if (!brandTop || !brandHeight || !contentHeight) return;
+      if (!contentHeight) return;
+
+      if (!brandTop || !brandHeight) return;
 
       const viewportH = wixWindow.formFactor === "Mobile" ? 844 : 900;
 
@@ -1358,6 +1553,221 @@ safeOnClick($w("#backToMainButton"), async () => {
     });
   }
 
+
+if (isMobile && $w("#mobilemainGalleryHtml") && typeof $w("#mobilemainGalleryHtml").onMessage === "function") {
+  $w("#mobilemainGalleryHtml").onMessage(async (event) => {
+    const data = event?.data || {};
+
+    console.log("[mobilemainGalleryHtml][onMessage received]", {
+      type: data.type,
+      channel: data.channel,
+      data
+    });
+
+    if (data.channel !== "mainGallery") return;
+
+    if (data.type === "toggleMobileMenu") {
+      if (menuOpen) {
+        await closeMobileMenu();
+      } else {
+        await openMobileMenu();
+      }
+      return;
+    }
+
+    if (data.type === "closeMenu") {
+      await closeMobileMenu();
+      return;
+    }
+
+    if (data.type === "openTop") {
+      const url = String(data.url || "").trim();
+      const cfgNow = BRAND_CONFIG[String(brandKey || "").trim()];
+      await closeMobileMenu();
+      wixLocation.to(url || cfgNow?.topUrl || "https://www.hatodaiya.com");
+      return;
+    }
+
+    if (data.type === "openInstagram") {
+      const url = String(data.url || "").trim();
+      const cfgNow = BRAND_CONFIG[String(brandKey || "").trim()];
+      await closeMobileMenu();
+
+      menuOpen = false;
+      mobileMenuBeforeState = null;
+
+      const brandBoxHtml = $w("#mobilemainGalleryHtml");
+      if (brandBoxHtml && typeof brandBoxHtml.postMessage === "function") {
+        brandBoxHtml.postMessage({
+          type: "setMobileMenuState",
+          open: false
+        });
+
+        brandBoxHtml.postMessage({
+          type: "closeMenu"
+        });
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 180));
+
+      wixLocation.to(url || cfgNow?.instagramUrl || "https://www.instagram.com/hatodaiya");
+      return;
+    }
+
+    if (data.type === "openContact") {
+      const url = String(data.url || "").trim();
+      await closeMobileMenu();
+      wixLocation.to(url || "https://www.hatodaiya.com/contact");
+      return;
+    }
+
+    if (data.type === "openLinkshop") {
+      const url = String(data.url || "").trim();
+      await closeMobileMenu();
+      wixLocation.to(url || "https://www.hatodaiya.com/onlinestore-top");
+      return;
+    }
+
+    if (data.type === "ready") {
+      console.log("[mobilemainGalleryHtml][ready received] G1再送信");
+
+      await postCategoryThumbnailMenu("");
+
+      return;
+    }
+
+    if (data.type === "openCategory") {
+      const categoryKeyFromMobileMainGallery = String(data.categoryKey || "").trim();
+
+      if (!categoryKeyFromMobileMainGallery) {
+        console.warn("[mobilemainGalleryHtml][openCategory] categoryKey が空です", data);
+        return;
+      }
+
+      const categoryGalleryState = await loadCategoryGalleryFromPayload({
+        slug: categoryKeyFromMobileMainGallery
+      });
+
+      if (!categoryGalleryState) {
+        console.warn("[mobilemainGalleryHtml][openCategory] categoryGalleryState が取得できません", {
+          categoryKey: categoryKeyFromMobileMainGallery
+        });
+        return;
+      }
+
+      await collapseIfPossible($w("#MainSection"));
+      await openMobileG1G2Screen();
+
+      menuOpen = false;
+
+      return;
+    }
+
+    if (data.type === "backToG1") {
+      categoryKey = "";
+      currentItem = "";
+      await postCategoryThumbnailMenu("");
+
+
+      return;
+    }
+
+    if (data.type === "openItem") {
+      const item = data.item || {};
+      const clickedTitle = String(item.title || "").trim();
+      const clickedCategoryKey = String(item.categoryKey || categoryKey || currentItem || "").toLowerCase().trim();
+
+      if (!clickedTitle) {
+        console.warn("[mobilemainGalleryHtml][openItem] title が空です", item);
+        return;
+      }
+
+      if (clickedCategoryKey) {
+        categoryKey = clickedCategoryKey;
+        currentItem = clickedCategoryKey;
+      }
+
+      productNameID = clickedTitle;
+      currentBrandText = String(item.brandText || item.brand || currentBrandText || "");
+      currentProductNoText = String(item.productNoText || currentProductNoText || "");
+      currentColorHtml = String(item.colorHtml || currentColorHtml || "");
+
+      galleryNormalItems = [
+        item,
+        ...galleryNormalItems.filter((galleryItem) =>
+          String(galleryItem.title || "").trim() !== clickedTitle
+        )
+      ];
+
+      galleryItems = galleryNormalItems.slice();
+
+      postG2OpenItemToMobileCombinedHtml(item);
+      pushCatalogInfo();
+      updateText({ item });
+
+      let salesDataLocal = null;
+
+      const salesTextQueryLocal = await wixData.query("ProductSalesTexts")
+        .eq("title", currentItem)
+        .find();
+
+      if (salesTextQueryLocal.items.length > 0) {
+        salesDataLocal = salesTextQueryLocal.items[0];
+      } else {
+        const normKeyLocal = String(currentItem || "").trim().toLowerCase();
+        const retryLocal = await wixData.query("ProductSalesTexts")
+          .contains("title", currentItem)
+          .find();
+
+        if (retryLocal.items.length > 0) {
+          salesDataLocal = retryLocal.items.find(x => ((x.title || "").trim().toLowerCase() === normKeyLocal)) || null;
+        }
+
+        if (!salesDataLocal && retryLocal.items.length > 0) {
+          salesDataLocal = retryLocal.items[0];
+        }
+      }
+
+      const selectedInfoItemLocal = await getImport307InfoItemBySlug(currentItem);
+      const productInfoPostedLocal = await postProductInfoToHtml(salesDataLocal, selectedInfoItemLocal);
+
+      if (salesDataLocal) {
+        currentSalesCatchHtml = salesDataLocal.salesCatch || "";
+        currentSalesTextsHtml = salesDataLocal.salesTexts || "";
+      } else {
+        currentSalesCatchHtml = "";
+        currentSalesTextsHtml = "";
+      }
+
+      if (productInfoPostedLocal) {
+        pushMobileCatalogInfo();
+      }
+
+      const cartDataLocal = await getCartSnapshot();
+      const resLocal = await fetchAndLogVariants(productNameID, cartDataLocal);
+
+      if (resLocal) {
+        await updateDropdownAndStockDisplay(
+          productNameID,
+          resLocal.tempStock,
+          resLocal.productId,
+          resLocal.variants,
+          cartDataLocal
+        );
+      } else {
+        console.warn("[mobilemainGalleryHtml][openItem] 在庫取得失敗 productNameID =", productNameID);
+        showNoStock();
+      }
+
+      await openMobileCombinedScreen();
+
+      menuOpen = false;
+
+      return;
+    }
+  });
+}
+
 if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessage === "function") {
   $w("#mainGalleryHtml").onMessage(async (event) => {
     const data = event?.data || {};
@@ -1367,6 +1777,145 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
       channel: data.channel,
       data
     });
+
+    if (data.type === "switchBrand") {
+      const selectedBrandFromHtml = String(
+        data.brand ||
+        data.brandKey ||
+        data.selectedBrand ||
+        data.value ||
+        data.key ||
+        data.name ||
+        ""
+      ).trim();
+
+      if (!selectedBrandFromHtml) {
+        console.warn("[mainGalleryHtml][switchBrand] selectedBrand が空です", data);
+        return;
+      }
+
+      if (String(shopKey || "").trim().toUpperCase() !== "HATODAIYA") {
+        console.warn("[mainGalleryHtml][switchBrand] HATODAIYA以外ではブランドセレクトを使用しません", {
+          shopKey,
+          selectedBrandFromHtml
+        });
+        return;
+      }
+
+      const isAllBrand =
+        selectedBrandFromHtml.toUpperCase() === "ALL" ||
+        selectedBrandFromHtml.toUpperCase() === "HATODAIYA";
+
+      const nextBrand = isAllBrand ? "HATODAIYA" : selectedBrandFromHtml;
+      const nextAll = isAllBrand ? "true" : "false";
+
+      invalidateOpenItemRequests("switchBrand");
+
+      const brandSettingsLookupBrand = isAllBrand ? "HATODAIYA" : nextBrand;
+      const selectedBrandSettingsRes = await wixData.query("BrandSettings")
+        .eq("brand", brandSettingsLookupBrand)
+        .limit(1)
+        .find();
+
+      const selectedBrandSettingsItem = selectedBrandSettingsRes.items?.[0] || {};
+      const selectedBrandPrefix = String(
+        isAllBrand
+          ? shopPrefixFromBrandSettings
+          : selectedBrandSettingsItem.brandPrefix
+      ).trim().toLowerCase();
+
+      const selectedBrandLogoUrl = toHtmlImageSrc(selectedBrandSettingsItem.brandLogo);
+
+      if (selectedBrandLogoUrl) {
+        currentBrandLogoUrl = selectedBrandLogoUrl;
+      }
+
+      currentG1G2BrandKey = nextBrand;
+      currentG1G2ShopKey = "HATODAIYA";
+      currentG1G2AllValue = nextAll;
+      currentG1G2HideBrandSelect = false;
+
+      categoryKey = "";
+      currentItem = "";
+      selectedKey = "";
+      itemSlug = "";
+      targetTitle = "";
+      galleryItems = [];
+      galleryNormalItems = [];
+      galleryHoverItems = [];
+
+      const categoriesForBrand = filterG1CategoriesForShop(categoriesResult.items || [], {
+        shopKey: isAllBrand ? "HATODAIYA" : nextBrand,
+        shopPrefix: selectedBrandPrefix,
+        allValue: nextAll
+      });
+
+      const productsForCountResult = await getAllProductsForCount();
+
+      const countMapForBrand = buildCategoryCountMap(
+        productsForCountResult.items || [],
+        categoriesForBrand,
+        {
+          requireHyphen: true
+        }
+      );
+
+      const mainGalleryCategories = categoriesForBrand.map((item) => {
+        const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
+        const count = Number(countMapForBrand[key] || 0);
+
+        return {
+          key,
+          name: String(item.description || item.title || key),
+          count,
+          sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
+          thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
+          description: String(item.description || item.title || key),
+          items: [],
+          raw: item
+        };
+      });
+
+      if ($w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").postMessage === "function") {
+        $w("#mainGalleryHtml").postMessage({
+          channel: "mainGallery",
+          type: "g1",
+          brand: nextBrand,
+          brandKey: nextBrand,
+          selectedBrand: nextBrand,
+          shop: "HATODAIYA",
+          all: nextAll,
+          hideBrandSelect: false,
+          showBrandSelect: true,
+          brands: currentG1G2BrandSelectBrands,
+          brandLogoUrl: currentBrandLogoUrl,
+          activeCategoryKey: "",
+          categories: mainGalleryCategories
+        });
+      }
+
+      if ($w("#categoryThumbnailMenu") && typeof $w("#categoryThumbnailMenu").postMessage === "function") {
+        $w("#categoryThumbnailMenu").postMessage({
+          type: "setCategories",
+          items: buildCategoryHtmlItems(categoriesForBrand, countMapForBrand, "", {
+            countColor: "#C71585"
+          }),
+          brand: nextBrand,
+          selectedBrand: nextBrand,
+          shop: "HATODAIYA",
+          all: nextAll,
+          hideBrandSelect: false,
+          showBrandSelect: true,
+          brandOptions: currentG1G2BrandSelectBrands
+        });
+      }
+
+      await collapseIfPossible($w("#MainSection"));
+      await collapseIfPossible($w("#desktopsection"));
+      await expandIfPossible($w("#G1G2GallerySection"));
+
+      return;
+    }
 
     // ▼重複して処理を妨害していたブロックを無効化
     if (data.type === "openItem_DISABLE") {
@@ -1498,9 +2047,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
         await collapseIfPossible($w("#G1G2GallerySection"));
         await expandIfPossible($w("#MainSection"));
+        await expandIfPossible($w("#desktopsection"));
 
-        if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-          await $w("#anchor1").scrollTo();
+        if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+          await $w("#MainSection").scrollTo();
         }
       }
 
@@ -1649,9 +2199,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       updateText({ item: selectedDisplayItem });
@@ -1780,9 +2331,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
       // ▼画像反映後にセクションを切り替える処理を追加
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       return;
@@ -1793,9 +2345,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       return;
@@ -2056,9 +2609,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       return;
@@ -2186,9 +2740,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       return;
@@ -2316,9 +2871,10 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 
       await collapseIfPossible($w("#G1G2GallerySection"));
       await expandIfPossible($w("#MainSection"));
+      await expandIfPossible($w("#desktopsection"));
 
-      if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-        await $w("#anchor1").scrollTo();
+      if ($w("#MainSection") && typeof $w("#MainSection").scrollTo === "function") {
+        await $w("#MainSection").scrollTo();
       }
 
       return;
@@ -2369,68 +2925,39 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
 await expandIfPossible($w("#section2"));
 
   // ▼ メニューは全デバイスでイベントだけ登録（表示は open/close が制御）
-await collapseIfPossible($w("#mobileBlankSection"));
 
 
-safeOnClick($w("#mobileMenuOpen"), async () => {
-  if (menuOpen) {
-    await closeMobileMenu();
-  } else {
-    await openMobileMenu();
-  }
-}, "#mobileMenuOpen");
+const mobileBrandBoxHtml = $w("#mobileBrandBoxHtml");
 
-const mobileMenuHtml = $w("#MobileMenuHtml");
-if (mobileMenuHtml && typeof mobileMenuHtml.onMessage === "function") {
-  mobileMenuHtml.onMessage(async (event) => {
+if (isMobile && mobileBrandBoxHtml && typeof mobileBrandBoxHtml.onMessage === "function") {
+  mobileBrandBoxHtml.onMessage(async (event) => {
     const data = event?.data || {};
     const type = String(data.type || "").trim();
 
-    if (type === "closeMenu") {
-      await closeMobileMenu();
+    if (type === "ready") {
+      mobileBrandBoxHtml.postMessage({
+        type: "setMobileMenuState",
+        open: menuOpen
+      });
       return;
     }
 
-    if (type === "openTop") {
-      const cfgNow = BRAND_CONFIG[String(brandKey || "").trim()];
-      if (cfgNow?.topUrl) {
+    if (type === "toggleMobileMenu") {
+      if (menuOpen) {
         await closeMobileMenu();
-        wixLocation.to(cfgNow.topUrl);
+      } else {
+        await openMobileMenu();
       }
       return;
     }
-
-    if (type === "openInstagram") {
-      const cfgNow = BRAND_CONFIG[String(brandKey || "").trim()];
-      if (cfgNow?.instagramUrl) {
-        await closeMobileMenu();
-        wixLocation.to(cfgNow.instagramUrl);
-      }
-      return;
-    }
-
-    if (type === "openContact") {
-      await closeMobileMenu();
-      wixLocation.to("https://www.hatodaiya.com/contact");
-      return;
-    }
-
-if (type === "openLinkshop") {
-  await closeMobileMenu();
-  wixLocation.to("https://www.hatodaiya.com/onlinestore-top");
-  return;
-}
   });
 
-  console.log("✅ #MobileMenuHtml onMessage 設定完了");
-} else {
-  console.warn("⚠️ #MobileMenuHtml が見つからないか、onMessage 非対応です。");
+  console.log("✅ #mobilemainGalleryHtml mobileBrandBox onMessage 設定完了");
+} else if (isMobile) {
+  console.warn("⚠️ #mobilemainGalleryHtml が見つからないか、onMessage 非対応です。");
 }
 
-// PC/タブレットはブランクセクションを閉じるログだけ出す（表示制御は上の collapse が担保）
-if (wixWindow.formFactor !== "Mobile") {
-  console.log("✅ PC/タブレット → ブランクセクション非表示");
-}
+
 
 // ✅ URLクエリパラメータを取得
 let categoryKey = String(wixLocation.query.category || "").trim();
@@ -2457,6 +2984,27 @@ const shopPrefixFromBrandSettings = String(brandSettingsItem.brandPrefix || "").
 currentG1G2CategoryPrefix = shopPrefixFromBrandSettings;
 currentBrandLogoUrl = toHtmlImageSrc(brandSettingsItem.brandLogo);
 
+const brandSelectSettingsRes = await wixData.query("BrandSettings")
+  .eq("parentsBrand", shopKey)
+  .ascending("brand")
+  .find();
+
+currentG1G2BrandSelectBrands = (brandSelectSettingsRes.items || [])
+  .map((item) => {
+    const brandName = String(item.brand || "").trim();
+    const logoUrl = toHtmlImageSrc(item.brandLogo);
+
+    return {
+      key: brandName,
+      name: brandName,
+      itemCount: 0,
+      logoSvg: logoUrl
+        ? `<img src="${logoUrl}" alt="${brandName}" style="width:100%;height:100%;object-fit:contain;display:block;">`
+        : ""
+    };
+  })
+  .filter((item) => item.key);
+
 categoryKey = normalizeCategoryKeyByPrefix(categoryKey, shopPrefixFromBrandSettings);
 
 const isBrandMatagi = (allValue === "true");
@@ -2469,7 +3017,7 @@ if (isForceHelmettyMode() && !categoryKey) {
 currentG1G2BrandKey = String(brandKey || "").trim();
 currentG1G2ShopKey = String(shopKey || "").trim();
 currentG1G2AllValue = String(allValue || "false").trim();
-currentG1G2HideBrandSelect = false;
+currentG1G2HideBrandSelect = !(String(shopKey || "").trim().toUpperCase() === "HATODAIYA" && currentG1G2BrandSelectBrands.length > 1);
 
 console.log("[G1G2-FORCE][HELMETTY MODE]", {
   force: isForceHelmettyMode(),
@@ -2576,10 +3124,15 @@ if (data.type === "backToMainButton") {
 
      // ▼ 更新が完了してから、詳細画面を閉じてG1/G2ギャラリーセクションをパッと表示する（チラつき防止）
      await collapseIfPossible($w("#MainSection"));
-     await expandIfPossible($w("#G1G2GallerySection"));
 
-     if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-       await $w("#anchor1").scrollTo();
+     if (isMobile) {
+       await openMobileG1G2Screen();
+     } else {
+       await expandIfPossible($w("#G1G2GallerySection"));
+
+       if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
+         await $w("#anchor1").scrollTo();
+       }
      }
 
 const { matchedItemsLocal, queryResultsLocalPromise, brandLogoUpdatePromise } = categoryGalleryState;
@@ -2710,8 +3263,8 @@ if (galleryNormalItems.length > 0) {
 
 
 pushCatalogInfo();
-if (isMobile && $w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
-  await $w("#mobileUiAnchor").scrollTo();
+if (isMobile) {
+  await openMobileCombinedScreen();
 }
       // ▼ G1に強制的に戻ってしまう原因だった全体の再構築処理を削除し、メニューのアクティブ状態だけを更新
       if ($w("#categoryThumbnailMenu") && typeof $w("#categoryThumbnailMenu").postMessage === "function") {
@@ -2779,8 +3332,6 @@ console.log("[G1G2-DEBUG][brand-settings]", {
   currentBrandLogoUrl
 });
 
-pushPcBrandBoxHtml(brandSettingsItem, shopKey || brandKey);
-
 const cfg = BRAND_CONFIG[brandKey];
 currentBrandText = String(
   BRAND_CONFIG[String(brandKey || "").trim()]?.mbBrandText ||
@@ -2806,17 +3357,17 @@ if (cfg) {
     s.borderWidth = cfg.mobileMenu.open.borderWidth;
   });
 
-  const mobileMenuHtml = $w("#MobileMenuHtml");
-  if (mobileMenuHtml && typeof mobileMenuHtml.postMessage === "function") {
-    mobileMenuHtml.postMessage({
+  const mobileMainGalleryHtmlForMenu = $w("#mobilemainGalleryHtml");
+  if (mobileMainGalleryHtmlForMenu && typeof mobileMainGalleryHtmlForMenu.postMessage === "function") {
+    mobileMainGalleryHtmlForMenu.postMessage({
       type: "setMenuData",
- payload: {
-  brandText: cfg.mbBrandText || "",
-  topUrl: cfg.topUrl || "",
-  instagramUrl: cfg.instagramUrl || "",
-  contactUrl: "https://www.hatodaiya.com/contact",
-  linkshopUrl: "https://www.hatodaiya.com/onlinestore-top"
-}
+      payload: {
+        brandText: cfg.mbBrandText || "",
+        topUrl: cfg.topUrl || "",
+        instagramUrl: cfg.instagramUrl || "",
+        contactUrl: "https://www.hatodaiya.com/contact",
+        linkshopUrl: "https://www.hatodaiya.com/onlinestore-top"
+      }
     });
   }
 }
@@ -2825,23 +3376,20 @@ if (cfg) {
 const goBackToG1 = async () => {
   invalidateOpenItemRequests("goBackToG1");
 
-  await collapseIfPossible($w("#MainSection"));
-  await expandIfPossible($w("#G1G2GallerySection"));
+  if (isMobile) {
+    await openMobileG1G2Screen();
+  } else {
+    await collapseIfPossible($w("#MainSection"));
+    await collapseIfPossible($w("#desktopsection"));
+    await expandIfPossible($w("#G1G2GallerySection"));
+  }
 
   // ▼ カテゴリ選択状態をリセットし、G1の初期データ（カテゴリ一覧）をギャラリーに再送信して強制的にG1に戻す
   categoryKey = "";
   currentItem = "";
   await postCategoryThumbnailMenu("");
 
-  if (isMobile) {
-    if ($w("#mobileUiAnchor") && typeof $w("#mobileUiAnchor").scrollTo === "function") {
-      await $w("#mobileUiAnchor").scrollTo();
-    }
-  } else {
-    if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
-      await $w("#anchor1").scrollTo();
-    }
-  }
+  return;
 };
 
 safeOnClick($w("#back-A-Button"), goBackToG1, "#back-A-Button");
@@ -2906,6 +3454,27 @@ async function loadCategoryGalleryFromPayload(payload = {}) {
   galleryItems = galleryStateLocal.galleryItems;
 
   if (isMobile) {
+    postMobileMainGalleryMessage({
+      channel: "mainGallery",
+      type: "g2",
+      brand: currentG1G2BrandKey,
+      brandKey: currentG1G2BrandKey,
+      shop: currentG1G2ShopKey,
+      all: currentG1G2AllValue,
+      hideBrandSelect: currentG1G2HideBrandSelect,
+      backButtonStyle: BRAND_CONFIG[currentG1G2BrandKey]?.backBtn
+        ? {
+            backgroundColor: BRAND_CONFIG[currentG1G2BrandKey].backBtn.backgroundColor || "",
+            color: BRAND_CONFIG[currentG1G2BrandKey].backBtn.color || "",
+            borderColor: BRAND_CONFIG[currentG1G2BrandKey].backBtn.borderColor || "",
+            borderWidth: BRAND_CONFIG[currentG1G2BrandKey].backBtn.borderWidth || "",
+            borderStyle: "solid"
+          }
+        : null,
+      activeCategoryKey: categoryKey,
+      items: galleryNormalItems
+    });
+
     pushMobileMainImages(galleryNormalItems);
   } else {
     const mainGalleryHtml = $w("#mainGalleryHtml");
@@ -2919,8 +3488,9 @@ async function loadCategoryGalleryFromPayload(payload = {}) {
         selectedBrand: currentG1G2BrandKey,
         shop: currentG1G2ShopKey,
         all: currentG1G2AllValue,
-        hideBrandSelect: false,
-        showBrandSelect: true,
+        hideBrandSelect: currentG1G2HideBrandSelect,
+        showBrandSelect: !currentG1G2HideBrandSelect,
+        brands: currentG1G2BrandSelectBrands,
         brandOptions: Object.keys(BRAND_CONFIG).map((key) => ({
           value: key,
           label: BRAND_CONFIG[key]?.mbBrandText || key
@@ -2979,12 +3549,7 @@ console.log("[G1G2-DEBUG][initialPageData]", {
   }))
 });
 
-if (initialPageData?.success && $w("#Logotop") && typeof $w("#Logotop").postMessage === "function") {
-  $w("#Logotop").postMessage({
-    type: "logo",
-    src: initialPageData.logoSrc || ""
-  });
-}
+
 
 const productsResult = {
   items: initialPageData?.success ? (initialPageData.items || []) : []
@@ -3055,9 +3620,10 @@ getAllProductsForCount();
 
 async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
   const html = $w("#categoryThumbnailMenu");
-  if (!html || typeof html.postMessage !== "function") {
-    console.warn("⚠️ #categoryThumbnailMenu が見つからないか、postMessage 非対応です。");
-    return null;
+  const canPostCategoryThumbnailMenu = html && typeof html.postMessage === "function";
+
+  if (!canPostCategoryThumbnailMenu) {
+    console.warn("⚠️ #categoryThumbnailMenu が見つからないか、postMessage 非対応です。mobilemainGalleryHtml送信は継続します。");
   }
 
   const rawCategoriesForMenu = Array.isArray(options.categories)
@@ -3093,7 +3659,7 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
   const payloadBrand = isForceHelmettyMode() ? FORCE_G1G2_BRAND_KEY : brandKey;
   const payloadShop = isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey;
   const payloadAll = isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue;
-  const payloadHideBrandSelect = false;
+  const payloadHideBrandSelect = currentG1G2HideBrandSelect;
 
   const payloadBrandOptions = Object.keys(BRAND_CONFIG).map((key) => ({
     value: key,
@@ -3126,17 +3692,19 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     htmlItems: htmlItems.slice(0, 10)
   });
 
-  html.postMessage({
-    type: "setCategories",
-    items: htmlItems,
-    brand: payloadBrand,
-    selectedBrand: payloadBrand,
-    shop: payloadShop,
-    all: payloadAll,
-    hideBrandSelect: payloadHideBrandSelect,
-    showBrandSelect: true,
-    brandOptions: payloadBrandOptions
-  });
+  if (canPostCategoryThumbnailMenu) {
+    html.postMessage({
+      type: "setCategories",
+      items: htmlItems,
+      brand: payloadBrand,
+      selectedBrand: payloadBrand,
+      shop: payloadShop,
+      all: payloadAll,
+      hideBrandSelect: payloadHideBrandSelect,
+      showBrandSelect: true,
+      brandOptions: payloadBrandOptions
+    });
+  }
 
   const mainGalleryCategories = categoriesForMenu.map((item) => {
     const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
@@ -3155,6 +3723,7 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
   });
 
   const mainGalleryHtml = $w("#mainGalleryHtml");
+
   if (mainGalleryHtml && typeof mainGalleryHtml.postMessage === "function") {
     mainGalleryHtml.postMessage({
       channel: "mainGallery",
@@ -3164,12 +3733,14 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
       shop: payloadShop,
       all: payloadAll,
       hideBrandSelect: payloadHideBrandSelect,
+      showBrandSelect: !payloadHideBrandSelect,
+      brands: currentG1G2BrandSelectBrands,
       brandLogoUrl: currentBrandLogoUrl,
       activeCategoryKey: "",
       categories: mainGalleryCategories
     });
 
-    console.log("✅ mainGalleryHtmlへG1カテゴリ送信完了:", mainGalleryCategories.length, "件", {
+    console.log("✅ #mainGalleryHtmlへG1カテゴリ送信完了:", mainGalleryCategories.length, "件", {
       brand: payloadBrand,
       shop: payloadShop,
       all: payloadAll,
@@ -3179,6 +3750,19 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
   } else {
     console.warn("⚠️ #mainGalleryHtml が見つからないか、postMessage 非対応です。");
   }
+
+  postMobileMainGalleryMessage({
+    channel: "mainGallery",
+    type: "g1",
+    brand: payloadBrand,
+    brandKey: payloadBrand,
+    shop: payloadShop,
+    all: payloadAll,
+    hideBrandSelect: payloadHideBrandSelect,
+    brandLogoUrl: toHtmlImageSrc(brandSettingsItem.brandLogo),
+    activeCategoryKey: "",
+    categories: mainGalleryCategories
+  });
 
   console.log("✅ HTMLへカテゴリ送信完了:", htmlItems.length, "件");
 
@@ -3214,6 +3798,18 @@ galleryItems = galleryState.galleryItems;
 await updateCurrentBrandLogoUrl(galleryNormalItems[0]?.brand);
 
 if (isMobile) {
+  postMobileMainGalleryMessage({
+    channel: "mainGallery",
+    type: "g2",
+    brand: currentG1G2BrandKey,
+    brandKey: currentG1G2BrandKey,
+    shop: currentG1G2ShopKey,
+    all: currentG1G2AllValue,
+    hideBrandSelect: currentG1G2HideBrandSelect,
+    activeCategoryKey: categoryKey,
+    items: galleryNormalItems
+  });
+
   pushMobileMainImages(galleryNormalItems);
 } else {
   pushMainImages(galleryNormalItems);
@@ -3441,6 +4037,26 @@ console.log("✅ 件数マップ作成完了");
         countMap,
         shopPrefix: shopPrefixFromUrl
       });
+
+      if (isMobile && __mobileScreenMode === "g1g2" && $w("#G1G2GallerySection") && typeof $w("#G1G2GallerySection").scrollTo === "function") {
+        await $w("#G1G2GallerySection").scrollTo();
+
+        setTimeout(async () => {
+          if (__mobileScreenMode !== "g1g2") return;
+          const sectionLater = $w("#G1G2GallerySection");
+          if (sectionLater && typeof sectionLater.scrollTo === "function") {
+            await sectionLater.scrollTo();
+          }
+        }, 180);
+
+        setTimeout(async () => {
+          if (__mobileScreenMode !== "g1g2") return;
+          const sectionLater = $w("#G1G2GallerySection");
+          if (sectionLater && typeof sectionLater.scrollTo === "function") {
+            await sectionLater.scrollTo();
+          }
+        }, 600);
+      }
     } catch (e) {
       console.warn("⚠️ HTMLカテゴリ送信で例外:", e);
     }
@@ -3557,8 +4173,47 @@ async function updateCartAndDisplay() {
   updateDropdownAndStockDisplay(productNameID, res.tempStock, res.productId, res.variants, cartData);
 }
 
+// ======================================================
+// モバイル版で現在使用している要素ID一覧
+// ※他AI・後任作業者向けメモ
+//
+// モバイル側でセクションやHTML要素を追加・削除・ID変更した場合は、
+// この一覧と、開閉処理・postMessage送信先・cartHideTargets を必ず見直すこと。
+//
+// 現在のモバイル使用要素:
+//
+// #section2
+//
+// #mobileBrandBoxSection
+// #mobileBrandBoxHtml
+//
+// #G1G2GallerySection
+// #mobilemainGalleryHtml
+//
+// #MobileUiSection
+// #MobileCombinedHtml
+//
+// #mobileBlankSection
+// #MobileMenuHtml
+//
+// #CheckoutSection
+// #MobileCloseButton
+// #MobileCloseButton2
+// #SideCartHtml
+//
+// モバイル開閉の基本:
+// ・G1/G2一覧表示        → #G1G2GallerySection を開く
+// ・商品メイン表示       → #MobileUiSection を開く
+// ・商品詳細情報表示     → #MobileUiSection 内の #MobileCombinedHtml を使う
+// ・メニュー表示         → #mobileBlankSection + #MobileMenuHtml
+// ・カート表示           → #CheckoutSection
+//
+// モバイル開閉では基本的に #MainSection は使わない。
+// #MainSection はPC用の商品詳細セクションとして扱う。
+// ======================================================
+
 // サイズ表の枠作成コード
-function setupViewBasedOnDevice() {
+async function setupViewBasedOnDevice() {
   const columns1 = variantNames.slice(0, 8).map((size) => ({
     id: `quantity_${size.replace('.', '')}`,
     dataPath: `quantity_${size.replace('.', '')}`,
@@ -3576,21 +4231,27 @@ function setupViewBasedOnDevice() {
 
 if (isMobile) {
   console.log("これはモバイルデバイスです。");
-  $w("#desktopsection").collapse();
-  $w("#MobileUiSection").expand();
-  if ($w("#MainSection")) $w("#MainSection").collapse();
 
-  if ($w("#mobileBlankSection")) $w("#mobileBlankSection").collapse();
+  __mobileScreenMode = "g1g2";
 
+  await collapseIfPossible($w("#desktopsection"));
+  await collapseIfPossible($w("#MainSection"));
 
-  
-  } else {
-    console.log("これはデスクトップデバイスです。");
-    $w("#MobileUiSection").collapse();
-   $w("#ThumbnailMenuSection").collapse();
-     $w("#MobileCatalogInfoSection").collapse();
-    if ($w("#mobileBlankSection")) $w("#mobileBlankSection").collapse();
-  }
+  await expandIfPossible($w("#G1G2GallerySection"));
+  await expandIfPossible($w("#mobilemainGalleryHtml"));
+
+  await collapseIfPossible($w("#MobileUiSection"));
+  await collapseIfPossible($w("#MobileCombinedHtml"));
+  await collapseIfPossible($w("#CheckoutSection"));
+
+  menuOpen = false;
+} else {
+  console.log("これはデスクトップデバイスです。");
+  await collapseIfPossible($w("#MobileUiSection"));
+  await collapseIfPossible($w("#MainSection"));
+  await collapseIfPossible($w("#desktopsection"));
+  await collapseIfPossible($w("#CheckoutSection"));
+}
 }
 
 function setupEventHandlers() {
@@ -3789,7 +4450,7 @@ async function updateDropdownAndStockDisplay(productNameID, tempStock, productId
     const mode = has4SizeVariants && !hasCmVariants ? "4SIZE" : "CM";
     const values = mode === "4SIZE" ? size4Values : cmValues;
 
-    $w("#MobileStockHtml").postMessage({
+    $w("#MobileCombinedHtml").postMessage({
       type: "stockTableUpdate",
       mode,
       values
@@ -3838,7 +4499,7 @@ async function updateDropdownAndStockDisplay(productNameID, tempStock, productId
       return variantNames.slice(8).includes(normalizedVariantName);
     });
 
-    $w("#MobileStockHtml").postMessage({
+    $w("#MobileCombinedHtml").postMessage({
       type: "stockTableUpdate",
       mode: has4SizeVariants ? "4SIZE" : "CM",
       values: has4SizeVariants ? size4Values : cmValues
@@ -4114,7 +4775,7 @@ function showNoStock() {
 // 対象ファイル名：ページコード
 
   if (isMobile) {
-    $w("#MobileStockHtml").postMessage({
+    $w("#MobileCombinedHtml").postMessage({
       type: "stockTableUpdate",
       mode: "CM",
       values: variantNames.slice(0, 8).reduce((obj, size) => {
