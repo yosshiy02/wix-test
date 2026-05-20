@@ -536,482 +536,99 @@
             align-items: start;
             align-content: start;
             overflow: visible;
-            isolation: isolate;
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94)),
-                linear-gradient(90deg, rgba(255, 241, 240, 0.26), rgba(255, 255, 255, 0.82));
+            background: #fff;
             color: var(--gm-ink);
-            box-shadow: var(--shadow-soft);
             border: 1px solid rgba(216, 203, 184, 0.75);
             border-radius: 36px;
-            animation: brandPanelBreath 7.8s ease-in-out infinite;
-        }
-
-        .brand-bar::before,
-        .brand-bar::after {
-            content: "";
-            position: absolute;
-            left: 2.125rem;
-            right: 2.125rem;
-            height: 0.0625rem;
-            background: var(--gm-soft);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .brand-bar::before {
-            top: 1.125rem;
-        }
-
-        .brand-bar::after {
-            bottom: 1.125rem;
         }
 
         .brand-left {
-            min-width: 0;
             display: contents;
-            position: relative;
         }
 
         .shop-copy {
             grid-area: copy;
             min-width: 0;
-            max-width: 47.5rem;
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            grid-template-areas:
-                "eyebrow"
-                "main"
-                "sub";
-            row-gap: 0.5625rem;
-            position: relative;
-            padding: 0.125rem 0 0.125rem 1.375rem;
-            align-items: start;
-            align-content: start;
-            align-content: start;
-            border-left: 0.0625rem solid color-mix(in srgb, var(--gm-ink) 28%, transparent);
-            animation: copyBlockIn 0.72s cubic-bezier(.2,.82,.24,1) both;
-        }
-
-        .shop-copy::before {
-            content: "";
-            position: absolute;
-            left: -0.25rem;
-            top: 0.25rem;
-            width: 0.4375rem;
-            height: 0.4375rem;
-            border-radius: 999rem;
-            background: var(--button-border);
-            opacity: 0.55;
-            box-shadow: 0 0 0 0.3125rem color-mix(in srgb, var(--button-border) 14%, transparent);
-            pointer-events: none;
+            gap: 0.5rem;
+            padding-left: 1.375rem;
+            border-left: 0.0625rem solid var(--gm-line);
         }
 
         .shop-eyebrow {
-            grid-area: eyebrow;
             width: fit-content;
             max-width: 100%;
             font-size: 0.6875rem;
             line-height: 1;
             font-weight: 700;
             letter-spacing: 0.22em;
-            color: color-mix(in srgb, var(--gm-ink) 72%, #ffffff);
-            opacity: 1;
+            color: var(--gm-ink);
             white-space: nowrap;
             text-transform: uppercase;
             padding: 0.4375rem 0.625rem 0.375rem;
-            background: color-mix(in srgb, var(--box-bg) 62%, #ffffff);
-            border: 0.0625rem solid color-mix(in srgb, var(--button-border) 32%, #ffffff);
+            background: var(--box-bg);
+            border: 0.0625rem solid var(--button-border);
             border-radius: 999rem;
-            box-shadow: 0 0.5rem 1.125rem rgba(168, 107, 141, 0.06);
-            animation: copyLineIn 0.58s cubic-bezier(.2,.82,.24,1) 0.08s both;
         }
 
         .shop-message {
-            grid-area: main;
             margin: 0;
-            min-width: 0;
-            max-width: 100%;
-            font-family:
-                "Hiragino Mincho ProN",
-                "Yu Mincho",
-                "Yu Gothic",
-                "Hiragino Sans",
-                "Meiryo",
-                serif;
+            font-family: "Hiragino Mincho ProN", "Yu Mincho", "Yu Gothic", "Hiragino Sans", "Meiryo", serif;
             font-size: clamp(0.8125rem, 2.1vw, 2.25rem);
             line-height: 1.18;
             font-weight: 500;
             letter-spacing: 0.045em;
             white-space: nowrap;
-            color: color-mix(in srgb, var(--gm-ink) 78%, #3f2433);
-            text-shadow:
-                0 0.0625rem 0 rgba(255, 255, 255, 0.7),
-                0 0.5rem 1.125rem rgba(168, 107, 141, 0.07);
-            text-transform: none;
-            animation: copyMainIn 0.78s cubic-bezier(.2,.82,.24,1) 0.16s both;
+            color: var(--gm-ink);
         }
 
         .shop-subline {
-            grid-area: sub;
-            align-self: start;
             font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
             line-height: 1.75;
-            font-weight: 400;
             letter-spacing: 0.055em;
-            color: color-mix(in srgb, var(--gm-muted) 80%, #5c344a);
-            opacity: 1;
-            white-space: normal;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: var(--gm-muted);
             max-width: 35rem;
-            padding-bottom: 0;
-            animation: copyLineIn 0.68s cubic-bezier(.2,.82,.24,1) 0.28s both;
         }
 
         .brand-links {
             grid-area: links;
-            min-width: 0;
-            position: relative;
             display: flex;
             flex-wrap: nowrap;
             align-items: center;
             justify-content: center;
-            gap: 0;
+            gap: 0.625rem;
             margin-top: 0.5rem;
-            padding: 0.125rem clamp(1.125rem, 2.8vw, 3rem) 0;
-            overflow: visible;
-            isolation: isolate;
-            font-family:
-                "Helvetica Neue",
-                Arial,
-                "Yu Gothic",
-                "Hiragino Sans",
-                sans-serif;
-        }
-
-        .brand-links::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            width: auto;
-            height: 0.0625rem;
-            background: var(--gm-line);
-            transform: none;
-            pointer-events: none;
+            padding-top: 0.125rem;
+            font-family: "Helvetica Neue", Arial, "Yu Gothic", "Hiragino Sans", sans-serif;
         }
 
         .brand-link {
-            --tab-bg: color-mix(in srgb, var(--gm-ink) 62%, #ffffff);
-            --tab-hover: color-mix(in srgb, var(--gm-hover) 68%, #ffffff);
-            --tab-ink: rgba(92, 52, 74, 0.92);
-            --tab-drop-bg: color-mix(in srgb, var(--tab-bg) 46%, #ffffff);
-            --tab-drop-hover: color-mix(in srgb, var(--tab-hover) 46%, #ffffff);
             appearance: none;
-            position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex: 1 1 0;
-            width: auto;
-            min-width: 0;
             min-height: 3.25rem;
             padding: 0 clamp(0.375rem, 0.9vw, 0.875rem);
-            margin: 0 0.625rem 0 0;
             border: 0;
-            outline: 0;
-            background: var(--tab-bg);
-            color: var(--tab-ink);
+            background: color-mix(in srgb, var(--gm-ink) 62%, #ffffff);
+            color: rgba(92, 52, 74, 0.92);
             font: inherit;
             font-size: clamp(0.6875rem, 1.08vw, 1rem);
-            line-height: 1;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-decoration: none;
             text-transform: uppercase;
             cursor: pointer;
             white-space: nowrap;
-            opacity: 1;
-            box-shadow: 0 0.625rem 1.375rem rgba(168, 107, 141, 0.06);
-            border-radius: 0;
-            text-align: center;
-            text-shadow:
-                0 0.0625rem 0 rgba(255, 255, 255, 0.55),
-                0 0 0.625rem rgba(255, 255, 255, 0.35);
-            transform: translateY(0);
-            transform-origin: center center;
-            overflow: visible;
-            will-change: transform;
-            backface-visibility: hidden;
-            animation: linkRiseIn 0.54s cubic-bezier(.2,.82,.24,1) both;
-            transition:
-                background-color 0.28s ease,
-                color 0.22s ease,
-                opacity 0.22s ease,
-                transform 0.28s cubic-bezier(.73,.32,.34,1.5),
-                box-shadow 0.28s ease;
-        }
-
-        .brand-link:nth-child(1) {
-            --tab-bg: color-mix(in srgb, var(--box-text) 58%, #ffffff);
-            --tab-hover: color-mix(in srgb, var(--button-text) 66%, #ffffff);
-            animation-delay: 0.34s;
-        }
-
-        .brand-link:nth-child(2) {
-            --tab-bg: #9ecfe0;
-            --tab-hover: #83c0d4;
-            animation-delay: 0.4s;
-        }
-
-        .brand-link:nth-child(3) {
-            --tab-bg: #e8aaaa;
-            --tab-hover: #dc9696;
-            animation-delay: 0.46s;
-        }
-
-        .brand-link:nth-child(4) {
-            --tab-bg: #efd093;
-            --tab-hover: #e6c176;
-            animation-delay: 0.52s;
-        }
-
-        .brand-link:nth-child(5) {
-            --tab-bg: #c7df91;
-            --tab-hover: #b7d978;
-            animation-delay: 0.58s;
         }
 
         .brand-link-label {
-            position: relative;
-            z-index: 4;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 0;
             pointer-events: none;
-        }
-
-        .brand-link::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 100%;
-            height: 0.625rem;
-            background: var(--tab-drop-bg);
-            clip-path: polygon(0 0, 100% 0, 50% 100%);
-            transform: scaleY(1);
-            transform-origin: center top;
-            opacity: 1;
-            pointer-events: none;
-            transition:
-                height 0.24s cubic-bezier(.73,.32,.34,1.5),
-                background-color 0.28s ease,
-                opacity 0.22s ease;
-        }
-
-        .brand-link::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.72);
-            clip-path: polygon(0 100%, 100% 100%, 50% 0);
-            opacity: 0.92;
-            pointer-events: none;
-            transition:
-                height 0.22s 0.12s ease-out,
-                opacity 0.22s ease;
-        }
-
-        .brand-link:last-child {
-            margin-right: 0;
-        }
-
-        .brand-link:hover,
-        .brand-link.is-open,
-        .brand-link.is-closing {
-            background: var(--tab-hover);
-            color: var(--tab-ink);
-            opacity: 1;
-            box-shadow: 0 1rem 1.75rem rgba(168, 107, 141, 0.1);
-        }
-
-        .brand-link:hover,
-        .brand-link.is-open,
-        .brand-link.is-closing {
-            transform: translateY(-0.25rem);
-        }
-
-        .brand-link:hover::before,
-        .brand-link.is-open::before,
-        .brand-link.is-closing::before {
-            background: var(--tab-drop-hover);
-            height: 0;
-            opacity: 0;
-            animation: none;
-        }
-
-        .brand-link:hover::after,
-        .brand-link.is-open::after,
-        .brand-link.is-closing::after {
-            height: 0;
-        }
-
-        .brand-link:active {
-            transform: translateY(-0.125rem);
-            opacity: 0.78;
         }
 
         .brand-link-dropdown {
-            --dropdown-tail: 1.125rem;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 100%;
-            z-index: 30;
-            display: grid;
-            gap: 0;
-            height: 0;
-            padding: 0;
-            overflow: hidden;
-            background: var(--tab-drop-bg);
-            color: var(--tab-ink);
-            box-shadow: 0 1.125rem 1.75rem rgba(168, 107, 141, 0.08);
-            opacity: 0;
-            transform: translateY(0) scaleY(0);
-            transform-origin: center top;
-            pointer-events: none;
-            will-change: transform, opacity;
-            backface-visibility: hidden;
-            clip-path: polygon(
-                0 0,
-                100% 0,
-                100% calc(100% - var(--dropdown-tail)),
-                50% 100%,
-                0 calc(100% - var(--dropdown-tail))
-            );
-            transition:
-                height 0.52s cubic-bezier(.22,.72,.24,1),
-                padding 0.52s cubic-bezier(.22,.72,.24,1),
-                background-color 0.24s ease,
-                opacity 0.32s ease,
-                transform 0.52s cubic-bezier(.22,.72,.24,1);
-        }
-
-        .brand-link.is-open .brand-link-dropdown {
-            height: var(--dropdown-height, 9.75rem);
-            padding: 0.625rem 0 2.375rem;
-            background: var(--tab-drop-hover);
-            opacity: 1;
-            transform: translateY(0) scaleY(1);
-            pointer-events: auto;
-            animation: dropdownOpenBounce 0.96s cubic-bezier(.18,.9,.2,1) both;
-        }
-
-        .brand-link.is-closing .brand-link-dropdown {
-            height: 0;
-            padding: 0;
-            background: var(--tab-drop-hover);
-            opacity: 0;
-            transform: translateY(0) scaleY(0.02);
-            pointer-events: none;
-            animation: none;
-        }
-
-        .brand-link-dropdown-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            min-height: 2.625rem;
-            padding: 0.75rem 0.875rem;
-            font-size: clamp(0.75rem, 0.9vw, 0.9375rem);
-            line-height: 1.28;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-align: center;
-            white-space: normal;
-            color: rgba(92, 52, 74, 0.78);
-            text-shadow:
-                0 0.0625rem 0 rgba(255, 255, 255, 0.5),
-                0 0 0.5rem rgba(255, 255, 255, 0.28);
-            opacity: 0;
-            transform: translateY(-0.375rem);
-            border-bottom: 0.0625rem solid rgba(92, 52, 74, 0.12);
-            transition:
-                opacity 0.34s ease,
-                transform 0.44s cubic-bezier(.2,.82,.24,1),
-                background-color 0.22s ease;
-        }
-
-        .brand-link-dropdown-item:hover {
-            background: rgba(92, 52, 74, 0.13);
-        }
-
-        .brand-link-dropdown-item span {
-            min-width: 0;
-            white-space: normal;
-            line-height: 1.25;
-        }
-
-        .brand-link-dropdown-item.is-current-shop {
-            background: rgba(92, 52, 74, 0.18);
-            font-weight: 900;
-            box-shadow: inset 0 0 0 0.0625rem rgba(92, 52, 74, 0.18);
-        }
-
-        .brand-link-current-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 2.25rem;
-            padding: 0.1875rem 0.375rem;
-            border-radius: 999rem;
-            background: rgba(92, 52, 74, 0.18);
-            font-size: 0.625rem;
-            line-height: 1;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-        }
-
-        .brand-link-dropdown-item:last-child {
-            border-bottom: 0;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item,
-        .brand-link.is-closing .brand-link-dropdown-item {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item {
-            animation: dropdownItemPop 0.42s cubic-bezier(.18,.9,.2,1) both;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item:nth-child(1) {
-            animation-delay: 0.04s;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item:nth-child(2) {
-            animation-delay: 0.08s;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item:nth-child(3) {
-            animation-delay: 0.12s;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item:nth-child(4) {
-            animation-delay: 0.16s;
-        }
-
-        .brand-link.is-open .brand-link-dropdown-item:nth-child(5) {
-            animation-delay: 0.2s;
+            display: none;
         }
 
         .brand-logo-wrap {
@@ -1022,8 +639,6 @@
             align-items: center;
             justify-content: flex-end;
             min-width: 0;
-            position: relative;
-            z-index: 1;
         }
 
         .brand-logo {
@@ -1031,23 +646,18 @@
             width: min(29.375rem, 100%);
             max-height: 7.875rem;
             object-fit: contain;
-            transform: translateX(0.375rem) rotate(0deg);
-            filter: none;
-            animation: none;
         }
 
         .brand-logo-placeholder {
             width: 100%;
             max-width: 21.25rem;
             height: 5.5rem;
-            border: 0;
             display: grid;
             place-items: center;
             font-size: 0.9375rem;
             font-weight: 500;
             letter-spacing: 0.22em;
             opacity: 0.58;
-            background: transparent;
             color: var(--gm-muted);
         }
 
@@ -1327,19 +937,6 @@
                 border-radius: 28px;
             }
 
-
-            .brand-bar::before {
-                left: 1.125rem;
-                right: 1.125rem;
-                top: 1rem;
-            }
-
-            .brand-bar::after {
-                left: 1.125rem;
-                right: 1.125rem;
-                bottom: 1rem;
-            }
-
             .shop-copy {
                 grid-template-columns: 1fr;
                 grid-template-areas:
@@ -1373,10 +970,6 @@
                 font-size: clamp(0.6875rem, 1.6vw, 0.875rem);
                 padding: 0 0.75rem;
                 margin: 0 0.5rem 1rem 0;
-            }
-
-            .brand-link::before {
-                right: 0;
             }
 
             .brand-logo-wrap {
@@ -1417,20 +1010,8 @@
                 border-radius: 24px;
             }
 
-            .brand-bar::before,
-            .brand-bar::after {
-                left: 1rem;
-                right: 1rem;
-            }
-
             .shop-copy {
                 padding-left: 1rem;
-            }
-
-            .shop-copy::before {
-                width: 0.375rem;
-                height: 0.375rem;
-                top: 0.3125rem;
             }
 
             .shop-eyebrow {
@@ -1467,11 +1048,6 @@
                 margin: 0 0.5rem 1rem 0;
             }
 
-            .brand-link::before {
-                right: 0;
-                height: 0.5625rem;
-            }
-
             .brand-logo-wrap {
                 justify-content: flex-start;
                 height: 3.875rem;
@@ -1495,15 +1071,13 @@
 <body>
     <div class="shell">
         <section class="brand-bar" id="brandBar">
-            <div class="brand-left">
-                <div class="shop-copy">
-                    <div class="shop-eyebrow" id="shopEyebrow">HELMETTY ONLINE STORE</div>
-                    <p class="shop-message" id="shopMessage">今日の足もと、少しだけ楽しく。</p>
-                    <div class="shop-subline" id="shopSubline">かわいくて、気分が上がるシューズを集めました。</div>
-                </div>
-
-                <nav class="brand-links" id="brandLinks" aria-label="ブランドリンク"></nav>
+            <div class="shop-copy">
+                <div class="shop-eyebrow" id="shopEyebrow">HELMETTY ONLINE STORE</div>
+                <p class="shop-message" id="shopMessage">今日の足もと、少しだけ楽しく。</p>
+                <div class="shop-subline" id="shopSubline">かわいくて、気分が上がるシューズを集めました。</div>
             </div>
+
+            <nav class="brand-links" id="brandLinks" aria-label="ブランドリンク"></nav>
 
             <div class="brand-logo-wrap">
                 <img id="brandLogo" class="brand-logo is-hidden" src="" alt="" />
@@ -1651,7 +1225,7 @@
             colorButtonText: "#e68ab8",
             colorButtonBorder: "#ffc7ee",
             catchEyebrow: "HELMETTY ONLINE STORE",
-            catchMain: "今日の足もとに、ちょっとした遊び心を。",
+            catchMain: "今日の足もとに、ちょっとした遊び心を",
             catchSub: "かわいくて、気分が上がるシューズを集めました。",
             linkTop: "/helmetty-top",
             linkPolicy: "/policy",
@@ -1934,12 +1508,40 @@
                 return;
             }
 
+            if (data.type === "setBrandBoxHtml") {
+                const current = document.getElementById("brandBar") || document.querySelector(".helmetty-box");
+                if (!current) {
+                    return;
+                }
+
+                const template = document.createElement("template");
+                template.innerHTML = String(data.html || "").trim();
+
+                const scripts = Array.from(template.content.querySelectorAll("script"));
+                scripts.forEach((script) => script.remove());
+
+                current.replaceWith(template.content);
+
+                scripts.forEach((oldScript) => {
+                    const script = document.createElement("script");
+                    Array.from(oldScript.attributes).forEach((attr) => {
+                        script.setAttribute(attr.name, attr.value);
+                    });
+                    script.textContent = oldScript.textContent || "";
+                    document.body.appendChild(script);
+                    script.remove();
+                });
+
+                return;
+            }
+
             if (data.type !== "brandBoxData") {
                 return;
             }
 
             renderBrandBanner(data.payload || {});
         });
+
 
         const mockBrands = [
             {

@@ -198,6 +198,7 @@ let currentG1G2ShopKey = "";
 let currentG1G2AllValue = "false";
 let currentG1G2HideBrandSelect = false;
 let currentG1G2BrandSelectBrands = [];
+let currentPcBrandBoxHtml = "";
 
 const PREVIEW_SHOP_FALLBACK = {
   brand: "HELMETTY",
@@ -1800,6 +1801,17 @@ if (!isMobile && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").onMessa
       data
     });
 
+    if (data.type === "ready") {
+      if (currentPcBrandBoxHtml && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").postMessage === "function") {
+        $w("#mainGalleryHtml").postMessage({
+          channel: "mainGallery",
+          type: "setBrandBoxHtml",
+          html: currentPcBrandBoxHtml
+        });
+      }
+      return;
+    }
+
     if (data.type === "switchBrand") {
       const selectedBrandFromHtml = String(
         data.brand ||
@@ -3041,20 +3053,6 @@ currentG1G2ShopKey = String(shopKey || "").trim();
 currentG1G2AllValue = String(allValue || "false").trim();
 currentG1G2HideBrandSelect = !(String(shopKey || "").trim().toUpperCase() === "HATODAIYA" && currentG1G2BrandSelectBrands.length > 1);
 
-if (
-  !isMobile &&
-  (
-    isForceHelmettyMode() ||
-    String(brandKey || "").trim().toUpperCase() === "HELMETTY" ||
-    String(shopKey || "").trim().toUpperCase() === "HELMETTY"
-  )
-) {
-  postHelmettyBrandBoxHtmlToMainGallery(
-    String(brandKey || shopKey || "HELMETTY").trim(),
-    String(shopPrefixFromBrandSettings || "").trim()
-  );
-}
-
 console.log("[G1G2-FORCE][HELMETTY MODE]", {
   force: isForceHelmettyMode(),
   categoryKey,
@@ -3071,6 +3069,46 @@ console.log("[G1G2-STATE][resolved-before-initial-push]", {
   currentG1G2AllValue,
   currentG1G2HideBrandSelect
 });
+
+if (!isMobile && String(shopKey || "").trim().toUpperCase() === "HELMETTY") {
+  try {
+    console.log("[PcBrandBoxHtml][HELMETTY] condition hit", {
+      isMobile,
+      shopKey,
+      shopPrefixFromBrandSettings
+    });
+
+    currentPcBrandBoxHtml = await getHelmettyBrandBoxHtml({
+      brand: shopKey,
+      brandPrefix: shopPrefixFromBrandSettings
+    });
+
+    console.log("[PcBrandBoxHtml][HELMETTY] html loaded", {
+      length: String(currentPcBrandBoxHtml || "").length,
+      startsWith: String(currentPcBrandBoxHtml || "").slice(0, 80)
+    });
+
+    if (currentPcBrandBoxHtml && $w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").postMessage === "function") {
+      console.log("[PcBrandBoxHtml][HELMETTY] postMessage send", {
+        type: "setBrandBoxHtml"
+      });
+
+      $w("#mainGalleryHtml").postMessage({
+        channel: "mainGallery",
+        type: "setBrandBoxHtml",
+        html: currentPcBrandBoxHtml
+      });
+    } else {
+      console.warn("[PcBrandBoxHtml][HELMETTY] postMessage skipped", {
+        hasHtml: !!currentPcBrandBoxHtml,
+        hasMainGalleryHtml: !!$w("#mainGalleryHtml"),
+        hasPostMessage: !!($w("#mainGalleryHtml") && typeof $w("#mainGalleryHtml").postMessage === "function")
+      });
+    }
+  } catch (e) {
+    console.error("[PcBrandBoxHtml][HELMETTY] backend html load failed", e);
+  }
+}
 
 const initialItemSlug = `${categoryKey}-${selectedKey}`;
 
