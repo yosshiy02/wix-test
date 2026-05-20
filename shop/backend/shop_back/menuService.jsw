@@ -1,5 +1,6 @@
 import wixData from 'wix-data';
 import { getHelmettyHtml } from 'backend/shop_back/menu_back/HELMETTY_MENU.js';
+import { getHatodaiyaHtml } from 'backend/shop_back/menu_back/HATODAIYA_MENU.js';
 
 function toStaticWixImageUrl(value) {
     const src = String(value || '').trim();
@@ -81,4 +82,14 @@ export async function getHelmettyBrandBoxHtml(options = {}) {
     const settings = mapBrandSettingsToMenuSettings(item || { brand, brandPrefix });
 
     return getHelmettyHtml(settings);
+}
+
+export async function getHatodaiyaBrandBoxHtml(options = {}) {
+    const brand = String(options.brand || 'HATODAIYA').trim();
+    const brandPrefix = String(options.brandPrefix || 'ha').trim();
+
+    const item = await fetchBrandSettings({ brand, brandPrefix });
+    const settings = mapBrandSettingsToMenuSettings(item || { brand, brandPrefix });
+
+    return getHatodaiyaHtml(settings);
 }

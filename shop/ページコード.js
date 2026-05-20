@@ -8,6 +8,7 @@ import wixLocation from "wix-location";
 import { createSquarePaymentLink } from 'backend/squareCheckout.jsw';
 import { getInitialPageData } from 'backend/products.jsw';
 import { getHelmettyBrandBoxHtml } from 'backend/shop_back/menuService.jsw';
+import { getHatodaiyaBrandBoxHtml } from 'backend/shop_back/menuService.jsw';
 import { initCartHtmlBridge } from "public/cartHtmlBridge";
 import { setMetaTags, setTitle } from "wix-seo-frontend";
 
@@ -572,6 +573,7 @@ async function postHelmettyBrandBoxHtmlToMainGallery(brand, brandPrefix) {
       brand: String(brand || "").trim(),
       brandPrefix: String(brandPrefix || "").trim()
     });
+
 
     html.postMessage({
       type: "brandBoxHtml",
