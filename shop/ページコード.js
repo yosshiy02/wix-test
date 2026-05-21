@@ -260,7 +260,9 @@ function normalizeCategoryKeyByPrefix(rawCategoryKey, prefixValue) {
 function getActiveCartUiHtml() {
   return isMobile ? $w("#MobileCombinedHtml") : $w("#CartUiHtml");
 }
-
+// PCのメインギャラリーにメッセージを送る関数
+// PCとモバイルでギャラリーが分かれているため、PC用とモバイル用で別々に関数を用意
+// PC用は基本的に全てのギャラリー操作で使用するため、getActiveCartUiHtml()を使ってPC/Mobile両対応にしている
 function postMobileMainGalleryMessage(message) {
   if (!isMobile) return;
 
@@ -393,7 +395,7 @@ function setupMobileCombinedHtmlMetrics() {
 
 let __mobileMainGalleryHeightTimer = null;
 let __mobileMainGalleryLastHeight = 0;
-
+ 
 function setupMobileMainGalleryHtmlMetrics() {
   if (!isMobile) return;
 
@@ -852,7 +854,7 @@ function pushMobileCatalogInfo() {
   });
 }
 
-
+// ブランドロゴURLを更新して返す関数（引数のブランド名に対応するロゴが見つからない場合は現在のロゴURLを返す）
 async function updateCurrentBrandLogoUrl(brand) {
   const brandName = String(brand || "").trim();
   if (!brandName) {
@@ -2828,15 +2830,15 @@ await expandIfPossible($w("#section2"));
   // ▼ メニューは全デバイスでイベントだけ登録（表示は open/close が制御）
 
 
-const mobileBrandBoxHtml = $w("#mobileBrandBoxHtml");
+const mobilemainGalleryHtml = $w("#mobilemainGalleryHtml");
 
-if (isMobile && mobileBrandBoxHtml && typeof mobileBrandBoxHtml.onMessage === "function") {
-  mobileBrandBoxHtml.onMessage(async (event) => {
+if (isMobile && mobilemainGalleryHtml && typeof mobilemainGalleryHtml.onMessage === "function") {
+  mobilemainGalleryHtml.onMessage(async (event) => {
     const data = event?.data || {};
     const type = String(data.type || "").trim();
 
     if (type === "ready") {
-      mobileBrandBoxHtml.postMessage({
+      mobilemainGalleryHtml.postMessage({
         type: "setMobileMenuState",
         open: menuOpen
       });
@@ -2851,12 +2853,182 @@ if (isMobile && mobileBrandBoxHtml && typeof mobileBrandBoxHtml.onMessage === "f
       }
       return;
     }
-  });
 
-  console.log("✅ #mobilemainGalleryHtml mobileBrandBox onMessage 設定完了");
-} else if (isMobile) {
-  console.warn("⚠️ #mobilemainGalleryHtml が見つからないか、onMessage 非対応です。");
+    if (type === "switchBrand") {
+      const selectedBrandFromHtml = String(
+        data.brand ||
+        data.brandKey ||
+        data.selectedBrand ||
+        data.value ||
+        data.key ||
+        data.name ||
+        ""
+      ).trim();
+
+      console.log("[mobilemainGalleryHtml][switchBrand] received", {
+        data,
+        selectedBrandFromHtml,
+        shopKey,
+        currentG1G2BrandSelectBrandsLength: currentG1G2BrandSelectBrands.length,
+        currentG1G2BrandSelectBrands
+      });
+
+      if (!selectedBrandFromHtml) {
+        console.warn("[mobilemainGalleryHtml][switchBrand] selectedBrand が空です", data);
+        return;
+      }
+
+      if (String(shopKey || "").trim().toUpperCase() !== "HATODAIYA") {
+        console.warn("[mobilemainGalleryHtml][switchBrand] HATODAIYA以外ではブランドセレクトを使用しません", {
+          shopKey,
+          selectedBrandFromHtml
+        });
+        return;
+      }
+
+      const isAllBrand =
+        selectedBrandFromHtml.toUpperCase() === "ALL" ||
+        selectedBrandFromHtml.toUpperCase() === "HATODAIYA";
+
+      const nextBrand = isAllBrand ? "HATODAIYA" : selectedBrandFromHtml;
+      const nextAll = isAllBrand ? "true" : "false";
+
+      console.log("[mobilemainGalleryHtml][switchBrand] resolved", {
+        selectedBrandFromHtml,
+        isAllBrand,
+        nextBrand,
+        nextAll
+      });
+
+      invalidateOpenItemRequests("switchBrand");
+
+      const brandSettingsLookupBrand = isAllBrand ? "HATODAIYA" : nextBrand;
+      const selectedBrandSettingsRes = await wixData.query("BrandSettings")
+        .eq("brand", brandSettingsLookupBrand)
+        .limit(1)
+        .find();
+
+      const selectedBrandSettingsItem = selectedBrandSettingsRes.items?.[0] || {};
+      const selectedBrandPrefix = String(
+        isAllBrand
+          ? shopPrefixFromBrandSettings
+          : selectedBrandSettingsItem.brandPrefix
+      ).trim().toLowerCase();
+
+      const selectedBrandLogoUrl = toHtmlImageSrc(selectedBrandSettingsItem.brandLogo);
+
+      if (selectedBrandLogoUrl) {
+        currentBrandLogoUrl = selectedBrandLogoUrl;
+      }
+
+      currentG1G2BrandKey = nextBrand;
+      currentG1G2ShopKey = "HATODAIYA";
+      currentG1G2AllValue = nextAll;
+      currentG1G2HideBrandSelect = false;
+
+      categoryKey = "";
+      currentItem = "";
+      selectedKey = "";
+      itemSlug = "";
+      targetTitle = "";
+      galleryItems = [];
+      galleryNormalItems = [];
+      galleryHoverItems = [];
+
+      const categoriesForBrand = filterG1CategoriesForShop(categoriesResult.items || [], {
+        shopKey: isAllBrand ? "HATODAIYA" : nextBrand,
+        shopPrefix: selectedBrandPrefix,
+        allValue: nextAll
+      });
+
+      const productsForCountResult = await getAllProductsForCount();
+
+      const countMapForBrand = buildCategoryCountMap(
+        productsForCountResult.items || [],
+        categoriesForBrand,
+        {
+          requireHyphen: true
+        }
+      );
+
+      const mainGalleryCategories = categoriesForBrand.map((item) => {
+        const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
+        const count = Number(countMapForBrand[key] || 0);
+
+        return {
+          key,
+          name: String(item.description || item.title || key),
+          count,
+          sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
+          thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
+          description: String(item.description || item.title || key),
+          items: [],
+          raw: item
+        };
+      });
+
+      console.log("[mobilemainGalleryHtml][switchBrand] postMessage payload", {
+        brand: nextBrand,
+        brandKey: nextBrand,
+        selectedBrand: nextBrand,
+        shop: "HATODAIYA",
+        all: nextAll,
+        hideBrandSelect: false,
+        showBrandSelect: true,
+        brandsLength: currentG1G2BrandSelectBrands.length,
+        brands: currentG1G2BrandSelectBrands,
+        brandLogoUrl: currentBrandLogoUrl,
+        activeCategoryKey: "",
+        categoriesLength: mainGalleryCategories.length,
+        categories: mainGalleryCategories
+      });
+
+      if ($w("#mobilemainGalleryHtml") && typeof $w("#mobilemainGalleryHtml").postMessage === "function") {
+        console.log("[pageCode][mobilemainGalleryHtml.postMessage] send", {
+          channel: "mainGallery",
+          type: "g1",
+          brand: nextBrand,
+          brandKey: nextBrand,
+          selectedBrand: nextBrand,
+          shop: "HATODAIYA",
+          all: nextAll,
+          hideBrandSelect: false,
+          showBrandSelect: true,
+          brandsLength: currentG1G2BrandSelectBrands.length,
+          brands: currentG1G2BrandSelectBrands,
+          brandLogoUrl: currentBrandLogoUrl,
+          activeCategoryKey: "",
+          categoriesLength: mainGalleryCategories.length,
+          categories: mainGalleryCategories
+        });
+
+        $w("#mobilemainGalleryHtml").postMessage({
+          channel: "mainGallery",
+          type: "g1",
+          brand: nextBrand,
+          brandKey: nextBrand,
+          selectedBrand: nextBrand,
+          shop: "HATODAIYA",
+          all: nextAll,
+          hideBrandSelect: false,
+          showBrandSelect: true,
+          brands: currentG1G2BrandSelectBrands,
+          brandLogoUrl: currentBrandLogoUrl,
+          activeCategoryKey: "",
+          categories: mainGalleryCategories
+        });
+      }
+
+      await collapseIfPossible($w("#MainSection"));
+      await collapseIfPossible($w("#desktopsection"));
+      await expandIfPossible($w("#G1G2GallerySection"));
+
+      return;
+    }
+  });
 }
+
+
 
 
 
@@ -2885,7 +3057,7 @@ const shopPrefixFromBrandSettings = String(brandSettingsItem.brandPrefix || "").
 currentG1G2CategoryPrefix = shopPrefixFromBrandSettings;
 currentBrandLogoUrl = toHtmlImageSrc(brandSettingsItem.brandLogo);
 
-// ▼ ブランドセレクトの選択肢は、BrandSettingsから shop=true かつ parentsBrand=shopKey のものを全て取得して作る
+// ブランドセレクトの選択肢は、BrandSettings から parentsBrand=shopKey かつ shop=true のものを取得し、候補が2件以上のときだけ表示する
 const brandSelectSettingsRes = await wixData.query("BrandSettings")
   .eq("parentsBrand", shopKey)
   .eq("shop", true)
@@ -3595,49 +3767,51 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     console.warn("⚠️ #categoryThumbnailMenu が見つからないか、postMessage 非対応です。mobilemainGalleryHtml送信は継続します。");
   }
 
-  const rawCategoriesForMenu = Array.isArray(options.categories)
-    ? options.categories
-    : filterG1CategoriesForShop(categoriesResult.items || [], {
-        shopKey: isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey,
-        shopPrefix: options.shopPrefix !== undefined
-          ? options.shopPrefix
-          : (
-              isForceHelmettyMode()
-                ? currentG1G2CategoryPrefix
-                : shopPrefixFromBrandSettings
-            ),
-        allValue: isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue
-      });
+ const payloadBrand = isForceHelmettyMode() ? FORCE_G1G2_BRAND_KEY : brandKey;
+const payloadShop = isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey;
+const payloadAll = isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue;
+const payloadHideBrandSelect = currentG1G2HideBrandSelect;
 
-  const categoriesForMenu = rawCategoriesForMenu;
+const selectedBrandSettingsRes = await wixData.query("BrandSettings")
+  .eq("brand", payloadBrand)
+  .limit(1)
+  .find();
 
-  const productsForCountResult = options.productsForCountResult || await getAllProductsForCount();
+const selectedBrandSettingsItem = selectedBrandSettingsRes.items?.[0] || {};
+const selectedBrandPrefix = String(
+  payloadAll === "true"
+    ? shopPrefixFromBrandSettings
+    : selectedBrandSettingsItem.brandPrefix
+).trim().toLowerCase();
 
-  const countMapForMenu = buildCategoryCountMap(
-    productsForCountResult.items || [],
-    categoriesForMenu,
-    options.countOptions || {}
-  );
+const categoriesForMenu = filterG1CategoriesForShop(categoriesResult.items || [], {
+  shopKey: payloadAll === "true" ? payloadShop : payloadBrand,
+  shopPrefix: selectedBrandPrefix,
+  allValue: payloadAll
+});
 
-  const htmlItemsRaw = buildCategoryHtmlItems(categoriesForMenu, countMapForMenu, activeCategoryKey, {
-    countColor: "#C71585"
-  });
+const productsForCountResult = options.productsForCountResult || await getAllProductsForCount();
 
-  const htmlItems = htmlItemsRaw;
+const countMapForMenu = buildCategoryCountMap(
+  productsForCountResult.items || [],
+  categoriesForMenu,
+  options.countOptions || {}
+);
 
-  const payloadBrand = isForceHelmettyMode() ? FORCE_G1G2_BRAND_KEY : brandKey;
-  const payloadShop = isForceHelmettyMode() ? FORCE_G1G2_SHOP_KEY : shopKey;
-  const payloadAll = isForceHelmettyMode() ? FORCE_G1G2_ALL_VALUE : allValue;
-  const payloadHideBrandSelect = currentG1G2HideBrandSelect;
+const htmlItemsRaw = buildCategoryHtmlItems(categoriesForMenu, countMapForMenu, activeCategoryKey, {
+  countColor: "#C71585"
+});
 
-  const payloadBrandOptions = Object.keys(BRAND_CONFIG).map((key) => ({
-    value: key,
-    label: BRAND_CONFIG[key]?.mbBrandText || key
-  }));
+const htmlItems = htmlItemsRaw;
 
-  if (!isMobile) {
-    await collapseIfPossible($w("#desktopsection"));
-  }
+const payloadBrandOptions = Object.keys(BRAND_CONFIG).map((key) => ({
+  value: key,
+  label: BRAND_CONFIG[key]?.mbBrandText || key
+}));
+
+if (!isMobile) {
+  await collapseIfPossible($w("#desktopsection"));
+}
 
   if (canPostCategoryThumbnailMenu) {
     html.postMessage({
@@ -3653,21 +3827,33 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     });
   }
 
-  const mainGalleryCategories = categoriesForMenu.map((item) => {
-    const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
-    const count = Number(countMapForMenu[key] || 0);
+const mainGalleryCategories = categoriesForMenu.map((item) => {
+  const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
+  const count = Number(countMapForMenu[key] || 0);
 
-    return {
-      key,
-      name: String(item.description || item.title || key),
-      count,
-      sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
-      thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
-      description: String(item.description || item.title || key),
-      items: [],
-      raw: item
-    };
-  });
+  return {
+    key,
+    name: String(item.description || item.title || key),
+    count,
+    sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
+    thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
+    description: String(item.description || item.title || key),
+    items: [],
+    raw: item
+  };
+});
+
+console.log("[G1G2-INITIAL][mainGalleryCategories]", {
+  brand: payloadBrand,
+  shop: payloadShop,
+  all: payloadAll,
+  categoriesLength: mainGalleryCategories.length,
+  categories: mainGalleryCategories.map((item) => ({
+    key: item.key,
+    name: item.name,
+    count: item.count
+  }))
+});
 
   const mainGalleryHtml = $w("#mainGalleryHtml");
 
@@ -3703,9 +3889,12 @@ async function postCategoryThumbnailMenu(activeCategoryKey, options = {}) {
     type: "g1",
     brand: payloadBrand,
     brandKey: payloadBrand,
+    selectedBrand: payloadBrand,
     shop: payloadShop,
     all: payloadAll,
     hideBrandSelect: payloadHideBrandSelect,
+    showBrandSelect: !payloadHideBrandSelect,
+    brands: currentG1G2BrandSelectBrands,
     brandLogoUrl: toHtmlImageSrc(brandSettingsItem.brandLogo),
     activeCategoryKey: "",
     categories: mainGalleryCategories
@@ -3730,6 +3919,21 @@ if (!__hasSelectedParam && matchedItems.length > 0) {
 
 itemSlug = buildItemSlug(categoryKey, selectedKey);
 targetTitle = buildTargetTitle(currentItem, selectedKey);
+console.log("[G1G2-INITIAL][resolved-source]", {
+  categoryKey,
+  selectedKey,
+  brandKey,
+  shopKey,
+  allValue,
+  currentItem,
+  itemSlug,
+  matchedItemsLength: matchedItems.length,
+  matchedItems: matchedItems.map((item) => ({
+    name: item.name,
+    slug: item.slug,
+    brand: item.brand
+  }))
+});
 DEBUG && console.log("itemSlug", itemSlug);
 DEBUG && console.log("matchedItems", matchedItems);
 

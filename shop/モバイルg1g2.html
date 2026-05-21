@@ -2323,7 +2323,8 @@ const integratedMenuState = {
                 }, 80);
             });
         }
-
+        // 外部からのブランドセレクト表示制御を適用する関数
+        
         function applyBrandSelectVisibility() {
             if (!g1Home) {
                 return;
@@ -2357,8 +2358,30 @@ const integratedMenuState = {
             const hasCategories = Array.isArray(payload.categories) && payload.categories.length > 0;
             const hasItems = Array.isArray(payload.items);
 
+            console.log("[mobilemainGalleryHtml][applyExternalState] incoming", {
+                type: payload.type,
+                brand: payload.brand,
+                brandKey: payload.brandKey,
+                selectedBrand: payload.selectedBrand,
+                hideBrandSelect: payload.hideBrandSelect,
+                brandsLength: Array.isArray(payload.brands) ? payload.brands.length : null,
+                brands: payload.brands,
+                categoriesLength: Array.isArray(payload.categories) ? payload.categories.length : null,
+                hasBrands,
+                hasCategories,
+                hasItems
+            });
+
+            console.log("[mobilemainGalleryHtml][applyExternalState] before renderBrandList", {
+                externalBridgeEnabled,
+                activeBrandKey,
+                externalBrandName,
+                externalBrandsLength: Array.isArray(externalBrands) ? externalBrands.length : null,
+                externalBrands
+            });
+
             if (payload.type === "g1" && !hasCategories) {
-                externalBridgeEnabled = false;
+                externalBridgeEnabled = true;
                 externalCategories = [];
                 activeCategoryKey = "";
                 externalG2Items = [];
@@ -3236,9 +3259,6 @@ integratedMenuLinkshop.addEventListener("click", () => {
 
 renderMobileBrandBox(defaultMobileBrandBoxPayload);
 postToParent({ type: "ready" });
-renderBrandList();
-renderG1();
-renderG2();
 applyBrandSelectVisibility();
 applyBackButtonStyle();
 scheduleMobileMainGalleryMetrics("initial");

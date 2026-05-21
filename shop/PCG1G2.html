@@ -983,6 +983,7 @@
             }
 
             .layout.is-g2-active { grid-template-columns: 1fr; }
+            .layout.is-g2-active .g1-panel { display: none; }
             .g1-home { grid-template-columns: 1fr; }
             .g1-list { grid-template-columns: repeat(2, minmax(0,1fr)); }
             .layout.is-g2-active .g1-list { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -1582,7 +1583,7 @@
                 }
             }
         ];
-
+        
         let activeCategoryKey = "";
         let activeG2ItemKey = "";
         let activeBrandKey = "main";
@@ -1924,6 +1925,7 @@ function applyExternalState(payload = {}) {
             return mockBrands.find((brand) => brand.key === activeBrandKey) || mockBrands[0];
         }
 
+        // カテゴリーデータの取得関数
         function getCurrentCategories() {
             if (externalBridgeEnabled) {
                 return externalCategories;
@@ -2035,7 +2037,7 @@ function applyExternalState(payload = {}) {
                 };
             });
         }
-
+         // ブランドリストのレンダリング
         function renderBrandList() {
             brandList.innerHTML = "";
             const brandsToRender = externalBridgeEnabled ? (externalBrands.length ? externalBrands : [getActiveBrand()]) : mockBrands;
@@ -2098,7 +2100,8 @@ function applyExternalState(payload = {}) {
                 brandList.appendChild(button);
             });
         }
-
+// G1カテゴリのレンダリング
+            
         function renderG1() {
             g1List.innerHTML = "";
 
@@ -2607,9 +2610,6 @@ document.body.appendChild(sourceButton);
 
         postBrandBannerToParent({ type: "ready" });
         postToParent({ type: "ready" });
-        renderBrandList();
-        renderG1();
-        renderG2();
         applyBrandSelectVisibility();
         applyBackButtonStyle();
 
