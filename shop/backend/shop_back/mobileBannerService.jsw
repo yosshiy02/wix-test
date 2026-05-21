@@ -1,0 +1,11 @@
+import { getMobileHelmettyMenuHtml } from 'backend/shop_back/menu_back/mobile_HELMETTY_MENU.js';
+
+export async function getMobileBannerHtml(options = {}) {
+    const shop = String(options.shop || '').trim().toUpperCase();
+
+    if (shop === 'HELMETTY') {
+        return getMobileHelmettyMenuHtml(options);
+    }
+
+    return '';
+}

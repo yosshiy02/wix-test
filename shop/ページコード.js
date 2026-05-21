@@ -9,9 +9,31 @@ import { createSquarePaymentLink } from 'backend/squareCheckout.jsw';
 import { getInitialPageData } from 'backend/products.jsw';
 import { getHelmettyBrandBoxHtml } from 'backend/shop_back/menuService.jsw';
 import { getHatodaiyaBrandBoxHtml } from 'backend/shop_back/menuService.jsw';
+import { getMobileBannerHtml } from 'backend/shop_back/mobileBannerService';
 import { initCartHtmlBridge } from "public/cartHtmlBridge";
 import { setMetaTags, setTitle } from "wix-seo-frontend";
 
+async function applyMobileTopBanner({
+    htmlComponent,
+    shop,
+    brand,
+    brandPrefix
+}) {
+    if (!htmlComponent || typeof htmlComponent.postMessage !== 'function') {
+        return;
+    }
+
+    const bannerHtml = await getMobileBannerHtml({
+        shop,
+        brand,
+        brandPrefix
+    });
+
+    htmlComponent.postMessage({
+        type: 'setBrandBoxHtml',
+        html: String(bannerHtml || '')
+    });
+}
 import {
   DEBUG,
   variantNames,
@@ -3111,6 +3133,41 @@ console.log("[G1G2-STATE][resolved-before-initial-push]", {
   currentG1G2HideBrandSelect
 });
 
+if (isMobile && String(shopKey || "").trim().toUpperCase() === "HELMETTY") {
+  try {
+    const mobileHelmettyMenuHtml = await getMobileBannerHtml({
+      shop: shopKey,
+      brand: brandKey,
+      brandPrefix: shopPrefixFromBrandSettings
+    });
+
+    console.log("[MobileBrandBoxHtml][HELMETTY] loaded", {
+      length: String(mobileHelmettyMenuHtml || "").length,
+      preview: String(mobileHelmettyMenuHtml || "").slice(0, 200)
+    });
+
+    if ($w("#mobilemainGalleryHtml") && typeof $w("#mobilemainGalleryHtml").postMessage === "function") {
+      console.log("[MobileBrandBoxHtml][HELMETTY] postMessage send", {
+        channel: "mainGallery",
+        type: "setBrandBoxHtml"
+      });
+
+      $w("#mobilemainGalleryHtml").postMessage({
+        channel: "mainGallery",
+        type: "setBrandBoxHtml",
+        html: mobileHelmettyMenuHtml
+      });
+    } else {
+      console.warn("[MobileBrandBoxHtml][HELMETTY] postMessage skipped", {
+        hasElement: !!$w("#mobilemainGalleryHtml"),
+        hasPostMessage: !!($w("#mobilemainGalleryHtml") && typeof $w("#mobilemainGalleryHtml").postMessage === "function")
+      });
+    }
+  } catch (e) {
+    console.error("[MobileBrandBoxHtml][HELMETTY] backend html load failed", e);
+  }
+}
+
 if (!isMobile && String(shopKey || "").trim().toUpperCase() === "HELMETTY") {
   try {
     console.log("[PcBrandBoxHtml][HELMETTY] condition hit", {
@@ -3831,6 +3888,10 @@ const mainGalleryCategories = categoriesForMenu.map((item) => {
   const key = String(item.slug || item.categoryKey || item.title || "").trim().toLowerCase();
   const count = Number(countMapForMenu[key] || 0);
 
+  const categoryProducts = filterProductsByCategoryKey(productsForCountResult.items || [], key);
+  const firstProduct = categoryProducts[0] || null;
+  const priceValue = firstProduct?.price ? `税込 ${Math.floor(Number(firstProduct.price) * 1.1).toLocaleString()}円` : "";
+
   return {
     key,
     name: String(item.description || item.title || key),
@@ -3838,6 +3899,9 @@ const mainGalleryCategories = categoriesForMenu.map((item) => {
     sizeLabel: String(item.sizeLabel || item.size || item.sizes || item.sizeRange || "").trim(),
     thumb: toHtmlImageSrc(item.mainMedia || item.image || item.thumbnail),
     description: String(item.description || item.title || key),
+    preview: {
+      price: priceValue
+    },
     items: [],
     raw: item
   };

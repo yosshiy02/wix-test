@@ -1930,11 +1930,11 @@
         ];
 
         const MAIN_GALLERY_CHANNEL = "mainGallery";
-        const mobileBrandBox = document.getElementById("mobileBrandBox");
-        const menuButton = document.getElementById("menuButton");
-        const brandLogo = document.getElementById("brandLogo");
-        const brandText = document.getElementById("brandText");
-        const brandSub = document.getElementById("brandSub");
+        let mobileBrandBox = document.getElementById("mobileBrandBox");
+        let menuButton = document.getElementById("menuButton");
+        let brandLogo = document.getElementById("brandLogo");
+        let brandText = document.getElementById("brandText");
+        let brandSub = document.getElementById("brandSub");
         const g1List = document.getElementById("g1List");
         const g2Grid = document.getElementById("g2Grid");
         const g2Panel = document.getElementById("g2Panel");
@@ -2167,21 +2167,92 @@ const integratedMenuState = {
             });
         }
 
-        menuButton.addEventListener("click", () => {
-            mobileBrandBox.classList.add("is-menu-active");
-            menuButton.classList.toggle("is-door-open");
-
-            window.setTimeout(() => {
-                mobileBrandBox.classList.remove("is-menu-active");
-            }, 780);
-
-            postToParent({
-                type: "toggleMobileMenu"
-            });
-        });
+        bindMobileBrandBoxEvents();
 
         function debugToParent(label, detail = {}) {
             postToParent({ type: "debug", label, detail });
+        }
+
+        function bindMobileBrandBoxEvents() {
+            if (!menuButton) {
+                return;
+            }
+
+            const freshMenuButton = menuButton.cloneNode(true);
+            menuButton.parentNode.replaceChild(freshMenuButton, menuButton);
+            menuButton = freshMenuButton;
+
+            menuButton.addEventListener("click", () => {
+                if (!mobileBrandBox || !menuButton) {
+                    return;
+                }
+
+                mobileBrandBox.classList.add("is-menu-active");
+                menuButton.classList.toggle("is-door-open");
+
+                window.setTimeout(() => {
+                    if (!mobileBrandBox) {
+                        return;
+                    }
+                    mobileBrandBox.classList.remove("is-menu-active");
+                }, 780);
+
+                postToParent({
+                    type: "toggleMobileMenu"
+                });
+            });
+        }
+
+        function replaceMobileBrandBoxHtml(html) {
+            const nextHtml = String(html || "").trim();
+
+            console.log("[mobilemainGalleryHtml][replaceMobileBrandBoxHtml][start]", {
+                hasHtml: !!nextHtml,
+                htmlPreview: nextHtml.slice(0, 200),
+                hasCurrentBrandBox: !!mobileBrandBox,
+                hasCurrentParent: !!(mobileBrandBox && mobileBrandBox.parentNode)
+            });
+
+            if (!nextHtml || !mobileBrandBox || !mobileBrandBox.parentNode) {
+                console.warn("[mobilemainGalleryHtml][replaceMobileBrandBoxHtml][abort]", {
+                    reason: "missing html or current brand box"
+                });
+                return;
+            }
+
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = nextHtml;
+
+            const nextBrandBox = wrapper.querySelector("#mobileBrandBox");
+
+            console.log("[mobilemainGalleryHtml][replaceMobileBrandBoxHtml][parsed]", {
+                hasNextBrandBox: !!nextBrandBox
+            });
+
+            if (!nextBrandBox) {
+                console.warn("[mobilemainGalleryHtml][replaceMobileBrandBoxHtml][abort]", {
+                    reason: "next #mobileBrandBox not found"
+                });
+                return;
+            }
+
+            mobileBrandBox.parentNode.replaceChild(nextBrandBox, mobileBrandBox);
+
+            mobileBrandBox = document.getElementById("mobileBrandBox");
+            menuButton = document.getElementById("menuButton");
+            brandLogo = document.getElementById("brandLogo");
+            brandText = document.getElementById("brandText");
+            brandSub = document.getElementById("brandSub");
+
+            console.log("[mobilemainGalleryHtml][replaceMobileBrandBoxHtml][done]", {
+                hasReboundBrandBox: !!mobileBrandBox,
+                hasReboundMenuButton: !!menuButton
+            });
+
+            bindMobileBrandBoxEvents();
+            syncMobileBrandBoxHeightVar();
+            __mobileMainGalleryLastHeight = 0;
+            scheduleMobileMainGalleryMetrics("setBrandBoxHtml");
         }
 
         function syncMobileBrandBoxHeightVar() {
@@ -2468,14 +2539,32 @@ const integratedMenuState = {
         window.addEventListener("message", (event) => {
             const data = event.data || {};
 
+            console.log("[mobilemainGalleryHtml][message]", {
+                channel: data.channel,
+                type: data.type,
+                hasHtml: typeof data.html === "string" && data.html.trim() !== "",
+                htmlPreview: typeof data.html === "string" ? data.html.slice(0, 200) : ""
+            });
+
             if (data.type === "mobileBrandBoxData") {
                 renderMobileBrandBox(data.payload || {});
                 return;
             }
 
+            if (data.type === "setBrandBoxHtml") {
+                replaceMobileBrandBoxHtml(data.html);
+                return;
+            }
+
             if (data.type === "setMobileMenuState") {
-                menuButton.classList.toggle("is-door-open", !!data.open);
-                mobileBrandBox.classList.toggle("is-menu-active", !!data.open);
+                if (menuButton) {
+                    menuButton.classList.toggle("is-door-open", !!data.open);
+                }
+
+                if (mobileBrandBox) {
+                    mobileBrandBox.classList.toggle("is-menu-active", !!data.open);
+                }
+
                 document.body.classList.toggle("is-menu-open", !!data.open);
                 setIntegratedMenuOpen(!!data.open);
                 __mobileMainGalleryLastHeight = 0;
