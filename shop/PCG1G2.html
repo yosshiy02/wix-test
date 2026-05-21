@@ -1509,7 +1509,11 @@
             }
 
             if (data.type === "setBrandBoxHtml") {
-                const current = document.getElementById("brandBar") || document.querySelector(".helmetty-box");
+                const current =
+                    document.getElementById("brandBar") ||
+                    document.querySelector(".helmetty-box") ||
+                    document.querySelector(".hatodaiya-box");
+
                 if (!current) {
                     return;
                 }

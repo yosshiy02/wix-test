@@ -58,6 +58,15 @@ async function fetchBrandSettings({ brand, brandPrefix }) {
         if (byBrand.items?.[0]) {
             return byBrand.items[0];
         }
+
+        const byParentsBrand = await wixData.query('BrandSettings')
+            .eq('parentsBrand', brandKey)
+            .limit(1)
+            .find();
+
+        if (byParentsBrand.items?.[0]) {
+            return byParentsBrand.items[0];
+        }
     }
 
     if (prefixKey) {
@@ -85,8 +94,8 @@ export async function getHelmettyBrandBoxHtml(options = {}) {
 }
 
 export async function getHatodaiyaBrandBoxHtml(options = {}) {
-    const brand = String(options.brand || 'HATODAIYA').trim();
-    const brandPrefix = String(options.brandPrefix || 'ha').trim();
+    const brand = String(options.brand || 'DEFAULT').trim();
+    const brandPrefix = String(options.brandPrefix || 'df').trim();
 
     const item = await fetchBrandSettings({ brand, brandPrefix });
     const settings = mapBrandSettingsToMenuSettings(item || { brand, brandPrefix });

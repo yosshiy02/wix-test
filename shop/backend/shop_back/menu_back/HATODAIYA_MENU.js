@@ -88,14 +88,14 @@ export function getHatodaiyaHtml(settings = {}) {
         brand: "HATODAIYA",
         brandPrefix: "ha",
         brandLogo: "",
-        colorBoxBg: "#f3f3f3",
-        colorBoxText: "#2f2f2f",
-        colorBackBg: "#f7f7f7",
-        colorBackBorder: "#d5d5d5",
-        colorBackText: "#555555",
-        colorButtonBg: "#ffffff",
-        colorButtonText: "#2f2f2f",
-        colorButtonBorder: "#c9c9c9",
+        colorBoxBg: "#f5f5f5",
+        colorBoxText: "#666666",
+        colorBackBg: "#fafafa",
+        colorBackBorder: "#dddddd",
+        colorBackText: "#7a7a7a",
+        colorButtonBg: "#f2f2f2",
+        colorButtonText: "#5f5f5f",
+        colorButtonBorder: "#d6d6d6",
         linkTop: "/hatodaiya-top",
         linkPolicy: "/policy",
         linkForm: "/contact",
@@ -140,10 +140,10 @@ export function getHatodaiyaHtml(settings = {}) {
     --hatodaiya-line: color-mix(in srgb, var(--hatodaiya-back-border) 58%, transparent);
     --hatodaiya-shadow-soft: 0 1.125rem 2.5rem rgba(40, 40, 40, 0.08);
     --hatodaiya-tab-bg: color-mix(in srgb, var(--hatodaiya-button-bg) 66%, var(--hatodaiya-back-border));
-    --hatodaiya-tab-hover: color-mix(in srgb, var(--hatodaiya-button-bg) 42%, var(--hatodaiya-back-text));
+    --hatodaiya-tab-hover: #f3f3f3;
     --hatodaiya-tab-ink: color-mix(in srgb, var(--hatodaiya-button-text) 88%, #111111);
     --hatodaiya-tab-drop-bg: color-mix(in srgb, var(--hatodaiya-tab-bg) 78%, #ffffff);
-    --hatodaiya-tab-drop-hover: color-mix(in srgb, var(--hatodaiya-tab-hover) 75%, #ffffff);
+    --hatodaiya-tab-drop-hover: #f7f7f7;
   }
 
   * {
@@ -174,15 +174,16 @@ export function getHatodaiyaHtml(settings = {}) {
     overflow: visible;
     isolation: isolate;
     background:
-      linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.94)),
-      linear-gradient(90deg, color-mix(in srgb, var(--hatodaiya-box-bg) 34%, transparent), var(--hatodaiya-back-bg));
+      linear-gradient(135deg, rgba(248,248,248,0.98), rgba(242,242,242,0.96)),
+      linear-gradient(90deg, color-mix(in srgb, var(--hatodaiya-box-bg) 24%, transparent), #f6f6f6);
     background-size: 200% 200%, auto;
-    color: var(--hatodaiya-box-text);
-    box-shadow: var(--hatodaiya-shadow-soft);
-    border: 1px solid color-mix(in srgb, var(--hatodaiya-back-border) 74%, #ffffff);
+    color: #666666;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.06);
+    border: 1px solid #dddddd;
     border-radius: 36px;
     animation: hatodaiyaPanelBreath 7.8s ease-in-out infinite;
   }
+
 
   .hatodaiya-box::before,
   .hatodaiya-box::after {
@@ -191,7 +192,7 @@ export function getHatodaiyaHtml(settings = {}) {
     left: 2.125rem;
     right: 2.125rem;
     height: 0.0625rem;
-    background: var(--hatodaiya-line);
+    background: #e3e3e3;
     pointer-events: none;
     z-index: -1;
   }
@@ -220,9 +221,10 @@ export function getHatodaiyaHtml(settings = {}) {
     padding: 0.125rem 0 0.125rem 1.375rem;
     align-items: start;
     align-content: start;
-    border-left: 0.0625rem solid color-mix(in srgb, var(--hatodaiya-box-text) 28%, transparent);
+    border-left: 0.0625rem solid #d8d8d8;
     animation: hatodaiyaCopyBlockIn 0.72s cubic-bezier(.2,.82,.24,1) both;
   }
+
 
   .hatodaiya-copy::before {
     content: "";
@@ -232,9 +234,9 @@ export function getHatodaiyaHtml(settings = {}) {
     width: 0.4375rem;
     height: 0.4375rem;
     border-radius: 999rem;
-    background: var(--hatodaiya-button-border);
+    background: #cfcfcf;
     opacity: 0.62;
-    box-shadow: 0 0 0 0.3125rem color-mix(in srgb, var(--hatodaiya-button-border) 18%, transparent);
+    box-shadow: 0 0 0 0.3125rem rgba(207, 207, 207, 0.18);
     pointer-events: none;
   }
 
@@ -281,14 +283,14 @@ export function getHatodaiyaHtml(settings = {}) {
     line-height: 1;
     font-weight: 700;
     letter-spacing: 0.22em;
-    color: color-mix(in srgb, var(--hatodaiya-box-text) 78%, #ffffff);
+    color: #6a6a6a;
     white-space: nowrap;
     text-transform: uppercase;
     padding: 0.4375rem 0.625rem 0.375rem;
-    background: var(--hatodaiya-soft);
-    border: 0.0625rem solid color-mix(in srgb, var(--hatodaiya-button-border) 40%, #ffffff);
+    background: #efefef;
+    border: 0.0625rem solid #dddddd;
     border-radius: 999rem;
-    box-shadow: 0 0.5rem 1.125rem rgba(40, 40, 40, 0.05);
+    box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.04);
     animation: hatodaiyaCopyLineIn 0.58s cubic-bezier(.2,.82,.24,1) 0.08s both;
   }
 
@@ -325,38 +327,13 @@ export function getHatodaiyaHtml(settings = {}) {
     animation: hatodaiyaCopyLineIn 0.68s cubic-bezier(.2,.82,.24,1) 0.28s both;
   }
 
-  .hatodaiya-button {
-    grid-area: button;
-    width: fit-content;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--hatodaiya-button-bg);
-    color: var(--hatodaiya-button-text);
-    border: 1px solid var(--hatodaiya-button-border);
-    border-radius: 999rem;
-    padding: 0.625rem 1.125rem;
-    text-decoration: none;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    box-shadow: 0 0.625rem 1.375rem rgba(40,40,40,0.06);
-    transition: transform 0.28s cubic-bezier(.73,.32,.34,1.5), box-shadow 0.28s ease, filter 0.22s ease;
-  }
-
-  .hatodaiya-button:hover {
-    transform: translateY(-0.1875rem);
-    box-shadow: 0 1rem 1.75rem rgba(40,40,40,0.1);
-    filter: saturate(1.02);
-  }
-
   .hatodaiya-links {
     grid-area: links;
     min-width: 0;
+    min-height: 3.5rem;
     position: relative;
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 0;
@@ -922,9 +899,6 @@ export function getHatodaiyaHtml(settings = {}) {
       ${escHtml(catchSub)}
     </div>
 
-    <a href="${escAttr(s.linkTop)}" class="hatodaiya-button" data-action="top" data-url="${escAttr(s.linkTop)}">
-      VIEW MORE
-    </a>
   </div>
 
   <div class="hatodaiya-logo-wrap">
@@ -996,6 +970,12 @@ export function getHatodaiyaHtml(settings = {}) {
           return;
         }
 
+        if (action === "insta") {
+          event.preventDefault();
+          window.open(href, "_blank");
+          return;
+        }
+
         if (window.parent && window.parent !== window) {
           event.preventDefault();
           window.parent.postMessage({
@@ -1005,7 +985,10 @@ export function getHatodaiyaHtml(settings = {}) {
             url: href,
             brand: brandName
           }, "*");
+          return;
         }
+
+        window.location.href = href;
       });
     });
   })();

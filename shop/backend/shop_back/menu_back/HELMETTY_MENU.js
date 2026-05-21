@@ -203,8 +203,7 @@ export function getHelmettyHtml(settings = {}) {
     grid-template-areas:
       "eyebrow"
       "main"
-      "sub"
-      "button";
+      "sub";
     row-gap: 0.5625rem;
     position: relative;
     padding: 0.125rem 0 0.125rem 1.375rem;
@@ -313,32 +312,6 @@ export function getHelmettyHtml(settings = {}) {
     max-width: 35rem;
     padding-bottom: 0;
     animation: helmettyCopyLineIn 0.68s cubic-bezier(.2,.82,.24,1) 0.28s both;
-  }
-
-  .helmetty-button {
-    grid-area: button;
-    width: fit-content;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--helmetty-button-bg);
-    color: var(--helmetty-button-text);
-    border: 1px solid var(--helmetty-button-border);
-    border-radius: 999rem;
-    padding: 0.625rem 1.125rem;
-    text-decoration: none;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    box-shadow: 0 0.625rem 1.375rem rgba(168,107,141,0.06);
-    transition: transform 0.28s cubic-bezier(.73,.32,.34,1.5), box-shadow 0.28s ease, filter 0.22s ease;
-  }
-
-  .helmetty-button:hover {
-    transform: translateY(-0.1875rem);
-    box-shadow: 0 1rem 1.75rem rgba(168,107,141,0.1);
-    filter: saturate(1.08);
   }
 
   .helmetty-links {
@@ -922,9 +895,6 @@ export function getHelmettyHtml(settings = {}) {
       ${escHtml(catchSub)}
     </div>
 
-    <a href="${escAttr(s.linkTop)}" class="helmetty-button" data-action="top" data-url="${escAttr(s.linkTop)}">
-      VIEW MORE
-    </a>
   </div>
 
   <div class="helmetty-logo-wrap">
@@ -996,6 +966,12 @@ export function getHelmettyHtml(settings = {}) {
           return;
         }
 
+        if (action === "insta") {
+          event.preventDefault();
+          window.open(href, "_blank");
+          return;
+        }
+
         if (window.parent && window.parent !== window) {
           event.preventDefault();
           window.parent.postMessage({
@@ -1005,7 +981,10 @@ export function getHelmettyHtml(settings = {}) {
             url: href,
             brand: brandName
           }, "*");
+          return;
         }
+
+        window.location.href = href;
       });
     });
   })();
