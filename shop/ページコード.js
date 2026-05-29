@@ -2859,23 +2859,6 @@ if (isMobile && mobilemainGalleryHtml && typeof mobilemainGalleryHtml.onMessage 
     const data = event?.data || {};
     const type = String(data.type || "").trim();
 
-    if (type === "ready") {
-      mobilemainGalleryHtml.postMessage({
-        type: "setMobileMenuState",
-        open: menuOpen
-      });
-      return;
-    }
-
-    if (type === "toggleMobileMenu") {
-      if (menuOpen) {
-        await closeMobileMenu();
-      } else {
-        await openMobileMenu();
-      }
-      return;
-    }
-
     if (type === "switchBrand") {
       const selectedBrandFromHtml = String(
         data.brand ||
@@ -4105,7 +4088,6 @@ if (salesData) {
 
 // ▼ カテゴリ表示処理（初回描画を阻害しないよう遅延実行）
 setTimeout(async () => {
-  const allProductsForCount = await getAllProductsForCount();
   try {
     // ★URLを読み直さない（ログで shopNameFromUrl が空になっていたため）
     const shopNameFromUrl = String(shopKey || "").trim();
@@ -4125,7 +4107,7 @@ const rawCategories = filterG1CategoriesForShop(categoriesResult.items || [], {
 
 const categories = rawCategories;
 
-const productsFromResult = allProductsForCount.items || [];
+const productsFromResult = productsResult.items || [];
 
 const allowedPrefixes = new Set(
   categories.map(item => String(item.slug || "").toLowerCase().trim())
@@ -4206,6 +4188,24 @@ const countMap = buildCategoryCountMap(productsFromResult, categories, {
           }
         }, 600);
       }
+
+      getAllProductsForCount()
+        .then(async (allProductsForCount) => {
+          const productsFromAll = allProductsForCount.items || [];
+          const countMapFromAll = buildCategoryCountMap(productsFromAll, categories, {
+            requireHyphen: true
+          });
+
+          await postCategoryThumbnailMenu(categoryKey, {
+            categories,
+            productsForCountResult: { items: productsFromAll },
+            countMap: countMapFromAll,
+            shopPrefix: shopPrefixFromUrl
+          });
+        })
+        .catch((e) => {
+          console.warn("⚠️ HTMLカテゴリ件数の再計算で例外:", e);
+        });
     } catch (e) {
       console.warn("⚠️ HTMLカテゴリ送信で例外:", e);
     }
