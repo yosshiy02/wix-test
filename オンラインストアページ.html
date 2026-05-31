@@ -1,3 +1,5 @@
+import wixLocationFrontend from 'wix-location-frontend';
+import { infoData } from 'public/hd-top/hd-info/info';
 import { rasimAnimationCode, helmettyAnimationCode, helmettyMobileAnimationCode } from 'public/brand-animations/brand-animations.js';
 import { helmettyPolaroidCode } from 'public/brand-modal/brand-modal-helmetty.js';
 
@@ -43,11 +45,41 @@ $w.onReady(function () {
      * --layout-center-x / --layout-center-y 等へ反映する。
      */
 
-    $w("#mobileMainHtml").onMessage((event) => {
-        if (event.data && event.data.type === "helmettyModalDebug") {
-            console.log("[DEBUG velo helmettyModalDebug]", event.data);
+    bindMainHtml("#pcMainHtml");
+    bindMainHtml("#mobileMainHtml");
+
+    function bindMainHtml(elementId) {
+        const el = $w(elementId);
+
+        if (!el || typeof el.onMessage !== "function") {
+            return;
         }
-    });
+
+        el.onMessage((event) => {
+            if (!event.data) {
+                return;
+            }
+
+            if (event.data.type === "helmettyModalDebug") {
+                console.log("[DEBUG velo helmettyModalDebug]", event.data);
+                return;
+            }
+
+            if (event.data.type === "NAVIGATE_TO_INFO") {
+                wixLocationFrontend.to('/hd-origin-info');
+                return;
+            }
+
+            if (event.data.type === "INFO_HTML_READY") {
+                el.postMessage({
+                    type: "INFO_DATA",
+                    payload: infoData
+                });
+
+                console.log("[DEBUG velo] sent INFO_DATA to", elementId);
+            }
+        });
+    }
     console.log('[DEBUG velo] rasimAnimationCode imported:', typeof rasimAnimationCode, 'length:', rasimAnimationCode ? rasimAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyAnimationCode imported:', typeof helmettyAnimationCode, 'length:', helmettyAnimationCode ? helmettyAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyPolaroidCode imported:', typeof helmettyPolaroidCode, 'length:', helmettyPolaroidCode ? helmettyPolaroidCode.length : 0);

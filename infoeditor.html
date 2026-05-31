@@ -1,0 +1,701 @@
+<!-- infoEditorHtml-アフター.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>INFO JS EDITOR</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Jost:wght@300;400;500;700&display=swap');
+
+:root{
+    --bg:#f8f8f8;
+    --panel:#ffffff;
+    --text:#111111;
+    --sub:#666666;
+    --line:rgba(17,17,17,0.12);
+    --accent:#d4af37;
+    --danger:#b42318;
+    --danger-bg:#fff3f2;
+    --font-serif:'Playfair Display', serif;
+    --font-sans:'Jost', sans-serif;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+}
+
+body{
+    padding:2rem 1rem 3rem;
+}
+
+.editor-wrap{
+    max-width:72rem;
+    margin:0 auto;
+}
+
+.editor-header{
+    margin-bottom:2rem;
+}
+
+.editor-kicker{
+    font-size:0.8125rem;
+    letter-spacing:0.2rem;
+    color:var(--accent);
+    margin-bottom:0.75rem;
+}
+
+.editor-title{
+    font-family:var(--font-serif);
+    font-size:clamp(2rem,5vw,3.5rem);
+    font-weight:400;
+    letter-spacing:0.18rem;
+    line-height:1.1;
+    margin-bottom:0.75rem;
+}
+
+.editor-sub{
+    font-size:0.875rem;
+    line-height:1.9;
+    color:var(--sub);
+}
+
+.editor-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 22rem) minmax(0, 1fr);
+    gap:1.5rem;
+    align-items:start;
+}
+
+.panel{
+    background:var(--panel);
+    border:0.0625rem solid var(--line);
+    padding:1.25rem;
+}
+
+.panel-title{
+    font-size:0.9375rem;
+    letter-spacing:0.14rem;
+    margin-bottom:1rem;
+}
+
+.form-grid{
+    display:grid;
+    gap:0.875rem;
+}
+
+.form-field{
+    display:grid;
+    gap:0.5rem;
+}
+
+.form-label{
+    font-size:0.75rem;
+    letter-spacing:0.1rem;
+    color:var(--sub);
+}
+
+.input,
+.textarea{
+    width:100%;
+    border:0.0625rem solid var(--line);
+    background:#fff;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:0.9375rem;
+    padding:0.75rem 0.875rem;
+    outline:none;
+}
+
+.textarea{
+    min-height:18rem;
+    line-height:1.7;
+    resize:vertical;
+    white-space:pre;
+}
+
+.input:focus,
+.textarea:focus{
+    border-color:var(--accent);
+}
+
+.button-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.625rem;
+    margin-top:0.25rem;
+}
+
+.button{
+    appearance:none;
+    border:0.0625rem solid var(--text);
+    background:#fff;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:0.8125rem;
+    font-weight:500;
+    letter-spacing:0.08rem;
+    padding:0.75rem 0.9375rem;
+    cursor:pointer;
+    transition:background .3s ease,color .3s ease,opacity .3s ease,border-color .3s ease;
+}
+
+.button:hover{
+    background:var(--text);
+    color:#fff;
+}
+
+.button-accent{
+    border-color:var(--accent);
+    color:var(--text);
+}
+
+.button-accent:hover{
+    background:var(--accent);
+    color:#111;
+}
+
+.button-danger{
+    border-color:var(--danger);
+    color:var(--danger);
+    background:#fff;
+}
+
+.button-danger:hover{
+    background:var(--danger);
+    color:#fff;
+}
+
+.status{
+    margin-top:0.75rem;
+    font-size:0.8125rem;
+    line-height:1.6;
+    color:var(--sub);
+    min-height:1.5rem;
+}
+
+.items-list{
+    display:grid;
+    gap:0.75rem;
+    margin-bottom:1.25rem;
+}
+
+.item-card{
+    border:0.0625rem solid var(--line);
+    padding:1rem;
+    display:grid;
+    gap:0.625rem;
+    background:#fff;
+}
+
+.item-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.75rem;
+    align-items:center;
+}
+
+.item-date{
+    font-size:0.75rem;
+    letter-spacing:0.1rem;
+}
+
+.item-index{
+    font-size:0.75rem;
+    letter-spacing:0.08rem;
+    color:var(--accent);
+}
+
+.item-title{
+    font-size:0.9375rem;
+    line-height:1.7;
+    word-break:break-word;
+}
+
+.item-url{
+    font-size:0.8125rem;
+    color:var(--sub);
+    word-break:break-all;
+}
+
+.output-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    margin-bottom:0.875rem;
+}
+
+.output-note{
+    font-size:0.8125rem;
+    color:var(--sub);
+    line-height:1.6;
+}
+
+.empty{
+    padding:1.5rem 0;
+    font-size:0.875rem;
+    color:var(--sub);
+    line-height:1.8;
+}
+
+@media (max-width:56rem){
+    .editor-grid{
+        grid-template-columns:1fr;
+    }
+
+    body{
+        padding:1.25rem 0.875rem 2.5rem;
+    }
+
+    .panel{
+        padding:1rem;
+    }
+
+    .output-head{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="editor-wrap">
+
+    <header class="editor-header">
+        <div class="editor-kicker">
+            HD ONLINE STORE
+        </div>
+        <h1 class="editor-title">
+            INFO JS EDITOR
+        </h1>
+        <p class="editor-sub">
+            お知らせデータを入力して、
+            <code>export const infoData = { ... }</code>
+            の形でそのまま使えるコードを生成します。
+        </p>
+    </header>
+
+    <div class="editor-grid">
+
+        <section class="panel">
+            <h2 class="panel-title">
+                ITEM EDITOR
+            </h2>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="date-input">
+                        DATE
+                    </label>
+                    <input class="input"
+                           id="date-input"
+                           type="date">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="title-input">
+                        TITLE
+                    </label>
+                    <input class="input"
+                           id="title-input"
+                           type="text"
+                           placeholder="記事タイトル">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="url-input">
+                        URL
+                    </label>
+                    <input class="input"
+                           id="url-input"
+                           type="text"
+                           placeholder="/hd-origin-info-... または #">
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="button button-accent"
+                        id="add-button"
+                        type="button">
+                    ADD
+                </button>
+
+                <button class="button"
+                        id="update-button"
+                        type="button">
+                    UPDATE
+                </button>
+
+                <button class="button"
+                        id="clear-button"
+                        type="button">
+                    CLEAR
+                </button>
+
+                <button class="button button-danger"
+                        id="delete-button"
+                        type="button">
+                    DELETE
+                </button>
+            </div>
+
+            <div class="status"
+                 id="status-text"></div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">
+                ITEM LIST
+            </h2>
+
+            <div class="items-list"
+                 id="items-list"></div>
+
+            <div class="output-head">
+                <div class="output-note">
+                    下のコードをそのまま
+                    <code>public/hd-top/hd-info/info.js</code>
+                    に貼り替えできます。
+                </div>
+
+                <div class="button-row">
+                    <button class="button"
+                            id="sort-button"
+                            type="button">
+                        SORT
+                    </button>
+
+                    <button class="button"
+                            id="copy-button"
+                            type="button">
+                        COPY
+                    </button>
+
+                    <button class="button button-accent"
+                            id="save-button"
+                            type="button">
+                        SAVE
+                    </button>
+                </div>
+            </div>
+
+            <textarea class="textarea"
+                      id="output-textarea"
+                      spellcheck="false"></textarea>
+        </section>
+
+    </div>
+
+</div>
+
+<script>
+var items = [];
+
+var selectedIndex = -1;
+
+var dateInput = document.getElementById('date-input');
+var titleInput = document.getElementById('title-input');
+var urlInput = document.getElementById('url-input');
+var itemsList = document.getElementById('items-list');
+var outputTextarea = document.getElementById('output-textarea');
+var statusText = document.getElementById('status-text');
+
+window.addEventListener('message', function(event){
+    var data = event.data || {};
+
+    if(data.type === 'INFO_EDITOR_CMS_DATA'){
+        items = normalizeItems(data.payload);
+        sortItems();
+        selectedIndex = -1;
+        clearForm();
+        renderAll();
+        setStatus('CMSデータを読み込みました。');
+        return;
+    }
+
+    if(data.type === 'INFO_EDITOR_CMS_DATA_ERROR'){
+        items = [];
+        selectedIndex = -1;
+        clearForm();
+        renderAll();
+        setStatus('CMSデータの読み込みに失敗しました。');
+        return;
+    }
+
+    if(data.type === 'INFO_EDITOR_CMS_SAVE_SUCCESS'){
+        items = normalizeItems(data.payload);
+        sortItems();
+        selectedIndex = -1;
+        clearForm();
+        renderAll();
+        setStatus('CMSを更新しました。');
+        return;
+    }
+
+    if(data.type === 'INFO_EDITOR_CMS_SAVE_ERROR'){
+        setStatus('CMSの更新に失敗しました。');
+    }
+});
+
+document.getElementById('add-button').addEventListener('click', function(){
+    var item = getFormItem();
+
+    if(!item){
+        return;
+    }
+
+    items.push(item);
+    sortItems();
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('追加しました。');
+});
+
+document.getElementById('update-button').addEventListener('click', function(){
+    if(selectedIndex < 0 || selectedIndex >= items.length){
+        setStatus('更新する項目を選んでください。');
+        return;
+    }
+
+    var item = getFormItem();
+
+    if(!item){
+        return;
+    }
+
+    items[selectedIndex] = item;
+    sortItems();
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('更新しました。');
+});
+
+document.getElementById('clear-button').addEventListener('click', function(){
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('入力欄をクリアしました。');
+});
+
+document.getElementById('delete-button').addEventListener('click', function(){
+    if(selectedIndex < 0 || selectedIndex >= items.length){
+        setStatus('削除する項目を選んでください。');
+        return;
+    }
+
+    items.splice(selectedIndex, 1);
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('削除しました。');
+});
+
+document.getElementById('sort-button').addEventListener('click', function(){
+    sortItems();
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('日付の新しい順に並べました。');
+});
+
+document.getElementById('copy-button').addEventListener('click', function(){
+    outputTextarea.select();
+    outputTextarea.setSelectionRange(0, outputTextarea.value.length);
+
+    navigator.clipboard.writeText(outputTextarea.value)
+        .then(function(){
+            setStatus('コードをコピーしました。');
+        })
+        .catch(function(){
+            try{
+                document.execCommand('copy');
+                setStatus('コードをコピーしました。');
+            }catch(error){
+                setStatus('コピーできませんでした。手動でコピーしてください。');
+            }
+        });
+});
+
+document.getElementById('save-button').addEventListener('click', function(){
+    setStatus('CMSを更新中です。');
+
+    window.parent.postMessage({
+        type: 'INFO_EDITOR_SAVE_REQUEST',
+        payload: items
+    }, '*');
+});
+
+function getFormItem(){
+    var date = String(dateInput.value || '').trim();
+    var title = String(titleInput.value || '').trim();
+    var url = String(urlInput.value || '').trim();
+
+    if(!date){
+        setStatus('DATE を入力してください。');
+        return null;
+    }
+
+    if(!title){
+        setStatus('TITLE を入力してください。');
+        return null;
+    }
+
+    return {
+        date: date,
+        title: title,
+        url: url || '#'
+    };
+}
+
+function clearForm(){
+    dateInput.value = '';
+    titleInput.value = '';
+    urlInput.value = '#';
+}
+
+function sortItems(){
+    items.sort(function(a, b){
+        return String(b.date || '').localeCompare(String(a.date || ''));
+    });
+}
+
+function renderAll(){
+    renderItemsList();
+    renderOutput();
+}
+
+function renderItemsList(){
+    if(items.length === 0){
+        itemsList.innerHTML = '<div class="empty">項目はありません。</div>';
+        return;
+    }
+
+    itemsList.innerHTML = items.map(function(item, index){
+        return [
+            '<button class="item-card" type="button" data-index="' + index + '" style="text-align:left;' + (index === selectedIndex ? ' border-color:#d4af37;' : '') + '">',
+                '<div class="item-meta">',
+                    '<span class="item-index">ITEM ' + String(index + 1).padStart(2, '0') + '</span>',
+                    '<span class="item-date">' + escapeHtml(formatDate(item.date)) + '</span>',
+                '</div>',
+                '<div class="item-title">' + escapeHtml(item.title) + '</div>',
+                '<div class="item-url">' + escapeHtml(item.url || '#') + '</div>',
+            '</button>'
+        ].join('');
+    }).join('');
+
+    Array.prototype.forEach.call(itemsList.querySelectorAll('.item-card'), function(button){
+        button.addEventListener('click', function(){
+            var index = Number(button.getAttribute('data-index'));
+
+            if(!Number.isInteger(index) || !items[index]){
+                return;
+            }
+
+            selectedIndex = index;
+            dateInput.value = items[index].date || '';
+            titleInput.value = items[index].title || '';
+            urlInput.value = items[index].url || '#';
+            renderItemsList();
+            setStatus('項目を選択しました。');
+        });
+    });
+}
+
+function renderOutput(){
+    outputTextarea.value = buildJsCode(items);
+}
+
+function buildJsCode(sourceItems){
+    var lines = [];
+
+    lines.push('export const infoData = {');
+    lines.push('    items: [');
+
+    sourceItems.forEach(function(item, index){
+        lines.push('        {');
+        lines.push("            date: '" + escapeJs(item.date || '') + "',");
+        lines.push("            title: '" + escapeJs(item.title || '') + "',");
+        lines.push("            url: '" + escapeJs(item.url || '#') + "'");
+        lines.push(index === sourceItems.length - 1 ? '        }' : '        },');
+    });
+
+    lines.push('    ]');
+    lines.push('};');
+
+    return lines.join('\n');
+}
+
+function formatDate(dateString){
+    var parts = String(dateString || '').split('-');
+
+    if(parts.length !== 3){
+        return String(dateString || '');
+    }
+
+    return parts[0] + '.' + parts[1] + '.' + parts[2];
+}
+
+function normalizeItems(payload){
+    var sourceItems = [];
+
+    if(Array.isArray(payload)){
+        sourceItems = payload;
+    }else if(payload && Array.isArray(payload.items)){
+        sourceItems = payload.items;
+    }
+
+    return sourceItems.map(function(item){
+        return {
+            date: String(item && item.date || '').trim(),
+            title: String(item && item.title || '').trim(),
+            url: String(item && item.url || '#').trim() || '#'
+        };
+    }).filter(function(item){
+        return item.date && item.title;
+    });
+}
+
+function escapeHtml(value){
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeJs(value){
+    return String(value)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'");
+}
+
+function setStatus(message){
+    statusText.textContent = message;
+}
+
+clearForm();
+renderAll();
+setStatus('CMSデータを読み込み中です。');
+window.parent.postMessage({ type: 'INFO_EDITOR_HTML_READY' }, '*');
+</script>
+
+</body>
+</html>

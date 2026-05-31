@@ -2485,37 +2485,11 @@
             </div>
 
             <div class="info-list-area">
-                <ul class="info-list">
-                    <li class="info-item">
-                        <a href="#">
-                            <div class="info-meta">
-                                <span class="info-date">2026.04.01</span>
-                                <span class="info-cat">NEWS</span>
-                            </div>
-                            <p class="info-text">新しいオンラインストアを公開しました。</p>
-                        </a>
-                    </li>
-                    <li class="info-item">
-                        <a href="#">
-                            <div class="info-meta">
-                                <span class="info-date">2026.03.15</span>
-                                <span class="info-cat">DELIVERY</span>
-                            </div>
-                            <p class="info-text">税込11,000円以上のお買い物で送料無料となります。</p>
-                        </a>
-                    </li>
-                    <li class="info-item">
-                        <a href="#">
-                            <div class="info-meta">
-                                <span class="info-date">2026.02.20</span>
-                                <span class="info-cat">EVENT</span>
-                            </div>
-                            <p class="info-text">春のポップアップイベント情報を更新しました。</p>
-                        </a>
-                    </li>
-                </ul>
+                <ul class="info-list" id="infoList"></ul>
 
-                <a href="#" class="info-view-all">VIEW ALL INFORMATION</a>
+                <a href="#"
+                   class="info-view-all"
+                   id="infoViewAllLink">VIEW ALL INFORMATION</a>
             </div>
         </div>
     </section>
@@ -2847,10 +2821,83 @@
             playHeroAnimation();
         }
 
+        function renderLatestInformation(data) {
+            const list = document.getElementById('infoList');
+
+            if (!list) {
+                return;
+            }
+
+            const items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+            items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+            const latestItems = items.slice(0, 3);
+
+            if (latestItems.length === 0) {
+                list.innerHTML = `
+                    <li class="info-item">
+                        <a href="#">
+                            <div class="info-meta">
+                                <span class="info-date">--</span>
+                            </div>
+                            <p class="info-text">お知らせはありません。</p>
+                        </a>
+                    </li>
+                `;
+                return;
+            }
+
+            list.innerHTML = latestItems.map((item) => {
+                return `
+                    <li class="info-item">
+                        <a href="${escapeAttribute(item.url || '#')}">
+                            <div class="info-meta">
+                                <span class="info-date">${formatInfoDate(item.date)}</span>
+                            </div>
+                            <p class="info-text">${escapeHtml(item.title || '')}</p>
+                        </a>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function formatInfoDate(dateString) {
+            const parts = String(dateString || '').split('-');
+
+            if (parts.length !== 3) {
+                return escapeHtml(String(dateString || ''));
+            }
+
+            return `${parts[0]}.${parts[1]}.${parts[2]}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttribute(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         // 追加: Veloから送られてきた画像・専用アニメーションコードを受け取って反映
         window.addEventListener("message", (event) => {
             const data = event.data || {};
             console.log('[DEBUG mobile] message received:', data.type, data.brand, 'hasCode:', !!data.htmlCode || !!data.jsCode);
+
+            if (data.type === "INFO_DATA") {
+                renderLatestInformation(data.payload);
+                return;
+            }
 
             if (data.type === "setVisibleEmbedCenter") {
                 const root = document.documentElement;
@@ -2947,6 +2994,21 @@
 
         // 追加: スキップボタンのクリックイベント
         window.addEventListener('DOMContentLoaded', () => {
+            window.parent.postMessage({
+                type: 'INFO_HTML_READY'
+            }, '*');
+
+            const infoViewAllLink = document.getElementById('infoViewAllLink');
+            if (infoViewAllLink) {
+                infoViewAllLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_INFO'
+                    }, '*');
+                });
+            }
+
             const skipBtn = document.getElementById('cinemaSkipBtn');
             if (skipBtn) {
                 skipBtn.addEventListener('click', () => {

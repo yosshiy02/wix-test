@@ -1402,27 +1402,10 @@
                     <div style="margin-top: 15px; font-family: var(--font-jp); font-size: 0.85rem; letter-spacing: 5px; color: var(--accent);">最新のお知らせ</div>
                 </div>
                 <div class="info-list-area">
-                    <ul class="info-list">
-                        <li class="info-item">
-                            <a href="#">
-                                <div class="info-meta"><span class="info-date">2026.04.28</span><span class="info-cat">CAMPAIGN</span></div>
-                                <div class="info-text">【グランドオープン記念】全国送料無料 ＆ オリジナルノベルティプレゼント</div>
-                            </a>
-                        </li>
-                        <li class="info-item">
-                            <a href="#">
-                                <div class="info-meta"><span class="info-date">2026.04.20</span><span class="info-cat">MEMBERSHIP</span></div>
-                                <div class="info-text">新規会員登録で、すぐにご利用可能な「5,000円分」のギフトポイントを贈呈中。</div>
-                            </a>
-                        </li>
-                        <li class="info-item">
-                            <a href="#">
-                                <div class="info-meta"><span class="info-date">2026.04.15</span><span class="info-cat">RESTOCK</span></div>
-                                <div class="info-text">完売しておりました「HATODAIYA」シグネチャーモデルの再入荷が決定いたしました。</div>
-                            </a>
-                        </li>
-                    </ul>
-                    <a href="#" class="info-view-all">VIEW ALL INFO</a>
+                    <ul class="info-list" id="infoList"></ul>
+                    <a href="#"
+                       class="info-view-all"
+                       id="infoViewAllLink">VIEW ALL INFO</a>
                 </div>
             </div>
         </section>
@@ -1621,6 +1604,21 @@
 
         // 追加: スキップボタンのクリックイベント
         window.addEventListener('DOMContentLoaded', () => {
+            window.parent.postMessage({
+                type: 'INFO_HTML_READY'
+            }, '*');
+
+            const infoViewAllLink = document.getElementById('infoViewAllLink');
+            if (infoViewAllLink) {
+                infoViewAllLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_INFO'
+                    }, '*');
+                });
+            }
+
             const skipBtn = document.getElementById('cinemaSkipBtn');
             if (skipBtn) {
                 skipBtn.addEventListener('click', () => {
@@ -1798,6 +1796,70 @@
                     );
                 }
             });
+        }
+
+        function renderLatestInformation(data) {
+            const list = document.getElementById('infoList');
+
+            if (!list) {
+                return;
+            }
+
+            const items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+            items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+            const latestItems = items.slice(0, 3);
+
+            if (latestItems.length === 0) {
+                list.innerHTML = `
+                    <li class="info-item">
+                        <a href="#">
+                            <div class="info-meta"><span class="info-date">--</span></div>
+                            <div class="info-text">お知らせはありません。</div>
+                        </a>
+                    </li>
+                `;
+                return;
+            }
+
+            list.innerHTML = latestItems.map((item) => {
+                return `
+                    <li class="info-item">
+                        <a href="${escapeAttribute(item.url || '#')}">
+                            <div class="info-meta"><span class="info-date">${formatInfoDate(item.date)}</span></div>
+                            <div class="info-text">${escapeHtml(item.title || '')}</div>
+                        </a>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function formatInfoDate(dateString) {
+            const parts = String(dateString || '').split('-');
+
+            if (parts.length !== 3) {
+                return escapeHtml(String(dateString || ''));
+            }
+
+            return `${parts[0]}.${parts[1]}.${parts[2]}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttribute(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
         }
 
         // 画像の読み込み完了後にScrollTriggerを更新（iframe環境でのズレ防止）
@@ -2341,6 +2403,11 @@
 
         window.addEventListener("message", (event) => {
             const data = event.data || {};
+
+            if (data.type === "INFO_DATA") {
+                renderLatestInformation(data.payload);
+                return;
+            }
 
             // ヒーロー画像の変更
             if (data.type === "setHeroImage" && data.heroImageUrl) {

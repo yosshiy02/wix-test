@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>INFORMATION | HD ONLINE STORE</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Jost:wght@300;400;500;700&display=swap');
+
+:root{
+    --bg:#f8f8f8;
+    --text:#111111;
+    --line:rgba(17,17,17,0.12);
+    --accent:#d4af37;
+
+    --font-serif:'Playfair Display', serif;
+    --font-sans:'Jost', sans-serif;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+}
+
+body{
+    padding:7.5rem 1.5rem 5rem;
+}
+
+.back-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.5rem;
+    margin-bottom:1.5rem;
+    padding:0.75rem 1.125rem;
+    text-decoration:none;
+    font-size:0.8125rem;
+    font-weight:500;
+    letter-spacing:0.12rem;
+    color:var(--text);
+    background:#ffffff;
+    border:0.0625rem solid var(--text);
+    border-radius:9999rem;
+    transition:opacity .3s ease, background .3s ease, color .3s ease;
+}
+
+.back-link:hover{
+    opacity:1;
+    background:var(--text);
+    color:#ffffff;
+}
+
+.page-layout{
+    display:grid;
+    grid-template-columns:16.25rem minmax(0,1fr);
+    gap:6.25rem;
+    align-items:start;
+}
+
+.page-sidebar{
+    position:sticky;
+    top:3.75rem;
+    height:fit-content;
+}
+
+.page-label{
+    font-size:0.9375rem;
+    letter-spacing:0.25rem;
+    color:var(--accent);
+    margin-bottom:1.125rem;
+}
+
+.year-menu{
+    display:flex;
+    flex-direction:column;
+    gap:1.75rem;
+    margin-top:2.5rem;
+}
+
+.year-tree{
+    display:flex;
+    flex-direction:column;
+    gap:0.875rem;
+}
+
+.year-toggle{
+    background:none;
+    border:none;
+    text-align:left;
+    font-family:var(--font-sans);
+    font-size:1rem;
+    letter-spacing:0.1875rem;
+    color:#999;
+    cursor:pointer;
+    transition:color .3s ease;
+    position:relative;
+    padding-left:1.25rem;
+}
+
+.year-toggle::before{
+    content:"+";
+    position:absolute;
+    left:0;
+    top:0;
+}
+
+.year-toggle.is-active{
+    color:var(--text);
+}
+
+.year-toggle.is-active::before{
+    content:"−";
+}
+
+.month-tree{
+    display:none;
+    flex-direction:column;
+    gap:0.625rem;
+    padding-left:1.25rem;
+}
+
+.year-tree.is-open .month-tree{
+    display:flex;
+}
+
+.month-link{
+    text-decoration:none;
+    font-size:0.875rem;
+    letter-spacing:0.1875rem;
+    color:#999;
+    transition:color .3s ease;
+}
+
+.month-link:hover{
+    color:var(--text);
+}
+
+.page-header{
+    margin-bottom:5rem;
+    display:flex;
+    flex-direction:column;
+    gap:1.875rem;
+}
+
+.page-title{
+    font-family:var(--font-serif);
+    font-size:clamp(2.25rem,7vw,4.75rem);
+    font-weight:400;
+    letter-spacing:0.375rem;
+    line-height:1;
+    margin-top:-1.25rem;
+}
+
+.page-sub{
+    max-width:40rem;
+    font-size:0.875rem;
+    line-height:2;
+    color:#666;
+}
+
+.info-year-group{
+    padding-bottom:6.25rem;
+}
+
+.info-year-heading{
+    font-family:var(--font-serif);
+    font-size:3rem;
+    letter-spacing:0.25rem;
+    margin-bottom:3.125rem;
+}
+
+.info-month-group{
+    margin-bottom:3.75rem;
+}
+
+.info-month-heading{
+    font-size:0.6875rem;
+    letter-spacing:0.25rem;
+    color:var(--accent);
+    margin-bottom:1.25rem;
+}
+
+.info-list{
+    border-top:0.0625rem solid var(--line);
+}
+
+.info-item{
+    border-bottom:0.0625rem solid var(--line);
+}
+
+.info-link{
+    display:flex;
+    flex-direction:column;
+    gap:1.125rem;
+    padding:2rem 0;
+    text-decoration:none;
+    color:inherit;
+    transition:opacity .4s ease;
+}
+
+.info-link:hover{
+    opacity:.6;
+}
+
+.info-meta{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    flex-wrap:wrap;
+}
+
+.info-date{
+    font-size:0.75rem;
+    letter-spacing:0.125rem;
+}
+
+.info-title{
+    font-size:1rem;
+    line-height:1.8;
+    letter-spacing:0.0625rem;
+}
+
+.info-empty{
+    padding:2rem 0;
+    font-size:0.875rem;
+    line-height:1.8;
+    color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<a href="/hd-origin-top"
+   class="back-link">
+    ← TOPへ戻る
+</a>
+
+<div class="page-layout">
+
+    <aside class="page-sidebar">
+
+        <div class="page-label">
+            HD ONLINE STORE
+        </div>
+
+        <nav class="year-menu"
+             id="year-menu"></nav>
+
+    </aside>
+
+    <main class="page-content">
+
+        <header class="page-header">
+
+            <h1 class="page-title">
+                INFORMATION
+            </h1>
+
+            <p class="page-sub">
+                HD ONLINE STOREからのお知らせ、
+                配送状況、POPUP開催情報、
+                リリース、営業に関する
+                ご案内を掲載しています。
+            </p>
+
+        </header>
+
+        <div id="info-content"></div>
+
+    </main>
+
+</div>
+
+<script>
+document.addEventListener('click', function(event){
+    var toggle = event.target.closest('.year-toggle');
+
+    if(!toggle){
+        return;
+    }
+
+    var yearTree = toggle.closest('.year-tree');
+    var monthTree = yearTree.querySelector('.month-tree');
+
+    if(!monthTree){
+        return;
+    }
+
+    yearTree.classList.toggle('is-open');
+    toggle.classList.toggle('is-active');
+});
+
+window.addEventListener('message', function(event){
+    if(!event.data){
+        return;
+    }
+
+    if(event.data.type === 'INFO_DATA'){
+        renderInfo(event.data.payload);
+        return;
+    }
+
+    if(event.data.type === 'INFO_DATA_ERROR'){
+        renderError(event.data.message || 'Failed to load info data');
+    }
+});
+
+window.addEventListener('load', function(){
+    window.parent.postMessage({
+        type:'INFO_HTML_READY'
+    }, '*');
+});
+
+function renderInfo(data){
+    var items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+    items = items.filter(function(item){
+        return item && item.date && item.title;
+    });
+
+    items.sort(function(a, b){
+        return String(b.date).localeCompare(String(a.date));
+    });
+
+    var yearMenu = document.getElementById('year-menu');
+    var infoContent = document.getElementById('info-content');
+
+    if(items.length === 0){
+        yearMenu.innerHTML = '';
+        infoContent.innerHTML = [
+            '<div class="info-empty">',
+                'お知らせはありません。',
+            '</div>'
+        ].join('');
+        return;
+    }
+
+    var grouped = {};
+
+    items.forEach(function(item){
+        var parts = String(item.date).split('-');
+
+        if(parts.length < 3){
+            return;
+        }
+
+        var year = parts[0];
+        var month = String(parseInt(parts[1], 10));
+
+        if(!year || !month || month === 'NaN'){
+            return;
+        }
+
+        if(!grouped[year]){
+            grouped[year] = {};
+        }
+
+        if(!grouped[year][month]){
+            grouped[year][month] = [];
+        }
+
+        grouped[year][month].push(item);
+    });
+
+    var years = Object.keys(grouped).sort(function(a, b){
+        return Number(b) - Number(a);
+    });
+
+    yearMenu.innerHTML = years.map(function(year, yearIndex){
+        var months = Object.keys(grouped[year]).sort(function(a, b){
+            return Number(b) - Number(a);
+        });
+
+        return [
+            '<div class="year-tree' + (yearIndex === 0 ? ' is-open' : '') + '">',
+                '<button class="year-toggle' + (yearIndex === 0 ? ' is-active' : '') + '" type="button">',
+                    escapeHtml(year),
+                '</button>',
+                '<div class="month-tree">',
+                    months.map(function(month){
+                        return [
+                            '<a href="#month-' + escapeAttribute(year) + '-' + escapeAttribute(month) + '" class="month-link">',
+                                escapeHtml(month + '月'),
+                            '</a>'
+                        ].join('');
+                    }).join(''),
+                '</div>',
+            '</div>'
+        ].join('');
+    }).join('');
+
+    infoContent.innerHTML = years.map(function(year){
+        var months = Object.keys(grouped[year]).sort(function(a, b){
+            return Number(b) - Number(a);
+        });
+
+        return [
+            '<section class="info-year-group">',
+                '<div class="info-year-heading">',
+                    escapeHtml(year),
+                '</div>',
+                months.map(function(month){
+                    return [
+                        '<div class="info-month-group">',
+                            '<div class="info-month-heading" id="month-' + escapeAttribute(year) + '-' + escapeAttribute(month) + '">',
+                                escapeHtml(month + '月'),
+                            '</div>',
+                            '<section class="info-list">',
+                                grouped[year][month].map(function(item){
+                                    return [
+                                        '<article class="info-item">',
+                                            '<a href="' + escapeAttribute(item.url || '#') + '" class="info-link">',
+                                                '<div class="info-meta">',
+                                                    '<div class="info-date">',
+                                                        escapeHtml(formatDate(item.date)),
+                                                    '</div>',
+                                                '</div>',
+                                                '<div class="info-title">',
+                                                    escapeHtml(item.title),
+                                                '</div>',
+                                            '</a>',
+                                        '</article>'
+                                    ].join('');
+                                }).join(''),
+                            '</section>',
+                        '</div>'
+                    ].join('');
+                }).join(''),
+            '</section>'
+        ].join('');
+    }).join('');
+}
+
+function renderError(message){
+    var yearMenu = document.getElementById('year-menu');
+    var infoContent = document.getElementById('info-content');
+
+    yearMenu.innerHTML = '';
+    infoContent.innerHTML = [
+        '<div class="info-empty">',
+            escapeHtml(message),
+        '</div>'
+    ].join('');
+}
+
+function formatDate(dateString){
+    var parts = String(dateString).split('-');
+
+    if(parts.length < 3){
+        return String(dateString);
+    }
+
+    return parts[0] + '.' + parts[1] + '.' + parts[2];
+}
+
+function escapeHtml(value){
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttribute(value){
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+</script>
+
+</body>
+</html>
