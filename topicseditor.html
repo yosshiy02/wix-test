@@ -1,0 +1,1096 @@
+<!-- newsTopicsEditorHtml.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>NEWS TOPICS EDITOR</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Jost:wght@300;400;500;700&display=swap');
+
+:root{
+    --bg:#f8f8f8;
+    --panel:#ffffff;
+    --text:#111111;
+    --sub:#666666;
+    --line:rgba(17,17,17,0.12);
+    --accent:#d4af37;
+    --danger:#b42318;
+    --font-serif:'Playfair Display', serif;
+    --font-sans:'Jost', sans-serif;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+}
+
+body{
+    padding:2rem 1rem 3rem;
+}
+
+.editor-wrap{
+    max-width:80rem;
+    margin:0 auto;
+}
+
+.editor-header{
+    margin-bottom:2rem;
+}
+
+.editor-kicker{
+    font-size:0.8125rem;
+    letter-spacing:0.2rem;
+    color:var(--accent);
+    margin-bottom:0.75rem;
+}
+
+.editor-title{
+    font-family:var(--font-serif);
+    font-size:clamp(2rem,5vw,3.5rem);
+    font-weight:400;
+    letter-spacing:0.18rem;
+    line-height:1.1;
+    margin-bottom:0.75rem;
+}
+
+.editor-sub{
+    font-size:0.875rem;
+    line-height:1.9;
+    color:var(--sub);
+}
+
+.editor-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 24rem) minmax(0, 1fr);
+    gap:1.5rem;
+    align-items:start;
+}
+
+.panel{
+    background:var(--panel);
+    border:0.0625rem solid var(--line);
+    padding:1.25rem;
+}
+
+.panel-title{
+    font-size:0.9375rem;
+    letter-spacing:0.14rem;
+    margin-bottom:1rem;
+}
+
+.form-grid{
+    display:grid;
+    gap:0.875rem;
+}
+
+.form-field{
+    display:grid;
+    gap:0.5rem;
+}
+
+.form-label{
+    font-size:0.75rem;
+    letter-spacing:0.1rem;
+    color:var(--sub);
+}
+
+.input,
+.textarea{
+    width:100%;
+    border:0.0625rem solid var(--line);
+    background:#fff;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:0.9375rem;
+    padding:0.75rem 0.875rem;
+    outline:none;
+}
+
+.textarea{
+    min-height:10rem;
+    line-height:1.8;
+    resize:vertical;
+}
+
+.image-field-row{
+    display:flex;
+    align-items:flex-start;
+    gap:0.75rem;
+}
+
+.image-dropzone{
+    width:100%;
+    height:10rem;
+    min-height:10rem;
+    border:0.0625rem dashed var(--line);
+    background:#fff;
+    color:var(--sub);
+    font-family:var(--font-sans);
+    font-size:0.875rem;
+    line-height:1.8;
+    padding:1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+}
+
+
+.image-dropzone-text{
+    display:block;
+    width:100%;
+}
+
+.image-dropzone-preview{
+    width:100%;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    display:none;
+    position:absolute;
+    inset:0;
+}
+
+
+.image-dropzone.has-image .image-dropzone-preview{
+    display:block;
+}
+
+.image-dropzone.has-image .image-dropzone-text{
+    display:none;
+}
+
+.image-delete-button{
+    width:2.25rem;
+    height:2.25rem;
+    border:0.0625rem solid var(--line);
+    border-radius:50%;
+    background:#fff;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:1rem;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position:absolute;
+    top:0.75rem;
+    right:0.75rem;
+    z-index:1;
+}
+
+.image-delete-button:hover{
+    border-color:var(--danger);
+    color:var(--danger);
+}
+
+
+.input:focus,
+.textarea:focus{
+    border-color:var(--accent);
+}
+
+.image-dropzone:focus,
+.image-delete-button:focus{
+    border-color:var(--accent);
+    outline:none;
+}
+
+.button-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.625rem;
+    margin-top:0.25rem;
+}
+
+.button{
+    appearance:none;
+    border:0.0625rem solid var(--text);
+    background:#fff;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:0.8125rem;
+    font-weight:500;
+    letter-spacing:0.08rem;
+    padding:0.75rem 0.9375rem;
+    cursor:pointer;
+    transition:background .3s ease,color .3s ease,opacity .3s ease,border-color .3s ease;
+}
+
+.button:hover{
+    background:var(--text);
+    color:#fff;
+}
+
+.button-accent{
+    border-color:var(--accent);
+    color:var(--text);
+}
+
+.button-accent:hover{
+    background:var(--accent);
+    color:#111;
+}
+
+.button-danger{
+    border-color:var(--danger);
+    color:var(--danger);
+    background:#fff;
+}
+
+.button-danger:hover{
+    background:var(--danger);
+    color:#fff;
+}
+
+.status{
+    margin-top:0.75rem;
+    font-size:0.8125rem;
+    line-height:1.6;
+    color:var(--sub);
+    min-height:1.5rem;
+}
+
+.items-list{
+    display:grid;
+    gap:0.75rem;
+}
+
+.item-card{
+    width:100%;
+    border:0.0625rem solid var(--line);
+    padding:1rem;
+    display:grid;
+    gap:0.625rem;
+    background:#fff;
+    cursor:pointer;
+}
+
+.item-card:hover{
+    border-color:var(--accent);
+}
+
+.item-card-inner{
+    display:grid;
+    grid-template-columns:7rem minmax(0, 1fr);
+    gap:0.875rem;
+    align-items:start;
+    width:100%;
+    min-width:0;
+}
+
+.item-thumbnail-frame{
+    width:7rem;
+    height:4rem;
+    min-width:7rem;
+    max-width:7rem;
+    min-height:4rem;
+    max-height:4rem;
+    border:0.0625rem solid var(--line);
+    background:#f3f3f3;
+    color:var(--sub);
+    font-size:0.625rem;
+    letter-spacing:0.08rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.item-thumbnail-frame img{
+    width:100%;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+
+
+.item-card-content{
+    display:grid;
+    gap:0.625rem;
+    min-width:0;
+}
+
+.item-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.75rem;
+    align-items:center;
+}
+
+.item-id{
+    font-size:0.75rem;
+    letter-spacing:0.08rem;
+    color:var(--accent);
+}
+
+.item-label{
+    font-size:0.75rem;
+    letter-spacing:0.1rem;
+    color:var(--sub);
+}
+
+.item-title{
+    font-size:1rem;
+    line-height:1.7;
+    word-break:break-word;
+}
+
+.item-description{
+    font-size:0.875rem;
+    line-height:1.9;
+    color:var(--sub);
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.item-url{
+    font-size:0.8125rem;
+    color:var(--sub);
+    word-break:break-all;
+}
+
+.list-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    margin-bottom:1rem;
+}
+
+.list-note{
+    font-size:0.8125rem;
+    color:var(--sub);
+    line-height:1.6;
+}
+
+.empty{
+    padding:1.5rem 0;
+    font-size:0.875rem;
+    color:var(--sub);
+    line-height:1.8;
+}
+
+@media (max-width:56rem){
+    .editor-grid{
+        grid-template-columns:1fr;
+    }
+
+    body{
+        padding:1.25rem 0.875rem 2.5rem;
+    }
+
+    .panel{
+        padding:1rem;
+    }
+
+    .list-head{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="editor-wrap">
+
+    <header class="editor-header">
+        <div class="editor-kicker">
+            HD ONLINE STORE
+        </div>
+        <h1 class="editor-title">
+            NEWS＆TOPICS EDITOR
+        </h1>
+        <p class="editor-sub">
+            NEWS＆TOPICS のCMSレコードを管理します。<br>
+            画像以外の項目を追加・更新・削除して保存できます。
+        </p>
+    </header>
+
+    <div class="editor-grid">
+
+        <section class="panel">
+            <h2 class="panel-title">
+                ITEM EDITOR
+            </h2>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="id-input">
+                        NEWS TOPICS ID
+                    </label>
+                    <input class="input"
+                           id="id-input"
+                           type="text"
+                           placeholder="1 / 2 / 3">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="label-input">
+                        LABEL
+                    </label>
+                    <input class="input"
+                           id="label-input"
+                           type="text"
+                           placeholder="AUTUMN / WINTER 2026">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="title-input">
+                        TITLE
+                    </label>
+                    <input class="input"
+                           id="title-input"
+                           type="text"
+                           placeholder="見出しタイトル">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="description-input">
+                        DESCRIPTION
+                    </label>
+                    <textarea class="textarea"
+                              id="description-input"
+                              placeholder="説明文"></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="url-input">
+                        URL
+                    </label>
+                    <input class="input"
+                           id="url-input"
+                           type="text"
+                           placeholder="/hd-origin-info または #">
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="image-dropzone">
+                        IMAGE
+                    </label>
+                    <div class="image-dropzone"
+                         id="image-dropzone"
+                         tabindex="0">
+                        <button class="image-delete-button"
+                                id="image-delete-button"
+                                type="button"
+                                aria-label="画像を削除">
+                            ×
+                        </button>
+                        <img class="image-dropzone-preview"
+                             id="image-dropzone-preview"
+                             alt="">
+                        <span class="image-dropzone-text">
+                            ここに画像をドラッグ＆ペースト
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="button button-accent"
+                        id="add-button"
+                        type="button">
+                    ADD
+                </button>
+
+                <button class="button"
+                        id="update-button"
+                        type="button">
+                    UPDATE
+                </button>
+
+                <button class="button"
+                        id="clear-button"
+                        type="button">
+                    CLEAR
+                </button>
+
+                <button class="button button-danger"
+                        id="delete-button"
+                        type="button">
+                    DELETE
+                </button>
+            </div>
+
+            <div class="status"
+                 id="status-text"></div>
+        </section>
+
+        <section class="panel">
+            <div class="list-head">
+                <div>
+                    <h2 class="panel-title" style="margin-bottom:0.5rem;">
+                        ITEM LIST
+                    </h2>
+                    <div class="list-note">
+                        画像フィールドは今回は未編集です。<br>
+                        既存レコードの画像は内部保持して保存します。
+                    </div>
+                </div>
+
+                <div class="button-row" style="margin-top:0;">
+                    <input class="input"
+                           id="search-input"
+                           type="text"
+                           placeholder="ID / LABEL / TITLE / DESCRIPTION / URL">
+                    <button class="button"
+                            id="search-button"
+                            type="button">
+                        SEARCH
+                    </button>
+
+                    <button class="button"
+                            id="clear-search-button"
+                            type="button">
+                        CLEAR SEARCH
+                    </button>
+
+                    <button class="button"
+                            id="prev-button"
+                            type="button">
+                        ← 5
+                    </button>
+
+                    <button class="button"
+                            id="next-button"
+                            type="button">
+                        5 →
+                    </button>
+
+                    <button class="button"
+                            id="refresh-button"
+                            type="button">
+                        REFRESH
+                    </button>
+                </div>
+            </div>
+
+            <div class="list-note"
+                 id="range-text"></div>
+
+            <div class="items-list"
+                 id="items-list"></div>
+        </section>
+
+    </div>
+
+</div>
+
+<script>
+var items = [];
+var selectedIndex = -1;
+var hasInitialResponse = false;
+var readyTimer = null;
+var pageSize = 5;
+var currentOffset = 0;
+var currentMode = 'list';
+var currentKeyword = '';
+var totalCount = 0;
+var nextNewsTopicsId = '';
+
+var idInput = document.getElementById('id-input');
+var labelInput = document.getElementById('label-input');
+var titleInput = document.getElementById('title-input');
+var descriptionInput = document.getElementById('description-input');
+var urlInput = document.getElementById('url-input');
+var itemsList = document.getElementById('items-list');
+var statusText = document.getElementById('status-text');
+var searchInput = document.getElementById('search-input');
+var rangeText = document.getElementById('range-text');
+var imageDropzone = document.getElementById('image-dropzone');
+var imageDropzonePreview = document.getElementById('image-dropzone-preview');
+var imageDeleteButton = document.getElementById('image-delete-button');
+var currentImageUpload = null;
+var imageDeleted = false;
+
+window.addEventListener('message', function(event){
+    var data = event.data || {};
+
+    if(data.type === 'NEWS_TOPICS_EDITOR_CMS_DATA'){
+        hasInitialResponse = true;
+        stopReadyPing();
+        items = normalizeItems(data.payload && data.payload.items);
+        totalCount = Number(data.payload && data.payload.totalCount || 0);
+        nextNewsTopicsId = String(data.payload && data.payload.nextNewsTopicsId || '').trim();
+        selectedIndex = -1;
+        clearForm();
+        applyNextNewsTopicsId();
+        renderAll();
+        setStatus('CMSデータを読み込みました。');
+        return;
+    }
+
+    if(data.type === 'NEWS_TOPICS_EDITOR_CMS_DATA_ERROR'){
+        hasInitialResponse = true;
+        stopReadyPing();
+        items = [];
+        totalCount = 0;
+        nextNewsTopicsId = '';
+        selectedIndex = -1;
+        clearForm();
+        renderAll();
+        setStatus('CMSデータの読み込みに失敗しました。');
+        return;
+    }
+
+    if(data.type === 'NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS'){
+        setStatus('CMSを更新しました。');
+        requestCurrentData();
+        return;
+    }
+
+    if(data.type === 'NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR'){
+        setStatus('CMSの更新に失敗しました。');
+    }
+});
+
+document.getElementById('add-button').addEventListener('click', function(){
+    var item = getFormItem('add', null);
+
+    if(!item){
+        return;
+    }
+
+    window.parent.postMessage({
+        type: 'NEWS_TOPICS_EDITOR_ADD_REQUEST',
+        payload: item
+    }, '*');
+
+    setStatus('追加中です。');
+});
+
+document.getElementById('update-button').addEventListener('click', function(){
+    if(selectedIndex < 0 || selectedIndex >= items.length){
+        setStatus('更新する項目を選んでください。');
+        return;
+    }
+
+    var item = getFormItem('update', items[selectedIndex]);
+
+    if(!item){
+        return;
+    }
+
+    window.parent.postMessage({
+        type: 'NEWS_TOPICS_EDITOR_UPDATE_REQUEST',
+        payload: item
+    }, '*');
+
+    setStatus('更新中です。');
+});
+
+document.getElementById('clear-button').addEventListener('click', function(){
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    setStatus('入力欄をクリアしました。');
+});
+
+document.getElementById('delete-button').addEventListener('click', function(){
+    if(selectedIndex < 0 || selectedIndex >= items.length){
+        setStatus('削除する項目を選んでください。');
+        return;
+    }
+
+    window.parent.postMessage({
+        type: 'NEWS_TOPICS_EDITOR_DELETE_REQUEST',
+        payload: {
+            _id: items[selectedIndex]._id || '',
+            newsTopicsId: items[selectedIndex].newsTopicsId || ''
+        }
+    }, '*');
+
+    setStatus('削除中です。');
+});
+
+document.getElementById('search-button').addEventListener('click', function(){
+    currentKeyword = String(searchInput.value || '').trim();
+    currentMode = currentKeyword ? 'search' : 'list';
+    currentOffset = 0;
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    requestCurrentData();
+});
+
+document.getElementById('clear-search-button').addEventListener('click', function(){
+    searchInput.value = '';
+    currentKeyword = '';
+    currentMode = 'list';
+    currentOffset = 0;
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    requestCurrentData();
+});
+
+document.getElementById('prev-button').addEventListener('click', function(){
+    if(currentMode !== 'list'){
+        setStatus('検索中はページ移動できません。');
+        return;
+    }
+
+    currentOffset = Math.max(0, currentOffset - pageSize);
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    requestCurrentData();
+});
+
+document.getElementById('next-button').addEventListener('click', function(){
+    if(currentMode !== 'list'){
+        setStatus('検索中はページ移動できません。');
+        return;
+    }
+
+    if(currentOffset + pageSize >= totalCount){
+        setStatus('次の5件はありません。');
+        return;
+    }
+
+    currentOffset += pageSize;
+    selectedIndex = -1;
+    clearForm();
+    renderAll();
+    requestCurrentData();
+});
+
+document.getElementById('refresh-button').addEventListener('click', function(){
+    setStatus('CMSデータを再読み込み中です。');
+    requestCurrentData();
+});
+
+imageDropzone.addEventListener('dragover', function(event){
+    event.preventDefault();
+});
+
+imageDropzone.addEventListener('drop', function(event){
+    event.preventDefault();
+
+    var file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+
+    handleImageFile(file);
+});
+
+imageDropzone.addEventListener('paste', function(event){
+    var items = event.clipboardData && event.clipboardData.items;
+
+    if(!items){
+        return;
+    }
+
+    Array.prototype.some.call(items, function(item){
+        if(item.kind === 'file' && String(item.type || '').indexOf('image/') === 0){
+            handleImageFile(item.getAsFile());
+            return true;
+        }
+
+        return false;
+    });
+});
+
+imageDeleteButton.addEventListener('click', function(event){
+    event.preventDefault();
+    event.stopPropagation();
+
+    currentImageUpload = null;
+    imageDeleted = true;
+    renderImagePreview('');
+    setStatus('画像を削除対象にしました。');
+});
+
+function handleImageFile(file){
+    if(!file || String(file.type || '').indexOf('image/') !== 0){
+        setStatus('画像ファイルを選択してください。');
+        return;
+    }
+
+    var reader = new FileReader();
+
+    reader.onload = function(){
+        var bytes = Array.prototype.slice.call(new Uint8Array(reader.result));
+
+        currentImageUpload = {
+            bytes: bytes,
+            mimeType: file.type || 'image/jpeg'
+        };
+
+        imageDeleted = false;
+        renderImagePreview(URL.createObjectURL(file));
+        setStatus('画像を読み込みました。');
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+function renderImagePreview(src){
+    var imageSrc = String(src || '').trim();
+
+    if(imageSrc){
+        imageDropzonePreview.src = getImageDisplayUrl(imageSrc);
+        imageDropzone.classList.add('has-image');
+        return;
+    }
+
+    imageDropzonePreview.removeAttribute('src');
+    imageDropzone.classList.remove('has-image');
+}
+
+function getFormItem(mode, existingItem){
+    var newsTopicsId = String(idInput.value || '').trim();
+    var label = String(labelInput.value || '').trim();
+    var title = String(titleInput.value || '').trim();
+    var description = String(descriptionInput.value || '').trim();
+    var url = String(urlInput.value || '').trim();
+
+    if(!newsTopicsId){
+        setStatus('NEWS TOPICS ID を入力してください。');
+        return null;
+    }
+
+    if(!/^\d+$/.test(newsTopicsId)){
+        setStatus('NEWS TOPICS ID は数字で入力してください。');
+        return null;
+    }
+
+    return {
+        _id: String(existingItem && existingItem._id || '').trim(),
+        newsTopicsId: newsTopicsId,
+        label: label,
+        title: title,
+        description: description,
+        image: imageDeleted ? '' : String(existingItem && existingItem.image || '').trim(),
+        imageUpload: currentImageUpload,
+        imageDeleted: imageDeleted,
+        url: url || '#'
+    };
+}
+
+function applyNextNewsTopicsId(){
+    if(selectedIndex >= 0){
+        return;
+    }
+
+    if(String(idInput.value || '').trim()){
+        return;
+    }
+
+    idInput.value = nextNewsTopicsId || '1';
+}
+
+function clearForm(){
+    idInput.value = '';
+    labelInput.value = '';
+    titleInput.value = '';
+    descriptionInput.value = '';
+    urlInput.value = '#';
+    currentImageUpload = null;
+    imageDeleted = false;
+    renderImagePreview('');
+}
+
+function renderAll(){
+    renderRangeText();
+    renderItemsList();
+}
+
+function renderRangeText(){
+    if(currentMode === 'search'){
+        if(currentKeyword){
+            rangeText.textContent = '検索結果を表示: ' + currentKeyword;
+        }else{
+            rangeText.textContent = '';
+        }
+        return;
+    }
+
+    if(totalCount === 0){
+        rangeText.textContent = '0件';
+        return;
+    }
+
+    var start = currentOffset + 1;
+    var end = Math.min(currentOffset + items.length, totalCount);
+
+    rangeText.textContent = start + '～' + end + ' / ' + totalCount + '件を表示';
+}
+
+function renderItemsList(){
+    if(items.length === 0){
+        itemsList.innerHTML = '<div class="empty">項目はありません。</div>';
+        return;
+    }
+
+    itemsList.innerHTML = items.map(function(item, index){
+        var imageSrc = getImageDisplayUrl(item.displayImage || item.image || '');
+        var thumbnailHtml = imageSrc ? '<img src="' + escapeHtml(imageSrc) + '" alt="">' : 'IMAGE';
+
+        return [
+            '<button class="item-card" type="button" data-index="' + index + '" style="text-align:left;' + (index === selectedIndex ? ' border-color:#d4af37;' : '') + '">',
+                '<div class="item-card-inner">',
+                    '<div class="item-thumbnail-frame">' + thumbnailHtml + '</div>',
+                    '<div class="item-card-content">',
+                        '<div class="item-meta">',
+                            '<span class="item-id">ID ' + escapeHtml(item.newsTopicsId || '') + '</span>',
+                            '<span class="item-label">' + escapeHtml(item.label || '') + '</span>',
+                        '</div>',
+                        '<div class="item-title">' + escapeHtml(item.title || '') + '</div>',
+                        '<div class="item-description">' + escapeHtml(item.description || '') + '</div>',
+                        '<div class="item-url">' + escapeHtml(item.url || '#') + '</div>',
+                    '</div>',
+                '</div>',
+            '</button>'
+        ].join('');
+    }).join('');
+
+    Array.prototype.forEach.call(itemsList.querySelectorAll('.item-card'), function(button){
+        button.addEventListener('click', function(){
+            var index = Number(button.getAttribute('data-index'));
+
+            if(!Number.isInteger(index) || !items[index]){
+                return;
+            }
+
+            selectedIndex = index;
+            idInput.value = items[index].newsTopicsId || '';
+            labelInput.value = items[index].label || '';
+            titleInput.value = items[index].title || '';
+            descriptionInput.value = items[index].description || '';
+            urlInput.value = items[index].url || '#';
+            currentImageUpload = null;
+            imageDeleted = false;
+            renderImagePreview(items[index].displayImage || items[index].image || '');
+            renderItemsList();
+            setStatus('項目を選択しました。');
+        });
+    });
+}
+
+function normalizeItems(payload){
+    var sourceItems = [];
+
+    if(Array.isArray(payload)){
+        sourceItems = payload;
+    }else if(payload && Array.isArray(payload.items)){
+        sourceItems = payload.items;
+    }
+
+    return sourceItems.map(function(item){
+        return {
+            _id: String(item && item._id || '').trim(),
+            newsTopicsId: String(item && item.newsTopicsId || '').trim(),
+            label: String(item && item.label || '').trim(),
+            title: String(item && item.title || '').trim(),
+            description: String(item && item.description || '').trim(),
+            image: String(item && item.image || '').trim(),
+            url: String(item && item.url || '#').trim() || '#'
+        };
+    }).filter(function(item){
+        return item.newsTopicsId;
+    });
+}
+
+function setStatus(message){
+    statusText.textContent = message;
+}
+
+function getImageDisplayUrl(image){
+    var sourceUrl = String(image || '').trim();
+
+    if(!sourceUrl){
+        return '';
+    }
+
+    if(sourceUrl.indexOf('wix:image://v1/') !== 0){
+        return sourceUrl;
+    }
+
+    var path = sourceUrl.replace('wix:image://v1/', '');
+    var mediaId = path.split('/')[0].split('#')[0];
+
+    return mediaId ? 'https://static.wixstatic.com/media/' + mediaId : '';
+}
+
+function escapeHtml(value){
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function requestInitialData(){
+    requestCurrentData();
+}
+
+function requestCurrentData(){
+    if(currentMode === 'search' && currentKeyword){
+        window.parent.postMessage({
+            type: 'NEWS_TOPICS_EDITOR_SEARCH_REQUEST',
+            payload: {
+                keyword: currentKeyword
+            }
+        }, '*');
+        return;
+    }
+
+    window.parent.postMessage({
+        type: 'NEWS_TOPICS_EDITOR_HTML_READY',
+        payload: {
+            limit: pageSize,
+            offset: currentOffset
+        }
+    }, '*');
+}
+
+function startReadyPing(){
+    requestInitialData();
+
+    readyTimer = window.setInterval(function(){
+        if(hasInitialResponse){
+            stopReadyPing();
+            return;
+        }
+
+        requestInitialData();
+    }, 1200);
+}
+
+function stopReadyPing(){
+    if(readyTimer){
+        window.clearInterval(readyTimer);
+        readyTimer = null;
+    }
+}
+
+clearForm();
+renderAll();
+setStatus('CMSデータを読み込み中です。');
+startReadyPing();
+</script>
+
+</body>
+</html>

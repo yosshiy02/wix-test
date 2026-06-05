@@ -1,0 +1,272 @@
+import wixLocationFrontend from 'wix-location-frontend';
+import wixData from 'wix-data';
+import { rasimAnimationCode, helmettyAnimationCode, helmettyMobileAnimationCode } from 'public/brand-animations/brand-animations.js';
+import { helmettyPolaroidCode } from 'public/brand-modal/brand-modal-helmetty.js';
+
+$w.onReady(function () {
+    console.log('[DEBUG velo] onReady start');
+
+    /*
+     * モーダル・シネマ・HELMETTY等の中心位置について
+     *
+     * 現在の構造では、親Wixページ側のスクロール位置を使って
+     * mobileMainHtml の中心を計算しない。
+     *
+     * mobileMainHtml は Wix上で 720px の表示枠として配置し、
+     * スクロールは mobileMainHtml 内部が担当する。
+     *
+     * そのため、埋め込みHTML側へ渡す中心位置は常に以下で固定する。
+     *
+     * - centerXPercent: 50
+     * - centerYPercent: 50
+     *
+     * これは以下の値とは別物。
+     *
+     * - 埋め込みHTML全体の中心
+     * - 320×720 の中心
+     * - top: 50%
+     * - top: 60%
+     * - window.innerHeight / 2
+     * - screen.height / 2
+     * - visualViewport.height / 2
+     *
+     * Wix埋め込みHTMLは幅100%設置前提のため、
+     * 実機ごとの表示幅は固定320pxとは限らない。
+     *
+     * 埋め込みHTMLの高さは、要素サイズ・余白感・レイアウト密度を
+     * 固定するための設計条件であり、
+     * モーダル等の中心位置を決める基準ではない。
+     *
+     * 他のAI・編集者は、
+     * このページコード内で screen.height や window.innerHeight を使って
+     * モーダル中心を勝手に算出しないこと。
+     *
+     * 埋め込みHTML側は、受け取った中心位置のみを
+     * --layout-center-x / --layout-center-y 等へ反映する。
+     */
+
+    bindMainHtml("#pcMainHtml");
+    bindMainHtml("#mobileMainHtml");
+
+    function bindMainHtml(elementId) {
+        const el = $w(elementId);
+
+        if (!el || typeof el.onMessage !== "function") {
+            return;
+        }
+
+        el.onMessage(async (event) => {
+            if (!event.data) {
+                return;
+            }
+
+            if (event.data.type === "helmettyModalDebug") {
+                console.log("[DEBUG velo helmettyModalDebug]", event.data);
+                return;
+            }
+
+            if (event.data.type === "NAVIGATE_TO_INFO") {
+                wixLocationFrontend.to('/hd-origin-info');
+                return;
+            }
+
+            if (event.data.type === "NEWS_TOPICS_HTML_READY") {
+                try {
+                    const result = await wixData.query('HdOriginNewsTopics')
+                        .limit(1000)
+                        .find();
+
+                    console.log("[DEBUG velo] HdOriginNewsTopics raw count:", result.items.length);
+                    console.log("[DEBUG velo] HdOriginNewsTopics raw first item:", result.items[0]);
+                    console.log("[DEBUG velo] HdOriginNewsTopics raw first keys:", result.items[0] ? Object.keys(result.items[0]) : []);
+
+                    const items = result.items
+                        .map((item) => {
+                            return {
+                                newsTopicsID: item.newsTopicsId || '',
+                                title: item.title || '',
+                                description: item.description || '',
+                                label: item.label || '',
+                                image: item.image || '',
+                                url: item.url || ''
+                            };
+                        })
+                        .filter((item) => {
+                            return item.newsTopicsID;
+                        })
+                        .sort((a, b) => {
+                            return Number(b.newsTopicsID || 0) - Number(a.newsTopicsID || 0);
+                        })
+                        .slice(0, 5);
+
+                    console.log("[DEBUG velo] HdOriginNewsTopics mapped items:", items);
+
+                    el.postMessage({
+                        type: "NEWS_TOPICS_DATA",
+                        payload: {
+                            items: items
+                        }
+                    });
+
+                    console.log("[DEBUG velo] sent NEWS_TOPICS_DATA from CMS to", elementId, items);
+                } catch (error) {
+                    console.log("[DEBUG velo] failed to load NEWS_TOPICS_DATA from CMS", error);
+
+                    el.postMessage({
+                        type: "NEWS_TOPICS_DATA",
+                        payload: {
+                            items: []
+                        }
+                    });
+                }
+
+                return;
+            }
+
+            if (event.data.type === "INFO_HTML_READY") {
+                try {
+                    const result = await wixData.query('HdOriginInfo')
+                        .descending('date')
+                        .limit(1000)
+                        .find();
+
+                    const items = result.items.map((item) => {
+                        return {
+                            date: item.date || '',
+                            title: item.title || '',
+                            url: item.url || '#'
+                        };
+                    }).filter((item) => {
+                        return item.date && item.title;
+                    });
+
+                    el.postMessage({
+                        type: "INFO_DATA",
+                        payload: {
+                            items: items
+                        }
+                    });
+
+                    console.log("[DEBUG velo] sent INFO_DATA from CMS to", elementId, items);
+                } catch (error) {
+                    console.log("[DEBUG velo] failed to load INFO_DATA from CMS", error);
+
+                    el.postMessage({
+                        type: "INFO_DATA",
+                        payload: {
+                            items: []
+                        }
+                    });
+                }
+            }
+        });
+    }
+    console.log('[DEBUG velo] rasimAnimationCode imported:', typeof rasimAnimationCode, 'length:', rasimAnimationCode ? rasimAnimationCode.length : 0);
+    console.log('[DEBUG velo] helmettyAnimationCode imported:', typeof helmettyAnimationCode, 'length:', helmettyAnimationCode ? helmettyAnimationCode.length : 0);
+    console.log('[DEBUG velo] helmettyPolaroidCode imported:', typeof helmettyPolaroidCode, 'length:', helmettyPolaroidCode ? helmettyPolaroidCode.length : 0);
+    console.log('[DEBUG velo] pcMainHtml exists:', !!$w("#pcMainHtml"));
+    console.log('[DEBUG velo] mobileMainHtml exists:', !!$w("#mobileMainHtml"));
+
+    const heroImage = "https://static.wixstatic.com/media/414ae9_d482c0a6f03e4b138311cc5daa37771b~mv2.jpg";
+    const philosophyImage = "https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg";
+
+    function sendToHtmlElement(elementId, payload, label) {
+        const el = $w(elementId);
+
+        if (el && typeof el.postMessage === "function") {
+            el.postMessage(payload);
+            console.log('[DEBUG velo] sent', label, 'to', elementId);
+        } else {
+            console.log('[DEBUG velo] skip', label, 'to', elementId, 'postMessage not available');
+        }
+    }
+
+    /*
+     * mobileMainHtml の中心送信用。
+     *
+     * 親Wixページはスクロールさせず、
+     * スクロールは mobileMainHtml 内部が担当する。
+     *
+     * mobileMainHtml の高さは 720px、
+     * 親Wixページ上で実際に見えている高さは約500pxのため、
+     * 見えている範囲の中心 250px を 720px 基準の割合に変換し、
+     * centerYPercent は 34.72% とする。
+     */
+    function sendVisibleEmbedCenterToMobileHtml() {
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setVisibleEmbedCenter",
+            centerXPercent: 50,
+            centerYPercent: 34.72
+        }, "setVisibleEmbedCenter");
+    }
+
+    setTimeout(() => {
+        // ----------------------------------------------------
+        // 1. ヒーロー画像の送信（PC・モバイル両方へ）
+        // ----------------------------------------------------
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setHeroImage",
+            heroImageUrl: heroImage
+        }, "setHeroImage");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setHeroImage",
+            heroImageUrl: heroImage
+        }, "setHeroImage");
+
+        // ----------------------------------------------------
+        // 2. Philosophy画像の送信（PC・モバイル両方へ）
+        // ----------------------------------------------------
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setPhilosophyImage",
+            philosophyImageUrl: philosophyImage
+        }, "setPhilosophyImage");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setPhilosophyImage",
+            philosophyImageUrl: philosophyImage
+        }, "setPhilosophyImage");
+
+        // ----------------------------------------------------
+        // 3. レシーム専用アニメーションの送信（PC・モバイル両方へ）
+        // ----------------------------------------------------
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setCustomAnimation",
+            brand: "rasim",
+            htmlCode: rasimAnimationCode
+        }, "setCustomAnimation(rasim)");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setCustomAnimation",
+            brand: "rasim",
+            htmlCode: rasimAnimationCode
+        }, "setCustomAnimation(rasim)");
+
+        // ----------------------------------------------------
+        // 4. HELMETTY専用アニメーションの送信（PC・モバイル両方へ）
+        // ----------------------------------------------------
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setCustomAnimation",
+            brand: "helmetty",
+            htmlCode: helmettyAnimationCode
+        }, "setCustomAnimation(helmetty)");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setCustomAnimation",
+            brand: "helmetty",
+            htmlCode: helmettyMobileAnimationCode
+        }, "setCustomAnimation(helmetty)");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "setBrandModalAddon",
+            brand: "helmetty",
+            jsCode: helmettyPolaroidCode
+        }, "setBrandModalAddon(helmetty-polaroid)");
+
+        sendVisibleEmbedCenterToMobileHtml();
+
+        console.log('[DEBUG velo] delayed send complete');
+    }, 1200);
+
+    console.log('[DEBUG velo] onReady end');
+});

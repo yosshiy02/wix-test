@@ -1,0 +1,558 @@
+// infoEditor-ページコード-アフター.js
+import wixData from 'wix-data';
+import { saveImageBytesToMediaBoth } from 'backend/saveToMedia';
+
+$w.onReady(function () {
+    console.log('[infoEditor] page onReady start');
+
+    const htmlComponent = $w('#infoEditorHtml');
+    const newsTopicsHtmlComponent = $w('#newsTopicsEditorHtml');
+
+    console.log('[infoEditor] html component', htmlComponent);
+    console.log('[newsTopicsEditor] html component', newsTopicsHtmlComponent);
+
+    htmlComponent.onMessage(async function (event) {
+        const data = event.data || {};
+
+        console.log('[infoEditor] onMessage received', data);
+
+        if (data.type === 'INFO_EDITOR_HTML_READY') {
+            console.log('[infoEditor] INFO_EDITOR_HTML_READY');
+
+            try {
+                const items = await loadItems();
+
+                console.log('[infoEditor] loadItems success', items);
+
+                htmlComponent.postMessage({
+                    type: 'INFO_EDITOR_CMS_DATA',
+                    payload: items
+                });
+
+                console.log('[infoEditor] INFO_EDITOR_CMS_DATA posted');
+            } catch (error) {
+                console.error('[infoEditor] INFO_EDITOR_HTML_READY error', error);
+
+                htmlComponent.postMessage({
+                    type: 'INFO_EDITOR_CMS_DATA_ERROR'
+                });
+
+                console.log('[infoEditor] INFO_EDITOR_CMS_DATA_ERROR posted');
+            }
+
+            return;
+        }
+
+        if (data.type === 'INFO_EDITOR_SAVE_REQUEST') {
+            console.log('[infoEditor] INFO_EDITOR_SAVE_REQUEST start', data.payload);
+
+            try {
+                const nextItems = normalizeItems(data.payload);
+
+                console.log('[infoEditor] normalized items', nextItems);
+
+                const currentResult = await wixData.query('HdOriginInfo')
+                    .limit(1000)
+                    .find();
+
+                console.log('[infoEditor] current cms items', currentResult.items);
+
+                await Promise.all(
+                    currentResult.items.map(function (item) {
+                        console.log('[infoEditor] removing item', item._id, item);
+                        return wixData.remove('HdOriginInfo', item._id);
+                    })
+                );
+
+                console.log('[infoEditor] remove complete');
+
+                await Promise.all(
+                    nextItems.map(function (item, index) {
+                        const insertItem = {
+                            infoID: String(index + 1),
+                            date: item.date,
+                            title: item.title,
+                            url: item.url || '#'
+                        };
+
+                        console.log('[infoEditor] inserting item', insertItem);
+
+                        return wixData.insert('HdOriginInfo', insertItem);
+                    })
+                );
+
+                console.log('[infoEditor] insert complete');
+
+                const savedItems = await loadItems();
+
+                console.log('[infoEditor] saved items reloaded', savedItems);
+
+                htmlComponent.postMessage({
+                    type: 'INFO_EDITOR_CMS_SAVE_SUCCESS',
+                    payload: savedItems
+                });
+
+                console.log('[infoEditor] INFO_EDITOR_CMS_SAVE_SUCCESS posted');
+            } catch (error) {
+                console.error('[infoEditor] INFO_EDITOR_SAVE_REQUEST error', error);
+
+                htmlComponent.postMessage({
+                    type: 'INFO_EDITOR_CMS_SAVE_ERROR'
+                });
+
+                console.log('[infoEditor] INFO_EDITOR_CMS_SAVE_ERROR posted');
+            }
+        }
+    });
+
+    newsTopicsHtmlComponent.onMessage(async function (event) {
+        const data = event.data || {};
+
+        console.log('[newsTopicsEditor] onMessage received', data);
+
+        if (data.type === 'NEWS_TOPICS_EDITOR_HTML_READY') {
+            console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_HTML_READY', data.payload);
+
+            try {
+                const request = data.payload || {};
+                const result = await loadNewsTopicsItems({
+                    limit: request.limit,
+                    offset: request.offset
+                });
+
+                console.log('[newsTopicsEditor] loadNewsTopicsItems success', result);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_DATA',
+                    payload: result
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_DATA posted');
+            } catch (error) {
+                console.error('[newsTopicsEditor] NEWS_TOPICS_EDITOR_HTML_READY error', error);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_DATA_ERROR'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_DATA_ERROR posted');
+            }
+
+            return;
+        }
+
+        if (data.type === 'NEWS_TOPICS_EDITOR_SEARCH_REQUEST') {
+            console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_SEARCH_REQUEST', data.payload);
+
+            try {
+                const request = data.payload || {};
+                const result = await searchNewsTopicsItems({
+                    keyword: request.keyword
+                });
+
+                console.log('[newsTopicsEditor] searchNewsTopicsItems success', result);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_DATA',
+                    payload: result
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_DATA posted');
+            } catch (error) {
+                console.error('[newsTopicsEditor] NEWS_TOPICS_EDITOR_SEARCH_REQUEST error', error);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_DATA_ERROR'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_DATA_ERROR posted');
+            }
+
+            return;
+        }
+
+        if (data.type === 'NEWS_TOPICS_EDITOR_ADD_REQUEST') {
+            console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_ADD_REQUEST', data.payload);
+
+            try {
+                const nextItem = normalizeNewsTopicsItems([data.payload])[0];
+
+                if (!nextItem) {
+                    throw new Error('invalid add payload');
+                }
+
+                await applyNewsTopicsImageUpload(nextItem, data.payload);
+                await addNewsTopicsItem(nextItem);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS posted');
+            } catch (error) {
+                console.error('[newsTopicsEditor] NEWS_TOPICS_EDITOR_ADD_REQUEST error', error);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR posted');
+            }
+
+            return;
+        }
+
+        if (data.type === 'NEWS_TOPICS_EDITOR_UPDATE_REQUEST') {
+            console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_UPDATE_REQUEST', data.payload);
+
+            try {
+                const nextItem = normalizeNewsTopicsItems([data.payload])[0];
+
+                if (!nextItem) {
+                    throw new Error('invalid update payload');
+                }
+
+                await applyNewsTopicsImageUpload(nextItem, data.payload);
+                await updateNewsTopicsItem(nextItem);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS posted');
+            } catch (error) {
+                console.error('[newsTopicsEditor] NEWS_TOPICS_EDITOR_UPDATE_REQUEST error', error);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR posted');
+            }
+
+            return;
+        }
+
+        if (data.type === 'NEWS_TOPICS_EDITOR_DELETE_REQUEST') {
+            console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_DELETE_REQUEST', data.payload);
+
+            try {
+                const request = data.payload || {};
+                const deleteTarget = {
+                    _id: String(request._id || '').trim(),
+                    newsTopicsId: String(request.newsTopicsId || '').trim()
+                };
+
+                if (!deleteTarget._id && !deleteTarget.newsTopicsId) {
+                    throw new Error('invalid delete payload');
+                }
+
+                await deleteNewsTopicsItem(deleteTarget);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_SUCCESS posted');
+            } catch (error) {
+                console.error('[newsTopicsEditor] NEWS_TOPICS_EDITOR_DELETE_REQUEST error', error);
+
+                newsTopicsHtmlComponent.postMessage({
+                    type: 'NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR'
+                });
+
+                console.log('[newsTopicsEditor] NEWS_TOPICS_EDITOR_CMS_SAVE_ERROR posted');
+            }
+        }
+    });
+});
+
+async function loadItems() {
+    console.log('[infoEditor] loadItems query start');
+
+    const result = await wixData.query('HdOriginInfo')
+        .descending('date')
+        .limit(1000)
+        .find();
+
+    console.log('[infoEditor] loadItems query result', result.items);
+
+    return result.items.map(function (item) {
+        return {
+            date: item.date || '',
+            title: item.title || '',
+            url: item.url || '#'
+        };
+    });
+}
+
+function normalizeItems(payload) {
+    if (!Array.isArray(payload)) {
+        return [];
+    }
+
+    return payload.map(function (item) {
+        return {
+            date: String(item && item.date || '').trim(),
+            title: String(item && item.title || '').trim(),
+            url: String(item && item.url || '#').trim() || '#'
+        };
+    }).filter(function (item) {
+        return item.date && item.title;
+    });
+}
+
+async function loadNewsTopicsItems(options) {
+    const limit = normalizePositiveInteger(options && options.limit, 5);
+    const offset = normalizeNonNegativeInteger(options && options.offset, 0);
+
+    console.log('[newsTopicsEditor] loadNewsTopicsItems query start', { limit, offset });
+
+    const result = await wixData.query('HdOriginNewsTopics')
+        .limit(1000)
+        .find();
+
+    console.log('[newsTopicsEditor] loadNewsTopicsItems query result', result.items);
+
+    const normalizedItems = normalizeNewsTopicsItems(result.items).map(attachNewsTopicsDisplayImage);
+
+    return {
+        items: normalizedItems.slice(offset, offset + limit),
+        totalCount: normalizedItems.length,
+        limit: limit,
+        offset: offset,
+        nextNewsTopicsId: getNextNewsTopicsId(normalizedItems)
+    };
+}
+
+async function searchNewsTopicsItems(options) {
+    const keyword = String(options && options.keyword || '').trim().toLowerCase();
+
+    console.log('[newsTopicsEditor] searchNewsTopicsItems query start', { keyword });
+
+    const result = await wixData.query('HdOriginNewsTopics')
+        .limit(1000)
+        .find();
+
+    console.log('[newsTopicsEditor] searchNewsTopicsItems query result', result.items);
+
+    const normalizedItems = normalizeNewsTopicsItems(result.items).map(attachNewsTopicsDisplayImage);
+    const filteredItems = keyword
+        ? normalizedItems.filter(function (item) {
+            return matchesNewsTopicsKeyword(item, keyword);
+        })
+        : normalizedItems;
+
+    return {
+        items: filteredItems,
+        totalCount: filteredItems.length,
+        limit: filteredItems.length,
+        offset: 0,
+        nextNewsTopicsId: getNextNewsTopicsId(normalizedItems)
+    };
+}
+
+async function applyNewsTopicsImageUpload(item, payload) {
+    const upload = normalizeNewsTopicsImageUpload(payload && payload.imageUpload);
+
+    if (upload) {
+        const savedImage = await saveImageBytesToMediaBoth(upload.bytes, upload.mimeType);
+
+        item.image = String(savedImage && savedImage.fileUrl || '').trim();
+        item.displayImage = String(savedImage && savedImage.displayUrl || '').trim();
+        item.imageDeleted = false;
+        return;
+    }
+
+    if (payload && payload.imageDeleted) {
+        item.image = '';
+        item.imageDeleted = true;
+    }
+}
+
+function normalizeNewsTopicsImageUpload(upload) {
+    const bytes = upload && Array.isArray(upload.bytes) ? upload.bytes : [];
+    const mimeType = String(upload && upload.mimeType || '').trim();
+
+    if (bytes.length === 0 || mimeType.indexOf('image/') !== 0) {
+        return null;
+    }
+
+    return {
+        bytes: bytes,
+        mimeType: mimeType
+    };
+}
+
+function attachNewsTopicsDisplayImage(item) {
+    return Object.assign({}, item, {
+        displayImage: getNewsTopicsImageDisplayUrl(item && item.image)
+    });
+}
+
+function getNewsTopicsImageDisplayUrl(image) {
+    const sourceUrl = String(image || '').trim();
+
+    if (!sourceUrl) {
+        return '';
+    }
+
+    if (sourceUrl.indexOf('wix:image://v1/') !== 0) {
+        return sourceUrl;
+    }
+
+    const path = sourceUrl.replace('wix:image://v1/', '');
+    const mediaId = path.split('/')[0].split('#')[0];
+
+    return mediaId ? 'https://static.wixstatic.com/media/' + mediaId : sourceUrl;
+}
+
+function matchesNewsTopicsKeyword(item, keyword) {
+    return [
+        item.newsTopicsId || '',
+        item.label || '',
+        item.title || '',
+        item.description || '',
+        item.url || ''
+    ].join(' ').toLowerCase().indexOf(keyword) !== -1;
+}
+
+function getNextNewsTopicsId(items) {
+    const maxId = items.reduce(function (maxValue, item) {
+        const currentValue = Number(item && item.newsTopicsId || 0);
+        return currentValue > maxValue ? currentValue : maxValue;
+    }, 0);
+
+    return String(maxId + 1);
+}
+
+async function addNewsTopicsItem(item) {
+    console.log('[newsTopicsEditor] addNewsTopicsItem start', item);
+
+    const existingResult = await wixData.query('HdOriginNewsTopics')
+        .eq('newsTopicsId', item.newsTopicsId)
+        .limit(1)
+        .find();
+
+    if (existingResult.items.length > 0) {
+        throw new Error('newsTopicsId already exists');
+    }
+
+    const insertItem = {
+        newsTopicsId: item.newsTopicsId,
+        label: item.label,
+        title: item.title,
+        description: item.description,
+        image: item.image || '',
+        url: item.url || '#'
+    };
+
+    console.log('[newsTopicsEditor] addNewsTopicsItem insert', insertItem);
+
+    return wixData.insert('HdOriginNewsTopics', insertItem);
+}
+
+async function updateNewsTopicsItem(item) {
+    console.log('[newsTopicsEditor] updateNewsTopicsItem start', item);
+
+    let existingResult;
+
+    if (item._id) {
+        existingResult = await wixData.query('HdOriginNewsTopics')
+            .eq('_id', item._id)
+            .limit(1)
+            .find();
+    } else {
+        existingResult = await wixData.query('HdOriginNewsTopics')
+            .eq('newsTopicsId', item.newsTopicsId)
+            .limit(1)
+            .find();
+    }
+
+    if (existingResult.items.length === 0) {
+        throw new Error('newsTopicsId not found');
+    }
+
+    const currentItem = existingResult.items[0];
+    const updateItem = Object.assign({}, currentItem, {
+        newsTopicsId: item.newsTopicsId,
+        label: item.label,
+        title: item.title,
+        description: item.description,
+        image: item.imageDeleted ? '' : (item.image || currentItem.image || ''),
+        url: item.url || '#'
+    });
+
+    console.log('[newsTopicsEditor] updateNewsTopicsItem update', updateItem);
+
+    return wixData.update('HdOriginNewsTopics', updateItem);
+}
+
+async function deleteNewsTopicsItem(target) {
+    console.log('[newsTopicsEditor] deleteNewsTopicsItem start', target);
+
+    const request = target || {};
+    let existingResult;
+
+    if (request._id) {
+        existingResult = await wixData.query('HdOriginNewsTopics')
+            .eq('_id', request._id)
+            .limit(1)
+            .find();
+    } else {
+        existingResult = await wixData.query('HdOriginNewsTopics')
+            .eq('newsTopicsId', request.newsTopicsId)
+            .limit(1)
+            .find();
+    }
+
+    if (existingResult.items.length === 0) {
+        return null;
+    }
+
+    console.log('[newsTopicsEditor] deleteNewsTopicsItem remove', existingResult.items[0]);
+
+    return wixData.remove('HdOriginNewsTopics', existingResult.items[0]._id);
+}
+
+function normalizePositiveInteger(value, fallback) {
+    const numberValue = Number(value);
+
+    if (!Number.isFinite(numberValue) || numberValue <= 0) {
+        return fallback;
+    }
+
+    return Math.floor(numberValue);
+}
+
+function normalizeNonNegativeInteger(value, fallback) {
+    const numberValue = Number(value);
+
+    if (!Number.isFinite(numberValue) || numberValue < 0) {
+        return fallback;
+    }
+
+    return Math.floor(numberValue);
+}
+
+function normalizeNewsTopicsItems(payload) {
+    if (!Array.isArray(payload)) {
+        return [];
+    }
+
+    return payload.map(function (item) {
+        return {
+            _id: String(item && item._id || '').trim(),
+            newsTopicsId: String(item && item.newsTopicsId || '').trim(),
+            label: String(item && item.label || '').trim(),
+            title: String(item && item.title || '').trim(),
+            description: String(item && item.description || '').trim(),
+            image: String(item && item.image || '').trim(),
+            url: String(item && item.url || '#').trim() || '#'
+        };
+    }).filter(function (item) {
+        return item.newsTopicsId;
+    }).sort(function (a, b) {
+        return Number(b.newsTopicsId || 0) - Number(a.newsTopicsId || 0);
+    });
+}

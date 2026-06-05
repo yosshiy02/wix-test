@@ -189,6 +189,25 @@
             clip-path: circle(0% at calc(100% - 90px) 70px); transition: clip-path 1.2s var(--ease-silk);
         }
         body.menu-open .menu-overlay { clip-path: circle(150% at calc(100% - 90px) 70px); }
+
+        .webmaster-login-link {
+            position: absolute;
+            left: 24px;
+            bottom: 20px;
+            z-index: 3;
+            font-family: var(--font-sans);
+            font-size: 0.52rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.38);
+            text-transform: uppercase;
+            transition: color 0.3s, opacity 0.3s;
+            opacity: 0.65;
+        }
+
+        .webmaster-login-link:hover {
+            color: var(--accent);
+            opacity: 1;
+        }
         
         /* メインコンテンツ（左：リンク＆情報、右：画像出現エリア） */
         .menu-main-content { 
@@ -203,7 +222,7 @@
 
         /* メインリンク */
         .menu-nav ul { list-style: none; display: flex; flex-direction: column; gap: 20px; }
-        .menu-nav li { overflow: hidden; position: relative; padding-bottom: 5px; }
+        .menu-nav li { overflow: hidden; position: relative; padding: 0 min(42vw, 560px) 8px 0; }
         .menu-nav a {
             font-family: var(--font-serif); 
             font-size: clamp(2.5rem, 4vw, 4rem); 
@@ -213,6 +232,41 @@
             letter-spacing: 4px; text-transform: uppercase; display: inline-block; transform: translateY(110%);
             transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.4s, padding-left 0.4s;
             position: relative; z-index: 2;
+        }
+
+        .menu-nav a[data-ja]::before {
+            content: attr(data-ja);
+            position: absolute;
+            left: calc(100% + 28px);
+            top: 50%;
+            transform: translate(18px, -50%);
+            font-family: var(--font-jp);
+            font-size: clamp(0.78rem, 0.95vw, 0.95rem);
+            letter-spacing: 2.5px;
+            color: rgba(255,255,255,0.84);
+            -webkit-text-fill-color: rgba(255,255,255,0.84);
+            background: none;
+            -webkit-background-clip: initial;
+            background-clip: initial;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.55s var(--ease-silk), transform 0.55s var(--ease-silk);
+            pointer-events: none;
+            font-style: normal;
+        }
+
+        .menu-nav a[data-ja]:hover::before {
+            opacity: 1;
+            transform: translate(0, -50%);
+        }
+
+        .menu-nav-amp {
+            font-family: var(--font-sans);
+            font-size: 0.72em;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            margin: 0 0.12em;
+            vertical-align: 0.06em;
         }
 
         /* ✨ メインリンクの金アンダーラインアニメーション ✨ */
@@ -229,7 +283,27 @@
             transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        .menu-nav a:hover { color: #fff; font-style: italic; padding-left: 15px; }
+        .menu-nav a:hover {
+            color: var(--accent);
+            font-style: normal;
+            padding-left: 15px;
+            background-image: linear-gradient(110deg, var(--accent) 0%, #F7E6A1 18%, var(--accent) 36%, var(--accent) 100%);
+            background-size: 240% 100%;
+            background-position: 120% 50%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: menuGoldSheen 1.35s ease-out 1;
+        }
+
+        @keyframes menuGoldSheen {
+            0% {
+                background-position: 120% 50%;
+            }
+            100% {
+                background-position: -20% 50%;
+            }
+        }
         .menu-nav a:hover::after {
             transform: scaleX(1);
             transform-origin: left center;
@@ -239,17 +313,82 @@
 
         /* サブ情報 */
         .menu-footer-info { 
-            display: flex; gap: 60px;
-            opacity: 0; transform: translateY(20px); transition: opacity 0.6s, transform 0.6s; 
+            display: flex; gap: clamp(3rem, 5vw, 6rem);
+            align-items: flex-start;
+            opacity: 0; transform: translateY(3vh); transition: opacity 0.6s, transform 0.6s; 
+        }
+
+        .menu-info-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: clamp(1.6rem, 3vh, 2.8rem);
+            align-self: flex-start;
+            height: fit-content;
+        }
+
+        .menu-info-link-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7em;
+            align-items: flex-start;
         }
         body.menu-open .menu-footer-info { opacity: 1; transform: translateY(0); transition: opacity 1s 0.8s, transform 1s 0.8s; }
         
         .menu-info-block { display: flex; flex-direction: column; gap: 10px; }
         .menu-info-title { font-family: var(--font-sans); font-size: 0.75rem; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; display: block;}
+
+        .menu-info-title[data-ja] {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu-info-title[data-ja]::after {
+            content: attr(data-ja);
+            position: absolute;
+            left: calc(100% + 14px);
+            top: 50%;
+            margin-top: 0;
+            font-family: var(--font-jp);
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.72);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(8px, -50%);
+            transition: opacity 0.45s var(--ease-silk), transform 0.45s var(--ease-silk);
+            pointer-events: none;
+        }
+
+        .menu-info-block:hover .menu-info-title[data-ja]::after {
+            opacity: 1;
+            transform: translate(0, -50%);
+        }
+
+        .menu-info-link[data-ja]::before {
+            content: attr(data-ja);
+            position: absolute;
+            left: calc(100% + 14px);
+            top: 50%;
+            margin-top: 0;
+            font-family: var(--font-jp);
+            font-size: 0.92rem;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.72);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(8px, -50%);
+            transition: opacity 0.45s var(--ease-silk), transform 0.45s var(--ease-silk);
+            pointer-events: none;
+        }
+
+        .menu-info-link[data-ja]:hover::before {
+            opacity: 1;
+            transform: translate(0, -50%);
+        }
         
         /* サブリンク */
         .menu-info-link { 
-            font-family: var(--font-sans); font-size: 1rem; font-weight: 300; letter-spacing: 2px; color: #E0E0E0; 
+            font-family: var(--font-sans); font-size: 1.28rem; font-weight: 300; letter-spacing: 2px; color: #E0E0E0; 
             transition: color 0.4s; display: inline-block; position: relative; 
         }
 
@@ -285,6 +424,108 @@
             border-radius: 2px;
         }
         .menu-reveal-img.is-active { opacity: 1; visibility: visible; transform: scale(1); filter: grayscale(0%) brightness(0.9); }
+
+        /* =========================================
+           MENU visual refinement
+           ※ 動き・JS・アニメーションは変更しない
+        ========================================= */
+        .menu-overlay {
+            background:
+                radial-gradient(circle at 18% 18%, rgba(212,175,55,0.13), transparent 28%),
+                radial-gradient(circle at 82% 72%, rgba(255,255,255,0.08), transparent 34%),
+                linear-gradient(135deg, #191919 0%, #2A2A2A 48%, #151515 100%);
+        }
+
+        .menu-overlay::before {
+            content: 'HD ORIGIN\A STYLE';
+            position: absolute;
+            left: auto;
+            right: 2vw;
+            bottom: -0.12em;
+            transform: none;
+            font-family: var(--font-serif);
+            font-size: clamp(6.8rem, 15vw, 17rem);
+            line-height: 0.82;
+            color: rgba(255,255,255,0.05);
+            letter-spacing: 0.06em;
+            white-space: pre;
+            text-align: right;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .menu-overlay::after {
+            content: '';
+            position: absolute;
+            left: 5vw;
+            right: 5vw;
+            bottom: 10vh;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(212,175,55,0.55), rgba(212,175,55,0.08), transparent);
+            pointer-events: none;
+        }
+
+        .menu-main-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .menu-nav-area {
+            gap: clamp(5rem, 10vh, 9rem);
+        }
+
+        .menu-nav ul {
+            gap: 14px;
+        }
+
+        .menu-nav a {
+            color: rgba(255,255,255,0.52);
+            letter-spacing: 0.12em;
+            text-shadow: 0 18px 50px rgba(0,0,0,0.28);
+        }
+
+        .menu-nav a:hover {
+            color: #ffffff;
+        }
+
+        .menu-footer-info {
+            max-width: min(76vw, 760px);
+            margin-top: clamp(15rem, 44vh, 34rem);
+            padding-top: clamp(1.6rem, 3vh, 3rem);
+            border-top: 1px solid rgba(212,175,55,0.28);
+        }
+
+        .menu-info-title {
+            color: rgba(212,175,55,0.92);
+        }
+
+        .menu-info-link {
+            color: rgba(255,255,255,0.66);
+        }
+
+        .menu-info-link:hover {
+            color: #ffffff;
+        }
+
+        .menu-visual-area::before {
+            content: '';
+            position: absolute;
+            width: 72%;
+            height: 72%;
+            border: 1px solid rgba(212,175,55,0.22);
+            transform: translate(18px, 18px);
+            pointer-events: none;
+        }
+
+        .menu-reveal-img {
+            width: 68%;
+            height: 68%;
+            box-shadow: 0 34px 90px rgba(0,0,0,0.36);
+        }
+
+        .webmaster-login-link {
+            color: rgba(255,255,255,0.28);
+        }
 
         /* =========================================
            ヒーローセクション
@@ -664,6 +905,121 @@
         .archive-number { position: absolute; top: -11vw; right: -2vw; font-family: var(--font-serif); font-size: clamp(8rem, 18vw, 18rem); opacity: 0.045; pointer-events: none; line-height: 1; z-index: 0; transition: color 0.8s, opacity 0.8s; }
         .archive-panel:nth-child(3) .archive-number { right: auto; left: -2vw; }
         body[class^="theme-"] .archive-text p { color: rgba(255,255,255,0.65); }
+        .archives-more-wrap { margin-top: 40px; }
+        .archives-more-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 220px;
+            padding: 18px 42px;
+            border: 1px solid var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.78rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-main);
+            overflow: hidden;
+            transition: color 0.5s, border-color 0.5s, transform 0.5s, box-shadow 0.5s;
+        }
+        .archives-more-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--text-main);
+            transform: translateX(-101%);
+            transition: transform 0.7s var(--ease-silk);
+        }
+        .archives-more-link span {
+            position: relative;
+            z-index: 1;
+        }
+        .archives-more-link:hover {
+            color: var(--bg-main);
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+        }
+        .archives-more-link:hover::before {
+            transform: translateX(0);
+        }
+        body[class^="theme-"] .archives-more-link {
+            border-color: rgba(255,255,255,0.6);
+            color: #ffffff;
+        }
+        body[class^="theme-"] .archives-more-link::before {
+            background: #ffffff;
+        }
+        body[class^="theme-"] .archives-more-link:hover {
+            color: #111111;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+        }
+
+        #newsTopicsList {
+            display: flex;
+            flex-direction: column;
+            gap: 140px;
+        }
+
+        #newsTopicsList .news-topic-panel {
+            width: 100%;
+            min-height: auto;
+        }
+
+        #newsTopicsList .news-topic-content {
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+            align-items: center;
+            gap: clamp(40px, 7vw, 110px);
+            position: relative;
+        }
+
+        #newsTopicsList .news-topic-image-frame {
+            width: 100%;
+            height: 360px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #newsTopicsList .news-topic-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            filter: none;
+            opacity: 1;
+            transform: none;
+            background: transparent;
+        }
+
+        #newsTopicsList .news-topic-image-frame:empty::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #newsTopicsList .news-topic-text {
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (max-width: 1024px) {
+            #newsTopicsList .news-topic-content {
+                grid-template-columns: 1fr;
+            }
+
+            #newsTopicsList .news-topic-image-frame {
+                height: 300px;
+            }
+        }
 
         /* =========================================
            PAST ARCHIVES (Alternating Thumbnails)
@@ -1265,7 +1621,120 @@
             .archive-text h3 { font-size: clamp(2.2rem, 12vw, 3.4rem); }
             .archive-number { top: -60px; font-size: 7rem; }
         }
-    </style>
+        #newsTopicsList .news-topic-text h3,
+    #newsTopicsList .archive-text h3 {
+        font-size: clamp(1.25rem, 2.1vw, 1.85rem);
+        line-height: 1.35;
+        letter-spacing: 0.03em;
+    }
+
+    #newsTopicsList {
+        display: flex;
+        flex-direction: column;
+        gap: 80px;
+    }
+
+    #newsTopicsList .news-topic-panel {
+        min-height: 520px;
+        height: 520px;
+        display: flex;
+        align-items: stretch;
+    }
+
+    #newsTopicsList .news-topic-content {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(32px, 5vw, 72px);
+        align-items: stretch;
+    }
+
+    #newsTopicsList .news-topic-text {
+        height: 100%;
+        display: grid;
+        grid-template-rows: 24px 58px 1fr;
+        align-content: start;
+    }
+
+    #newsTopicsList .news-topic-text p:first-child {
+        min-height: 24px;
+        margin: 0 0 18px;
+    }
+
+    #newsTopicsList .news-topic-text h3 {
+        min-height: 58px;
+        width: 100%;
+        margin: 0 0 22px;
+        font-size: clamp(1.25rem, 2.1vw, 1.85rem);
+        line-height: 1.35;
+        letter-spacing: 0.03em;
+        position: relative;
+        display: block;
+    }
+
+    #newsTopicsList .news-topic-text h3::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: auto;
+        bottom: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 2.5s cubic-bezier(0.22, 1, 0.36, 1) 0.6s;
+    }
+
+    #newsTopicsList .news-topic-panel.is-active .news-topic-text h3::after {
+        transform: scaleX(1);
+    }
+
+    #newsTopicsList .news-topic-text p:last-child {
+        margin: 0;
+        overflow: hidden;
+    }
+
+    #newsTopicsList .news-topic-image-frame {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        border: 1px solid transparent;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    #newsTopicsList .news-topic-image-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        background: transparent;
+    }
+
+    @media (max-width: 768px) {
+        #newsTopicsList .news-topic-panel {
+            min-height: 560px;
+            height: 560px;
+        }
+
+        #newsTopicsList .news-topic-content {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 220px;
+            gap: 28px;
+        }
+
+        #newsTopicsList .news-topic-image-frame {
+            min-height: 220px;
+            height: 220px;
+        }
+    }
+
+</style>
 </head>
 <body>
 
@@ -1275,20 +1744,28 @@
             <div class="menu-nav-area">
                 <nav class="menu-nav">
                     <ul>
-                        <li><a href="#home" class="menu-link" data-img="https://picsum.photos/seed/menu1/800/1000?grayscale">Home</a></li>
-                        <li><a href="#brands" class="menu-link" data-img="https://picsum.photos/seed/menu2/800/1000?grayscale">Linkshop</a></li>
-                        <li><a href="#archives" class="menu-link" data-img="https://picsum.photos/seed/menu3/800/1000?grayscale">Campaigns</a></li>
-                        <li><a href="#contact" class="menu-link" data-img="https://picsum.photos/seed/menu4/800/1000?grayscale">Contact</a></li>
+                        <li><a href="#information" class="menu-link" data-ja="最新のお知らせ" data-img="https://picsum.photos/seed/menu1/800/1000?grayscale">INFORMATION</a></li>
+                        <li><a href="#brands" class="menu-link" data-ja="リンクショップ" data-img="https://picsum.photos/seed/menu2/800/1000?grayscale">LINKSHOP</a></li>
+                        <li><a href="#archives" class="menu-link" data-ja="ニュース＆トピックス" data-img="https://picsum.photos/seed/menu3/800/1000?grayscale">NEWS<span class="menu-nav-amp">&amp;</span>TOPICS</a></li>
+                        <li><a href="#past-archives" class="menu-link" data-ja="アーカイブ" data-img="https://picsum.photos/seed/menu4/800/1000?grayscale">ARCHIVE</a></li>
+                        <li><a href="https://www.hatodaiya.com/contact" target="_blank" rel="noopener noreferrer" class="menu-link" data-ja="お問い合わせ" data-img="https://picsum.photos/seed/menu4/800/1000?grayscale">CONTACT</a></li>
                     </ul>
                 </nav>
                 <div class="menu-footer-info">
-                    <div class="menu-info-block">
-                        <span class="menu-info-title">LEGAL</span>
-                        <div><a href="#" class="menu-info-link">Privacy Policy</a> &nbsp;/&nbsp; <a href="#" class="menu-info-link">Terms of Service</a></div>
-                    </div>
-                    <div class="menu-info-block">
-                        <span class="menu-info-title">SOCIAL</span>
-                        <a href="#" class="menu-info-link">Instagram : @HD_ONLINE_STORE</a>
+                    <div class="menu-info-stack">
+                        <div class="menu-info-block">
+                            <span class="menu-info-title">GUIDE</span>
+                            <div class="menu-info-link-list">
+                                  <a href="https://www.hatodaiya.com/policy" target="_blank" rel="noopener noreferrer" class="menu-info-link" data-ja="プライバシーポリシー">Privacy Policy</a>
+                                <a href="#" class="menu-info-link" data-ja="利用規約">Terms of Service</a>
+                                <a href="https://www.hatodaiya.com/notice" target="_blank" rel="noopener noreferrer" class="menu-info-link" data-ja="特定商取引法に基づく表記">NOTICE</a>
+
+                            </div>
+                        </div>
+                        <div class="menu-info-block">
+                            <span class="menu-info-title">SOCIAL</span>
+                            <a href="https://www.instagram.com/HD_ORIGIN_STYLE/" class="menu-info-link">Instagram : @HD_ORIGIN_STYLE</a>
+                        </div>
                     </div>
                     <div class="menu-info-block">
                         <span class="menu-info-title">COMPANY</span>
@@ -1300,6 +1777,7 @@
                 <img src="" alt="Menu Preview" class="menu-reveal-img" id="menuRevealImg">
             </div>
         </div>
+        <a href="https://www.hatodaiya.com/top-editorial" target="_blank" rel="noopener noreferrer" class="webmaster-login-link">WEBMASTERLOGIN</a>
     </div>
 
     <!-- ✨ 固定要素：ナビバー＆メニューボタン -->
@@ -1477,48 +1955,17 @@
                 
                 <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
                     <p style="font-size: 1rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase; margin-bottom: 20px;">Latest Stories</p>
-                    <h2 class="section-title" style="font-size: 6vw; letter-spacing: 15px; color: var(--text-main); margin: 0 auto;">THE CAMPAIGNS</h2>
+                    <h2 class="section-title" style="font-size: 6vw; letter-spacing: 15px; color: var(--text-main); margin: 0 auto;">NEWS＆TOPICS</h2>
                 </section>
 
-                <section class="archive-panel">
-                    <div class="archive-number">01</div>
-                    <div class="archive-content">
-                        <div class="archive-text">
-                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">AUTUMN / WINTER 2026</p>
-                            <h3>SILENT NOCTURNE</h3>
-                            <p>今季のHATODAIYAが提案する共通テーマは「静かなる夜想曲」。METROとÉpoqueが交差する、深みのあるレイヤードスタイル。</p>
-                        </div>
-                        <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp1/800/1000?grayscale" alt="Campaign 1"></div>
-                    </div>
-                </section>
-
-                <section class="archive-panel">
-                    <div class="archive-number">02</div>
-                    <div class="archive-content">
-                        <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp2/800/1000?grayscale" alt="Campaign 2"></div>
-                        <div class="archive-text">
-                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">LIMITED COLLABORATION</p>
-                            <h3>HATODAIYA × TSUMUGI</h3>
-                            <p>無彩色と金の美学（HATODAIYA）と、日本の伝統的な藍染（TSUMUGI）が融合したカプセルコレクションが始動。</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="archive-panel">
-                    <div class="archive-number">03</div>
-                    <div class="archive-content">
-                        <div class="archive-text">
-                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">NEW ARRIVAL</p>
-                            <h3>AURA : THE ESSENCE</h3>
-                            <p>フレグランスブランド「AURA」から、HATODAIYA限定のルームディフューザーが登場。記憶の底に眠る「原点」を呼び覚ます香り。</p>
-                        </div>
-                        <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp3/800/1000?grayscale" alt="Campaign 3"></div>
-                    </div>
-                </section>
+                <div id="newsTopicsList"></div>
 
                 <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
                     <h3 class="section-title" style="font-size: 5vw; letter-spacing: 15px; color: var(--text-main); margin: 0 auto;">DISCOVER YOUR ORIGIN</h3>
                     <p style="margin-top: 20px; font-size: 1rem; letter-spacing: 5px; color: var(--accent);">次なるスタイルを見つける</p>
+                    <div class="archives-more-wrap">
+                        <a href="#" class="archives-more-link"><span>VIEW MORE</span></a>
+                    </div>
                 </section>
                 
             </div>
@@ -1606,6 +2053,10 @@
         window.addEventListener('DOMContentLoaded', () => {
             window.parent.postMessage({
                 type: 'INFO_HTML_READY'
+            }, '*');
+
+            window.parent.postMessage({
+                type: 'NEWS_TOPICS_HTML_READY'
             }, '*');
 
             const infoViewAllLink = document.getElementById('infoViewAllLink');
@@ -1833,6 +2284,246 @@
                     </li>
                 `;
             }).join('');
+        }
+
+        function renderNewsTopics(data) {
+            const container = document.querySelector('#archives .archives-container');
+
+            if (!container) {
+                return;
+            }
+
+            const items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+            items.sort((a, b) => Number(b.newsTopicsID || 0) - Number(a.newsTopicsID || 0));
+
+            const latestItems = items.slice(0, 5);
+
+            if (latestItems.length === 0) {
+                return;
+            }
+
+            const panels = latestItems.map((item, index) => {
+                const number = String(index + 1).padStart(2, '0');
+                const imageUrl = getNewsTopicImageUrl(item, index);
+                const isEven = index % 2 === 1;
+                const metaText = item.date ? formatInfoDate(item.date) : `NEWS TOPICS ${escapeHtml(item.newsTopicsID || '')}`;
+                const title = escapeHtml(item.title || '');
+                const excerpt = escapeHtml(item.excerpt || '');
+                const url = escapeAttribute(item.url || '#');
+
+                if (isEven) {
+                    return `
+                <section class="archive-panel">
+                    <div class="archive-number">${number}</div>
+                    <a href="${url}" class="archive-content">
+                        <div class="archive-img-wrap"><img src="${escapeAttribute(imageUrl)}" alt="${title}"></div>
+                        <div class="archive-text">
+                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">${metaText}</p>
+                            <h3>${title}</h3>
+                            <p>${excerpt}</p>
+                        </div>
+                    </a>
+                </section>`;
+                }
+
+                return `
+                <section class="archive-panel">
+                    <div class="archive-number">${number}</div>
+                    <a href="${url}" class="archive-content">
+                        <div class="archive-text">
+                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">${metaText}</p>
+                            <h3>${title}</h3>
+                            <p>${excerpt}</p>
+                        </div>
+                        <div class="archive-img-wrap"><img src="${escapeAttribute(imageUrl)}" alt="${title}"></div>
+                    </a>
+                </section>`;
+            }).join('');
+
+            container.innerHTML = `
+                
+                <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
+                    <p style="font-size: 1rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase; margin-bottom: 20px;">Latest Stories</p>
+                    <h2 class="section-title" style="font-size: 6vw; letter-spacing: 15px; color: var(--text-main); margin: 0 auto;">NEWS＆TOPICS</h2>
+                </section>
+${panels}
+
+                <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
+                    <h3 class="section-title" style="font-size: 5vw; letter-spacing: 15px; color: var(--text-main); margin: 0 auto;">DISCOVER YOUR ORIGIN</h3>
+                    <p style="margin-top: 20px; font-size: 1rem; letter-spacing: 5px; color: var(--accent);">次なるスタイルを見つける</p>
+                    <div class="archives-more-wrap">
+                        <a href="#" class="archives-more-link"><span>VIEW MORE</span></a>
+                    </div>
+                </section>
+                
+            `;
+
+            initializeNewsTopicsAnimations();
+
+            ScrollTrigger.refresh();
+        }
+
+        function getNewsTopicImageUrl(item, index) {
+            const image = item.image;
+
+            if (typeof image === 'string' && image) {
+                return image;
+            }
+
+            if (image && typeof image === 'object') {
+                if (image.src) {
+                    return image.src;
+                }
+
+                if (image.url) {
+                    return image.url;
+                }
+            }
+
+            return `https://picsum.photos/seed/newsTopics${escapeAttribute(item.newsTopicsID || index + 1)}/800/1000?grayscale`;
+        }
+
+        function initializeNewsTopicsAnimations() {
+            gsap.utils.toArray("#archives .archive-panel").forEach((panel, index) => {
+                const imgWrap = panel.querySelector(".archive-img-wrap");
+                const img = panel.querySelector(".archive-img-wrap img");
+                const text = panel.querySelector(".archive-text");
+
+                ScrollTrigger.create({
+                    trigger: panel,
+                    start: "top 72%",
+                    end: "bottom 28%",
+                    toggleClass: { targets: panel, className: "is-active" }
+                });
+
+                if (imgWrap && img) {
+                    gsap.fromTo(imgWrap,
+                        { x: index % 2 === 0 ? -70 : 70, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 1.3, ease: "power4.out", scrollTrigger: { trigger: panel, start: "top 78%", toggleActions: "play none none reverse" } }
+                    );
+                    gsap.fromTo(img,
+                        { scale: 1.16 },
+                        { scale: 1.02, duration: 1.6, ease: "power4.out", scrollTrigger: { trigger: panel, start: "top 78%", toggleActions: "play none none reverse" } }
+                    );
+                }
+
+                if (text) {
+                    gsap.fromTo(text,
+                        { x: index % 2 === 0 ? 70 : -70, opacity: 0 }, 
+                        { x: 0, opacity: 1, duration: 1.2, ease: "power3.out", delay: 0.15, scrollTrigger: { trigger: panel, start: "top 74%", toggleActions: "play none none reverse" } }
+                    );
+                }
+            });
+        }
+
+        function renderNewsTopics(data) {
+            const list = document.getElementById('newsTopicsList');
+
+            if (!list) {
+                return;
+            }
+
+            const items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+            items.sort((a, b) => Number(b.newsTopicsID || 0) - Number(a.newsTopicsID || 0));
+
+            const latestItems = items.slice(0, 5);
+
+            list.innerHTML = latestItems.map((item, index) => {
+                const number = String(index + 1).padStart(2, '0');
+                const imageUrl = getNewsTopicsImageUrl(item.image);
+                const titleText = item.title || '';
+                const metaText = item.label || '';
+                const descriptionText = item.description || '';
+                const linkUrl = item.url || '';
+                const contentOpen = linkUrl ? `<a href="${escapeAttribute(linkUrl)}" class="archive-content news-topic-content">` : `<div class="archive-content news-topic-content">`;
+                const contentClose = linkUrl ? `</a>` : `</div>`;
+
+                if (index % 2 === 1) {
+                    return `
+                <section class="archive-panel news-topic-panel">
+                    <div class="archive-number">${number}</div>
+                    ${contentOpen}
+                        <div class="archive-img-wrap news-topic-image-frame">${imageUrl ? `<img src="${escapeAttribute(imageUrl)}" alt="${escapeAttribute(titleText)}">` : ''}</div>
+                        <div class="archive-text news-topic-text">
+                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">${metaText}</p>
+                            <h3>${escapeHtml(titleText)}</h3>
+                            <p>${escapeHtml(descriptionText)}</p>
+                        </div>
+                    ${contentClose}
+                </section>
+                    `;
+                }
+
+                return `
+                <section class="archive-panel news-topic-panel">
+                    <div class="archive-number">${number}</div>
+                    ${contentOpen}
+                        <div class="archive-text news-topic-text">
+                            <p style="color: var(--accent); font-weight: 500; font-size: 0.8rem; letter-spacing: 3px;">${metaText}</p>
+                            <h3>${escapeHtml(titleText)}</h3>
+                            <p>${escapeHtml(descriptionText)}</p>
+                        </div>
+                        <div class="archive-img-wrap news-topic-image-frame">${imageUrl ? `<img src="${escapeAttribute(imageUrl)}" alt="${escapeAttribute(titleText)}">` : ''}</div>
+                    ${contentClose}
+                </section>
+                `;
+            }).join('');
+
+            initializeNewsTopicsPanels();
+
+            ScrollTrigger.refresh();
+        }
+
+        function getNewsTopicsImageUrl(image) {
+            if (typeof image === 'string') {
+                if (image.indexOf('wix:image://v1/') === 0) {
+                    const imagePath = image.replace('wix:image://v1/', '').split('/')[0];
+                    return `https://static.wixstatic.com/media/${imagePath}`;
+                }
+
+                return image;
+            }
+
+            if (image && typeof image === 'object' && image.src) {
+                return image.src;
+            }
+
+            return '';
+        }
+
+        function initializeNewsTopicsPanels() {
+            gsap.utils.toArray("#newsTopicsList .archive-panel").forEach((panel, index) => {
+                const imgWrap = panel.querySelector(".archive-img-wrap");
+                const img = panel.querySelector(".archive-img-wrap img");
+                const text = panel.querySelector(".archive-text");
+
+                ScrollTrigger.create({
+                    trigger: panel,
+                    start: "top 72%",
+                    end: "bottom 28%",
+                    toggleClass: { targets: panel, className: "is-active" }
+                });
+
+                if (imgWrap && img) {
+                    gsap.fromTo(imgWrap,
+                        { x: index % 2 === 0 ? -70 : 70, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 1.3, ease: "power4.out", scrollTrigger: { trigger: panel, start: "top 78%", toggleActions: "play none none reverse" } }
+                    );
+                    gsap.fromTo(img,
+                        { scale: 1.16 },
+                        { scale: 1.02, duration: 1.6, ease: "power4.out", scrollTrigger: { trigger: panel, start: "top 78%", toggleActions: "play none none reverse" } }
+                    );
+                }
+
+                if (text) {
+                    gsap.fromTo(text,
+                        { x: index % 2 === 0 ? 70 : -70, opacity: 0 }, 
+                        { x: 0, opacity: 1, duration: 1.2, ease: "power3.out", delay: 0.15, scrollTrigger: { trigger: panel, start: "top 74%", toggleActions: "play none none reverse" } }
+                    );
+                }
+            });
         }
 
         function formatInfoDate(dateString) {
@@ -2406,6 +3097,11 @@
 
             if (data.type === "INFO_DATA") {
                 renderLatestInformation(data.payload);
+                return;
+            }
+
+            if (data.type === "NEWS_TOPICS_DATA") {
+                renderNewsTopics(data.payload);
                 return;
             }
 
