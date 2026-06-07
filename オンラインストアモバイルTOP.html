@@ -147,6 +147,24 @@
             transform: scaleX(1);
         }
 
+        #philosophy .origin-title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: calc(3 * var(--ry));
+            line-height: 0.92;
+            text-transform: none;
+        }
+
+        #philosophy .origin-title-of {
+            font-family: var(--font-sans);
+            font-size: 0.34em;
+            font-weight: 400;
+            letter-spacing: calc(4.5 * var(--rx));
+            color: var(--accent);
+            transform: translateX(calc(2 * var(--rx)));
+        }
+
         #philosophy .section-title::after {
             transform-origin: left center;
         }
@@ -159,9 +177,6 @@
             transform-origin: center;
         }
 
-        #editorial .section-title::after {
-            transform-origin: right center;
-        }
 
         .text-line-wrap {
             overflow: hidden;
@@ -174,6 +189,23 @@
             font-size: clamp(calc(13 * var(--ru)), calc(0.95rem), calc(15.2 * var(--ru)));
             color: #555;
             transition: color 0.5s ease;
+        }
+
+        #philosophy .philosophy-copy {
+            width: min(calc(248 * var(--rx)), 100%);
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #philosophy .philosophy-copy .text-line-wrap {
+            margin-bottom: calc(6 * var(--ry));
+        }
+
+        #philosophy .philosophy-copy .text-line {
+            font-size: clamp(calc(10 * var(--ru)), calc(0.72rem), calc(12 * var(--ru)));
+            line-height: 1.68;
+            letter-spacing: calc(0.75 * var(--rx));
+            color: #444;
         }
 
         nav {
@@ -224,23 +256,31 @@
             right: calc(10 * var(--rx));
             width: calc(60 * var(--rx));
             height: calc(60 * var(--rx));
-            z-index: 2001;
+            z-index: 6000;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
         }
 
         .menu-circle {
             width: calc(50 * var(--rx));
             height: calc(50 * var(--rx));
-            border: calc(1 * var(--ru)) solid var(--border-color);
+            border: calc(1 * var(--ru)) solid rgba(17,17,17,0.34);
+            background: rgba(248,248,248,0.82);
+            backdrop-filter: blur(calc(6 * var(--ru)));
+            -webkit-backdrop-filter: blur(calc(6 * var(--ru)));
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.8s;
+            transition:
+                border-color 0.8s,
+                background 0.8s;
         }
 
         .menu-typo,
@@ -253,6 +293,7 @@
             font-family: var(--font-sans);
             font-weight: 600;
             letter-spacing: calc(1 * var(--rx));
+            color: #111111;
             z-index: 1;
             transition:
                 color 0.8s,
@@ -290,6 +331,7 @@
 
         body.menu-open .menu-circle {
             border-color: transparent;
+            background: transparent;
         }
 
         .menu-overlay {
@@ -303,6 +345,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding:
+                calc(58 * var(--ry))
+                calc(16 * var(--rx))
+                calc(22 * var(--ry));
+            overflow: hidden;
             clip-path: circle(0% at calc(100% - calc(35 * var(--rx))) calc(35 * var(--ry)));
             transition: clip-path 1s var(--ease-silk);
         }
@@ -311,12 +358,25 @@
             clip-path: circle(150% at calc(100% - calc(35 * var(--rx))) calc(35 * var(--ry)));
         }
 
-        .menu-nav ul {
-            list-style: none;
-            text-align: center;
+        .menu-nav-area {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: calc(25 * var(--ry));
+            justify-content: center;
+            align-items: stretch;
+        }
+
+             .menu-nav ul {
+            width: 100%;
+            list-style: none;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: calc(8 * var(--ry));
+            margin-top: calc(12 * var(--ry));
         }
 
         .menu-nav li {
@@ -325,11 +385,15 @@
 
         .menu-nav a {
             font-family: var(--font-serif);
-            font-size: clamp(calc(28.8 * var(--ru)), calc(8vw), calc(40 * var(--ru)));
+            font-size: clamp(calc(22 * var(--ru)), calc(6.2vw), calc(29 * var(--ru)));
             color: rgba(255,255,255,0.5);
-            letter-spacing: calc(3 * var(--rx));
+            letter-spacing: calc(2.4 * var(--rx));
             text-transform: uppercase;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: calc(3 * var(--ry));
+            text-align: left;
             transform: translateY(100%);
             transition:
                 transform 0.8s var(--ease-silk),
@@ -340,6 +404,80 @@
             transform: translateY(0);
         }
 
+        .menu-link-main {
+            display: block;
+        }
+
+        .menu-link-main::after {
+            content: '';
+            display: block;
+            width: calc(46 * var(--rx));
+            height: calc(1 * var(--ru));
+            margin:
+                calc(5 * var(--ry))
+                0
+                calc(1 * var(--ry));
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(212,175,55,0) 0%,
+                    rgba(212,175,55,0.78) 18%,
+                    rgba(255,255,255,0.45) 45%,
+                    rgba(212,175,55,0.32) 72%,
+                    rgba(212,175,55,0) 100%
+                );
+            opacity: 0;
+            filter: blur(calc(0.25 * var(--ru)));
+            transform: scaleX(0.24) translateX(calc(-4 * var(--rx)));
+            transform-origin: left center;
+            transition:
+                opacity 0.9s var(--ease-silk),
+                transform 0.9s var(--ease-silk),
+                filter 0.9s var(--ease-silk);
+        }
+
+        body.menu-open .menu-link-main::after {
+            opacity: 0.82;
+            filter: blur(0);
+            transform: scaleX(1) translateX(0);
+            transition-delay: 0.22s;
+        }
+
+        .menu-link-sub {
+            display: block;
+            font-family: var(--font-jp);
+            font-size: clamp(calc(8 * var(--ru)), calc(0.62rem), calc(9.92 * var(--ru)));
+            font-weight: 400;
+            line-height: 1.25;
+            letter-spacing: calc(1.4 * var(--rx));
+            color: var(--accent);
+            opacity: 0;
+            transform: translateY(calc(5 * var(--ry)));
+            transition:
+                opacity 0.9s var(--ease-silk),
+                transform 0.9s var(--ease-silk);
+        }
+
+        body.menu-open .menu-link-sub {
+            opacity: 0.86;
+            transform: translateY(0);
+            transition-delay: 0.34s;
+        }
+
+        .menu-nav-amp {
+            font-family: var(--font-sans);
+            font-size: 0.72em;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            margin: 0 0.12em;
+            vertical-align: 0.06em;
+        }
+
+
+
+        .menu-nav {
+            width: 100%;
+        }
         .hero {
             width: 100%;
             height: var(--vvh);
@@ -523,6 +661,13 @@
             margin-top: calc(40 * var(--ry));
             padding-left: calc(20 * var(--rx));
             position: relative;
+        }
+
+        #philosophy .philosophy-text p.quote {
+            margin-top: calc(24 * var(--ry));
+            font-size: clamp(calc(13 * var(--ru)), calc(0.92rem), calc(15.6 * var(--ru)));
+            letter-spacing: calc(0.8 * var(--rx));
+            color: rgba(17,17,17,0.62);
         }
 
         .philosophy-text p.quote::before {
@@ -1112,43 +1257,6 @@
             color: #fff;
         }
 
-        .editorial {
-            padding: calc(80 * var(--ry)) 0;
-            width: 100%;
-        }
-
-        .gallery-track-container {
-            display: flex;
-            flex-direction: column;
-            gap: calc(15 * var(--ry));
-            padding: 0 calc(16 * var(--rx));
-        }
-
-        .feed-item {
-            width: 100%;
-            border-radius: calc(4 * var(--ru));
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(calc(30 * var(--ry)));
-            transition: all 1s var(--ease-silk);
-        }
-
-        .feed-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-            filter: grayscale(100%);
-            transition: filter 3s var(--ease-silk);
-        }
-
-        .feed-item.is-focused {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feed-item.is-focused img {
-            filter: grayscale(0%);
-        }
 
         .footer {
             background: #111;
@@ -1159,6 +1267,81 @@
                 calc(calc(30 * var(--ry)) + var(--bottom-bar-guard));
             text-align: center;
             width: 100%;
+        }
+
+        .footer-menu-links {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: calc(26 * var(--ry));
+            margin:
+                calc(34 * var(--ry))
+                auto
+                calc(42 * var(--ry));
+            padding:
+                calc(30 * var(--ry))
+                calc(18 * var(--rx))
+                calc(26 * var(--ry));
+            border:
+                calc(1 * var(--ru))
+                solid
+                rgba(212,175,55,0.18);
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(255,255,255,0.035) 0%,
+                    rgba(212,175,55,0.035) 48%,
+                    rgba(255,255,255,0.018) 100%
+                );
+            overflow: hidden;
+        }
+
+        .footer-menu-links::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: calc(22 * var(--rx));
+            width: calc(54 * var(--rx));
+            height: calc(1 * var(--ru));
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(212,175,55,0) 0%,
+                    rgba(212,175,55,0.9) 38%,
+                    rgba(255,255,255,0.5) 58%,
+                    rgba(212,175,55,0) 100%
+                );
+        }
+
+        .footer-menu-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: calc(10 * var(--ry));
+        }
+
+        .footer-menu-title {
+            font-family: var(--font-sans);
+            font-size: clamp(calc(7 * var(--ru)), calc(0.52rem), calc(8.32 * var(--ru)));
+            letter-spacing: calc(3.2 * var(--rx));
+            color: var(--accent);
+            text-transform: uppercase;
+            opacity: 0.92;
+        }
+
+        .footer-menu-link-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: calc(7 * var(--ry));
+        }
+
+        .footer-menu-link {
+            font-family: var(--font-sans);
+            font-size: clamp(calc(11 * var(--ru)), calc(0.84rem), calc(13.44 * var(--ru)));
+            line-height: 1.45;
+            letter-spacing: calc(1.2 * var(--rx));
+            color: rgba(255,255,255,0.72);
         }
 
         .footer-content {
@@ -2412,6 +2595,103 @@
                 border-width: calc(1 * var(--ru));
             }
         }
+        #newsTopicsList {
+            display: flex;
+            flex-direction: column;
+            gap: calc(80 * var(--ry));
+        }
+
+        #newsTopicsList .news-topic-panel {
+            display: flex;
+            flex-direction: column;
+            gap: calc(20 * var(--ry));
+            position: relative;
+        }
+
+        #newsTopicsList .news-topic-content {
+            display: flex;
+            flex-direction: column;
+            gap: calc(20 * var(--ry));
+            color: inherit;
+        }
+
+        #newsTopicsList .news-topic-image-frame {
+            width: 100%;
+            height: calc(300 * var(--ry));
+            min-height: calc(220 * var(--ry));
+            overflow: hidden;
+            border-radius: calc(4 * var(--ru));
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: inset(0 100% 0 0);
+            transition: clip-path 1.5s var(--ease-silk);
+        }
+
+        #newsTopicsList .news-topic-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background: transparent;
+            transform: scale(1.05);
+            transition: transform 2s var(--ease-silk);
+        }
+
+        #newsTopicsList .news-topic-panel.is-active .news-topic-image-frame {
+            clip-path: inset(0 0 0 0);
+        }
+
+        #newsTopicsList .news-topic-panel.is-active .news-topic-image-frame img {
+            transform: scale(1);
+        }
+
+        #newsTopicsList .news-topic-text h3 {
+            font-size: clamp(calc(18 * var(--ru)), calc(5vw), calc(24 * var(--ru)));
+            line-height: 1.45;
+            letter-spacing: 0.03em;
+        }
+
+        #newsTopicsList .news-topic-text p:last-child {
+            margin: 0;
+        }
+
+        .archives-more-wrap {
+            margin-top: calc(28 * var(--ry));
+        }
+
+        .archives-more-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: calc(170 * var(--rx));
+            padding:
+                calc(13 * var(--ry))
+                calc(30 * var(--rx));
+            border: calc(1 * var(--ru)) solid var(--text-main);
+            font-family: var(--font-sans);
+            font-size: clamp(calc(9 * var(--ru)), calc(0.7rem), calc(11.2 * var(--ru)));
+            letter-spacing: calc(3 * var(--rx));
+            text-transform: uppercase;
+            color: var(--text-main);
+            overflow: hidden;
+            transition:
+                color 0.5s,
+                border-color 0.5s,
+                transform 0.5s;
+        }
+
+        .archives-more-link span {
+            position: relative;
+            z-index: 1;
+        }
+
+        body[class^="theme-"] .archives-more-link {
+            border-color: rgba(255,255,255,0.6);
+            color: #ffffff;
+        }
     </style>
 
 
@@ -2423,13 +2703,16 @@
         <div class="menu-nav-area">
             <nav class="menu-nav">
                 <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#brands">Linkshop</a></li>
-                    <li><a href="#archives">Campaigns</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#information" class="menu-link"><span class="menu-link-main">INFORMATION</span><span class="menu-link-sub">最新のお知らせ</span></a></li>
+                    <li><a href="#brands" class="menu-link"><span class="menu-link-main">LINKSHOP</span><span class="menu-link-sub">ブランド一覧</span></a></li>
+                    <li><a href="#archives" class="menu-link"><span class="menu-link-main">NEWS<span class="menu-nav-amp">&amp;</span>TOPICS</span><span class="menu-link-sub">ニュースと特集</span></a></li>
+                    <li><a href="#past-archives" class="menu-link"><span class="menu-link-main">ARCHIVE</span><span class="menu-link-sub">過去の記録</span></a></li>
+                    <li><a href="https://www.hatodaiya.com/contact" target="_blank" rel="noopener noreferrer" class="menu-link"><span class="menu-link-main">CONTACT</span><span class="menu-link-sub">お問い合わせ</span></a></li>
                 </ul>
             </nav>
+
         </div>
+
     </div>
 
     <!-- モバイル用ナビバー -->
@@ -2461,20 +2744,35 @@
 
     <!-- Philosophy -->
     <section id="philosophy" class="philosophy">
-        <div class="philosophy-img img-reveal"><img src="https://picsum.photos/seed/archWhite/800/1000?grayscale" alt="Holding HQ"></div>
+        <div class="philosophy-img img-reveal"><img src="https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg" alt="Holding HQ"></div>
         <div class="philosophy-text" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <h2 class="section-title">The Origin<br>of Style</h2>
-            <div class="text-line-wrap"><span class="text-line">あなたの日常に、ほんの少しの特別を。</span></div>
-            <div class="text-line-wrap"><span class="text-line">私たちは、スタイルを作る「原点」を</span></div>
-            <div class="text-line-wrap" style="margin-bottom: 30px;"><span class="text-line">お届けします。</span></div>
-            <div class="text-line-wrap"><span class="text-line">長く使い続けたいと思える、</span></div>
-            <div class="text-line-wrap"><span class="text-line">本当に心地よいものだけを。</span></div>
-            <div class="text-line-wrap"><span class="text-line">一つ一つの出会いが、あなたという</span></div>
-            <div class="text-line-wrap" style="margin-bottom: 30px;"><span class="text-line">個性を形作ります。</span></div>
-            <div class="text-line-wrap"><span class="text-line">自分らしさを楽しむためのアイテムを、</span></div>
-            <div class="text-line-wrap"><span class="text-line">ここで見つけてください。</span></div>
+            <h2 class="section-title">The Origin<br>OF<br>Style</h2>
+              <div class="philosophy-copy">
+                <div class="text-line-wrap"><span class="text-line">HD ONLINE STOREは、多彩なブランドの</span></div>
+                <div class="text-line-wrap"><span class="text-line">感性を集めたオンラインストアです。</span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line">装い、雑貨、ライフスタイルにまつわる、</span></div>
+                <div class="text-line-wrap"><span class="text-line">アイテムを通して日常に個性的な美しさと</span></div>
+                <div class="text-line-wrap"><span class="text-line">新しい感覚を創造します。</span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line">それぞれのブランドが持つ世界観を尊重し、</span></div>
+                <div class="text-line-wrap"><span class="text-line">色、形、素材、佇まいに宿る個性を</span></div>
+                <div class="text-line-wrap"><span class="text-line">確かな感性で丁寧に選び抜くこと。</span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line">その積み重ねによって、</span></div>
+                <div class="text-line-wrap"><span class="text-line">ただ一つのオリジンスタイルを</span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line"></span></div>
+                <div class="text-line-wrap"><span class="text-line">あなたのお手元へ。</span></div>
+            </div>
             <p class="quote">"Style is a reflection of your origin."</p>
         </div>
+    
     </section>
 
     <!-- INFORMATION -->
@@ -2482,6 +2780,7 @@
         <div class="info-container">
             <div class="info-title-area">
                 <h2 class="section-title">INFORMATION</h2>
+                <div style="margin-top: 12px; font-family: var(--font-jp); font-size: 0.8rem; letter-spacing: 4px; color: var(--accent);">最新のお知らせ</div>
             </div>
 
             <div class="info-list-area">
@@ -2566,59 +2865,26 @@
         </div>
     </section>
 
-    <!-- THE CAMPAIGNS -->
+    <!-- NEWS＆TOPICS -->
     <div class="archives-wrapper" id="archives">
         <div class="archives-container">
-            <h2 class="section-title">THE CAMPAIGNS</h2>
-
-            <section class="archive-panel" data-brand="arc1">
-                <div class="archive-number">01</div>
-                <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp1/800/1000?grayscale" alt="Campaign 1"></div>
-                <div class="archive-text">
-                    <p style="color: var(--accent); font-size: 0.7rem; letter-spacing: 2px;">AUTUMN / WINTER 2026</p>
-                    <h3>SILENT NOCTURNE</h3>
-                    <p>今季のHATODAIYAが提案する共通テーマは「静かなる夜想曲」。</p>
-                </div>
-                <div class="explore-btn">TAP</div>
+            <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
+                <p style="font-size: 0.8rem; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin-bottom: 15px;">Latest Stories</p>
+                <h2 class="section-title" style="margin: 0 auto;">NEWS＆TOPICS</h2>
             </section>
 
-            <section class="archive-panel" data-brand="arc2">
-                <div class="archive-number">02</div>
-                <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp2/800/1000?grayscale" alt="Campaign 2"></div>
-                <div class="archive-text">
-                    <p style="color: var(--accent); font-size: 0.7rem; letter-spacing: 2px;">LIMITED COLLABORATION</p>
-                    <h3>HATODAIYA × TSUMUGI</h3>
-                    <p>無彩色と金の美学と、日本の伝統的な藍染が融合したカプセルコレクション。</p>
-                </div>
-                <div class="explore-btn">TAP</div>
-            </section>
+            <div id="newsTopicsList"></div>
 
-            <section class="archive-panel" data-brand="arc3">
-                <div class="archive-number">03</div>
-                <div class="archive-img-wrap"><img src="https://picsum.photos/seed/camp3/800/1000?grayscale" alt="Campaign 3"></div>
-                <div class="archive-text">
-                    <p style="color: var(--accent); font-size: 0.7rem; letter-spacing: 2px;">NEW ARRIVAL</p>
-                    <h3>AURA : THE ESSENCE</h3>
-                    <p>記憶の底に眠る「原点」を呼び覚ます香りが登場。</p>
+            <section class="archive-panel" style="justify-content: center; text-align: center; flex-direction: column;">
+                <h3 class="section-title" style="margin: 0 auto;">DISCOVER YOUR ORIGIN</h3>
+                <p style="margin-top: 15px; font-size: 0.8rem; letter-spacing: 4px; color: var(--accent);">次なるスタイルを見つける</p>
+                <div class="archives-more-wrap">
+                    <a href="#" class="archives-more-link"><span>VIEW MORE</span></a>
                 </div>
-                <div class="explore-btn">TAP</div>
             </section>
         </div>
     </div>
 
-    <!-- The Editorial -->
-    <section class="editorial" id="editorial">
-        <div class="editorial-header">
-            <h2 class="section-title">The Editorial</h2>
-        </div>
-        <div class="editorial-gallery-wrap">
-            <div class="gallery-track-container">
-                <div class="feed-item"><img src="https://picsum.photos/seed/ig1/600/800" alt="Feed"></div>
-                <div class="feed-item"><img src="https://picsum.photos/seed/ig2/600/800" alt="Feed"></div>
-                <div class="feed-item"><img src="https://picsum.photos/seed/ig4/600/800" alt="Feed"></div>
-            </div>
-        </div>
-    </section>
 
     <section class="past-archives" id="past-archives">
         <div class="archive-history-header">
@@ -2703,6 +2969,24 @@
 
     <!-- フッター -->
     <footer class="footer">
+        <div class="footer-menu-links">
+            <div class="footer-menu-group">
+                <span class="footer-menu-title">GUIDE</span>
+                <div class="footer-menu-link-list">
+                    <a href="https://www.hatodaiya.com/policy" target="_blank" rel="noopener noreferrer" class="footer-menu-link">Privacy Policy</a>
+                    <a href="#" class="footer-menu-link">Terms of Service</a>
+                    <a href="https://www.hatodaiya.com/notice" target="_blank" rel="noopener noreferrer" class="footer-menu-link">NOTICE</a>
+                </div>
+            </div>
+            <div class="footer-menu-group">
+                <span class="footer-menu-title">SOCIAL</span>
+                <a href="https://www.instagram.com/HD_ORIGIN_STYLE/" class="footer-menu-link">Instagram : @HD_ORIGIN_STYLE</a>
+            </div>
+            <div class="footer-menu-group">
+                <span class="footer-menu-title">COMPANY</span>
+                <a href="#philosophy" class="footer-menu-link">The Origin of Style</a>
+            </div>
+        </div>
         <div class="footer-content">
             <div class="footer-brand">HD ONLINE STORE</div>
             <p style="font-size: 0.7rem; color: #888;">The Origin of Style. Based in Tokyo.</p>
@@ -2862,6 +3146,80 @@
             }).join('');
         }
 
+        function renderNewsTopics(data) {
+            const list = document.getElementById('newsTopicsList');
+
+            if (!list) {
+                return;
+            }
+
+            const items = Array.isArray(data && data.items) ? data.items.slice() : [];
+
+            items.sort((a, b) => Number(b.newsTopicsID || 0) - Number(a.newsTopicsID || 0));
+
+            const latestItems = items.slice(0, 5);
+
+            list.innerHTML = latestItems.map((item, index) => {
+                const number = String(index + 1).padStart(2, '0');
+                const imageUrl = getNewsTopicsImageUrl(item.image);
+                const titleText = item.title || '';
+                const metaText = item.label || (item.date ? formatInfoDate(item.date) : '');
+                const descriptionText = item.description || item.excerpt || '';
+                const linkUrl = item.url || '';
+                const contentOpen = linkUrl ? `<a href="${escapeAttribute(linkUrl)}" class="news-topic-content">` : `<div class="news-topic-content">`;
+                const contentClose = linkUrl ? `</a>` : `</div>`;
+
+                return `
+            <section class="archive-panel news-topic-panel">
+                <div class="archive-number">${number}</div>
+                ${contentOpen}
+                    <div class="archive-img-wrap news-topic-image-frame">${imageUrl ? `<img src="${escapeAttribute(imageUrl)}" alt="${escapeAttribute(titleText)}">` : ''}</div>
+                    <div class="archive-text news-topic-text">
+                        <p style="color: var(--accent); font-weight: 500; font-size: 0.7rem; letter-spacing: 2px;">${escapeHtml(metaText)}</p>
+                        <h3>${escapeHtml(titleText)}</h3>
+                        <p>${escapeHtml(descriptionText)}</p>
+                    </div>
+                ${contentClose}
+            </section>
+                `;
+            }).join('');
+
+            initializeNewsTopicsPanels();
+
+            ScrollTrigger.refresh();
+        }
+
+        function getNewsTopicsImageUrl(image) {
+            if (typeof image === 'string') {
+                if (image.indexOf('wix:image://v1/') === 0) {
+                    const imagePath = image.replace('wix:image://v1/', '').split('/')[0];
+                    return `https://static.wixstatic.com/media/${imagePath}`;
+                }
+
+                return image;
+            }
+
+            if (image && typeof image === 'object' && image.src) {
+                return image.src;
+            }
+
+            if (image && typeof image === 'object' && image.url) {
+                return image.url;
+            }
+
+            return '';
+        }
+
+        function initializeNewsTopicsPanels() {
+            gsap.utils.toArray('#newsTopicsList .news-topic-panel').forEach(panel => {
+                ScrollTrigger.create({
+                    trigger: panel,
+                    start: 'top 70%',
+                    toggleClass: 'is-active'
+                });
+            });
+        }
+
         function formatInfoDate(dateString) {
             const parts = String(dateString || '').split('-');
 
@@ -2896,6 +3254,11 @@
 
             if (data.type === "INFO_DATA") {
                 renderLatestInformation(data.payload);
+                return;
+            }
+
+            if (data.type === "NEWS_TOPICS_DATA") {
+                renderNewsTopics(data.payload);
                 return;
             }
 
@@ -2998,6 +3361,10 @@
                 type: 'INFO_HTML_READY'
             }, '*');
 
+            window.parent.postMessage({
+                type: 'NEWS_TOPICS_HTML_READY'
+            }, '*');
+
             const infoViewAllLink = document.getElementById('infoViewAllLink');
             if (infoViewAllLink) {
                 infoViewAllLink.addEventListener('click', (event) => {
@@ -3091,29 +3458,83 @@
             }
         });
 
+        menuNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (!isMenuOpen) return;
+
+                isMenuOpen = false;
+                document.body.classList.remove('menu-open');
+                gsap.to(menuNavLinks, { y: "110%", duration: 0.4, ease: "power3.in" });
+            });
+        });
+
         window.addEventListener('scroll', () => {
             document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 30);
         });
 
-        gsap.utils.toArray('.brand-card').forEach(card => {
-            if (getComputedStyle(card).display === 'none') return;
+        function setBodyTheme(themeName) {
+            const nonThemeClasses = Array.from(document.body.classList).filter(className => !className.startsWith('theme-'));
+            document.body.className = themeName ? [themeName, ...nonThemeClasses].join(' ') : nonThemeClasses.join(' ');
+        }
+
+        const brandCards = gsap.utils.toArray('.brand-card')
+            .filter(card => getComputedStyle(card).display !== 'none' && card.querySelector('.brand-name'));
+
+        function setActiveBrandCard(activeCard) {
+            brandCards.forEach(card => {
+                card.classList.toggle('is-active', card === activeCard);
+            });
+        }
+
+        function setBrandThemeByIndex(index) {
+            const card = brandCards[index];
+
+            if (!card) {
+                setBodyTheme('');
+                setActiveBrandCard(null);
+                return;
+            }
+
+            setBodyTheme(`theme-${card.getAttribute('data-brand')}`);
+            setActiveBrandCard(card);
+        }
+
+        brandCards.forEach((card, index) => {
+            const brandNameElement = card.querySelector('.brand-name');
 
             ScrollTrigger.create({
-                trigger: card,
+                trigger: brandNameElement,
                 start: "top 55%",
-                end: "bottom 45%",
-                toggleClass: "is-active",
                 onEnter: () => {
-                    document.body.className = '';
-                    document.body.classList.add(`theme-${card.getAttribute('data-brand')}`);
+                    setBrandThemeByIndex(index);
                 },
-                onEnterBack: () => {
-                    document.body.className = '';
-                    document.body.classList.add(`theme-${card.getAttribute('data-brand')}`);
-                },
-                onLeave: () => { document.body.className = ''; },
-                onLeaveBack: () => { document.body.className = ''; }
+                onLeaveBack: () => {
+                    setBrandThemeByIndex(index - 1);
+                }
             });
+
+            ScrollTrigger.create({
+                trigger: brandNameElement,
+                start: "bottom 45%",
+                onEnterBack: () => {
+                    setBrandThemeByIndex(index);
+                }
+            });
+        });
+
+        ScrollTrigger.create({
+            trigger: '#brands',
+            start: "top 55%",
+            end: "bottom top",
+            onLeave: () => {
+                setBrandThemeByIndex(-1);
+            },
+            onEnterBack: () => {
+                setBrandThemeByIndex(brandCards.length - 1);
+            },
+            onLeaveBack: () => {
+                setBrandThemeByIndex(-1);
+            }
         });
 
         gsap.utils.toArray('.archive-panel').forEach(panel => {
@@ -3124,13 +3545,6 @@
             });
         });
 
-        gsap.utils.toArray('.feed-item').forEach(item => {
-            ScrollTrigger.create({
-                trigger: item,
-                start: "top 85%",
-                toggleClass: "is-focused"
-            });
-        });
 
         gsap.utils.toArray('.section-title, .quote, .footer-brand, .philosophy-img').forEach(el => {
             ScrollTrigger.create({
@@ -3249,51 +3663,6 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
                     "https://picsum.photos/seed/a3/800/800"
                 ],
                 theme: { bg: "rgba(234,232,227,0.95)", text: "#555555", btn: "#C9B075", btnText: "#ffffff" }
-            },
-            "arc1": {
-                cat: "AUTUMN / WINTER 2026",
-                watermark: "01",
-                titleHTML: "SILENT NOCTURNE",
-                desc: "今季のHATODAIYAが提案する共通テーマは「静かなる夜想曲」。<br><br>静けさの中にある深み、夜の空気に溶け込むような上品さを、ビジュアルと余白で見せるキャンペーンです。",
-                images: [
-                    "https://picsum.photos/seed/camp1/800/1000?grayscale",
-                    "https://picsum.photos/seed/arc1-2/800/800",
-                    "https://picsum.photos/seed/arc1-3/800/800"
-                ],
-                theme: { bg: "rgba(17,17,17,0.98)", text: "#ffffff", btn: "#D4AF37", btnText: "#111111" }
-            },
-            "arc2": {
-                cat: "LIMITED COLLABORATION",
-                watermark: "02",
-                titleHTML: "HATODAIYA × TSUMUGI",
-                desc: "無彩色と金の美学と、日本の伝統的な藍染が融合したカプセルコレクション。<br><br>異なる世界観が重なることで生まれる、静かで力強い表情を見せる限定企画です。",
-                images: [
-                    "https://picsum.photos/seed/camp2/800/1000?grayscale",
-                    "https://picsum.photos/seed/arc2-2/800/800"
-                ],
-                theme: { bg: "rgba(17,17,17,0.98)", text: "#ffffff", btn: "#D4AF37", btnText: "#111111" }
-            },
-            "arc3": {
-                cat: "NEW ARRIVAL",
-                watermark: "03",
-                titleHTML: "AURA : THE ESSENCE",
-                desc: "記憶の底に眠る「原点」を呼び覚ます香りが登場。<br><br>感覚に残る余韻を、AURAらしい静かな世界観で表現したキャンペーンです。",
-                images: [
-                    "https://picsum.photos/seed/camp3/800/1000?grayscale",
-                    "https://picsum.photos/seed/arc3-2/800/800"
-                ],
-                theme: { bg: "rgba(17,17,17,0.98)", text: "#ffffff", btn: "#D4AF37", btnText: "#111111" }
-            },
-            "arc4": {
-                cat: "2023 ARCHIVE EXHIBITION",
-                watermark: "PRE",
-                titleHTML: "<span style='font-size:0.8em'>PRE-LAUNCH</span>",
-                desc: "ブランド設立前に限られた顧客のみに公開されたシークレットエキシビションの記録。",
-                images: [
-                    "https://picsum.photos/seed/arc4/800/800",
-                    "https://picsum.photos/seed/arc4-2/800/800"
-                ],
-                theme: { bg: "rgba(17,17,17,0.98)", text: "#ffffff", btn: "#D4AF37", btnText: "#111111" }
             }
         };
 
@@ -3773,13 +4142,6 @@ window.parent.postMessage({
                 setTimeout(() => {
                     openBrandModal(card.getAttribute('data-brand'), false);
                 }, 300);
-            });
-        });
-
-        document.querySelectorAll('.archive-panel[data-brand]').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault(); // デフォルトのジャンプを防ぐ
-                openBrandModal(item.getAttribute('data-brand'), true); // true でアーカイブモードとして開く
             });
         });
 

@@ -1,4 +1,4 @@
-<!-- privacy-policy-アフター1.html -->
+<!-- privacy-policy-アフター全文.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -8,14 +8,21 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
 
+    html {
+      font-size: 100%;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
     }
 
-    body {
+    *, *::before, *::after {
       box-sizing: border-box;
+    }
+
+    body {
       font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Yu Gothic Medium", "Meiryo", sans-serif;
       color: #000;
       background: #fff;
@@ -25,22 +32,59 @@
 
     .wrap {
       width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      padding: 0 1rem;
+      max-width: 72ch;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 2.5rem;
     }
 
     .content {
       white-space: pre-wrap;
       word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .page-title {
       display: block;
-      font-size: 1.25rem;
+      font-size: 1.125em;
       font-weight: 700;
-      line-height: 1.4;
+      line-height: 1.6;
       text-align: center;
+    }
+
+    @media (max-width: 47.9375em) {
+      body {
+        font-size: 0.6875rem;
+      }
+
+      .page-title {
+        font-size: 0.75em;
+      }
+    }
+
+    @media (min-width: 48em) {
+      .wrap {
+        max-width: 78ch;
+        padding: 2rem 1.5rem 3rem;
+      }
+
+      .page-title {
+        font-size: 1.2em;
+      }
+    }
+
+    @media (min-width: 64em) {
+      body {
+        font-size: 1.02rem;
+      }
+
+      .wrap {
+        max-width: 82ch;
+        padding: 2.5rem 2rem 3.5rem;
+      }
+
+      .page-title {
+        font-size: 1.22em;
+      }
     }
   </style>
 </head>

@@ -1561,40 +1561,152 @@
            フッター
         ========================================= */
         footer { background: #111; color: #fff; padding: 100px 50px 40px; }
-        .footer-content { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 80px; max-width: 1400px; margin: 0 auto; }
+        .footer-content {
+            display: grid;
+            grid-template-columns: minmax(280px, 1.45fr) repeat(3, minmax(150px, 0.75fr));
+            gap: 56px;
+            max-width: 1400px;
+            margin: 0 auto 70px;
+            align-items: start;
+        }
         
+        .footer-brand-col {
+            position: relative;
+            padding-right: 40px;
+        }
+
+        .footer-brand-col::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(212,175,55,0) 0%,
+                    rgba(212,175,55,0.45) 28%,
+                    rgba(255,255,255,0.18) 54%,
+                    rgba(212,175,55,0) 100%
+                );
+        }
+
         /* ✨ フッターのブランド名：右から左へ伸びる金ライン */
         .footer-brand { 
             font-family: var(--font-serif); font-size: 2.5rem; margin-bottom: 20px; letter-spacing: 3px; color: #fff;
             position: relative; width: fit-content;
         }
         .footer-brand::after {
-            content: ''; position: absolute; right: 0; bottom: -5px; width: 100%; height: 2px; background-color: var(--accent);
-            transform: scaleX(0); transition: transform 2.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s; transform-origin: right center; /* 右起点で伸びる */
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: -6px;
+            width: 100%;
+            height: 1px;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(212,175,55,0) 0%,
+                    rgba(255,255,255,0.42) 34%,
+                    rgba(212,175,55,0.95) 100%
+                );
+            transform: scaleX(0);
+            transition: transform 2.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+            transform-origin: right center; /* 右起点で伸びる */
         }
         .footer-brand.is-active::after, footer:hover .footer-brand::after {
             transform: scaleX(1);
         }
+
+        .footer-brand-copy {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.8;
+            letter-spacing: 1px;
+        }
         
-        .footer-links h4 { font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 25px; color: var(--accent); }
-        .footer-links ul { list-style: none; }
-        .footer-links li { margin-bottom: 15px; }
+        .footer-links h4 {
+            font-size: 0.76rem;
+            letter-spacing: 4px;
+            margin-bottom: 22px;
+            color: var(--accent);
+        }
+        .footer-links ul {
+            list-style: none;
+        }
+        .footer-links li {
+            margin-bottom: 14px;
+        }
         
         /* フッターリンクのスタイル調整（アンダーライン追加） */
-        .footer-links a { 
-            font-size: 0.85rem; letter-spacing: 1px; color: #888; 
-            transition: color 0.3s; 
-            position: relative; display: inline-block; 
+        .footer-links a {
+            font-size: 0.82rem;
+            letter-spacing: 1.2px;
+            color: #888;
+            transition: color 0.3s;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 100%;
+            height: 1px;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(212,175,55,0.85) 0%,
+                    rgba(255,255,255,0.28) 58%,
+                    rgba(212,175,55,0) 100%
+                );
+            transform: scaleX(0);
+            transform-origin: right center;
+            transition: transform 0.45s var(--ease-silk);
         }
         .footer-links a::after {
             content: ''; position: absolute; left: 0; bottom: -2px; width: 100%; height: 1px;
             background-color: var(--accent); transform: scaleX(0); transform-origin: right center;
             transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-        .footer-links a:hover { color: #fff; }
+        .footer-links a:hover {
+            color: #fff;
+        }
+
+        .footer-links a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left center;
+        }
         .footer-links a:hover::after { transform: scaleX(1); transform-origin: left center; }
         
-        .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem; letter-spacing: 2px; color: #555; }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #555;
+        }
+
+        .footer-webmaster-login {
+            font-size: 0.62rem;
+            letter-spacing: 2.6px;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .footer-webmaster-login:hover {
+            color: rgba(212,175,55,0.75);
+        }
 
         /* =========================================
            レスポンシブ
@@ -1856,21 +1968,25 @@
             </div>
         </header>
 
-        <!-- Philosophy -->
+            <!-- Philosophy -->
         <div class="philosophy-wrap">
             <section id="philosophy" class="philosophy">
                 <div class="philosophy-img img-reveal"><img src="https://static.wixstatic.com/media/414ae9_fa0704071c594492a7d6d8599f7e922e~mv2.jpg" alt="Holding HQ" class="para-img"></div>
                 <div class="philosophy-text">
                     <h2 class="section-title" style="margin: 0 0 50px 0; text-align: left;">The Origin<br>of Style</h2>
-                    <div class="text-line-wrap"><span class="text-line">私たちは、あなただけの「原点」を探求します。</span></div>
-                    <div class="text-line-wrap"><span class="text-line">身に纏うもの、手に取るもの、そのすべてが</span></div>
-                    <div class="text-line-wrap"><span class="text-line">自己のアイデンティティを形作るピースです。</span></div>
-                    <div class="text-line-wrap"><span class="text-line">それぞれのブランドが持つ、揺るぎないフィロソフィー。</span></div>
-                    <div class="text-line-wrap"><span class="text-line">それらを結集し、次世代のスタンダードを構築します。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">HD ONLINE STOREは多彩なブランドの感性を集めた</span></div>
+                    <div class="text-line-wrap"><span class="text-line">オンラインストアです。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">装い、雑貨、ライフスタイルにまつわるアイテムを通して、</span></div>
+                    <div class="text-line-wrap"><span class="text-line">日常に静かな美しさと新しい感覚を添えます。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">それぞれのブランドが持つ世界観を尊重し、</span></div>
+                    <div class="text-line-wrap"><span class="text-line">色、形、素材、佇まいに宿る個性を丁寧に選び抜くこと。</span></div>
+                    <div class="text-line-wrap"><span class="text-line">その積み重ねによって、</span></div>
+                    <div class="text-line-wrap"><span class="text-line">日々に美しく馴染むスタイルを展開しています。</span></div>
                     <p class="quote">"Style is a reflection of your origin."</p>
                 </div>
             </section>
         </div>
+        
 
         <!-- INFORMATION -->
         <section class="information" id="information">
@@ -2021,20 +2137,40 @@
         <!-- フッター -->
         <footer>
             <div class="footer-content">
-                <div class="footer-col">
+                <div class="footer-col footer-brand-col">
                     <div class="footer-brand">HD ONLINE STORE</div>
-                    <p style="font-size: 0.8rem; color: #888; line-height: 1.8;">The Origin of Style.<br>Based in Tokyo.</p>
+                    <p class="footer-brand-copy">The Origin of Style.<br>Based in Tokyo.</p>
                 </div>
+
                 <div class="footer-col footer-links">
-                    <h4>DISCOVER</h4>
-                    <ul><li><a href="#">Company Profile</a></li><li><a href="#">Our Collection</a></li><li><a href="#">Investors</a></li></ul>
+                    <h4>GUIDE</h4>
+                    <ul>
+                        <li><a href="https://www.hatodaiya.com/policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="https://www.hatodaiya.com/notice" target="_blank" rel="noopener noreferrer">NOTICE</a></li>
+                    </ul>
                 </div>
+
                 <div class="footer-col footer-links">
-                    <h4>INFORMATION</h4>
-                    <ul><li><a href="#">Contact Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Legal Area</a></li></ul>
+                    <h4>SOCIAL</h4>
+                    <ul>
+                        <li><a href="https://www.instagram.com/HD_ORIGIN_STYLE/" target="_blank" rel="noopener noreferrer">Instagram : @HD_ORIGIN_STYLE</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col footer-links">
+                    <h4>COMPANY</h4>
+                    <ul>
+                        <li><a href="#philosophy">The Origin of Style</a></li>
+                        <li><a href="https://www.hatodaiya.com/contact" target="_blank" rel="noopener noreferrer">Contact</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="footer-bottom">&copy; 2026 HD ONLINE STORE. ALL RIGHTS RESERVED.</div>
+
+            <div class="footer-bottom">
+                <span>&copy; 2026 HD ONLINE STORE. ALL RIGHTS RESERVED.</span>
+                <a href="https://www.hatodaiya.com/top-editorial" target="_blank" rel="noopener noreferrer" class="footer-webmaster-login">WEBMASTERLOGIN</a>
+            </div>
         </footer>
         
     </div> <!-- /#main-scroller -->
