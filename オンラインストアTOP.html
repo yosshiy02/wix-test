@@ -1078,7 +1078,7 @@
 
         .pc-modal-panel {
             position: absolute;
-            inset: 5vh 5vw;
+            inset: 6.2vh 6.2vw;
             display: grid;
             grid-template-columns: minmax(300px, 0.8fr) minmax(520px, 1.4fr);
             gap: clamp(36px, 5vw, 80px);
@@ -2947,6 +2947,29 @@ ${panels}
             const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
             const modalPanel = document.querySelector('.pc-modal-panel');
 
+            const setupHelmettyPolaroid = () => {
+                if (brandId !== 'helmetty' || isArchive) return;
+
+                if (!window.BrandModalHelmetty || typeof window.BrandModalHelmetty.setup !== 'function') {
+                    console.error('[DEBUG pc] BrandModalHelmetty is not ready');
+                    return;
+                }
+
+                try {
+                    window.BrandModalHelmetty.setup({
+                        enabled: true,
+                        modal,
+                        modalCard: modalPanel,
+                        modalClose,
+                        modalTrack: document.querySelector('.pc-modal-viewer'),
+                        images: data.images,
+                        galleryImages: [modalMainImage]
+                    });
+                } catch (error) {
+                    console.error('[DEBUG pc] BrandModalHelmetty setup failed:', error);
+                }
+            };
+
             // 追加: レシーム・HELMETTYで、かつコードが送られてきている時だけの特別シネマ演出
             if (!isArchive && (brandId === 'rasim' || brandId === 'helmetty') && window.customBrandAnimations && window.customBrandAnimations[brandId]) {
                 // いつもの説明文や画像は一旦隠して触れないようにする
@@ -3026,6 +3049,8 @@ ${panels}
                             { y: 30, opacity: 0 },
                             { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
                         );
+
+                        setupHelmettyPolaroid();
                     }, 12500);
                 }
 
@@ -3053,10 +3078,16 @@ ${panels}
                     { y: 30, opacity: 0 },
                     { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
                 );
+
+                setupHelmettyPolaroid();
             }
         }
  
         function closeBrandModal() {
+            if (window.BrandModalHelmetty && typeof window.BrandModalHelmetty.destroy === 'function') {
+                window.BrandModalHelmetty.destroy();
+            }
+
             // 追加: シネマ再生中に閉じられた時のための安全リセット
             clearTimeout(window.rasimExpandTimer);
             clearTimeout(window.rasimFinishTimer);
@@ -3261,6 +3292,55 @@ ${panels}
             if (data.type === "setCustomAnimation" && data.brand && data.htmlCode) {
                 window.customBrandAnimations = window.customBrandAnimations || {};
                 window.customBrandAnimations[data.brand] = data.htmlCode;
+            }
+
+            if (data.type === "setBrandModalAddon" && data.brand && data.jsCode) {
+                window.loadedBrandModalAddons = window.loadedBrandModalAddons || {};
+
+                if (!window.loadedBrandModalAddons[data.brand]) {
+                    try {
+                        new Function(data.jsCode)();
+                        window.loadedBrandModalAddons[data.brand] = true;
+                        console.log('[DEBUG pc] loaded brand modal addon:', data.brand, 'length:', data.jsCode.length);
+
+                        if (
+                            data.brand === 'helmetty' &&
+                            window.BrandModalHelmetty &&
+                            typeof window.BrandModalHelmetty.setup === 'function'
+                        ) {
+                            const currentModal = document.getElementById('brandModal');
+                            const currentModalPanel = document.querySelector('.pc-modal-panel');
+                            const currentModalViewer = document.querySelector('.pc-modal-viewer');
+                            const currentModalMainImage = document.getElementById('modalMainImage');
+                            const currentModalClose = document.getElementById('modalClose');
+
+                            if (
+                                currentModal &&
+                                currentModal.classList.contains('is-open') &&
+                                currentModal.getAttribute('data-active-brand') === 'helmetty' &&
+                                currentModalPanel &&
+                                currentModalViewer &&
+                                currentModalMainImage
+                            ) {
+                                try {
+                                    window.BrandModalHelmetty.setup({
+                                        enabled: true,
+                                        modal: currentModal,
+                                        modalCard: currentModalPanel,
+                                        modalClose: currentModalClose,
+                                        modalTrack: currentModalViewer,
+                                        images: window.galleryData && window.galleryData.helmetty ? window.galleryData.helmetty.images : [],
+                                        galleryImages: [currentModalMainImage]
+                                    });
+                                } catch (error) {
+                                    console.error('[DEBUG pc] BrandModalHelmetty setup failed after addon load:', error);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('[DEBUG pc] failed brand modal addon:', data.brand, error);
+                    }
+                }
             }
         });
         

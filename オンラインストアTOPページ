@@ -2,6 +2,7 @@ import wixLocationFrontend from 'wix-location-frontend';
 import wixData from 'wix-data';
 import { rasimAnimationCode, helmettyAnimationCode, helmettyMobileAnimationCode } from 'public/brand-animations/brand-animations.js';
 import { helmettyPolaroidCode } from 'public/brand-modal/brand-modal-helmetty.js';
+import { helmettyPcPolaroidCode } from 'public/brand-modal/brand-modal-helmetty-pc.js';
 
 $w.onReady(function () {
     console.log('[DEBUG velo] onReady start');
@@ -62,6 +63,11 @@ $w.onReady(function () {
 
             if (event.data.type === "helmettyModalDebug") {
                 console.log("[DEBUG velo helmettyModalDebug]", event.data);
+                return;
+            }
+
+            if (event.data.type === "helmettyPcAddonDebug") {
+                console.log("[DEBUG velo helmettyPcAddonDebug]", elementId, event.data.label, event.data.payload);
                 return;
             }
 
@@ -164,6 +170,7 @@ $w.onReady(function () {
     console.log('[DEBUG velo] rasimAnimationCode imported:', typeof rasimAnimationCode, 'length:', rasimAnimationCode ? rasimAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyAnimationCode imported:', typeof helmettyAnimationCode, 'length:', helmettyAnimationCode ? helmettyAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyPolaroidCode imported:', typeof helmettyPolaroidCode, 'length:', helmettyPolaroidCode ? helmettyPolaroidCode.length : 0);
+    console.log('[DEBUG velo] helmettyPcPolaroidCode imported:', typeof helmettyPcPolaroidCode, 'length:', helmettyPcPolaroidCode ? helmettyPcPolaroidCode.length : 0);
     console.log('[DEBUG velo] pcMainHtml exists:', !!$w("#pcMainHtml"));
     console.log('[DEBUG velo] mobileMainHtml exists:', !!$w("#mobileMainHtml"));
 
@@ -256,6 +263,12 @@ $w.onReady(function () {
             brand: "helmetty",
             htmlCode: helmettyMobileAnimationCode
         }, "setCustomAnimation(helmetty)");
+
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setBrandModalAddon",
+            brand: "helmetty",
+            jsCode: helmettyPcPolaroidCode
+        }, "setBrandModalAddon(helmetty-pc-polaroid)");
 
         sendToHtmlElement("#mobileMainHtml", {
             type: "setBrandModalAddon",
