@@ -11,6 +11,8 @@ function installBrandModalHelmettyPc() {
 
         var albumWrap = null;
         var albumTrack = null;
+        var albumPrevBtn = null;
+        var albumNextBtn = null;
         var albumCaption = null;
         var albumImages = [];
 
@@ -20,6 +22,8 @@ function installBrandModalHelmettyPc() {
         var polaroidNote = null;
         var polaroidPostit = null;
         var closeHint = null;
+        var introDecos = [];
+        var introDecoTimer = null;
 
         var openTimer = null;
         var decoTimer = null;
@@ -103,7 +107,6 @@ function installBrandModalHelmettyPc() {
                 "  white-space: nowrap;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-info,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-viewer {",
                 "  position: relative;",
                 "  z-index: 4;",
@@ -163,6 +166,42 @@ function installBrandModalHelmettyPc() {
                 "  border-radius: 999px;",
                 "}",
 
+                ".helmetty-pc-album-arrow {",
+                "  position: absolute;",
+                "  top: 50%;",
+                "  z-index: 12;",
+                "  width: clamp(42px, 3.8vw, 62px);",
+                "  height: clamp(42px, 3.8vw, 62px);",
+                "  border: 2px solid rgba(255,126,179,0.46);",
+                "  border-radius: 50%;",
+                "  background: rgba(255,255,255,0.82);",
+                "  -webkit-appearance: none;",
+                "  appearance: none;",
+                "  padding: 0;",
+                "  color: #FF5FA2;",
+                "  font-family: Jost, sans-serif;",
+                "  font-size: clamp(1.45rem, 2.1vw, 2.6rem);",
+                "  font-weight: 900;",
+                "  line-height: 1;",
+                "  box-shadow: 0 12px 26px rgba(150,80,110,0.18);",
+                "  transform: translateY(-50%);",
+                "  cursor: pointer;",
+                "  pointer-events: auto;",
+                "}",
+
+                ".helmetty-pc-album-arrow.is-prev {",
+                "  left: clamp(18px, 2.2vw, 34px);",
+                "}",
+
+                ".helmetty-pc-album-arrow.is-next {",
+                "  right: clamp(18px, 2.2vw, 34px);",
+                "}",
+
+                ".helmetty-pc-album-arrow:hover {",
+                "  background: rgba(255,255,255,0.94);",
+                "  box-shadow: 0 15px 30px rgba(150,80,110,0.24);",
+                "}",
+
                 ".helmetty-pc-gallery-img {",
                 "  box-sizing: content-box;",
                 "  width: clamp(180px, 18vw, 300px);",
@@ -203,22 +242,22 @@ function installBrandModalHelmettyPc() {
                 ".helmetty-pc-album-caption {",
                 "  position: absolute;",
                 "  left: 50%;",
-                "  bottom: clamp(24px, 3.4vh, 44px);",
+                "  bottom: clamp(58px, 7vh, 90px);",
                 "  z-index: 9;",
                 "  transform: translateX(-50%);",
                 "  display: inline-flex;",
                 "  align-items: center;",
-                "  gap: 10px;",
-                "  padding: 9px 18px 8px;",
+                "  gap: 12px;",
+                "  padding: 12px 24px 11px;",
                 "  border-radius: 999px;",
                 "  background: rgba(255,255,255,0.72);",
                 "  border: 1px solid rgba(255,126,179,0.3);",
                 "  box-shadow: 0 10px 24px rgba(150,80,110,0.12);",
                 "  color: #B83F78;",
                 "  font-family: Jost, sans-serif;",
-                "  font-size: 0.72rem;",
+                "  font-size: 0.95rem;",
                 "  font-weight: 800;",
-                "  letter-spacing: 0.15em;",
+                "  letter-spacing: 0.16em;",
                 "  text-transform: uppercase;",
                 "  pointer-events: none;",
                 "}",
@@ -227,14 +266,38 @@ function installBrandModalHelmettyPc() {
                 ".helmetty-pc-album-caption::after {",
                 "  content: \"♡\";",
                 "  color: #FF6FAE;",
-                "  font-size: 0.9rem;",
+                "  font-size: 1.15rem;",
                 "  letter-spacing: 0;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .brand-logo-banner,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-logo,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-logo {",
+                "  position: absolute;",
+                "  left: clamp(28px, 2.6vw, 44px);",
+                "  top: clamp(70px, 6.8vh, 96px);",
+                "  z-index: 7;",
+                "  display: block;",
+                "  margin-top: 0;",
+                "  margin-bottom: 0;",
+                "  max-width: min(26vw, 360px);",
+                "  height: auto;",
+                "  object-fit: contain;",
                 "  filter: drop-shadow(0 10px 18px rgba(184,63,120,0.16));",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-cat,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-cat {",
+                "  position: absolute;",
+                "  left: clamp(28px, 2.6vw, 44px);",
+                "  top: clamp(36px, 3.8vh, 56px);",
+                "  z-index: 7;",
+                "  margin-top: 0;",
+                "  margin-bottom: 0;",
+                "}",
+
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .helmetty-pc-title-hidden {",
+                "  display: none !important;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-title,",
@@ -249,30 +312,161 @@ function installBrandModalHelmettyPc() {
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy {",
-                "  color: #B83F78;",
+                "  position: absolute;",
+                "  left: clamp(34px, 3.2vw, 62px);",
+                "  top: clamp(132px, 14.9vh, 164px);",
+                "  z-index: 9;",
+                "  box-sizing: border-box;",
+                "  width: clamp(317px, 23.92vw, 413px);",
+                "  max-width: none;",
+                "  min-height: clamp(88px, 7.15vw, 114px);",
+                "  margin: 0;",
+                "  padding: clamp(16px, 1.24vw, 21px) clamp(23px, 1.76vw, 31px) clamp(17px, 1.3vw, 22px);",
+                "  color: #E85A9A;",
                 "  font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;",
-                "  font-weight: 700;",
-                "  line-height: 1.55;",
-                "  background: none;",
-                "  border: 0;",
-                "  border-radius: 0;",
-                "  box-shadow: none;",
-                "  padding: 0;",
+                "  font-weight: 800;",
+                "  line-height: 1.45;",
+                "  text-align: center;",
+                "  background: linear-gradient(90deg, rgba(180,140,90,0.035) 1px, transparent 1px), linear-gradient(0deg, rgba(180,140,90,0.025) 1px, transparent 1px), linear-gradient(135deg, rgba(255,254,246,0.98), rgba(255,248,224,0.96));",
+                "  background-size: 12px 12px, 12px 12px, 100% 100%;",
+                "  border: 1px solid rgba(180,130,90,0.24);",
+                "  border-top: 3px dotted rgba(170,140,100,0.62);",
+                "  border-radius: 5px;",
+                "  box-shadow: 0 13px 24px rgba(150,80,110,0.16), 0 1px 0 rgba(255,255,255,0.88) inset;",
                 "  transform: rotate(-5deg);",
+                "  transform-origin: center top;",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy::before,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy::before {",
+                "  content: \"\";",
+                "}",
+                "",
+                ".helmetty-pc-intro-copy-lead {",
+                "  display: block;",
+                "  margin-bottom: 3px;",
+                "  color: #FF6FAE;",
+                "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
+                "  font-size: clamp(0.75rem, 0.81vw, 1.01rem);",
+                "  font-weight: 900;",
+                "  letter-spacing: 0.12em;",
+                "  line-height: 1.2;",
+                "  text-transform: uppercase;",
+                "}",
+                "",
+                ".helmetty-pc-intro-copy-main {",
+                "  display: block;",
+                "  color: #E85A9A;",
+                "  font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;",
+                "  font-size: clamp(1.07rem, 1.09vw, 1.38rem);",
+                "  font-weight: 900;",
+                "  letter-spacing: 0.04em;",
+                "  line-height: 1.38;",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy.is-intro-deco-shake,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy.is-intro-deco-shake {",
+                "  animation: helmettyPcIntroCardShake 0.48s cubic-bezier(0.18, 1.25, 0.4, 1);",
+                "}",
+                "",
+                ".helmetty-pc-intro-deco {",
+                "  position: absolute;",
+                "  left: var(--intro-deco-left);",
+                "  top: var(--intro-deco-top);",
+                "  z-index: 10;",
+                "  pointer-events: none;",
+                "  transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(0.2);",
+                "  opacity: 0;",
+                "  animation: helmettyPcIntroDecoPop 0.46s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
+                "  will-change: transform, opacity;",
+                "}",
+                "",
+                ".helmetty-pc-intro-deco.is-dropping {",
+                "  animation: helmettyPcIntroDecoDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
+                "}",
+                "",
+                ".helmetty-pc-intro-deco.is-tape {",
+                "  width: clamp(68px, 5.45vw, 96px);",
+                "  height: clamp(24px, 1.85vw, 36px);",
+                "  border-radius: 3px;",
+                "  background: linear-gradient(90deg, rgba(255,255,255,0.62), rgba(255,255,255,0.2) 42%, transparent 72%), linear-gradient(135deg, rgba(255,255,255,0.72), var(--intro-deco-color));",
+                "  border: 1px solid var(--intro-deco-color-2);",
+                "  box-shadow: 0 3px 7px rgba(80,80,80,0.2);",
+                "  opacity: 0.96;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn {",
-                "  background: #62BFEF;",
+                "  position: absolute;",
+                "  left: clamp(118px, 8.4vw, 156px);",
+                "  top: clamp(292px, 32.5vh, 356px);",
+                "  z-index: 11;",
+                "  display: inline-flex;",
+                "  align-items: center;",
+                "  justify-content: center;",
+                "  min-width: clamp(128px, 9.35vw, 164px);",
+                "  min-height: clamp(31px, 2.42vw, 40px);",
+                "  padding: 0 clamp(18px, 1.45vw, 26px);",
+                "  background: #FFD94A;",
                 "  border: 2px solid rgba(255,143,86,0.86);",
-                "  color: #ffffff;",
+                "  color: #FF5FA2;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
+                "  font-size: clamp(0.72rem, 0.75vw, 0.94rem);",
                 "  font-weight: 900;",
-                "  letter-spacing: 0.08em;",
+                "  letter-spacing: 0.05em;",
                 "  border-radius: 999px;",
-                "  text-shadow: none;",
-                "  box-shadow: 0 3px 0 rgba(255,143,86,0.42), 0 6px 12px rgba(98,191,239,0.28);",
+                "  text-decoration: none;",
+                "  text-shadow: 1px 1px 0 rgba(255,255,255,0.75);",
+                "  box-shadow: 0 4px 0 rgba(255,143,86,0.42), 0 8px 16px rgba(98,191,239,0.28);",
+                "  transform: rotate(-2deg);",
+                "  animation: helmettyPcIntroButtonFloat 1.9s ease-in-out infinite;",
+                "  transition: transform 0.18s ease, box-shadow 0.18s ease;",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:hover,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:hover {",
+                "  transform: translateY(-2px) rotate(-2deg) scale(1.04);",
+                "  box-shadow: 0 5px 0 rgba(255,143,86,0.42), 0 11px 20px rgba(98,191,239,0.34);",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:active,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:active {",
+                "  transform: translateY(3px) rotate(-2deg) scale(0.98);",
+                "  box-shadow: 0 1px 0 rgba(255,143,86,0.42), 0 4px 9px rgba(98,191,239,0.22);",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link::before,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::before {",
+                "  content: \"♡\";",
+                "  position: absolute;",
+                "  left: -18px;",
+                "  top: -9px;",
+                "  color: #FF5FA2;",
+                "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
+                "  font-size: clamp(0.95rem, 1.05vw, 1.28rem);",
+                "  font-weight: 900;",
+                "  line-height: 1;",
+                "  text-shadow: 1px 1px 0 #ffffff;",
+                "  transform: rotate(8deg);",
+                "  pointer-events: none;",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link::after,",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::after {",
+                "  content: \"★\";",
+                "  position: absolute;",
+                "  right: -13px;",
+                "  bottom: -10px;",
+                "  color: #FF6FAE;",
+                "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
+                "  font-size: clamp(0.92rem, 1vw, 1.22rem);",
+                "  font-weight: 900;",
+                "  line-height: 1;",
+                "  text-shadow: 1px 1px 0 #ffffff;",
+                "  transform: rotate(15deg);",
+                "  pointer-events: none;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-polaroid-open .helmetty-pc-gallery-img.is-hero-source {",
@@ -520,6 +714,31 @@ function installBrandModalHelmettyPc() {
                 "  animation-delay: var(--return-delay, 0s) !important;",
                 "}",
 
+                "@keyframes helmettyPcIntroButtonFloat {",
+                "  0%, 100% { transform: rotate(-2deg) translateY(0) scale(1); }",
+                "  50% { transform: rotate(-2deg) translateY(-3px) scale(1.025); }",
+                "}",
+                "",
+                "@keyframes helmettyPcIntroCardShake {",
+                "  0% { transform: rotate(-5deg) translateY(0); }",
+                "  22% { transform: rotate(-7.2deg) translateY(2px); }",
+                "  46% { transform: rotate(-3.3deg) translateY(-1px); }",
+                "  70% { transform: rotate(-5.8deg) translateY(1px); }",
+                "  100% { transform: rotate(-5deg) translateY(0); }",
+                "}",
+                "",
+                "@keyframes helmettyPcIntroDecoPop {",
+                "  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(0.2); }",
+                "  70% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1.18); }",
+                "  100% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1); }",
+                "}",
+                "",
+                "@keyframes helmettyPcIntroDecoDrop {",
+                "  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1); }",
+                "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 8px)) rotate(calc(var(--intro-deco-rotate, -8deg) + 8deg)) scale(1.06); }",
+                "  100% { opacity: 0; transform: translate(-50%, 150px) rotate(calc(var(--intro-deco-rotate, -8deg) + 34deg)) scale(0.82); }",
+                "}",
+                "",
                 "@keyframes helmettyPcCuteFallOut {",
                 "  0% { opacity: var(--cute-opacity, 1); translate: 0 0; rotate: 0deg; scale: 1; }",
                 "  18% { opacity: 1; translate: 0 -12px; rotate: var(--fall-rotate, -4deg); scale: 1.05; }",
@@ -693,27 +912,127 @@ function installBrandModalHelmettyPc() {
             if (!modalCard) return;
 
             var logo = modalCard.querySelector(".brand-logo-banner") || modalCard.querySelector(".pc-modal-logo") || modalCard.querySelector(".modal-logo");
+            var cat = modalCard.querySelector(".pc-modal-cat") || modalCard.querySelector(".modal-cat");
             var title = modalCard.querySelector(".pc-modal-title") || modalCard.querySelector(".modal-title");
             var desc = modalCard.querySelector(".modal-desc.cute-shop-copy") || modalCard.querySelector(".pc-modal-desc") || modalCard.querySelector(".modal-desc");
             var btn = modalCard.querySelector(".modal-link-btn") || modalCard.querySelector(".pc-modal-link");
 
             if (logo) {
                 logo.classList.add("brand-logo-banner");
+
+                if (logo.getAttribute && logo.getAttribute("src")) {
+                    logo.setAttribute("alt", "HELMETTY");
+                }
+
+                if (logo.parentNode !== modalCard) {
+                    modalCard.appendChild(logo);
+                }
             }
 
-            if (title) {
-                title.textContent = "HELMETTY";
+            if (cat) {
+                if (cat.parentNode !== modalCard) {
+                    modalCard.appendChild(cat);
+                }
+            }
+
+            if (title && logo && logo.getAttribute && logo.getAttribute("src")) {
+                title.classList.add("helmetty-pc-title-hidden");
             }
 
             if (desc) {
                 desc.classList.add("cute-shop-copy");
-                desc.textContent = "ちょっとカワイイ毎日にぴったりのアイテムです";
+                desc.innerHTML = "<span class=\"helmetty-pc-intro-copy-lead\">CUTE FANCY SHOP</span><span class=\"helmetty-pc-intro-copy-main\">ちょっとカワイイものを集めた<br>ファンシーなショップです</span>";
             }
 
             if (btn) {
                 btn.classList.add("modal-link-btn");
-                btn.textContent = "この商品を見る";
+                btn.textContent = "オンラインストアへGO！";
             }
+
+            if (introDecoTimer) {
+                clearTimeout(introDecoTimer);
+            }
+
+            introDecoTimer = setTimeout(showIntroCardDecos, 120);
+        }
+
+        function getIntroCard() {
+            if (!modalCard) return null;
+
+            return modalCard.querySelector(".pc-modal-desc.cute-shop-copy") || modalCard.querySelector(".modal-desc.cute-shop-copy");
+        }
+
+        function shakeIntroCard(card) {
+            if (!card) return;
+
+            card.classList.remove("is-intro-deco-shake");
+            void card.offsetWidth;
+            card.classList.add("is-intro-deco-shake");
+
+            setTimeout(function () {
+                if (card) {
+                    card.classList.remove("is-intro-deco-shake");
+                }
+            }, 520);
+        }
+
+        function clearIntroCardDecos() {
+            introDecos.forEach(function (deco) {
+                deco.remove();
+            });
+
+            introDecos = [];
+        }
+
+        function showIntroCardDecos() {
+            if (!modalCard || isPolaroidOpen) return;
+
+            var card = getIntroCard();
+            if (!card) return;
+
+            clearIntroCardDecos();
+
+            var modalRect = modalCard.getBoundingClientRect();
+            var cardRect = card.getBoundingClientRect();
+            var cardLeft = cardRect.left - modalRect.left;
+            var cardTop = cardRect.top - modalRect.top;
+
+            var patterns = [
+                { left: cardLeft + cardRect.width * 0.03, top: cardTop + cardRect.height * 0.25, rotate: "-12deg", color: "rgba(150,220,255,0.9)", color2: "rgba(80,170,220,0.38)" },
+                { left: cardLeft + cardRect.width * 0.97, top: cardTop + cardRect.height * 0.74, rotate: "12deg", color: "rgba(255,218,86,0.88)", color2: "rgba(230,180,40,0.42)" }
+            ];
+
+            shakeIntroCard(card);
+
+            patterns.forEach(function (pattern) {
+                var deco = document.createElement("div");
+                deco.className = "helmetty-pc-intro-deco is-tape";
+                deco.style.setProperty("--intro-deco-left", String(pattern.left) + "px");
+                deco.style.setProperty("--intro-deco-top", String(pattern.top) + "px");
+                deco.style.setProperty("--intro-deco-rotate", pattern.rotate);
+                deco.style.setProperty("--intro-deco-color", pattern.color);
+                deco.style.setProperty("--intro-deco-color-2", pattern.color2);
+
+                modalCard.appendChild(deco);
+                introDecos.push(deco);
+            });
+        }
+
+        function dropIntroCardDecos() {
+            if (introDecoTimer) {
+                clearTimeout(introDecoTimer);
+                introDecoTimer = null;
+            }
+
+            introDecos.forEach(function (deco) {
+                deco.classList.add("is-dropping");
+
+                setTimeout(function () {
+                    deco.remove();
+                }, 700);
+            });
+
+            introDecos = [];
         }
 
         function clearCuteState(el) {
@@ -751,12 +1070,12 @@ function installBrandModalHelmettyPc() {
             var items = [];
             var logo = modalCard.querySelector(".brand-logo-banner") || modalCard.querySelector(".pc-modal-logo") || modalCard.querySelector(".modal-logo");
             var title = modalCard.querySelector(".pc-modal-title") || modalCard.querySelector(".modal-title");
-            var note = modalCard.querySelector(".pc-modal-desc") || modalCard.querySelector(".modal-desc.cute-shop-copy") || modalCard.querySelector(".modal-desc");
-            var btn = modalCard.querySelector(".pc-modal-link") || modalCard.querySelector(".modal-link-btn");
+            var note = modalCard.querySelector(".modal-desc.cute-shop-copy") || modalCard.querySelector(".pc-modal-desc") || modalCard.querySelector(".modal-desc");
+            var btn = modalCard.querySelector(".modal-link-btn") || modalCard.querySelector(".pc-modal-link");
             var caption = modalCard.querySelector(".helmetty-pc-album-caption");
 
-            if (logo) items.push({ el: logo, kind: "logo" });
-            if (title) items.push({ el: title, kind: "note" });
+            if (logo && (!logo.getAttribute || logo.getAttribute("src"))) items.push({ el: logo, kind: "logo" });
+            if (title && !title.classList.contains("helmetty-pc-title-hidden")) items.push({ el: title, kind: "note" });
             if (note) items.push({ el: note, kind: "note" });
             if (btn) items.push({ el: btn, kind: "button" });
             if (caption) items.push({ el: caption, kind: "button" });
@@ -1041,6 +1360,7 @@ function installBrandModalHelmettyPc() {
                 decoTimer,
                 noteTimer,
                 postitTimer,
+                introDecoTimer,
                 closeFallbackTimer,
                 autoSetupTimer
             ].forEach(function (timer) {
@@ -1051,6 +1371,7 @@ function installBrandModalHelmettyPc() {
             decoTimer = null;
             noteTimer = null;
             postitTimer = null;
+            introDecoTimer = null;
             closeFallbackTimer = null;
             autoSetupTimer = null;
         }
@@ -1132,6 +1453,8 @@ function installBrandModalHelmettyPc() {
 
                 returnElements();
 
+                introDecoTimer = setTimeout(showIntroCardDecos, 760);
+
                 polaroidSource = null;
                 isPolaroidOpen = false;
                 isPolaroidAnimating = false;
@@ -1164,6 +1487,7 @@ function installBrandModalHelmettyPc() {
             modalCard.classList.add("is-helmetty-polaroid-open");
             img.classList.add("is-hero-source");
 
+            dropIntroCardDecos();
             fallAwayElements();
 
             openTimer = setTimeout(function () {
@@ -1219,6 +1543,27 @@ function installBrandModalHelmettyPc() {
             }
         }
 
+        function scrollAlbumByDirection(direction) {
+            if (!albumTrack) return;
+
+            albumTrack.scrollBy({
+                left: albumTrack.clientWidth * 0.72 * direction,
+                behavior: "smooth"
+            });
+        }
+
+        function onAlbumPrevClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            scrollAlbumByDirection(-1);
+        }
+
+        function onAlbumNextClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            scrollAlbumByDirection(1);
+        }
+
         function bindAlbumImages() {
             albumImages.forEach(function (img) {
                 img.addEventListener("pointerdown", onPointerDown);
@@ -1226,6 +1571,14 @@ function installBrandModalHelmettyPc() {
                 img.addEventListener("click", onImageClick);
                 img.addEventListener("dragstart", preventDrag);
             });
+
+            if (albumPrevBtn) {
+                albumPrevBtn.addEventListener("click", onAlbumPrevClick);
+            }
+
+            if (albumNextBtn) {
+                albumNextBtn.addEventListener("click", onAlbumNextClick);
+            }
 
             document.addEventListener("keydown", onKeyDown);
         }
@@ -1239,6 +1592,14 @@ function installBrandModalHelmettyPc() {
                 img.classList.remove("is-hero-source");
             });
 
+            if (albumPrevBtn) {
+                albumPrevBtn.removeEventListener("click", onAlbumPrevClick);
+            }
+
+            if (albumNextBtn) {
+                albumNextBtn.removeEventListener("click", onAlbumNextClick);
+            }
+
             document.removeEventListener("keydown", onKeyDown);
         }
 
@@ -1249,6 +1610,8 @@ function installBrandModalHelmettyPc() {
 
             albumWrap = null;
             albumTrack = null;
+            albumPrevBtn = null;
+            albumNextBtn = null;
             albumCaption = null;
             albumImages = [];
         }
@@ -1263,6 +1626,18 @@ function installBrandModalHelmettyPc() {
 
             albumTrack = document.createElement("div");
             albumTrack.className = "helmetty-pc-album-track";
+
+            albumPrevBtn = document.createElement("button");
+            albumPrevBtn.className = "helmetty-pc-album-arrow is-prev";
+            albumPrevBtn.type = "button";
+            albumPrevBtn.setAttribute("aria-label", "前のアイテムへ");
+            albumPrevBtn.textContent = "‹";
+
+            albumNextBtn = document.createElement("button");
+            albumNextBtn.className = "helmetty-pc-album-arrow is-next";
+            albumNextBtn.type = "button";
+            albumNextBtn.setAttribute("aria-label", "次のアイテムへ");
+            albumNextBtn.textContent = "›";
 
             images.forEach(function (src, index) {
                 var img = document.createElement("img");
@@ -1279,12 +1654,9 @@ function installBrandModalHelmettyPc() {
                 albumTrack.appendChild(img);
             });
 
-            albumCaption = document.createElement("div");
-            albumCaption.className = "helmetty-pc-album-caption";
-            albumCaption.textContent = "Choose a photo";
-
             albumWrap.appendChild(albumTrack);
-            albumWrap.appendChild(albumCaption);
+            albumWrap.appendChild(albumPrevBtn);
+            albumWrap.appendChild(albumNextBtn);
             modalStage.appendChild(albumWrap);
 
             albumImages = Array.prototype.slice.call(albumTrack.querySelectorAll(".helmetty-pc-gallery-img"));

@@ -1219,10 +1219,10 @@
 
         .pc-modal-cat {
             font-family: var(--font-sans);
-            font-size: 0.78rem;
-            letter-spacing: 5px;
+            font-size: 1.05rem;
+            letter-spacing: 6px;
             color: var(--accent);
-            margin-bottom: 18px;
+            margin-bottom: 22px;
             font-weight: 600;
         }
 
@@ -1235,6 +1235,26 @@
             /* ✨ 3Dエフェクトの親コンテナ（モーダル用） */
             perspective: 1500px;
             transform-style: preserve-3d;
+        }
+
+        .pc-modal-logo-banner {
+            display: none;
+            width: min(86%, 360px);
+            height: auto;
+            margin: -14px 0 16px;
+            object-fit: contain;
+        }
+
+        .pc-brand-modal[data-active-brand="helmetty"] .pc-modal-logo-banner {
+            display: block;
+        }
+
+        .pc-modal-title .brand-logo-banner {
+            display: block;
+            width: min(86%, 360px);
+            height: auto;
+            margin: -14px 0 16px;
+            object-fit: contain;
         }
         
         /* ✨ 3Dエフェクトの親コンテナ（カード用） */
@@ -1926,11 +1946,11 @@
 
             <div class="pc-modal-info modal-anim">
                 <div class="pc-modal-cat" id="modalCat">CATEGORY</div>
+                <img class="brand-logo-banner pc-modal-logo-banner" id="brandLogoBanner" src="" alt="">
                 <h3 class="pc-modal-title" id="modalTitle">BRAND TITLE</h3>
                 <div class="pc-modal-desc" id="modalDesc">Brand description</div>
                 <a href="#" class="pc-modal-link" id="modalLink">VIEW ONLINE STORE</a>
             </div>
-
             <div class="pc-modal-viewer modal-anim">
                 <div class="pc-modal-stage">
                     <button class="pc-modal-arrow pc-modal-prev" id="modalPrev" type="button" aria-label="前の画像">‹</button>
@@ -2038,7 +2058,7 @@
                     <div class="brand-img-wrap"><img src="https://images.pexels.com/photos/10216078/pexels-photo-10216078.jpeg?auto=compress&cs=tinysrgb&w=800&h=1000&fit=crop" alt="HELMETTY"></div>
                     <div class="brand-bg"></div>
                     <div class="brand-info">
-                        <div class="brand-cat">POP & CUTE</div>
+                        <div class="brand-cat">Love at First Step.</div>
                         <div class="brand-name">HELMETTY</div>
                     </div>
                 </div>
@@ -2263,6 +2283,30 @@
                 element.appendChild(span);
             });
             element.setAttribute('data-split', 'true');
+        }
+
+        function getCmsImageSrc(value) {
+            if (!value) return "";
+
+            if (typeof value === "string") {
+                return value;
+            }
+
+            return value.src || value.url || value.fileUrl || value.image || "";
+        }
+
+        function getBrandLogoSrc(data) {
+            if (!data) return "";
+
+            return getCmsImageSrc(
+                data.logo ||
+                data.logoSrc ||
+                data.logoUrl ||
+                data.logoImage ||
+                data.logoImageUrl ||
+                data.brandLogo ||
+                data.brandLogoImage
+            );
         }
 
         // ✨ 追加：文字のクローンを作り、画面全体にScatter（散らす）
@@ -2752,6 +2796,7 @@ ${panels}
         const modal = document.getElementById('brandModal');
         const modalClose = document.getElementById('modalClose');
         const modalTitle = document.getElementById('modalTitle');
+        const brandLogoBanner = document.getElementById('brandLogoBanner');
         const modalDesc = document.getElementById('modalDesc');
         const modalCat = document.getElementById('modalCat');
         const modalWatermark = document.getElementById('modalWatermark');
@@ -2790,9 +2835,10 @@ ${panels}
                 theme: { bg: "rgba(247, 219, 105, 0.98)", text: "#111111", btn: "#ffffff", btnText: "#111111" }
             },
             "helmetty": {
-                cat: "POP & CUTE",
+                cat: "Love at First Step.",
                 watermark: "HELMETTY",
                 titleHTML: "HELMETTY",
+                logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
                 desc: "ポップでキュートな世界観。日常に遊び心をプラス。",
                 images: [
                     "https://picsum.photos/seed/he1/800/800",
@@ -2912,17 +2958,37 @@ ${panels}
             modalCat.textContent = data.cat;
             modalWatermark.textContent = data.watermark;
 
+            if (brandLogoBanner) {
+                if (brandId === 'helmetty' && data.logoUrl) {
+                    brandLogoBanner.src = data.logoUrl;
+                    brandLogoBanner.alt = data.watermark || 'HELMETTY';
+                } else {
+                    brandLogoBanner.removeAttribute('src');
+                    brandLogoBanner.alt = '';
+                }
+            }
+
             // ✨ タイトル文字をセットした後、1文字ずつに分割して 3D Assemble アニメーションを実行
             modalTitle.innerHTML = data.titleHTML;
             if(!isArchive) {
-                 // 和美月などのHTMLタグ入りタイトルをプレーンテキストにしてから分割
-                 modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, ''); 
-                 splitText(modalTitle);
+                 const brandLogoSrc = getBrandLogoSrc(data);
+
+                 if (brandId === 'helmetty' && brandLogoSrc) {
+                     modalTitle.innerHTML = `<img class="brand-logo-banner" src="${brandLogoSrc}" alt="${data.watermark || 'HELMETTY'}">`;
+                 } else if (brandId === 'helmetty' && String(data.titleHTML || '').indexOf('brand-logo-banner') >= 0) {
+                     modalTitle.innerHTML = data.titleHTML;
+                 } else {
+                     // 和美月などのHTMLタグ入りタイトルをプレーンテキストにしてから分割
+                     modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, ''); 
+                     splitText(modalTitle);
+                 }
                  // 削除: ここで呼ぶとモーダルが非表示状態なので位置がおかしくなるため下に移動
             }
 
             /* ✨ 変更：長文記事内で <br> などのタグを使えるように innerHTML に変更 */
             modalDesc.innerHTML = data.desc;
+            modalDesc.classList.toggle('cute-shop-copy', brandId === 'helmetty');
+            modalLink.textContent = data.linkText || "VIEW ONLINE STORE";
             modalThumbs.innerHTML = '';
 
             currentModalImages.forEach((src, index) => {
@@ -3016,6 +3082,8 @@ ${panels}
                             { y: 30, opacity: 0 },
                             { y: 0, opacity: 1, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.5 }
                         );
+
+                        setupHelmettyPolaroid();
                     }, 9500);
 
                 } else {
