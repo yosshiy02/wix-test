@@ -266,6 +266,13 @@
             pointer-events: auto;
         }
 
+        html.is-modal-open .menu-magnetic-wrap,
+        body.is-modal-open .menu-magnetic-wrap {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
         .menu-circle {
             width: calc(50 * var(--rx));
             height: calc(50 * var(--rx));
@@ -1701,6 +1708,10 @@
             letter-spacing: 0.1em;
             z-index: 1;
             transition: color 0.8s;
+        }
+
+        .brand-modal[data-active-brand="helmetty"] .modal-watermark {
+            display: none;
         }
 
         .modal-gallery-content {
@@ -3252,6 +3263,34 @@
             const data = event.data || {};
             console.log('[DEBUG mobile] message received:', data.type, data.brand, 'hasCode:', !!data.htmlCode || !!data.jsCode);
 
+            if (data.type === "BRAND_MODAL_DATA") {
+                const items = data.payload && Array.isArray(data.payload.items) ? data.payload.items : [];
+
+                items.forEach((item) => {
+                    if (!item || !item.brand || !Array.isArray(item.images) || !item.images.length) {
+                        return;
+                    }
+
+                    if (item.brand === 'helmetty' && window.BrandModalHelmetty && window.BrandModalHelmetty.data) {
+                        window.BrandModalHelmetty.data.images = item.images;
+
+                        if (item.modalStoreSignImage) {
+                            window.BrandModalHelmetty.data.modalStoreSignImage = item.modalStoreSignImage;
+                        }
+
+                        return;
+                    }
+
+                    if (!galleryData[item.brand]) {
+                        return;
+                    }
+
+                    galleryData[item.brand].images = item.images;
+                });
+
+                return;
+            }
+
             if (data.type === "INFO_DATA") {
                 renderLatestInformation(data.payload);
                 return;
@@ -3330,8 +3369,7 @@
                                 currentModalTrack &&
                                 currentModalClose &&
                                 currentModalCard &&
-                                window.galleryData &&
-                                window.galleryData.helmetty
+                                window.BrandModalHelmetty.data
                             ) {
                                 try {
                                     window.BrandModalHelmetty.setup({
@@ -3340,7 +3378,7 @@
                                         modalCard: currentModalCard,
                                         modalClose: currentModalClose,
                                         modalTrack: currentModalTrack,
-                                        images: window.galleryData.helmetty.images,
+                                        images: Array.isArray(window.BrandModalHelmetty.data.images) ? window.BrandModalHelmetty.data.images : [],
                                         galleryImages: currentModalTrack.querySelectorAll('.gallery-img')
                                     });
                                 } catch (error) {
@@ -3414,7 +3452,7 @@
                                     modalCard: document.querySelector('.modal-gallery-content'),
                                     modalClose,
                                     modalTrack,
-                                    images: galleryData.helmetty.images,
+                                    images: window.BrandModalHelmetty.data && Array.isArray(window.BrandModalHelmetty.data.images) ? window.BrandModalHelmetty.data.images : [],
                                     galleryImages: modalTrack.querySelectorAll('.gallery-img')
                                 });
                             } catch (error) {
@@ -3575,6 +3613,8 @@ const modalTrack = document.getElementById('modalTrack');
 const modalCat = document.getElementById('modalCat');
 const modalWatermark = document.getElementById('modalWatermark');
 const brandLogoBanner = document.getElementById('brandLogoBanner');
+
+
         const galleryObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -3611,23 +3651,7 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
                 ],
                 theme: { bg: "rgba(253,248,225,0.98)", text: "#111111", btn: "#ffffff", btnText: "#111111" }
             },
-     "helmetty": {
-    cat: "POP & CUTE",
-    watermark: "HELMETTY",
-    titleHTML: "HELMETTY",
-    logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
-    desc: `
-        <small>CUTE FANCY SHOP</small>
-        <span>ちょっとカワイイものを集めた<br>ファンシーなショップです</span>
-    `,
-    images: [
-        "https://picsum.photos/seed/he1/800/800",
-        "https://picsum.photos/seed/he2/800/800",
-        "https://picsum.photos/seed/he3/800/800",
-        "https://picsum.photos/seed/he4/800/800"
-    ],
-    theme: { bg: "#F8EECF", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
-},
+
             "nagomitsuki": {
                 cat: "JAPANESE STYLE",
                 watermark: "和美月",
@@ -3780,8 +3804,42 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
         let currentActiveCard = null; // 現在クリックされたカードを記憶する変数
 
         function openBrandModal(brandId, isArchive = false) {
-            const data = galleryData[brandId];
-            if (!data) return;
+            console.log('[DEBUG mobile] openBrandModal entry:', {
+                brandId,
+                isArchive,
+                hasBrandModalHelmetty: !!window.BrandModalHelmetty,
+                hasBrandModalHelmettyData: !!(window.BrandModalHelmetty && window.BrandModalHelmetty.data),
+                hasGalleryData: !!window.galleryData,
+                hasGalleryHelmetty: !!(window.galleryData && window.galleryData.helmetty),
+                hasCustomBrandAnimations: !!window.customBrandAnimations,
+                hasHelmettyAnimation: !!(window.customBrandAnimations && window.customBrandAnimations['helmetty'])
+            });
+
+            const data = brandId === 'helmetty' && window.BrandModalHelmetty && window.BrandModalHelmetty.data
+                ? window.BrandModalHelmetty.data
+                : galleryData[brandId];
+
+            console.log('[DEBUG mobile] openBrandModal data result:', {
+                brandId,
+                hasData: !!data,
+                dataKeys: data ? Object.keys(data) : [],
+                hasTheme: !!(data && data.theme),
+                hasTitleHTML: !!(data && data.titleHTML),
+                hasLogoUrl: !!(data && data.logoUrl),
+                hasDesc: !!(data && data.desc),
+                hasImages: !!(data && Array.isArray(data.images)),
+                imagesLength: data && Array.isArray(data.images) ? data.images.length : null
+            });
+
+            if (!data) {
+                console.error('[DEBUG mobile] openBrandModal stopped: data is missing', {
+                    brandId,
+                    hasBrandModalHelmetty: !!window.BrandModalHelmetty,
+                    hasBrandModalHelmettyData: !!(window.BrandModalHelmetty && window.BrandModalHelmetty.data),
+                    hasGalleryHelmetty: !!(window.galleryData && window.galleryData.helmetty)
+                });
+                return;
+            }
 
             window.parent.postMessage({
                 type: 'lockParentScrollTop'
@@ -3803,12 +3861,12 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
 
 
      modalCat.textContent = data.cat;
-modalWatermark.textContent = data.watermark;
+modalWatermark.textContent = data.watermark || '';
 
 if (brandLogoBanner) {
     if (brandId === 'helmetty' && data.logoUrl) {
         brandLogoBanner.src = data.logoUrl;
-        brandLogoBanner.alt = data.watermark || 'HELMETTY';
+        brandLogoBanner.alt = data.titleHTML || 'HELMETTY';
     } else {
         brandLogoBanner.removeAttribute('src');
         brandLogoBanner.alt = '';
@@ -3853,7 +3911,9 @@ window.parent.postMessage({
 
             modalTrack.innerHTML = '';
 
-            data.images.forEach(src => {
+            currentModalImages = Array.isArray(data.images) ? data.images : [];
+
+            currentModalImages.forEach(src => {
                 const img = document.createElement('img');
                 img.className = 'gallery-img';
                 img.src = src;
@@ -3878,7 +3938,7 @@ window.parent.postMessage({
                         modalCard: document.querySelector('.modal-gallery-content'),
                         modalClose,
                         modalTrack,
-                        images: data.images,
+                        images: currentModalImages,
                         galleryImages: modalTrack.querySelectorAll('.gallery-img')
                     });
                 } catch (error) {

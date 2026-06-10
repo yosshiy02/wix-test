@@ -167,6 +167,7 @@ $w.onReady(function () {
             }
         });
     }
+
     console.log('[DEBUG velo] rasimAnimationCode imported:', typeof rasimAnimationCode, 'length:', rasimAnimationCode ? rasimAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyAnimationCode imported:', typeof helmettyAnimationCode, 'length:', helmettyAnimationCode ? helmettyAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyPolaroidCode imported:', typeof helmettyPolaroidCode, 'length:', helmettyPolaroidCode ? helmettyPolaroidCode.length : 0);
@@ -185,6 +186,106 @@ $w.onReady(function () {
             console.log('[DEBUG velo] sent', label, 'to', elementId);
         } else {
             console.log('[DEBUG velo] skip', label, 'to', elementId, 'postMessage not available');
+        }
+    }
+
+    function getModalGalleryItems(galleryValue) {
+        if (Array.isArray(galleryValue)) {
+            return galleryValue;
+        }
+
+        if (galleryValue && Array.isArray(galleryValue.items)) {
+            return galleryValue.items;
+        }
+
+        return [];
+    }
+
+    function normalizeWixImageUrl(src) {
+        if (!src || typeof src !== 'string') {
+            return '';
+        }
+
+        if (src.indexOf('wix:image://v1/') === 0) {
+            const mediaPart = src.replace('wix:image://v1/', '').split('/')[0];
+
+            if (mediaPart) {
+                return 'https://static.wixstatic.com/media/' + mediaPart;
+            }
+        }
+
+        return src;
+    }
+
+    function getModalGalleryImageUrl(mediaItem) {
+        if (!mediaItem) {
+            return '';
+        }
+
+        if (typeof mediaItem === 'string') {
+            return normalizeWixImageUrl(mediaItem);
+        }
+
+        if (mediaItem.src) {
+            return normalizeWixImageUrl(mediaItem.src);
+        }
+
+        if (mediaItem.url) {
+            return normalizeWixImageUrl(mediaItem.url);
+        }
+
+        if (mediaItem.fileUrl) {
+            return normalizeWixImageUrl(mediaItem.fileUrl);
+        }
+
+        if (mediaItem.image && mediaItem.image.src) {
+            return normalizeWixImageUrl(mediaItem.image.src);
+        }
+
+        if (mediaItem.image && mediaItem.image.url) {
+            return normalizeWixImageUrl(mediaItem.image.url);
+        }
+
+        return '';
+    }
+
+    async function fetchBrandModalData() {
+        try {
+            const result = await wixData.query('HdOriginBrandModal')
+                .limit(1000)
+                .find();
+
+            console.log('[DEBUG velo] HdOriginBrandModal raw count:', result.items.length);
+            console.log('[DEBUG velo] HdOriginBrandModal raw first item:', result.items[0]);
+            console.log('[DEBUG velo] HdOriginBrandModal raw first keys:', result.items[0] ? Object.keys(result.items[0]) : []);
+            console.log('[DEBUG velo] HdOriginBrandModal raw first modalGallery:', result.items[0] ? result.items[0].modalGallery : null);
+
+            const items = result.items
+                .map((item) => {
+                    console.log('[DEBUG velo] HdOriginBrandModal item brand/modalGallery:', item.brand, item.modalGallery);
+
+                    const images = getModalGalleryItems(item.modalGallery)
+                        .map(getModalGalleryImageUrl)
+                        .filter((src) => {
+                            return src;
+                        });
+
+                    return {
+                        brand: String(item.brand || '').trim().toLowerCase(),
+                        images: images,
+                        modalStoreSignImage: getModalGalleryImageUrl(item.modalStoreSignImage)
+                    };
+                })
+                .filter((item) => {
+                    return item.brand && item.images.length;
+                });
+
+            console.log('[DEBUG velo] HdOriginBrandModal mapped items:', items);
+
+            return items;
+        } catch (error) {
+            console.log('[DEBUG velo] failed to load HdOriginBrandModal from CMS', error);
+            return [];
         }
     }
 
@@ -207,7 +308,9 @@ $w.onReady(function () {
         }, "setVisibleEmbedCenter");
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
+        const brandModalData = await fetchBrandModalData();
+
         // ----------------------------------------------------
         // 1. ヒーロー画像の送信（PC・モバイル両方へ）
         // ----------------------------------------------------
@@ -275,6 +378,20 @@ $w.onReady(function () {
             brand: "helmetty",
             jsCode: helmettyPolaroidCode
         }, "setBrandModalAddon(helmetty-polaroid)");
+
+        sendToHtmlElement("#pcMainHtml", {
+            type: "BRAND_MODAL_DATA",
+            payload: {
+                items: brandModalData
+            }
+        }, "BRAND_MODAL_DATA");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "BRAND_MODAL_DATA",
+            payload: {
+                items: brandModalData
+            }
+        }, "BRAND_MODAL_DATA");
 
         sendVisibleEmbedCenterToMobileHtml();
 

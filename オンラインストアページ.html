@@ -1,7 +1,9 @@
 import wixLocationFrontend from 'wix-location-frontend';
+import wixData from 'wix-data';
 import { infoData } from 'public/hd-top/hd-info/info';
 import { rasimAnimationCode, helmettyAnimationCode, helmettyMobileAnimationCode } from 'public/brand-animations/brand-animations.js';
 import { helmettyPolaroidCode } from 'public/brand-modal/brand-modal-helmetty.js';
+import { helmettyPcPolaroidCode } from 'public/brand-modal/brand-modal-helmetty-pc.js';
 
 $w.onReady(function () {
     console.log('[DEBUG velo] onReady start');
@@ -69,6 +71,11 @@ $w.onReady(function () {
                 return;
             }
 
+            if (event.data.type === "helmettyPcAddonDebug") {
+                console.log("[DEBUG velo helmettyPcAddonDebug]", elementId, event.data.label, event.data.payload);
+                return;
+            }
+
             if (event.data.type === "NAVIGATE_TO_INFO") {
                 wixLocationFrontend.to('/hd-origin-info');
                 return;
@@ -84,9 +91,11 @@ $w.onReady(function () {
             }
         });
     }
+
     console.log('[DEBUG velo] rasimAnimationCode imported:', typeof rasimAnimationCode, 'length:', rasimAnimationCode ? rasimAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyAnimationCode imported:', typeof helmettyAnimationCode, 'length:', helmettyAnimationCode ? helmettyAnimationCode.length : 0);
     console.log('[DEBUG velo] helmettyPolaroidCode imported:', typeof helmettyPolaroidCode, 'length:', helmettyPolaroidCode ? helmettyPolaroidCode.length : 0);
+    console.log('[DEBUG velo] helmettyPcPolaroidCode imported:', typeof helmettyPcPolaroidCode, 'length:', helmettyPcPolaroidCode ? helmettyPcPolaroidCode.length : 0);
     console.log('[DEBUG velo] pcMainHtml exists:', !!$w("#pcMainHtml"));
     console.log('[DEBUG velo] mobileMainHtml exists:', !!$w("#mobileMainHtml"));
 
@@ -101,6 +110,122 @@ $w.onReady(function () {
             console.log('[DEBUG velo] sent', label, 'to', elementId);
         } else {
             console.log('[DEBUG velo] skip', label, 'to', elementId, 'postMessage not available');
+        }
+    }
+
+    function getModalGalleryItems(galleryValue) {
+        if (Array.isArray(galleryValue)) {
+            return galleryValue;
+        }
+
+        if (galleryValue && Array.isArray(galleryValue.items)) {
+            return galleryValue.items;
+        }
+
+        return [];
+    }
+
+    function getModalGalleryImageUrl(mediaItem) {
+        if (!mediaItem) {
+            return '';
+        }
+
+        if (typeof mediaItem === 'string') {
+            return mediaItem;
+        }
+
+        if (mediaItem.src) {
+            return mediaItem.src;
+        }
+
+        if (mediaItem.url) {
+            return mediaItem.url;
+        }
+
+        if (mediaItem.fileUrl) {
+            return mediaItem.fileUrl;
+        }
+
+        if (mediaItem.image && mediaItem.image.src) {
+            return mediaItem.image.src;
+        }
+
+        if (mediaItem.image && mediaItem.image.url) {
+            return mediaItem.image.url;
+        }
+
+        return '';
+    }
+
+    function getModalGalleryImageDetail(mediaItem) {
+        if (!mediaItem || typeof mediaItem === 'string') {
+            return '';
+        }
+
+        return mediaItem.description || mediaItem.detail || mediaItem.details || '';
+    }
+
+    function getModalGalleryImageTitle(mediaItem) {
+        if (!mediaItem || typeof mediaItem === 'string') {
+            return '';
+        }
+
+        return mediaItem.title || mediaItem.name || '';
+    }
+
+    function getModalGalleryImageAlt(mediaItem) {
+        if (!mediaItem || typeof mediaItem === 'string') {
+            return '';
+        }
+
+        return mediaItem.alt || mediaItem.altText || mediaItem.description || mediaItem.title || '';
+    }
+
+    function getModalGalleryImageLink(mediaItem) {
+        if (!mediaItem || typeof mediaItem === 'string') {
+            return '';
+        }
+
+        if (typeof mediaItem.link === 'string') {
+            return mediaItem.link;
+        }
+
+        if (mediaItem.link && mediaItem.link.url) {
+            return mediaItem.link.url;
+        }
+
+        return mediaItem.url || '';
+    }
+
+    async function fetchBrandModalData() {
+        try {
+            const result = await wixData.query('HdOriginBrandModal')
+                .limit(1000)
+                .find();
+
+            const items = result.items
+                .map((item) => {
+                    const images = getModalGalleryItems(item.modalGallery)
+                        .map(getModalGalleryImageUrl)
+                        .filter((src) => {
+                            return src;
+                        });
+
+                    return {
+                        brand: item.brand || '',
+                        images: images
+                    };
+                })
+                .filter((item) => {
+                    return item.brand && item.images.length;
+                });
+
+            console.log('[DEBUG velo] HdOriginBrandModal mapped items:', items);
+
+            return items;
+        } catch (error) {
+            console.log('[DEBUG velo] failed to load HdOriginBrandModal from CMS', error);
+            return [];
         }
     }
 
@@ -123,7 +248,9 @@ $w.onReady(function () {
         }, "setVisibleEmbedCenter");
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
+        const brandModalData = await fetchBrandModalData();
+
         // ----------------------------------------------------
         // 1. ヒーロー画像の送信（PC・モバイル両方へ）
         // ----------------------------------------------------
@@ -179,6 +306,26 @@ $w.onReady(function () {
             brand: "helmetty",
             htmlCode: helmettyMobileAnimationCode
         }, "setCustomAnimation(helmetty)");
+
+        sendToHtmlElement("#pcMainHtml", {
+            type: "BRAND_MODAL_DATA",
+            payload: {
+                items: brandModalData
+            }
+        }, "BRAND_MODAL_DATA");
+
+        sendToHtmlElement("#mobileMainHtml", {
+            type: "BRAND_MODAL_DATA",
+            payload: {
+                items: brandModalData
+            }
+        }, "BRAND_MODAL_DATA");
+
+        sendToHtmlElement("#pcMainHtml", {
+            type: "setBrandModalAddon",
+            brand: "helmetty",
+            jsCode: helmettyPcPolaroidCode
+        }, "setBrandModalAddon(helmetty-pc-polaroid)");
 
         sendToHtmlElement("#mobileMainHtml", {
             type: "setBrandModalAddon",

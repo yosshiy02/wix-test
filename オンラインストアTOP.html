@@ -2808,7 +2808,7 @@ ${panels}
         let currentModalImages = [];
         let currentModalIndex = 0;
 
-        const galleryData = {
+        const galleryData = window.galleryData = {
             "hatodaiya": {
                 cat: "ONLINE SHOP",
                 watermark: "HATODAIYA",
@@ -2937,10 +2937,14 @@ ${panels}
 
         // ✨ 変更：アーカイブかどうかのフラグを受け取る
         function openBrandModal(brandId, isArchive = false) {
-            const data = galleryData[brandId];
+            const data = (
+                brandId === 'helmetty' && window.BrandModalHelmettyData
+                    ? window.BrandModalHelmettyData
+                    : galleryData[brandId]
+            );
             if (!data) return;
 
-            currentModalImages = data.images;
+            currentModalImages = Array.isArray(data.images) ? data.images : [];
             currentModalIndex = 0;
             
             if (isArchive) {
@@ -2969,7 +2973,7 @@ ${panels}
             }
 
             // ✨ タイトル文字をセットした後、1文字ずつに分割して 3D Assemble アニメーションを実行
-            modalTitle.innerHTML = data.titleHTML;
+            modalTitle.innerHTML = data.titleHTML || "";
             if(!isArchive) {
                  const brandLogoSrc = getBrandLogoSrc(data);
 
@@ -2979,14 +2983,14 @@ ${panels}
                      modalTitle.innerHTML = data.titleHTML;
                  } else {
                      // 和美月などのHTMLタグ入りタイトルをプレーンテキストにしてから分割
-                     modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, ''); 
+                     modalTitle.innerHTML = String(data.titleHTML || "").replace(/<[^>]*>?/gm, ''); 
                      splitText(modalTitle);
                  }
                  // 削除: ここで呼ぶとモーダルが非表示状態なので位置がおかしくなるため下に移動
             }
 
             /* ✨ 変更：長文記事内で <br> などのタグを使えるように innerHTML に変更 */
-            modalDesc.innerHTML = data.desc;
+            modalDesc.innerHTML = data.desc || "";
             modalDesc.classList.toggle('cute-shop-copy', brandId === 'helmetty');
             modalLink.textContent = data.linkText || "VIEW ONLINE STORE";
             modalThumbs.innerHTML = '';
@@ -3008,7 +3012,13 @@ ${panels}
 
             modal.classList.add('is-open');
             document.body.classList.add('modal-open');
-            renderModalImage(0);
+
+            if (currentModalImages.length) {
+                renderModalImage(0);
+            } else {
+                modalMainImage.removeAttribute('src');
+                modalMainImage.alt = '';
+            }
 
             const cinemaOverlay = document.getElementById('rasimCinemaOverlay');
             const modalPanel = document.querySelector('.pc-modal-panel');
@@ -3028,8 +3038,8 @@ ${panels}
                         modalCard: modalPanel,
                         modalClose,
                         modalTrack: document.querySelector('.pc-modal-viewer'),
-                        images: data.images,
-                        galleryImages: [modalMainImage]
+                        images: currentModalImages,
+                        galleryImages: currentModalImages.length ? [modalMainImage] : []
                     });
                 } catch (error) {
                     console.error('[DEBUG pc] BrandModalHelmetty setup failed:', error);
@@ -3329,6 +3339,40 @@ ${panels}
 
         window.addEventListener("message", (event) => {
             const data = event.data || {};
+
+            if (data.type === "BRAND_MODAL_DATA") {
+                const items = data.payload && Array.isArray(data.payload.items) ? data.payload.items : [];
+
+            items.forEach((item) => {
+                if (!item || !item.brand) {
+                    return;
+                }
+
+                if (item.brand === 'helmetty' && window.BrandModalHelmettyData) {
+                    if (Array.isArray(item.images) && item.images.length) {
+                        window.BrandModalHelmettyData.images = item.images;
+                    }
+
+                    if (item.modalStoreSignImage) {
+                        window.BrandModalHelmettyData.modalStoreSignImage = item.modalStoreSignImage;
+                    }
+                }
+
+                if (!galleryData[item.brand]) {
+                    return;
+                }
+
+                if (Array.isArray(item.images) && item.images.length) {
+                    galleryData[item.brand].images = item.images;
+                }
+
+                if (item.modalStoreSignImage) {
+                    galleryData[item.brand].modalStoreSignImage = item.modalStoreSignImage;
+                }
+            });
+
+                return;
+            }
 
             if (data.type === "INFO_DATA") {
                 renderLatestInformation(data.payload);

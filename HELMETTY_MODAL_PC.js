@@ -15,6 +15,8 @@ function installBrandModalHelmettyPc() {
         var albumNextBtn = null;
         var albumCaption = null;
         var albumImages = [];
+        var storeSignLayer = null;
+        var storeSignImage = null;
 
         var polaroidHero = null;
         var polaroidSource = null;
@@ -40,6 +42,15 @@ function installBrandModalHelmettyPc() {
         var pointerStartY = 0;
         var didMove = false;
 
+        var HELMETTY_PC_MODAL_DATA = {
+            cat: "Love at First Step.",
+            watermark: "HELMETTY",
+            logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
+            theme: { bg: "rgba(248,187,208,0.98)", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
+        };
+
+        window.BrandModalHelmettyData = HELMETTY_PC_MODAL_DATA;
+
         function debugToParent(label, payload) {
             var message = {
                 type: "helmettyPcAddonDebug",
@@ -58,6 +69,26 @@ function installBrandModalHelmettyPc() {
             }
         }
 
+        function helmettyToVw(value) {
+            var base = window.innerWidth || document.documentElement.clientWidth || 1;
+            return String((Number(value) / base) * 100) + "vw";
+        }
+
+        function helmettyToVh(value) {
+            var base = window.innerHeight || document.documentElement.clientHeight || 1;
+            return String((Number(value) / base) * 100) + "vh";
+        }
+
+        function helmettyToModalX(value, rect) {
+            var base = rect && rect.width ? rect.width : 1;
+            return String((Number(value) / base) * 100) + "%";
+        }
+
+        function helmettyToModalY(value, rect) {
+            var base = rect && rect.height ? rect.height : 1;
+            return String((Number(value) / base) * 100) + "%";
+        }
+
         function injectStyle() {
             if (document.getElementById(STYLE_ID)) return;
 
@@ -70,25 +101,25 @@ function installBrandModalHelmettyPc() {
                 "  background:",
                 "    radial-gradient(circle at 18% 18%, rgba(255,255,255,0.62), transparent 32%),",
                 "    radial-gradient(circle at 82% 72%, rgba(98,191,239,0.18), transparent 35%),",
-                "    linear-gradient(90deg, rgba(255,126,179,0.022) 1px, transparent 1px),",
-                "    linear-gradient(0deg, rgba(255,179,107,0.018) 1px, transparent 1px),",
+                "    linear-gradient(90deg, rgba(255,126,179,0.022) 0.0625rem, transparent 0.0625rem),",
+                "    linear-gradient(0deg, rgba(255,179,107,0.018) 0.0625rem, transparent 0.0625rem),",
                 "    linear-gradient(135deg, #fff8df 0%, #f9efcf 48%, #ffe8f2 100%);",
-                "  background-size: 100% 100%, 100% 100%, 18px 18px, 18px 18px, 100% 100%;",
-                "  box-shadow: 0 40px 110px rgba(0,0,0,0.36), 0 0 0 1px rgba(255,126,179,0.16) inset;",
+                "  background-size: 100% 100%, 100% 100%, 1.125rem 1.125rem, 1.125rem 1.125rem, 100% 100%;",
+                "  box-shadow: 0 2.5rem 6.875rem rgba(0,0,0,0.36), 0 0 0 0.0625rem rgba(255,126,179,0.16) inset;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready::before {",
                 "  content: \"\";",
                 "  position: absolute;",
-                "  inset: 18px;",
+                "  inset: 1.125rem;",
                 "  z-index: 1;",
                 "  pointer-events: none;",
-                "  border-radius: 14px;",
+                "  border-radius: 0.875rem;",
                 "  background:",
-                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top left / 100% 3px no-repeat,",
-                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) bottom left / 100% 3px no-repeat,",
-                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top left / 3px 100% no-repeat,",
-                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top right / 3px 100% no-repeat;",
+                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top left / 100% 0.1875rem no-repeat,",
+                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) bottom left / 100% 0.1875rem no-repeat,",
+                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top left / 0.1875rem 100% no-repeat,",
+                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top right / 0.1875rem 100% no-repeat;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready::after {",
@@ -116,8 +147,8 @@ function installBrandModalHelmettyPc() {
                 "  position: relative;",
                 "  overflow: visible;",
                 "  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.58), transparent 60%), rgba(255,255,255,0.14);",
-                "  border-radius: 14px;",
-                "  box-shadow: 0 18px 48px rgba(184,63,120,0.12), 0 0 0 1px rgba(255,255,255,0.34) inset;",
+                "  border-radius: 0.875rem;",
+                "  box-shadow: 0 1.125rem 3rem rgba(184,63,120,0.12), 0 0 0 0.0625rem rgba(255,255,255,0.34) inset;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-main-img,",
@@ -125,6 +156,10 @@ function installBrandModalHelmettyPc() {
                 "  opacity: 0;",
                 "  visibility: hidden;",
                 "  pointer-events: none;",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-arrow {",
+                "  display: none !important;",
                 "}",
 
                 ".helmetty-pc-album-wrap {",
@@ -143,8 +178,8 @@ function installBrandModalHelmettyPc() {
                 "  height: 100%;",
                 "  display: flex;",
                 "  align-items: center;",
-                "  gap: clamp(24px, 2.2vw, 42px);",
-                "  padding: 0 clamp(36px, 5vw, 82px);",
+                "  gap: clamp(1.5rem, 2.2vw, 2.625rem);",
+                "  padding: 0 clamp(2.25rem, 5vw, 5.125rem);",
                 "  overflow-x: auto;",
                 "  overflow-y: visible;",
                 "  scroll-snap-type: x mandatory;",
@@ -153,26 +188,26 @@ function installBrandModalHelmettyPc() {
                 "}",
 
                 ".helmetty-pc-album-track::-webkit-scrollbar {",
-                "  height: 8px;",
+                "  height: 0.5rem;",
                 "}",
 
                 ".helmetty-pc-album-track::-webkit-scrollbar-track {",
                 "  background: rgba(255,255,255,0.34);",
-                "  border-radius: 999px;",
+                "  border-radius: 62.4375rem;",
                 "}",
 
                 ".helmetty-pc-album-track::-webkit-scrollbar-thumb {",
                 "  background: rgba(255,126,179,0.45);",
-                "  border-radius: 999px;",
+                "  border-radius: 62.4375rem;",
                 "}",
 
                 ".helmetty-pc-album-arrow {",
                 "  position: absolute;",
                 "  top: 50%;",
                 "  z-index: 12;",
-                "  width: clamp(42px, 3.8vw, 62px);",
-                "  height: clamp(42px, 3.8vw, 62px);",
-                "  border: 2px solid rgba(255,126,179,0.46);",
+                "  width: clamp(2.625rem, 3.8vw, 3.875rem);",
+                "  height: clamp(2.625rem, 3.8vw, 3.875rem);",
+                "  border: 0.125rem solid rgba(255,126,179,0.46);",
                 "  border-radius: 50%;",
                 "  background: rgba(255,255,255,0.82);",
                 "  -webkit-appearance: none;",
@@ -183,37 +218,41 @@ function installBrandModalHelmettyPc() {
                 "  font-size: clamp(1.45rem, 2.1vw, 2.6rem);",
                 "  font-weight: 900;",
                 "  line-height: 1;",
-                "  box-shadow: 0 12px 26px rgba(150,80,110,0.18);",
+                "  box-shadow: 0 0.75rem 1.625rem rgba(150,80,110,0.18);",
                 "  transform: translateY(-50%);",
                 "  cursor: pointer;",
                 "  pointer-events: auto;",
                 "}",
 
                 ".helmetty-pc-album-arrow.is-prev {",
-                "  left: clamp(18px, 2.2vw, 34px);",
+                "  left: clamp(1.125rem, 2.2vw, 2.125rem);",
                 "}",
 
                 ".helmetty-pc-album-arrow.is-next {",
-                "  right: clamp(18px, 2.2vw, 34px);",
+                "  right: clamp(1.125rem, 2.2vw, 2.125rem);",
                 "}",
 
                 ".helmetty-pc-album-arrow:hover {",
                 "  background: rgba(255,255,255,0.94);",
-                "  box-shadow: 0 15px 30px rgba(150,80,110,0.24);",
+                "  box-shadow: 0 0.9375rem 1.875rem rgba(150,80,110,0.24);",
+                "}",
+                "",
+                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready.is-helmetty-polaroid-open .helmetty-pc-album-arrow {",
+                "  display: none;",
                 "}",
 
                 ".helmetty-pc-gallery-img {",
                 "  box-sizing: content-box;",
-                "  width: clamp(180px, 18vw, 300px);",
-                "  height: clamp(180px, 18vw, 300px);",
+                "  width: clamp(11.25rem, 18vw, 18.75rem);",
+                "  height: clamp(11.25rem, 18vw, 18.75rem);",
                 "  flex: 0 0 auto;",
                 "  scroll-snap-align: center;",
                 "  object-fit: cover;",
                 "  border: solid rgba(255,255,255,0.97);",
-                "  border-width: clamp(13px, 1vw, 20px) clamp(11px, 0.8vw, 17px) clamp(46px, 3vw, 72px);",
-                "  border-radius: 8px;",
+                "  border-width: clamp(0.8125rem, 1vw, 1.25rem) clamp(0.6875rem, 0.8vw, 1.0625rem) clamp(2.875rem, 3vw, 4.5rem);",
+                "  border-radius: 0.5rem;",
                 "  background: #ffffff;",
-                "  box-shadow: 0 26px 54px rgba(150,80,110,0.24), 0 8px 18px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.85) inset;",
+                "  box-shadow: 0 1.625rem 3.375rem rgba(150,80,110,0.24), 0 0.5rem 1.125rem rgba(0,0,0,0.18), 0 0.0625rem 0 rgba(255,255,255,0.85) inset;",
                 "  transform: rotate(-3deg) scale(0.9);",
                 "  opacity: 0.72;",
                 "  filter: brightness(0.96) saturate(1.08);",
@@ -236,23 +275,23 @@ function installBrandModalHelmettyPc() {
                 "  transform: rotate(0deg) scale(1);",
                 "  opacity: 1;",
                 "  filter: brightness(1) saturate(1.14);",
-                "  box-shadow: 0 36px 72px rgba(150,80,110,0.32), 0 12px 28px rgba(0,0,0,0.24), 0 0 0 1px rgba(255,255,255,0.58) inset;",
+                "  box-shadow: 0 2.25rem 4.5rem rgba(150,80,110,0.32), 0 0.75rem 1.75rem rgba(0,0,0,0.24), 0 0 0 0.0625rem rgba(255,255,255,0.58) inset;",
                 "}",
 
                 ".helmetty-pc-album-caption {",
                 "  position: absolute;",
                 "  left: 50%;",
-                "  bottom: clamp(58px, 7vh, 90px);",
+                "  bottom: clamp(3.625rem, 7vh, 5.625rem);",
                 "  z-index: 9;",
                 "  transform: translateX(-50%);",
                 "  display: inline-flex;",
                 "  align-items: center;",
-                "  gap: 12px;",
-                "  padding: 12px 24px 11px;",
-                "  border-radius: 999px;",
+                "  gap: 0.75rem;",
+                "  padding: 0.75rem 1.5rem 0.6875rem;",
+                "  border-radius: 62.4375rem;",
                 "  background: rgba(255,255,255,0.72);",
-                "  border: 1px solid rgba(255,126,179,0.3);",
-                "  box-shadow: 0 10px 24px rgba(150,80,110,0.12);",
+                "  border: 0.0625rem solid rgba(255,126,179,0.3);",
+                "  box-shadow: 0 0.625rem 1.5rem rgba(150,80,110,0.12);",
                 "  color: #B83F78;",
                 "  font-family: Jost, sans-serif;",
                 "  font-size: 0.95rem;",
@@ -274,23 +313,45 @@ function installBrandModalHelmettyPc() {
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-logo,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-logo {",
                 "  position: absolute;",
-                "  left: clamp(28px, 2.6vw, 44px);",
-                "  top: clamp(70px, 6.8vh, 96px);",
+                "  left: clamp(1.75rem, 2.6vw, 2.75rem);",
+                "  top: clamp(4.375rem, 6.8vh, 6rem);",
                 "  z-index: 7;",
                 "  display: block;",
                 "  margin-top: 0;",
                 "  margin-bottom: 0;",
-                "  max-width: min(26vw, 360px);",
+                "  max-width: min(26vw, 22.5rem);",
                 "  height: auto;",
                 "  object-fit: contain;",
-                "  filter: drop-shadow(0 10px 18px rgba(184,63,120,0.16));",
+                "  filter: drop-shadow(0 0.625rem 1.125rem rgba(184,63,120,0.16));",
+                "}",
+                "",
+                   ".helmetty-pc-store-sign-layer {",
+                "  position: absolute;",
+                "  inset: 0;",
+                "  z-index: 3;",
+                "  pointer-events: none;",
+                "}",
+                "",
+                ".helmetty-pc-store-sign {",
+                "  position: absolute;",
+                "  left: calc(clamp(1.125rem, 1.6vw, 2.125rem) + clamp(4.275rem, 5.7vw, 6.0563rem));",
+                "  top: calc(clamp(3rem, 5.2vh, 4.375rem) + clamp(7.125rem, 9.5vw, 10.0938rem));",
+                "  z-index: 1;",
+                "  width: clamp(21.375rem, 28.5vw, 30.2812rem);",
+                "  height: clamp(21.375rem, 28.5vw, 30.2812rem);",
+                "  object-fit: contain;",
+                "  pointer-events: none;",
+                "  user-select: none;",
+                "  -webkit-user-drag: none;",
+                "  filter: drop-shadow(0 0.875rem 1.375rem rgba(150,80,110,0.2));",
+                "  transform: translate(-0%, 0%);",
                 "}",
                 "",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-cat,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-cat {",
                 "  position: absolute;",
-                "  left: clamp(28px, 2.6vw, 44px);",
-                "  top: clamp(36px, 3.8vh, 56px);",
+                "  left: clamp(1.75rem, 2.6vw, 2.75rem);",
+                "  top: clamp(2.25rem, 3.8vh, 3.5rem);",
                 "  z-index: 7;",
                 "  margin-top: 0;",
                 "  margin-bottom: 0;",
@@ -307,7 +368,7 @@ function installBrandModalHelmettyPc() {
                 "  font-weight: 900;",
                 "  letter-spacing: 0.04em;",
                 "  line-height: 1.08;",
-                "  text-shadow: 1px 1px 0 #ffffff, 2px 2px 0 rgba(255,216,77,0.34);",
+                "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff, 0.125rem 0.125rem 0 rgba(255,216,77,0.34);",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc,",
@@ -315,26 +376,27 @@ function installBrandModalHelmettyPc() {
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy {",
                 "  position: absolute;",
-                "  left: clamp(34px, 3.2vw, 62px);",
-                "  top: clamp(132px, 14.9vh, 164px);",
+                "  left: clamp(2.125rem, 3.2vw, 3.875rem);",
+                "  top: calc(clamp(8.25rem, 14.9vh, 10.25rem) + clamp(4.375rem, 6.8vh, 4.875rem));",
                 "  z-index: 9;",
                 "  box-sizing: border-box;",
-                "  width: clamp(317px, 23.92vw, 413px);",
+                "  width: clamp(19.8125rem, 23.92vw, 25.8125rem);",
                 "  max-width: none;",
-                "  min-height: clamp(88px, 7.15vw, 114px);",
+                "  min-height: clamp(5.5rem, 7.15vw, 7.125rem);",
                 "  margin: 0;",
-                "  padding: clamp(16px, 1.24vw, 21px) clamp(23px, 1.76vw, 31px) clamp(17px, 1.3vw, 22px);",
+                "  padding: clamp(1rem, 1.24vw, 1.3125rem) clamp(1.4375rem, 1.76vw, 1.9375rem) clamp(1.0625rem, 1.3vw, 1.375rem);",
                 "  color: #E85A9A;",
                 "  font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;",
                 "  font-weight: 800;",
                 "  line-height: 1.45;",
                 "  text-align: center;",
-                "  background: linear-gradient(90deg, rgba(180,140,90,0.035) 1px, transparent 1px), linear-gradient(0deg, rgba(180,140,90,0.025) 1px, transparent 1px), linear-gradient(135deg, rgba(255,254,246,0.98), rgba(255,248,224,0.96));",
-                "  background-size: 12px 12px, 12px 12px, 100% 100%;",
-                "  border: 1px solid rgba(180,130,90,0.24);",
-                "  border-top: 3px dotted rgba(170,140,100,0.62);",
-                "  border-radius: 5px;",
-                "  box-shadow: 0 13px 24px rgba(150,80,110,0.16), 0 1px 0 rgba(255,255,255,0.88) inset;",
+                "  background: linear-gradient(90deg, rgba(180,140,90,0.035) 0.0625rem, transparent 0.0625rem), linear-gradient(0deg, rgba(180,140,90,0.025) 0.0625rem, transparent 0.0625rem), linear-gradient(135deg, rgba(255,254,246,0.98), rgba(255,248,224,0.96));",
+                "  background-size: 0.75rem 0.75rem, 0.75rem 0.75rem, 100% 100%;",
+                "  border: 0.0625rem solid rgba(180,130,90,0.24);",
+                "  border-top: 0.1875rem dotted rgba(170,140,100,0.62);",
+                "  border-radius: 0.3125rem;",
+                "  box-shadow: 0 0.8125rem 1.5rem rgba(150,80,110,0.16), 0 0.0625rem 0 rgba(255,255,255,0.88) inset;",
+                "  overflow: visible;",
                 "  transform: rotate(-5deg);",
                 "  transform-origin: center top;",
                 "}",
@@ -346,7 +408,7 @@ function installBrandModalHelmettyPc() {
                 "",
                 ".helmetty-pc-intro-copy-lead {",
                 "  display: block;",
-                "  margin-bottom: 3px;",
+                "  margin-bottom: 0.1875rem;",
                 "  color: #FF6FAE;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
                 "  font-size: clamp(0.75rem, 0.81vw, 1.01rem);",
@@ -388,38 +450,38 @@ function installBrandModalHelmettyPc() {
                 "}",
                 "",
                 ".helmetty-pc-intro-deco.is-tape {",
-                "  width: clamp(68px, 5.45vw, 96px);",
-                "  height: clamp(24px, 1.85vw, 36px);",
-                "  border-radius: 3px;",
+                "  width: clamp(4.25rem, 5.45vw, 6rem);",
+                "  height: clamp(1.5rem, 1.85vw, 2.25rem);",
+                "  border-radius: 0.1875rem;",
                 "  background: linear-gradient(90deg, rgba(255,255,255,0.62), rgba(255,255,255,0.2) 42%, transparent 72%), linear-gradient(135deg, rgba(255,255,255,0.72), var(--intro-deco-color));",
-                "  border: 1px solid var(--intro-deco-color-2);",
-                "  box-shadow: 0 3px 7px rgba(80,80,80,0.2);",
+                "  border: 0.0625rem solid var(--intro-deco-color-2);",
+                "  box-shadow: 0 0.1875rem 0.4375rem rgba(80,80,80,0.2);",
                 "  opacity: 0.96;",
                 "}",
 
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn {",
                 "  position: absolute;",
-                "  left: clamp(118px, 8.4vw, 156px);",
-                "  top: clamp(292px, 32.5vh, 356px);",
+                "  left: clamp(7.375rem, 8.4vw, 9.75rem);",
+                "  top: calc(clamp(18.25rem, 32.5vh, 22.25rem) + clamp(0.9688rem, 1.21vw, 1.25rem));",
                 "  z-index: 11;",
                 "  display: inline-flex;",
                 "  align-items: center;",
                 "  justify-content: center;",
-                "  min-width: clamp(128px, 9.35vw, 164px);",
-                "  min-height: clamp(31px, 2.42vw, 40px);",
-                "  padding: 0 clamp(18px, 1.45vw, 26px);",
+                "  min-width: clamp(8rem, 9.35vw, 10.25rem);",
+                "  min-height: clamp(1.9375rem, 2.42vw, 2.5rem);",
+                "  padding: 0 clamp(1.125rem, 1.45vw, 1.625rem);",
                 "  background: #FFD94A;",
-                "  border: 2px solid rgba(255,143,86,0.86);",
+                "  border: 0.125rem solid rgba(255,143,86,0.86);",
                 "  color: #FF5FA2;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
                 "  font-size: clamp(0.72rem, 0.75vw, 0.94rem);",
                 "  font-weight: 900;",
                 "  letter-spacing: 0.05em;",
-                "  border-radius: 999px;",
+                "  border-radius: 62.4375rem;",
                 "  text-decoration: none;",
-                "  text-shadow: 1px 1px 0 rgba(255,255,255,0.75);",
-                "  box-shadow: 0 4px 0 rgba(255,143,86,0.42), 0 8px 16px rgba(98,191,239,0.28);",
+                "  text-shadow: 0.0625rem 0.0625rem 0 rgba(255,255,255,0.75);",
+                "  box-shadow: 0 0.25rem 0 rgba(255,143,86,0.42), 0 0.5rem 1rem rgba(98,191,239,0.28);",
                 "  transform: rotate(-2deg);",
                 "  animation: helmettyPcIntroButtonFloat 1.9s ease-in-out infinite;",
                 "  transition: transform 0.18s ease, box-shadow 0.18s ease;",
@@ -427,28 +489,28 @@ function installBrandModalHelmettyPc() {
                 "",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:hover,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:hover {",
-                "  transform: translateY(-2px) rotate(-2deg) scale(1.04);",
-                "  box-shadow: 0 5px 0 rgba(255,143,86,0.42), 0 11px 20px rgba(98,191,239,0.34);",
+                "  transform: translateY(-0.125rem) rotate(-2deg) scale(1.04);",
+                "  box-shadow: 0 0.3125rem 0 rgba(255,143,86,0.42), 0 0.6875rem 1.25rem rgba(98,191,239,0.34);",
                 "}",
                 "",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:active,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:active {",
-                "  transform: translateY(3px) rotate(-2deg) scale(0.98);",
-                "  box-shadow: 0 1px 0 rgba(255,143,86,0.42), 0 4px 9px rgba(98,191,239,0.22);",
+                "  transform: translateY(0.1875rem) rotate(-2deg) scale(0.98);",
+                "  box-shadow: 0 0.0625rem 0 rgba(255,143,86,0.42), 0 0.25rem 0.5625rem rgba(98,191,239,0.22);",
                 "}",
                 "",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link::before,",
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::before {",
                 "  content: \"♡\";",
                 "  position: absolute;",
-                "  left: -18px;",
-                "  top: -9px;",
+                "  left: -1.125rem;",
+                "  top: -0.5625rem;",
                 "  color: #FF5FA2;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
                 "  font-size: clamp(0.95rem, 1.05vw, 1.28rem);",
                 "  font-weight: 900;",
                 "  line-height: 1;",
-                "  text-shadow: 1px 1px 0 #ffffff;",
+                "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff;",
                 "  transform: rotate(8deg);",
                 "  pointer-events: none;",
                 "}",
@@ -457,14 +519,14 @@ function installBrandModalHelmettyPc() {
                 ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::after {",
                 "  content: \"★\";",
                 "  position: absolute;",
-                "  right: -13px;",
-                "  bottom: -10px;",
+                "  right: -0.8125rem;",
+                "  bottom: -0.625rem;",
                 "  color: #FF6FAE;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;",
                 "  font-size: clamp(0.92rem, 1vw, 1.22rem);",
                 "  font-weight: 900;",
                 "  line-height: 1;",
-                "  text-shadow: 1px 1px 0 #ffffff;",
+                "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff;",
                 "  transform: rotate(15deg);",
                 "  pointer-events: none;",
                 "}",
@@ -499,8 +561,8 @@ function installBrandModalHelmettyPc() {
                 ".helmetty-pc-polaroid-hero.is-open {",
                 "  left: var(--helmetty-pc-open-left);",
                 "  top: var(--helmetty-pc-open-top);",
-                "  width: var(--helmetty-pc-open-size);",
-                "  height: var(--helmetty-pc-open-size);",
+                "  width: var(--helmetty-pc-open-width);",
+                "  height: var(--helmetty-pc-open-height);",
                 "  transform: rotate(0deg) translateX(0);",
                 "  border-width: 1.05vw 0.9vw 4.1vw;",
                 "  border-radius: 0.75vw;",
@@ -518,17 +580,17 @@ function installBrandModalHelmettyPc() {
                 "  top: var(--helmetty-pc-hint-top);",
                 "  z-index: 3044;",
                 "  transform: translateX(-50%);",
-                "  padding: 9px 18px 8px;",
-                "  border-radius: 999px;",
+                "  padding: 0.5625rem 1.125rem 0.5rem;",
+                "  border-radius: 62.4375rem;",
                 "  background: rgba(255,255,255,0.82);",
-                "  border: 1px solid rgba(255,126,179,0.42);",
+                "  border: 0.0625rem solid rgba(255,126,179,0.42);",
                 "  color: #B83F78;",
                 "  font-family: Jost, sans-serif;",
                 "  font-size: 0.72rem;",
                 "  font-weight: 800;",
                 "  letter-spacing: 0.16em;",
                 "  text-transform: uppercase;",
-                "  box-shadow: 0 8px 20px rgba(0,0,0,0.12);",
+                "  box-shadow: 0 0.5rem 1.25rem rgba(0,0,0,0.12);",
                 "  pointer-events: none;",
                 "  opacity: 0;",
                 "  animation: helmettyPcHintIn 0.5s cubic-bezier(0.18, 1.25, 0.4, 1) 0.95s forwards;",
@@ -537,7 +599,7 @@ function installBrandModalHelmettyPc() {
                 ".helmetty-pc-deco {",
                 "  position: absolute;",
                 "  left: var(--helmetty-pc-deco-left, var(--deco-left, 50%));",
-                "  top: var(--helmetty-pc-deco-top, var(--deco-top, 52px));",
+                "  top: var(--helmetty-pc-deco-top, var(--deco-top, 3.25rem));",
                 "  z-index: 3040;",
                 "  pointer-events: none;",
                 "  transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(0.2);",
@@ -550,34 +612,34 @@ function installBrandModalHelmettyPc() {
                 "}",
 
                 ".helmetty-pc-deco.is-pin {",
-                "  width: 34px;",
-                "  height: 34px;",
+                "  width: 2.125rem;",
+                "  height: 2.125rem;",
                 "  border-radius: 50%;",
                 "  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95) 0 18%, transparent 19%), linear-gradient(135deg, var(--deco-color), var(--deco-color-2));",
-                "  border: 2px solid rgba(90,20,55,0.28);",
-                "  box-shadow: 0 7px 0 rgba(0,0,0,0.16), 0 12px 18px rgba(0,0,0,0.24), 0 0 0 4px rgba(255,255,255,0.45) inset;",
+                "  border: 0.125rem solid rgba(90,20,55,0.28);",
+                "  box-shadow: 0 0.4375rem 0 rgba(0,0,0,0.16), 0 0.75rem 1.125rem rgba(0,0,0,0.24), 0 0 0 0.25rem rgba(255,255,255,0.45) inset;",
                 "}",
 
                 ".helmetty-pc-deco.is-pin::after {",
                 "  content: \"\";",
                 "  position: absolute;",
                 "  left: 50%;",
-                "  top: 27px;",
-                "  width: 4px;",
-                "  height: 24px;",
+                "  top: 1.6875rem;",
+                "  width: 0.25rem;",
+                "  height: 1.5rem;",
                 "  background: rgba(80,80,80,0.55);",
-                "  border-radius: 999px;",
+                "  border-radius: 62.4375rem;",
                 "  transform: translateX(-50%) rotate(8deg);",
                 "  z-index: -1;",
                 "}",
 
                 ".helmetty-pc-deco.is-tape {",
-                "  width: 46px;",
-                "  height: 124px;",
-                "  border-radius: 4px;",
+                "  width: 2.875rem;",
+                "  height: 7.75rem;",
+                "  border-radius: 0.25rem;",
                 "  background: linear-gradient(90deg, rgba(255,255,255,0.62), rgba(255,255,255,0.2) 42%, transparent 72%), linear-gradient(135deg, rgba(255,255,255,0.72), var(--deco-color));",
-                "  border: 1px solid var(--deco-color-2);",
-                "  box-shadow: 0 5px 10px rgba(80,80,80,0.2);",
+                "  border: 0.0625rem solid var(--deco-color-2);",
+                "  box-shadow: 0 0.3125rem 0.625rem rgba(80,80,80,0.2);",
                 "  opacity: 0.96;",
                 "}",
 
@@ -586,13 +648,13 @@ function installBrandModalHelmettyPc() {
                 "  left: var(--helmetty-pc-note-left, 50%);",
                 "  top: var(--helmetty-pc-note-top, auto);",
                 "  z-index: 3041;",
-                "  width: clamp(280px, 25vw, 360px);",
-                "  padding: 18px 22px 20px;",
-                "  background: linear-gradient(90deg, rgba(180,140,90,0.035) 1px, transparent 1px), linear-gradient(0deg, rgba(180,140,90,0.025) 1px, transparent 1px), linear-gradient(135deg, rgba(255,254,246,0.98), rgba(255,248,224,0.96));",
-                "  background-size: 14px 14px, 14px 14px, 100% 100%;",
-                "  border: 1px solid rgba(180,130,90,0.24);",
-                "  border-radius: 8px;",
-                "  box-shadow: 0 14px 26px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.88) inset;",
+                "  width: clamp(17.5rem, 25vw, 22.5rem);",
+                "  padding: 1.125rem 1.375rem 1.25rem;",
+                "  background: linear-gradient(90deg, rgba(180,140,90,0.035) 0.0625rem, transparent 0.0625rem), linear-gradient(0deg, rgba(180,140,90,0.025) 0.0625rem, transparent 0.0625rem), linear-gradient(135deg, rgba(255,254,246,0.98), rgba(255,248,224,0.96));",
+                "  background-size: 0.875rem 0.875rem, 0.875rem 0.875rem, 100% 100%;",
+                "  border: 0.0625rem solid rgba(180,130,90,0.24);",
+                "  border-radius: 0.5rem;",
+                "  box-shadow: 0 0.875rem 1.625rem rgba(0,0,0,0.18), 0 0.0625rem 0 rgba(255,255,255,0.88) inset;",
                 "  color: #B83F78;",
                 "  font-family: sans-serif;",
                 "  text-align: center;",
@@ -609,17 +671,17 @@ function installBrandModalHelmettyPc() {
 
                 ".helmetty-pc-note-title {",
                 "  display: block;",
-                "  margin-bottom: 7px;",
+                "  margin-bottom: 0.4375rem;",
                 "  font-size: clamp(1rem, 1.2vw, 1.25rem);",
                 "  font-weight: 900;",
-                "  letter-spacing: 1px;",
+                "  letter-spacing: 0.0625rem;",
                 "  line-height: 1.2;",
                 "  color: #FF6FAE;",
-                "  text-shadow: 1px 1px 0 #ffffff, 3px 3px 0 rgba(255,216,77,0.34);",
+                "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff, 0.1875rem 0.1875rem 0 rgba(255,216,77,0.34);",
                 "}",
 
                 ".helmetty-pc-note-text {",
-                "  margin: 0 0 12px;",
+                "  margin: 0 0 0.75rem;",
                 "  font-size: clamp(0.74rem, 0.82vw, 0.9rem);",
                 "  font-weight: 700;",
                 "  line-height: 1.45;",
@@ -628,17 +690,17 @@ function installBrandModalHelmettyPc() {
 
                 ".helmetty-pc-note-btn {",
                 "  display: inline-block;",
-                "  padding: 10px 32px 9px;",
+                "  padding: 0.625rem 2rem 0.5625rem;",
                 "  background: #62BFEF;",
                 "  color: #FFFFFF;",
-                "  border: 2px solid rgba(255,143,86,0.86);",
-                "  border-radius: 999px;",
+                "  border: 0.125rem solid rgba(255,143,86,0.86);",
+                "  border-radius: 62.4375rem;",
                 "  font-size: 0.86rem;",
                 "  font-weight: 900;",
-                "  letter-spacing: 1px;",
+                "  letter-spacing: 0.0625rem;",
                 "  text-decoration: none;",
                 "  white-space: nowrap;",
-                "  box-shadow: 0 4px 0 rgba(255,143,86,0.42), 0 8px 16px rgba(98,191,239,0.28);",
+                "  box-shadow: 0 0.25rem 0 rgba(255,143,86,0.42), 0 0.5rem 1rem rgba(98,191,239,0.28);",
                 "}",
 
                 ".helmetty-pc-postit {",
@@ -646,18 +708,18 @@ function installBrandModalHelmettyPc() {
                 "  left: var(--helmetty-pc-postit-left);",
                 "  top: var(--helmetty-pc-postit-top);",
                 "  z-index: 3042;",
-                "  width: 112px;",
-                "  min-height: 92px;",
-                "  padding: 18px 12px 12px;",
+                "  width: 7rem;",
+                "  min-height: 5.75rem;",
+                "  padding: 1.125rem 0.75rem 0.75rem;",
                 "  background: linear-gradient(135deg, rgba(255,255,255,0.26), transparent 42%), linear-gradient(180deg, var(--postit-color), var(--postit-color-2));",
-                "  border: 1px solid rgba(150,120,70,0.2);",
-                "  border-radius: 6px 6px 12px 6px;",
-                "  box-shadow: 0 12px 22px rgba(0,0,0,0.16), 0 1px 0 rgba(255,255,255,0.75) inset;",
+                "  border: 0.0625rem solid rgba(150,120,70,0.2);",
+                "  border-radius: 0.375rem 0.375rem 0.75rem 0.375rem;",
+                "  box-shadow: 0 0.75rem 1.375rem rgba(0,0,0,0.16), 0 0.0625rem 0 rgba(255,255,255,0.75) inset;",
                 "  color: #B83F78;",
                 "  font-family: sans-serif;",
                 "  font-size: 0.96rem;",
                 "  font-weight: 700;",
-                "  letter-spacing: 1.2px;",
+                "  letter-spacing: 0.075rem;",
                 "  line-height: 1.15;",
                 "  text-align: center;",
                 "  pointer-events: none;",
@@ -716,14 +778,14 @@ function installBrandModalHelmettyPc() {
 
                 "@keyframes helmettyPcIntroButtonFloat {",
                 "  0%, 100% { transform: rotate(-2deg) translateY(0) scale(1); }",
-                "  50% { transform: rotate(-2deg) translateY(-3px) scale(1.025); }",
+                "  50% { transform: rotate(-2deg) translateY(-0.1875rem) scale(1.025); }",
                 "}",
                 "",
                 "@keyframes helmettyPcIntroCardShake {",
                 "  0% { transform: rotate(-5deg) translateY(0); }",
-                "  22% { transform: rotate(-7.2deg) translateY(2px); }",
-                "  46% { transform: rotate(-3.3deg) translateY(-1px); }",
-                "  70% { transform: rotate(-5.8deg) translateY(1px); }",
+                "  22% { transform: rotate(-7.2deg) translateY(0.125rem); }",
+                "  46% { transform: rotate(-3.3deg) translateY(-0.0625rem); }",
+                "  70% { transform: rotate(-5.8deg) translateY(0.0625rem); }",
                 "  100% { transform: rotate(-5deg) translateY(0); }",
                 "}",
                 "",
@@ -735,76 +797,76 @@ function installBrandModalHelmettyPc() {
                 "",
                 "@keyframes helmettyPcIntroDecoDrop {",
                 "  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1); }",
-                "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 8px)) rotate(calc(var(--intro-deco-rotate, -8deg) + 8deg)) scale(1.06); }",
-                "  100% { opacity: 0; transform: translate(-50%, 150px) rotate(calc(var(--intro-deco-rotate, -8deg) + 34deg)) scale(0.82); }",
+                "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 0.5rem)) rotate(calc(var(--intro-deco-rotate, -8deg) + 8deg)) scale(1.06); }",
+                "  100% { opacity: 0; transform: translate(-50%, 9.375rem) rotate(calc(var(--intro-deco-rotate, -8deg) + 34deg)) scale(0.82); }",
                 "}",
                 "",
                 "@keyframes helmettyPcCuteFallOut {",
                 "  0% { opacity: var(--cute-opacity, 1); translate: 0 0; rotate: 0deg; scale: 1; }",
-                "  18% { opacity: 1; translate: 0 -12px; rotate: var(--fall-rotate, -4deg); scale: 1.05; }",
-                "  45% { opacity: 1; translate: var(--fall-sway, 22px) 58px; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 0.96; }",
-                "  72% { opacity: 1; translate: calc(var(--fall-sway, 22px) * -1) 118px; rotate: var(--fall-rotate-end, 12deg); scale: 0.9; }",
-                "  100% { opacity: 0; translate: 0 var(--fall-y, 180px); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
+                "  18% { opacity: 1; translate: 0 -0.75rem; rotate: var(--fall-rotate, -4deg); scale: 1.05; }",
+                "  45% { opacity: 1; translate: var(--fall-sway, 1.375rem) 3.625rem; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 0.96; }",
+                "  72% { opacity: 1; translate: calc(var(--fall-sway, 1.375rem) * -1) 7.375rem; rotate: var(--fall-rotate-end, 12deg); scale: 0.9; }",
+                "  100% { opacity: 0; translate: 0 var(--fall-y, 11.25rem); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
                 "}",
 
                 "@keyframes helmettyPcCuteReturnIn {",
-                "  0% { opacity: 0; translate: 0 var(--fall-y, 180px); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
-                "  35% { opacity: 1; translate: calc(var(--fall-sway, 22px) * -1) 118px; rotate: var(--fall-rotate-end, 12deg); scale: 0.92; }",
-                "  60% { opacity: 1; translate: var(--fall-sway, 22px) 44px; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 1; }",
-                "  82% { opacity: var(--cute-opacity, 1); translate: 0 -14px; rotate: var(--fall-rotate, -4deg); scale: 1.06; }",
+                "  0% { opacity: 0; translate: 0 var(--fall-y, 11.25rem); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
+                "  35% { opacity: 1; translate: calc(var(--fall-sway, 1.375rem) * -1) 7.375rem; rotate: var(--fall-rotate-end, 12deg); scale: 0.92; }",
+                "  60% { opacity: 1; translate: var(--fall-sway, 1.375rem) 2.75rem; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 1; }",
+                "  82% { opacity: var(--cute-opacity, 1); translate: 0 -0.875rem; rotate: var(--fall-rotate, -4deg); scale: 1.06; }",
                 "  100% { opacity: var(--cute-opacity, 1); translate: 0 0; rotate: 0deg; scale: 1; }",
                 "}",
 
                 "@keyframes helmettyPcLogoFlyOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }",
-                "  20% { opacity: 1; transform: translate(0,-8px) rotate(-3deg) scale(0.92, 1.18); }",
-                "  45% { opacity: 1; transform: translate(-18px,-30px) rotate(-10deg) scale(1.04, 1.04); }",
-                "  100% { opacity: 0; transform: translate(-54px, 190px) rotate(-28deg) scale(0.78, 0.78); }",
+                "  20% { opacity: 1; transform: translate(0,-0.5rem) rotate(-3deg) scale(0.92, 1.18); }",
+                "  45% { opacity: 1; transform: translate(-1.125rem,-1.875rem) rotate(-10deg) scale(1.04, 1.04); }",
+                "  100% { opacity: 0; transform: translate(-3.375rem, 11.875rem) rotate(-28deg) scale(0.78, 0.78); }",
                 "}",
 
                 "@keyframes helmettyPcLogoFlyIn {",
-                "  0% { opacity: 0; transform: translate(-54px, 190px) rotate(-28deg) scale(0.78, 0.78); }",
-                "  55% { opacity: 1; transform: translate(6px,-14px) rotate(4deg) scale(1.08, 1.08); }",
-                "  78% { opacity: 1; transform: translate(-3px, 3px) rotate(-2deg) scale(0.98, 0.98); }",
+                "  0% { opacity: 0; transform: translate(-3.375rem, 11.875rem) rotate(-28deg) scale(0.78, 0.78); }",
+                "  55% { opacity: 1; transform: translate(0.375rem,-0.875rem) rotate(4deg) scale(1.08, 1.08); }",
+                "  78% { opacity: 1; transform: translate(-0.1875rem, 0.1875rem) rotate(-2deg) scale(0.98, 0.98); }",
                 "  100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }",
                 "}",
 
                 "@keyframes helmettyPcNoteFlutterOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }",
-                "  18% { opacity: 1; transform: translate(0,-7px) rotate(-2deg) scale(1.08); }",
-                "  40% { opacity: 1; transform: translate(20px, 26px) rotate(8deg) scale(1); }",
-                "  65% { opacity: 1; transform: translate(-18px, 86px) rotate(-12deg) scale(0.96); }",
-                "  100% { opacity: 0; transform: translate(16px, 205px) rotate(22deg) scale(0.85); }",
+                "  18% { opacity: 1; transform: translate(0,-0.4375rem) rotate(-2deg) scale(1.08); }",
+                "  40% { opacity: 1; transform: translate(1.25rem, 1.625rem) rotate(8deg) scale(1); }",
+                "  65% { opacity: 1; transform: translate(-1.125rem, 5.375rem) rotate(-12deg) scale(0.96); }",
+                "  100% { opacity: 0; transform: translate(1rem, 12.8125rem) rotate(22deg) scale(0.85); }",
                 "}",
 
                 "@keyframes helmettyPcNoteFlutterIn {",
-                "  0% { opacity: 0; transform: translate(16px, 205px) rotate(22deg) scale(0.85); }",
-                "  50% { opacity: 1; transform: translate(-12px, 14px) rotate(-10deg) scale(1.04); }",
-                "  75% { opacity: 1; transform: translate(6px, -6px) rotate(-2deg) scale(1.06); }",
+                "  0% { opacity: 0; transform: translate(1rem, 12.8125rem) rotate(22deg) scale(0.85); }",
+                "  50% { opacity: 1; transform: translate(-0.75rem, 0.875rem) rotate(-10deg) scale(1.04); }",
+                "  75% { opacity: 1; transform: translate(0.375rem, -0.375rem) rotate(-2deg) scale(1.06); }",
                 "  100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }",
                 "}",
 
                 "@keyframes helmettyPcButtonBounceOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }",
-                "  18% { opacity: 1; transform: translateY(6px) scale(1.22, 0.78) rotate(0deg); }",
-                "  40% { opacity: 1; transform: translateY(-24px) scale(0.86, 1.18) rotate(0deg); }",
-                "  65% { opacity: 1; transform: translateY(30px) scale(1.1, 0.92) rotate(6deg); }",
-                "  100% { opacity: 0; transform: translateY(220px) scale(0.82, 0.82) rotate(-14deg); }",
+                "  18% { opacity: 1; transform: translateY(0.375rem) scale(1.22, 0.78) rotate(0deg); }",
+                "  40% { opacity: 1; transform: translateY(-1.5rem) scale(0.86, 1.18) rotate(0deg); }",
+                "  65% { opacity: 1; transform: translateY(1.875rem) scale(1.1, 0.92) rotate(6deg); }",
+                "  100% { opacity: 0; transform: translateY(13.75rem) scale(0.82, 0.82) rotate(-14deg); }",
                 "}",
 
                 "@keyframes helmettyPcButtonBounceIn {",
-                "  0% { opacity: 0; transform: translateY(220px) scale(0.82, 0.82) rotate(-14deg); }",
-                "  55% { opacity: 1; transform: translateY(-20px) scale(0.9, 1.15) rotate(0deg); }",
-                "  75% { opacity: 1; transform: translateY(8px) scale(1.15, 0.88) rotate(0deg); }",
-                "  90% { opacity: 1; transform: translateY(-4px) scale(0.97, 1.04) rotate(0deg); }",
+                "  0% { opacity: 0; transform: translateY(13.75rem) scale(0.82, 0.82) rotate(-14deg); }",
+                "  55% { opacity: 1; transform: translateY(-1.25rem) scale(0.9, 1.15) rotate(0deg); }",
+                "  75% { opacity: 1; transform: translateY(0.5rem) scale(1.15, 0.88) rotate(0deg); }",
+                "  90% { opacity: 1; transform: translateY(-0.25rem) scale(0.97, 1.04) rotate(0deg); }",
                 "  100% { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }",
                 "}",
 
                 "@keyframes helmettyPcPolaroidDecoShake {",
                 "  0% { transform: rotate(0deg) translateY(0); }",
-                "  22% { transform: rotate(-2.4deg) translateY(3px); }",
-                "  46% { transform: rotate(1.8deg) translateY(-2px); }",
-                "  70% { transform: rotate(-0.9deg) translateY(1px); }",
+                "  22% { transform: rotate(-2.4deg) translateY(0.1875rem); }",
+                "  46% { transform: rotate(1.8deg) translateY(-0.125rem); }",
+                "  70% { transform: rotate(-0.9deg) translateY(0.0625rem); }",
                 "  100% { transform: rotate(0deg) translateY(0); }",
                 "}",
 
@@ -816,8 +878,8 @@ function installBrandModalHelmettyPc() {
 
                 "@keyframes helmettyPcPolaroidDecoDrop {",
                 "  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(1); }",
-                "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 10px)) rotate(calc(var(--deco-rotate, -8deg) + 8deg)) scale(1.06); }",
-                "  100% { opacity: 0; transform: translate(-50%, 210px) rotate(calc(var(--deco-rotate, -8deg) + 34deg)) scale(0.82); }",
+                "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 0.625rem)) rotate(calc(var(--deco-rotate, -8deg) + 8deg)) scale(1.06); }",
+                "  100% { opacity: 0; transform: translate(-50%, 13.125rem) rotate(calc(var(--deco-rotate, -8deg) + 34deg)) scale(0.82); }",
                 "}",
 
                 "@keyframes helmettyPcPolaroidNotePop {",
@@ -828,8 +890,8 @@ function installBrandModalHelmettyPc() {
 
                 "@keyframes helmettyPcPolaroidNoteDrop {",
                 "  0% { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }",
-                "  18% { opacity: 1; transform: translateX(-50%) translateY(-10px) rotate(4deg) scale(1.04); }",
-                "  100% { opacity: 0; transform: translateX(-50%) translateY(210px) rotate(-18deg) scale(0.82); }",
+                "  18% { opacity: 1; transform: translateX(-50%) translateY(-0.625rem) rotate(4deg) scale(1.04); }",
+                "  100% { opacity: 0; transform: translateX(-50%) translateY(13.125rem) rotate(-18deg) scale(0.82); }",
                 "}",
 
                 "@keyframes helmettyPcPolaroidPostitPop {",
@@ -840,12 +902,12 @@ function installBrandModalHelmettyPc() {
 
                 "@keyframes helmettyPcPolaroidPostitDrop {",
                 "  0% { opacity: 1; transform: rotate(var(--postit-rotate, 5deg)) scale(1); }",
-                "  18% { opacity: 1; transform: translateY(-10px) rotate(calc(var(--postit-rotate, 5deg) + 6deg)) scale(1.05); }",
-                "  100% { opacity: 0; transform: translateY(210px) rotate(calc(var(--postit-rotate, 5deg) - 24deg)) scale(0.82); }",
+                "  18% { opacity: 1; transform: translateY(-0.625rem) rotate(calc(var(--postit-rotate, 5deg) + 6deg)) scale(1.05); }",
+                "  100% { opacity: 0; transform: translateY(13.125rem) rotate(calc(var(--postit-rotate, 5deg) - 24deg)) scale(0.82); }",
                 "}",
 
                 "@keyframes helmettyPcHintIn {",
-                "  0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.96); }",
+                "  0% { opacity: 0; transform: translateX(-50%) translateY(0.5rem) scale(0.96); }",
                 "  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }",
                 "}"
             ].join("\n");
@@ -880,12 +942,11 @@ function installBrandModalHelmettyPc() {
             }
 
             if (
-                window.galleryData &&
-                window.galleryData.helmetty &&
-                Array.isArray(window.galleryData.helmetty.images)
+                window.BrandModalHelmettyData &&
+                Array.isArray(window.BrandModalHelmettyData.images)
             ) {
-                for (i = 0; i < window.galleryData.helmetty.images.length; i += 1) {
-                    if (window.galleryData.helmetty.images[i]) images.push(window.galleryData.helmetty.images[i]);
+                for (i = 0; i < window.BrandModalHelmettyData.images.length; i += 1) {
+                    if (window.BrandModalHelmettyData.images[i]) images.push(window.BrandModalHelmettyData.images[i]);
                 }
             }
 
@@ -908,21 +969,77 @@ function installBrandModalHelmettyPc() {
             });
         }
 
+        function getStoreSignImageSrc() {
+            if (
+                window.BrandModalHelmettyData &&
+                window.BrandModalHelmettyData.modalStoreSignImage
+            ) {
+                return window.BrandModalHelmettyData.modalStoreSignImage;
+            }
+
+            return "";
+        }
+
+        function syncStoreSignImage() {
+            if (!modalCard) return;
+
+            var src = getStoreSignImageSrc();
+
+            if (!src) {
+                if (storeSignImage) {
+                    storeSignImage.remove();
+                    storeSignImage = null;
+                }
+
+                if (storeSignLayer) {
+                    storeSignLayer.remove();
+                    storeSignLayer = null;
+                }
+
+                return;
+            }
+
+            if (!storeSignLayer) {
+                storeSignLayer = document.createElement("div");
+                storeSignLayer.className = "helmetty-pc-store-sign-layer";
+                modalCard.insertBefore(storeSignLayer, modalCard.firstChild);
+            }
+
+            if (!storeSignImage) {
+                storeSignImage = document.createElement("img");
+                storeSignImage.className = "helmetty-pc-store-sign";
+                storeSignImage.alt = "HELMETTY store sign";
+                storeSignImage.draggable = false;
+                storeSignLayer.appendChild(storeSignImage);
+            }
+
+            storeSignImage.src = src;
+        }
+
         function syncHelmettyPcInfoWithMobile() {
             if (!modalCard) return;
 
+            syncStoreSignImage();
+
+            var helmettyData = HELMETTY_PC_MODAL_DATA;
             var logo = modalCard.querySelector(".brand-logo-banner") || modalCard.querySelector(".pc-modal-logo") || modalCard.querySelector(".modal-logo");
             var cat = modalCard.querySelector(".pc-modal-cat") || modalCard.querySelector(".modal-cat");
+            var watermark = modalCard.querySelector(".pc-modal-watermark") || modalCard.querySelector(".modal-watermark");
             var title = modalCard.querySelector(".pc-modal-title") || modalCard.querySelector(".modal-title");
             var desc = modalCard.querySelector(".modal-desc.cute-shop-copy") || modalCard.querySelector(".pc-modal-desc") || modalCard.querySelector(".modal-desc");
             var btn = modalCard.querySelector(".modal-link-btn") || modalCard.querySelector(".pc-modal-link");
 
+            if (modal) {
+                modal.style.setProperty("--pc-modal-bg", helmettyData.theme.bg);
+                modal.style.setProperty("--pc-modal-text", helmettyData.theme.text);
+                modal.style.setProperty("--pc-modal-btn", helmettyData.theme.btn);
+                modal.style.setProperty("--pc-modal-btn-text", helmettyData.theme.btnText);
+            }
+
             if (logo) {
                 logo.classList.add("brand-logo-banner");
-
-                if (logo.getAttribute && logo.getAttribute("src")) {
-                    logo.setAttribute("alt", "HELMETTY");
-                }
+                logo.src = helmettyData.logoUrl;
+                logo.setAttribute("alt", helmettyData.watermark);
 
                 if (logo.parentNode !== modalCard) {
                     modalCard.appendChild(logo);
@@ -930,9 +1047,15 @@ function installBrandModalHelmettyPc() {
             }
 
             if (cat) {
+                cat.textContent = helmettyData.cat;
+
                 if (cat.parentNode !== modalCard) {
                     modalCard.appendChild(cat);
                 }
+            }
+
+            if (watermark) {
+                watermark.textContent = helmettyData.watermark;
             }
 
             if (title && logo && logo.getAttribute && logo.getAttribute("src")) {
@@ -985,21 +1108,17 @@ function installBrandModalHelmettyPc() {
         }
 
         function showIntroCardDecos() {
-            if (!modalCard || isPolaroidOpen) return;
+            if (!modal || !modalCard || isPolaroidOpen) return;
+            if (!modal.classList.contains("is-open") || modal.getAttribute("data-active-brand") !== "helmetty") return;
 
             var card = getIntroCard();
             if (!card) return;
 
             clearIntroCardDecos();
 
-            var modalRect = modalCard.getBoundingClientRect();
-            var cardRect = card.getBoundingClientRect();
-            var cardLeft = cardRect.left - modalRect.left;
-            var cardTop = cardRect.top - modalRect.top;
-
             var patterns = [
-                { left: cardLeft + cardRect.width * 0.03, top: cardTop + cardRect.height * 0.25, rotate: "-12deg", color: "rgba(150,220,255,0.9)", color2: "rgba(80,170,220,0.38)" },
-                { left: cardLeft + cardRect.width * 0.97, top: cardTop + cardRect.height * 0.74, rotate: "12deg", color: "rgba(255,218,86,0.88)", color2: "rgba(230,180,40,0.42)" }
+                { left: "3%", top: "5%", rotate: "-12deg", color: "rgba(150,220,255,0.9)", color2: "rgba(80,170,220,0.38)" },
+                { left: "97%", top: "94%", rotate: "12deg", color: "rgba(255,218,86,0.88)", color2: "rgba(230,180,40,0.42)" }
             ];
 
             shakeIntroCard(card);
@@ -1007,13 +1126,13 @@ function installBrandModalHelmettyPc() {
             patterns.forEach(function (pattern) {
                 var deco = document.createElement("div");
                 deco.className = "helmetty-pc-intro-deco is-tape";
-                deco.style.setProperty("--intro-deco-left", String(pattern.left) + "px");
-                deco.style.setProperty("--intro-deco-top", String(pattern.top) + "px");
+                deco.style.setProperty("--intro-deco-left", pattern.left);
+                deco.style.setProperty("--intro-deco-top", pattern.top);
                 deco.style.setProperty("--intro-deco-rotate", pattern.rotate);
                 deco.style.setProperty("--intro-deco-color", pattern.color);
                 deco.style.setProperty("--intro-deco-color-2", pattern.color2);
 
-                modalCard.appendChild(deco);
+                card.appendChild(deco);
                 introDecos.push(deco);
             });
         }
@@ -1075,6 +1194,7 @@ function installBrandModalHelmettyPc() {
             var caption = modalCard.querySelector(".helmetty-pc-album-caption");
 
             if (logo && (!logo.getAttribute || logo.getAttribute("src"))) items.push({ el: logo, kind: "logo" });
+            if (storeSignImage) items.push({ el: storeSignImage, kind: "logo" });
             if (title && !title.classList.contains("helmetty-pc-title-hidden")) items.push({ el: title, kind: "note" });
             if (note) items.push({ el: note, kind: "note" });
             if (btn) items.push({ el: btn, kind: "button" });
@@ -1093,10 +1213,10 @@ function installBrandModalHelmettyPc() {
                 el.dataset.helmettyPcCuteOpacity = originalOpacity;
                 el.style.setProperty("--cute-opacity", originalOpacity);
                 el.style.setProperty("--fall-delay", String(0.08 + index * 0.045) + "s");
-                el.style.setProperty("--fall-y", String(150 + index * 10) + "px");
+                el.style.setProperty("--fall-y", helmettyToVh(150 + index * 10));
                 el.style.setProperty("--fall-rotate", index % 2 === 0 ? "-5deg" : "5deg");
                 el.style.setProperty("--fall-rotate-end", index % 2 === 0 ? "18deg" : "-18deg");
-                el.style.setProperty("--fall-sway", index % 2 === 0 ? "24px" : "-24px");
+                el.style.setProperty("--fall-sway", index % 2 === 0 ? helmettyToVw(24) : helmettyToVw(-24));
                 el.classList.add("helmetty-pc-fall-out");
             });
 
@@ -1133,10 +1253,10 @@ function installBrandModalHelmettyPc() {
 
                 el.style.setProperty("--cute-opacity", originalOpacity);
                 el.style.setProperty("--return-delay", String(index * 0.045) + "s");
-                el.style.setProperty("--fall-y", String(150 + index * 10) + "px");
+                el.style.setProperty("--fall-y", helmettyToVh(150 + index * 10));
                 el.style.setProperty("--fall-rotate", index % 2 === 0 ? "-5deg" : "5deg");
                 el.style.setProperty("--fall-rotate-end", index % 2 === 0 ? "18deg" : "-18deg");
-                el.style.setProperty("--fall-sway", index % 2 === 0 ? "24px" : "-24px");
+                el.style.setProperty("--fall-sway", index % 2 === 0 ? helmettyToVw(24) : helmettyToVw(-24));
                 el.classList.add("helmetty-pc-return-in");
 
                 setTimeout(function () {
@@ -1176,12 +1296,12 @@ function installBrandModalHelmettyPc() {
         }
 
         var decoPatterns = [
-            { type: "pin", left: "50%", top: "52px", rotate: "-6deg", color: "#E83B78", color2: "#FF78A8" },
-            { type: "pin", left: "50%", top: "52px", rotate: "7deg", color: "#D94335", color2: "#FF8A66" },
-            { type: "pin", left: "50%", top: "52px", rotate: "-4deg", color: "#6E63D9", color2: "#A390FF" },
-            { type: "tape", left: "50%", top: "76px", rotate: "-4deg", color: "rgba(150,220,255,0.9)", color2: "rgba(80,170,220,0.38)" },
-            { type: "tape", left: "50%", top: "76px", rotate: "4deg", color: "rgba(255,218,86,0.88)", color2: "rgba(230,180,40,0.42)" },
-            { type: "tape", left: "50%", top: "80px", rotate: "3deg", color: "rgba(255,165,210,0.88)", color2: "rgba(255,126,179,0.42)" }
+            { type: "pin", left: "50%", top: "3.25rem", rotate: "-6deg", color: "#E83B78", color2: "#FF78A8" },
+            { type: "pin", left: "50%", top: "3.25rem", rotate: "7deg", color: "#D94335", color2: "#FF8A66" },
+            { type: "pin", left: "50%", top: "3.25rem", rotate: "-4deg", color: "#6E63D9", color2: "#A390FF" },
+            { type: "tape", left: "50%", top: "4.75rem", rotate: "-4deg", color: "rgba(150,220,255,0.9)", color2: "rgba(80,170,220,0.38)" },
+            { type: "tape", left: "50%", top: "4.75rem", rotate: "4deg", color: "rgba(255,218,86,0.88)", color2: "rgba(230,180,40,0.42)" },
+            { type: "tape", left: "50%", top: "5rem", rotate: "3deg", color: "rgba(255,165,210,0.88)", color2: "rgba(255,126,179,0.42)" }
         ];
 
         var postitPatterns = [
@@ -1213,12 +1333,11 @@ function installBrandModalHelmettyPc() {
             var heroRect = polaroidHero.getBoundingClientRect();
             var heroLeft = heroRect.left - cardRect.left;
             var heroTop = heroRect.top - cardRect.top;
-            var modalCardStyle = getComputedStyle(modalCard);
-            var decoX = parseFloat(modalCardStyle.getPropertyValue("--helmetty-pc-deco-x")) || heroLeft + heroRect.width * 0.5;
-            var decoY = parseFloat(modalCardStyle.getPropertyValue("--helmetty-pc-deco-y")) || heroTop + heroRect.height * 0.08;
+            var decoX = heroLeft + heroRect.width * 0.5;
+            var decoY = heroTop + heroRect.height * 0.08;
 
-            polaroidHero.style.setProperty("--shake-origin-x", String(decoX - heroLeft) + "px");
-            polaroidHero.style.setProperty("--shake-origin-y", String(decoY - heroTop) + "px");
+            polaroidHero.style.setProperty("--shake-origin-x", String(((decoX - heroLeft) / Math.max(heroRect.width, 1)) * 100) + "%");
+            polaroidHero.style.setProperty("--shake-origin-y", String(((decoY - heroTop) / Math.max(heroRect.height, 1)) * 100) + "%");
 
             shakePolaroid();
 
@@ -1386,23 +1505,24 @@ function installBrandModalHelmettyPc() {
             var openLeft = stageLeft + (stageRect.width - openSize) / 2;
             var openTop = stageTop + (stageRect.height - openSize) / 2;
 
-            modalCard.style.setProperty("--helmetty-pc-open-left", String(openLeft) + "px");
-            modalCard.style.setProperty("--helmetty-pc-open-top", String(openTop) + "px");
-            modalCard.style.setProperty("--helmetty-pc-open-size", String(openSize) + "px");
+            modalCard.style.setProperty("--helmetty-pc-open-left", helmettyToModalX(openLeft, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-open-top", helmettyToModalY(openTop, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-open-width", helmettyToModalX(openSize, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-open-height", helmettyToModalY(openSize, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-deco-left", String(openLeft + openSize * 0.5) + "px");
-            modalCard.style.setProperty("--helmetty-pc-deco-top", String(openTop + openSize * 0.02) + "px");
-            modalCard.style.setProperty("--helmetty-pc-deco-x", String(openLeft + openSize * 0.5) + "px");
-            modalCard.style.setProperty("--helmetty-pc-deco-y", String(openTop + openSize * 0.02) + "px");
+            modalCard.style.setProperty("--helmetty-pc-deco-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-deco-top", helmettyToModalY(openTop + openSize * 0.02, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-deco-x", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-deco-y", helmettyToModalY(openTop + openSize * 0.02, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-note-left", String(openLeft + openSize * 0.5) + "px");
-            modalCard.style.setProperty("--helmetty-pc-note-top", String(openTop + openSize * 0.84) + "px");
+            modalCard.style.setProperty("--helmetty-pc-note-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-note-top", helmettyToModalY(openTop + openSize * 0.84, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-postit-left", String(openLeft - openSize * 0.08) + "px");
-            modalCard.style.setProperty("--helmetty-pc-postit-top", String(openTop + openSize * 0.12) + "px");
+            modalCard.style.setProperty("--helmetty-pc-postit-left", helmettyToModalX(openLeft - openSize * 0.08, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-postit-top", helmettyToModalY(openTop + openSize * 0.12, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-hint-left", String(openLeft + openSize * 0.5) + "px");
-            modalCard.style.setProperty("--helmetty-pc-hint-top", String(openTop - openSize * 0.1) + "px");
+            modalCard.style.setProperty("--helmetty-pc-hint-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--helmetty-pc-hint-top", helmettyToModalY(openTop - openSize * 0.1, cardRect));
         }
 
         function closePolaroid() {
@@ -1477,10 +1597,10 @@ function installBrandModalHelmettyPc() {
             polaroidHero = img.cloneNode(true);
             polaroidHero.className = "helmetty-pc-polaroid-hero";
             polaroidHero.removeAttribute("id");
-            polaroidHero.style.setProperty("--hero-left", String(imgRect.left - cardRect.left) + "px");
-            polaroidHero.style.setProperty("--hero-top", String(imgRect.top - cardRect.top) + "px");
-            polaroidHero.style.setProperty("--hero-width", String(imgRect.width) + "px");
-            polaroidHero.style.setProperty("--hero-height", String(imgRect.height) + "px");
+            polaroidHero.style.setProperty("--hero-left", helmettyToModalX(imgRect.left - cardRect.left, cardRect));
+            polaroidHero.style.setProperty("--hero-top", helmettyToModalY(imgRect.top - cardRect.top, cardRect));
+            polaroidHero.style.setProperty("--hero-width", helmettyToModalX(imgRect.width, cardRect));
+            polaroidHero.style.setProperty("--hero-height", helmettyToModalY(imgRect.height, cardRect));
             setOpenLayoutToPhotoStageCenter(cardRect);
 
             modalCard.appendChild(polaroidHero);
@@ -1664,6 +1784,7 @@ function installBrandModalHelmettyPc() {
 
         function destroy() {
             clearTimers();
+            clearIntroCardDecos();
             unbindAlbumImages();
 
             albumFallTargets().forEach(function (el) {
@@ -1695,6 +1816,11 @@ function installBrandModalHelmettyPc() {
             if (polaroidPostit) {
                 polaroidPostit.remove();
                 polaroidPostit = null;
+            }
+
+            if (storeSignImage) {
+                storeSignImage.remove();
+                storeSignImage = null;
             }
 
             removeCloseHint();

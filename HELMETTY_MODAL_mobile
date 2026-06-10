@@ -26,6 +26,17 @@ function installBrandModalHelmetty() {
         let pointerStartY = 0;
         let didMove = false;
 
+        const HELMETTY_MOBILE_MODAL_DATA = {
+            cat: "Love at First Step.",
+            titleHTML: "HELMETTY",
+            logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
+            desc: `
+                <small>CUTE FANCY SHOP</small>
+                <span>ちょっとカワイイものを集めた<br>ファンシーなショップです</span>
+            `,
+            theme: { bg: "rgba(248,187,208,0.98)", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
+        };
+
         const injectStyle = () => {
             if (document.getElementById(STYLE_ID)) return;
 
@@ -1155,6 +1166,7 @@ function installBrandModalHelmetty() {
         };
 
         window.BrandModalHelmetty = {
+            data: HELMETTY_MOBILE_MODAL_DATA,
             setup,
             destroy,
             close: closePolaroid,
