@@ -1,7 +1,8 @@
+// public/brand-modal/brand-modal-rasim-mobile.js
 // @ts-nocheck
-function installBrandModalHelmetty() {
+function installBrandModalRasim() {
     (() => {
-        const STYLE_ID = 'brand-modal-helmetty-style';
+        const STYLE_ID = 'brand-modal-rasim-style';
 
         let modal = null;
         let modalCard = null;
@@ -26,9 +27,9 @@ function installBrandModalHelmetty() {
         let pointerStartY = 0;
         let didMove = false;
 
-        const HELMETTY_MOBILE_MODAL_DATA = {
+        const RASIM_MOBILE_MODAL_DATA = {
             cat: "Love at First Step.",
-            titleHTML: "HELMETTY",
+            titleHTML: "Rasi:m",
             logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
             desc: `
                 <small>CUTE FANCY SHOP</small>
@@ -43,15 +44,15 @@ function installBrandModalHelmetty() {
             const style = document.createElement('style');
             style.id = STYLE_ID;
             style.textContent = `
-                .brand-modal[data-active-brand="helmetty"] .brand-logo-banner {
+                .brand-modal[data-active-brand="rasim"] .brand-logo-banner {
                     display: block;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-title {
+                .brand-modal[data-active-brand="rasim"] .modal-title {
                     display: none;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content {
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content {
                     background-color: #F8EECF !important;
                     background-image:
                         linear-gradient(90deg, rgba(255,126,179,0.025) calc(1 * var(--ru)), transparent calc(1 * var(--ru))),
@@ -64,14 +65,14 @@ function installBrandModalHelmetty() {
                     --m-img: min(calc(153.6 * var(--rx)), calc(160 * var(--ru))) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open {
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open {
                     display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
                     padding: calc(34 * var(--ry)) 0 !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .swipe-indicator {
+                .brand-modal[data-active-brand="rasim"] .swipe-indicator {
                     position: absolute !important;
                     left: 50% !important;
                     top: calc(172 * var(--ry)) !important;
@@ -95,11 +96,11 @@ function installBrandModalHelmetty() {
                     font-family: var(--font-sans) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .swipe-line {
+                .brand-modal[data-active-brand="rasim"] .swipe-line {
                     display: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .swipe-dot {
+                .brand-modal[data-active-brand="rasim"] .swipe-dot {
                     width: calc(5 * var(--ru)) !important;
                     height: calc(5 * var(--ru)) !important;
                     border-radius: 50% !important;
@@ -107,7 +108,7 @@ function installBrandModalHelmetty() {
                     animation: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-footer {
+                .brand-modal[data-active-brand="rasim"] .modal-footer {
                     min-height: 0 !important;
                     text-align: center !important;
                     margin-top: 0 !important;
@@ -119,7 +120,7 @@ function installBrandModalHelmetty() {
                     pointer-events: auto !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-link-btn {
+                .brand-modal[data-active-brand="rasim"] .modal-link-btn {
                     position: relative !important;
                     display: inline-block !important;
                     padding:
@@ -147,7 +148,7 @@ function installBrandModalHelmetty() {
                     will-change: transform !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-link-btn::before {
+                .brand-modal[data-active-brand="rasim"] .modal-link-btn::before {
                     content: "♥";
                     position: absolute;
                     left: calc(-12 * var(--rx));
@@ -166,7 +167,7 @@ function installBrandModalHelmetty() {
                     will-change: transform;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-link-btn::after {
+                .brand-modal[data-active-brand="rasim"] .modal-link-btn::after {
                     content: "★";
                     position: absolute;
                     right: calc(-11 * var(--rx));
@@ -217,7 +218,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .cute-shop-copy {
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy {
                     position: relative;
                     display: flex;
                     flex-direction: column;
@@ -250,7 +251,7 @@ function installBrandModalHelmetty() {
                     will-change: transform;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .cute-shop-copy::before {
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::before {
                     content: "";
                     position: absolute;
                     left: calc(-12 * var(--rx));
@@ -267,7 +268,7 @@ function installBrandModalHelmetty() {
                     will-change: transform;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .cute-shop-copy::after {
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::after {
                     content: "";
                     position: absolute;
                     right: calc(-11 * var(--rx));
@@ -284,7 +285,7 @@ function installBrandModalHelmetty() {
                     will-change: transform;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .cute-shop-copy span {
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy span {
                     font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
                     font-size: clamp(calc(10 * var(--ru)), calc(0.78rem), calc(12.48 * var(--ru)));
                     font-weight: 900;
@@ -297,7 +298,7 @@ function installBrandModalHelmetty() {
                         calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,216,77,0.32);
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .cute-shop-copy small {
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy small {
                     font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;
                     font-size: clamp(calc(8 * var(--ru)), calc(0.56rem), calc(8.96 * var(--ru)));
                     font-weight: 700;
@@ -306,7 +307,7 @@ function installBrandModalHelmetty() {
                     color: #FF9A66;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-track-wrap {
+                .brand-modal[data-active-brand="rasim"] .modal-track-wrap {
                     position: absolute !important;
                     left: 0 !important;
                     right: 0 !important;
@@ -325,7 +326,7 @@ function installBrandModalHelmetty() {
                     pointer-events: auto !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-track {
+                .brand-modal[data-active-brand="rasim"] .modal-track {
                     opacity: 1 !important;
                     transform: none !important;
                     display: flex !important;
@@ -336,12 +337,12 @@ function installBrandModalHelmetty() {
                     pointer-events: auto !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-close {
+                .brand-modal[data-active-brand="rasim"] .modal-close {
                     z-index: 9999 !important;
                     pointer-events: auto !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-header.modal-anim {
+                .brand-modal[data-active-brand="rasim"] .modal-header.modal-anim {
                     position: absolute !important;
                     left: 0 !important;
                     right: 0 !important;
@@ -352,7 +353,7 @@ function installBrandModalHelmetty() {
                     pointer-events: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .brand-logo-banner {
+                .brand-modal[data-active-brand="rasim"] .brand-logo-banner {
                     display: block !important;
                     width: min(66%, calc(210 * var(--rx))) !important;
                     height: auto !important;
@@ -363,7 +364,7 @@ function installBrandModalHelmetty() {
                     object-fit: contain !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-desc.cute-shop-copy {
+                .brand-modal[data-active-brand="rasim"] .modal-desc.cute-shop-copy {
                     display: flex !important;
                     font-size: initial !important;
                     line-height: initial !important;
@@ -380,11 +381,11 @@ function installBrandModalHelmetty() {
                 }
 
                 @media (max-height: 560px) {
-                    .brand-modal[data-active-brand="helmetty"] .modal-desc {
+                    .brand-modal[data-active-brand="rasim"] .modal-desc {
                         display: none !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-gallery-content {
+                    .brand-modal[data-active-brand="rasim"] .modal-gallery-content {
                         padding:
                             calc(env(safe-area-inset-top, 0px) + calc(38 * var(--ry)))
                             0
@@ -392,35 +393,35 @@ function installBrandModalHelmetty() {
                         --m-img: min(calc(166.4 * var(--rx)), calc(221 * var(--ry)), calc(180 * var(--ru))) !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-divider {
+                    .brand-modal[data-active-brand="rasim"] .modal-divider {
                         margin: 0 auto calc(6 * var(--ry)) !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-title {
+                    .brand-modal[data-active-brand="rasim"] .modal-title {
                         margin-bottom: calc(4 * var(--ry)) !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-track-wrap {
+                    .brand-modal[data-active-brand="rasim"] .modal-track-wrap {
                         padding: calc(4 * var(--ry)) 0 !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .swipe-indicator {
+                    .brand-modal[data-active-brand="rasim"] .swipe-indicator {
                         margin-top: calc(4 * var(--ry)) !important;
                         transform: scale(0.9) !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-footer {
+                    .brand-modal[data-active-brand="rasim"] .modal-footer {
                         margin-top: calc(4 * var(--ry)) !important;
                     }
 
-                    .brand-modal[data-active-brand="helmetty"] .modal-link-btn {
+                    .brand-modal[data-active-brand="rasim"] .modal-link-btn {
                         padding:
                             calc(8 * var(--ry))
                             calc(22 * var(--rx)) !important;
                     }
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-watermark {
+                .brand-modal[data-active-brand="rasim"] .modal-watermark {
                     display: none !important;
                 }
 
@@ -489,59 +490,59 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-cat,
-                .brand-modal[data-active-brand="helmetty"] .modal-divider,
-                .brand-modal[data-active-brand="helmetty"] .modal-title {
+                .brand-modal[data-active-brand="rasim"] .modal-cat,
+                .brand-modal[data-active-brand="rasim"] .modal-divider,
+                .brand-modal[data-active-brand="rasim"] .modal-title {
                     display: none !important;
                     pointer-events: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-watermark {
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-watermark {
                     display: none !important;
                     pointer-events: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn {
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-link-btn {
                     animation: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn.helmetty-cute-button-out {
-                    animation: helmettyButtonBounceOut 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-link-btn.rasim-cute-button-out {
+                    animation: rasimButtonBounceOut 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn.helmetty-cute-button-in {
-                    animation: helmettyButtonBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-link-btn.rasim-cute-button-in {
+                    animation: rasimButtonBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-desc.cute-shop-copy.helmetty-cute-note-out {
-                    animation: helmettyNoteFlutterOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-desc.cute-shop-copy.rasim-cute-note-out {
+                    animation: rasimNoteFlutterOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     opacity: 0 !important;
                     transform: translate(10px, 140px) rotate(22deg) scale(0.85) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-desc.cute-shop-copy.helmetty-cute-note-in {
-                    animation: helmettyNoteFlutterIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .modal-desc.cute-shop-copy.rasim-cute-note-in {
+                    animation: rasimNoteFlutterIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     transform: none !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .swipe-indicator.helmetty-cute-swipe-out {
-                    animation: helmettySwipeOut 0.5s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .swipe-indicator.rasim-cute-swipe-out {
+                    animation: rasimSwipeOut 0.5s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     opacity: 0 !important;
                     transform: translateX(-50%) translateY(40px) scale(0.7) !important;
                 }
 
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .swipe-indicator.helmetty-cute-swipe-in {
-                    animation: helmettySwipeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content.is-rasim-polaroid-open .swipe-indicator.rasim-cute-swipe-in {
+                    animation: rasimSwipeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     transform: none !important;
                 }
 
-                .modal-gallery-content.is-helmetty-ready {
+                .modal-gallery-content.is-rasim-ready {
                     background-color: #F8EECF;
                     background-image:
                         linear-gradient(90deg, rgba(255,126,179,0.025) 1px, transparent 1px),
@@ -550,7 +551,7 @@ function installBrandModalHelmetty() {
                     background-size: 14px 14px, 14px 14px, 100% 100%;
                 }
 
-                .modal-gallery-content.is-helmetty-ready .modal-track-wrap {
+                .modal-gallery-content.is-rasim-ready .modal-track-wrap {
                     position: relative;
                     z-index: 3;
                     width: 100%;
@@ -559,7 +560,7 @@ function installBrandModalHelmetty() {
                     overflow: visible;
                 }
 
-                .modal-gallery-content.is-helmetty-ready .modal-track {
+                .modal-gallery-content.is-rasim-ready .modal-track {
                     display: flex;
                     align-items: center;
                     gap: 18px;
@@ -570,7 +571,7 @@ function installBrandModalHelmetty() {
                     touch-action: pan-x;
                 }
 
-                .modal-gallery-content.is-helmetty-ready .gallery-img {
+                .modal-gallery-content.is-rasim-ready .gallery-img {
                     box-sizing: content-box;
                     width: var(--m-img);
                     height: var(--m-img);
@@ -588,17 +589,17 @@ function installBrandModalHelmetty() {
                     filter: brightness(0.92) saturate(1.08);
                 }
 
-                .modal-gallery-content.is-helmetty-ready .gallery-img:nth-child(even) {
+                .modal-gallery-content.is-rasim-ready .gallery-img:nth-child(even) {
                     transform: rotate(2deg) scale(0.9);
                 }
 
-                .modal-gallery-content.is-helmetty-ready .gallery-img.is-focused {
+                .modal-gallery-content.is-rasim-ready .gallery-img.is-focused {
                     transform: rotate(0deg) scale(1);
                     opacity: 1;
                     filter: brightness(1) saturate(1.12);
                 }
 
-                .modal-gallery-content.is-helmetty-ready::before {
+                .modal-gallery-content.is-rasim-ready::before {
                     content: "";
                     position: absolute;
                     inset: 10px;
@@ -612,35 +613,35 @@ function installBrandModalHelmetty() {
                         repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top right / 3px 100% no-repeat;
                 }
 
-                .modal-gallery-content.is-helmetty-polaroid-open {
+                .modal-gallery-content.is-rasim-polaroid-open {
                     pointer-events: auto;
                 }
 
-                .modal-gallery-content.is-helmetty-polaroid-open .gallery-img.is-hero-source {
+                .modal-gallery-content.is-rasim-polaroid-open .gallery-img.is-hero-source {
                     opacity: 0;
                     pointer-events: none;
                 }
 
-                .modal-gallery-content.is-helmetty-polaroid-open .modal-close {
+                .modal-gallery-content.is-rasim-polaroid-open .modal-close {
                     z-index: 3060;
                 }
 
-                .helmetty-cute-fall-out,
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content .helmetty-cute-fall-out {
-                    animation: helmettyCuteFallOut 0.62s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .rasim-cute-fall-out,
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content .rasim-cute-fall-out {
+                    animation: rasimCuteFallOut 0.62s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     pointer-events: none !important;
                     will-change: translate, rotate, scale, opacity;
                 }
 
-                .helmetty-cute-return-in,
-                .brand-modal[data-active-brand="helmetty"] .modal-gallery-content .helmetty-cute-return-in {
-                    animation: helmettyCuteReturnIn 0.58s cubic-bezier(0.18, 1.25, 0.4, 1) both !important;
+                .rasim-cute-return-in,
+                .brand-modal[data-active-brand="rasim"] .modal-gallery-content .rasim-cute-return-in {
+                    animation: rasimCuteReturnIn 0.58s cubic-bezier(0.18, 1.25, 0.4, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     will-change: translate, rotate, scale, opacity;
                 }
 
-                .helmetty-polaroid-hero {
+                .rasim-polaroid-hero {
                     position: absolute;
                     left: var(--hero-left);
                     top: var(--hero-top);
@@ -672,7 +673,7 @@ function installBrandModalHelmetty() {
                     -webkit-user-drag: none;
                 }
 
-                .helmetty-polaroid-hero.is-open {
+                .rasim-polaroid-hero.is-open {
                     left: 32px;
                     top: 38px;
                     width: calc(100% - 64px);
@@ -684,12 +685,12 @@ function installBrandModalHelmetty() {
                         0 0 24px rgba(255,255,255,0.56);
                 }
 
-                .helmetty-polaroid-hero.is-deco-shake {
+                .rasim-polaroid-hero.is-deco-shake {
                     transform-origin: var(--shake-origin-x, 50%) var(--shake-origin-y, 0%);
-                    animation: helmettyPolaroidDecoShake 0.48s cubic-bezier(0.18, 1.25, 0.4, 1);
+                    animation: rasimPolaroidDecoShake 0.48s cubic-bezier(0.18, 1.25, 0.4, 1);
                 }
 
-                .helmetty-polaroid-deco {
+                .rasim-polaroid-deco {
                     position: absolute;
                     left: var(--deco-left, 50%);
                     top: var(--deco-top, 38px);
@@ -697,15 +698,15 @@ function installBrandModalHelmetty() {
                     pointer-events: none;
                     transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(0.2);
                     opacity: 0;
-                    animation: helmettyPolaroidDecoPop 0.46s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
+                    animation: rasimPolaroidDecoPop 0.46s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-polaroid-deco.is-dropping {
-                    animation: helmettyPolaroidDecoDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
+                .rasim-polaroid-deco.is-dropping {
+                    animation: rasimPolaroidDecoDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
                 }
 
-                .helmetty-polaroid-deco.is-pin {
+                .rasim-polaroid-deco.is-pin {
                     width: 23px;
                     height: 23px;
                     border-radius: 50%;
@@ -719,7 +720,7 @@ function installBrandModalHelmetty() {
                         0 0 0 3px rgba(255,255,255,0.45) inset;
                 }
 
-                .helmetty-polaroid-deco.is-pin::after {
+                .rasim-polaroid-deco.is-pin::after {
                     content: "";
                     position: absolute;
                     left: 50%;
@@ -732,7 +733,7 @@ function installBrandModalHelmetty() {
                     z-index: -1;
                 }
 
-                .helmetty-polaroid-deco.is-tape {
+                .rasim-polaroid-deco.is-tape {
                     width: 30px;
                     height: 88px;
                     border-radius: 3px;
@@ -744,7 +745,7 @@ function installBrandModalHelmetty() {
                     opacity: 0.96;
                 }
 
-                .helmetty-polaroid-note {
+                .rasim-polaroid-note {
                     position: absolute;
                     left: 50%;
                     bottom: 24px;
@@ -767,16 +768,16 @@ function installBrandModalHelmetty() {
                     pointer-events: auto;
                     transform: translateX(-50%) rotate(-3deg) scale(0.2);
                     opacity: 0;
-                    animation: helmettyPolaroidNotePop 0.5s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
+                    animation: rasimPolaroidNotePop 0.5s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-polaroid-note.is-dropping {
+                .rasim-polaroid-note.is-dropping {
                     pointer-events: none;
-                    animation: helmettyPolaroidNoteDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
+                    animation: rasimPolaroidNoteDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
                 }
 
-                .helmetty-polaroid-note-title {
+                .rasim-polaroid-note-title {
                     display: block;
                     margin-bottom: 5px;
                     font-size: 0.86rem;
@@ -789,7 +790,7 @@ function installBrandModalHelmetty() {
                         2px 2px 0 rgba(255,216,77,0.34);
                 }
 
-                .helmetty-polaroid-note-text {
+                .rasim-polaroid-note-text {
                     margin: 0 0 9px;
                     font-size: 0.62rem;
                     font-weight: 700;
@@ -797,7 +798,7 @@ function installBrandModalHelmetty() {
                     color: #B83F78;
                 }
 
-                .helmetty-polaroid-note-btn {
+                .rasim-polaroid-note-btn {
                     display: inline-block;
                     padding: 8px 24px 7px;
                     background: #62BFEF;
@@ -814,7 +815,7 @@ function installBrandModalHelmetty() {
                         0 6px 12px rgba(98,191,239,0.28);
                 }
 
-                .helmetty-polaroid-postit {
+                .rasim-polaroid-postit {
                     position: absolute;
                     right: 34px;
                     bottom: 148px;
@@ -840,11 +841,11 @@ function installBrandModalHelmetty() {
                     pointer-events: none;
                     transform: rotate(var(--postit-rotate, 5deg)) scale(0.2);
                     opacity: 0;
-                    animation: helmettyPolaroidPostitPop 0.48s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
+                    animation: rasimPolaroidPostitPop 0.48s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-polaroid-postit::after {
+                .rasim-polaroid-postit::after {
                     content: "";
                     position: absolute;
                     right: 0;
@@ -857,11 +858,11 @@ function installBrandModalHelmetty() {
                     opacity: 0.55;
                 }
 
-                .helmetty-polaroid-postit.is-dropping {
-                    animation: helmettyPolaroidPostitDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
+                .rasim-polaroid-postit.is-dropping {
+                    animation: rasimPolaroidPostitDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;
                 }
 
-                @keyframes helmettyCuteFallOut {
+                @keyframes rasimCuteFallOut {
                     0% {
                         opacity: var(--cute-opacity, 1);
                         translate: 0 0;
@@ -894,7 +895,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyCuteReturnIn {
+                @keyframes rasimCuteReturnIn {
                     0% {
                         opacity: 0;
                         translate: 0 var(--fall-y, 120px);
@@ -927,7 +928,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidDecoShake {
+                @keyframes rasimPolaroidDecoShake {
                     0% {
                         transform: rotate(0deg) translateY(0);
                     }
@@ -945,7 +946,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidDecoPop {
+                @keyframes rasimPolaroidDecoPop {
                     0% {
                         opacity: 0;
                         transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(0.2);
@@ -960,7 +961,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidDecoDrop {
+                @keyframes rasimPolaroidDecoDrop {
                     0% {
                         opacity: 1;
                         transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(1);
@@ -975,7 +976,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidNotePop {
+                @keyframes rasimPolaroidNotePop {
                     0% {
                         opacity: 0;
                         transform: translateX(-50%) rotate(-3deg) scale(0.2);
@@ -990,7 +991,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidNoteDrop {
+                @keyframes rasimPolaroidNoteDrop {
                     0% {
                         opacity: 1;
                         transform: translateX(-50%) rotate(-3deg) scale(1);
@@ -1005,7 +1006,7 @@ function installBrandModalHelmetty() {
                     }
                 }
 
-                @keyframes helmettyPolaroidPostitPop {
+                @keyframes rasimPolaroidPostitPop {
                     0% {
                         opacity: 0;
                         transform: rotate(var(--postit-rotate, 5deg)) scale(0.2);
@@ -1021,71 +1022,71 @@ function installBrandModalHelmetty() {
                 }
 
 
-                .helmetty-cute-logo-out {
-                    animation: helmettyLogoFlyOut 0.7s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .rasim-cute-logo-out {
+                    animation: rasimLogoFlyOut 0.7s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     pointer-events: none !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-logo-in {
-                    animation: helmettyLogoFlyIn 0.66s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .rasim-cute-logo-in {
+                    animation: rasimLogoFlyIn 0.66s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-note-out {
-                    animation: helmettyNoteFlutterOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .rasim-cute-note-out {
+                    animation: rasimNoteFlutterOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     pointer-events: none !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-note-in {
-                    animation: helmettyNoteFlutterIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .rasim-cute-note-in {
+                    animation: rasimNoteFlutterIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-button-out {
-                    animation: helmettyButtonBounceOut 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .rasim-cute-button-out {
+                    animation: rasimButtonBounceOut 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     pointer-events: none !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-button-in {
-                    animation: helmettyButtonBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .rasim-cute-button-in {
+                    animation: rasimButtonBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                     will-change: transform, opacity;
                 }
 
-                .helmetty-cute-swipe-out {
-                    animation: helmettySwipeOut 0.5s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
+                .rasim-cute-swipe-out {
+                    animation: rasimSwipeOut 0.5s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
                     animation-delay: var(--fall-delay, 0s) !important;
                     pointer-events: none !important;
                 }
 
-                .helmetty-cute-swipe-in {
-                    animation: helmettySwipeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+                .rasim-cute-swipe-in {
+                    animation: rasimSwipeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
                     animation-delay: var(--return-delay, 0s) !important;
                 }
 
-                @keyframes helmettyLogoFlyOut {
+                @keyframes rasimLogoFlyOut {
                     0%   { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }
                     20%  { opacity: 1; transform: translate(0,-6px) rotate(-3deg) scale(0.92, 1.18); }
                     45%  { opacity: 1; transform: translate(-12px,-22px) rotate(-10deg) scale(1.04, 1.04); }
                     100% { opacity: 0; transform: translate(-30px, 130px) rotate(-28deg) scale(0.78, 0.78); }
                 }
 
-                @keyframes helmettyLogoFlyIn {
+                @keyframes rasimLogoFlyIn {
                     0%   { opacity: 0; transform: translate(-30px, 130px) rotate(-28deg) scale(0.78, 0.78); }
                     55%  { opacity: 1; transform: translate(4px,-10px) rotate(4deg) scale(1.08, 1.08); }
                     78%  { opacity: 1; transform: translate(-2px, 2px) rotate(-2deg) scale(0.98, 0.98); }
                     100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }
                 }
 
-                @keyframes helmettyNoteFlutterOut {
+                @keyframes rasimNoteFlutterOut {
                     0%   { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }
                     18%  { opacity: 1; transform: translate(0,-5px) rotate(-2deg) scale(1.08); }
                     40%  { opacity: 1; transform: translate(14px, 18px) rotate(8deg) scale(1); }
@@ -1093,14 +1094,14 @@ function installBrandModalHelmetty() {
                     100% { opacity: 0; transform: translate(10px, 140px) rotate(22deg) scale(0.85); }
                 }
 
-                @keyframes helmettyNoteFlutterIn {
+                @keyframes rasimNoteFlutterIn {
                     0%   { opacity: 0; transform: translate(10px, 140px) rotate(22deg) scale(0.85); }
                     50%  { opacity: 1; transform: translate(-8px, 10px) rotate(-10deg) scale(1.04); }
                     75%  { opacity: 1; transform: translate(4px, -4px) rotate(-2deg) scale(1.06); }
                     100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }
                 }
 
-                @keyframes helmettyButtonBounceOut {
+                @keyframes rasimButtonBounceOut {
                     0%   { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }
                     18%  { opacity: 1; transform: translateY(4px) scale(1.22, 0.78) rotate(0deg); }
                     40%  { opacity: 1; transform: translateY(-18px) scale(0.86, 1.18) rotate(0deg); }
@@ -1108,7 +1109,7 @@ function installBrandModalHelmetty() {
                     100% { opacity: 0; transform: translateY(150px) scale(0.82, 0.82) rotate(-14deg); }
                 }
 
-                @keyframes helmettyButtonBounceIn {
+                @keyframes rasimButtonBounceIn {
                     0%   { opacity: 0; transform: translateY(150px) scale(0.82, 0.82) rotate(-14deg); }
                     55%  { opacity: 1; transform: translateY(-14px) scale(0.9, 1.15) rotate(0deg); }
                     75%  { opacity: 1; transform: translateY(6px) scale(1.15, 0.88) rotate(0deg); }
@@ -1116,12 +1117,12 @@ function installBrandModalHelmetty() {
                     100% { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }
                 }
 
-                @keyframes helmettySwipeOut {
+                @keyframes rasimSwipeOut {
                     0%   { opacity: var(--cute-opacity, 0.88); transform: translateY(0) scale(1); }
                     100% { opacity: 0; transform: translateY(40px) scale(0.7); }
                 }
 
-                @keyframes helmettySwipeIn {
+                @keyframes rasimSwipeIn {
                     0%   { opacity: 0; transform: translateY(40px) scale(0.7); }
                     70%  { opacity: 1; transform: translateY(-3px) scale(1.05); }
                     100% { opacity: var(--cute-opacity, 0.88); transform: translateY(0) scale(1); }
@@ -1168,16 +1169,16 @@ function installBrandModalHelmetty() {
 
         const clearCuteState = (el) => {
             el.classList.remove(
-                'helmetty-cute-fall-out',
-                'helmetty-cute-return-in',
-                'helmetty-cute-logo-out',
-                'helmetty-cute-logo-in',
-                'helmetty-cute-note-out',
-                'helmetty-cute-note-in',
-                'helmetty-cute-button-out',
-                'helmetty-cute-button-in',
-                'helmetty-cute-swipe-out',
-                'helmetty-cute-swipe-in'
+                'rasim-cute-fall-out',
+                'rasim-cute-return-in',
+                'rasim-cute-logo-out',
+                'rasim-cute-logo-in',
+                'rasim-cute-note-out',
+                'rasim-cute-note-in',
+                'rasim-cute-button-out',
+                'rasim-cute-button-in',
+                'rasim-cute-swipe-out',
+                'rasim-cute-swipe-in'
             );
             el.style.removeProperty('--fall-delay');
             el.style.removeProperty('--return-delay');
@@ -1192,10 +1193,10 @@ function installBrandModalHelmetty() {
             const imgs = fallTargets();
             const extras = extraFallTargets();
             const kindToClass = {
-                logo: 'helmetty-cute-logo-out',
-                note: 'helmetty-cute-note-out',
-                button: 'helmetty-cute-button-out',
-                swipe: 'helmetty-cute-swipe-out'
+                logo: 'rasim-cute-logo-out',
+                note: 'rasim-cute-note-out',
+                button: 'rasim-cute-button-out',
+                swipe: 'rasim-cute-swipe-out'
             };
             const kindOrder = { swipe: 0, logo: 1, note: 2, button: 5 };
 
@@ -1203,14 +1204,14 @@ function installBrandModalHelmetty() {
                 const originalOpacity = getComputedStyle(el).opacity || '1';
 
                 clearCuteState(el);
-                el.dataset.helmettyCuteOpacity = originalOpacity;
+                el.dataset.rasimCuteOpacity = originalOpacity;
                 el.style.setProperty('--cute-opacity', originalOpacity);
                 el.style.setProperty('--fall-delay', `${0.12 + index * 0.05}s`);
                 el.style.setProperty('--fall-y', `${110 + index * 9}px`);
                 el.style.setProperty('--fall-rotate', `${index % 2 === 0 ? -5 : 5}deg`);
                 el.style.setProperty('--fall-rotate-end', `${index % 2 === 0 ? 16 : -16}deg`);
                 el.style.setProperty('--fall-sway', `${index % 2 === 0 ? 16 : -16}px`);
-                el.classList.add('helmetty-cute-fall-out');
+                el.classList.add('rasim-cute-fall-out');
             });
 
             extras.forEach(({ el, kind }) => {
@@ -1218,8 +1219,8 @@ function installBrandModalHelmetty() {
                 const order = kindOrder[kind] != null ? kindOrder[kind] : 3;
 
                 clearCuteState(el);
-                el.dataset.helmettyCuteOpacity = originalOpacity;
-                el.dataset.helmettyCuteKind = kind;
+                el.dataset.rasimCuteOpacity = originalOpacity;
+                el.dataset.rasimCuteKind = kind;
                 el.style.setProperty('--cute-opacity', originalOpacity);
                 el.style.setProperty('--fall-delay', `${order * 0.06}s`);
                 el.classList.add(kindToClass[kind]);
@@ -1230,15 +1231,15 @@ function installBrandModalHelmetty() {
             const imgs = fallTargets().reverse();
             const extras = extraFallTargets();
             const kindToClass = {
-                logo: 'helmetty-cute-logo-in',
-                note: 'helmetty-cute-note-in',
-                button: 'helmetty-cute-button-in',
-                swipe: 'helmetty-cute-swipe-in'
+                logo: 'rasim-cute-logo-in',
+                note: 'rasim-cute-note-in',
+                button: 'rasim-cute-button-in',
+                swipe: 'rasim-cute-swipe-in'
             };
             const kindOrder = { button: 0, note: 2, logo: 3, swipe: 4 };
 
             imgs.forEach((el, index) => {
-                const originalOpacity = el.dataset.helmettyCuteOpacity || '1';
+                const originalOpacity = el.dataset.rasimCuteOpacity || '1';
 
                 clearCuteState(el);
 
@@ -1250,16 +1251,16 @@ function installBrandModalHelmetty() {
                 el.style.setProperty('--fall-rotate', `${index % 2 === 0 ? -5 : 5}deg`);
                 el.style.setProperty('--fall-rotate-end', `${index % 2 === 0 ? 16 : -16}deg`);
                 el.style.setProperty('--fall-sway', `${index % 2 === 0 ? 16 : -16}px`);
-                el.classList.add('helmetty-cute-return-in');
+                el.classList.add('rasim-cute-return-in');
 
                 setTimeout(() => {
                     clearCuteState(el);
-                    delete el.dataset.helmettyCuteOpacity;
+                    delete el.dataset.rasimCuteOpacity;
                 }, 1000);
             });
 
             extras.forEach(({ el, kind }) => {
-                const originalOpacity = el.dataset.helmettyCuteOpacity || '1';
+                const originalOpacity = el.dataset.rasimCuteOpacity || '1';
                 const order = kindOrder[kind] != null ? kindOrder[kind] : 3;
 
                 clearCuteState(el);
@@ -1272,8 +1273,8 @@ function installBrandModalHelmetty() {
 
                 setTimeout(() => {
                     clearCuteState(el);
-                    delete el.dataset.helmettyCuteOpacity;
-                    delete el.dataset.helmettyCuteKind;
+                    delete el.dataset.rasimCuteOpacity;
+                    delete el.dataset.rasimCuteKind;
                 }, 1000);
             });
         };
@@ -1328,7 +1329,7 @@ function installBrandModalHelmetty() {
             shakePolaroid();
 
             polaroidDeco = document.createElement('div');
-            polaroidDeco.className = `helmetty-polaroid-deco is-${pattern.type}`;
+            polaroidDeco.className = `rasim-polaroid-deco is-${pattern.type}`;
             polaroidDeco.style.setProperty('--deco-left', pattern.left);
             polaroidDeco.style.setProperty('--deco-top', pattern.top);
             polaroidDeco.style.setProperty('--deco-rotate', pattern.rotate);
@@ -1361,11 +1362,11 @@ function installBrandModalHelmetty() {
             shakePolaroid();
 
             polaroidNote = document.createElement('div');
-            polaroidNote.className = 'helmetty-polaroid-note';
+            polaroidNote.className = 'rasim-polaroid-note';
             polaroidNote.innerHTML = `
-                <span class="helmetty-polaroid-note-title">Fancy Item</span>
-                <p class="helmetty-polaroid-note-text">ちょっとカワイイ毎日にぴったりのアイテムです</p>
-                <a href="#" class="helmetty-polaroid-note-btn">この商品を見る</a>
+                <span class="rasim-polaroid-note-title">Fancy Item</span>
+                <p class="rasim-polaroid-note-text">ちょっとカワイイ毎日にぴったりのアイテムです</p>
+                <a href="#" class="rasim-polaroid-note-btn">この商品を見る</a>
             `;
 
             modalCard.appendChild(polaroidNote);
@@ -1394,7 +1395,7 @@ function installBrandModalHelmetty() {
             const pattern = postitPatterns[Math.floor(Math.random() * postitPatterns.length)];
 
             polaroidPostit = document.createElement('div');
-            polaroidPostit.className = 'helmetty-polaroid-postit';
+            polaroidPostit.className = 'rasim-polaroid-postit';
             polaroidPostit.innerHTML = pattern.text;
             polaroidPostit.style.setProperty('--postit-color', pattern.color);
             polaroidPostit.style.setProperty('--postit-color-2', pattern.color2);
@@ -1461,7 +1462,7 @@ function installBrandModalHelmetty() {
                 }
 
                 if (modalCard) {
-                    modalCard.classList.remove('is-helmetty-polaroid-open');
+                    modalCard.classList.remove('is-rasim-polaroid-open');
                 }
 
                 returnElements();
@@ -1487,7 +1488,7 @@ function installBrandModalHelmetty() {
             const imgRect = img.getBoundingClientRect();
 
             polaroidHero = img.cloneNode(true);
-            polaroidHero.className = 'helmetty-polaroid-hero';
+            polaroidHero.className = 'rasim-polaroid-hero';
             polaroidHero.removeAttribute('id');
             polaroidHero.style.setProperty('--hero-left', `${imgRect.left - cardRect.left}px`);
             polaroidHero.style.setProperty('--hero-top', `${imgRect.top - cardRect.top}px`);
@@ -1495,7 +1496,7 @@ function installBrandModalHelmetty() {
             polaroidHero.style.setProperty('--hero-height', `${imgRect.height}px`);
 
             modalCard.appendChild(polaroidHero);
-            modalCard.classList.add('is-helmetty-polaroid-open');
+            modalCard.classList.add('is-rasim-polaroid-open');
             img.classList.add('is-hero-source');
 
             fallAwayElements();
@@ -1571,16 +1572,16 @@ function installBrandModalHelmetty() {
             });
         };
 
-        const applyHelmettyModalView = () => {
+        const applyRasimModalView = () => {
             if (!modalCard) return;
 
             const logo = modalCard.querySelector('.brand-logo-banner');
             const title = modalCard.querySelector('.modal-title');
             const desc = modalCard.querySelector('.modal-desc');
 
-            if (logo && HELMETTY_MOBILE_MODAL_DATA.logoUrl) {
-                logo.src = HELMETTY_MOBILE_MODAL_DATA.logoUrl;
-                logo.alt = HELMETTY_MOBILE_MODAL_DATA.titleHTML || 'HELMETTY';
+            if (logo && RASIM_MOBILE_MODAL_DATA.logoUrl) {
+                logo.src = RASIM_MOBILE_MODAL_DATA.logoUrl;
+                logo.alt = RASIM_MOBILE_MODAL_DATA.titleHTML || 'Rasi:m';
             }
 
             if (title) {
@@ -1589,7 +1590,7 @@ function installBrandModalHelmetty() {
 
             if (desc) {
                 desc.classList.add('cute-shop-copy');
-                desc.innerHTML = HELMETTY_MOBILE_MODAL_DATA.desc;
+                desc.innerHTML = RASIM_MOBILE_MODAL_DATA.desc;
             }
         };
 
@@ -1623,7 +1624,7 @@ function installBrandModalHelmetty() {
 
             fallTargets().forEach(el => {
                 clearCuteState(el);
-                delete el.dataset.helmettyCuteOpacity;
+                delete el.dataset.rasimCuteOpacity;
             });
 
             if (polaroidHero) {
@@ -1653,7 +1654,7 @@ function installBrandModalHelmetty() {
             }
 
             if (modalCard) {
-                modalCard.classList.remove('is-helmetty-ready', 'is-helmetty-polaroid-open');
+                modalCard.classList.remove('is-rasim-ready', 'is-rasim-polaroid-open');
             }
 
             isPolaroidOpen = false;
@@ -1681,16 +1682,16 @@ function installBrandModalHelmetty() {
                 return;
             }
 
-            applyHelmettyModalView();
+            applyRasimModalView();
 
-            modalCard.classList.add('is-helmetty-ready');
+            modalCard.classList.add('is-rasim-ready');
             bindImages();
         };
 
         injectStyle();
 
-        window.BrandModalHelmetty = {
-            data: HELMETTY_MOBILE_MODAL_DATA,
+        window.BrandModalRasim = {
+            data: RASIM_MOBILE_MODAL_DATA,
             setup,
             destroy,
             close: closePolaroid,
@@ -1699,4 +1700,4 @@ function installBrandModalHelmetty() {
     })();
 }
 
-export const helmettyPolaroidCode = '(' + installBrandModalHelmetty.toString() + ')();';
+export const rasimPolaroidCode = '(' + installBrandModalRasim.toString() + ')();';

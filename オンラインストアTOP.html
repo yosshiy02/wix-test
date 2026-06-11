@@ -2937,6 +2937,13 @@ ${panels}
 
         // ✨ 変更：アーカイブかどうかのフラグを受け取る
         function openBrandModal(brandId, isArchive = false) {
+            if (window.BrandModalHelmetty && typeof window.BrandModalHelmetty.destroy === 'function') {
+                window.BrandModalHelmetty.destroy();
+            }
+
+            if (window.BrandModalRasim && typeof window.BrandModalRasim.destroy === 'function') {
+                window.BrandModalRasim.destroy();
+            }
             const data = (
                 brandId === 'helmetty' && window.BrandModalHelmettyData
                     ? window.BrandModalHelmettyData
@@ -2989,11 +2996,8 @@ ${panels}
                  // 削除: ここで呼ぶとモーダルが非表示状態なので位置がおかしくなるため下に移動
             }
 
-            /* ✨ 変更：長文記事内で <br> などのタグを使えるように innerHTML に変更 */
-            modalDesc.innerHTML = data.desc || "";
-            modalDesc.classList.toggle('cute-shop-copy', brandId === 'helmetty');
-            modalLink.textContent = data.linkText || "VIEW ONLINE STORE";
-            modalThumbs.innerHTML = '';
+                    modalDesc.innerHTML = data.desc || "";
+            modalLink.textContent = data.linkText || "";
 
             currentModalImages.forEach((src, index) => {
                 const thumb = document.createElement('button');
@@ -3162,10 +3166,6 @@ ${panels}
         }
  
         function closeBrandModal() {
-            if (window.BrandModalHelmetty && typeof window.BrandModalHelmetty.destroy === 'function') {
-                window.BrandModalHelmetty.destroy();
-            }
-
             // 追加: シネマ再生中に閉じられた時のための安全リセット
             clearTimeout(window.rasimExpandTimer);
             clearTimeout(window.rasimFinishTimer);
@@ -3229,6 +3229,15 @@ ${panels}
                 onComplete: () => {
                     modal.classList.remove('is-open');
                     document.body.classList.remove('modal-open');
+
+                    if (window.BrandModalHelmetty && typeof window.BrandModalHelmetty.destroy === 'function') {
+                        window.BrandModalHelmetty.destroy();
+                    }
+
+                    if (window.BrandModalRasim && typeof window.BrandModalRasim.destroy === 'function') {
+                        window.BrandModalRasim.destroy();
+                    }
+
                     // 削除: currentActiveCard = null; (上のsetTimeoutの中に移動したため)
                 }
             });
@@ -3266,6 +3275,57 @@ ${panels}
             }
         });
 
+        function showHatodaiyaAdjustingCard(card) {
+            if (!card) return;
+
+            const oldMessage = card.querySelector('.hatodaiya-adjusting-message');
+            if (oldMessage) {
+                oldMessage.remove();
+            }
+
+            const message = document.createElement('div');
+            message.className = 'hatodaiya-adjusting-message';
+            message.innerHTML = '<span>現在調整中です</span><small>COMING SOON</small>';
+            message.style.position = 'absolute';
+            message.style.left = '50%';
+            message.style.top = '50%';
+            message.style.zIndex = '12';
+            message.style.transform = 'translate(-50%, -50%) scale(0.96)';
+            message.style.display = 'flex';
+            message.style.flexDirection = 'column';
+            message.style.alignItems = 'center';
+            message.style.justifyContent = 'center';
+            message.style.gap = '8px';
+            message.style.padding = '18px 24px';
+            message.style.border = '1px solid rgba(212,175,55,0.55)';
+            message.style.borderRadius = '999px';
+            message.style.background = 'rgba(17,17,17,0.72)';
+            message.style.color = '#D4AF37';
+            message.style.fontFamily = 'var(--font-sans)';
+            message.style.fontSize = 'clamp(0.8rem, 1.1vw, 1rem)';
+            message.style.fontWeight = '500';
+            message.style.letterSpacing = '0.18em';
+            message.style.textAlign = 'center';
+            message.style.textShadow = '0 0 15px rgba(212, 175, 55, 0.5)';
+            message.style.pointerEvents = 'none';
+            message.style.opacity = '0';
+            message.style.transition = 'opacity 0.6s var(--ease-silk), transform 0.6s var(--ease-silk)';
+
+            const small = message.querySelector('small');
+            if (small) {
+                small.style.fontSize = '0.68em';
+                small.style.letterSpacing = '0.22em';
+                small.style.color = '#C0C0C0';
+            }
+
+            card.appendChild(message);
+
+            requestAnimationFrame(() => {
+                message.style.opacity = '1';
+                message.style.transform = 'translate(-50%, -50%) scale(1)';
+            });
+        }
+
         brandCards.forEach(card => {
             // ✨ 準備：各カードのブランド名を1文字ずつに分割しておく
             const brandNameElement = card.querySelector('.brand-name');
@@ -3274,6 +3334,10 @@ ${panels}
             }
 
             card.addEventListener('click', () => {
+                const brandId = card.getAttribute('data-brand');
+
+                document.querySelectorAll('.hatodaiya-adjusting-message').forEach(el => el.remove());
+
                 // ✨ クリックされたカードを記憶して、文字を散らす（Scatter）！
                 currentActiveCard = card;
                 
@@ -3285,9 +3349,20 @@ ${panels}
                     play3DScatter(brandNameElement);
                 }
 
+                if (brandId === 'hatodaiya') {
+                    setTimeout(() => {
+                        showHatodaiyaAdjustingCard(card);
+                        card.style.pointerEvents = '';
+                        card.querySelectorAll(':not(.char-wrap)').forEach(el => el.style.transitionDelay = '');
+                        currentActiveCard = null;
+                    }, 300);
+
+                    return;
+                }
+
                 // 少し遅れて（破片が飛んでから）モーダルを開く
                 setTimeout(() => {
-                    openBrandModal(card.getAttribute('data-brand'), false);
+                    openBrandModal(brandId, false);
                 }, 300);
             });
         });
@@ -3355,6 +3430,16 @@ ${panels}
 
                     if (item.modalStoreSignImage) {
                         window.BrandModalHelmettyData.modalStoreSignImage = item.modalStoreSignImage;
+                    }
+                }
+
+                if (item.brand === 'rasim' && window.BrandModalRasimData) {
+                    if (Array.isArray(item.images) && item.images.length) {
+                        window.BrandModalRasimData.images = item.images;
+                    }
+
+                    if (item.modalStoreSignImage) {
+                        window.BrandModalRasimData.modalStoreSignImage = item.modalStoreSignImage;
                     }
                 }
 

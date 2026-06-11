@@ -1,7 +1,8 @@
+// public/brand-modal/brand-modal-rasim-pc.js
 // @ts-nocheck
-function installBrandModalHelmettyPc() {
+function installBrandModalRasimPc() {
     (function () {
-        var STYLE_ID = "brand-modal-helmetty-pc-style";
+        var STYLE_ID = "brand-modal-rasim-pc-style";
 
         var modal = null;
         var modalCard = null;
@@ -15,7 +16,7 @@ function installBrandModalHelmettyPc() {
         var albumNextBtn = null;
         var albumCaption = null;
         var albumImages = [];
-        var cachedHelmettyImages = [];
+        var cachedRasimImages = [];
         var storeSignLayer = null;
         var storeSignImage = null;
 
@@ -43,51 +44,51 @@ function installBrandModalHelmettyPc() {
         var pointerStartY = 0;
         var didMove = false;
 
-        var HELMETTY_PC_MODAL_DATA = {
+        var RASIM_PC_MODAL_DATA = {
             cat: "Love at First Step.",
-            watermark: "HELMETTY",
-            logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
-            desc: "<span class=\"helmetty-pc-intro-copy-lead\">CUTE FANCY SHOP</span><span class=\"helmetty-pc-intro-copy-main\">ちょっとカワイイものを集めた<br>ファンシーなショップです</span>",
+            watermark: "Rasi:m",
+            logoUrl: "https://static.wixstatic.com/media/414ae9_bfc09f7d984144509a47326f6ab911f8~mv2.webp",
+            desc: "<span class=\"rasim-pc-intro-copy-lead\">CUTE FANCY SHOP</span><span class=\"rasim-pc-intro-copy-main\">ちょっとカワイイものを集めた<br>ファンシーなショップです</span>",
             linkText: "オンラインストアへGO！",
             theme: { bg: "rgba(248,187,208,0.98)", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
         };
 
-        window.BrandModalHelmettyData = Object.assign({}, HELMETTY_PC_MODAL_DATA, window.BrandModalHelmettyData || {});
+        window.BrandModalRasimData = Object.assign({}, RASIM_PC_MODAL_DATA, window.BrandModalRasimData || {});
 
         function debugToParent(label, payload) {
             var message = {
-                type: "helmettyPcAddonDebug",
+                type: "rasimPcAddonDebug",
                 label: label,
                 payload: payload || null
             };
 
-            console.log("[DEBUG pc helmetty addon]", label, payload || "");
+            console.log("[DEBUG pc rasim addon]", label, payload || "");
 
             try {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage(message, "*");
                 }
             } catch (error) {
-                console.log("[DEBUG pc helmetty addon] parent debug post failed", error);
+                console.log("[DEBUG pc rasim addon] parent debug post failed", error);
             }
         }
 
-        function helmettyToVw(value) {
+        function rasimToVw(value) {
             var base = window.innerWidth || document.documentElement.clientWidth || 1;
             return String((Number(value) / base) * 100) + "vw";
         }
 
-        function helmettyToVh(value) {
+        function rasimToVh(value) {
             var base = window.innerHeight || document.documentElement.clientHeight || 1;
             return String((Number(value) / base) * 100) + "vh";
         }
 
-        function helmettyToModalX(value, rect) {
+        function rasimToModalX(value, rect) {
             var base = rect && rect.width ? rect.width : 1;
             return String((Number(value) / base) * 100) + "%";
         }
 
-        function helmettyToModalY(value, rect) {
+        function rasimToModalY(value, rect) {
             var base = rect && rect.height ? rect.height : 1;
             return String((Number(value) / base) * 100) + "%";
         }
@@ -99,39 +100,29 @@ function installBrandModalHelmettyPc() {
             style.id = STYLE_ID;
 
             style.textContent = [
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready {",
                 "  overflow: hidden;",
-                "  background:",
-                "    radial-gradient(circle at 18% 18%, rgba(255,255,255,0.62), transparent 32%),",
-                "    radial-gradient(circle at 82% 72%, rgba(98,191,239,0.18), transparent 35%),",
-                "    linear-gradient(90deg, rgba(255,126,179,0.022) 0.0625rem, transparent 0.0625rem),",
-                "    linear-gradient(0deg, rgba(255,179,107,0.018) 0.0625rem, transparent 0.0625rem),",
-                "    linear-gradient(135deg, #fff8df 0%, #f9efcf 48%, #ffe8f2 100%);",
-                "  background-size: 100% 100%, 100% 100%, 1.125rem 1.125rem, 1.125rem 1.125rem, 100% 100%;",
+                "  background: #ffffff;",
                 "  box-shadow: 0 2.5rem 6.875rem rgba(0,0,0,0.36), 0 0 0 0.0625rem rgba(255,126,179,0.16) inset;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready::before {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready::before {",
                 "  content: \"\";",
                 "  position: absolute;",
                 "  inset: 1.125rem;",
                 "  z-index: 1;",
                 "  pointer-events: none;",
                 "  border-radius: 0.875rem;",
-                "  background:",
-                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top left / 100% 0.1875rem no-repeat,",
-                "    repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) bottom left / 100% 0.1875rem no-repeat,",
-                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top left / 0.1875rem 100% no-repeat,",
-                "    repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 0.875rem, transparent 0.875rem 1.75rem) top right / 0.1875rem 100% no-repeat;",
+                "  border: 0.1875rem solid #FFD94A;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready::after {",
-                "  content: \"HELMETTY PHOTO ALBUM\";",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready::after {",
+                "  content: \"Rasi:m PHOTO ALBUM\";",
                 "  position: absolute;",
                 "  right: 4.2vw;",
                 "  bottom: 3.2vh;",
                 "  z-index: 1;",
-                "  color: rgba(184,63,120,0.14);",
+                "  color: rgba(82,55,34,0.14);",
                 "  font-family: Jost, sans-serif;",
                 "  font-size: clamp(2rem, 3.6vw, 5.4rem);",
                 "  font-weight: 900;",
@@ -141,31 +132,31 @@ function installBrandModalHelmettyPc() {
                 "  white-space: nowrap;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-viewer {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-viewer {",
                 "  position: relative;",
                 "  z-index: 4;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-stage {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-stage {",
                 "  position: relative;",
                 "  overflow: visible;",
-                "  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.58), transparent 60%), rgba(255,255,255,0.14);",
+                "  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.58), transparent 60%), rgba(224,203,170,0.24);",
                 "  border-radius: 0.875rem;",
                 "  box-shadow: 0 1.125rem 3rem rgba(184,63,120,0.12), 0 0 0 0.0625rem rgba(255,255,255,0.34) inset;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-main-img,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-thumbs {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-main-img,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-thumbs {",
                 "  opacity: 0;",
                 "  visibility: hidden;",
                 "  pointer-events: none;",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-arrow {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-arrow {",
                 "  display: none !important;",
                 "}",
 
-                ".helmetty-pc-album-wrap {",
+                ".rasim-pc-album-wrap {",
                 "  position: absolute;",
                 "  inset: 0;",
                 "  z-index: 8;",
@@ -176,7 +167,7 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: auto;",
                 "}",
 
-                ".helmetty-pc-album-track {",
+                ".rasim-pc-album-track {",
                 "  width: 100%;",
                 "  height: 100%;",
                 "  display: flex;",
@@ -190,21 +181,21 @@ function installBrandModalHelmettyPc() {
                 "  -webkit-overflow-scrolling: touch;",
                 "}",
 
-                ".helmetty-pc-album-track::-webkit-scrollbar {",
+                ".rasim-pc-album-track::-webkit-scrollbar {",
                 "  height: 0.5rem;",
                 "}",
 
-                ".helmetty-pc-album-track::-webkit-scrollbar-track {",
+                ".rasim-pc-album-track::-webkit-scrollbar-track {",
                 "  background: rgba(255,255,255,0.34);",
                 "  border-radius: 62.4375rem;",
                 "}",
 
-                ".helmetty-pc-album-track::-webkit-scrollbar-thumb {",
+                ".rasim-pc-album-track::-webkit-scrollbar-thumb {",
                 "  background: rgba(255,126,179,0.45);",
                 "  border-radius: 62.4375rem;",
                 "}",
 
-                ".helmetty-pc-album-arrow {",
+                ".rasim-pc-album-arrow {",
                 "  position: absolute;",
                 "  top: 50%;",
                 "  z-index: 12;",
@@ -227,24 +218,24 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: auto;",
                 "}",
 
-                ".helmetty-pc-album-arrow.is-prev {",
+                ".rasim-pc-album-arrow.is-prev {",
                 "  left: clamp(1.125rem, 2.2vw, 2.125rem);",
                 "}",
 
-                ".helmetty-pc-album-arrow.is-next {",
+                ".rasim-pc-album-arrow.is-next {",
                 "  right: clamp(1.125rem, 2.2vw, 2.125rem);",
                 "}",
 
-                ".helmetty-pc-album-arrow:hover {",
+                ".rasim-pc-album-arrow:hover {",
                 "  background: rgba(255,255,255,0.94);",
                 "  box-shadow: 0 0.9375rem 1.875rem rgba(150,80,110,0.24);",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready.is-helmetty-polaroid-open .helmetty-pc-album-arrow {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready.is-rasim-polaroid-open .rasim-pc-album-arrow {",
                 "  display: none;",
                 "}",
 
-                ".helmetty-pc-gallery-img {",
+                ".rasim-pc-gallery-img {",
                 "  box-sizing: content-box;",
                 "  width: clamp(11.25rem, 18vw, 18.75rem);",
                 "  height: clamp(11.25rem, 18vw, 18.75rem);",
@@ -265,23 +256,23 @@ function installBrandModalHelmettyPc() {
                 "  transition: transform 0.58s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), opacity 0.58s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), filter 0.58s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), box-shadow 0.58s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1));",
                 "}",
 
-                ".helmetty-pc-gallery-img:nth-child(2n) {",
+                ".rasim-pc-gallery-img:nth-child(2n) {",
                 "  transform: rotate(2.5deg) scale(0.9);",
                 "}",
 
-                ".helmetty-pc-gallery-img:nth-child(3n) {",
+                ".rasim-pc-gallery-img:nth-child(3n) {",
                 "  transform: rotate(-1.5deg) scale(0.9);",
                 "}",
 
-                ".helmetty-pc-gallery-img:hover,",
-                ".helmetty-pc-gallery-img.is-focused {",
+                ".rasim-pc-gallery-img:hover,",
+                ".rasim-pc-gallery-img.is-focused {",
                 "  transform: rotate(0deg) scale(1);",
                 "  opacity: 1;",
                 "  filter: brightness(1) saturate(1.14);",
                 "  box-shadow: 0 2.25rem 4.5rem rgba(150,80,110,0.32), 0 0.75rem 1.75rem rgba(0,0,0,0.24), 0 0 0 0.0625rem rgba(255,255,255,0.58) inset;",
                 "}",
 
-                ".helmetty-pc-album-caption {",
+                ".rasim-pc-album-caption {",
                 "  position: absolute;",
                 "  left: 50%;",
                 "  bottom: clamp(3.625rem, 7vh, 5.625rem);",
@@ -304,17 +295,17 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: none;",
                 "}",
 
-                ".helmetty-pc-album-caption::before,",
-                ".helmetty-pc-album-caption::after {",
+                ".rasim-pc-album-caption::before,",
+                ".rasim-pc-album-caption::after {",
                 "  content: \"♡\";",
                 "  color: #FF6FAE;",
                 "  font-size: 1.15rem;",
                 "  letter-spacing: 0;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .brand-logo-banner,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-logo,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-logo {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .brand-logo-banner,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-logo,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-logo {",
                 "  position: absolute;",
                 "  left: clamp(1.75rem, 2.6vw, 2.75rem);",
                 "  top: clamp(4.375rem, 6.8vh, 6rem);",
@@ -322,24 +313,24 @@ function installBrandModalHelmettyPc() {
                 "  display: block;",
                 "  margin-top: 0;",
                 "  margin-bottom: 0;",
-                "  max-width: min(26vw, 22.5rem);",
+                "  max-width: min(23.4vw, 20.25rem);",
                 "  height: auto;",
                 "  object-fit: contain;",
                 "  filter: drop-shadow(0 0.625rem 1.125rem rgba(184,63,120,0.16));",
                 "}",
                 "",
-                   ".helmetty-pc-store-sign-layer {",
+                   ".rasim-pc-store-sign-layer {",
                 "  position: absolute;",
                 "  inset: 0;",
-                "  z-index: 3;",
+                "  z-index: 0;",
                 "  pointer-events: none;",
                 "}",
                 "",
-                ".helmetty-pc-store-sign {",
+                ".rasim-pc-store-sign {",
                 "  position: absolute;",
                 "  left: calc(clamp(1.125rem, 1.6vw, 2.125rem) + clamp(4.275rem, 5.7vw, 6.0563rem));",
                 "  top: calc(clamp(3rem, 5.2vh, 4.375rem) + clamp(7.125rem, 9.5vw, 10.0938rem));",
-                "  z-index: 1;",
+                "  z-index: 0;",
                 "  width: clamp(21.375rem, 28.5vw, 30.2812rem);",
                 "  height: clamp(21.375rem, 28.5vw, 30.2812rem);",
                 "  object-fit: contain;",
@@ -350,8 +341,8 @@ function installBrandModalHelmettyPc() {
                 "  transform: translate(-0%, 0%);",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-cat,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-cat {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-cat,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-cat {",
                 "  position: absolute;",
                 "  left: clamp(1.75rem, 2.6vw, 2.75rem);",
                 "  top: clamp(2.25rem, 3.8vh, 3.5rem);",
@@ -360,12 +351,12 @@ function installBrandModalHelmettyPc() {
                 "  margin-bottom: 0;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .helmetty-pc-title-hidden {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .rasim-pc-title-hidden {",
                 "  display: none !important;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-title,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-title {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-title,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-title {",
                 "  color: #FF5FA2;",
                 "  font-family: 'Fredoka', 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;",
                 "  font-weight: 900;",
@@ -374,10 +365,10 @@ function installBrandModalHelmettyPc() {
                 "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff, 0.125rem 0.125rem 0 rgba(255,216,77,0.34);",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-desc,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-desc,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-desc.cute-shop-copy,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-desc.cute-shop-copy {",
                 "  position: absolute;",
                 "  left: clamp(2.125rem, 3.2vw, 3.875rem);",
                 "  top: calc(clamp(8.25rem, 14.9vh, 10.25rem) + clamp(4.375rem, 6.8vh, 4.875rem));",
@@ -404,12 +395,12 @@ function installBrandModalHelmettyPc() {
                 "  transform-origin: center top;",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy::before,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy::before {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-desc.cute-shop-copy::before,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-desc.cute-shop-copy::before {",
                 "  content: \"\";",
                 "}",
                 "",
-                ".helmetty-pc-intro-copy-lead {",
+                ".rasim-pc-intro-copy-lead {",
                 "  display: block;",
                 "  margin-bottom: 0.1875rem;",
                 "  color: #FF6FAE;",
@@ -421,7 +412,7 @@ function installBrandModalHelmettyPc() {
                 "  text-transform: uppercase;",
                 "}",
                 "",
-                ".helmetty-pc-intro-copy-main {",
+                ".rasim-pc-intro-copy-main {",
                 "  display: block;",
                 "  color: #E85A9A;",
                 "  font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;",
@@ -431,12 +422,12 @@ function installBrandModalHelmettyPc() {
                 "  line-height: 1.38;",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-desc.cute-shop-copy.is-intro-deco-shake,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-desc.cute-shop-copy.is-intro-deco-shake {",
-                "  animation: helmettyPcIntroCardShake 0.48s cubic-bezier(0.18, 1.25, 0.4, 1);",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-desc.cute-shop-copy.is-intro-deco-shake,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-desc.cute-shop-copy.is-intro-deco-shake {",
+                "  animation: rasimPcIntroCardShake 0.48s cubic-bezier(0.18, 1.25, 0.4, 1);",
                 "}",
                 "",
-                ".helmetty-pc-intro-deco {",
+                ".rasim-pc-intro-deco {",
                 "  position: absolute;",
                 "  left: var(--intro-deco-left);",
                 "  top: var(--intro-deco-top);",
@@ -444,15 +435,15 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: none;",
                 "  transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(0.2);",
                 "  opacity: 0;",
-                "  animation: helmettyPcIntroDecoPop 0.46s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
+                "  animation: rasimPcIntroDecoPop 0.46s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
                 "  will-change: transform, opacity;",
                 "}",
                 "",
-                ".helmetty-pc-intro-deco.is-dropping {",
-                "  animation: helmettyPcIntroDecoDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
+                ".rasim-pc-intro-deco.is-dropping {",
+                "  animation: rasimPcIntroDecoDrop 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
                 "}",
                 "",
-                ".helmetty-pc-intro-deco.is-tape {",
+                ".rasim-pc-intro-deco.is-tape {",
                 "  width: clamp(4.25rem, 5.45vw, 6rem);",
                 "  height: clamp(1.5rem, 1.85vw, 2.25rem);",
                 "  border-radius: 0.1875rem;",
@@ -462,8 +453,8 @@ function installBrandModalHelmettyPc() {
                 "  opacity: 0.96;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-link,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-link-btn {",
                 "  position: absolute;",
                 "  left: clamp(7.375rem, 8.4vw, 9.75rem);",
                 "  top: calc(clamp(18.25rem, 32.5vh, 22.25rem) + clamp(0.9688rem, 1.21vw, 1.25rem));",
@@ -486,24 +477,24 @@ function installBrandModalHelmettyPc() {
                 "  text-shadow: 0.0625rem 0.0625rem 0 rgba(255,255,255,0.75);",
                 "  box-shadow: 0 0.25rem 0 rgba(255,143,86,0.42), 0 0.5rem 1rem rgba(98,191,239,0.28);",
                 "  transform: rotate(-2deg);",
-                "  animation: helmettyPcIntroButtonFloat 1.9s ease-in-out infinite;",
+                "  animation: rasimPcIntroButtonFloat 1.9s ease-in-out infinite;",
                 "  transition: transform 0.18s ease, box-shadow 0.18s ease;",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:hover,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:hover {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-link:hover,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-link-btn:hover {",
                 "  transform: translateY(-0.125rem) rotate(-2deg) scale(1.04);",
                 "  box-shadow: 0 0.3125rem 0 rgba(255,143,86,0.42), 0 0.6875rem 1.25rem rgba(98,191,239,0.34);",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link:active,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn:active {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-link:active,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-link-btn:active {",
                 "  transform: translateY(0.1875rem) rotate(-2deg) scale(0.98);",
                 "  box-shadow: 0 0.0625rem 0 rgba(255,143,86,0.42), 0 0.25rem 0.5625rem rgba(98,191,239,0.22);",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link::before,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::before {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-link::before,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-link-btn::before {",
                 "  content: \"♡\";",
                 "  position: absolute;",
                 "  left: -1.125rem;",
@@ -518,8 +509,8 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: none;",
                 "}",
                 "",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .pc-modal-link::after,",
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-ready .modal-link-btn::after {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .pc-modal-link::after,",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-ready .modal-link-btn::after {",
                 "  content: \"★\";",
                 "  position: absolute;",
                 "  right: -0.8125rem;",
@@ -534,12 +525,12 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: none;",
                 "}",
 
-                ".pc-brand-modal[data-active-brand=\"helmetty\"] .pc-modal-panel.is-helmetty-polaroid-open .helmetty-pc-gallery-img.is-hero-source {",
+                ".pc-brand-modal[data-active-brand=\"rasim\"] .pc-modal-panel.is-rasim-polaroid-open .rasim-pc-gallery-img.is-hero-source {",
                 "  opacity: 0;",
                 "  pointer-events: none;",
                 "}",
 
-                ".helmetty-pc-polaroid-hero {",
+                ".rasim-pc-polaroid-hero {",
                 "  position: absolute;",
                 "  left: var(--hero-left);",
                 "  top: var(--hero-top);",
@@ -561,26 +552,26 @@ function installBrandModalHelmettyPc() {
                 "  transition: left 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), top 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), width 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), height 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), border-width 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), border-radius 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), box-shadow 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.78s var(--ease-silk, cubic-bezier(0.22, 1, 0.36, 1));",
                 "}",
 
-                ".helmetty-pc-polaroid-hero.is-open {",
-                "  left: var(--helmetty-pc-open-left);",
-                "  top: var(--helmetty-pc-open-top);",
-                "  width: var(--helmetty-pc-open-width);",
-                "  height: var(--helmetty-pc-open-height);",
+                ".rasim-pc-polaroid-hero.is-open {",
+                "  left: var(--rasim-pc-open-left);",
+                "  top: var(--rasim-pc-open-top);",
+                "  width: var(--rasim-pc-open-width);",
+                "  height: var(--rasim-pc-open-height);",
                 "  transform: rotate(0deg) translateX(0);",
                 "  border-width: 1.05vw 0.9vw 4.1vw;",
                 "  border-radius: 0.75vw;",
                 "  box-shadow: 0 2.4vw 5.2vw rgba(0,0,0,0.44), 0 0 1.9vw rgba(255,255,255,0.56);",
                 "}",
 
-                ".helmetty-pc-polaroid-hero.is-deco-shake {",
+                ".rasim-pc-polaroid-hero.is-deco-shake {",
                 "  transform-origin: var(--shake-origin-x, 50%) var(--shake-origin-y, 0%);",
-                "  animation: helmettyPcPolaroidDecoShake 0.52s cubic-bezier(0.18, 1.25, 0.4, 1);",
+                "  animation: rasimPcPolaroidDecoShake 0.52s cubic-bezier(0.18, 1.25, 0.4, 1);",
                 "}",
 
-                ".helmetty-pc-close-hint {",
+                ".rasim-pc-close-hint {",
                 "  position: absolute;",
-                "  left: var(--helmetty-pc-hint-left, 50%);",
-                "  top: var(--helmetty-pc-hint-top);",
+                "  left: var(--rasim-pc-hint-left, 50%);",
+                "  top: var(--rasim-pc-hint-top);",
                 "  z-index: 3044;",
                 "  transform: translateX(-50%);",
                 "  padding: 0.5625rem 1.125rem 0.5rem;",
@@ -596,25 +587,25 @@ function installBrandModalHelmettyPc() {
                 "  box-shadow: 0 0.5rem 1.25rem rgba(0,0,0,0.12);",
                 "  pointer-events: none;",
                 "  opacity: 0;",
-                "  animation: helmettyPcHintIn 0.5s cubic-bezier(0.18, 1.25, 0.4, 1) 0.95s forwards;",
+                "  animation: rasimPcHintIn 0.5s cubic-bezier(0.18, 1.25, 0.4, 1) 0.95s forwards;",
                 "}",
 
-                ".helmetty-pc-deco {",
+                ".rasim-pc-deco {",
                 "  position: absolute;",
-                "  left: var(--helmetty-pc-deco-left, var(--deco-left, 50%));",
-                "  top: var(--helmetty-pc-deco-top, var(--deco-top, 3.25rem));",
+                "  left: var(--rasim-pc-deco-left, var(--deco-left, 50%));",
+                "  top: var(--rasim-pc-deco-top, var(--deco-top, 3.25rem));",
                 "  z-index: 3040;",
                 "  pointer-events: none;",
                 "  transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(0.2);",
                 "  opacity: 0;",
-                "  animation: helmettyPcPolaroidDecoPop 0.5s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
+                "  animation: rasimPcPolaroidDecoPop 0.5s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-deco.is-dropping {",
-                "  animation: helmettyPcPolaroidDecoDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
+                ".rasim-pc-deco.is-dropping {",
+                "  animation: rasimPcPolaroidDecoDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-deco.is-pin {",
+                ".rasim-pc-deco.is-pin {",
                 "  width: 2.125rem;",
                 "  height: 2.125rem;",
                 "  border-radius: 50%;",
@@ -623,7 +614,7 @@ function installBrandModalHelmettyPc() {
                 "  box-shadow: 0 0.4375rem 0 rgba(0,0,0,0.16), 0 0.75rem 1.125rem rgba(0,0,0,0.24), 0 0 0 0.25rem rgba(255,255,255,0.45) inset;",
                 "}",
 
-                ".helmetty-pc-deco.is-pin::after {",
+                ".rasim-pc-deco.is-pin::after {",
                 "  content: \"\";",
                 "  position: absolute;",
                 "  left: 50%;",
@@ -636,7 +627,7 @@ function installBrandModalHelmettyPc() {
                 "  z-index: -1;",
                 "}",
 
-                ".helmetty-pc-deco.is-tape {",
+                ".rasim-pc-deco.is-tape {",
                 "  width: 2.875rem;",
                 "  height: 7.75rem;",
                 "  border-radius: 0.25rem;",
@@ -646,10 +637,10 @@ function installBrandModalHelmettyPc() {
                 "  opacity: 0.96;",
                 "}",
 
-                ".helmetty-pc-note {",
+                ".rasim-pc-note {",
                 "  position: absolute;",
-                "  left: var(--helmetty-pc-note-left, 50%);",
-                "  top: var(--helmetty-pc-note-top, auto);",
+                "  left: var(--rasim-pc-note-left, 50%);",
+                "  top: var(--rasim-pc-note-top, auto);",
                 "  z-index: 3041;",
                 "  width: clamp(17.5rem, 25vw, 22.5rem);",
                 "  padding: 1.125rem 1.375rem 1.25rem;",
@@ -664,15 +655,15 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: auto;",
                 "  transform: translateX(-50%) rotate(-3deg) scale(0.2);",
                 "  opacity: 0;",
-                "  animation: helmettyPcPolaroidNotePop 0.54s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
+                "  animation: rasimPcPolaroidNotePop 0.54s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-note.is-dropping {",
+                ".rasim-pc-note.is-dropping {",
                 "  pointer-events: none;",
-                "  animation: helmettyPcPolaroidNoteDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
+                "  animation: rasimPcPolaroidNoteDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-note-title {",
+                ".rasim-pc-note-title {",
                 "  display: block;",
                 "  margin-bottom: 0.4375rem;",
                 "  font-size: clamp(1rem, 1.2vw, 1.25rem);",
@@ -683,7 +674,7 @@ function installBrandModalHelmettyPc() {
                 "  text-shadow: 0.0625rem 0.0625rem 0 #ffffff, 0.1875rem 0.1875rem 0 rgba(255,216,77,0.34);",
                 "}",
 
-                ".helmetty-pc-note-text {",
+                ".rasim-pc-note-text {",
                 "  margin: 0 0 0.75rem;",
                 "  font-size: clamp(0.74rem, 0.82vw, 0.9rem);",
                 "  font-weight: 700;",
@@ -691,7 +682,7 @@ function installBrandModalHelmettyPc() {
                 "  color: #B83F78;",
                 "}",
 
-                ".helmetty-pc-note-btn {",
+                ".rasim-pc-note-btn {",
                 "  display: inline-block;",
                 "  padding: 0.625rem 2rem 0.5625rem;",
                 "  background: #62BFEF;",
@@ -706,10 +697,10 @@ function installBrandModalHelmettyPc() {
                 "  box-shadow: 0 0.25rem 0 rgba(255,143,86,0.42), 0 0.5rem 1rem rgba(98,191,239,0.28);",
                 "}",
 
-                ".helmetty-pc-postit {",
+                ".rasim-pc-postit {",
                 "  position: absolute;",
-                "  left: var(--helmetty-pc-postit-left);",
-                "  top: var(--helmetty-pc-postit-top);",
+                "  left: var(--rasim-pc-postit-left);",
+                "  top: var(--rasim-pc-postit-top);",
                 "  z-index: 3042;",
                 "  width: 7rem;",
                 "  min-height: 5.75rem;",
@@ -728,63 +719,63 @@ function installBrandModalHelmettyPc() {
                 "  pointer-events: none;",
                 "  transform: rotate(var(--postit-rotate, 5deg)) scale(0.2);",
                 "  opacity: 0;",
-                "  animation: helmettyPcPolaroidPostitPop 0.52s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
+                "  animation: rasimPcPolaroidPostitPop 0.52s cubic-bezier(0.18, 1.45, 0.4, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-postit.is-dropping {",
-                "  animation: helmettyPcPolaroidPostitDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
+                ".rasim-pc-postit.is-dropping {",
+                "  animation: rasimPcPolaroidPostitDrop 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards;",
                 "}",
 
-                ".helmetty-pc-fall-out {",
-                "  animation: helmettyPcCuteFallOut 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
+                ".rasim-pc-fall-out {",
+                "  animation: rasimPcCuteFallOut 0.68s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
                 "  animation-delay: var(--fall-delay, 0s) !important;",
                 "  pointer-events: none !important;",
                 "}",
 
-                ".helmetty-pc-return-in {",
-                "  animation: helmettyPcCuteReturnIn 0.64s cubic-bezier(0.18, 1.25, 0.4, 1) both !important;",
+                ".rasim-pc-return-in {",
+                "  animation: rasimPcCuteReturnIn 0.64s cubic-bezier(0.18, 1.25, 0.4, 1) both !important;",
                 "  animation-delay: var(--return-delay, 0s) !important;",
                 "}",
 
-                ".helmetty-pc-logo-out {",
-                "  animation: helmettyPcLogoFlyOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
+                ".rasim-pc-logo-out {",
+                "  animation: rasimPcLogoFlyOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
                 "  animation-delay: var(--fall-delay, 0s) !important;",
                 "  pointer-events: none !important;",
                 "}",
 
-                ".helmetty-pc-logo-in {",
-                "  animation: helmettyPcLogoFlyIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
+                ".rasim-pc-logo-in {",
+                "  animation: rasimPcLogoFlyIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
                 "  animation-delay: var(--return-delay, 0s) !important;",
                 "}",
 
-                ".helmetty-pc-note-out {",
-                "  animation: helmettyPcNoteFlutterOut 0.78s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
+                ".rasim-pc-note-out {",
+                "  animation: rasimPcNoteFlutterOut 0.78s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
                 "  animation-delay: var(--fall-delay, 0s) !important;",
                 "  pointer-events: none !important;",
                 "}",
 
-                ".helmetty-pc-note-in {",
-                "  animation: helmettyPcNoteFlutterIn 0.74s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
+                ".rasim-pc-note-in {",
+                "  animation: rasimPcNoteFlutterIn 0.74s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
                 "  animation-delay: var(--return-delay, 0s) !important;",
                 "}",
 
-                ".helmetty-pc-button-out {",
-                "  animation: helmettyPcButtonBounceOut 0.76s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
+                ".rasim-pc-button-out {",
+                "  animation: rasimPcButtonBounceOut 0.76s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;",
                 "  animation-delay: var(--fall-delay, 0s) !important;",
                 "  pointer-events: none !important;",
                 "}",
 
-                ".helmetty-pc-button-in {",
-                "  animation: helmettyPcButtonBounceIn 0.74s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
+                ".rasim-pc-button-in {",
+                "  animation: rasimPcButtonBounceIn 0.74s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;",
                 "  animation-delay: var(--return-delay, 0s) !important;",
                 "}",
 
-                "@keyframes helmettyPcIntroButtonFloat {",
+                "@keyframes rasimPcIntroButtonFloat {",
                 "  0%, 100% { transform: rotate(-2deg) translateY(0) scale(1); }",
                 "  50% { transform: rotate(-2deg) translateY(-0.1875rem) scale(1.025); }",
                 "}",
                 "",
-                "@keyframes helmettyPcIntroCardShake {",
+                "@keyframes rasimPcIntroCardShake {",
                 "  0% { transform: rotate(-5deg) translateY(0); }",
                 "  22% { transform: rotate(-7.2deg) translateY(0.125rem); }",
                 "  46% { transform: rotate(-3.3deg) translateY(-0.0625rem); }",
@@ -792,19 +783,19 @@ function installBrandModalHelmettyPc() {
                 "  100% { transform: rotate(-5deg) translateY(0); }",
                 "}",
                 "",
-                "@keyframes helmettyPcIntroDecoPop {",
+                "@keyframes rasimPcIntroDecoPop {",
                 "  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(0.2); }",
                 "  70% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1.18); }",
                 "  100% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1); }",
                 "}",
                 "",
-                "@keyframes helmettyPcIntroDecoDrop {",
+                "@keyframes rasimPcIntroDecoDrop {",
                 "  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--intro-deco-rotate, -8deg)) scale(1); }",
                 "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 0.5rem)) rotate(calc(var(--intro-deco-rotate, -8deg) + 8deg)) scale(1.06); }",
                 "  100% { opacity: 0; transform: translate(-50%, 9.375rem) rotate(calc(var(--intro-deco-rotate, -8deg) + 34deg)) scale(0.82); }",
                 "}",
                 "",
-                "@keyframes helmettyPcCuteFallOut {",
+                "@keyframes rasimPcCuteFallOut {",
                 "  0% { opacity: var(--cute-opacity, 1); translate: 0 0; rotate: 0deg; scale: 1; }",
                 "  18% { opacity: 1; translate: 0 -0.75rem; rotate: var(--fall-rotate, -4deg); scale: 1.05; }",
                 "  45% { opacity: 1; translate: var(--fall-sway, 1.375rem) 3.625rem; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 0.96; }",
@@ -812,7 +803,7 @@ function installBrandModalHelmettyPc() {
                 "  100% { opacity: 0; translate: 0 var(--fall-y, 11.25rem); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
                 "}",
 
-                "@keyframes helmettyPcCuteReturnIn {",
+                "@keyframes rasimPcCuteReturnIn {",
                 "  0% { opacity: 0; translate: 0 var(--fall-y, 11.25rem); rotate: calc(var(--fall-rotate-end, 12deg) * 1.4); scale: 0.8; }",
                 "  35% { opacity: 1; translate: calc(var(--fall-sway, 1.375rem) * -1) 7.375rem; rotate: var(--fall-rotate-end, 12deg); scale: 0.92; }",
                 "  60% { opacity: 1; translate: var(--fall-sway, 1.375rem) 2.75rem; rotate: calc(var(--fall-rotate-end, 12deg) * 0.4); scale: 1; }",
@@ -820,21 +811,21 @@ function installBrandModalHelmettyPc() {
                 "  100% { opacity: var(--cute-opacity, 1); translate: 0 0; rotate: 0deg; scale: 1; }",
                 "}",
 
-                "@keyframes helmettyPcLogoFlyOut {",
+                "@keyframes rasimPcLogoFlyOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }",
                 "  20% { opacity: 1; transform: translate(0,-0.5rem) rotate(-3deg) scale(0.92, 1.18); }",
                 "  45% { opacity: 1; transform: translate(-1.125rem,-1.875rem) rotate(-10deg) scale(1.04, 1.04); }",
                 "  100% { opacity: 0; transform: translate(-3.375rem, 11.875rem) rotate(-28deg) scale(0.78, 0.78); }",
                 "}",
 
-                "@keyframes helmettyPcLogoFlyIn {",
+                "@keyframes rasimPcLogoFlyIn {",
                 "  0% { opacity: 0; transform: translate(-3.375rem, 11.875rem) rotate(-28deg) scale(0.78, 0.78); }",
                 "  55% { opacity: 1; transform: translate(0.375rem,-0.875rem) rotate(4deg) scale(1.08, 1.08); }",
                 "  78% { opacity: 1; transform: translate(-0.1875rem, 0.1875rem) rotate(-2deg) scale(0.98, 0.98); }",
                 "  100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(0deg) scale(1, 1); }",
                 "}",
 
-                "@keyframes helmettyPcNoteFlutterOut {",
+                "@keyframes rasimPcNoteFlutterOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }",
                 "  18% { opacity: 1; transform: translate(0,-0.4375rem) rotate(-2deg) scale(1.08); }",
                 "  40% { opacity: 1; transform: translate(1.25rem, 1.625rem) rotate(8deg) scale(1); }",
@@ -842,14 +833,14 @@ function installBrandModalHelmettyPc() {
                 "  100% { opacity: 0; transform: translate(1rem, 12.8125rem) rotate(22deg) scale(0.85); }",
                 "}",
 
-                "@keyframes helmettyPcNoteFlutterIn {",
+                "@keyframes rasimPcNoteFlutterIn {",
                 "  0% { opacity: 0; transform: translate(1rem, 12.8125rem) rotate(22deg) scale(0.85); }",
                 "  50% { opacity: 1; transform: translate(-0.75rem, 0.875rem) rotate(-10deg) scale(1.04); }",
                 "  75% { opacity: 1; transform: translate(0.375rem, -0.375rem) rotate(-2deg) scale(1.06); }",
                 "  100% { opacity: var(--cute-opacity, 1); transform: translate(0,0) rotate(-5deg) scale(1); }",
                 "}",
 
-                "@keyframes helmettyPcButtonBounceOut {",
+                "@keyframes rasimPcButtonBounceOut {",
                 "  0% { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }",
                 "  18% { opacity: 1; transform: translateY(0.375rem) scale(1.22, 0.78) rotate(0deg); }",
                 "  40% { opacity: 1; transform: translateY(-1.5rem) scale(0.86, 1.18) rotate(0deg); }",
@@ -857,7 +848,7 @@ function installBrandModalHelmettyPc() {
                 "  100% { opacity: 0; transform: translateY(13.75rem) scale(0.82, 0.82) rotate(-14deg); }",
                 "}",
 
-                "@keyframes helmettyPcButtonBounceIn {",
+                "@keyframes rasimPcButtonBounceIn {",
                 "  0% { opacity: 0; transform: translateY(13.75rem) scale(0.82, 0.82) rotate(-14deg); }",
                 "  55% { opacity: 1; transform: translateY(-1.25rem) scale(0.9, 1.15) rotate(0deg); }",
                 "  75% { opacity: 1; transform: translateY(0.5rem) scale(1.15, 0.88) rotate(0deg); }",
@@ -865,7 +856,7 @@ function installBrandModalHelmettyPc() {
                 "  100% { opacity: var(--cute-opacity, 1); transform: translateY(0) scale(1, 1) rotate(0deg); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidDecoShake {",
+                "@keyframes rasimPcPolaroidDecoShake {",
                 "  0% { transform: rotate(0deg) translateY(0); }",
                 "  22% { transform: rotate(-2.4deg) translateY(0.1875rem); }",
                 "  46% { transform: rotate(1.8deg) translateY(-0.125rem); }",
@@ -873,43 +864,43 @@ function installBrandModalHelmettyPc() {
                 "  100% { transform: rotate(0deg) translateY(0); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidDecoPop {",
+                "@keyframes rasimPcPolaroidDecoPop {",
                 "  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(0.2); }",
                 "  70% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(1.18); }",
                 "  100% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(1); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidDecoDrop {",
+                "@keyframes rasimPcPolaroidDecoDrop {",
                 "  0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--deco-rotate, -8deg)) scale(1); }",
                 "  18% { opacity: 1; transform: translate(-50%, calc(-50% - 0.625rem)) rotate(calc(var(--deco-rotate, -8deg) + 8deg)) scale(1.06); }",
                 "  100% { opacity: 0; transform: translate(-50%, 13.125rem) rotate(calc(var(--deco-rotate, -8deg) + 34deg)) scale(0.82); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidNotePop {",
+                "@keyframes rasimPcPolaroidNotePop {",
                 "  0% { opacity: 0; transform: translateX(-50%) rotate(-3deg) scale(0.2); }",
                 "  70% { opacity: 1; transform: translateX(-50%) rotate(-5deg) scale(1.08); }",
                 "  100% { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidNoteDrop {",
+                "@keyframes rasimPcPolaroidNoteDrop {",
                 "  0% { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }",
                 "  18% { opacity: 1; transform: translateX(-50%) translateY(-0.625rem) rotate(4deg) scale(1.04); }",
                 "  100% { opacity: 0; transform: translateX(-50%) translateY(13.125rem) rotate(-18deg) scale(0.82); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidPostitPop {",
+                "@keyframes rasimPcPolaroidPostitPop {",
                 "  0% { opacity: 0; transform: rotate(var(--postit-rotate, 5deg)) scale(0.2); }",
                 "  70% { opacity: 1; transform: rotate(calc(var(--postit-rotate, 5deg) + 3deg)) scale(1.12); }",
                 "  100% { opacity: 1; transform: rotate(var(--postit-rotate, 5deg)) scale(1); }",
                 "}",
 
-                "@keyframes helmettyPcPolaroidPostitDrop {",
+                "@keyframes rasimPcPolaroidPostitDrop {",
                 "  0% { opacity: 1; transform: rotate(var(--postit-rotate, 5deg)) scale(1); }",
                 "  18% { opacity: 1; transform: translateY(-0.625rem) rotate(calc(var(--postit-rotate, 5deg) + 6deg)) scale(1.05); }",
                 "  100% { opacity: 0; transform: translateY(13.125rem) rotate(calc(var(--postit-rotate, 5deg) - 24deg)) scale(0.82); }",
                 "}",
 
-                "@keyframes helmettyPcHintIn {",
+                "@keyframes rasimPcHintIn {",
                 "  0% { opacity: 0; transform: translateX(-50%) translateY(0.5rem) scale(0.96); }",
                 "  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }",
                 "}"
@@ -945,11 +936,11 @@ function installBrandModalHelmettyPc() {
             }
 
             if (
-                window.BrandModalHelmettyData &&
-                Array.isArray(window.BrandModalHelmettyData.images)
+                window.BrandModalRasimData &&
+                Array.isArray(window.BrandModalRasimData.images)
             ) {
-                for (i = 0; i < window.BrandModalHelmettyData.images.length; i += 1) {
-                    if (window.BrandModalHelmettyData.images[i]) images.push(window.BrandModalHelmettyData.images[i]);
+                for (i = 0; i < window.BrandModalRasimData.images.length; i += 1) {
+                    if (window.BrandModalRasimData.images[i]) images.push(window.BrandModalRasimData.images[i]);
                 }
             }
 
@@ -958,24 +949,24 @@ function installBrandModalHelmettyPc() {
             });
 
             if (images.length) {
-                cachedHelmettyImages = images.slice();
+                cachedRasimImages = images.slice();
 
-                if (window.BrandModalHelmettyData) {
-                    window.BrandModalHelmettyData.images = images.slice();
+                if (window.BrandModalRasimData) {
+                    window.BrandModalRasimData.images = images.slice();
                 }
 
                 return images;
             }
 
-            return cachedHelmettyImages.slice();
+            return cachedRasimImages.slice();
         }
 
         function getStoreSignImageSrc() {
             if (
-                window.BrandModalHelmettyData &&
-                window.BrandModalHelmettyData.modalStoreSignImage
+                window.BrandModalRasimData &&
+                window.BrandModalRasimData.modalStoreSignImage
             ) {
-                return window.BrandModalHelmettyData.modalStoreSignImage;
+                return window.BrandModalRasimData.modalStoreSignImage;
             }
 
             return "";
@@ -1002,14 +993,14 @@ function installBrandModalHelmettyPc() {
 
             if (!storeSignLayer) {
                 storeSignLayer = document.createElement("div");
-                storeSignLayer.className = "helmetty-pc-store-sign-layer";
+                storeSignLayer.className = "rasim-pc-store-sign-layer";
                 modalCard.insertBefore(storeSignLayer, modalCard.firstChild);
             }
 
             if (!storeSignImage) {
                 storeSignImage = document.createElement("img");
-                storeSignImage.className = "helmetty-pc-store-sign";
-                storeSignImage.alt = "HELMETTY store sign";
+                storeSignImage.className = "rasim-pc-store-sign";
+                storeSignImage.alt = "Rasi:m store sign";
                 storeSignImage.draggable = false;
                 storeSignLayer.appendChild(storeSignImage);
             }
@@ -1017,12 +1008,12 @@ function installBrandModalHelmettyPc() {
             storeSignImage.src = src;
         }
 
-        function syncHelmettyPcInfoWithMobile() {
+        function syncRasimPcInfoWithMobile() {
             if (!modalCard) return;
 
             syncStoreSignImage();
 
-            var helmettyData = window.BrandModalHelmettyData || HELMETTY_PC_MODAL_DATA;
+            var rasimData = window.BrandModalRasimData || RASIM_PC_MODAL_DATA;
             var logo = modalCard.querySelector(".brand-logo-banner") || modalCard.querySelector(".pc-modal-logo") || modalCard.querySelector(".modal-logo");
             var cat = modalCard.querySelector(".pc-modal-cat") || modalCard.querySelector(".modal-cat");
             var watermark = modalCard.querySelector(".pc-modal-watermark") || modalCard.querySelector(".modal-watermark");
@@ -1031,16 +1022,16 @@ function installBrandModalHelmettyPc() {
             var btn = modalCard.querySelector(".modal-link-btn") || modalCard.querySelector(".pc-modal-link");
 
             if (modal) {
-                modal.style.setProperty("--pc-modal-bg", helmettyData.theme.bg);
-                modal.style.setProperty("--pc-modal-text", helmettyData.theme.text);
-                modal.style.setProperty("--pc-modal-btn", helmettyData.theme.btn);
-                modal.style.setProperty("--pc-modal-btn-text", helmettyData.theme.btnText);
+                modal.style.setProperty("--pc-modal-bg", rasimData.theme.bg);
+                modal.style.setProperty("--pc-modal-text", rasimData.theme.text);
+                modal.style.setProperty("--pc-modal-btn", rasimData.theme.btn);
+                modal.style.setProperty("--pc-modal-btn-text", rasimData.theme.btnText);
             }
 
             if (logo) {
                 logo.classList.add("brand-logo-banner");
-                logo.src = helmettyData.logoUrl;
-                logo.setAttribute("alt", helmettyData.watermark);
+                logo.src = rasimData.logoUrl;
+                logo.setAttribute("alt", rasimData.watermark);
 
                 if (logo.parentNode !== modalCard) {
                     modalCard.appendChild(logo);
@@ -1048,7 +1039,7 @@ function installBrandModalHelmettyPc() {
             }
 
             if (cat) {
-                cat.textContent = helmettyData.cat;
+                cat.textContent = rasimData.cat;
 
                 if (cat.parentNode !== modalCard) {
                     modalCard.appendChild(cat);
@@ -1056,21 +1047,21 @@ function installBrandModalHelmettyPc() {
             }
 
             if (watermark) {
-                watermark.textContent = helmettyData.watermark;
+                watermark.textContent = rasimData.watermark;
             }
 
             if (title && logo && logo.getAttribute && logo.getAttribute("src")) {
-                title.classList.add("helmetty-pc-title-hidden");
+                title.classList.add("rasim-pc-title-hidden");
             }
 
             if (desc) {
                 desc.classList.add("cute-shop-copy");
-                desc.innerHTML = helmettyData.desc || "";
+                desc.innerHTML = rasimData.desc || "";
             }
 
             if (btn) {
                 btn.classList.add("modal-link-btn");
-                btn.textContent = helmettyData.linkText || "";
+                btn.textContent = rasimData.linkText || "";
             }
 
             if (introDecoTimer) {
@@ -1110,7 +1101,7 @@ function installBrandModalHelmettyPc() {
 
         function showIntroCardDecos() {
             if (!modal || !modalCard || isPolaroidOpen) return;
-            if (!modal.classList.contains("is-open") || modal.getAttribute("data-active-brand") !== "helmetty") return;
+            if (!modal.classList.contains("is-open") || modal.getAttribute("data-active-brand") !== "rasim") return;
 
             var card = getIntroCard();
             if (!card) return;
@@ -1126,7 +1117,7 @@ function installBrandModalHelmettyPc() {
 
             patterns.forEach(function (pattern) {
                 var deco = document.createElement("div");
-                deco.className = "helmetty-pc-intro-deco is-tape";
+                deco.className = "rasim-pc-intro-deco is-tape";
                 deco.style.setProperty("--intro-deco-left", pattern.left);
                 deco.style.setProperty("--intro-deco-top", pattern.top);
                 deco.style.setProperty("--intro-deco-rotate", pattern.rotate);
@@ -1159,14 +1150,14 @@ function installBrandModalHelmettyPc() {
             if (!el) return;
 
             el.classList.remove(
-                "helmetty-pc-fall-out",
-                "helmetty-pc-return-in",
-                "helmetty-pc-logo-out",
-                "helmetty-pc-logo-in",
-                "helmetty-pc-note-out",
-                "helmetty-pc-note-in",
-                "helmetty-pc-button-out",
-                "helmetty-pc-button-in"
+                "rasim-pc-fall-out",
+                "rasim-pc-return-in",
+                "rasim-pc-logo-out",
+                "rasim-pc-logo-in",
+                "rasim-pc-note-out",
+                "rasim-pc-note-in",
+                "rasim-pc-button-out",
+                "rasim-pc-button-in"
             );
 
             el.style.removeProperty("--fall-delay");
@@ -1188,15 +1179,13 @@ function installBrandModalHelmettyPc() {
             if (!modalCard) return [];
 
             var items = [];
-            var logo = modalCard.querySelector(".brand-logo-banner") || modalCard.querySelector(".pc-modal-logo") || modalCard.querySelector(".modal-logo");
             var title = modalCard.querySelector(".pc-modal-title") || modalCard.querySelector(".modal-title");
             var note = modalCard.querySelector(".modal-desc.cute-shop-copy") || modalCard.querySelector(".pc-modal-desc") || modalCard.querySelector(".modal-desc");
             var btn = modalCard.querySelector(".modal-link-btn") || modalCard.querySelector(".pc-modal-link");
-            var caption = modalCard.querySelector(".helmetty-pc-album-caption");
+            var caption = modalCard.querySelector(".rasim-pc-album-caption");
 
-            if (logo && (!logo.getAttribute || logo.getAttribute("src"))) items.push({ el: logo, kind: "logo" });
             if (storeSignImage) items.push({ el: storeSignImage, kind: "logo" });
-            if (title && !title.classList.contains("helmetty-pc-title-hidden")) items.push({ el: title, kind: "note" });
+            if (title && !title.classList.contains("rasim-pc-title-hidden")) items.push({ el: title, kind: "note" });
             if (note) items.push({ el: note, kind: "note" });
             if (btn) items.push({ el: btn, kind: "button" });
             if (caption) items.push({ el: caption, kind: "button" });
@@ -1211,20 +1200,20 @@ function installBrandModalHelmettyPc() {
                 var originalOpacity = getComputedStyle(el).opacity || "1";
 
                 clearCuteState(el);
-                el.dataset.helmettyPcCuteOpacity = originalOpacity;
+                el.dataset.rasimPcCuteOpacity = originalOpacity;
                 el.style.setProperty("--cute-opacity", originalOpacity);
                 el.style.setProperty("--fall-delay", String(0.08 + index * 0.045) + "s");
-                el.style.setProperty("--fall-y", helmettyToVh(150 + index * 10));
+                el.style.setProperty("--fall-y", rasimToVh(150 + index * 10));
                 el.style.setProperty("--fall-rotate", index % 2 === 0 ? "-5deg" : "5deg");
                 el.style.setProperty("--fall-rotate-end", index % 2 === 0 ? "18deg" : "-18deg");
-                el.style.setProperty("--fall-sway", index % 2 === 0 ? helmettyToVw(24) : helmettyToVw(-24));
-                el.classList.add("helmetty-pc-fall-out");
+                el.style.setProperty("--fall-sway", index % 2 === 0 ? rasimToVw(24) : rasimToVw(-24));
+                el.classList.add("rasim-pc-fall-out");
             });
 
             var kindToClass = {
-                logo: "helmetty-pc-logo-out",
-                note: "helmetty-pc-note-out",
-                button: "helmetty-pc-button-out"
+                logo: "rasim-pc-logo-out",
+                note: "rasim-pc-note-out",
+                button: "rasim-pc-button-out"
             };
 
             var kindOrder = {
@@ -1238,38 +1227,38 @@ function installBrandModalHelmettyPc() {
                 var order = kindOrder[item.kind] != null ? kindOrder[item.kind] : 3;
 
                 clearCuteState(item.el);
-                item.el.dataset.helmettyPcCuteOpacity = originalOpacity;
+                item.el.dataset.rasimPcCuteOpacity = originalOpacity;
                 item.el.style.setProperty("--cute-opacity", originalOpacity);
                 item.el.style.setProperty("--fall-delay", String(order * 0.06) + "s");
-                item.el.classList.add(kindToClass[item.kind] || "helmetty-pc-fall-out");
+                item.el.classList.add(kindToClass[item.kind] || "rasim-pc-fall-out");
             });
         }
 
         function returnElements() {
             albumFallTargets().reverse().forEach(function (el, index) {
-                var originalOpacity = el.dataset.helmettyPcCuteOpacity || "1";
+                var originalOpacity = el.dataset.rasimPcCuteOpacity || "1";
 
                 clearCuteState(el);
                 void el.offsetWidth;
 
                 el.style.setProperty("--cute-opacity", originalOpacity);
                 el.style.setProperty("--return-delay", String(index * 0.045) + "s");
-                el.style.setProperty("--fall-y", helmettyToVh(150 + index * 10));
+                el.style.setProperty("--fall-y", rasimToVh(150 + index * 10));
                 el.style.setProperty("--fall-rotate", index % 2 === 0 ? "-5deg" : "5deg");
                 el.style.setProperty("--fall-rotate-end", index % 2 === 0 ? "18deg" : "-18deg");
-                el.style.setProperty("--fall-sway", index % 2 === 0 ? helmettyToVw(24) : helmettyToVw(-24));
-                el.classList.add("helmetty-pc-return-in");
+                el.style.setProperty("--fall-sway", index % 2 === 0 ? rasimToVw(24) : rasimToVw(-24));
+                el.classList.add("rasim-pc-return-in");
 
                 setTimeout(function () {
                     clearCuteState(el);
-                    delete el.dataset.helmettyPcCuteOpacity;
+                    delete el.dataset.rasimPcCuteOpacity;
                 }, 1100);
             });
 
             var kindToClass = {
-                logo: "helmetty-pc-logo-in",
-                note: "helmetty-pc-note-in",
-                button: "helmetty-pc-button-in"
+                logo: "rasim-pc-logo-in",
+                note: "rasim-pc-note-in",
+                button: "rasim-pc-button-in"
             };
 
             var kindOrder = {
@@ -1279,7 +1268,7 @@ function installBrandModalHelmettyPc() {
             };
 
             extraFallTargets().forEach(function (item) {
-                var originalOpacity = item.el.dataset.helmettyPcCuteOpacity || "1";
+                var originalOpacity = item.el.dataset.rasimPcCuteOpacity || "1";
                 var order = kindOrder[item.kind] != null ? kindOrder[item.kind] : 3;
 
                 clearCuteState(item.el);
@@ -1287,11 +1276,11 @@ function installBrandModalHelmettyPc() {
 
                 item.el.style.setProperty("--cute-opacity", originalOpacity);
                 item.el.style.setProperty("--return-delay", String(order * 0.07) + "s");
-                item.el.classList.add(kindToClass[item.kind] || "helmetty-pc-return-in");
+                item.el.classList.add(kindToClass[item.kind] || "rasim-pc-return-in");
 
                 setTimeout(function () {
                     clearCuteState(item.el);
-                    delete item.el.dataset.helmettyPcCuteOpacity;
+                    delete item.el.dataset.rasimPcCuteOpacity;
                 }, 1100);
             });
         }
@@ -1343,7 +1332,7 @@ function installBrandModalHelmettyPc() {
             shakePolaroid();
 
             polaroidDeco = document.createElement("div");
-            polaroidDeco.className = "helmetty-pc-deco is-" + pattern.type;
+            polaroidDeco.className = "rasim-pc-deco is-" + pattern.type;
             polaroidDeco.style.setProperty("--deco-left", pattern.left);
             polaroidDeco.style.setProperty("--deco-top", pattern.top);
             polaroidDeco.style.setProperty("--deco-rotate", pattern.rotate);
@@ -1376,18 +1365,18 @@ function installBrandModalHelmettyPc() {
             shakePolaroid();
 
             polaroidNote = document.createElement("div");
-            polaroidNote.className = "helmetty-pc-note";
+            polaroidNote.className = "rasim-pc-note";
 
             var title = document.createElement("span");
-            title.className = "helmetty-pc-note-title";
+            title.className = "rasim-pc-note-title";
             title.textContent = "Fancy Item";
 
             var text = document.createElement("p");
-            text.className = "helmetty-pc-note-text";
+            text.className = "rasim-pc-note-text";
             text.textContent = "ちょっとカワイイ毎日にぴったりのアイテムです";
 
             var btn = document.createElement("a");
-            btn.className = "helmetty-pc-note-btn";
+            btn.className = "rasim-pc-note-btn";
             btn.href = "#";
             btn.textContent = "この商品を見る";
 
@@ -1421,7 +1410,7 @@ function installBrandModalHelmettyPc() {
             var pattern = postitPatterns[Math.floor(Math.random() * postitPatterns.length)];
 
             polaroidPostit = document.createElement("div");
-            polaroidPostit.className = "helmetty-pc-postit";
+            polaroidPostit.className = "rasim-pc-postit";
             polaroidPostit.style.setProperty("--postit-color", pattern.color);
             polaroidPostit.style.setProperty("--postit-color-2", pattern.color2);
             polaroidPostit.style.setProperty("--postit-rotate", pattern.rotate);
@@ -1462,7 +1451,7 @@ function installBrandModalHelmettyPc() {
             if (!modalCard || closeHint) return;
 
             closeHint = document.createElement("div");
-            closeHint.className = "helmetty-pc-close-hint";
+            closeHint.className = "rasim-pc-close-hint";
             closeHint.textContent = "Click photo to close";
             modalCard.appendChild(closeHint);
         }
@@ -1506,24 +1495,24 @@ function installBrandModalHelmettyPc() {
             var openLeft = stageLeft + (stageRect.width - openSize) / 2;
             var openTop = stageTop + (stageRect.height - openSize) / 2;
 
-            modalCard.style.setProperty("--helmetty-pc-open-left", helmettyToModalX(openLeft, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-open-top", helmettyToModalY(openTop, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-open-width", helmettyToModalX(openSize, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-open-height", helmettyToModalY(openSize, cardRect));
+            modalCard.style.setProperty("--rasim-pc-open-left", rasimToModalX(openLeft, cardRect));
+            modalCard.style.setProperty("--rasim-pc-open-top", rasimToModalY(openTop, cardRect));
+            modalCard.style.setProperty("--rasim-pc-open-width", rasimToModalX(openSize, cardRect));
+            modalCard.style.setProperty("--rasim-pc-open-height", rasimToModalY(openSize, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-deco-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-deco-top", helmettyToModalY(openTop + openSize * 0.02, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-deco-x", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-deco-y", helmettyToModalY(openTop + openSize * 0.02, cardRect));
+            modalCard.style.setProperty("--rasim-pc-deco-left", rasimToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--rasim-pc-deco-top", rasimToModalY(openTop + openSize * 0.02, cardRect));
+            modalCard.style.setProperty("--rasim-pc-deco-x", rasimToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--rasim-pc-deco-y", rasimToModalY(openTop + openSize * 0.02, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-note-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-note-top", helmettyToModalY(openTop + openSize * 0.84, cardRect));
+            modalCard.style.setProperty("--rasim-pc-note-left", rasimToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--rasim-pc-note-top", rasimToModalY(openTop + openSize * 0.84, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-postit-left", helmettyToModalX(openLeft - openSize * 0.08, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-postit-top", helmettyToModalY(openTop + openSize * 0.12, cardRect));
+            modalCard.style.setProperty("--rasim-pc-postit-left", rasimToModalX(openLeft - openSize * 0.08, cardRect));
+            modalCard.style.setProperty("--rasim-pc-postit-top", rasimToModalY(openTop + openSize * 0.12, cardRect));
 
-            modalCard.style.setProperty("--helmetty-pc-hint-left", helmettyToModalX(openLeft + openSize * 0.5, cardRect));
-            modalCard.style.setProperty("--helmetty-pc-hint-top", helmettyToModalY(openTop - openSize * 0.1, cardRect));
+            modalCard.style.setProperty("--rasim-pc-hint-left", rasimToModalX(openLeft + openSize * 0.5, cardRect));
+            modalCard.style.setProperty("--rasim-pc-hint-top", rasimToModalY(openTop - openSize * 0.1, cardRect));
         }
 
         function closePolaroid() {
@@ -1569,7 +1558,7 @@ function installBrandModalHelmettyPc() {
                 }
 
                 if (modalCard) {
-                    modalCard.classList.remove("is-helmetty-polaroid-open");
+                    modalCard.classList.remove("is-rasim-polaroid-open");
                 }
 
                 returnElements();
@@ -1596,16 +1585,16 @@ function installBrandModalHelmettyPc() {
             var imgRect = img.getBoundingClientRect();
 
             polaroidHero = img.cloneNode(true);
-            polaroidHero.className = "helmetty-pc-polaroid-hero";
+            polaroidHero.className = "rasim-pc-polaroid-hero";
             polaroidHero.removeAttribute("id");
-            polaroidHero.style.setProperty("--hero-left", helmettyToModalX(imgRect.left - cardRect.left, cardRect));
-            polaroidHero.style.setProperty("--hero-top", helmettyToModalY(imgRect.top - cardRect.top, cardRect));
-            polaroidHero.style.setProperty("--hero-width", helmettyToModalX(imgRect.width, cardRect));
-            polaroidHero.style.setProperty("--hero-height", helmettyToModalY(imgRect.height, cardRect));
+            polaroidHero.style.setProperty("--hero-left", rasimToModalX(imgRect.left - cardRect.left, cardRect));
+            polaroidHero.style.setProperty("--hero-top", rasimToModalY(imgRect.top - cardRect.top, cardRect));
+            polaroidHero.style.setProperty("--hero-width", rasimToModalX(imgRect.width, cardRect));
+            polaroidHero.style.setProperty("--hero-height", rasimToModalY(imgRect.height, cardRect));
             setOpenLayoutToPhotoStageCenter(cardRect);
 
             modalCard.appendChild(polaroidHero);
-            modalCard.classList.add("is-helmetty-polaroid-open");
+            modalCard.classList.add("is-rasim-polaroid-open");
             img.classList.add("is-hero-source");
 
             dropIntroCardDecos();
@@ -1743,28 +1732,28 @@ function installBrandModalHelmettyPc() {
             if (!modalStage || !images || images.length === 0) return;
 
             albumWrap = document.createElement("div");
-            albumWrap.className = "helmetty-pc-album-wrap";
+            albumWrap.className = "rasim-pc-album-wrap";
 
             albumTrack = document.createElement("div");
-            albumTrack.className = "helmetty-pc-album-track";
+            albumTrack.className = "rasim-pc-album-track";
 
             albumPrevBtn = document.createElement("button");
-            albumPrevBtn.className = "helmetty-pc-album-arrow is-prev";
+            albumPrevBtn.className = "rasim-pc-album-arrow is-prev";
             albumPrevBtn.type = "button";
             albumPrevBtn.setAttribute("aria-label", "前のアイテムへ");
             albumPrevBtn.textContent = "‹";
 
             albumNextBtn = document.createElement("button");
-            albumNextBtn.className = "helmetty-pc-album-arrow is-next";
+            albumNextBtn.className = "rasim-pc-album-arrow is-next";
             albumNextBtn.type = "button";
             albumNextBtn.setAttribute("aria-label", "次のアイテムへ");
             albumNextBtn.textContent = "›";
 
             images.forEach(function (src, index) {
                 var img = document.createElement("img");
-                img.className = "helmetty-pc-gallery-img";
+                img.className = "rasim-pc-gallery-img";
                 img.src = src;
-                img.alt = "HELMETTY gallery " + String(index + 1);
+                img.alt = "Rasi:m gallery " + String(index + 1);
                 img.draggable = false;
                 img.loading = "eager";
 
@@ -1780,7 +1769,7 @@ function installBrandModalHelmettyPc() {
             albumWrap.appendChild(albumNextBtn);
             modalStage.appendChild(albumWrap);
 
-            albumImages = Array.prototype.slice.call(albumTrack.querySelectorAll(".helmetty-pc-gallery-img"));
+            albumImages = Array.prototype.slice.call(albumTrack.querySelectorAll(".rasim-pc-gallery-img"));
         }
 
         function destroy() {
@@ -1790,12 +1779,12 @@ function installBrandModalHelmettyPc() {
 
             albumFallTargets().forEach(function (el) {
                 clearCuteState(el);
-                delete el.dataset.helmettyPcCuteOpacity;
+                delete el.dataset.rasimPcCuteOpacity;
             });
 
             extraFallTargets().forEach(function (item) {
                 clearCuteState(item.el);
-                delete item.el.dataset.helmettyPcCuteOpacity;
+                delete item.el.dataset.rasimPcCuteOpacity;
             });
 
             if (polaroidHero) {
@@ -1834,20 +1823,20 @@ function installBrandModalHelmettyPc() {
             removeAlbum();
 
             if (modalCard) {
-                modalCard.classList.remove("is-helmetty-ready", "is-helmetty-polaroid-open");
-                modalCard.style.removeProperty("--helmetty-pc-open-left");
-                modalCard.style.removeProperty("--helmetty-pc-open-top");
-                modalCard.style.removeProperty("--helmetty-pc-open-size");
-                modalCard.style.removeProperty("--helmetty-pc-deco-left");
-                modalCard.style.removeProperty("--helmetty-pc-deco-top");
-                modalCard.style.removeProperty("--helmetty-pc-deco-x");
-                modalCard.style.removeProperty("--helmetty-pc-deco-y");
-                modalCard.style.removeProperty("--helmetty-pc-note-left");
-                modalCard.style.removeProperty("--helmetty-pc-note-top");
-                modalCard.style.removeProperty("--helmetty-pc-postit-left");
-                modalCard.style.removeProperty("--helmetty-pc-postit-top");
-                modalCard.style.removeProperty("--helmetty-pc-hint-left");
-                modalCard.style.removeProperty("--helmetty-pc-hint-top");
+                modalCard.classList.remove("is-rasim-ready", "is-rasim-polaroid-open");
+                modalCard.style.removeProperty("--rasim-pc-open-left");
+                modalCard.style.removeProperty("--rasim-pc-open-top");
+                modalCard.style.removeProperty("--rasim-pc-open-size");
+                modalCard.style.removeProperty("--rasim-pc-deco-left");
+                modalCard.style.removeProperty("--rasim-pc-deco-top");
+                modalCard.style.removeProperty("--rasim-pc-deco-x");
+                modalCard.style.removeProperty("--rasim-pc-deco-y");
+                modalCard.style.removeProperty("--rasim-pc-note-left");
+                modalCard.style.removeProperty("--rasim-pc-note-top");
+                modalCard.style.removeProperty("--rasim-pc-postit-left");
+                modalCard.style.removeProperty("--rasim-pc-postit-top");
+                modalCard.style.removeProperty("--rasim-pc-hint-left");
+                modalCard.style.removeProperty("--rasim-pc-hint-top");
             }
 
             isEnabled = false;
@@ -1887,7 +1876,7 @@ function installBrandModalHelmettyPc() {
                 !modalCard ||
                 !modalViewer ||
                 !modalStage ||
-                modal.getAttribute("data-active-brand") !== "helmetty" ||
+                modal.getAttribute("data-active-brand") !== "rasim" ||
                 modal.classList.contains("is-archive-mode")
             ) {
                 isEnabled = false;
@@ -1901,8 +1890,8 @@ function installBrandModalHelmettyPc() {
                 return;
             }
 
-            modalCard.classList.add("is-helmetty-ready");
-            syncHelmettyPcInfoWithMobile();
+            modalCard.classList.add("is-rasim-ready");
+            syncRasimPcInfoWithMobile();
 
             buildAlbum(images);
             bindAlbumImages();
@@ -1934,9 +1923,9 @@ function installBrandModalHelmettyPc() {
 
             if (
                 parts.foundModal.classList.contains("is-open") &&
-                parts.foundModal.getAttribute("data-active-brand") === "helmetty" &&
+                parts.foundModal.getAttribute("data-active-brand") === "rasim" &&
                 !parts.foundModal.classList.contains("is-archive-mode") &&
-                !parts.foundCard.classList.contains("is-helmetty-ready")
+                !parts.foundCard.classList.contains("is-rasim-ready")
             ) {
                 setup({
                     enabled: true,
@@ -1974,7 +1963,7 @@ function installBrandModalHelmettyPc() {
             setTimeout(setupFromDomIfActive, 1600);
         }
 
-        window.BrandModalHelmetty = {
+        window.BrandModalRasim = {
             setup: setup,
             destroy: destroy,
             close: closePolaroid,
@@ -1987,9 +1976,9 @@ function installBrandModalHelmettyPc() {
         startAutoObserver();
 
         debugToParent("installed", {
-            hasBrandModalHelmetty: !!window.BrandModalHelmetty
+            hasBrandModalRasim: !!window.BrandModalRasim
         });
     })();
 }
 
-export const helmettyPcPolaroidCode = "(" + installBrandModalHelmettyPc.toString() + ")();";
+export const rasimPcPolaroidCode = "(" + installBrandModalRasimPc.toString() + ")();";

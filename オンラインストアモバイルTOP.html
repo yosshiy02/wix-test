@@ -1710,9 +1710,7 @@
             transition: color 0.8s;
         }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-watermark {
-            display: none;
-        }
+
 
         .modal-gallery-content {
             position: absolute;
@@ -1801,113 +1799,7 @@
             opacity: 0.6;
         }
 
-        .brand-logo-banner {
-            display: none;
-            width: min(66%, calc(210 * var(--rx)));
-            height: auto;
-            margin:
-                calc(-14 * var(--ry))
-                auto
-                calc(6 * var(--ry));
-            object-fit: contain;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .brand-logo-banner {
-            display: block;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-title {
-            display: none;
-        }
-
-        .cute-shop-copy {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: calc(3 * var(--ry));
-            width: fit-content;
-            max-width: calc(281.6 * var(--rx));
-            margin:
-                calc(-10 * var(--ry))
-                auto
-                0;
-            padding:
-                calc(9 * var(--ry))
-                calc(22 * var(--rx))
-                calc(9 * var(--ry));
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-            color: #FF6FAE;
-            background:
-                linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(255,245,250,0.96) 52%, rgba(255,251,229,0.94) 100%);
-            border: calc(2 * var(--ru)) solid rgba(255,126,179,0.52);
-            border-radius: calc(9 * var(--ru));
-            box-shadow:
-                0 calc(2 * var(--ry)) 0 rgba(255,216,77,0.65),
-                0 calc(7 * var(--ry)) calc(16 * var(--ru)) rgba(255,126,179,0.20),
-                0 calc(1 * var(--ry)) 0 rgba(255,255,255,0.95) inset;
-            transform: rotate(-5deg);
-            animation: none;
-            will-change: transform;
-        }
-
-        .cute-shop-copy::before {
-            content: "";
-            position: absolute;
-            left: calc(-12 * var(--rx));
-            top: calc(-10 * var(--ry));
-            width: calc(42 * var(--rx));
-            height: calc(15 * var(--ry));
-            background:
-                linear-gradient(135deg, rgba(255,255,255,0.72), rgba(150,220,255,0.9));
-            border: calc(1 * var(--ru)) solid rgba(80,170,220,0.38);
-            border-radius: calc(3 * var(--ru));
-            box-shadow: 0 calc(2 * var(--ry)) calc(5 * var(--ru)) rgba(80,170,220,0.18);
-            transform: rotate(-18deg);
-            animation: none;
-            will-change: transform;
-        }
-
-        .cute-shop-copy::after {
-            content: "";
-            position: absolute;
-            right: calc(-11 * var(--rx));
-            bottom: calc(-8 * var(--ry));
-            width: calc(38 * var(--rx));
-            height: calc(14 * var(--ry));
-            background:
-                linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,218,86,0.88));
-            border: calc(1 * var(--ru)) solid rgba(230,180,40,0.42);
-            border-radius: calc(3 * var(--ru));
-            box-shadow: 0 calc(2 * var(--ry)) calc(5 * var(--ru)) rgba(230,180,40,0.18);
-            transform: rotate(16deg);
-            animation: none;
-            will-change: transform;
-        }
-
-        .cute-shop-copy span {
-            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
-            font-size: clamp(calc(10 * var(--ru)), calc(0.78rem), calc(12.48 * var(--ru)));
-            font-weight: 900;
-            letter-spacing: calc(0.4 * var(--rx));
-            line-height: 1.18;
-            color: #FF6FAE;
-            white-space: nowrap;
-            text-shadow:
-                calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff,
-                calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,216,77,0.32);
-        }
-
-        .cute-shop-copy small {
-            font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;
-            font-size: clamp(calc(8 * var(--ru)), calc(0.56rem), calc(8.96 * var(--ru)));
-            font-weight: 700;
-            letter-spacing: calc(1.1 * var(--rx));
-            line-height: 1.05;
-            color: #FF9A66;
-        }
         .modal-title {
             font-family: var(--font-serif);
             display: flex;
@@ -1935,17 +1827,7 @@
             letter-spacing: clamp(calc(3 * var(--rx)), calc(1.2vw), calc(6 * var(--rx)));
         }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-title {
-            font-family: var(--font-sans);
-            font-weight: 700;
-            color: #FF4081;
-            font-size: clamp(calc(25.6 * var(--ru)), calc(7vw), calc(36.8 * var(--ru)));
-            transform: rotate(-5deg);
-            text-shadow:
-                calc(-2 * var(--rx)) calc(-2 * var(--ry)) 0 #FFF9C4,
-                calc(2 * var(--rx)) calc(2 * var(--ry)) 0 #FFF9C4,
-                calc(4 * var(--rx)) calc(4 * var(--ry)) 0 #81D4FA;
-        }
+
 
         .brand-modal[data-active-brand="nagomitsuki"] .modal-title {
             flex-direction: column;
@@ -1996,19 +1878,7 @@
             text-overflow: ellipsis;
         }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-desc.cute-shop-copy {
-            font-size: initial;
-            line-height: initial;
-            opacity: 1;
-            max-width: 96%;
-            margin:
-                calc(-14 * var(--ry))
-                auto
-                0;
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-        }
+
 
         @media (max-height: 560px) {
             .modal-desc {
@@ -2051,189 +1921,7 @@
             }
         }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-watermark {
-            display: none !important;
-            pointer-events: none !important;
-        }
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn {
-            animation: none !important;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn.helmetty-cute-button-out {
-            animation: helmettyButtonBounceOut 0.72s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
-            animation-delay: var(--fall-delay, 0s) !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-link-btn.helmetty-cute-button-in {
-            animation: helmettyButtonBounceIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
-            animation-delay: var(--return-delay, 0s) !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-desc.cute-shop-copy.helmetty-cute-note-out {
-            animation: helmettyNoteFlutterOut 0.74s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
-            animation-delay: var(--fall-delay, 0s) !important;
-            opacity: 0 !important;
-            transform: translate(10px, 140px) rotate(22deg) scale(0.85) !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .modal-desc.cute-shop-copy.helmetty-cute-note-in {
-            animation: helmettyNoteFlutterIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
-            animation-delay: var(--return-delay, 0s) !important;
-            transform: none !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .swipe-indicator.helmetty-cute-swipe-out {
-            animation: helmettySwipeOut 0.5s cubic-bezier(0.34, 0.01, 0.5, 1) forwards !important;
-            animation-delay: var(--fall-delay, 0s) !important;
-            opacity: 0 !important;
-            transform: translateX(-50%) translateY(40px) scale(0.7) !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open .swipe-indicator.helmetty-cute-swipe-in {
-            animation: helmettySwipeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
-            animation-delay: var(--return-delay, 0s) !important;
-            transform: none !important;
-        }
-
-        @keyframes helmettyButtonBounceOut {
-            0%   { opacity: 1; transform: translateY(0) scale(1, 1) rotate(0deg); }
-            18%  { opacity: 1; transform: translateY(4px) scale(1.22, 0.78) rotate(0deg); }
-            40%  { opacity: 1; transform: translateY(-18px) scale(0.86, 1.18) rotate(0deg); }
-            65%  { opacity: 1; transform: translateY(20px) scale(1.1, 0.92) rotate(6deg); }
-            100% { opacity: 0; transform: translateY(150px) scale(0.82, 0.82) rotate(-14deg); }
-        }
-
-        @keyframes helmettyButtonBounceIn {
-            0%   { opacity: 0; transform: translateY(150px) scale(0.82, 0.82) rotate(-14deg); }
-            55%  { opacity: 1; transform: translateY(-14px) scale(0.9, 1.15) rotate(0deg); }
-            75%  { opacity: 1; transform: translateY(6px) scale(1.15, 0.88) rotate(0deg); }
-            90%  { opacity: 1; transform: translateY(-3px) scale(0.97, 1.04) rotate(0deg); }
-            100% { opacity: 1; transform: translateY(0) scale(1, 1) rotate(0deg); }
-        }
-
-        @keyframes helmettyNoteFlutterOut {
-            0%   { opacity: 1; transform: translate(0,0) rotate(-5deg) scale(1); }
-            18%  { opacity: 1; transform: translate(0,-5px) rotate(-2deg) scale(1.08); }
-            40%  { opacity: 1; transform: translate(14px, 18px) rotate(8deg) scale(1); }
-            65%  { opacity: 1; transform: translate(-12px, 60px) rotate(-12deg) scale(0.96); }
-            100% { opacity: 0; transform: translate(10px, 140px) rotate(22deg) scale(0.85); }
-        }
-
-        @keyframes helmettyNoteFlutterIn {
-            0%   { opacity: 0; transform: translate(10px, 140px) rotate(22deg) scale(0.85); }
-            50%  { opacity: 1; transform: translate(-8px, 10px) rotate(-10deg) scale(1.04); }
-            75%  { opacity: 1; transform: translate(4px, -4px) rotate(-2deg) scale(1.06); }
-            100% { opacity: 1; transform: translate(0,0) rotate(-5deg) scale(1); }
-        }
-
-        @keyframes helmettySwipeOut {
-            0%   { opacity: 0.88; transform: translateX(-50%) translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(40px) scale(0.7); }
-        }
-
-        @keyframes helmettySwipeIn {
-            0%   { opacity: 0; transform: translateX(-50%) translateY(40px) scale(0.7); }
-            70%  { opacity: 1; transform: translateX(-50%) translateY(-3px) scale(1.05); }
-            100% { opacity: 0.88; transform: translateX(-50%) translateY(0) scale(1); }
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content {
-            background-color: #F8EECF !important;
-            background-image:
-                linear-gradient(90deg, rgba(255,126,179,0.025) calc(1 * var(--ru)), transparent calc(1 * var(--ru))),
-                linear-gradient(0deg, rgba(255,179,107,0.018) calc(1 * var(--ru)), transparent calc(1 * var(--ru))),
-                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.55), transparent 35%) !important;
-            background-size:
-                calc(14 * var(--rx)) calc(14 * var(--ry)),
-                calc(14 * var(--rx)) calc(14 * var(--ry)),
-                100% 100% !important;
-            --m-img: min(calc(153.6 * var(--rx)), calc(160 * var(--ru))) !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-gallery-content.is-helmetty-polaroid-open {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: calc(34 * var(--ry)) 0 !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-track-wrap {
-            position: absolute !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: calc(126 * var(--ry)) !important;
-            min-height: 0 !important;
-            width: 100% !important;
-            display: grid !important;
-            grid-template-rows: auto auto !important;
-            align-content: center !important;
-            align-items: center !important;
-            overflow: visible !important;
-            padding: calc(8 * var(--ry)) 0 !important;
-            z-index: 6 !important;
-            opacity: 1 !important;
-            transform: none !important;
-            pointer-events: auto !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-track {
-            opacity: 1 !important;
-            transform: none !important;
-            display: flex !important;
-            align-items: center !important;
-            width: 100% !important;
-            overflow-x: auto !important;
-            overflow-y: visible !important;
-            pointer-events: auto !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-close {
-            z-index: 9999 !important;
-            pointer-events: auto !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-header.modal-anim {
-            position: absolute !important;
-            left: 0 !important;
-            right: 0 !important;
-            top: calc(34 * var(--ry)) !important;
-            z-index: 8 !important;
-            opacity: 1 !important;
-            transform: none !important;
-            pointer-events: none !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .brand-logo-banner {
-            display: block !important;
-            width: min(66%, calc(210 * var(--rx))) !important;
-            height: auto !important;
-            margin:
-                calc(-14 * var(--ry))
-                auto
-                calc(6 * var(--ry)) !important;
-            object-fit: contain !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-desc.cute-shop-copy {
-            display: flex !important;
-            opacity: 1 !important;
-            max-width: 96% !important;
-            margin:
-                calc(-14 * var(--ry))
-                auto
-                0 !important;
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: clip !important;
-            pointer-events: auto !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-cat,
-        .brand-modal[data-active-brand="helmetty"] .modal-divider,
-        .brand-modal[data-active-brand="helmetty"] .modal-title {
-            display: none !important;
-            pointer-events: none !important;
-        }
 
         .modal-track-wrap {
             min-height: 0;
@@ -2397,215 +2085,10 @@
                 box-shadow 0.3s;
         }
 
-        .brand-modal[data-active-brand="helmetty"] .swipe-indicator {
-            position: absolute !important;
-            left: 50% !important;
-            top: calc(172 * var(--ry)) !important;
-            transform: translateX(-50%) !important;
-            z-index: 9 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: calc(5 * var(--rx)) !important;
-            margin-top: 0 !important;
-            color: var(--m-text) !important;
-            opacity: 0.88 !important;
-            font-size: clamp(calc(8 * var(--ru)), calc(0.6rem), calc(9.6 * var(--ru))) !important;
-            letter-spacing: calc(0.6 * var(--rx)) !important;
-            border: calc(1 * var(--ru)) solid rgba(255,126,179,0.28) !important;
-            border-radius: 999px !important;
-            padding:
-                calc(3 * var(--ry))
-                calc(8 * var(--rx)) !important;
-            white-space: nowrap !important;
-            font-family: var(--font-sans) !important;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .swipe-line {
-            display: none !important;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .swipe-dot {
-            width: calc(5 * var(--ru)) !important;
-            height: calc(5 * var(--ru)) !important;
-            border-radius: 50% !important;
-            background-color: var(--accent) !important;
-            animation: none !important;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-footer {
-            min-height: 0 !important;
-            text-align: center !important;
-            margin-top: 0 !important;
-            position: absolute !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: calc(22 * var(--ry)) !important;
-            z-index: 9999 !important;
-            pointer-events: auto !important;
-        }
 
-        .brand-modal[data-active-brand="helmetty"] .modal-link-btn {
-            position: relative !important;
-            display: inline-block !important;
-            padding:
-                calc(8 * var(--ry))
-                calc(21 * var(--rx))
-                calc(8 * var(--ry)) !important;
-            background: #FFE86F !important;
-            color: #B83F78 !important;
-            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif !important;
-            font-size: clamp(calc(9.6 * var(--ru)), calc(0.72rem), calc(11.52 * var(--ru))) !important;
-            font-weight: 900 !important;
-            letter-spacing: calc(0.7 * var(--rx)) !important;
-            border: calc(2 * var(--ru)) solid rgba(255,126,179,0.9) !important;
-            border-radius: 999px !important;
-            text-decoration: none !important;
-            text-transform: none !important;
-            box-shadow:
-                0 calc(2 * var(--ry)) 0 rgba(255,154,190,0.72),
-                0 calc(5 * var(--ry)) 0 rgba(255,205,64,0.50),
-                0 calc(9 * var(--ry)) calc(16 * var(--ru)) rgba(255,126,179,0.22) !important;
-            text-shadow:
-                calc(1 * var(--rx)) calc(1 * var(--ry)) 0 rgba(255,255,255,0.95),
-                calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,183,213,0.24) !important;
-            animation: cuteCopyFloat 2.8s ease-in-out infinite !important;
-            will-change: transform !important;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-link-btn::before {
-            content: "♥";
-            position: absolute;
-            left: calc(-12 * var(--rx));
-            top: calc(-12 * var(--ry));
-            color: #E83B3B;
-            font-size: clamp(calc(13 * var(--ru)), calc(1rem), calc(16 * var(--ru)));
-            font-weight: 900;
-            text-shadow:
-                calc(-0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                calc(0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                calc(-0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                calc(0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff;
-            transform: rotate(-18deg);
-            animation: cutePopHeart 1.8s ease-in-out infinite;
-            will-change: transform;
-        }
-
-        .brand-modal[data-active-brand="helmetty"] .modal-link-btn::after {
-            content: "★";
-            position: absolute;
-            right: calc(-11 * var(--rx));
-            bottom: calc(-10 * var(--ry));
-            color: #8FDFFF;
-            font-size: clamp(calc(12 * var(--ru)), calc(0.95rem), calc(15.2 * var(--ru)));
-            text-shadow:
-                calc(-0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                calc(0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                calc(-0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                calc(0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff;
-            transform: rotate(14deg);
-            animation: cutePopStar 2.1s ease-in-out infinite;
-            will-change: transform;
-        }
-
-        @keyframes cuteCopyFloat {
-            0%,
-            100% {
-                transform: translateY(0) rotate(-2deg);
-            }
-
-            50% {
-                transform: translateY(calc(-5 * var(--ry))) rotate(2deg);
-            }
-        }
-
-        @keyframes cutePopHeart {
-            0%,
-            100% {
-                transform: scale(1) rotate(-18deg);
-            }
-
-            50% {
-                transform: scale(1.18) rotate(-8deg);
-            }
-        }
-
-        @keyframes cutePopStar {
-            0%,
-            100% {
-                transform: scale(1) rotate(14deg);
-            }
-
-            50% {
-                transform: scale(1.2) rotate(28deg);
-            }
-        }
-
-        .cute-click-particle {
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 9999;
-            pointer-events: none;
-            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
-            font-weight: 900;
-            line-height: 1;
-            text-shadow:
-                calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff,
-                calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,216,77,0.65);
-            animation: cuteParticlePop 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            will-change: transform, opacity;
-        }
-
-        .cute-click-ring {
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 9998;
-            pointer-events: none;
-            width: calc(80 * var(--rx));
-            height: calc(80 * var(--rx));
-            margin-left: calc(-40 * var(--rx));
-            margin-top: calc(-40 * var(--rx));
-            border: calc(4 * var(--ru)) solid #FF7EB3;
-            border-radius: 50%;
-            opacity: 0;
-            animation: cuteRingExpand 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            will-change: transform, opacity;
-        }
-
-        @keyframes cuteParticlePop {
-            0% {
-                opacity: 0;
-                transform: translate(calc(var(--start-x) - 50%), calc(var(--start-y) - 50%)) scale(0.2) rotate(var(--r));
-            }
-
-            15% {
-                opacity: 1;
-                transform: translate(calc(var(--start-x) + var(--x) * 0.5 - 50%), calc(var(--start-y) + var(--y) * 0.5 - 50%)) scale(1.2) rotate(var(--r));
-            }
-
-            100% {
-                opacity: 0;
-                transform: translate(calc(var(--start-x) + var(--x) - 50%), calc(var(--start-y) + var(--y) + calc(20 * var(--ry)) - 50%)) scale(0.5) rotate(var(--r));
-            }
-        }
-
-        @keyframes cuteRingExpand {
-            0% {
-                transform: translate(var(--start-x), var(--start-y)) scale(0.3);
-                opacity: 0.8;
-                border-width: calc(8 * var(--ru));
-            }
-
-            100% {
-                transform: translate(var(--start-x), var(--start-y)) scale(2);
-                opacity: 0;
-                border-width: calc(1 * var(--ru));
-            }
-        }
         #newsTopicsList {
             display: flex;
             flex-direction: column;
@@ -3271,11 +2754,22 @@
                         return;
                     }
 
+                    // ブランド追加時はここにも専用データ受け取りを追加する
                     if (item.brand === 'helmetty' && window.BrandModalHelmetty && window.BrandModalHelmetty.data) {
                         window.BrandModalHelmetty.data.images = item.images;
 
                         if (item.modalStoreSignImage) {
                             window.BrandModalHelmetty.data.modalStoreSignImage = item.modalStoreSignImage;
+                        }
+
+                        return;
+                    }
+
+                    if (item.brand === 'rasim' && window.BrandModalRasim && window.BrandModalRasim.data) {
+                        window.BrandModalRasim.data.images = item.images;
+
+                        if (item.modalStoreSignImage) {
+                            window.BrandModalRasim.data.modalStoreSignImage = item.modalStoreSignImage;
                         }
 
                         return;
@@ -3352,6 +2846,7 @@
                             window.setupActiveHelmettyStandalone();
                         }
 
+                        // ブランド追加時はここにも同じ形で追加する
                         if (
                             data.brand === 'helmetty' &&
                             window.BrandModalHelmetty &&
@@ -3383,6 +2878,41 @@
                                     });
                                 } catch (error) {
                                     console.error('[DEBUG mobile] BrandModalHelmetty setup failed after addon load:', error);
+                                }
+                            }
+                        }
+
+                        if (
+                            data.brand === 'rasim' &&
+                            window.BrandModalRasim &&
+                            typeof window.BrandModalRasim.setup === 'function'
+                        ) {
+                            const currentModal = document.getElementById('brandModal');
+                            const currentModalTrack = document.getElementById('modalTrack');
+                            const currentModalClose = document.getElementById('modalClose');
+                            const currentModalCard = document.querySelector('.modal-gallery-content');
+
+                            if (
+                                currentModal &&
+                                currentModal.classList.contains('is-open') &&
+                                currentModal.getAttribute('data-active-brand') === 'rasim' &&
+                                currentModalTrack &&
+                                currentModalClose &&
+                                currentModalCard &&
+                                window.BrandModalRasim.data
+                            ) {
+                                try {
+                                    window.BrandModalRasim.setup({
+                                        enabled: true,
+                                        modal: currentModal,
+                                        modalCard: currentModalCard,
+                                        modalClose: currentModalClose,
+                                        modalTrack: currentModalTrack,
+                                        images: Array.isArray(window.BrandModalRasim.data.images) ? window.BrandModalRasim.data.images : [],
+                                        galleryImages: currentModalTrack.querySelectorAll('.gallery-img')
+                                    });
+                                } catch (error) {
+                                    console.error('[DEBUG mobile] BrandModalRasim setup failed after addon load:', error);
                                 }
                             }
                         }
@@ -3457,6 +2987,26 @@
                                 });
                             } catch (error) {
                                 console.error('[DEBUG mobile] BrandModalHelmetty setup failed on skip:', error);
+                            }
+                        }
+                    }
+
+                    if (modal && modal.getAttribute('data-active-brand') === 'rasim') {
+                        if (!window.BrandModalRasim || typeof window.BrandModalRasim.setup !== 'function') {
+                            console.error('[DEBUG mobile] BrandModalRasim is not ready on skip');
+                        } else {
+                            try {
+                                window.BrandModalRasim.setup({
+                                    enabled: true,
+                                    modal,
+                                    modalCard: document.querySelector('.modal-gallery-content'),
+                                    modalClose,
+                                    modalTrack,
+                                    images: window.BrandModalRasim.data && Array.isArray(window.BrandModalRasim.data.images) ? window.BrandModalRasim.data.images : [],
+                                    galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                                });
+                            } catch (error) {
+                                console.error('[DEBUG mobile] BrandModalRasim setup failed on skip:', error);
                             }
                         }
                     }
@@ -3639,19 +3189,7 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
                 ],
                 theme: { bg: "rgba(17,17,17,0.95)", text: "#ffffff", btn: "#D4AF37", btnText: "#111111" }
             },
-            "rasim": {
-                cat: "MADE IN JAPAN",
-                watermark: "Rasiːm",
-                titleHTML: "Rasiːm",
-                desc: "ミモザのペールイエローが彩る、知的でエレガントな日常。",
-                images: [
-                    "https://picsum.photos/seed/r1/800/800",
-                    "https://images.pexels.com/photos/6560986/pexels-photo-6560986.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&fit=crop",
-                    "https://picsum.photos/seed/r3/800/800"
-                ],
-                theme: { bg: "rgba(253,248,225,0.98)", text: "#111111", btn: "#ffffff", btnText: "#111111" }
-            },
-
+            
             "nagomitsuki": {
                 cat: "JAPANESE STYLE",
                 watermark: "和美月",
@@ -3815,9 +3353,12 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
                 hasHelmettyAnimation: !!(window.customBrandAnimations && window.customBrandAnimations['helmetty'])
             });
 
+            // ブランド追加時はここにも専用データ参照を追加する
             const data = brandId === 'helmetty' && window.BrandModalHelmetty && window.BrandModalHelmetty.data
                 ? window.BrandModalHelmetty.data
-                : galleryData[brandId];
+                : brandId === 'rasim' && window.BrandModalRasim && window.BrandModalRasim.data
+                    ? window.BrandModalRasim.data
+                    : galleryData[brandId];
 
             console.log('[DEBUG mobile] openBrandModal data result:', {
                 brandId,
@@ -3863,10 +3404,13 @@ const brandLogoBanner = document.getElementById('brandLogoBanner');
      modalCat.textContent = data.cat;
 modalWatermark.textContent = data.watermark || '';
 
+// ブランド追加時はここに、HELMETTY流用モーダル扱いにするブランドを追加する
+const usesPolaroidBrandModal = brandId === 'helmetty' || brandId === 'rasim';
+
 if (brandLogoBanner) {
-    if (brandId === 'helmetty' && data.logoUrl) {
+    if (usesPolaroidBrandModal && data.logoUrl) {
         brandLogoBanner.src = data.logoUrl;
-        brandLogoBanner.alt = data.titleHTML || 'HELMETTY';
+        brandLogoBanner.alt = data.titleHTML || data.watermark || brandId;
     } else {
         brandLogoBanner.removeAttribute('src');
         brandLogoBanner.alt = '';
@@ -3876,37 +3420,24 @@ if (brandLogoBanner) {
 // ✨ 追加：タイトル文字をセット後、PC版と同じく1文字ずつ分割してAssembleを発動
 modalTitle.innerHTML = data.titleHTML;
 if(!isArchive) {
-     modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, '');
-     splitText(modalTitle);
+     if (usesPolaroidBrandModal && data.logoUrl) {
+         modalTitle.innerHTML = '';
+     } else {
+         modalTitle.innerHTML = data.titleHTML.replace(/<[^>]*>?/gm, '');
+         splitText(modalTitle);
+     }
 }
 
-modalDesc.classList.toggle('cute-shop-copy', brandId === 'helmetty' && !isArchive);
+modalDesc.classList.toggle('cute-shop-copy', usesPolaroidBrandModal && !isArchive);
 modalDesc.innerHTML = data.desc;
 
-window.parent.postMessage({
-    type: 'helmettyModalDebug',
-    brandId,
-    isArchive,
-    hasData: !!data,
-    dataLogoUrl: data ? data.logoUrl : null,
-    dataDesc: data ? data.desc : null,
-    hasBrandLogoBanner: !!brandLogoBanner,
-    brandLogoBannerSrc: brandLogoBanner ? brandLogoBanner.getAttribute('src') : null,
-    brandLogoBannerComputedDisplay: brandLogoBanner ? getComputedStyle(brandLogoBanner).display : null,
-    brandLogoBannerComputedOpacity: brandLogoBanner ? getComputedStyle(brandLogoBanner).opacity : null,
-    modalDescClassName: modalDesc ? modalDesc.className : null,
-    modalDescInnerHTML: modalDesc ? modalDesc.innerHTML : null,
-    modalDescComputedDisplay: modalDesc ? getComputedStyle(modalDesc).display : null,
-    modalDescComputedOpacity: modalDesc ? getComputedStyle(modalDesc).opacity : null,
-    modalHeaderExists: !!document.querySelector('.modal-header'),
-    modalHeaderComputedDisplay: document.querySelector('.modal-header') ? getComputedStyle(document.querySelector('.modal-header')).display : null,
-    modalHeaderComputedOpacity: document.querySelector('.modal-header') ? getComputedStyle(document.querySelector('.modal-header')).opacity : null,
-    modalContentClasses: document.querySelector('.modal-gallery-content') ? document.querySelector('.modal-gallery-content').className : null,
-    modalDataActiveBrand: modal ? modal.getAttribute('data-active-brand') : null
-}, '*');
 
             if (window.BrandModalHelmetty) {
                 window.BrandModalHelmetty.destroy();
+            }
+
+            if (window.BrandModalRasim) {
+                window.BrandModalRasim.destroy();
             }
 
             modalTrack.innerHTML = '';
@@ -3923,6 +3454,7 @@ window.parent.postMessage({
 
             modalTrack.scrollLeft = 0;
 
+            // ブランド追加時はここにも専用setup関数を追加する
             const setupHelmettyPolaroid = () => {
                 if (brandId !== 'helmetty' || isArchive) return;
 
@@ -3943,6 +3475,29 @@ window.parent.postMessage({
                     });
                 } catch (error) {
                     console.error('[DEBUG mobile] BrandModalHelmetty setup failed:', error);
+                }
+            };
+
+            const setupRasimPolaroid = () => {
+                if (brandId !== 'rasim' || isArchive) return;
+
+                if (!window.BrandModalRasim || typeof window.BrandModalRasim.setup !== 'function') {
+                    console.error('[DEBUG mobile] BrandModalRasim is not ready');
+                    return;
+                }
+
+                try {
+                    window.BrandModalRasim.setup({
+                        enabled: true,
+                        modal,
+                        modalCard: document.querySelector('.modal-gallery-content'),
+                        modalClose,
+                        modalTrack,
+                        images: currentModalImages,
+                        galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                    });
+                } catch (error) {
+                    console.error('[DEBUG mobile] BrandModalRasim setup failed:', error);
                 }
             };
 
@@ -4022,6 +3577,7 @@ window.parent.postMessage({
                     modalContent.style.pointerEvents = 'auto';
 
                     setupHelmettyPolaroid();
+                    setupRasimPolaroid();
 
                     setTimeout(() => { play3DAssemble(modalTitle); }, 50);
                     gsap.killTweensOf('.modal-anim:not(#modalTitle)');
@@ -4040,6 +3596,7 @@ window.parent.postMessage({
                 }
 
                 setupHelmettyPolaroid();
+                setupRasimPolaroid();
 
                 // ✨ 追加：モーダルが確定してからAssemble（集める）アニメーションを発動
                 if(!isArchive) {
@@ -4115,6 +3672,10 @@ window.parent.postMessage({
                 window.BrandModalHelmetty.destroy();
             }
 
+            if (window.BrandModalRasim && typeof window.BrandModalRasim.destroy === 'function') {
+                window.BrandModalRasim.destroy();
+            }
+
             // 追加: 途中で閉じた場合のリセット
             clearTimeout(window.rasimExpandTimer);
             clearTimeout(window.rasimFinishTimer);
@@ -4177,6 +3738,57 @@ window.parent.postMessage({
             });
         }
 
+        function showHatodaiyaAdjustingCard(card) {
+            if (!card) return;
+
+            const oldMessage = card.querySelector('.hatodaiya-adjusting-message');
+            if (oldMessage) {
+                oldMessage.remove();
+            }
+
+            const message = document.createElement('div');
+            message.className = 'hatodaiya-adjusting-message';
+            message.innerHTML = '<span>現在調整中です</span><small>COMING SOON</small>';
+            message.style.position = 'absolute';
+            message.style.left = '50%';
+            message.style.top = '50%';
+            message.style.zIndex = '12';
+            message.style.transform = 'translate(-50%, -50%) scale(0.96)';
+            message.style.display = 'flex';
+            message.style.flexDirection = 'column';
+            message.style.alignItems = 'center';
+            message.style.justifyContent = 'center';
+            message.style.gap = 'calc(6 * var(--ry))';
+            message.style.padding = 'calc(14 * var(--ry)) calc(18 * var(--rx))';
+            message.style.border = 'calc(1 * var(--ru)) solid rgba(212,175,55,0.55)';
+            message.style.borderRadius = '999px';
+            message.style.background = 'rgba(17,17,17,0.72)';
+            message.style.color = '#D4AF37';
+            message.style.fontFamily = 'var(--font-sans)';
+            message.style.fontSize = 'clamp(calc(9 * var(--ru)), calc(0.72rem), calc(11.2 * var(--ru)))';
+            message.style.fontWeight = '500';
+            message.style.letterSpacing = 'calc(1.6 * var(--rx))';
+            message.style.textAlign = 'center';
+            message.style.textShadow = '0 0 calc(15 * var(--ru)) rgba(212, 175, 55, 0.5)';
+            message.style.pointerEvents = 'none';
+            message.style.opacity = '0';
+            message.style.transition = 'opacity 0.6s var(--ease-silk), transform 0.6s var(--ease-silk)';
+
+            const small = message.querySelector('small');
+            if (small) {
+                small.style.fontSize = '0.68em';
+                small.style.letterSpacing = 'calc(1.8 * var(--rx))';
+                small.style.color = '#C0C0C0';
+            }
+
+            card.appendChild(message);
+
+            requestAnimationFrame(() => {
+                message.style.opacity = '1';
+                message.style.transform = 'translate(-50%, -50%) scale(1)';
+            });
+        }
+
         // ✨ 追加：PC版と同じく、カードクリック時に文字を分割してScatterさせる
         document.querySelectorAll('.brand-card').forEach(card => {
             const brandNameElement = card.querySelector('.brand-name');
@@ -4185,6 +3797,10 @@ window.parent.postMessage({
             }
 
             card.addEventListener('click', () => {
+                const brandId = card.getAttribute('data-brand');
+
+                document.querySelectorAll('.hatodaiya-adjusting-message').forEach(el => el.remove());
+
                 currentActiveCard = card;
 
                 window.parent.postMessage({
@@ -4199,8 +3815,22 @@ window.parent.postMessage({
                     play3DScatter(brandNameElement);
                 }
 
+                if (brandId === 'hatodaiya') {
+                    setTimeout(() => {
+                        showHatodaiyaAdjustingCard(card);
+                        currentActiveCard = null;
+                        unlockModalScroll();
+
+                        window.parent.postMessage({
+                            type: 'unlockParentScrollTop'
+                        }, '*');
+                    }, 300);
+
+                    return;
+                }
+
                 setTimeout(() => {
-                    openBrandModal(card.getAttribute('data-brand'), false);
+                    openBrandModal(brandId, false);
                 }, 300);
             });
         });
@@ -4227,6 +3857,23 @@ window.parent.postMessage({
                     }
                 } catch (error) {
                     console.error('[DEBUG mobile] BrandModalHelmetty close failed:', error);
+                }
+
+                return;
+            }
+
+            if (
+                activeBrand === 'rasim' &&
+                window.BrandModalRasim &&
+                typeof window.BrandModalRasim.isOpen === 'function' &&
+                window.BrandModalRasim.isOpen()
+            ) {
+                try {
+                    if (typeof window.BrandModalRasim.close === 'function') {
+                        window.BrandModalRasim.close();
+                    }
+                } catch (error) {
+                    console.error('[DEBUG mobile] BrandModalRasim close failed:', error);
                 }
 
                 return;
