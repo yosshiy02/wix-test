@@ -1396,6 +1396,8 @@ $w.onReady(async function () {
   console.time("🟩 onReady 全体");
   isMobile = wixWindow.formFactor === "Mobile";
 
+  let __hasInitialCategoryParam = false;
+
     setTitle("META TEST TITLE");
   setMetaTags([
     { name: "description", content: "META TEST DESCRIPTION" },
@@ -1595,6 +1597,10 @@ if (isMobile && $w("#mobilemainGalleryHtml") && typeof $w("#mobilemainGalleryHtm
     }
 
     if (data.type === "ready") {
+      if (__hasInitialCategoryParam && categoryKey) {
+        return;
+      }
+
       await postCategoryThumbnailMenu("");
 
       return;
@@ -3045,7 +3051,7 @@ let brandKey    = isForceHelmettyMode()
   : getQueryValueWithPreviewFallback("brand", PREVIEW_SHOP_FALLBACK.brand);
 
   const __hasSelectedParam = (typeof wixLocation.query.selected === "string") && (wixLocation.query.selected.trim() !== "");
-
+__hasInitialCategoryParam = String(wixLocation.query.category || "").trim() !== "";
 const allValue = isForceHelmettyMode()
   ? FORCE_G1G2_ALL_VALUE
   : ((String(getQueryValueWithPreviewFallback("all", PREVIEW_SHOP_FALLBACK.all) || "").toLowerCase() === "true") ? "true" : "false");
@@ -4168,6 +4174,26 @@ const countMap = buildCategoryCountMap(productsFromResult, categories, {
         countMap,
         shopPrefix: shopPrefixFromUrl
       });
+
+      if (__hasInitialCategoryParam && categoryKey) {
+        const categoryGalleryState = await loadCategoryGalleryFromPayload({ slug: categoryKey });
+        if (!categoryGalleryState) return;
+
+        await collapseIfPossible($w("#MainSection"));
+        await collapseIfPossible($w("#desktopsection"));
+
+        if (isMobile) {
+          await openMobileG1G2Screen();
+        } else {
+          await expandIfPossible($w("#G1G2GallerySection"));
+
+          if ($w("#anchor1") && typeof $w("#anchor1").scrollTo === "function") {
+            await $w("#anchor1").scrollTo();
+          }
+        }
+
+        return;
+      }
 
       if (isMobile && __mobileScreenMode === "g1g2" && $w("#G1G2GallerySection") && typeof $w("#G1G2GallerySection").scrollTo === "function") {
         await $w("#G1G2GallerySection").scrollTo();

@@ -16,6 +16,7 @@ function installBrandModalHelmettyPc() {
         var albumCaption = null;
         var albumImages = [];
         var cachedHelmettyImages = [];
+        var currentHelmettyGalleryItems = [];
         var storeSignLayer = null;
         var storeSignImage = null;
 
@@ -49,6 +50,7 @@ function installBrandModalHelmettyPc() {
             logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
             desc: "<span class=\"helmetty-pc-intro-copy-lead\">CUTE FANCY SHOP</span><span class=\"helmetty-pc-intro-copy-main\">ちょっとカワイイものを集めた<br>ファンシーなショップです</span>",
             linkText: "オンラインストアへGO！",
+            linkUrl: "https://www.hatodaiya.com/helmetty-top",
             theme: { bg: "rgba(248,187,208,0.98)", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
         };
 
@@ -1071,6 +1073,9 @@ function installBrandModalHelmettyPc() {
             if (btn) {
                 btn.classList.add("modal-link-btn");
                 btn.textContent = helmettyData.linkText || "";
+                btn.setAttribute("href", helmettyData.linkUrl || "https://www.hatodaiya.com/helmetty-top");
+                btn.setAttribute("target", "_blank");
+                btn.setAttribute("rel", "noopener noreferrer");
             }
 
             if (introDecoTimer) {
@@ -1370,6 +1375,46 @@ function installBrandModalHelmettyPc() {
             }, 760);
         }
 
+        function getSelectedGalleryItem() {
+            var index = albumImages.indexOf(polaroidSource);
+
+            if (index < 0 || !Array.isArray(currentHelmettyGalleryItems)) return null;
+
+            return currentHelmettyGalleryItems[index] || null;
+        }
+
+        function getSelectedImageTitle() {
+            var galleryItem = getSelectedGalleryItem();
+
+            if (!galleryItem || !galleryItem.title) return "";
+
+            return String(galleryItem.title);
+        }
+
+        function getSelectedImageNoteText() {
+            var galleryItem = getSelectedGalleryItem();
+
+            if (!galleryItem || !galleryItem.description) return "";
+
+            return String(galleryItem.description);
+        }
+
+        function getSelectedImageProductUrl() {
+            var galleryItem = getSelectedGalleryItem();
+
+            if (!galleryItem || !galleryItem.link) return "";
+
+            return String(galleryItem.link);
+        }
+
+        function getSelectedImageTarget() {
+            var galleryItem = getSelectedGalleryItem();
+
+            if (!galleryItem || !galleryItem.target) return "";
+
+            return String(galleryItem.target);
+        }
+
         function showPolaroidNote() {
             if (!modalCard || !polaroidHero || polaroidNote) return;
 
@@ -1380,16 +1425,41 @@ function installBrandModalHelmettyPc() {
 
             var title = document.createElement("span");
             title.className = "helmetty-pc-note-title";
-            title.textContent = "Fancy Item";
+            title.textContent = "PICK UP ITEM";
 
             var text = document.createElement("p");
             text.className = "helmetty-pc-note-text";
-            text.textContent = "ちょっとカワイイ毎日にぴったりのアイテムです";
+            text.textContent = getSelectedImageNoteText();
 
             var btn = document.createElement("a");
+            var productUrl = getSelectedImageProductUrl();
+            var target = getSelectedImageTarget() || "_blank";
+
             btn.className = "helmetty-pc-note-btn";
-            btn.href = "#";
+            btn.href = productUrl || "#";
             btn.textContent = "この商品を見る";
+
+            if (target) {
+                btn.target = target;
+
+                if (target === "_blank") {
+                    btn.rel = "noopener noreferrer";
+                }
+            }
+
+            btn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!productUrl) return;
+
+                if (target === "_blank") {
+                    window.open(productUrl, "_blank", "noopener,noreferrer");
+                    return;
+                }
+
+                window.location.href = productUrl;
+            });
 
             polaroidNote.appendChild(title);
             polaroidNote.appendChild(text);
@@ -1418,7 +1488,10 @@ function installBrandModalHelmettyPc() {
         function showPolaroidPostit() {
             if (!modalCard || !polaroidHero || polaroidPostit) return;
 
+            var title = getSelectedImageTitle();
             var pattern = postitPatterns[Math.floor(Math.random() * postitPatterns.length)];
+
+            if (!title) return;
 
             polaroidPostit = document.createElement("div");
             polaroidPostit.className = "helmetty-pc-postit";
@@ -1427,16 +1500,9 @@ function installBrandModalHelmettyPc() {
             polaroidPostit.style.setProperty("--postit-rotate", pattern.rotate);
 
             var line1 = document.createElement("span");
-            line1.textContent = pattern.text1;
-
-            var br = document.createElement("br");
-
-            var line2 = document.createElement("span");
-            line2.textContent = pattern.text2;
+            line1.textContent = title;
 
             polaroidPostit.appendChild(line1);
-            polaroidPostit.appendChild(br);
-            polaroidPostit.appendChild(line2);
 
             modalCard.appendChild(polaroidPostit);
         }
@@ -1853,6 +1919,7 @@ function installBrandModalHelmettyPc() {
             isEnabled = false;
             isPolaroidOpen = false;
             isPolaroidAnimating = false;
+            currentHelmettyGalleryItems = [];
 
             modal = null;
             modalCard = null;
@@ -1895,6 +1962,21 @@ function installBrandModalHelmettyPc() {
             }
 
             var images = normalizeImages(options);
+
+            currentHelmettyGalleryItems = [];
+
+            if (Array.isArray(options.galleryItems)) {
+                currentHelmettyGalleryItems = options.galleryItems.slice();
+
+                if (window.BrandModalHelmettyData) {
+                    window.BrandModalHelmettyData.galleryItems = options.galleryItems.slice();
+                }
+            } else if (
+                window.BrandModalHelmettyData &&
+                Array.isArray(window.BrandModalHelmettyData.galleryItems)
+            ) {
+                currentHelmettyGalleryItems = window.BrandModalHelmettyData.galleryItems.slice();
+            }
 
             if (!images.length) {
                 isEnabled = false;

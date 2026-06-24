@@ -2750,36 +2750,61 @@
                 const items = data.payload && Array.isArray(data.payload.items) ? data.payload.items : [];
 
                 items.forEach((item) => {
-                    if (!item || !item.brand || !Array.isArray(item.images) || !item.images.length) {
+                    if (!item || !item.brand) {
+                        return;
+                    }
+
+                    const hasImages = Array.isArray(item.images) && item.images.length;
+                    const hasGalleryItems = Array.isArray(item.galleryItems) && item.galleryItems.length;
+
+                    if (!hasImages && !hasGalleryItems && !item.modalStoreSignImage) {
                         return;
                     }
 
                     // ブランド追加時はここにも専用データ受け取りを追加する
                     if (item.brand === 'helmetty' && window.BrandModalHelmetty && window.BrandModalHelmetty.data) {
-                        window.BrandModalHelmetty.data.images = item.images;
+                        if (hasImages) {
+                            window.BrandModalHelmetty.data.images = item.images;
+                        }
+
+                        if (hasGalleryItems) {
+                            window.BrandModalHelmetty.data.galleryItems = item.galleryItems;
+                        }
 
                         if (item.modalStoreSignImage) {
                             window.BrandModalHelmetty.data.modalStoreSignImage = item.modalStoreSignImage;
                         }
-
-                        return;
                     }
 
                     if (item.brand === 'rasim' && window.BrandModalRasim && window.BrandModalRasim.data) {
-                        window.BrandModalRasim.data.images = item.images;
+                        if (hasImages) {
+                            window.BrandModalRasim.data.images = item.images;
+                        }
+
+                        if (hasGalleryItems) {
+                            window.BrandModalRasim.data.galleryItems = item.galleryItems;
+                        }
 
                         if (item.modalStoreSignImage) {
                             window.BrandModalRasim.data.modalStoreSignImage = item.modalStoreSignImage;
                         }
-
-                        return;
                     }
 
                     if (!galleryData[item.brand]) {
                         return;
                     }
 
-                    galleryData[item.brand].images = item.images;
+                    if (hasImages) {
+                        galleryData[item.brand].images = item.images;
+                    }
+
+                    if (hasGalleryItems) {
+                        galleryData[item.brand].galleryItems = item.galleryItems;
+                    }
+
+                    if (item.modalStoreSignImage) {
+                        galleryData[item.brand].modalStoreSignImage = item.modalStoreSignImage;
+                    }
                 });
 
                 return;
@@ -2874,7 +2899,8 @@
                                         modalClose: currentModalClose,
                                         modalTrack: currentModalTrack,
                                         images: Array.isArray(window.BrandModalHelmetty.data.images) ? window.BrandModalHelmetty.data.images : [],
-                                        galleryImages: currentModalTrack.querySelectorAll('.gallery-img')
+                                        galleryImages: currentModalTrack.querySelectorAll('.gallery-img'),
+                                        galleryItems: Array.isArray(window.BrandModalHelmetty.data.galleryItems) ? window.BrandModalHelmetty.data.galleryItems : []
                                     });
                                 } catch (error) {
                                     console.error('[DEBUG mobile] BrandModalHelmetty setup failed after addon load:', error);
@@ -2909,7 +2935,8 @@
                                         modalClose: currentModalClose,
                                         modalTrack: currentModalTrack,
                                         images: Array.isArray(window.BrandModalRasim.data.images) ? window.BrandModalRasim.data.images : [],
-                                        galleryImages: currentModalTrack.querySelectorAll('.gallery-img')
+                                        galleryImages: currentModalTrack.querySelectorAll('.gallery-img'),
+                                        galleryItems: Array.isArray(window.BrandModalRasim.data.galleryItems) ? window.BrandModalRasim.data.galleryItems : []
                                     });
                                 } catch (error) {
                                     console.error('[DEBUG mobile] BrandModalRasim setup failed after addon load:', error);
@@ -2983,7 +3010,8 @@
                                     modalClose,
                                     modalTrack,
                                     images: window.BrandModalHelmetty.data && Array.isArray(window.BrandModalHelmetty.data.images) ? window.BrandModalHelmetty.data.images : [],
-                                    galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                                    galleryImages: modalTrack.querySelectorAll('.gallery-img'),
+                                    galleryItems: window.BrandModalHelmetty.data && Array.isArray(window.BrandModalHelmetty.data.galleryItems) ? window.BrandModalHelmetty.data.galleryItems : []
                                 });
                             } catch (error) {
                                 console.error('[DEBUG mobile] BrandModalHelmetty setup failed on skip:', error);
@@ -3003,7 +3031,8 @@
                                     modalClose,
                                     modalTrack,
                                     images: window.BrandModalRasim.data && Array.isArray(window.BrandModalRasim.data.images) ? window.BrandModalRasim.data.images : [],
-                                    galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                                    galleryImages: modalTrack.querySelectorAll('.gallery-img'),
+                                    galleryItems: window.BrandModalRasim.data && Array.isArray(window.BrandModalRasim.data.galleryItems) ? window.BrandModalRasim.data.galleryItems : []
                                 });
                             } catch (error) {
                                 console.error('[DEBUG mobile] BrandModalRasim setup failed on skip:', error);
@@ -3471,7 +3500,8 @@ modalDesc.innerHTML = data.desc;
                         modalClose,
                         modalTrack,
                         images: currentModalImages,
-                        galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                        galleryImages: modalTrack.querySelectorAll('.gallery-img'),
+                        galleryItems: Array.isArray(data.galleryItems) ? data.galleryItems : []
                     });
                 } catch (error) {
                     console.error('[DEBUG mobile] BrandModalHelmetty setup failed:', error);
@@ -3494,7 +3524,8 @@ modalDesc.innerHTML = data.desc;
                         modalClose,
                         modalTrack,
                         images: currentModalImages,
-                        galleryImages: modalTrack.querySelectorAll('.gallery-img')
+                        galleryImages: modalTrack.querySelectorAll('.gallery-img'),
+                        galleryItems: Array.isArray(data.galleryItems) ? data.galleryItems : []
                     });
                 } catch (error) {
                     console.error('[DEBUG mobile] BrandModalRasim setup failed:', error);
@@ -3817,12 +3848,16 @@ modalDesc.innerHTML = data.desc;
 
                 if (brandId === 'hatodaiya') {
                     setTimeout(() => {
-                        showHatodaiyaAdjustingCard(card);
                         currentActiveCard = null;
                         unlockModalScroll();
 
                         window.parent.postMessage({
                             type: 'unlockParentScrollTop'
+                        }, '*');
+
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_URL',
+                            url: '/hatodaiya-onlinestore'
                         }, '*');
                     }, 300);
 

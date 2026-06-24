@@ -78,6 +78,11 @@ $w.onReady(function () {
                 return;
             }
 
+            if (event.data.type === "NAVIGATE_TO_URL" && event.data.url) {
+                wixLocationFrontend.to(String(event.data.url));
+                return;
+            }
+
             if (event.data.type === "NEWS_TOPICS_HTML_READY") {
                 try {
                     const result = await wixData.query('HdOriginNewsTopics')
@@ -252,6 +257,31 @@ $w.onReady(function () {
         return '';
     }
 
+    function getModalGalleryItemValue(galleryItem, keys) {
+        let value;
+
+        if (!galleryItem || typeof galleryItem !== 'object') {
+            return '';
+        }
+
+        for (let i = 0; i < keys.length; i += 1) {
+            value = galleryItem[keys[i]];
+
+            if (value && typeof value === 'string') {
+                return value;
+            }
+
+            if (value && typeof value === 'object') {
+                if (typeof value.href === 'string') return value.href;
+                if (typeof value.url === 'string') return value.url;
+                if (typeof value.text === 'string') return value.text;
+                if (typeof value.description === 'string') return value.description;
+            }
+        }
+
+        return '';
+    }
+
     function normalizeBrandModalKey(brand) {
         const value = String(brand || '').trim();
 
@@ -281,15 +311,42 @@ $w.onReady(function () {
                 .map((item) => {
                     console.log('[DEBUG velo] HdOriginBrandModal item brand/modalGallery:', item.brand, item.modalGallery);
 
-                    const images = getModalGalleryItems(item.modalGallery)
+                    const modalGalleryItems = getModalGalleryItems(item.modalGallery);
+
+                    const images = modalGalleryItems
                         .map(getModalGalleryImageUrl)
                         .filter((src) => {
                             return src;
                         });
 
+                    const galleryItems = modalGalleryItems
+                        .map((galleryItem) => {
+                            const src = getModalGalleryImageUrl(galleryItem);
+
+                            if (!src) {
+                                return null;
+                            }
+
+                            return {
+                                src: src,
+                                description: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.description || '') : '',
+                                link: getModalGalleryItemValue(galleryItem, ['link', 'productUrl', 'itemUrl', 'linkUrl', 'href']),
+                                title: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.title || '') : '',
+                                fileName: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.fileName || '') : '',
+                                slug: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.slug || '') : '',
+                                alt: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.alt || '') : '',
+                                target: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.target || '') : '',
+                                type: galleryItem && typeof galleryItem === 'object' ? String(galleryItem.type || '') : ''
+                            };
+                        })
+                        .filter((galleryItem) => {
+                            return galleryItem && galleryItem.src;
+                        });
+
                     return {
                         brand: normalizeBrandModalKey(item.brand),
                         images: images,
+                        galleryItems: galleryItems,
                         modalStoreSignImage: getModalGalleryImageUrl(item.modalStoreSignImage)
                     };
                 })

@@ -3043,10 +3043,34 @@ ${panels}
                         modalClose,
                         modalTrack: document.querySelector('.pc-modal-viewer'),
                         images: currentModalImages,
+                        galleryItems: Array.isArray(data.galleryItems) ? data.galleryItems : [],
                         galleryImages: currentModalImages.length ? [modalMainImage] : []
                     });
                 } catch (error) {
                     console.error('[DEBUG pc] BrandModalHelmetty setup failed:', error);
+                }
+            };
+
+            const setupRasimPolaroid = () => {
+                if (brandId !== 'rasim' || isArchive) return;
+
+                if (!window.BrandModalRasim || typeof window.BrandModalRasim.setup !== 'function') {
+                    console.error('[DEBUG pc] BrandModalRasim is not ready');
+                    return;
+                }
+
+                try {
+                    window.BrandModalRasim.setup({
+                        enabled: true,
+                        modal,
+                        modalCard: modalPanel,
+                        modalTrack: document.querySelector('.pc-modal-viewer'),
+                        images: currentModalImages,
+                        galleryItems: Array.isArray(data.galleryItems) ? data.galleryItems : [],
+                        galleryImages: currentModalImages.length ? [modalMainImage] : []
+                    });
+                } catch (error) {
+                    console.error('[DEBUG pc] BrandModalRasim setup failed:', error);
                 }
             };
 
@@ -3133,6 +3157,7 @@ ${panels}
                         );
 
                         setupHelmettyPolaroid();
+                        setupRasimPolaroid();
                     }, 12500);
                 }
 
@@ -3162,6 +3187,7 @@ ${panels}
                 );
 
                 setupHelmettyPolaroid();
+                setupRasimPolaroid();
             }
         }
  
@@ -3351,10 +3377,14 @@ ${panels}
 
                 if (brandId === 'hatodaiya') {
                     setTimeout(() => {
-                        showHatodaiyaAdjustingCard(card);
                         card.style.pointerEvents = '';
                         card.querySelectorAll(':not(.char-wrap)').forEach(el => el.style.transitionDelay = '');
                         currentActiveCard = null;
+
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_URL',
+                            url: '/hatodaiya-onlinestore'
+                        }, '*');
                     }, 300);
 
                     return;
@@ -3428,6 +3458,10 @@ ${panels}
                         window.BrandModalHelmettyData.images = item.images;
                     }
 
+                    if (Array.isArray(item.galleryItems) && item.galleryItems.length) {
+                        window.BrandModalHelmettyData.galleryItems = item.galleryItems;
+                    }
+
                     if (item.modalStoreSignImage) {
                         window.BrandModalHelmettyData.modalStoreSignImage = item.modalStoreSignImage;
                     }
@@ -3436,6 +3470,10 @@ ${panels}
                 if (item.brand === 'rasim' && window.BrandModalRasimData) {
                     if (Array.isArray(item.images) && item.images.length) {
                         window.BrandModalRasimData.images = item.images;
+                    }
+
+                    if (Array.isArray(item.galleryItems) && item.galleryItems.length) {
+                        window.BrandModalRasimData.galleryItems = item.galleryItems;
                     }
 
                     if (item.modalStoreSignImage) {
@@ -3449,6 +3487,10 @@ ${panels}
 
                 if (Array.isArray(item.images) && item.images.length) {
                     galleryData[item.brand].images = item.images;
+                }
+
+                if (Array.isArray(item.galleryItems) && item.galleryItems.length) {
+                    galleryData[item.brand].galleryItems = item.galleryItems;
                 }
 
                 if (item.modalStoreSignImage) {
@@ -3527,10 +3569,46 @@ ${panels}
                                         modalClose: currentModalClose,
                                         modalTrack: currentModalViewer,
                                         images: window.galleryData && window.galleryData.helmetty ? window.galleryData.helmetty.images : [],
+                                        galleryItems: window.galleryData && window.galleryData.helmetty && Array.isArray(window.galleryData.helmetty.galleryItems) ? window.galleryData.helmetty.galleryItems : [],
                                         galleryImages: [currentModalMainImage]
                                     });
                                 } catch (error) {
                                     console.error('[DEBUG pc] BrandModalHelmetty setup failed after addon load:', error);
+                                }
+                            }
+                        }
+
+                        if (
+                            data.brand === 'rasim' &&
+                            window.BrandModalRasim &&
+                            typeof window.BrandModalRasim.setup === 'function'
+                        ) {
+                            const currentModal = document.getElementById('brandModal');
+                            const currentModalPanel = document.querySelector('.pc-modal-panel');
+                            const currentModalViewer = document.querySelector('.pc-modal-viewer');
+                            const currentModalMainImage = document.getElementById('modalMainImage');
+                            const rasimGalleryData = window.galleryData && window.galleryData.rasim ? window.galleryData.rasim : null;
+
+                            if (
+                                currentModal &&
+                                currentModal.classList.contains('is-open') &&
+                                currentModal.getAttribute('data-active-brand') === 'rasim' &&
+                                currentModalPanel &&
+                                currentModalViewer &&
+                                currentModalMainImage
+                            ) {
+                                try {
+                                    window.BrandModalRasim.setup({
+                                        enabled: true,
+                                        modal: currentModal,
+                                        modalCard: currentModalPanel,
+                                        modalTrack: currentModalViewer,
+                                        images: rasimGalleryData && Array.isArray(rasimGalleryData.images) ? rasimGalleryData.images : [],
+                                        galleryItems: rasimGalleryData && Array.isArray(rasimGalleryData.galleryItems) ? rasimGalleryData.galleryItems : [],
+                                        galleryImages: [currentModalMainImage]
+                                    });
+                                } catch (error) {
+                                    console.error('[DEBUG pc] BrandModalRasim setup failed after addon load:', error);
                                 }
                             }
                         }

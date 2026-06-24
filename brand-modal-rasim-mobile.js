@@ -8,6 +8,7 @@ function installBrandModalRasim() {
         let modalCard = null;
         let modalTrack = null;
         let galleryImages = [];
+        let currentRasimGalleryItems = [];
 
         let polaroidHero = null;
         let polaroidSource = null;
@@ -30,13 +31,15 @@ function installBrandModalRasim() {
         const RASIM_MOBILE_MODAL_DATA = {
             cat: "Love at First Step.",
             titleHTML: "Rasi:m",
-            logoUrl: "https://static.wixstatic.com/media/414ae9_65ab64b531c549699eb7420ea84e0c95~mv2.jpg",
-            desc: `
-                <small>CUTE FANCY SHOP</small>
-                <span>ちょっとカワイイものを集めた<br>ファンシーなショップです</span>
-            `,
+            watermark: "Rasi:m",
+            logoUrl: "https://static.wixstatic.com/media/414ae9_bfc09f7d984144509a47326f6ab911f8~mv2.webp",
+            desc: "<span class=\"rasim-pc-intro-copy-lead\">LADIES SHOES BRAND</span><span class=\"rasim-pc-intro-copy-main\">落ち着いた色と履きやすさを<br>大切にした靴のブランドです</span>",
+            linkText: "ONLINE STORE ＞",
+            linkUrl: "https://rasim20230110.square.site/",
             theme: { bg: "rgba(248,187,208,0.98)", text: "#FF4081", btn: "#0288D1", btnText: "#ffffff" }
         };
+
+        window.BrandModalRasimData = Object.assign({}, RASIM_MOBILE_MODAL_DATA, window.BrandModalRasimData || {});
 
         const injectStyle = () => {
             if (document.getElementById(STYLE_ID)) return;
@@ -53,15 +56,9 @@ function installBrandModalRasim() {
                 }
 
                 .brand-modal[data-active-brand="rasim"] .modal-gallery-content {
-                    background-color: #F8EECF !important;
-                    background-image:
-                        linear-gradient(90deg, rgba(255,126,179,0.025) calc(1 * var(--ru)), transparent calc(1 * var(--ru))),
-                        linear-gradient(0deg, rgba(255,179,107,0.018) calc(1 * var(--ru)), transparent calc(1 * var(--ru))),
-                        radial-gradient(circle at 30% 20%, rgba(255,255,255,0.55), transparent 35%) !important;
-                    background-size:
-                        calc(14 * var(--rx)) calc(14 * var(--ry)),
-                        calc(14 * var(--rx)) calc(14 * var(--ry)),
-                        100% 100% !important;
+                    background-color: #ffffff !important;
+                    background-image: none !important;
+                    background-size: auto !important;
                     --m-img: min(calc(153.6 * var(--rx)), calc(160 * var(--ru))) !important;
                 }
 
@@ -122,67 +119,45 @@ function installBrandModalRasim() {
 
                 .brand-modal[data-active-brand="rasim"] .modal-link-btn {
                     position: relative !important;
-                    display: inline-block !important;
+                    z-index: 11 !important;
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    min-height: calc(35 * var(--ry)) !important;
                     padding:
                         calc(8 * var(--ry))
-                        calc(21 * var(--rx))
+                        calc(24 * var(--rx))
                         calc(8 * var(--ry)) !important;
-                    background: #FFE86F !important;
-                    color: #B83F78 !important;
-                    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif !important;
+                    background: linear-gradient(180deg, #efe0bd 0%, #c99d61 100%) !important;
+                    border: calc(2 * var(--ru)) solid rgba(92,58,30,0.62) !important;
+                    color: rgba(56,32,16,0.92) !important;
+                    font-family: Jost, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', YuGothic, Meiryo, sans-serif !important;
                     font-size: clamp(calc(9.6 * var(--ru)), calc(0.72rem), calc(11.52 * var(--ru))) !important;
-                    font-weight: 900 !important;
-                    letter-spacing: calc(0.7 * var(--rx)) !important;
-                    border: calc(2 * var(--ru)) solid rgba(255,126,179,0.9) !important;
-                    border-radius: 999px !important;
+                    font-weight: 600 !important;
+                    letter-spacing: 0.16em !important;
+                    border-radius: calc(10 * var(--ru)) !important;
                     text-decoration: none !important;
-                    text-transform: none !important;
-                    box-shadow:
-                        0 calc(2 * var(--ry)) 0 rgba(255,154,190,0.72),
-                        0 calc(5 * var(--ry)) 0 rgba(255,205,64,0.50),
-                        0 calc(9 * var(--ry)) calc(16 * var(--ru)) rgba(255,126,179,0.22) !important;
+                    cursor: pointer !important;
                     text-shadow:
-                        calc(1 * var(--rx)) calc(1 * var(--ry)) 0 rgba(255,255,255,0.95),
-                        calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,183,213,0.24) !important;
-                    animation: cuteCopyFloat 2.8s ease-in-out infinite !important;
-                    will-change: transform !important;
+                        0 calc(1 * var(--ry)) 0 rgba(255,232,190,0.3),
+                        0 calc(-1 * var(--ry)) 0 rgba(50,27,13,0.2) !important;
+                    box-shadow:
+                        0 calc(3 * var(--ry)) 0 rgba(92,58,30,0.38),
+                        0 calc(8 * var(--ry)) calc(15 * var(--ru)) rgba(82,58,35,0.18),
+                        0 calc(1 * var(--ry)) 0 rgba(255,254,241,0.78) inset !important;
+                    transform: rotate(0deg) !important;
+                    animation: none !important;
+                    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
                 }
 
                 .brand-modal[data-active-brand="rasim"] .modal-link-btn::before {
-                    content: "♥";
-                    position: absolute;
-                    left: calc(-12 * var(--rx));
-                    top: calc(-12 * var(--ry));
-                    color: #E83B3B;
-                    font-size: clamp(calc(13 * var(--ru)), calc(1rem), calc(16 * var(--ru)));
-                    font-weight: 900;
-                    text-shadow:
-                        calc(-0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                        calc(0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                        calc(-0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                        calc(0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                        calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff;
-                    transform: rotate(-18deg);
-                    animation: cutePopHeart 1.8s ease-in-out infinite;
-                    will-change: transform;
+                    content: "";
+                    display: none;
                 }
 
                 .brand-modal[data-active-brand="rasim"] .modal-link-btn::after {
-                    content: "★";
-                    position: absolute;
-                    right: calc(-11 * var(--rx));
-                    bottom: calc(-10 * var(--ry));
-                    color: #8FDFFF;
-                    font-size: clamp(calc(12 * var(--ru)), calc(0.95rem), calc(15.2 * var(--ru)));
-                    text-shadow:
-                        calc(-0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                        calc(0.5 * var(--rx)) calc(-0.5 * var(--ry)) 0 #111111,
-                        calc(-0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                        calc(0.5 * var(--rx)) calc(0.5 * var(--ry)) 0 #111111,
-                        calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff;
-                    transform: rotate(14deg);
-                    animation: cutePopStar 2.1s ease-in-out infinite;
-                    will-change: transform;
+                    content: "";
+                    display: none;
                 }
 
                 @keyframes cuteCopyFloat {
@@ -223,88 +198,94 @@ function installBrandModalRasim() {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: calc(3 * var(--ry));
+                    gap: calc(3.8 * var(--ry));
                     width: fit-content;
-                    max-width: calc(281.6 * var(--rx));
+                    max-width: calc(267.52 * var(--rx));
                     margin:
                         calc(-10 * var(--ry))
                         auto
                         0;
                     padding:
-                        calc(9 * var(--ry))
-                        calc(22 * var(--rx))
-                        calc(9 * var(--ry));
+                        calc(9.5 * var(--ry))
+                        calc(20.9 * var(--rx))
+                        calc(9.5 * var(--ry));
                     white-space: normal;
-                    overflow: visible;
+                    overflow: hidden;
                     text-overflow: clip;
-                    color: #FF6FAE;
+                    color: rgba(61,36,19,0.84);
                     background:
-                        linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(255,245,250,0.96) 52%, rgba(255,251,229,0.94) 100%);
-                    border: calc(2 * var(--ru)) solid rgba(255,126,179,0.52);
+                        linear-gradient(90deg, rgba(174,126,73,0.1), transparent 20%, rgba(255,255,255,0.16) 50%, transparent 80%, rgba(174,126,73,0.1)),
+                        repeating-linear-gradient(2deg, rgba(118,76,38,0.12) 0, rgba(118,76,38,0.12) calc(1 * var(--ru)), rgba(255,241,206,0.1) calc(3 * var(--ru)), transparent calc(8 * var(--ru))),
+                        linear-gradient(180deg, #f9e9c7 0%, #efd1a0 48%, #e0b477 100%);
+                    border: calc(1 * var(--ru)) solid rgba(150,108,66,0.34);
                     border-radius: calc(9 * var(--ru));
                     box-shadow:
-                        0 calc(2 * var(--ry)) 0 rgba(255,216,77,0.65),
-                        0 calc(7 * var(--ry)) calc(16 * var(--ru)) rgba(255,126,179,0.20),
-                        0 calc(1 * var(--ry)) 0 rgba(255,255,255,0.95) inset;
-                    transform: rotate(-5deg);
+                        0 calc(8 * var(--ry)) calc(18 * var(--ru)) rgba(82,58,35,0.14),
+                        0 calc(1 * var(--ry)) 0 rgba(255,254,241,0.82) inset,
+                        0 calc(-5 * var(--ry)) calc(12 * var(--ru)) rgba(143,99,54,0.1) inset;
+                    transform: rotate(-3deg);
                     animation: none;
                     will-change: transform;
                 }
 
-                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::before {
-                    content: "";
-                    position: absolute;
-                    left: calc(-12 * var(--rx));
-                    top: calc(-10 * var(--ry));
-                    width: calc(42 * var(--rx));
-                    height: calc(15 * var(--ry));
-                    background:
-                        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(150,220,255,0.9));
-                    border: calc(1 * var(--ru)) solid rgba(80,170,220,0.38);
-                    border-radius: calc(3 * var(--ru));
-                    box-shadow: 0 calc(2 * var(--ry)) calc(5 * var(--ru)) rgba(80,170,220,0.18);
-                    transform: rotate(-18deg);
-                    animation: none;
-                    will-change: transform;
-                }
-
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::before,
                 .brand-modal[data-active-brand="rasim"] .cute-shop-copy::after {
                     content: "";
                     position: absolute;
-                    right: calc(-11 * var(--rx));
-                    bottom: calc(-8 * var(--ry));
-                    width: calc(38 * var(--rx));
-                    height: calc(14 * var(--ry));
+                    top: 12%;
+                    z-index: 3;
+                    width: calc(9 * var(--ru));
+                    height: calc(9 * var(--ru));
+                    border-radius: 50%;
                     background:
-                        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,218,86,0.88));
-                    border: calc(1 * var(--ru)) solid rgba(230,180,40,0.42);
-                    border-radius: calc(3 * var(--ru));
-                    box-shadow: 0 calc(2 * var(--ry)) calc(5 * var(--ru)) rgba(230,180,40,0.18);
-                    transform: rotate(16deg);
-                    animation: none;
-                    will-change: transform;
+                        radial-gradient(circle at 35% 28%, rgba(255,255,255,0.96) 0 16%, transparent 17%),
+                        linear-gradient(135deg, #f6df8a 0%, #c89635 48%, #8a5a19 100%);
+                    border: calc(0.75 * var(--ru)) solid rgba(90,58,24,0.34);
+                    box-shadow:
+                        0 calc(1.5 * var(--ry)) 0 rgba(94,62,30,0.2),
+                        0 calc(3 * var(--ry)) calc(6 * var(--ru)) rgba(82,58,35,0.18),
+                        0 0 0 calc(1.4 * var(--ru)) rgba(255,255,255,0.28) inset;
+                    pointer-events: none;
                 }
 
-                .brand-modal[data-active-brand="rasim"] .cute-shop-copy span {
-                    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
-                    font-size: clamp(calc(10 * var(--ru)), calc(0.78rem), calc(12.48 * var(--ru)));
-                    font-weight: 900;
-                    letter-spacing: calc(0.4 * var(--rx));
-                    line-height: 1.18;
-                    color: #FF6FAE;
-                    white-space: nowrap;
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::before {
+                    left: 6%;
+                }
+
+                .brand-modal[data-active-brand="rasim"] .cute-shop-copy::after {
+                    right: 6%;
+                }
+
+                .brand-modal[data-active-brand="rasim"] .rasim-pc-intro-copy-lead {
+                    position: relative;
+                    z-index: 2;
+                    display: block;
+                    margin-bottom: calc(3.6 * var(--ry));
+                    color: rgba(82,52,30,0.58);
+                    font-family: Jost, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', YuGothic, Meiryo, sans-serif;
+                    font-size: clamp(calc(6.8 * var(--ru)), calc(0.53rem), calc(8.8 * var(--ru)));
+                    font-weight: 800;
+                    letter-spacing: 0.18em;
+                    line-height: 1.2;
+                    text-transform: uppercase;
+                    text-shadow: 0 calc(1 * var(--ry)) 0 rgba(255,232,190,0.22);
+                }
+
+                .brand-modal[data-active-brand="rasim"] .rasim-pc-intro-copy-main {
+                    position: relative;
+                    z-index: 2;
+                    display: block;
+                    color: rgba(61,36,19,0.84);
+                    font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', YuGothic, Meiryo, sans-serif;
+                    font-size: clamp(calc(9.8 * var(--ru)), calc(0.76rem), calc(12.2 * var(--ru)));
+                    font-weight: 600;
+                    letter-spacing: 0.055em;
+                    line-height: 1.56;
                     text-shadow:
-                        calc(1 * var(--rx)) calc(1 * var(--ry)) 0 #ffffff,
-                        calc(2 * var(--rx)) calc(2 * var(--ry)) 0 rgba(255,216,77,0.32);
-                }
-
-                .brand-modal[data-active-brand="rasim"] .cute-shop-copy small {
-                    font-family: 'Fredoka', 'Zen Maru Gothic', sans-serif;
-                    font-size: clamp(calc(8 * var(--ru)), calc(0.56rem), calc(8.96 * var(--ru)));
-                    font-weight: 700;
-                    letter-spacing: calc(1.1 * var(--rx));
-                    line-height: 1.05;
-                    color: #FF9A66;
+                        0 calc(1 * var(--ry)) 0 rgba(255,232,190,0.24),
+                        0 calc(-1 * var(--ry)) 0 rgba(50,27,13,0.18),
+                        0 0 calc(4 * var(--ru)) rgba(74,42,20,0.14);
+                    mix-blend-mode: multiply;
                 }
 
                 .brand-modal[data-active-brand="rasim"] .modal-track-wrap {
@@ -355,13 +336,16 @@ function installBrandModalRasim() {
 
                 .brand-modal[data-active-brand="rasim"] .brand-logo-banner {
                     display: block !important;
-                    width: min(66%, calc(210 * var(--rx))) !important;
+                    width: min(58.14%, calc(186.39 * var(--rx))) !important;
                     height: auto !important;
                     margin:
                         calc(-14 * var(--ry))
                         auto
                         calc(6 * var(--ry)) !important;
+                    position: relative !important;
+                    top: calc(-3 * var(--ry)) !important;
                     object-fit: contain !important;
+                    filter: drop-shadow(0 calc(6 * var(--ry)) calc(10 * var(--ru)) rgba(184,63,120,0.16)) !important;
                 }
 
                 .brand-modal[data-active-brand="rasim"] .modal-desc.cute-shop-copy {
@@ -369,13 +353,13 @@ function installBrandModalRasim() {
                     font-size: initial !important;
                     line-height: initial !important;
                     opacity: 1 !important;
-                    max-width: 96% !important;
+                    max-width: 92% !important;
                     margin:
                         calc(-14 * var(--ry))
                         auto
                         0 !important;
                     white-space: normal !important;
-                    overflow: visible !important;
+                    overflow: hidden !important;
                     text-overflow: clip !important;
                     pointer-events: auto !important;
                 }
@@ -543,12 +527,9 @@ function installBrandModalRasim() {
                 }
 
                 .modal-gallery-content.is-rasim-ready {
-                    background-color: #F8EECF;
-                    background-image:
-                        linear-gradient(90deg, rgba(255,126,179,0.025) 1px, transparent 1px),
-                        linear-gradient(0deg, rgba(255,179,107,0.018) 1px, transparent 1px),
-                        radial-gradient(circle at 30% 20%, rgba(255,255,255,0.55), transparent 35%);
-                    background-size: 14px 14px, 14px 14px, 100% 100%;
+                    background-color: #ffffff;
+                    background-image: none;
+                    background-size: auto;
                 }
 
                 .modal-gallery-content.is-rasim-ready .modal-track-wrap {
@@ -603,14 +584,10 @@ function installBrandModalRasim() {
                     content: "";
                     position: absolute;
                     inset: 10px;
-                    border-radius: 6px;
+                    border-radius: 14px;
                     pointer-events: none;
                     z-index: 1;
-                    background:
-                        repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top left / 100% 3px no-repeat,
-                        repeating-linear-gradient(90deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) bottom left / 100% 3px no-repeat,
-                        repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top left / 3px 100% no-repeat,
-                        repeating-linear-gradient(180deg, rgba(255,126,179,0.9) 0 14px, transparent 14px 28px) top right / 3px 100% no-repeat;
+                    border: 2px solid #FFD94A;
                 }
 
                 .modal-gallery-content.is-rasim-polaroid-open {
@@ -801,9 +778,9 @@ function installBrandModalRasim() {
                 .rasim-polaroid-note-btn {
                     display: inline-block;
                     padding: 8px 24px 7px;
-                    background: #62BFEF;
-                    color: #FFFFFF;
-                    border: 2px solid rgba(255,143,86,0.86);
+                    background: linear-gradient(180deg, #FFF9E8 0%, #F8EFCF 100%);
+                    color: #8A6A3E;
+                    border: 2px solid #E7C85A;
                     border-radius: 999px;
                     font-size: 0.78rem;
                     font-weight: 900;
@@ -811,8 +788,9 @@ function installBrandModalRasim() {
                     text-decoration: none;
                     white-space: nowrap;
                     box-shadow:
-                        0 3px 0 rgba(255,143,86,0.42),
-                        0 6px 12px rgba(98,191,239,0.28);
+                        0 3px 0 rgba(166,128,35,0.32),
+                        0 6px 12px rgba(231,200,90,0.24),
+                        0 1px 0 rgba(255,255,255,0.68) inset;
                 }
 
                 .rasim-polaroid-postit {
@@ -1356,6 +1334,46 @@ function installBrandModalRasim() {
             }, 700);
         };
 
+        const getSelectedGalleryItem = () => {
+            const index = galleryImages.indexOf(polaroidSource);
+
+            if (index < 0 || !Array.isArray(currentRasimGalleryItems)) return null;
+
+            return currentRasimGalleryItems[index] || null;
+        };
+
+        const getSelectedImageTitle = () => {
+            const galleryItem = getSelectedGalleryItem();
+
+            if (!polaroidSource || !polaroidSource.dataset) return "";
+
+            return polaroidSource.dataset.rasimMobileTitle || (galleryItem && galleryItem.title ? String(galleryItem.title) : "");
+        };
+
+        const getSelectedImageNoteText = () => {
+            const galleryItem = getSelectedGalleryItem();
+
+            if (!polaroidSource || !polaroidSource.dataset) return "";
+
+            return polaroidSource.dataset.rasimMobileNoteText || (galleryItem && galleryItem.description ? String(galleryItem.description) : "");
+        };
+
+        const getSelectedImageProductUrl = () => {
+            const galleryItem = getSelectedGalleryItem();
+
+            if (!polaroidSource || !polaroidSource.dataset) return "";
+
+            return polaroidSource.dataset.rasimMobileProductUrl || (galleryItem && galleryItem.link ? String(galleryItem.link) : "");
+        };
+
+        const getSelectedImageTarget = () => {
+            const galleryItem = getSelectedGalleryItem();
+
+            if (!polaroidSource || !polaroidSource.dataset) return "";
+
+            return polaroidSource.dataset.rasimMobileTarget || (galleryItem && galleryItem.target ? String(galleryItem.target) : "");
+        };
+
         const showPolaroidNote = () => {
             if (!modalCard || !polaroidHero || polaroidNote) return;
 
@@ -1363,11 +1381,64 @@ function installBrandModalRasim() {
 
             polaroidNote = document.createElement('div');
             polaroidNote.className = 'rasim-polaroid-note';
-            polaroidNote.innerHTML = `
-                <span class="rasim-polaroid-note-title">Fancy Item</span>
-                <p class="rasim-polaroid-note-text">ちょっとカワイイ毎日にぴったりのアイテムです</p>
-                <a href="#" class="rasim-polaroid-note-btn">この商品を見る</a>
-            `;
+
+            const title = document.createElement('span');
+            title.className = 'rasim-polaroid-note-title';
+            title.textContent = 'PICK UP ITEM';
+
+            const text = document.createElement('p');
+            text.className = 'rasim-polaroid-note-text';
+            text.textContent = getSelectedImageNoteText();
+
+            const btn = document.createElement('a');
+            const productUrl = getSelectedImageProductUrl();
+            const target = getSelectedImageTarget() || '_blank';
+
+            btn.className = 'rasim-polaroid-note-btn';
+            btn.textContent = 'この商品を見る';
+
+            if (productUrl) {
+                btn.href = productUrl;
+            } else {
+                btn.href = '#';
+            }
+
+            if (target) {
+                btn.target = target;
+
+                if (target === '_blank') {
+                    btn.rel = 'noopener noreferrer';
+                }
+            }
+
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!productUrl) return;
+
+                if (target === '_blank') {
+                    window.open(productUrl, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+
+                try {
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_URL',
+                            url: productUrl
+                        }, '*');
+                        return;
+                    }
+                } catch (error) {
+                }
+
+                window.location.href = productUrl;
+            });
+
+            polaroidNote.appendChild(title);
+            polaroidNote.appendChild(text);
+            polaroidNote.appendChild(btn);
 
             modalCard.appendChild(polaroidNote);
         };
@@ -1392,11 +1463,14 @@ function installBrandModalRasim() {
         const showPolaroidPostit = () => {
             if (!modalCard || !polaroidHero || polaroidPostit) return;
 
+            const title = getSelectedImageTitle();
             const pattern = postitPatterns[Math.floor(Math.random() * postitPatterns.length)];
+
+            if (!title) return;
 
             polaroidPostit = document.createElement('div');
             polaroidPostit.className = 'rasim-polaroid-postit';
-            polaroidPostit.innerHTML = pattern.text;
+            polaroidPostit.textContent = title;
             polaroidPostit.style.setProperty('--postit-color', pattern.color);
             polaroidPostit.style.setProperty('--postit-color-2', pattern.color2);
             polaroidPostit.style.setProperty('--postit-rotate', pattern.rotate);
@@ -1554,11 +1628,20 @@ function installBrandModalRasim() {
         };
 
         const bindImages = () => {
-            galleryImages.forEach(img => {
+            galleryImages.forEach((img, index) => {
+                const galleryItem = Array.isArray(currentRasimGalleryItems) ? currentRasimGalleryItems[index] : null;
+
                 img.addEventListener('pointerdown', onPointerDown);
                 img.addEventListener('pointermove', onPointerMove);
                 img.addEventListener('click', onImageClick);
                 img.addEventListener('dragstart', preventDrag);
+
+                if (galleryItem && img.dataset) {
+                    img.dataset.rasimMobileTitle = galleryItem.title ? String(galleryItem.title) : "";
+                    img.dataset.rasimMobileNoteText = galleryItem.description ? String(galleryItem.description) : "";
+                    img.dataset.rasimMobileProductUrl = galleryItem.link ? String(galleryItem.link) : "";
+                    img.dataset.rasimMobileTarget = galleryItem.target ? String(galleryItem.target) : "";
+                }
             });
         };
 
@@ -1572,16 +1655,20 @@ function installBrandModalRasim() {
             });
         };
 
+        const getRasimMobileData = () => Object.assign({}, RASIM_MOBILE_MODAL_DATA, window.BrandModalRasimData || {});
+
         const applyRasimModalView = () => {
             if (!modalCard) return;
 
+            const rasimData = getRasimMobileData();
             const logo = modalCard.querySelector('.brand-logo-banner');
             const title = modalCard.querySelector('.modal-title');
             const desc = modalCard.querySelector('.modal-desc');
+            const btn = modalCard.querySelector('.modal-link-btn');
 
-            if (logo && RASIM_MOBILE_MODAL_DATA.logoUrl) {
-                logo.src = RASIM_MOBILE_MODAL_DATA.logoUrl;
-                logo.alt = RASIM_MOBILE_MODAL_DATA.titleHTML || 'Rasi:m';
+            if (logo && rasimData.logoUrl) {
+                logo.src = rasimData.logoUrl;
+                logo.alt = rasimData.watermark || rasimData.titleHTML || 'Rasi:m';
             }
 
             if (title) {
@@ -1590,7 +1677,14 @@ function installBrandModalRasim() {
 
             if (desc) {
                 desc.classList.add('cute-shop-copy');
-                desc.innerHTML = RASIM_MOBILE_MODAL_DATA.desc;
+                desc.innerHTML = rasimData.desc || '';
+            }
+
+            if (btn) {
+                btn.textContent = rasimData.linkText || '';
+                btn.setAttribute('href', rasimData.linkUrl || 'https://rasim20230110.square.site/');
+                btn.setAttribute('target', '_blank');
+                btn.setAttribute('rel', 'noopener noreferrer');
             }
         };
 
@@ -1661,6 +1755,7 @@ function installBrandModalRasim() {
             isPolaroidAnimating = false;
             isEnabled = false;
             galleryImages = [];
+            currentRasimGalleryItems = [];
         };
 
         const setup = (options = {}) => {
@@ -1676,6 +1771,21 @@ function installBrandModalRasim() {
             modalCard = options.modalCard || null;
             modalTrack = options.modalTrack || null;
             galleryImages = Array.from(options.galleryImages || []);
+
+            currentRasimGalleryItems = [];
+
+            if (Array.isArray(options.galleryItems)) {
+                currentRasimGalleryItems = options.galleryItems.slice();
+
+                if (window.BrandModalRasimData) {
+                    window.BrandModalRasimData.galleryItems = options.galleryItems.slice();
+                }
+            } else if (
+                window.BrandModalRasimData &&
+                Array.isArray(window.BrandModalRasimData.galleryItems)
+            ) {
+                currentRasimGalleryItems = window.BrandModalRasimData.galleryItems.slice();
+            }
 
             if (!modal || !modalCard || !modalTrack || galleryImages.length === 0) {
                 isEnabled = false;
