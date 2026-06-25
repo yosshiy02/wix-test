@@ -6,6 +6,7 @@ const { serveStatic } = require("./src/static");
 const { handleItemsRoutes } = require("./src/items/items.routes");
 const { handleBackupRoutes } = require("./src/backups/backup.routes");
 const { handleProjectBackupRoutes } = require("./src/projectBackup/projectBackup.routes");
+const { handleExpenseRoutes } = require("./src/expenses/expenses.routes");
 const { makeAppRoutes } = require("./src/app/app.routes");
 
 let handleAppRoutes;
@@ -16,6 +17,7 @@ const server = http.createServer(async (req, res) => {
       if (await handleItemsRoutes(req, res)) return;
       if (await handleBackupRoutes(req, res)) return;
       if (await handleProjectBackupRoutes(req, res)) return;
+      if (await handleExpenseRoutes(req, res)) return;
       if (await handleAppRoutes(req, res)) return;
 
       return sendJson(res, 404, {
@@ -41,3 +43,4 @@ handleAppRoutes = makeAppRoutes(server);
 server.listen(config.PORT, () => {
   console.log(`HD Origin Project running: http://localhost:${config.PORT}`);
 });
+

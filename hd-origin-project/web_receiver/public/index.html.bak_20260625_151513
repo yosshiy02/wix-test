@@ -76,40 +76,21 @@
       min-height: 60px;
       margin-top: 16px;
     }
-  
-    .main-menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .main-menu-grid button {
-      width: 100%;
-      min-height: 54px;
-      font-size: 17px;
-    }
   </style>
 </head>
 <body>
   <header>
     <h1>HD Origin Project</h1>
 
-    <div class="header-buttons">      <button type="button" class="danger" onclick="exitApp()">終了</button>
+    <div class="header-buttons">
+      <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
+      <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
+      <button type="button" onclick="openSettings()">設定</button>
+      <button type="button" class="danger" onclick="exitApp()">終了</button>
     </div>
   </header>
 
   <main>
-    <div class="card" id="mainMenuCard">
-      <h2>メインメニュー</h2>
-
-      <div class="main-menu-grid">
-        <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
-        <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
-        <button type="button" onclick="openSettings()">設定</button>
-        <button type="button" onclick="exitApp()">終了</button>
-      </div>
-    </div>
     <div class="card">
       <h2>メイン画面</h2>
       <p>ここはHD Origin Projectのメイン画面です。</p>
@@ -173,16 +154,6 @@ async function exitApp() {
       setTimeout(() => {
         document.body.innerHTML = `
           <main style="font-family: system-ui, sans-serif; padding: 32px;">
-    <div class="card" id="mainMenuCard">
-      <h2>メインメニュー</h2>
-
-      <div class="main-menu-grid">
-        <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
-        <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
-        <button type="button" onclick="openSettings()">設定</button>
-        <button type="button" onclick="exitApp()">終了</button>
-      </div>
-    </div>
             <h1>HD Origin Projectを終了しました</h1>
             <p>この画面は閉じて大丈夫です。</p>
           </main>
@@ -196,5 +167,4 @@ async function exitApp() {
 </script>
 </body>
 </html>
-
 

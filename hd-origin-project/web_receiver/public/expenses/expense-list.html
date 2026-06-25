@@ -1,0 +1,170 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>経費一覧 - HD Origin Project</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+    header { background: #222; color: white; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 22px; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+    button { font-size: 16px; font-weight: 700; padding: 10px 16px; cursor: pointer; border: 1px solid #aaa; border-radius: 8px; background: #fff; }
+    button:hover { background: #eee; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+    th { background: #eee; }
+    .money { text-align: right; }
+    .danger { border-color: #b00020; color: #b00020; }
+    #result, #detail { white-space: pre-wrap; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; padding: 12px; min-height: 50px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>経費一覧</h1>
+    <div class="button-row">
+      <button onclick="location.href='/'">メインへ</button>
+      <button onclick="location.href='/expenses/expense-input.html'">経費入力</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>経費一覧</h2>
+      <div class="button-row">
+        <button onclick="loadExpenses()">再読み込み</button>
+        <button onclick="location.href='/api/expenses.csv'">CSV出力</button>
+      </div>
+
+      <div id="list">読み込み中...</div>
+      <div id="result">待機中</div>
+    </div>
+
+    <div class="card">
+      <h2>選択した経費の明細</h2>
+      <div id="detail">未選択</div>
+    </div>
+  </main>
+
+<script>
+function formatJstDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  return new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(d);
+}
+
+function money(value) {
+  return Number(value || 0).toLocaleString("ja-JP");
+}
+
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+async function loadExpenses() {
+  const res = await fetch("/api/expenses");
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  if (!data.expenses.length) {
+    document.getElementById("list").textContent = "経費データはまだありません。";
+    return;
+  }
+
+  let html = `
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>日付</th>
+        <th>支払先</th>
+        <th>支払方法</th>
+        <th>合計</th>
+        <th>摘要</th>
+        <th>明細数</th>
+        <th>操作</th>
+      </tr>
+  `;
+
+  for (const item of data.expenses) {
+    html += `
+      <tr>
+        <td>${item.expense_id}</td>
+        <td>${formatJstDate(item.expense_date)}</td>
+        <td>${item.vendor_name || ""}</td>
+        <td>${item.payment_method_name || ""}</td>
+        <td class="money">${money(item.total_amount)}</td>
+        <td>${item.summary || ""}</td>
+        <td>${item.detail_count}</td>
+        <td>
+          <button onclick="showDetail(${item.expense_id})">明細</button>
+          <button class="danger" onclick="deleteExpense(${item.expense_id})">削除</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  html += "</table>";
+  document.getElementById("list").innerHTML = html;
+}
+
+async function showDetail(expenseId) {
+  const res = await fetch(`/api/expenses/${expenseId}`);
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  const h = data.expense.header;
+  const details = data.expense.details;
+
+  let html = `
+経費ID：${h.expense_id}
+日付：${formatJstDate(h.expense_date)}
+支払先：${h.vendor_name || ""}
+支払方法：${h.payment_method_name || ""}
+合計：${money(h.total_amount)}
+摘要：${h.summary || ""}
+
+明細：
+`;
+
+  for (const d of details) {
+    html += `
+${d.line_no}. ${d.account_title_name || ""} / ${d.description || ""} / ${money(d.amount)} / ${d.tax_category_name || ""} / ${d.memo || ""}`;
+  }
+
+  document.getElementById("detail").textContent = html;
+}
+
+async function deleteExpense(expenseId) {
+  const ok = confirm("この経費データを削除しますか？");
+
+  if (!ok) return;
+
+  const res = await fetch(`/api/expenses/${expenseId}`, {
+    method: "DELETE"
+  });
+
+  const data = await res.json();
+  showResult(data);
+  await loadExpenses();
+  document.getElementById("detail").textContent = "未選択";
+}
+
+loadExpenses();
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>経費入力 - HD Origin Project</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+    header { background: #222; color: white; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 22px; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 14px; }
+    label { display: block; font-weight: 700; margin-bottom: 6px; }
+    input, select, textarea, button { box-sizing: border-box; padding: 10px; font-size: 16px; }
+    input, select, textarea { width: 100%; }
+    textarea { min-height: 70px; }
+    button { font-weight: 700; cursor: pointer; border: 1px solid #aaa; border-radius: 8px; background: #fff; }
+    button:hover { background: #eee; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+    th { background: #eee; }
+    .money { text-align: right; }
+    .danger { border-color: #b00020; color: #b00020; }
+    #result { white-space: pre-wrap; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; padding: 12px; min-height: 50px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>経費入力</h1>
+    <div class="button-row" style="margin-top:0;">
+      <button onclick="location.href='/'">メインへ</button>
+      <button onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>経費テーブル</h2>
+
+      <div class="grid">
+        <div>
+          <label>日付</label>
+          <input id="expenseDate" type="date">
+        </div>
+
+        <div>
+          <label>支払先</label>
+          <input id="vendorName" list="vendorList" placeholder="例：Amazon">
+          <datalist id="vendorList"></datalist>
+        </div>
+
+        <div>
+          <label>支払方法</label>
+          <select id="paymentMethod"></select>
+        </div>
+
+        <div>
+          <label>合計金額</label>
+          <input id="totalAmount" class="money" readonly>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>摘要</label>
+        <textarea id="summary" placeholder="例：事務用品購入"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>経費明細テーブル</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:170px;">勘定科目</th>
+            <th>内容</th>
+            <th style="width:130px;">金額</th>
+            <th style="width:130px;">税区分</th>
+            <th>メモ</th>
+            <th style="width:80px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+
+      <div class="button-row">
+        <button onclick="addDetailRow()">明細行を追加</button>
+        <button onclick="saveExpense()">保存</button>
+        <button onclick="clearForm()">クリア</button>
+      </div>
+
+      <div id="result">待機中</div>
+    </div>
+  </main>
+
+<script>
+let masters = {
+  account_titles: [],
+  payment_methods: [],
+  tax_categories: [],
+  vendors: []
+};
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function money(value) {
+  const n = Number(value || 0);
+  return n.toLocaleString("ja-JP");
+}
+
+async function loadMasters() {
+  const res = await fetch("/api/expenses/masters");
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  masters = data.masters;
+
+  const paymentSelect = document.getElementById("paymentMethod");
+  paymentSelect.innerHTML = "";
+
+  for (const item of masters.payment_methods) {
+    const opt = document.createElement("option");
+    opt.value = item.payment_method_id;
+    opt.textContent = item.method_name;
+    paymentSelect.appendChild(opt);
+  }
+
+  const vendorList = document.getElementById("vendorList");
+  vendorList.innerHTML = "";
+
+  for (const item of masters.vendors) {
+    const opt = document.createElement("option");
+    opt.value = item.vendor_name;
+    vendorList.appendChild(opt);
+  }
+}
+
+function accountOptions(selectedValue = "") {
+  let html = `<option value="">選択</option>`;
+
+  for (const item of masters.account_titles) {
+    const selected = String(item.account_title_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${item.account_title_id}" ${selected}>${item.account_name}</option>`;
+  }
+
+  return html;
+}
+
+function taxOptions(selectedValue = "") {
+  let html = `<option value="">選択</option>`;
+
+  for (const item of masters.tax_categories) {
+    const selected = String(item.tax_category_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${item.tax_category_id}" ${selected}>${item.tax_name}</option>`;
+  }
+
+  return html;
+}
+
+function addDetailRow(data = {}) {
+  const tbody = document.getElementById("detailBody");
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>
+      <select class="accountTitle">
+        ${accountOptions(data.account_title_id || "")}
+      </select>
+    </td>
+    <td>
+      <input class="description" value="${data.description || ""}" placeholder="例：コピー用紙">
+    </td>
+    <td>
+      <input class="amount money" type="number" value="${data.amount || ""}" oninput="calcTotal()">
+    </td>
+    <td>
+      <select class="taxCategory">
+        ${taxOptions(data.tax_category_id || "")}
+      </select>
+    </td>
+    <td>
+      <input class="memo" value="${data.memo || ""}">
+    </td>
+    <td>
+      <button class="danger" onclick="this.closest('tr').remove(); calcTotal();">削除</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+
+  document.querySelectorAll(".amount").forEach(input => {
+    total += Number(input.value || 0);
+  });
+
+  document.getElementById("totalAmount").value = money(total);
+}
+
+function collectPayload() {
+  const details = [];
+
+  document.querySelectorAll("#detailBody tr").forEach(tr => {
+    details.push({
+      account_title_id: tr.querySelector(".accountTitle").value,
+      description: tr.querySelector(".description").value,
+      amount: tr.querySelector(".amount").value,
+      tax_category_id: tr.querySelector(".taxCategory").value,
+      memo: tr.querySelector(".memo").value
+    });
+  });
+
+  return {
+    expense_date: document.getElementById("expenseDate").value,
+    vendor_name: document.getElementById("vendorName").value,
+    payment_method_id: document.getElementById("paymentMethod").value,
+    summary: document.getElementById("summary").value,
+    details
+  };
+}
+
+async function saveExpense() {
+  const payload = collectPayload();
+
+  showResult("保存中です。");
+
+  const res = await fetch("/api/expenses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  showResult(data);
+  await loadMasters();
+}
+
+function clearForm() {
+  document.getElementById("expenseDate").value = today();
+  document.getElementById("vendorName").value = "";
+  document.getElementById("summary").value = "";
+  document.getElementById("detailBody").innerHTML = "";
+  addDetailRow({
+    description: "",
+    amount: "",
+  });
+  showResult("クリアしました。");
+}
+
+async function init() {
+  document.getElementById("expenseDate").value = today();
+  await loadMasters();
+  addDetailRow({
+    description: "テスト経費",
+    amount: 1000,
+  });
+}
+
+init();
+</script>
+</body>
+</html>
