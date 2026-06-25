@@ -4,123 +4,164 @@
   <meta charset="utf-8">
   <title>HD Origin Project</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 32px; background: #f5f5f5; }
-    .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-    label { display: block; margin-top: 12px; font-weight: 700; }
-    input, textarea, select, button { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px; font-size: 16px; }
-    button { margin-top: 18px; cursor: pointer; font-weight: 700; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
-    th { background: #eee; }
-    pre { white-space: pre-wrap; word-break: break-word; }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    main {
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 24px;
+      max-width: 900px;
+    }
+
+    button {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 20px;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    button:hover {
+      background: #eee;
+    }
+
+    .danger {
+      border-color: #b00020;
+      color: #b00020;
+    }
+
+    .note {
+      color: #666;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+
+    #result {
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 60px;
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <header>
     <h1>HD Origin Project</h1>
-    <p>ブラウザ → server.js → PostgreSQL 保存テスト</p>
-    <button onclick="healthCheck()">DB接続確認</button>
-    <pre id="health"></pre>
-  </div>
 
-  <div class="card">
-    <h2>入力</h2>
+    <div class="header-buttons">
+      <button type="button" onclick="openSettings()">設定</button>
+      <button type="button" class="danger" onclick="exitApp()">終了</button>
+    </div>
+  </header>
 
-    <label>区分</label>
-    <select id="type">
-      <option value="売上">売上</option>
-      <option value="仕入">仕入</option>
-      <option value="経費">経費</option>
-      <option value="その他">その他</option>
-    </select>
+  <main>
+    <div class="card">
+      <h2>メイン画面</h2>
+      <p>ここはHD Origin Projectのメイン画面です。</p>
+      <p class="note">
+        設定ボタンから、バックアップ・リストア画面を開きます。<br>
+        終了ボタンでは、終了前にバックアップするか確認します。
+      </p>
 
-    <label>金額</label>
-    <input id="amount" type="number" value="1000">
-
-    <label>名前</label>
-    <input id="name" value="テスト太郎">
-
-    <label>日付</label>
-    <input id="date" type="date">
-
-    <label>メモ</label>
-    <textarea id="memo">ポスグレ保存テスト</textarea>
-
-    <button onclick="sendData()">送信してPostgreSQLに保存</button>
-  </div>
-
-  <div class="card">
-    <h2>保存一覧</h2>
-    <button onclick="loadItems()">再読み込み</button>
-    <div id="items"></div>
-  </div>
+      <div id="result">待機中</div>
+    </div>
+  </main>
 
 <script>
-document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+function openSettings() {
+  const width = 760;
+  const height = 600;
+  const left = window.screenX + 80;
+  const top = window.screenY + 80;
 
-async function healthCheck() {
-  const res = await fetch("/api/health");
-  const data = await res.json();
-  document.getElementById("health").textContent = JSON.stringify(data, null, 2);
+  window.open(
+    "/settings.html",
+    "hd_origin_settings",
+    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
 }
 
-async function sendData() {
-  const payload = {
-    type: document.getElementById("type").value,
-    amount: document.getElementById("amount").value,
-    name: document.getElementById("name").value,
-    date: document.getElementById("date").value,
-    memo: document.getElementById("memo").value
-  };
+function showResult(message) {
+  document.getElementById("result").textContent =
+    typeof message === "string" ? message : JSON.stringify(message, null, 2);
+}
 
-  const res = await fetch("/api/test", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+async function exitApp() {
+  const closeOk = confirm("HD Origin Projectを終了しますか？");
 
-  const data = await res.json();
-
-  if (!data.ok) {
-    alert("保存失敗: " + data.error);
+  if (!closeOk) {
+    showResult("終了をキャンセルしました。");
     return;
   }
 
-  await loadItems();
-}
+  const backupOk = confirm("終了前にバックアップを作成しますか？");
 
-async function loadItems() {
-  const res = await fetch("/api/items");
-  const items = await res.json();
+  showResult(
+    backupOk
+      ? "バックアップ作成後に終了します。少し待ってください。"
+      : "バックアップせずに終了します。"
+  );
 
-  if (!items.length) {
-    document.getElementById("items").textContent = "まだデータがありません。";
-    return;
+  try {
+    const res = await fetch("/api/app/exit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ backup: backupOk })
+    });
+
+    const data = await res.json();
+    showResult(data);
+
+    setTimeout(() => {
+      window.close();
+
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <main style="font-family: system-ui, sans-serif; padding: 32px;">
+            <h1>HD Origin Projectを終了しました</h1>
+            <p>この画面は閉じて大丈夫です。</p>
+          </main>
+        `;
+      }, 500);
+    }, 800);
+  } catch (err) {
+    showResult("終了処理を送信しました。サーバーが停止した可能性があります。");
   }
-
-  let html = "<table><tr><th>ID</th><th>受信日時</th><th>区分</th><th>金額</th><th>名前</th><th>日付</th><th>メモ</th><th>元データ</th></tr>";
-
-  for (const item of items) {
-    html += `
-      <tr>
-        <td>${item.id}</td>
-        <td>${item.received_at}</td>
-        <td>${item.type || ""}</td>
-        <td>${item.amount || ""}</td>
-        <td>${item.name || ""}</td>
-        <td>${item.deal_date || ""}</td>
-        <td>${item.memo || ""}</td>
-        <td><pre>${JSON.stringify(item.payload, null, 2)}</pre></td>
-      </tr>
-    `;
-  }
-
-  html += "</table>";
-  document.getElementById("items").innerHTML = html;
 }
-
-healthCheck();
-loadItems();
 </script>
 </body>
 </html>

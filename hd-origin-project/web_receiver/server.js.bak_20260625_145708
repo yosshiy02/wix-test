@@ -1,0 +1,549 @@
+﻿const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const { execFile } = require("child_process");
+const { Pool } = require("pg");
+
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+
+const PORT = Number(process.env.PORT || 3000);
+const projectRoot = path.join(__dirname, "..");
+const publicDir = path.join(__dirname, "public");
+
+const backupDir = path.isAbsolute(process.env.BACKUP_DIR || "")
+  ? process.env.BACKUP_DIR
+  : path.join(projectRoot, process.env.BACKUP_DIR || "backup");
+
+const pgBinPath = process.env.PG_BIN_PATH || "C:\\Program Files\\PostgreSQL\\17\\bin";
+
+fs.mkdirSync(backupDir, { recursive: true });
+
+const pool = new Pool({
+  host: process.env.DB_HOST || "127.0.0.1",
+  port: Number(process.env.DB_PORT || 5432),
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+});
+
+function pgTool(name) {
+  return path.join(pgBinPath, `${name}.exe`);
+}
+
+function pgEnv() {
+  return {
+    ...process.env,
+    PGPASSWORD: process.env.DB_PASSWORD || "",
+  };
+}
+
+function sendJson(res, status, data) {
+  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(data, null, 2));
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", chunk => {
+      body += chunk;
+      if (body.length > 1024 * 1024) {
+        reject(new Error("Body too large"));
+        req.destroy();
+      }
+    });
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
+}
+
+function runCommand(file, args) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      file,
+      args,
+      {
+        env: pgEnv(),
+        windowsHide: true,
+        maxBuffer: 1024 * 1024 * 20,
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          error.stdout = stdout;
+          error.stderr = stderr;
+          return reject(error);
+        }
+        resolve({ stdout, stderr });
+      }
+    );
+  });
+}
+
+function timestamp() {
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).formatToParts(new Date());
+
+  const get = type => parts.find(p => p.type === type).value;
+
+  return `${get("year")}${get("month")}${get("day")}_${get("hour")}${get("minute")}${get("second")}`;
+}
+
+function safeBackupFileName(filename) {
+  const base = path.basename(filename || "");
+  if (!base.endsWith(".backup")) {
+    throw new Error("backupファイルではありません。");
+  }
+  if (base !== filename) {
+    throw new Error("不正なファイル名です。");
+  }
+  return base;
+}
+
+async function createBackup(prefix = process.env.DB_NAME || "database") {
+  const dbName = process.env.DB_NAME;
+  const fileName = `${prefix}_${timestamp()}.backup`;
+  const filePath = path.join(backupDir, fileName);
+
+  await runCommand(pgTool("pg_dump"), [
+    "-h", process.env.DB_HOST || "127.0.0.1",
+    "-p", String(process.env.DB_PORT || 5432),
+    "-U", process.env.DB_USER || "postgres",
+    "-d", dbName,
+    "-F", "c",
+    "-b",
+    "-v",
+    "-f", filePath
+  ]);
+
+  const stat = fs.statSync(filePath);
+  const cleanup = cleanupOldBackups();
+
+  return {
+    file_name: fileName,
+    full_path: filePath,
+    size_bytes: stat.size,
+    created_at: stat.mtime,
+    cleanup
+  };
+}
+
+function listBackups() {
+  if (!fs.existsSync(backupDir)) {
+    return [];
+  }
+
+  const backups = fs.readdirSync(backupDir)
+    .filter(name => name.endsWith(".backup"))
+    .map(name => {
+      const fullPath = path.join(backupDir, name);
+      const stat = fs.statSync(fullPath);
+
+      const isSafetyBackup = name.includes("_before_restore_");
+
+      return {
+        file_name: name,
+        full_path: fullPath,
+        size_bytes: stat.size,
+        updated_at: stat.mtime,
+        backup_type: isSafetyBackup ? "before_restore" : "normal",
+        is_safety_backup: isSafetyBackup,
+        is_latest_normal: false
+      };
+    })
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+  const latestNormal = backups.find(b => !b.is_safety_backup);
+
+  if (latestNormal) {
+    latestNormal.is_latest_normal = true;
+  }
+
+  return backups;
+}
+function cleanupOldBackups() {
+  const keepNormal = Number(process.env.BACKUP_KEEP_NORMAL || 10);
+  const keepBeforeRestore = Number(process.env.BACKUP_KEEP_BEFORE_RESTORE || 3);
+
+  const backups = listBackups();
+
+  const normalBackups = backups
+    .filter(b => !b.is_safety_backup)
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+  const safetyBackups = backups
+    .filter(b => b.is_safety_backup)
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+  const deleteTargets = [
+    ...normalBackups.slice(keepNormal),
+    ...safetyBackups.slice(keepBeforeRestore)
+  ];
+
+  const deleted = [];
+
+  for (const target of deleteTargets) {
+    try {
+      fs.unlinkSync(target.full_path);
+      deleted.push(target.file_name);
+    } catch (err) {
+      console.error("backup cleanup failed:", target.file_name, err.message);
+    }
+  }
+
+  return {
+    keep_normal: keepNormal,
+    keep_before_restore: keepBeforeRestore,
+    deleted
+  };
+}
+
+function csvEscape(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function listProjectBackups() {
+  const projectBackupDir = path.join(backupDir, "project");
+
+  if (!fs.existsSync(projectBackupDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(projectBackupDir)
+    .filter(name => name.endsWith(".zip"))
+    .map(name => {
+      const fullPath = path.join(projectBackupDir, name);
+      const stat = fs.statSync(fullPath);
+
+      return {
+        file_name: name,
+        full_path: fullPath,
+        size_bytes: stat.size,
+        updated_at: stat.mtime
+      };
+    })
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+}
+
+function cleanupOldProjectBackups() {
+  const keep = Number(process.env.PROJECT_BACKUP_KEEP || 5);
+  const backups = listProjectBackups();
+  const deleteTargets = backups.slice(keep);
+  const deleted = [];
+
+  for (const target of deleteTargets) {
+    try {
+      fs.unlinkSync(target.full_path);
+      deleted.push(target.file_name);
+    } catch (err) {
+      console.error("project backup cleanup failed:", target.file_name, err.message);
+    }
+  }
+
+  return {
+    keep_project_backup: keep,
+    deleted
+  };
+}
+
+async function createProjectBackup() {
+  const projectBackupDir = path.join(backupDir, "project");
+  fs.mkdirSync(projectBackupDir, { recursive: true });
+
+  const fileName = `hd-origin-project_program_${timestamp()}.zip`;
+  const filePath = path.join(projectBackupDir, fileName);
+
+  const script = `
+$Source = ${JSON.stringify(projectRoot)}
+$Dest = ${JSON.stringify(filePath)}
+$Temp = Join-Path $env:TEMP ("hd_origin_project_backup_" + [guid]::NewGuid().ToString("N"))
+
+New-Item -ItemType Directory -Path $Temp -Force | Out-Null
+
+$ExcludeDirs = @(
+  (Join-Path $Source ".git"),
+  (Join-Path $Source "node_modules"),
+  (Join-Path $Source "backup"),
+  (Join-Path $Source ".vs"),
+  (Join-Path $Source "bin"),
+  (Join-Path $Source "obj"),
+  (Join-Path $Source "web_receiver\\node_modules")
+)
+
+robocopy $Source $Temp /E /XD $ExcludeDirs /XF "*.log" "npm-debug.log*" | Out-Null
+
+if ($LASTEXITCODE -gt 7) {
+  throw "robocopy failed. code=$LASTEXITCODE"
+}
+
+if (Test-Path $Dest) {
+  Remove-Item $Dest -Force
+}
+
+Compress-Archive -Path (Join-Path $Temp "*") -DestinationPath $Dest -Force
+
+Remove-Item $Temp -Recurse -Force
+`;
+
+  await runCommand("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+    script
+  ]);
+
+  const stat = fs.statSync(filePath);
+  const cleanup = cleanupOldProjectBackups();
+
+  return {
+    file_name: fileName,
+    full_path: filePath,
+    size_bytes: stat.size,
+    created_at: stat.mtime,
+    cleanup
+  };
+}
+
+async function handleApi(req, res) {
+  if (req.method === "GET" && req.url === "/api/health") {
+    const result = await pool.query("SELECT NOW() AS now");
+    return sendJson(res, 200, {
+      ok: true,
+      message: "PostgreSQL connected",
+      db_time: result.rows[0].now
+    });
+  }
+
+  if (req.method === "GET" && req.url === "/api/items") {
+    const result = await pool.query(`
+      SELECT id, received_at, type, amount, name, deal_date, memo, payload
+      FROM received_items
+      ORDER BY id DESC
+      LIMIT 100
+    `);
+    return sendJson(res, 200, result.rows);
+  }
+
+  if (req.method === "POST" && req.url === "/api/test") {
+    const raw = await readBody(req);
+    const payload = JSON.parse(raw || "{}");
+
+    const result = await pool.query(
+      `
+      INSERT INTO received_items
+        (type, amount, name, deal_date, memo, payload)
+      VALUES
+        ($1, NULLIF($2, '')::numeric, $3, NULLIF($4, '')::date, $5, $6::jsonb)
+      RETURNING id, received_at, type, amount, name, deal_date, memo, payload
+      `,
+      [
+        payload.type || "",
+        payload.amount || "",
+        payload.name || "",
+        payload.date || "",
+        payload.memo || "",
+        JSON.stringify(payload)
+      ]
+    );
+
+    return sendJson(res, 200, {
+      ok: true,
+      saved: result.rows[0]
+    });
+  }
+
+  if (req.method === "GET" && req.url === "/api/items.csv") {
+    const result = await pool.query(`
+      SELECT id, received_at, type, amount, name, deal_date, memo
+      FROM received_items
+      ORDER BY id ASC
+    `);
+
+    const header = ["id", "received_at", "type", "amount", "name", "deal_date", "memo"];
+    const lines = [header.join(",")];
+
+    for (const row of result.rows) {
+      lines.push([
+        row.id,
+        row.received_at,
+        row.type,
+        row.amount,
+        row.name,
+        row.deal_date,
+        row.memo
+      ].map(csvEscape).join(","));
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": "attachment; filename=received_items.csv"
+    });
+    return res.end("\uFEFF" + lines.join("\r\n"));
+  }
+
+  if (req.method === "GET" && req.url === "/api/backup/list") {
+    return sendJson(res, 200, {
+      ok: true,
+      backup_dir: backupDir,
+      backups: listBackups()
+    });
+  }
+
+  if (req.method === "POST" && req.url === "/api/backup/create") {
+    const backup = await createBackup(process.env.DB_NAME || "database");
+
+    return sendJson(res, 200, {
+      ok: true,
+      message: "バックアップを作成しました。",
+      backup
+    });
+  }
+
+  if (req.method === "POST" && req.url === "/api/backup/restore") {
+    const raw = await readBody(req);
+    const body = JSON.parse(raw || "{}");
+
+    const fileName = safeBackupFileName(body.file_name);
+    const filePath = path.join(backupDir, fileName);
+
+    if (!fs.existsSync(filePath)) {
+      return sendJson(res, 404, {
+        ok: false,
+        error: "指定されたバックアップファイルが見つかりません。"
+      });
+    }
+
+    const safetyBackup = await createBackup(`${process.env.DB_NAME || "database"}_before_restore`);
+
+    await runCommand(pgTool("pg_restore"), [
+      "-h", process.env.DB_HOST || "127.0.0.1",
+      "-p", String(process.env.DB_PORT || 5432),
+      "-U", process.env.DB_USER || "postgres",
+      "-d", process.env.DB_NAME,
+      "--clean",
+      "--if-exists",
+      "--no-owner",
+      "--no-privileges",
+      "-v",
+      filePath
+    ]);
+
+    return sendJson(res, 200, {
+      ok: true,
+      message: "リストアが完了しました。",
+      restored_file: fileName,
+      safety_backup
+    });
+  }
+
+  if (req.method === "POST" && req.url === "/api/app/exit") {
+    const raw = await readBody(req);
+    const body = raw ? JSON.parse(raw) : {};
+    let backup = null;
+
+    if (body.backup === true) {
+      backup = await createBackup(process.env.DB_NAME || "database");
+    }
+
+    sendJson(res, 200, {
+      ok: true,
+      message: body.backup === true
+        ? "バックアップ作成後、アプリを終了します。"
+        : "アプリを終了します。",
+      backup
+    });
+
+    setTimeout(() => {
+      server.close(() => {
+        process.exit(0);
+      });
+
+      setTimeout(() => process.exit(0), 1500);
+    }, 500);
+
+    return;
+  }
+  if (req.method === "GET" && req.url === "/api/project-backup/list") {
+    return sendJson(res, 200, {
+      ok: true,
+      backup_dir: path.join(backupDir, "project"),
+      backups: listProjectBackups()
+    });
+  }
+
+  if (req.method === "POST" && req.url === "/api/project-backup/create") {
+    const backup = await createProjectBackup();
+
+    return sendJson(res, 200, {
+      ok: true,
+      message: "プログラム本体バックアップを作成しました。",
+      backup
+    });
+  }
+  return sendJson(res, 404, { ok: false, error: "API not found" });
+}
+
+function serveStatic(req, res) {
+  const reqPath = req.url === "/" ? "/index.html" : req.url.split("?")[0];
+  const fullPath = path.join(publicDir, decodeURIComponent(reqPath));
+
+  if (!fullPath.startsWith(publicDir)) {
+    res.writeHead(403);
+    return res.end("Forbidden");
+  }
+
+  fs.readFile(fullPath, (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      return res.end("Not found");
+    }
+
+    const ext = path.extname(fullPath).toLowerCase();
+    const type =
+      ext === ".html" ? "text/html; charset=utf-8" :
+      ext === ".js" ? "text/javascript; charset=utf-8" :
+      ext === ".css" ? "text/css; charset=utf-8" :
+      "application/octet-stream";
+
+    res.writeHead(200, { "Content-Type": type });
+    res.end(data);
+  });
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    if (req.url.startsWith("/api/")) {
+      await handleApi(req, res);
+    } else {
+      serveStatic(req, res);
+    }
+  } catch (err) {
+    console.error(err);
+    sendJson(res, 500, {
+      ok: false,
+      error: err.message,
+      stderr: err.stderr || undefined
+    });
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`HD Origin Project running: http://localhost:${PORT}`);
+});
+
+
+
+
+
+
+
