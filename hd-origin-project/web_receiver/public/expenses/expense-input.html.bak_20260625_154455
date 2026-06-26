@@ -1,0 +1,511 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>経費入力 - HD Origin Project</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+    header { background: #222; color: white; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 22px; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 14px; }
+    label { display: block; font-weight: 700; margin-bottom: 6px; }
+    input, select, textarea, button { box-sizing: border-box; padding: 10px; font-size: 16px; }
+    input, select, textarea { width: 100%; }
+    textarea { min-height: 70px; }
+    button { font-weight: 700; cursor: pointer; border: 1px solid #aaa; border-radius: 8px; background: #fff; }
+    button:hover { background: #eee; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+    th { background: #eee; }
+    .money { text-align: right; }
+    .danger { border-color: #b00020; color: #b00020; }
+    #result { white-space: pre-wrap; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; padding: 12px; min-height: 50px; margin-top: 14px; }
+  
+    .date-preview {
+      margin-top: 6px;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .date-preview.warning {
+      color: #b00020;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>経費入力</h1>
+    <div class="button-row" style="margin-top:0;">
+      <button onclick="location.href='/'">メインへ</button>
+      <button onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>経費テーブル</h2>
+
+      <div class="grid">
+                <div class="date-field">
+          <label>日付</label>
+          <div class="date-row">
+            <input id="expenseDate" class="date-text-input" type="text" inputmode="numeric" placeholder="例：0625 / 20260625" oninput="updateDatePreview()">
+            <input id="expenseDateCalendar" class="date-calendar-input" type="date" onchange="syncTextFromCalendar()">
+          </div>
+          <div id="expenseDatePreview" class="date-preview">登録日付：未判定</div>
+        </div>
+
+        <div>
+          <label>支払先</label>
+          <input id="vendorName" class="compact-input" list="vendorList" placeholder="例：Amazon">
+          <datalist id="vendorList"></datalist>
+        </div>
+
+        <div>
+          <label>支払方法</label>
+          <select id="paymentMethod" class="compact-input"></select>
+        </div>
+
+        <div>
+          <label>合計金額</label>
+          <input id="totalAmount" class="money compact-input" readonly>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>摘要</label>
+        <textarea id="summary" class="summary-input" placeholder="例：事務用品購入"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>経費明細テーブル</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:170px;">勘定科目</th>
+            <th>内容</th>
+            <th style="width:130px;">金額</th>
+            <th style="width:130px;">税区分</th>
+            <th>メモ</th>
+            <th style="width:80px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+
+      <div class="button-row">
+        <button onclick="addDetailRow()">明細行を追加</button>
+        <button onclick="saveExpense()">保存</button>
+        <button onclick="clearForm()">クリア</button>
+      </div>
+
+      <div id="result">待機中</div>
+    </div>
+  </main>
+
+<script>
+let masters = {
+  account_titles: [],
+  payment_methods: [],
+  tax_categories: [],
+  vendors: []
+};
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+function makeDateOnly(year, month, day) {
+  return new Date(year, month - 1, day);
+}
+
+function toIsoDate(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function todayDateOnly() {
+  const now = new Date();
+  return makeDateOnly(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
+
+function todayInputText() {
+  const now = new Date();
+  return `${pad2(now.getMonth() + 1)}${pad2(now.getDate())}`;
+}
+
+function currentFiscalStartYear() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  return month >= 4 ? year : year - 1;
+}
+
+function isValidYmd(year, month, day) {
+  const d = makeDateOnly(year, month, day);
+
+  return d.getFullYear() === year &&
+    d.getMonth() + 1 === month &&
+    d.getDate() === day;
+}
+
+function normalizeExpenseDate(showAlert = false) {
+  const rawOriginal = document.getElementById("expenseDate").value.trim();
+  let raw = rawOriginal.replace(/[\/\-.]/g, "");
+
+  if (!raw) {
+    return {
+      ok: false,
+      message: "日付が未入力です。"
+    };
+  }
+
+  let year;
+  let month;
+  let day;
+  let explicitYear = false;
+  let warning = "";
+
+  if (/^\d{8}$/.test(raw)) {
+    explicitYear = true;
+    year = Number(raw.slice(0, 4));
+    month = Number(raw.slice(4, 6));
+    day = Number(raw.slice(6, 8));
+  } else if (/^\d{3,4}$/.test(raw)) {
+    raw = raw.padStart(4, "0");
+
+    month = Number(raw.slice(0, 2));
+    day = Number(raw.slice(2, 4));
+
+    const fiscalStartYear = currentFiscalStartYear();
+    year = month >= 4 ? fiscalStartYear : fiscalStartYear + 1;
+  } else {
+    return {
+      ok: false,
+      message: "日付は 0625 または 20260625 の形で入力してください。"
+    };
+  }
+
+  if (!isValidYmd(year, month, day)) {
+    return {
+      ok: false,
+      message: `存在しない日付です：${rawOriginal}`
+    };
+  }
+
+  let date = makeDateOnly(year, month, day);
+  const today = todayDateOnly();
+
+  if (!explicitYear && date > today) {
+    year = year - 1;
+    date = makeDateOnly(year, month, day);
+    warning = "未来日になるため、前年の日付として自動判定しました。";
+  }
+
+  const iso = toIsoDate(date);
+  const isFuture = date > today;
+
+  return {
+    ok: true,
+    iso,
+    display: iso.replace(/-/g, "/"),
+    isFuture,
+    explicitYear,
+    warning
+  };
+}
+
+function updateDatePreview() {
+  const preview = document.getElementById("expenseDatePreview");
+  const result = normalizeExpenseDate(false);
+
+  preview.classList.remove("warning");
+
+  if (!result.ok) {
+    preview.textContent = result.message;
+    preview.classList.add("warning");
+    syncCalendarFromPreviewResult(null);
+    return;
+  }
+
+  let text = `登録日付：${result.display}`;
+
+  if (result.warning) {
+    text += `　※${result.warning}`;
+    preview.classList.add("warning");
+  }
+
+  if (result.isFuture) {
+    text += "　※未来日です。保存時に確認します。";
+    preview.classList.add("warning");
+  }
+
+  preview.textContent = text;
+  syncCalendarFromPreviewResult(result);
+}
+
+
+function syncCalendarFromPreviewResult(result) {
+  const calendar = document.getElementById("expenseDateCalendar");
+
+  if (!calendar) return;
+
+  if (!result || !result.ok) {
+    calendar.value = "";
+    return;
+  }
+
+  if (calendar.value !== result.iso) {
+    calendar.value = result.iso;
+  }
+}
+
+function syncTextFromCalendar() {
+  const calendar = document.getElementById("expenseDateCalendar");
+
+  if (!calendar || !calendar.value) return;
+
+  const value = calendar.value.replace(/-/g, "");
+  document.getElementById("expenseDate").value = value;
+
+  updateDatePreview();
+  enableEnterToNext();
+}
+
+function focusNextField(current) {
+  const fields = Array.from(document.querySelectorAll(
+    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+  )).filter(el => el.offsetParent !== null);
+
+  const index = fields.indexOf(current);
+
+  if (index >= 0 && fields[index + 1]) {
+    fields[index + 1].focus();
+
+    if (typeof fields[index + 1].select === "function") {
+      fields[index + 1].select();
+    }
+  }
+}
+
+function enableEnterToNext() {
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
+
+    const tag = event.target.tagName.toLowerCase();
+
+    if (!["input", "select", "textarea"].includes(tag)) return;
+
+    if (tag === "textarea" && event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    focusNextField(event.target);
+  });
+}
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function money(value) {
+  const n = Number(value || 0);
+  return n.toLocaleString("ja-JP");
+}
+
+async function loadMasters() {
+  const res = await fetch("/api/expenses/masters");
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  masters = data.masters;
+
+  const paymentSelect = document.getElementById("paymentMethod");
+  paymentSelect.innerHTML = "";
+
+  for (const item of masters.payment_methods) {
+    const opt = document.createElement("option");
+    opt.value = item.payment_method_id;
+    opt.textContent = item.method_name;
+    paymentSelect.appendChild(opt);
+  }
+
+  const vendorList = document.getElementById("vendorList");
+  vendorList.innerHTML = "";
+
+  for (const item of masters.vendors) {
+    const opt = document.createElement("option");
+    opt.value = item.vendor_name;
+    vendorList.appendChild(opt);
+  }
+}
+
+function accountOptions(selectedValue = "") {
+  let html = `<option value="">選択</option>`;
+
+  for (const item of masters.account_titles) {
+    const selected = String(item.account_title_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${item.account_title_id}" ${selected}>${item.account_name}</option>`;
+  }
+
+  return html;
+}
+
+function taxOptions(selectedValue = "") {
+  let html = `<option value="">選択</option>`;
+
+  for (const item of masters.tax_categories) {
+    const selected = String(item.tax_category_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${item.tax_category_id}" ${selected}>${item.tax_name}</option>`;
+  }
+
+  return html;
+}
+
+function addDetailRow(data = {}) {
+  const tbody = document.getElementById("detailBody");
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>
+      <select class="accountTitle">
+        ${accountOptions(data.account_title_id || "")}
+      </select>
+    </td>
+    <td>
+      <input class="description" value="${data.description || ""}" placeholder="例：コピー用紙">
+    </td>
+    <td>
+      <input class="amount money" type="number" value="${data.amount || ""}" oninput="calcTotal()">
+    </td>
+    <td>
+      <select class="taxCategory">
+        ${taxOptions(data.tax_category_id || "")}
+      </select>
+    </td>
+    <td>
+      <input class="memo" value="${data.memo || ""}">
+    </td>
+    <td>
+      <button class="danger" onclick="this.closest('tr').remove(); calcTotal();">削除</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+
+  document.querySelectorAll(".amount").forEach(input => {
+    total += Number(input.value || 0);
+  });
+
+  document.getElementById("totalAmount").value = money(total);
+}
+
+function collectPayload(normalizedDate) {
+  const details = [];
+
+  document.querySelectorAll("#detailBody tr").forEach(tr => {
+    details.push({
+      account_title_id: tr.querySelector(".accountTitle").value,
+      description: tr.querySelector(".description").value,
+      amount: tr.querySelector(".amount").value,
+      tax_category_id: tr.querySelector(".taxCategory").value,
+      memo: tr.querySelector(".memo").value
+    });
+  });
+
+  return {
+    expense_date: normalizedDate.iso,
+    vendor_name: document.getElementById("vendorName").value,
+    payment_method_id: document.getElementById("paymentMethod").value,
+    summary: document.getElementById("summary").value,
+    details
+  };
+}
+
+async function saveExpense() {
+  const normalizedDate = normalizeExpenseDate(true);
+
+  if (!normalizedDate.ok) {
+    alert(normalizedDate.message);
+    showResult(normalizedDate.message);
+    updateDatePreview();
+    return;
+  }
+
+  if (normalizedDate.isFuture) {
+    const ok = confirm(`入力された日付は未来日です。\n\n登録日付：${normalizedDate.display}\n\nこの日付で保存しますか？`);
+
+    if (!ok) {
+      showResult("未来日のため、保存をキャンセルしました。");
+      return;
+    }
+  }
+
+  const payload = collectPayload(normalizedDate);
+
+  showResult("保存中です。");
+
+  const res = await fetch("/api/expenses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  showResult(data);
+  await loadMasters();
+}
+
+function clearForm() {
+  document.getElementById("expenseDate").value = todayInputText();
+  document.getElementById("vendorName").value = "";
+  document.getElementById("summary").value = "";
+  document.getElementById("detailBody").innerHTML = "";
+  addDetailRow({
+    description: "",
+    amount: "",
+  });
+  updateDatePreview();
+  showResult("クリアしました。");
+}
+
+async function init() {
+  document.getElementById("expenseDate").value = todayInputText();
+  await loadMasters();
+  addDetailRow({
+    description: "テスト経費",
+    amount: 1000,
+  });
+  updateDatePreview();
+  enableEnterToNext();
+}
+
+init();
+</script>
+</body>
+</html>
+
+

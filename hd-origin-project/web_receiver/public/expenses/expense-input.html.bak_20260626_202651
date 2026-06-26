@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -334,7 +334,12 @@
 
         <div>
           <label>インボイス</label>
-          <select id="invoiceStatus"></select>
+          <select id="invoiceStatus">
+            <option value="番号あり">番号あり</option>
+            <option value="番号なし">番号なし</option>
+            <option value="確認中">確認中</option>
+            <option value="対象外">対象外</option>
+          </select>
         </div>
 
         <div>
@@ -344,7 +349,14 @@
 
         <div>
           <label>証憑</label>
-          <select id="evidenceType"></select>
+          <select id="evidenceType">
+            <option value="紙レシート">紙レシート</option>
+            <option value="電子レシート">電子レシート</option>
+            <option value="領収書">領収書</option>
+            <option value="請求書">請求書</option>
+            <option value="なし">なし</option>
+            <option value="確認中">確認中</option>
+          </select>
         </div>
 
         <div>
@@ -402,9 +414,7 @@ let masters = {
   target_people: [],
   purposes: [],
   projects: [],
-  departments: [],
-  invoice_types: [],
-  evidence_types: []
+  departments: []
 };
 
 function pad2(value) {
@@ -590,17 +600,6 @@ function fillSelect(selectId, items, valueKey, labelKey, blankLabel = "未選択
   }
 }
 
-function selectOptionByText(selectId, text) {
-  const select = document.getElementById(selectId);
-
-  for (const option of select.options) {
-    if (option.textContent === text) {
-      select.value = option.value;
-      return;
-    }
-  }
-}
-
 async function loadMasters() {
   const res = await fetch("/api/expenses/masters");
   const data = await res.json();
@@ -617,11 +616,6 @@ async function loadMasters() {
   fillSelect("purposeId", masters.purposes, "purpose_id", "purpose_name");
   fillSelect("projectId", masters.projects, "project_id", "project_name");
   fillSelect("departmentId", masters.departments, "department_id", "department_name");
-  fillSelect("invoiceStatus", masters.invoice_types || [], "invoice_type_id", "invoice_type_name");
-  fillSelect("evidenceType", masters.evidence_types || [], "evidence_type_id", "evidence_type_name");
-
-  selectOptionByText("invoiceStatus", "番号あり");
-  selectOptionByText("evidenceType", "紙レシート");
 
   const vendorList = document.getElementById("vendorList");
   vendorList.innerHTML = "";
@@ -719,9 +713,9 @@ function collectPayload(normalizedDate) {
     purpose_id: document.getElementById("purposeId").value,
     project_id: document.getElementById("projectId").value,
     department_id: document.getElementById("departmentId").value,
-    invoice_type_id: document.getElementById("invoiceStatus").value,
+    invoice_status: document.getElementById("invoiceStatus").value,
     invoice_number: document.getElementById("invoiceNumber").value,
-    evidence_type_id: document.getElementById("evidenceType").value,
+    evidence_type: document.getElementById("evidenceType").value,
     evidence_memo: document.getElementById("evidenceMemo").value,
     summary: document.getElementById("summary").value,
     details
@@ -776,9 +770,9 @@ function clearForm() {
   document.getElementById("purposeId").value = "";
   document.getElementById("projectId").value = "";
   document.getElementById("departmentId").value = "";
-  selectOptionByText("invoiceStatus", "番号あり");
+  document.getElementById("invoiceStatus").value = "番号あり";
   document.getElementById("invoiceNumber").value = "";
-  selectOptionByText("evidenceType", "紙レシート");
+  document.getElementById("evidenceType").value = "紙レシート";
   document.getElementById("evidenceMemo").value = "";
   document.getElementById("summary").value = "";
   document.getElementById("detailBody").innerHTML = "";

@@ -24,7 +24,13 @@
       margin: 0;
       font-size: 22px;
     }
-main {
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    main {
       padding: 24px;
     }
 
@@ -89,6 +95,8 @@ main {
   <header>
     <h1>HD Origin Project</h1>
 
+    <div class="header-buttons">      <button type="button" class="danger" onclick="exitApp()">終了</button>
+    </div>
   </header>
 
   <main>
@@ -98,7 +106,6 @@ main {
       <div class="main-menu-grid">
         <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
         <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
-        <button type="button" onclick="location.href='/masters/master-management.html'">マスタ管理</button>
         <button type="button" onclick="openSettings()">設定</button>
         <button type="button" onclick="exitApp()">終了</button>
       </div>
@@ -166,6 +173,16 @@ async function exitApp() {
       setTimeout(() => {
         document.body.innerHTML = `
           <main style="font-family: system-ui, sans-serif; padding: 32px;">
+    <div class="card" id="mainMenuCard">
+      <h2>メインメニュー</h2>
+
+      <div class="main-menu-grid">
+        <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
+        <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
+        <button type="button" onclick="openSettings()">設定</button>
+        <button type="button" onclick="exitApp()">終了</button>
+      </div>
+    </div>
             <h1>HD Origin Projectを終了しました</h1>
             <p>この画面は閉じて大丈夫です。</p>
           </main>
@@ -179,7 +196,5 @@ async function exitApp() {
 </script>
 </body>
 </html>
-
-
 
 

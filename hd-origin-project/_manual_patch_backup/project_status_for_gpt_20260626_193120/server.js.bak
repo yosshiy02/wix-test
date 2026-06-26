@@ -2,7 +2,6 @@
 const config = require("./src/config");
 const { sendJson } = require("./src/response");
 const { serveStatic } = require("./src/static");
-const { writeProjectStatus } = require("./src/projectStatus");
 const { ensureDatabaseReady } = require("./src/db.bootstrap");
 
 const { handleItemsRoutes } = require("./src/items/items.routes");
@@ -41,7 +40,6 @@ const server = http.createServer(async (req, res) => {
 handleAppRoutes = makeAppRoutes(server);
 
 async function start() {
-  writeProjectStatus();
   await ensureDatabaseReady();
 
   server.listen(config.PORT, () => {
@@ -53,4 +51,3 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
-

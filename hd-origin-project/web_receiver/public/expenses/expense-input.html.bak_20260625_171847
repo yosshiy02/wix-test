@@ -1,38 +1,47 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <title>経費入力 - HD Origin Project</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      background: #f5f5f5;
-      color: #222;
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
+    header { background: #222; color: white; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 22px; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 22px; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 14px; }
+    label { display: block; font-weight: 700; margin-bottom: 6px; }
+    input, select, textarea, button { box-sizing: border-box; padding: 10px; font-size: 16px; }
+    input, select, textarea { width: 100%; }
+    textarea { min-height: 70px; }
+    button { font-weight: 700; cursor: pointer; border: 1px solid #aaa; border-radius: 8px; background: #fff; }
+    button:hover { background: #eee; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+    th { background: #eee; }
+    .money { text-align: right; }
+    .danger { border-color: #b00020; color: #b00020; }
+    #result { white-space: pre-wrap; background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; padding: 12px; min-height: 50px; margin-top: 14px; }
+  
+    .date-preview {
+      margin-top: 6px;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
-    header {
-      background: #222;
-      color: white;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .date-preview.warning {
+      color: #b00020;
+      font-weight: 700;
     }
-
-    header h1 {
-      margin: 0;
-      font-size: 18px;
-    }
-
+  
+    /* compact expense input layout */
     main {
       padding: 12px;
     }
 
     .card {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 10px;
       padding: 14px;
       margin-bottom: 12px;
       max-width: 920px;
@@ -44,15 +53,12 @@
     }
 
     .grid {
-      display: grid;
       grid-template-columns: repeat(auto-fit, minmax(145px, max-content));
       gap: 8px 14px;
       align-items: start;
     }
 
     label {
-      display: block;
-      font-weight: 700;
       margin-bottom: 3px;
       font-size: 13px;
     }
@@ -61,47 +67,12 @@
     select,
     textarea,
     button {
-      box-sizing: border-box;
       padding: 6px 8px;
       font-size: 14px;
     }
 
-    input,
-    select,
-    textarea {
-      width: 100%;
-    }
-
     textarea {
       min-height: 38px;
-    }
-
-    button {
-      font-weight: 700;
-      cursor: pointer;
-      border: 1px solid #aaa;
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    button:hover {
-      background: #eee;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .danger {
-      border-color: #b00020;
-      color: #b00020;
-    }
-
-    .money {
-      text-align: right;
     }
 
     .date-field {
@@ -151,12 +122,6 @@
       font-size: 12px;
       line-height: 1.4;
       margin-top: 4px;
-      color: #555;
-    }
-
-    .date-preview.warning {
-      color: #b00020;
-      font-weight: 700;
     }
 
     #vendorName {
@@ -169,38 +134,6 @@
 
     #totalAmount {
       width: 115px;
-    }
-
-    #targetPersonId {
-      width: 120px;
-    }
-
-    #purposeId {
-      width: 155px;
-    }
-
-    #projectId {
-      width: 175px;
-    }
-
-    #departmentId {
-      width: 135px;
-    }
-
-    #invoiceStatus {
-      width: 115px;
-    }
-
-    #invoiceNumber {
-      width: 155px;
-    }
-
-    #evidenceType {
-      width: 125px;
-    }
-
-    #evidenceMemo {
-      width: 170px;
     }
 
     .summary-input {
@@ -223,20 +156,12 @@
       min-width: 780px;
       margin-top: 0;
       table-layout: fixed;
-      border-collapse: collapse;
-      background: white;
     }
 
     .detail-table th,
     .detail-table td {
-      border: 1px solid #ddd;
       padding: 4px;
       font-size: 13px;
-      vertical-align: top;
-    }
-
-    .detail-table th {
-      background: #eee;
     }
 
     #detailBody select.accountTitle {
@@ -266,16 +191,18 @@
       min-width: 44px;
     }
 
-    #result {
-      white-space: pre-wrap;
-      background: #f0f0f0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 8px;
-      min-height: 44px;
+    .button-row {
       margin-top: 10px;
+      gap: 8px;
+    }
+
+    #result {
+      margin-top: 10px;
+      min-height: 44px;
+      padding: 8px;
       font-size: 13px;
     }
+    /* end compact expense input layout */
   </style>
 </head>
 <body>
@@ -289,13 +216,13 @@
 
   <main>
     <div class="card">
-      <h2>親入力</h2>
+      <h2>経費テーブル</h2>
 
       <div class="grid">
-        <div class="date-field">
+                <div class="date-field">
           <label>日付</label>
           <div class="date-row">
-            <input id="expenseDate" class="date-text-input" type="text" inputmode="numeric" placeholder="20260625" oninput="updateDatePreview()">
+            <input id="expenseDate" class="date-text-input" type="text" inputmode="numeric" placeholder="例：0625 / 20260625" oninput="updateDatePreview()">
             <input id="expenseDateCalendar" class="date-calendar-input" type="date" onchange="syncTextFromCalendar()">
           </div>
           <div id="expenseDatePreview" class="date-preview">登録日付：未判定</div>
@@ -303,84 +230,44 @@
 
         <div>
           <label>支払先</label>
-          <input id="vendorName" list="vendorList" placeholder="例：Amazon">
+          <input id="vendorName" class="compact-input" list="vendorList" placeholder="例：Amazon">
           <datalist id="vendorList"></datalist>
         </div>
 
         <div>
           <label>支払方法</label>
-          <select id="paymentMethod"></select>
-        </div>
-
-        <div>
-          <label>対象者</label>
-          <select id="targetPersonId"></select>
-        </div>
-
-        <div>
-          <label>目的</label>
-          <select id="purposeId"></select>
-        </div>
-
-        <div>
-          <label>案件</label>
-          <select id="projectId"></select>
-        </div>
-
-        <div>
-          <label>部門</label>
-          <select id="departmentId"></select>
-        </div>
-
-        <div>
-          <label>インボイス</label>
-          <select id="invoiceStatus"></select>
-        </div>
-
-        <div>
-          <label>番号</label>
-          <input id="invoiceNumber" placeholder="T1234567890123">
-        </div>
-
-        <div>
-          <label>証憑</label>
-          <select id="evidenceType"></select>
-        </div>
-
-        <div>
-          <label>証憑メモ</label>
-          <input id="evidenceMemo" placeholder="例：紙で保管">
+          <select id="paymentMethod" class="compact-input"></select>
         </div>
 
         <div>
           <label>合計金額</label>
-          <input id="totalAmount" class="money" readonly>
+          <input id="totalAmount" class="money compact-input" readonly>
         </div>
       </div>
 
-      <div style="margin-top:8px;">
-        <label>全体メモ</label>
-        <textarea id="summary" class="summary-input" placeholder="例：川谷分の備品購入"></textarea>
+      <div style="margin-top:14px;">
+        <label>摘要</label>
+        <textarea id="summary" class="summary-input" placeholder="例：事務用品購入"></textarea>
       </div>
     </div>
 
     <div class="card">
-      <h2>明細入力</h2>
+      <h2>経費明細テーブル</h2>
 
       <div class="detail-table-wrap">
         <table class="detail-table">
-          <thead>
-            <tr>
-              <th style="width:120px;">勘定科目</th>
-              <th style="width:220px;">内容</th>
-              <th style="width:90px;">金額</th>
-              <th style="width:95px;">税区分</th>
-              <th style="width:150px;">メモ</th>
-              <th style="width:58px;">操作</th>
-            </tr>
-          </thead>
-          <tbody id="detailBody"></tbody>
-        </table>
+        <thead>
+          <tr>
+            <th style="width:120px;">勘定科目</th>
+            <th style="width:220px;">内容</th>
+            <th style="width:90px;">金額</th>
+            <th style="width:95px;">税区分</th>
+            <th style="width:150px;">メモ</th>
+            <th style="width:58px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
       </div>
 
       <div class="button-row">
@@ -398,13 +285,7 @@ let masters = {
   account_titles: [],
   payment_methods: [],
   tax_categories: [],
-  vendors: [],
-  target_people: [],
-  purposes: [],
-  projects: [],
-  departments: [],
-  invoice_types: [],
-  evidence_types: []
+  vendors: []
 };
 
 function pad2(value) {
@@ -445,7 +326,7 @@ function isValidYmd(year, month, day) {
     d.getDate() === day;
 }
 
-function normalizeExpenseDate() {
+function normalizeExpenseDate(showAlert = false) {
   const rawOriginal = document.getElementById("expenseDate").value.trim();
   let raw = rawOriginal.replace(/[\/\-.]/g, "");
 
@@ -469,6 +350,7 @@ function normalizeExpenseDate() {
     day = Number(raw.slice(6, 8));
   } else if (/^\d{3,4}$/.test(raw)) {
     raw = raw.padStart(4, "0");
+
     month = Number(raw.slice(0, 2));
     day = Number(raw.slice(2, 4));
 
@@ -510,33 +392,9 @@ function normalizeExpenseDate() {
   };
 }
 
-function syncCalendarFromPreviewResult(result) {
-  const calendar = document.getElementById("expenseDateCalendar");
-
-  if (!calendar) return;
-
-  if (!result || !result.ok) {
-    calendar.value = "";
-    return;
-  }
-
-  if (calendar.value !== result.iso) {
-    calendar.value = result.iso;
-  }
-}
-
-function syncTextFromCalendar() {
-  const calendar = document.getElementById("expenseDateCalendar");
-
-  if (!calendar || !calendar.value) return;
-
-  document.getElementById("expenseDate").value = calendar.value.replace(/-/g, "");
-  updateDatePreview();
-}
-
 function updateDatePreview() {
   const preview = document.getElementById("expenseDatePreview");
-  const result = normalizeExpenseDate();
+  const result = normalizeExpenseDate(false);
 
   preview.classList.remove("warning");
 
@@ -563,6 +421,66 @@ function updateDatePreview() {
   syncCalendarFromPreviewResult(result);
 }
 
+
+function syncCalendarFromPreviewResult(result) {
+  const calendar = document.getElementById("expenseDateCalendar");
+
+  if (!calendar) return;
+
+  if (!result || !result.ok) {
+    calendar.value = "";
+    return;
+  }
+
+  if (calendar.value !== result.iso) {
+    calendar.value = result.iso;
+  }
+}
+
+function syncTextFromCalendar() {
+  const calendar = document.getElementById("expenseDateCalendar");
+
+  if (!calendar || !calendar.value) return;
+
+  const value = calendar.value.replace(/-/g, "");
+  document.getElementById("expenseDate").value = value;
+
+  updateDatePreview();
+  enableEnterToNext();
+}
+
+function focusNextField(current) {
+  const fields = Array.from(document.querySelectorAll(
+    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+  )).filter(el => el.offsetParent !== null);
+
+  const index = fields.indexOf(current);
+
+  if (index >= 0 && fields[index + 1]) {
+    fields[index + 1].focus();
+
+    if (typeof fields[index + 1].select === "function") {
+      fields[index + 1].select();
+    }
+  }
+}
+
+function enableEnterToNext() {
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
+
+    const tag = event.target.tagName.toLowerCase();
+
+    if (!["input", "select", "textarea"].includes(tag)) return;
+
+    if (tag === "textarea" && event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    focusNextField(event.target);
+  });
+}
 function showResult(data) {
   document.getElementById("result").textContent =
     typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -571,34 +489,6 @@ function showResult(data) {
 function money(value) {
   const n = Number(value || 0);
   return n.toLocaleString("ja-JP");
-}
-
-function fillSelect(selectId, items, valueKey, labelKey, blankLabel = "未選択") {
-  const select = document.getElementById(selectId);
-  select.innerHTML = "";
-
-  const blank = document.createElement("option");
-  blank.value = "";
-  blank.textContent = blankLabel;
-  select.appendChild(blank);
-
-  for (const item of items) {
-    const opt = document.createElement("option");
-    opt.value = item[valueKey];
-    opt.textContent = item[labelKey];
-    select.appendChild(opt);
-  }
-}
-
-function selectOptionByText(selectId, text) {
-  const select = document.getElementById(selectId);
-
-  for (const option of select.options) {
-    if (option.textContent === text) {
-      select.value = option.value;
-      return;
-    }
-  }
 }
 
 async function loadMasters() {
@@ -612,16 +502,15 @@ async function loadMasters() {
 
   masters = data.masters;
 
-  fillSelect("paymentMethod", masters.payment_methods, "payment_method_id", "method_name");
-  fillSelect("targetPersonId", masters.target_people, "target_person_id", "target_person_name");
-  fillSelect("purposeId", masters.purposes, "purpose_id", "purpose_name");
-  fillSelect("projectId", masters.projects, "project_id", "project_name");
-  fillSelect("departmentId", masters.departments, "department_id", "department_name");
-  fillSelect("invoiceStatus", masters.invoice_types || [], "invoice_type_id", "invoice_type_name");
-  fillSelect("evidenceType", masters.evidence_types || [], "evidence_type_id", "evidence_type_name");
+  const paymentSelect = document.getElementById("paymentMethod");
+  paymentSelect.innerHTML = "";
 
-  selectOptionByText("invoiceStatus", "番号あり");
-  selectOptionByText("evidenceType", "紙レシート");
+  for (const item of masters.payment_methods) {
+    const opt = document.createElement("option");
+    opt.value = item.payment_method_id;
+    opt.textContent = item.method_name;
+    paymentSelect.appendChild(opt);
+  }
 
   const vendorList = document.getElementById("vendorList");
   vendorList.innerHTML = "";
@@ -715,21 +604,13 @@ function collectPayload(normalizedDate) {
     expense_date: normalizedDate.iso,
     vendor_name: document.getElementById("vendorName").value,
     payment_method_id: document.getElementById("paymentMethod").value,
-    target_person_id: document.getElementById("targetPersonId").value,
-    purpose_id: document.getElementById("purposeId").value,
-    project_id: document.getElementById("projectId").value,
-    department_id: document.getElementById("departmentId").value,
-    invoice_type_id: document.getElementById("invoiceStatus").value,
-    invoice_number: document.getElementById("invoiceNumber").value,
-    evidence_type_id: document.getElementById("evidenceType").value,
-    evidence_memo: document.getElementById("evidenceMemo").value,
     summary: document.getElementById("summary").value,
     details
   };
 }
 
 async function saveExpense() {
-  const normalizedDate = normalizeExpenseDate();
+  const normalizedDate = normalizeExpenseDate(true);
 
   if (!normalizedDate.ok) {
     alert(normalizedDate.message);
@@ -771,60 +652,23 @@ async function saveExpense() {
 function clearForm() {
   document.getElementById("expenseDate").value = todayInputText();
   document.getElementById("vendorName").value = "";
-  document.getElementById("paymentMethod").value = "";
-  document.getElementById("targetPersonId").value = "";
-  document.getElementById("purposeId").value = "";
-  document.getElementById("projectId").value = "";
-  document.getElementById("departmentId").value = "";
-  selectOptionByText("invoiceStatus", "番号あり");
-  document.getElementById("invoiceNumber").value = "";
-  selectOptionByText("evidenceType", "紙レシート");
-  document.getElementById("evidenceMemo").value = "";
   document.getElementById("summary").value = "";
   document.getElementById("detailBody").innerHTML = "";
-
-  addDetailRow();
+  addDetailRow({
+    description: "",
+    amount: "",
+  });
   updateDatePreview();
   showResult("クリアしました。");
-}
-
-function focusNextField(current) {
-  const fields = Array.from(document.querySelectorAll(
-    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
-  )).filter(el => el.offsetParent !== null);
-
-  const index = fields.indexOf(current);
-
-  if (index >= 0 && fields[index + 1]) {
-    fields[index + 1].focus();
-
-    if (typeof fields[index + 1].select === "function") {
-      fields[index + 1].select();
-    }
-  }
-}
-
-function enableEnterToNext() {
-  document.addEventListener("keydown", event => {
-    if (event.key !== "Enter") return;
-
-    const tag = event.target.tagName.toLowerCase();
-
-    if (!["input", "select", "textarea"].includes(tag)) return;
-
-    if (tag === "textarea" && event.shiftKey) {
-      return;
-    }
-
-    event.preventDefault();
-    focusNextField(event.target);
-  });
 }
 
 async function init() {
   document.getElementById("expenseDate").value = todayInputText();
   await loadMasters();
-  addDetailRow();
+  addDetailRow({
+    description: "テスト経費",
+    amount: 1000,
+  });
   updateDatePreview();
   enableEnterToNext();
 }
@@ -833,3 +677,6 @@ init();
 </script>
 </body>
 </html>
+
+
+

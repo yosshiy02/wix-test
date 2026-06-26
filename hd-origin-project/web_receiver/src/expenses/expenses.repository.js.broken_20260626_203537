@@ -1,4 +1,4 @@
-﻿const pool = require("../db");
+const pool = require("../db");
 
 async function getMasters() {
   const [
@@ -9,7 +9,9 @@ async function getMasters() {
     targetPeople,
     purposes,
     projects,
-    departments
+    departments,
+    invoiceTypes,
+    evidenceTypes
   ] = await Promise.all([
     pool.query(`
       SELECT account_title_id, account_code, account_name
@@ -60,6 +62,18 @@ async function getMasters() {
       WHERE is_active = TRUE
       ORDER BY sort_order, department_id
     `),
+    pool.query(`
+      SELECT invoice_type_id, invoice_type_name
+      FROM expenses.invoice_types
+      WHERE is_active = TRUE
+      ORDER BY sort_order, invoice_type_id
+    `),
+    pool.query(`
+      SELECT evidence_type_id, evidence_type_name
+      FROM expenses.evidence_types
+      WHERE is_active = TRUE
+      ORDER BY sort_order, evidence_type_id
+    `),
   ]);
 
   return {
@@ -71,6 +85,8 @@ async function getMasters() {
     purposes: purposes.rows,
     projects: projects.rows,
     departments: departments.rows,
+    invoice_types: invoiceTypes.rows,
+    evidence_types: evidenceTypes.rows,
   };
 }
 
@@ -179,6 +195,101 @@ async function findDepartment(client, departmentId) {
   return result.rows[0] || null;
 }
 
+async function findInvoiceType(client, invoiceTypeIdOrName) {
+  if (!invoiceTypeIdOrName) return null;
+
+  const raw = String(invoiceTypeIdOrName).trim();
+
+  const result = await client.query(
+    `
+    SELECT invoice_type_id, invoice_type_name
+    FROM expenses.invoice_types
+    WHERE invoice_type_id::TEXT = async function findDepartment(client, departmentId) {
+  if (!departmentId) return null;
+
+  const result = await client.query(
+    `
+    SELECT department_id, department_name
+    FROM expenses.departments
+    WHERE department_id = $1
+    `,
+    [departmentId]
+  );
+
+  return result.rows[0] || null;
+}
+
+
+       OR invoice_type_name = async function findDepartment(client, departmentId) {
+  if (!departmentId) return null;
+
+  const result = await client.query(
+    `
+    SELECT department_id, department_name
+    FROM expenses.departments
+    WHERE department_id = $1
+    `,
+    [departmentId]
+  );
+
+  return result.rows[0] || null;
+}
+
+
+    `,
+    [raw]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function findEvidenceType(client, evidenceTypeIdOrName) {
+  if (!evidenceTypeIdOrName) return null;
+
+  const raw = String(evidenceTypeIdOrName).trim();
+
+  const result = await client.query(
+    `
+    SELECT evidence_type_id, evidence_type_name
+    FROM expenses.evidence_types
+    WHERE evidence_type_id::TEXT = async function findDepartment(client, departmentId) {
+  if (!departmentId) return null;
+
+  const result = await client.query(
+    `
+    SELECT department_id, department_name
+    FROM expenses.departments
+    WHERE department_id = $1
+    `,
+    [departmentId]
+  );
+
+  return result.rows[0] || null;
+}
+
+
+       OR evidence_type_name = async function findDepartment(client, departmentId) {
+  if (!departmentId) return null;
+
+  const result = await client.query(
+    `
+    SELECT department_id, department_name
+    FROM expenses.departments
+    WHERE department_id = $1
+    `,
+    [departmentId]
+  );
+
+  return result.rows[0] || null;
+}
+
+
+    `,
+    [raw]
+  );
+
+  return result.rows[0] || null;
+}
 async function upsertVendor(client, vendorName) {
   const name = String(vendorName || "").trim();
 
@@ -233,6 +344,12 @@ async function createExpense(payload) {
     const project = await findProject(client, payload.project_id);
     const department = await findDepartment(client, payload.department_id);
 
+    const invoiceType = await findInvoiceType(client, payload.invoice_type_id || payload.invoice_status);
+    const evidenceType = await findEvidenceType(client, payload.evidence_type_id || payload.evidence_type);
+
+    const invoiceStatusText = invoiceType ? invoiceType.invoice_type_name : String(payload.invoice_status || "").trim();
+    const evidenceTypeText = evidenceType ? evidenceType.evidence_type_name : String(payload.evidence_type || "").trim();
+
     const totalAmount = validDetails.reduce((sum, d) => sum + Number(d.amount || 0), 0);
 
     const headerResult = await client.query(
@@ -253,14 +370,16 @@ async function createExpense(payload) {
           project_name,
           department_id,
           department_name,
+          invoice_type_id,
           invoice_status,
           invoice_number,
+          evidence_type_id,
           evidence_type,
           evidence_memo,
           summary
         )
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       RETURNING *
       `,
       [
@@ -278,9 +397,11 @@ async function createExpense(payload) {
         project ? project.project_name : "",
         department ? department.department_id : null,
         department ? department.department_name : "",
-        String(payload.invoice_status || "").trim(),
+        invoiceType ? invoiceType.invoice_type_id : null,
+        invoiceStatusText,
         String(payload.invoice_number || "").trim(),
-        String(payload.evidence_type || "").trim(),
+        evidenceType ? evidenceType.evidence_type_id : null,
+        evidenceTypeText,
         String(payload.evidence_memo || "").trim(),
         String(payload.summary || "").trim(),
       ]

@@ -89,11 +89,9 @@ async function loadExpenses() {
         <th>日付</th>
         <th>支払先</th>
         <th>支払方法</th>
-        <th>対象者</th>
-        <th>目的</th>
-        <th>案件</th>
-        <th>部門</th>
         <th>合計</th>
+        <th>摘要</th>
+        <th>明細数</th>
         <th>操作</th>
       </tr>
   `;
@@ -105,11 +103,9 @@ async function loadExpenses() {
         <td>${formatJstDate(item.expense_date)}</td>
         <td>${item.vendor_name || ""}</td>
         <td>${item.payment_method_name || ""}</td>
-        <td>${item.target_person || ""}</td>
-        <td>${item.purpose || ""}</td>
-        <td>${item.project_name || ""}</td>
-        <td>${item.department_name || ""}</td>
         <td class="money">${money(item.total_amount)}</td>
+        <td>${item.summary || ""}</td>
+        <td>${item.detail_count}</td>
         <td>
           <button onclick="showDetail(${item.expense_id})">明細</button>
           <button class="danger" onclick="deleteExpense(${item.expense_id})">削除</button>
@@ -180,3 +176,4 @@ loadExpenses();
 </script>
 </body>
 </html>
+

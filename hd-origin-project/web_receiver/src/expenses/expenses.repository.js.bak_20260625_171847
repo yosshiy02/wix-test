@@ -1,16 +1,7 @@
 ﻿const pool = require("../db");
 
 async function getMasters() {
-  const [
-    accountTitles,
-    paymentMethods,
-    taxCategories,
-    vendors,
-    targetPeople,
-    purposes,
-    projects,
-    departments
-  ] = await Promise.all([
+  const [accountTitles, paymentMethods, taxCategories, vendors] = await Promise.all([
     pool.query(`
       SELECT account_title_id, account_code, account_name
       FROM expenses.account_titles
@@ -36,30 +27,6 @@ async function getMasters() {
       ORDER BY vendor_name
       LIMIT 300
     `),
-    pool.query(`
-      SELECT target_person_id, target_person_name
-      FROM expenses.target_people
-      WHERE is_active = TRUE
-      ORDER BY sort_order, target_person_id
-    `),
-    pool.query(`
-      SELECT purpose_id, purpose_name
-      FROM expenses.purposes
-      WHERE is_active = TRUE
-      ORDER BY sort_order, purpose_id
-    `),
-    pool.query(`
-      SELECT project_id, project_name
-      FROM expenses.projects
-      WHERE is_active = TRUE
-      ORDER BY sort_order, project_id
-    `),
-    pool.query(`
-      SELECT department_id, department_name
-      FROM expenses.departments
-      WHERE is_active = TRUE
-      ORDER BY sort_order, department_id
-    `),
   ]);
 
   return {
@@ -67,10 +34,6 @@ async function getMasters() {
     payment_methods: paymentMethods.rows,
     tax_categories: taxCategories.rows,
     vendors: vendors.rows,
-    target_people: targetPeople.rows,
-    purposes: purposes.rows,
-    projects: projects.rows,
-    departments: departments.rows,
   };
 }
 
@@ -114,66 +77,6 @@ async function findTaxCategory(client, taxCategoryId) {
     WHERE tax_category_id = $1
     `,
     [taxCategoryId]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function findTargetPerson(client, targetPersonId) {
-  if (!targetPersonId) return null;
-
-  const result = await client.query(
-    `
-    SELECT target_person_id, target_person_name
-    FROM expenses.target_people
-    WHERE target_person_id = $1
-    `,
-    [targetPersonId]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function findPurpose(client, purposeId) {
-  if (!purposeId) return null;
-
-  const result = await client.query(
-    `
-    SELECT purpose_id, purpose_name
-    FROM expenses.purposes
-    WHERE purpose_id = $1
-    `,
-    [purposeId]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function findProject(client, projectId) {
-  if (!projectId) return null;
-
-  const result = await client.query(
-    `
-    SELECT project_id, project_name
-    FROM expenses.projects
-    WHERE project_id = $1
-    `,
-    [projectId]
-  );
-
-  return result.rows[0] || null;
-}
-
-async function findDepartment(client, departmentId) {
-  if (!departmentId) return null;
-
-  const result = await client.query(
-    `
-    SELECT department_id, department_name
-    FROM expenses.departments
-    WHERE department_id = $1
-    `,
-    [departmentId]
   );
 
   return result.rows[0] || null;
@@ -228,39 +131,14 @@ async function createExpense(payload) {
     const vendor = await upsertVendor(client, payload.vendor_name);
     const paymentMethod = await findPaymentMethod(client, payload.payment_method_id);
 
-    const targetPerson = await findTargetPerson(client, payload.target_person_id);
-    const purpose = await findPurpose(client, payload.purpose_id);
-    const project = await findProject(client, payload.project_id);
-    const department = await findDepartment(client, payload.department_id);
-
     const totalAmount = validDetails.reduce((sum, d) => sum + Number(d.amount || 0), 0);
 
     const headerResult = await client.query(
       `
       INSERT INTO expenses.expense_headers
-        (
-          expense_date,
-          vendor_id,
-          vendor_name,
-          payment_method_id,
-          payment_method_name,
-          total_amount,
-          target_person_id,
-          target_person,
-          purpose_id,
-          purpose,
-          project_id,
-          project_name,
-          department_id,
-          department_name,
-          invoice_status,
-          invoice_number,
-          evidence_type,
-          evidence_memo,
-          summary
-        )
+        (expense_date, vendor_id, vendor_name, payment_method_id, payment_method_name, total_amount, summary)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
       `,
       [
@@ -270,18 +148,6 @@ async function createExpense(payload) {
         paymentMethod ? paymentMethod.payment_method_id : null,
         paymentMethod ? paymentMethod.method_name : "",
         totalAmount,
-        targetPerson ? targetPerson.target_person_id : null,
-        targetPerson ? targetPerson.target_person_name : "",
-        purpose ? purpose.purpose_id : null,
-        purpose ? purpose.purpose_name : "",
-        project ? project.project_id : null,
-        project ? project.project_name : "",
-        department ? department.department_id : null,
-        department ? department.department_name : "",
-        String(payload.invoice_status || "").trim(),
-        String(payload.invoice_number || "").trim(),
-        String(payload.evidence_type || "").trim(),
-        String(payload.evidence_memo || "").trim(),
         String(payload.summary || "").trim(),
       ]
     );
@@ -334,14 +200,6 @@ async function listExpenses() {
       h.vendor_name,
       h.payment_method_name,
       h.total_amount,
-      h.target_person,
-      h.purpose,
-      h.project_name,
-      h.department_name,
-      h.invoice_status,
-      h.invoice_number,
-      h.evidence_type,
-      h.evidence_memo,
       h.summary,
       h.created_at,
       COUNT(d.detail_id)::int AS detail_count
@@ -408,14 +266,6 @@ async function listExpenseCsvRows() {
       h.expense_date,
       h.vendor_name,
       h.payment_method_name,
-      h.target_person,
-      h.purpose,
-      h.project_name,
-      h.department_name,
-      h.invoice_status,
-      h.invoice_number,
-      h.evidence_type,
-      h.evidence_memo,
       h.summary,
       d.line_no,
       d.account_title_name,

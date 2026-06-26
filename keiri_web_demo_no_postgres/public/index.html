@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>簡易会計入力デモ DBなし版</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">KEIRI WEB DEMO / NO POSTGRES</p>
+        <h1>簡易会計入力</h1>
+        <p class="lead">PostgreSQL未導入でも動く確認用です。保存先は data/transactions.json です。</p>
+      </div>
+      <a class="csv" href="/api/transactions.csv">CSV出力</a>
+    </header>
+
+    <section class="notice">
+      これは確認用です。本番ではPostgreSQL保存に切り替えます。
+    </section>
+
+    <section class="card">
+      <h2>取引入力</h2>
+      <form id="txForm" class="form">
+        <label>
+          日付
+          <input type="date" name="transaction_date" required>
+        </label>
+
+        <label>
+          区分
+          <select name="type" required>
+            <option value="売上">売上</option>
+            <option value="仕入">仕入</option>
+            <option value="経費">経費</option>
+            <option value="入金">入金</option>
+            <option value="支払">支払</option>
+          </select>
+        </label>
+
+        <label>
+          取引先
+          <input type="text" name="partner" placeholder="例：〇〇商事">
+        </label>
+
+        <label class="wide">
+          内容
+          <input type="text" name="description" placeholder="例：サンプル売上" required>
+        </label>
+
+        <label>
+          金額
+          <input type="number" name="amount" min="0" step="1" placeholder="10000" required>
+        </label>
+
+        <label>
+          税区分
+          <select name="tax_type">
+            <option value="10%">10%</option>
+            <option value="8%">8%</option>
+            <option value="非課税">非課税</option>
+            <option value="不課税">不課税</option>
+            <option value="対象外">対象外</option>
+          </select>
+        </label>
+
+        <label>
+          支払方法
+          <input type="text" name="payment_method" placeholder="銀行振込 / 現金 / カード">
+        </label>
+
+        <label class="wide">
+          メモ
+          <input type="text" name="memo" placeholder="任意">
+        </label>
+
+        <div class="actions">
+          <button type="submit">保存</button>
+          <span id="message" class="message"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="sectionHeader">
+        <h2>取引一覧</h2>
+        <button id="reloadBtn" type="button" class="secondary">再読み込み</button>
+      </div>
+
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>区分</th>
+              <th>取引先</th>
+              <th>内容</th>
+              <th>金額</th>
+              <th>税区分</th>
+              <th>支払方法</th>
+            </tr>
+          </thead>
+          <tbody id="txBody">
+            <tr><td colspan="7">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

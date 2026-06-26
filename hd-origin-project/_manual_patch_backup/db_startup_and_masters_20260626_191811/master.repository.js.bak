@@ -1,0 +1,226 @@
+﻿const pool = require("../db");
+
+const MASTER_DEFS = {
+  target_people: {
+    type: "target_people",
+    label: "対象者",
+    table: "expenses.target_people",
+    idColumn: "target_person_id",
+    nameColumn: "target_person_name",
+    hasMemo: false
+  },
+  purposes: {
+    type: "purposes",
+    label: "目的",
+    table: "expenses.purposes",
+    idColumn: "purpose_id",
+    nameColumn: "purpose_name",
+    hasMemo: false
+  },
+  projects: {
+    type: "projects",
+    label: "案件",
+    table: "expenses.projects",
+    idColumn: "project_id",
+    nameColumn: "project_name",
+    hasMemo: false
+  },
+  departments: {
+    type: "departments",
+    label: "部門",
+    table: "expenses.departments",
+    idColumn: "department_id",
+    nameColumn: "department_name",
+    hasMemo: false
+  },
+  vendors: {
+    type: "vendors",
+    label: "支払先",
+    table: "expenses.vendors",
+    idColumn: "vendor_id",
+    nameColumn: "vendor_name",
+    hasMemo: true
+  }
+};
+
+function getMasterDef(type) {
+  const def = MASTER_DEFS[type];
+
+  if (!def) {
+    const err = new Error("未対応のマスタです。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return def;
+}
+
+function getMasterTypes() {
+  return Object.values(MASTER_DEFS).map(def => ({
+    type: def.type,
+    label: def.label,
+    has_memo: def.hasMemo
+  }));
+}
+
+async function listMaster(type) {
+  const def = getMasterDef(type);
+  const memoSelect = def.hasMemo ? ", memo" : ", NULL::text AS memo";
+
+  const result = await pool.query(`
+    SELECT
+      ${def.idColumn} AS id,
+      ${def.nameColumn} AS name,
+      is_active,
+      sort_order
+      ${memoSelect}
+    FROM ${def.table}
+    ORDER BY is_active DESC, sort_order, ${def.idColumn}
+  `);
+
+  return result.rows;
+}
+
+async function createMaster(type, payload) {
+  const def = getMasterDef(type);
+  const name = String(payload.name || "").trim();
+  const sortOrder = Number(payload.sort_order || 0);
+  const memo = String(payload.memo || "").trim();
+
+  if (!name) {
+    const err = new Error("名称が未入力です。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (def.hasMemo) {
+    const result = await pool.query(
+      `
+      INSERT INTO ${def.table}
+        (${def.nameColumn}, sort_order, memo, is_active)
+      VALUES
+        ($1, $2, $3, TRUE)
+      ON CONFLICT (${def.nameColumn})
+      DO UPDATE SET
+        sort_order = EXCLUDED.sort_order,
+        memo = EXCLUDED.memo,
+        is_active = TRUE
+      RETURNING
+        ${def.idColumn} AS id,
+        ${def.nameColumn} AS name,
+        sort_order,
+        is_active,
+        memo
+      `,
+      [name, sortOrder, memo]
+    );
+
+    return result.rows[0];
+  }
+
+  const result = await pool.query(
+    `
+    INSERT INTO ${def.table}
+      (${def.nameColumn}, sort_order, is_active)
+    VALUES
+      ($1, $2, TRUE)
+    ON CONFLICT (${def.nameColumn})
+    DO UPDATE SET
+      sort_order = EXCLUDED.sort_order,
+      is_active = TRUE
+    RETURNING
+      ${def.idColumn} AS id,
+      ${def.nameColumn} AS name,
+      sort_order,
+      is_active,
+      NULL::text AS memo
+    `,
+    [name, sortOrder]
+  );
+
+  return result.rows[0];
+}
+
+async function updateMaster(type, id, payload) {
+  const def = getMasterDef(type);
+  const masterId = Number(id);
+
+  if (!Number.isInteger(masterId) || masterId <= 0) {
+    const err = new Error("IDが不正です。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const name = String(payload.name || "").trim();
+  const sortOrder = Number(payload.sort_order || 0);
+  const isActive = payload.is_active === true;
+  const memo = String(payload.memo || "").trim();
+
+  if (!name) {
+    const err = new Error("名称が未入力です。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (def.hasMemo) {
+    const result = await pool.query(
+      `
+      UPDATE ${def.table}
+      SET
+        ${def.nameColumn} = $1,
+        sort_order = $2,
+        is_active = $3,
+        memo = $4
+      WHERE ${def.idColumn} = $5
+      RETURNING
+        ${def.idColumn} AS id,
+        ${def.nameColumn} AS name,
+        sort_order,
+        is_active,
+        memo
+      `,
+      [name, sortOrder, isActive, memo, masterId]
+    );
+
+    if (!result.rows[0]) {
+      const err = new Error("更新対象が見つかりません。");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return result.rows[0];
+  }
+
+  const result = await pool.query(
+    `
+    UPDATE ${def.table}
+    SET
+      ${def.nameColumn} = $1,
+      sort_order = $2,
+      is_active = $3
+    WHERE ${def.idColumn} = $4
+    RETURNING
+      ${def.idColumn} AS id,
+      ${def.nameColumn} AS name,
+      sort_order,
+      is_active,
+      NULL::text AS memo
+    `,
+    [name, sortOrder, isActive, masterId]
+  );
+
+  if (!result.rows[0]) {
+    const err = new Error("更新対象が見つかりません。");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return result.rows[0];
+}
+
+module.exports = {
+  getMasterTypes,
+  listMaster,
+  createMaster,
+  updateMaster
+};

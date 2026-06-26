@@ -1,0 +1,320 @@
+HD Origin Project 現状引き継ぎメモ
+===================================
+
+このファイルは、別のGPTへ現状を伝えるために起動時に自動生成されています。
+DB_PASSWORD等の秘密情報は伏せています。
+
+[生成情報]
+生成日時: 2026/6/26 20:35:44
+PC名: DESKTOP-6JVP7F4
+OS: win32 10.0.19045 x64
+Node.js: v24.18.0
+作業ディレクトリ: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver
+
+[プロジェクト基本情報]
+PROJECT_ROOT: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project
+WEB_DIR: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver
+PUBLIC_DIR: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\public
+SERVER_ENTRY: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\server.js
+PORT: 3000
+
+[DB接続情報 ※パスワード非表示]
+DB_HOST: 127.0.0.1
+DB_PORT: 5432
+DB_NAME: hd_origin_project
+DB_USER: postgres
+DB_PASSWORD: ********
+PG_BIN_PATH: C:\Program Files\PostgreSQL\17\bin
+
+[バックアップ情報]
+BACKUP_DIR: E:\dropbox\Dropbox\HDDBTEST\HDDB_PROJECT\web_receiver\backup
+
+[.env 内容 ※秘密情報マスク済み]
+ENV_PATH: C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\.env
+-----------------------------------
+PROJECT_DIR=C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project
+PORT=3000
+APP_NAME=HD Origin Project
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=hd_origin_project
+DB_USER=postgres
+DB_PASSWORD=********
+PG_BIN_PATH=C:\Program Files\PostgreSQL\17\bin
+BACKUP_DIR=E:\dropbox\Dropbox\HDDBTEST\HDDB_PROJECT\web_receiver\backup
+BACKUP_KEEP_NORMAL=10
+BACKUP_KEEP_BEFORE_RESTORE=3
+PROJECT_BACKUP_KEEP=5
+NODE_PATH=C:\Program Files\nodejs\node.exe
+CHROME_PATH=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+# LOG: updated on 2026-06-26 18:36:05 by DESKTOP-6JVP7F4
+
+-----------------------------------
+
+[重要ファイル存在確認]
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\.env
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\.env.example
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\README.md
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\database\expenses\master_management_setup.sql
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\database\expenses\add_classification_masters.sql
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\server.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\config.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\db.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\db.bootstrap.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\projectStatus.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.routes.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.repository.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\masters\masters.routes.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\src\masters\master.repository.js
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\public\expenses\expense-input.html
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\public\expenses\expense-list.html
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\public\masters\master-management.html
+あり : C:\Users\user\Desktop\GITHUB\wix-test\hd-origin-project\web_receiver\public\settings.html
+
+[現在の処理メモ]
+- 画面は HTML/CSS/JS。
+- サーバーは Node.js の server.js。
+- DBはPostgreSQL。
+- .env は接続先設定であり、DB本体ではない。
+- 経費入力画面のマスタ選択肢は /api/expenses/masters から取得する。
+- /api/expenses/masters は web_receiver/src/expenses/expenses.routes.js から expenses.repository.js の getMasters() を呼ぶ。
+- 証憑・インボイスはHTML固定選択肢。
+- 対象者・目的・案件・部門・勘定科目・支払方法・税区分・支払先はPostgreSQLのexpenses系テーブルを見る。
+- DBが無いPCでは、起動時に基本構造を作る設計へ移行中。
+- 過去データは設定画面のDBリストアで戻す方針。
+- このファイルは、他GPTへ状況を伝えるための自動メモ。
+
+[プロジェクトツリー]
+-----------------------------------
+hd-origin-project\
+├─ database\
+│  ├─ expenses\
+│  │  ├─ add_classification_masters.sql
+│  │  ├─ add_header_fields.sql
+│  │  ├─ master_management_setup.sql
+│  │  ├─ master_management_setup.sql.bak_20260626_202651
+│  │  ├─ master_management_setup.sql.bak_20260626_202709
+│  │  └─ schema.sql
+│  └─ schema.sql
+├─ web_receiver\
+│  ├─ public\
+│  │  ├─ expenses\
+│  │  │  ├─ expense-input.html
+│  │  │  ├─ expense-input.html.bak_20260625_153320
+│  │  │  ├─ expense-input.html.bak_20260625_153813
+│  │  │  ├─ expense-input.html.bak_20260625_154455
+│  │  │  ├─ expense-input.html.bak_20260625_171847
+│  │  │  ├─ expense-input.html.bak_20260625_173700
+│  │  │  ├─ expense-input.html.bak_20260626_202651
+│  │  │  ├─ expense-input.html.bak_20260626_202709
+│  │  │  ├─ expense-input.html.bak_fix_20260626_203047
+│  │  │  ├─ expense-input.html.bak_fix_20260626_203103
+│  │  │  ├─ expense-list.html
+│  │  │  ├─ expense-list.html.bak_20260625_171847
+│  │  │  └─ expense-list.html.bak_20260625_173700
+│  │  ├─ masters\
+│  │  │  ├─ master-management.html
+│  │  │  ├─ master-management.html.bak_20260626_202651
+│  │  │  ├─ master-management.html.bak_20260626_202709
+│  │  │  ├─ master-management.html.bak_fix_20260626_203047
+│  │  │  └─ master-management.html.bak_fix_20260626_203103
+│  │  ├─ index.html
+│  │  ├─ index.html.bak_20260625_151513
+│  │  ├─ index.html.bak_20260625_152408
+│  │  ├─ index.html.bak_20260625_180355
+│  │  └─ settings.html
+│  ├─ src\
+│  │  ├─ app\
+│  │  │  └─ app.routes.js
+│  │  ├─ backups\
+│  │  │  ├─ backup.routes.js
+│  │  │  └─ backup.service.js
+│  │  ├─ expenses\
+│  │  │  ├─ expenses.repository.js
+│  │  │  ├─ expenses.repository.js.bak_20260625_171847
+│  │  │  ├─ expenses.repository.js.bak_20260625_173700
+│  │  │  ├─ expenses.repository.js.bak_20260626_202651
+│  │  │  ├─ expenses.repository.js.bak_20260626_202709
+│  │  │  ├─ expenses.repository.js.bak_fix_20260626_203047
+│  │  │  ├─ expenses.repository.js.bak_fix_20260626_203103
+│  │  │  ├─ expenses.repository.js.broken_20260626_203537
+│  │  │  ├─ expenses.routes.js
+│  │  │  └─ expenses.routes.js.bak_20260625_173700
+│  │  ├─ items\
+│  │  │  └─ items.routes.js
+│  │  ├─ masters\
+│  │  │  ├─ master.repository.js
+│  │  │  ├─ master.repository.js.bak_20260626_202651
+│  │  │  ├─ master.repository.js.bak_20260626_202709
+│  │  │  ├─ master.repository.js.bak_fix_20260626_203047
+│  │  │  ├─ master.repository.js.bak_fix_20260626_203103
+│  │  │  ├─ master.routes.js
+│  │  │  ├─ masters.routes.js
+│  │  │  ├─ masters.routes.js.bak_fix_20260626_203047
+│  │  │  └─ masters.routes.js.bak_fix_20260626_203103
+│  │  ├─ projectBackup\
+│  │  │  ├─ projectBackup.routes.js
+│  │  │  └─ projectBackup.service.js
+│  │  ├─ utils\
+│  │  │  ├─ command.js
+│  │  │  └─ time.js
+│  │  ├─ config.js
+│  │  ├─ db.bootstrap.js
+│  │  ├─ db.js
+│  │  ├─ projectStatus.js
+│  │  ├─ response.js
+│  │  └─ static.js
+│  ├─ apply_master_management_setup_tmp.js
+│  ├─ check_expenses_tables_tmp.js
+│  ├─ check_expenses_tables_with_password_tmp.js
+│  ├─ list_databases_tmp.js
+│  ├─ package.json
+│  ├─ seed_expense_masters.js
+│  ├─ server.js
+│  ├─ server.js.bak_20260625_145708
+│  ├─ server.js.bak_20260625_180355
+│  └─ start_hd_origin.bat
+├─ .env
+├─ .env.bak_20260626_202651
+├─ .env.bak_20260626_202709
+├─ .env.bak_fix_20260626_203047
+├─ .env.bak_fix_20260626_203103
+├─ .env.example
+├─ .gitignore
+├─ env_initializer.py
+├─ PROJECT_STATUS_FOR_GPT.txt
+├─ README.md
+└─ run_env_initializer.bat
+-----------------------------------
+
+
+[今後のTODO・構想メモ]
+-----------------------------------
+追加日時: 2026/06/26 20:49:16
+
+■ レシート取込・OCR・CSV化・正式経費登録構想
+
+今後の目標として、携帯で撮影したレシート画像、またはドラッグアップロードした画像をもとに、
+OCR等で読み取った内容をいったん取込データとしてDBに蓄積し、
+確認・補正後に正式な経費データへ変換する仕組みを作る。
+
+単純に画像を添付するだけではなく、以下の流れを目指す。
+
+1. レシート画像を撮影またはアップロード
+2. OCRまたは手入力CSV等により、日付・支払先・金額・税額・インボイス番号等の候補データを作成
+3. 取込用の一時テーブルに保存
+4. 取込一覧画面で人間が確認・修正
+5. 確認済みデータを正式な経費データへ登録
+6. 登録時はDBトランザクションを使い、親データ・明細データ・画像データ・取込ステータスを一括で確定
+7. 失敗時はROLLBACKし、中途半端な経費データを残さない
+8. 将来的に会計ソフト連携用CSV、または自社用CSVとして出力できるようにする
+
+想定テーブル案：
+
+expenses.import_batches
+- import_batch_id
+- import_type
+- source_name
+- original_file_name
+- status
+- imported_at
+- memo
+
+expenses.import_rows
+- import_row_id
+- import_batch_id
+- source_row_no
+- raw_date
+- raw_vendor_name
+- raw_amount
+- raw_tax_amount
+- raw_invoice_number
+- raw_text
+- suggested_expense_date
+- suggested_vendor_name
+- suggested_amount
+- suggested_invoice_type_id
+- suggested_evidence_type_id
+- status
+- error_message
+- confirmed_expense_id
+- created_at
+
+expenses.receipt_files
+- receipt_file_id
+- import_row_id
+- expense_id
+- original_file_name
+- stored_file_name
+- file_path
+- mime_type
+- file_size
+- ocr_text
+- ocr_status
+- created_at
+
+重要方針：
+- OCR結果を直接 expense_headers / expense_details に入れない。
+- まず import_rows に仮データとして蓄積する。
+- 人間が確認してから正式経費へ変換する。
+- 正式登録時は transaction を使う。
+- OCR、CSV取込、手入力、クレカ明細、銀行明細など、入口が違っても import_rows に集約する設計にする。
+-----------------------------------
+
+
+[今後のTODO・構想メモ]
+-----------------------------------
+追加日時: 2026/06/26 20:58:08
+
+■ Wix携帯専用レシート撮影ページ・画像圧縮方針
+
+将来的に、PCアプリ側だけではなく、Wixサイト上に携帯専用のレシート撮影・仮取込ページを作る構想がある。
+
+目的：
+- スマホでレシートを撮影する
+- 撮影画像をそのまま大容量で保存・送信しない
+- ブラウザ上で小さい画像へ縮小・圧縮してから保存・送信する
+- 後でHD Origin Project側の取込DBへ連携する
+
+重要方針：
+- 携帯で撮影した元画像は数MB〜十数MBになる可能性があるため、そのままアップロードしない。
+- スマホ容量・通信量・Wix側保存容量を圧迫しないようにする。
+- レシート確認用として十分な画質を残しつつ、容量を小さくする。
+- 元画像ではなく、圧縮後画像を保存対象にする。
+
+想定仕様：
+- Wix上に携帯専用ページを作る。
+- 画像選択またはカメラ撮影には以下のような入力を使う想定。
+  <input type="file" accept="image/*" capture="environment">
+- 撮影後、JavaScriptで画像を読み込む。
+- canvasを使って縮小・JPEG圧縮する。
+- 圧縮後画像のみをWix側へ保存またはアップロードする。
+
+画像圧縮の目安：
+- 長辺：1200px〜1600px程度
+- 形式：JPEG
+- 品質：0.55〜0.70程度
+- 目標容量：1枚あたりおおむね150KB〜500KB程度
+
+想定処理：
+1. スマホでWix携帯専用ページを開く
+2. レシートを撮影または画像選択
+3. ブラウザ内で画像を読み込む
+4. canvasで長辺1200px〜1600px程度へ縮小
+5. JPEG品質0.55〜0.70程度で圧縮
+6. 圧縮後画像の容量を画面に表示
+7. 日付・支払先・金額・メモ等を必要に応じて入力
+8. 圧縮後画像と仮データをWix側へ保存
+9. 後でCSVまたはAPI等によりHD Origin Project側へ取り込む
+10. HD Origin Project側では import_rows 等の取込ステージに入れ、人間が確認後、正式経費へ登録する
+
+設計上の位置付け：
+- Wixは正式な経費DBではなく、スマホ撮影・仮取込の入口として使う。
+- 正式な経費データは、HD Origin Project側のPostgreSQLで管理する。
+- OCRやCSV取込結果は、直接 expense_headers / expense_details に入れず、まず import_rows などの取込用一時テーブルに蓄積する。
+- 人間が確認・補正してから、DBトランザクションで正式経費登録する。
+
+注意：
+- Wix標準フォームのファイルアップロードだけだと、撮影画像を事前に小さくする制御が弱い可能性がある。
+- 本格的にやる場合は、Wix Velo、HTML iframe、またはカスタムHTML/JSで、アップロード前にブラウザ側で圧縮する。
+-----------------------------------
