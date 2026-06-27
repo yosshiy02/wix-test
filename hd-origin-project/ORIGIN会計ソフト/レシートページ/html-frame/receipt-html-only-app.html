@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>レシート登録</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f4f4f5;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    h1 {
+      font-size: 21px;
+      margin: 0 0 8px;
+    }
+
+    p {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin: 4px 0 10px;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 5px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      font-size: 16px;
+      border-radius: 12px;
+      padding: 11px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    button {
+      background: #111827;
+      color: #fff;
+      font-weight: 700;
+      border: 0;
+      margin-top: 12px;
+    }
+
+    button.secondary {
+      background: #374151;
+    }
+
+    button.danger {
+      background: #991b1b;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      background: #111;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    .status {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px;
+      color: #374151;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .ok {
+      color: #166534;
+      font-weight: 700;
+    }
+
+    .ng {
+      color: #991b1b;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>レシート登録</h1>
+      <p>レシートを撮影し、画像を圧縮して保存します。OCRはまだ使いません。</p>
+
+      <label>レシート画像</label>
+      <input id="fileInput" type="file" accept="image/*" capture="environment">
+      <div class="small">スマホではカメラ起動、PCでは画像選択になります。</div>
+    </div>
+
+    <div class="card">
+      <label>レシート日付</label>
+      <input id="receiptDate" type="date">
+
+      <label>店名</label>
+      <input id="vendorName" type="text" placeholder="例：セブンイレブン">
+
+      <label>合計金額</label>
+      <input id="totalAmount" type="number" inputmode="numeric" placeholder="例：1250">
+
+      <label>支払方法</label>
+      <select id="paymentMethod">
+        <option value="">選択してください</option>
+        <option value="現金">現金</option>
+        <option value="カード">カード</option>
+        <option value="電子マネー">電子マネー</option>
+        <option value="振込">振込</option>
+        <option value="その他">その他</option>
+      </select>
+
+      <label>メモ</label>
+      <textarea id="memo" placeholder="必要ならメモ"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>長辺px</label>
+          <select id="maxSize">
+            <option value="1200">1200</option>
+            <option value="1600" selected>1600</option>
+            <option value="2000">2000</option>
+          </select>
+        </div>
+
+        <div>
+          <label>画質</label>
+          <select id="quality">
+            <option value="0.6">0.6</option>
+            <option value="0.7" selected>0.7</option>
+            <option value="0.8">0.8</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="rotateBtn" class="secondary">90度回転</button>
+      <button id="compressBtn">画像を圧縮</button>
+    </div>
+
+    <div class="card">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="card">
+      <button id="saveBtn">Wixへ保存</button>
+      <button id="downloadBtn" class="secondary">圧縮画像だけ保存</button>
+      <button id="resetBtn" class="danger">入力をクリア</button>
+    </div>
+
+    <div class="card">
+      <div id="status" class="status">画像を選んでください。</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const fileInput = document.getElementById("fileInput");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const receiptDate = document.getElementById("receiptDate");
+  const vendorName = document.getElementById("vendorName");
+  const totalAmount = document.getElementById("totalAmount");
+  const paymentMethod = document.getElementById("paymentMethod");
+  const memo = document.getElementById("memo");
+
+  const maxSizeEl = document.getElementById("maxSize");
+  const qualityEl = document.getElementById("quality");
+
+  const rotateBtn = document.getElementById("rotateBtn");
+  const compressBtn = document.getElementById("compressBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const statusEl = document.getElementById("status");
+
+  let sourceImage = null;
+  let sourceFileName = "";
+  let rotation = 0;
+  let lastDataUrl = "";
+  let lastBytes = 0;
+  let lastReceiptId = "";
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function todayText() {
+    const d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function makeReceiptId() {
+    const d = new Date();
+    return "R" +
+      d.getFullYear() +
+      pad2(d.getMonth() + 1) +
+      pad2(d.getDate()) +
+      "-" +
+      pad2(d.getHours()) +
+      pad2(d.getMinutes()) +
+      pad2(d.getSeconds());
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function dataUrlBytes(dataUrl) {
+    const base64 = dataUrl.split(",")[1] || "";
+    return Math.round(base64.length * 3 / 4);
+  }
+
+  function loadFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const img = new Image();
+
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function drawImage() {
+    if (!sourceImage) return;
+
+    const maxSize = Number(maxSizeEl.value);
+    let w = sourceImage.naturalWidth;
+    let h = sourceImage.naturalHeight;
+
+    const longSide = Math.max(w, h);
+
+    if (longSide > maxSize) {
+      const scale = maxSize / longSide;
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    const rotated = rotation % 180 !== 0;
+
+    canvas.width = rotated ? h : w;
+    canvas.height = rotated ? w : h;
+
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (rotation === 90) {
+      ctx.translate(canvas.width, 0);
+      ctx.rotate(Math.PI / 2);
+    } else if (rotation === 180) {
+      ctx.translate(canvas.width, canvas.height);
+      ctx.rotate(Math.PI);
+    } else if (rotation === 270) {
+      ctx.translate(0, canvas.height);
+      ctx.rotate(3 * Math.PI / 2);
+    }
+
+    ctx.drawImage(sourceImage, 0, 0, w, h);
+    ctx.restore();
+  }
+
+  async function compressImage() {
+    if (!sourceImage) {
+      setStatus("画像がありません。");
+      return false;
+    }
+
+    drawImage();
+
+    const quality = Number(qualityEl.value);
+    lastDataUrl = canvas.toDataURL("image/jpeg", quality);
+    lastBytes = dataUrlBytes(lastDataUrl);
+
+    if (!lastReceiptId) {
+      lastReceiptId = makeReceiptId();
+    }
+
+    setStatus(
+      "圧縮完了\n" +
+      "receipt_id: " + lastReceiptId + "\n" +
+      "サイズ: 約 " + Math.round(lastBytes / 1024) + " KB\n" +
+      "長辺: " + maxSizeEl.value + "px\n" +
+      "画質: " + quality
+    );
+
+    return true;
+  }
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!file) return;
+
+    sourceFileName = file.name || "";
+    sourceImage = await loadFile(file);
+    rotation = 0;
+    lastDataUrl = "";
+    lastReceiptId = makeReceiptId();
+
+    drawImage();
+
+    setStatus(
+      "画像を読み込みました。\n" +
+      "receipt_id: " + lastReceiptId + "\n" +
+      "元ファイル: " + sourceFileName + "\n" +
+      "元サイズ: " + sourceImage.naturalWidth + " x " + sourceImage.naturalHeight + "\n" +
+      "次に「画像を圧縮」を押してください。"
+    );
+  });
+
+  rotateBtn.addEventListener("click", () => {
+    rotation = (rotation + 90) % 360;
+    drawImage();
+  });
+
+  compressBtn.addEventListener("click", compressImage);
+
+  saveBtn.addEventListener("click", async () => {
+    if (!lastDataUrl) {
+      const ok = await compressImage();
+      if (!ok) return;
+    }
+
+    const payload = {
+      type: "SAVE_RECEIPT",
+      receiptId: lastReceiptId || makeReceiptId(),
+      receiptDate: receiptDate.value || todayText(),
+      vendorName: vendorName.value || "",
+      totalAmount: Number(totalAmount.value || 0),
+      paymentMethod: paymentMethod.value || "",
+      memo: memo.value || "",
+      originalFileName: sourceFileName || "",
+      compressedFileName: (lastReceiptId || makeReceiptId()) + "_compressed.jpg",
+      mimeType: "image/jpeg",
+      imageDataUrl: lastDataUrl,
+      bytes: lastBytes,
+      createdAt: new Date().toISOString()
+    };
+
+    window.parent.postMessage(payload, "*");
+
+    setStatus(
+      "Wixへ保存依頼を送りました。\n" +
+      "receipt_id: " + payload.receiptId + "\n" +
+      "保存結果を待っています。"
+    );
+  });
+
+  downloadBtn.addEventListener("click", async () => {
+    if (!lastDataUrl) {
+      const ok = await compressImage();
+      if (!ok) return;
+    }
+
+    const a = document.createElement("a");
+    a.href = lastDataUrl;
+    a.download = (lastReceiptId || makeReceiptId()) + "_compressed.jpg";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  resetBtn.addEventListener("click", () => {
+    sourceImage = null;
+    sourceFileName = "";
+    rotation = 0;
+    lastDataUrl = "";
+    lastBytes = 0;
+    lastReceiptId = "";
+
+    fileInput.value = "";
+    receiptDate.value = todayText();
+    vendorName.value = "";
+    totalAmount.value = "";
+    paymentMethod.value = "";
+    memo.value = "";
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setStatus("クリアしました。画像を選んでください。");
+  });
+
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+
+    if (!data || data.type !== "SAVE_RECEIPT_RESULT") return;
+
+    if (data.ok) {
+      setStatus(
+        "保存完了\n" +
+        "receipt_id: " + data.receiptId + "\n" +
+        "画像URL: " + (data.imageUrl || "")
+      );
+    } else {
+      setStatus("保存エラー\n" + (data.message || "原因不明"));
+    }
+  });
+
+  receiptDate.value = todayText();
+})();
+</script>
+</body>
+</html>

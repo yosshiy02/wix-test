@@ -1,0 +1,58 @@
+レシートページ 現在使うファイル
+================================
+
+現在の方針
+----------
+Wixページ上の見た目・入力欄・撮影・圧縮・保存ボタンは、
+すべて「埋め込みHTML」1個の中に入れる。
+
+Wix上に個別の入力欄、ボタン、画像要素は置かない。
+
+ただし、WixのMedia ManagerとCMSへ保存するには、
+WixページコードとBackendコードが必要。
+
+使うファイル
+------------
+
+1. html-frame\receipt-html-only-app.html
+   Wixの「HTML埋め込み」に貼る。
+   画面、入力欄、撮影、圧縮、保存ボタンを全部含む。
+
+2. wix\03_receipt_page_html_only_bridge.js
+   Wixの /レシート ページコードに貼る。
+   HTML埋め込みから保存データを受け取ってBackendへ渡す。
+
+3. wix-backend\receiptUpload.jsw
+   Wix Backendに作る。
+   圧縮画像をWix Media Managerへ保存し、
+   Receipts CMSへデータを登録する。
+
+Wixページに置く要素
+------------------
+HTML埋め込み 1個だけ。
+
+ID：
+htmlReceiptApp
+
+必要なWix CMS
+-------------
+Collection名：
+Receipts
+
+必要フィールド：
+title
+receiptId
+receiptDate
+vendorName
+totalAmount
+paymentMethod
+imageUrl
+originalFileName
+status
+memo
+createdAt
+
+旧方式
+------
+アップロードボタン版、iframe試験版、local-test版は使わない。
+_old_日時 フォルダーへ退避済み。

@@ -1,0 +1,18 @@
+Wix設置手順 HTML埋め込み版
+==========================
+
+1. Wixで /レシート ページを開く
+2. 置く要素は「HTML埋め込み」1個だけ
+3. HTML埋め込みのIDを htmlReceiptApp にする
+4. html-frame\receipt-html-only-app.html の中身をHTML埋め込みへ貼る
+5. wix\03_receipt_page_html_only_bridge.js をページコードへ貼る
+6. Wix Backendに receiptUpload.jsw を作る
+7. wix-backend\receiptUpload.jsw の中身を貼る
+8. CMSに Receipts コレクションを作る
+9. docs\01_Wix_CMS_Receipts_項目.csv の項目を作る
+10. スマホで /レシート を開いて撮影テスト
+
+注意
+----
+Wix上に、Upload Button、Text Input、Button、Imageなどは置かない。
+見た目の要素は全部HTML埋め込みの中にある。

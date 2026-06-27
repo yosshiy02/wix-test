@@ -1,0 +1,71 @@
+import wixData from "wix-data";
+import { mediaManager } from "wix-media-backend";
+
+function dataUrlToBuffer(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== "string") {
+    throw new Error("imageDataUrl がありません。");
+  }
+
+  const parts = dataUrl.split(",");
+  if (parts.length < 2) {
+    throw new Error("imageDataUrl の形式が不正です。");
+  }
+
+  const base64 = parts[1];
+  return Buffer.from(base64, "base64");
+}
+
+function safeFileName(name) {
+  return String(name || "receipt.jpg")
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\s+/g, "_");
+}
+
+export async function saveReceiptFromHtml(data) {
+  const receiptId = data.receiptId;
+  const fileName = safeFileName(data.compressedFileName || `${receiptId}_compressed.jpg`);
+  const imageBuffer = dataUrlToBuffer(data.imageDataUrl);
+
+  const uploaded = await mediaManager.upload(
+    "/receipt-images",
+    imageBuffer,
+    fileName,
+    {
+      mediaOptions: {
+        mimeType: "image/jpeg",
+        mediaType: "image"
+      },
+      metadataOptions: {
+        isPrivate: false,
+        isVisitorUpload: false,
+        context: {
+          receiptId: receiptId
+        }
+      }
+    }
+  );
+
+  const imageUrl = uploaded.fileUrl || "";
+
+  const row = {
+    title: receiptId,
+    receiptId: receiptId,
+    receiptDate: data.receiptDate ? new Date(data.receiptDate) : new Date(),
+    vendorName: data.vendorName || "",
+    totalAmount: Number(data.totalAmount || 0),
+    paymentMethod: data.paymentMethod || "",
+    imageUrl: imageUrl,
+    originalFileName: data.originalFileName || "",
+    status: "uploaded_html",
+    memo: data.memo || "",
+    createdAt: new Date()
+  };
+
+  const inserted = await wixData.insert("Receipts", row);
+
+  return {
+    receiptId: receiptId,
+    imageUrl: imageUrl,
+    itemId: inserted._id
+  };
+}

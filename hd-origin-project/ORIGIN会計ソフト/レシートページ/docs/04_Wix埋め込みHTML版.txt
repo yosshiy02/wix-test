@@ -1,0 +1,48 @@
+Wix 埋め込みHTML版 方針
+=======================
+
+方針
+----
+Wixページ上には、原則として「HTML埋め込み」だけを置く。
+入力欄、撮影、プレビュー、圧縮、保存ボタンはすべてHTML内に作る。
+
+ただし、Wix CMSやWix Media Managerへ保存する処理は、
+HTML単体では直接できないため、WixページコードとBackendコードを使う。
+
+構成
+----
+1. Wixページ
+   HTML埋め込みを1つだけ置く
+   ID：htmlReceiptApp
+
+2. 埋め込みHTML
+   html-frame\receipt-html-only-app1つだけ置く
+   ID：htmlReceiptApp.html の中身を貼る
+
+3. Wixページコード
+   wix\03_receipt_page_html_only_bridge.js を貼る
+
+4. Wix Backend
+   wix-backend\receiptUpload.jsw を Backend に作って貼る
+
+5. Wix CMS
+   Collection名：Receipts
+
+必要なCMS項目
+--------------
+title
+receiptId
+receiptDate
+vendorName
+totalAmount
+paymentMethod
+imageUrl
+originalFileName
+status
+memo
+createdAt
+
+注意
+----
+Wixの表側部品はHTML埋め込みだけでよい。
+ただし保存にはVeloコードが必要。
