@@ -1,18 +1,22 @@
-import wixData from "wix-data";
+﻿import wixData from "wix-data";
 import { mediaManager } from "wix-media-backend";
+import { fetch } from "wix-fetch";
+import { secrets } from "wix-secrets-backend.v2";
+import { Buffer } from "buffer";
 
-function dataUrlToBuffer(dataUrl) {
-  if (!dataUrl || typeof dataUrl !== "string") {
-    throw new Error("imageDataUrl がありません。");
+const COLLECTION_ID = "ReceiptUploads";
+
+// 保存先フォルダは今まで通り。変更しない。
+const MEDIA_FOLDER = "/receipt-images";
+
+const AZURE_API_VERSION = "2024-11-30";
+const AZURE_READ_MODEL_ID = "prebuilt-read";
+
+function requireValue(value, name) {
+  if (value === null || value === undefined || value === "") {
+    throw new Error(`${name} が空です。`);
   }
-
-  const parts = dataUrl.split(",");
-  if (parts.length < 2) {
-    throw new Error("imageDataUrl の形式が不正です。");
-  }
-
-  const base64 = parts[1];
-  return Buffer.from(base64, "base64");
+  return value;
 }
 
 function safeFileName(name) {
@@ -21,51 +25,351 @@ function safeFileName(name) {
     .replace(/\s+/g, "_");
 }
 
-export async function saveReceiptFromHtml(data) {
-  const receiptId = data.receiptId;
-  const fileName = safeFileName(data.compressedFileName || `${receiptId}_compressed.jpg`);
-  const imageBuffer = dataUrlToBuffer(data.imageDataUrl);
+function dataUrlToBuffer(dataUrl) {
+  requireValue(dataUrl, "imageDataUrl");
 
-  const uploaded = await mediaManager.upload(
-    "/receipt-images",
-    imageBuffer,
-    fileName,
-    {
-      mediaOptions: {
-        mimeType: "image/jpeg",
-        mediaType: "image"
-      },
-      metadataOptions: {
-        isPrivate: false,
-        isVisitorUpload: false,
-        context: {
-          receiptId: receiptId
-        }
-      }
-    }
-  );
+  const text = String(dataUrl);
 
-  const imageUrl = uploaded.fileUrl || "";
+  if (!text.startsWith("data:image/")) {
+    throw new Error("imageDataUrl が data:image 形式ではありません。");
+  }
 
-  const row = {
-    title: receiptId,
-    receiptId: receiptId,
-    receiptDate: data.receiptDate ? new Date(data.receiptDate) : new Date(),
-    vendorName: data.vendorName || "",
-    totalAmount: Number(data.totalAmount || 0),
-    paymentMethod: data.paymentMethod || "",
-    imageUrl: imageUrl,
-    originalFileName: data.originalFileName || "",
-    status: "uploaded_html",
-    memo: data.memo || "",
-    createdAt: new Date()
-  };
+  const parts = text.split(",");
 
-  const inserted = await wixData.insert("Receipts", row);
+  if (parts.length < 2) {
+    throw new Error("imageDataUrl のbase64部分が見つかりません。");
+  }
 
+  const base64 = parts[1];
+
+  if (!base64) {
+    throw new Error("base64画像データが空です。");
+  }
+
+  return Buffer.from(base64, "base64");
+}
+
+function dataUrlToBase64(dataUrl) {
+  requireValue(dataUrl, "imageDataUrl");
+
+  const text = String(dataUrl);
+
+  if (!text.startsWith("data:image/")) {
+    throw new Error("imageDataUrl が data:image 形式ではありません。");
+  }
+
+  const parts = text.split(",");
+
+  if (parts.length < 2 || !parts[1]) {
+    throw new Error("imageDataUrl のbase64部分が見つかりません。");
+  }
+
+  return parts[1];
+}
+
+function toJstDateTimeText(date = new Date()) {
+  const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+
+  const y = jst.getUTCFullYear();
+  const m = String(jst.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(jst.getUTCDate()).padStart(2, "0");
+  const h = String(jst.getUTCHours()).padStart(2, "0");
+  const min = String(jst.getUTCMinutes()).padStart(2, "0");
+  const s = String(jst.getUTCSeconds()).padStart(2, "0");
+
+  return `${y}-${m}-${d} ${h}:${min}:${s}`;
+}
+
+function toNullableNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const n = Number(value);
+
+  if (Number.isNaN(n)) {
+    return null;
+  }
+
+  return n;
+}
+
+function buildReceiptJson(data) {
   return {
-    receiptId: receiptId,
-    imageUrl: imageUrl,
-    itemId: inserted._id
+    receiptDate: data.receiptDate || "",
+    vendorName: data.vendorName || "",
+    totalAmount: toNullableNumber(data.totalAmount),
+    paymentMethod: data.paymentMethod || "",
+    taxAmount: null,
+    invoiceNumber: "",
+    lines: [],
+    ocr: {
+      provider: "",
+      rawText: "",
+      confidence: null
+    }
   };
 }
+
+async function getSecretText(secretName) {
+  const result = await secrets.getSecretValue(secretName);
+
+  if (result && typeof result.value === "string" && result.value !== "") {
+    return result.value;
+  }
+
+  throw new Error(`${secretName} の値を取得できませんでした。`);
+}
+
+async function getAzureConfig() {
+  const endpoint = await getSecretText("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT");
+  const key = await getSecretText("AZURE_DOCUMENT_INTELLIGENCE_KEY");
+
+  return {
+    endpoint: String(endpoint).replace(/\/+$/, ""),
+    key: String(key)
+  };
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function extractRawText(azureResult) {
+  const analyzeResult = azureResult && azureResult.analyzeResult;
+
+  if (!analyzeResult) {
+    return "";
+  }
+
+  if (typeof analyzeResult.content === "string") {
+    return analyzeResult.content;
+  }
+
+  const pages = Array.isArray(analyzeResult.pages) ? analyzeResult.pages : [];
+  const lines = [];
+
+  for (const page of pages) {
+    for (const line of page.lines || []) {
+      if (line && line.content) {
+        lines.push(line.content);
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function extractLines(azureResult) {
+  const analyzeResult = azureResult && azureResult.analyzeResult;
+  const pages = analyzeResult && Array.isArray(analyzeResult.pages)
+    ? analyzeResult.pages
+    : [];
+
+  const lines = [];
+
+  for (const page of pages) {
+    for (const line of page.lines || []) {
+      lines.push({
+        pageNumber: page.pageNumber || null,
+        text: line.content || "",
+        polygon: line.polygon || [],
+        spans: line.spans || []
+      });
+    }
+  }
+
+  return lines;
+}
+
+function extractWords(azureResult) {
+  const analyzeResult = azureResult && azureResult.analyzeResult;
+  const pages = analyzeResult && Array.isArray(analyzeResult.pages)
+    ? analyzeResult.pages
+    : [];
+
+  const words = [];
+
+  for (const page of pages) {
+    for (const word of page.words || []) {
+      words.push({
+        pageNumber: page.pageNumber || null,
+        text: word.content || "",
+        confidence: word.confidence === undefined ? null : word.confidence,
+        polygon: word.polygon || [],
+        span: word.span || null
+      });
+    }
+  }
+
+  return words;
+}
+
+async function analyzeReadBase64(base64Source) {
+  const azure = await getAzureConfig();
+
+  const analyzeUrl =
+    `${azure.endpoint}/documentintelligence/documentModels/${AZURE_READ_MODEL_ID}:analyze` +
+    `?_overload=analyzeDocument&api-version=${AZURE_API_VERSION}&stringIndexType=utf16CodeUnit`;
+
+  const startResponse = await fetch(analyzeUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": azure.key
+    },
+    body: JSON.stringify({
+      base64Source: base64Source
+    })
+  });
+
+  if (startResponse.status !== 202) {
+    const errorText = await startResponse.text();
+    throw new Error(`Azure OCR開始エラー status=${startResponse.status}: ${errorText}`);
+  }
+
+  const operationLocation =
+    startResponse.headers.get("operation-location") ||
+    startResponse.headers.get("Operation-Location");
+
+  if (!operationLocation) {
+    throw new Error("Azure OCRの Operation-Location が取得できませんでした。");
+  }
+
+  for (let i = 0; i < 30; i++) {
+    await sleep(1000);
+
+    const resultResponse = await fetch(operationLocation, {
+      method: "GET",
+      headers: {
+        "Ocp-Apim-Subscription-Key": azure.key
+      }
+    });
+
+    const result = await resultResponse.json();
+
+    if (result.status === "succeeded") {
+      return result;
+    }
+
+    if (result.status === "failed") {
+      throw new Error("Azure OCRが失敗しました: " + JSON.stringify(result.error || result));
+    }
+  }
+
+  throw new Error("Azure OCRがタイムアウトしました。");
+}
+
+export async function testAzureReadOcrFromHtml(data) {
+  try {
+    const imageDataUrl = requireValue(data.imageDataUrl, "imageDataUrl");
+    const base64Source = dataUrlToBase64(imageDataUrl);
+
+    const azureResult = await analyzeReadBase64(base64Source);
+
+    const rawText = extractRawText(azureResult);
+    const lines = extractLines(azureResult);
+    const words = extractWords(azureResult);
+
+    return {
+      ok: true,
+      provider: "azure-document-intelligence-read",
+      rawText: rawText,
+      lines: lines,
+      words: words,
+      lineCount: lines.length,
+      wordCount: words.length
+    };
+
+  } catch (err) {
+    console.error("testAzureReadOcrFromHtml error:", err);
+
+    throw new Error(
+      "Azure Read OCRテストエラー: " +
+      (err && err.message ? err.message : String(err))
+    );
+  }
+}
+
+export async function saveReceiptFromHtml(data) {
+  try {
+    const uploadId = requireValue(
+      data.uploadId || data.receiptId,
+      "uploadId"
+    );
+
+    const imageDataUrl = requireValue(data.imageDataUrl, "imageDataUrl");
+    const imageBuffer = dataUrlToBuffer(imageDataUrl);
+
+    const fileName = safeFileName(
+      data.compressedFileName || `${uploadId}_compressed.jpg`
+    );
+
+    const uploaded = await mediaManager.upload(
+      MEDIA_FOLDER,
+      imageBuffer,
+      fileName,
+      {
+        mediaOptions: {
+          mimeType: "image/jpeg",
+          mediaType: "image"
+        },
+        metadataOptions: {
+          isPrivate: false,
+          isVisitorUpload: false,
+          context: {
+            uploadId: uploadId
+          }
+        }
+      }
+    );
+
+    const imageUrl = uploaded.fileUrl || "";
+
+    if (!imageUrl) {
+      throw new Error("Media Manager upload後の fileUrl が取得できませんでした。");
+    }
+
+    const capturedAtJst = toJstDateTimeText(new Date());
+
+    const row = {
+      title: uploadId,
+      uploadId: uploadId,
+      imageUrl: imageUrl,
+      imageSizeBytes: imageBuffer.length,
+      originalFileName: data.originalFileName || "",
+      capturedAtJst: capturedAtJst,
+      status: "uploaded",
+      receiptJson: buildReceiptJson(data),
+      errorMessage: "",
+      exportBatchId: "",
+      exportedAtJst: "",
+      memo: data.memo || ""
+    };
+
+    const inserted = await wixData.insert(COLLECTION_ID, row);
+
+    return {
+      ok: true,
+
+      // 旧HTML表示との互換用
+      receiptId: uploadId,
+
+      uploadId: uploadId,
+      imageUrl: imageUrl,
+      imageSizeBytes: imageBuffer.length,
+      capturedAtJst: capturedAtJst,
+      status: "uploaded",
+      itemId: inserted._id
+    };
+
+  } catch (err) {
+    console.error("saveReceiptFromHtml error:", err);
+
+    throw new Error(
+      "receiptUpload.jsw保存処理エラー: " +
+      (err && err.message ? err.message : String(err))
+    );
+  }
+}
+

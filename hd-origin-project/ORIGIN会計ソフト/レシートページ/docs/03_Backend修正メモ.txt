@@ -1,0 +1,55 @@
+Backend修正メモ
+================
+
+今回の修正
+----------
+
+receiptUpload.jsw から以下を保存しないようにした。
+
+- receiptDate
+- createdAt
+
+理由
+----
+WixのDate型やDateTime型は、CMS上で
+2026-06-28T00:00:00.000Z
+のようなUTC/ISO形式に見えるため、会計用途では紛らわしい。
+
+今後使う正式フィールド
+----------------------
+
+receiptDateText
+  レシートに印字された日付
+  例：2026-06-28
+
+createdAtJst
+  日本時間の登録日時
+  例：2026-06-28 22:10:00
+
+Wix CMSで必要なフィールド
+-------------------------
+
+title
+receiptId
+receiptDateText
+vendorName
+totalAmount
+paymentMethod
+imageUrl
+originalFileName
+status
+memo
+createdAtJst
+
+Wix CMSで不要になったフィールド
+------------------------------
+
+receiptDate
+createdAt
+
+この2つは削除、または非表示でよい。
+
+Wixへ貼り直すファイル
+--------------------
+
+wix-backend\receiptUpload.jsw

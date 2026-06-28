@@ -1,0 +1,36 @@
+日付修正メモ
+============
+
+今回の修正内容
+--------------
+
+1. receiptDate は「レシートに印字された日付」として扱う。
+2. ただし Wix の Date 型は内部的に 2026-06-28T00:00:00.000Z のように表示されることがある。
+3. 会計CSVでは ISO日時は不要なので、receiptDateText を追加する。
+4. receiptDateText には YYYY-MM-DD だけを保存する。
+5. createdAt はシステム登録日時。
+6. createdAtJst には日本時間の登録日時を YYYY-MM-DD HH:mm:ss で保存する。
+
+CMSに追加する項目
+----------------
+
+receiptDateText
+種類：Text
+
+createdAtJst
+種類：Text
+
+imageUrl は URL ではなく Text 推奨。
+
+使い分け
+--------
+
+receiptDate       = WixのDate型用
+receiptDateText   = 会計CSV用の正式なレシート日付
+createdAt         = WixのDateTime型用
+createdAtJst      = 日本時間の登録日時テキスト
+
+Wixへ貼り直すファイル
+--------------------
+
+wix-backend\receiptUpload.jsw

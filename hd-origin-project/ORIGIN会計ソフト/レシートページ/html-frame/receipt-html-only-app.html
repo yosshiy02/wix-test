@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -130,7 +130,7 @@
   <div class="wrap">
     <div class="card">
       <h1>レシート登録</h1>
-      <p>レシートを撮影し、画像を圧縮して保存します。OCRはまだ使いません。</p>
+      <p>レシートを撮影し、画像を圧縮して保存します。OCRテストもできます。</p>
 
       <label>レシート画像</label>
       <input id="fileInput" type="file" accept="image/*" capture="environment">
@@ -191,6 +191,7 @@
     </div>
 
     <div class="card">
+      <button id="ocrTestBtn" class="secondary">OCRテスト</button>
       <button id="saveBtn">Wixへ保存</button>
       <button id="downloadBtn" class="secondary">圧縮画像だけ保存</button>
       <button id="resetBtn" class="danger">入力をクリア</button>
@@ -218,6 +219,7 @@
 
   const rotateBtn = document.getElementById("rotateBtn");
   const compressBtn = document.getElementById("compressBtn");
+  const ocrTestBtn = document.getElementById("ocrTestBtn");
   const saveBtn = document.getElementById("saveBtn");
   const downloadBtn = document.getElementById("downloadBtn");
   const resetBtn = document.getElementById("resetBtn");
@@ -371,6 +373,31 @@
 
   compressBtn.addEventListener("click", compressImage);
 
+  ocrTestBtn.addEventListener("click", async () => {
+    if (!lastDataUrl) {
+      const ok = await compressImage();
+      if (!ok) return;
+    }
+
+    const payload = {
+      type: "TEST_AZURE_READ_OCR",
+      receiptId: lastReceiptId || makeReceiptId(),
+      originalFileName: sourceFileName || "",
+      compressedFileName: (lastReceiptId || makeReceiptId()) + "_compressed.jpg",
+      mimeType: "image/jpeg",
+      imageDataUrl: lastDataUrl,
+      bytes: lastBytes,
+      createdAt: new Date().toISOString()
+    };
+
+    window.parent.postMessage(payload, "*");
+
+    setStatus(
+      "Azure OCRテスト依頼を送りました。\n" +
+      "receipt_id: " + payload.receiptId + "\n" +
+      "OCR結果を待っています。"
+    );
+  });
   saveBtn.addEventListener("click", async () => {
     if (!lastDataUrl) {
       const ok = await compressImage();
