@@ -114,8 +114,16 @@ function buildReceiptJson(data) {
 async function getSecretText(secretName) {
   const result = await secrets.getSecretValue(secretName);
 
-  if (result && typeof result.value === "string" && result.value !== "") {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  if (result && typeof result.value === "string") {
     return result.value;
+  }
+
+  if (result && result.secret && typeof result.secret.value === "string") {
+    return result.secret.value;
   }
 
   throw new Error(`${secretName} の値を取得できませんでした。`);
@@ -372,4 +380,3 @@ export async function saveReceiptFromHtml(data) {
     );
   }
 }
-
