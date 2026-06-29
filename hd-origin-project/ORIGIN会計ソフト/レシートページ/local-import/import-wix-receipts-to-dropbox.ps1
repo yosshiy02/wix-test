@@ -309,6 +309,27 @@ function Get-OcrRawText {
     if ($null -ne $raw2) { return [string]$raw2 }
   }
 
+  $receiptJson = Get-FirstValue $Obj @("receiptJson")
+  if ($null -ne $receiptJson) {
+    $jsonObj = $receiptJson
+
+    if ($receiptJson -is [string]) {
+      try {
+        $jsonObj = $receiptJson | ConvertFrom-Json
+      } catch {
+        $jsonObj = $null
+      }
+    }
+
+    if ($null -ne $jsonObj) {
+      $jsonOcr = Get-FirstValue $jsonObj @("ocr")
+      if ($null -ne $jsonOcr) {
+        $raw3 = Get-FirstValue $jsonOcr @("rawText", "text", "content")
+        if ($null -ne $raw3) { return [string]$raw3 }
+      }
+    }
+  }
+
   return ""
 }
 
@@ -364,7 +385,11 @@ function Get-UniqueFilePath {
 
 $envMap = Read-DotEnv -Path $EnvPath
 
-$key = $env:HD_ORIGIN_RECEIPT_API_KEY
+$key = $envMap["HD_ORIGIN_RECEIPT_API_KEY"]
+
+if ([string]::IsNullOrWhiteSpace($key)) {
+  $key = $env:HD_ORIGIN_RECEIPT_API_KEY
+}
 
 if ([string]::IsNullOrWhiteSpace($key)) {
   $key = Read-Host "HD_ORIGIN_RECEIPT_API_KEY を入力"
@@ -551,4 +576,6 @@ foreach ($item in $items) {
 
 Write-Host "全件完了しました。"
 Write-Host ("取込ログ: {0}" -f $logPath)
+
+
 

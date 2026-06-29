@@ -1,109 +1,175 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>取込済みレシート一覧</title>
+  <meta charset="UTF-8" />
+  <title>レシート読取確認</title>
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      background: #f5f5f5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
       color: #222;
     }
 
     header {
+      height: 48px;
+      box-sizing: border-box;
+      padding: 12px 16px;
       background: #222;
       color: #fff;
-      padding: 14px 18px;
+      font-size: 18px;
+      font-weight: 700;
     }
 
     main {
-      padding: 16px;
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 16px;
+      grid-template-columns: 300px 1fr 520px;
+      gap: 10px;
+      padding: 10px;
+      height: calc(100vh - 48px);
+      box-sizing: border-box;
     }
 
-    .card {
+    .panel {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 8px;
-      padding: 14px;
+      overflow: hidden;
+      min-height: 0;
     }
 
-    h1 {
-      font-size: 20px;
-      margin: 0;
-    }
-
-    h2 {
-      font-size: 16px;
-      margin: 0 0 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    th, td {
-      border-bottom: 1px solid #e0e0e0;
-      padding: 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
+    .panel-title {
+      height: 42px;
+      box-sizing: border-box;
+      padding: 9px 10px;
+      border-bottom: 1px solid #ddd;
       background: #fafafa;
-      position: sticky;
-      top: 0;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
 
-    tr {
+    .scroll {
+      height: calc(100% - 42px);
+      overflow: auto;
+    }
+
+    .list-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
       cursor: pointer;
     }
 
-    tr:hover {
-      background: #f0f7ff;
+    .list-item:hover {
+      background: #f0f4ff;
     }
 
-    .muted {
+    .list-item.active {
+      background: #e8f0ff;
+      border-left: 4px solid #333;
+    }
+
+    .list-main {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .list-sub {
+      font-size: 12px;
       color: #666;
-      font-size: 12px;
-    }
-
-    .mono {
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 12px;
+      line-height: 1.5;
       word-break: break-all;
     }
 
-    #receiptImage {
-      max-width: 100%;
-      max-height: 480px;
-      border: 1px solid #ddd;
-      background: #fafafa;
-      display: none;
+    .image-area {
+      height: calc(100% - 42px);
+      overflow: auto;
+      background: #eee;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #111;
-      color: #eee;
-      padding: 12px;
-      border-radius: 6px;
-      max-height: 360px;
+    .image-area img {
+      max-width: 100%;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .form-area {
+      height: calc(100% - 42px);
       overflow: auto;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .block {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .block-title {
+      padding: 8px 10px;
+      background: #fafafa;
+      border-bottom: 1px solid #ddd;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .block-body {
+      padding: 10px;
+    }
+
+    label {
+      display: block;
       font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #444;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 7px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 64px;
+      resize: vertical;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .grid1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     button {
-      padding: 7px 12px;
       border: 1px solid #aaa;
-      border-radius: 6px;
       background: #fff;
+      padding: 7px 10px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
@@ -111,153 +177,470 @@
       background: #f2f2f2;
     }
 
-    .toolbar {
+    button.primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+
+    button.primary:hover {
+      background: #444;
+    }
+
+    button.danger {
+      color: #b00020;
+      border-color: #d8a0aa;
+    }
+
+    .actions {
       display: flex;
       gap: 8px;
-      align-items: center;
+      flex-wrap: wrap;
       margin-bottom: 10px;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 12px;
+    }
+
+    .warn {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    .ok {
+      color: #087a28;
+      font-weight: 700;
+    }
+
+    table.lines {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    table.lines th,
+    table.lines td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      vertical-align: top;
+    }
+
+    table.lines th {
+      background: #fafafa;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    table.lines input {
+      padding: 5px;
+      font-size: 13px;
+    }
+
+    .line-name {
+      min-width: 150px;
+    }
+
+    .line-small {
+      width: 70px;
+    }
+
+    .line-money {
+      width: 90px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #111;
+      color: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 180px;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>取込済みレシート一覧</h1>
-  </header>
+  <header>レシート読取確認</header>
 
   <main>
-    <section class="card">
-      <div class="toolbar">
-        <button onclick="loadReceipts()">再読込</button>
-        <span id="count" class="muted"></span>
+    <section class="panel">
+      <div class="panel-title">
+        <span>レシート</span>
+        <button onclick="loadList()">再読込</button>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>取込日時</th>
-            <th>ファイル名</th>
-            <th>OCR</th>
-            <th>状態</th>
-          </tr>
-        </thead>
-        <tbody id="listBody">
-          <tr>
-            <td colspan="5">読込中...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="list" class="scroll">読込中...</div>
     </section>
 
-    <section class="card">
-      <h2>詳細</h2>
-      <div id="detail" class="muted">左の一覧から選択してください。</div>
-      <hr>
-      <img id="receiptImage" alt="レシート画像">
-      <h2 style="margin-top:14px;">OCR rawText</h2>
-      <pre id="ocrText"></pre>
+    <section class="panel">
+      <div class="panel-title">画像</div>
+      <div id="imageArea" class="image-area">左から選択してください。</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">読取候補の編集</div>
+      <div id="formArea" class="form-area">左から選択してください。</div>
     </section>
   </main>
 
   <script>
-    const listBody = document.getElementById("listBody");
-    const countEl = document.getElementById("count");
-    const detailEl = document.getElementById("detail");
-    const imageEl = document.getElementById("receiptImage");
-    const ocrEl = document.getElementById("ocrText");
+    let currentItems = [];
+    let selectedId = null;
+    let currentDraft = null;
+    let currentLineItems = [];
 
-    function escapeHtml(value) {
+    function esc(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replaceAll("'", "&#39;");
     }
 
-    function formatDate(value) {
+    function toDateInput(value, rawJson) {
+      if (rawJson && rawJson.transactionDate) return rawJson.transactionDate;
       if (!value) return "";
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return value;
-      return d.toLocaleString("ja-JP");
+      return String(value).slice(0, 10);
     }
 
-    async function loadReceipts() {
-      listBody.innerHTML = `<tr><td colspan="5">読込中...</td></tr>`;
-      countEl.textContent = "";
+    function numValue(value) {
+      if (value === null || value === undefined) return "";
+      return String(value);
+    }
 
-      try {
-        const res = await fetch("/api/receipts/imports?limit=100");
-        const json = await res.json();
-
-        if (!json.ok) {
-          throw new Error(json.message || "APIエラー");
-        }
-
-        countEl.textContent = `${json.count}件`;
-
-        if (!json.items.length) {
-          listBody.innerHTML = `<tr><td colspan="5">取込済みレシートはありません。</td></tr>`;
-          return;
-        }
-
-        listBody.innerHTML = json.items.map(item => `
-          <tr onclick="showDetail(${item.id})">
-            <td>${escapeHtml(item.id)}</td>
-            <td>${escapeHtml(formatDate(item.imported_at_jst))}</td>
-            <td>
-              ${escapeHtml(item.local_image_file_name)}
-              <div class="muted">${escapeHtml(item.upload_id)}</div>
-            </td>
-            <td>
-              ${escapeHtml(item.ocr_line_count ?? 0)}行 /
-              ${escapeHtml(item.ocr_word_count ?? 0)}語
-            </td>
-            <td>${escapeHtml(item.status)}</td>
-          </tr>
-        `).join("");
-      } catch (error) {
-        listBody.innerHTML = `<tr><td colspan="5">${escapeHtml(error.message)}</td></tr>`;
+    function invoiceNote(value) {
+      const v = String(value || "").trim();
+      if (!v) return "";
+      if (!/^T\d{13}$/.test(v)) {
+        return '<div class="warn">T番号ではありません。伝票番号の可能性があります。</div>';
       }
+      return '<div class="ok">T番号形式です。</div>';
     }
 
-    async function showDetail(id) {
-      detailEl.textContent = "読込中...";
-      imageEl.style.display = "none";
-      imageEl.removeAttribute("src");
-      ocrEl.textContent = "";
+    async function loadList() {
+      const list = document.getElementById("list");
+      list.innerHTML = "読込中...";
 
-      try {
-        const res = await fetch(`/api/receipts/imports/${id}`);
-        const json = await res.json();
+      const res = await fetch("/api/receipts/imports?limit=100");
+      const data = await res.json();
 
-        if (!json.ok) {
-          throw new Error(json.message || "APIエラー");
-        }
+      if (!data.ok) {
+        list.innerHTML = '<div class="list-item warn">読込失敗: ' + esc(data.error) + '</div>';
+        return;
+      }
 
-        const item = json.item;
+      currentItems = data.items || [];
 
-        detailEl.innerHTML = `
-          <div><b>ID:</b> ${escapeHtml(item.id)}</div>
-          <div><b>upload_id:</b> <span class="mono">${escapeHtml(item.upload_id)}</span></div>
-          <div><b>wix_item_id:</b> <span class="mono">${escapeHtml(item.wix_item_id)}</span></div>
-          <div><b>ファイル名:</b> ${escapeHtml(item.local_image_file_name)}</div>
-          <div><b>保存先:</b> <span class="mono">${escapeHtml(item.local_image_path)}</span></div>
-          <div><b>SHA-256:</b> <span class="mono">${escapeHtml(item.image_hash_sha256)}</span></div>
-          <div><b>取込日時:</b> ${escapeHtml(formatDate(item.imported_at_jst))}</div>
-          <div><b>OCR:</b> ${escapeHtml(item.ocr_provider || "")}</div>
+      if (currentItems.length === 0) {
+        list.innerHTML = '<div class="list-item">レシートがありません。</div>';
+        return;
+      }
+
+      list.innerHTML = currentItems.map(item => {
+        const active = Number(item.id) === Number(selectedId) ? " active" : "";
+
+        return `
+          <div class="list-item${active}" onclick="loadDetail(${item.id})">
+            <div class="list-main">ID ${esc(item.id)} / ${esc(item.upload_id || "")}</div>
+            <div class="list-sub">
+              ${esc(item.local_image_file_name || "")}<br>
+              ${esc(item.imported_at_jst || "")}
+            </div>
+          </div>
         `;
-
-        imageEl.src = `/api/receipts/image/${item.id}?t=${Date.now()}`;
-        imageEl.style.display = "block";
-
-        ocrEl.textContent = item.ocr_raw_text || "";
-      } catch (error) {
-        detailEl.textContent = error.message;
-      }
+      }).join("");
     }
 
-    loadReceipts();
+    async function loadDetail(id) {
+      selectedId = id;
+      await loadList();
+
+      document.getElementById("imageArea").innerHTML = `<img src="/api/receipts/image/${id}" alt="receipt">`;
+      document.getElementById("formArea").innerHTML = "読込中...";
+
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
+      const data = await res.json();
+
+      if (!data.ok) {
+        document.getElementById("formArea").innerHTML = '<div class="warn">読込失敗: ' + esc(data.error) + '</div>';
+        return;
+      }
+
+      renderForm(data.item, data.aiDrafts || []);
+    }
+
+    function renderForm(item, drafts) {
+      currentDraft = drafts[0] || null;
+
+      if (!currentDraft) {
+        currentLineItems = [];
+        document.getElementById("formArea").innerHTML = `
+          <div class="actions">
+            <button class="primary" onclick="analyzeReceipt(${item.id})">AIで読取候補を作成</button>
+          </div>
+          <div class="muted">まだ候補がありません。まずAI解析してください。</div>
+        `;
+        return;
+      }
+
+      const raw = currentDraft.ai_raw_json || {};
+      currentLineItems = Array.isArray(currentDraft.line_items) ? currentDraft.line_items : [];
+
+      document.getElementById("formArea").innerHTML = `
+        <div class="actions">
+          <button class="primary" onclick="saveDraft()">候補を保存</button>
+          <button onclick="analyzeReceipt(${item.id})">AI再解析</button>
+        </div>
+
+        <div class="block">
+          <div class="block-title">基本情報</div>
+          <div class="block-body">
+            <div class="grid2">
+              <div>
+                <label>取引日</label>
+                <input id="transactionDate" type="date" value="${esc(toDateInput(currentDraft.transaction_date, raw))}">
+              </div>
+              <div>
+                <label>支払方法</label>
+                <input id="paymentMethodName" value="${esc(currentDraft.payment_method_name)}">
+              </div>
+            </div>
+
+            <div class="grid1">
+              <div>
+                <label>店名・支払先</label>
+                <input id="vendorName" value="${esc(currentDraft.vendor_name)}">
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div>
+                <label>合計金額</label>
+                <input id="totalAmount" type="number" value="${esc(numValue(currentDraft.total_amount))}">
+              </div>
+              <div>
+                <label>消費税額</label>
+                <input id="taxAmount" type="number" value="${esc(numValue(currentDraft.tax_amount))}">
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div>
+                <label>税率</label>
+                <input id="taxRate" value="${esc(currentDraft.tax_rate)}">
+              </div>
+              <div>
+                <label>インボイス番号</label>
+                <input id="invoiceNumber" value="${esc(currentDraft.invoice_number)}">
+                ${invoiceNote(currentDraft.invoice_number)}
+              </div>
+            </div>
+
+            <div class="grid1">
+              <div>
+                <label>摘要</label>
+                <input id="summary" value="${esc(currentDraft.summary)}">
+              </div>
+              <div>
+                <label>メモ・注意点</label>
+                <textarea id="memo">${esc(currentDraft.memo)}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">
+            <span>明細</span>
+            <button onclick="addLineItem()">明細追加</button>
+          </div>
+          <div class="block-body">
+            <div id="lineItemsArea"></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">会計候補</div>
+          <div class="block-body">
+            <div class="grid2">
+              <div>
+                <label>勘定科目候補</label>
+                <input id="accountTitleName" value="${esc(currentDraft.account_title_name)}">
+              </div>
+              <div>
+                <label>信頼度</label>
+                <input id="confidence" type="number" value="${esc(numValue(currentDraft.confidence))}">
+              </div>
+            </div>
+            <div class="muted">ここは確定ではなく候補です。あとで本登録時に調整します。</div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">OCR本文</div>
+          <div class="block-body">
+            <pre>${esc(item.ocr_raw_text || "")}</pre>
+          </div>
+        </div>
+      `;
+
+      renderLineItems();
+    }
+
+    function renderLineItems() {
+      const area = document.getElementById("lineItemsArea");
+
+      if (!area) return;
+
+      if (!currentLineItems.length) {
+        area.innerHTML = `
+          <div class="muted">明細がありません。</div>
+          <div style="margin-top:8px;">
+            <button onclick="addLineItem()">明細追加</button>
+          </div>
+        `;
+        return;
+      }
+
+      area.innerHTML = `
+        <table class="lines">
+          <thead>
+            <tr>
+              <th>品名</th>
+              <th>数量</th>
+              <th>単価</th>
+              <th>金額</th>
+              <th>税率</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${currentLineItems.map((line, index) => `
+              <tr>
+                <td><input class="line-name" value="${esc(line.name || "")}" oninput="currentLineItems[${index}].name=this.value"></td>
+                <td><input class="line-small" type="number" step="0.01" value="${esc(numValue(line.quantity))}" oninput="currentLineItems[${index}].quantity=this.value"></td>
+                <td><input class="line-money" type="number" value="${esc(numValue(line.unitPrice))}" oninput="currentLineItems[${index}].unitPrice=this.value"></td>
+                <td><input class="line-money" type="number" value="${esc(numValue(line.amount))}" oninput="currentLineItems[${index}].amount=this.value"></td>
+                <td><input class="line-small" value="${esc(line.taxRate || "")}" oninput="currentLineItems[${index}].taxRate=this.value"></td>
+                <td><input value="${esc(line.memo || "")}" oninput="currentLineItems[${index}].memo=this.value"></td>
+                <td><button class="danger" onclick="removeLineItem(${index})">削除</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function addLineItem() {
+      currentLineItems.push({
+        name: "",
+        quantity: "",
+        unitPrice: "",
+        amount: "",
+        taxRate: "",
+        memo: ""
+      });
+
+      renderLineItems();
+    }
+
+    function removeLineItem(index) {
+      currentLineItems.splice(index, 1);
+      renderLineItems();
+    }
+
+    function getInput(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    }
+
+    function cleanNumber(value) {
+      if (value === "") return null;
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      return n;
+    }
+
+    function collectDraftPayload() {
+      return {
+        transactionDate: getInput("transactionDate") || null,
+        vendorName: getInput("vendorName"),
+        totalAmount: cleanNumber(getInput("totalAmount")),
+        taxAmount: cleanNumber(getInput("taxAmount")),
+        taxRate: getInput("taxRate"),
+        paymentMethodName: getInput("paymentMethodName"),
+        accountTitleName: getInput("accountTitleName"),
+        invoiceNumber: getInput("invoiceNumber"),
+        summary: getInput("summary"),
+        memo: getInput("memo"),
+        confidence: cleanNumber(getInput("confidence")),
+        status: "draft",
+        lineItems: currentLineItems.map(line => ({
+          name: line.name || "",
+          quantity: cleanNumber(line.quantity),
+          unitPrice: cleanNumber(line.unitPrice),
+          amount: cleanNumber(line.amount),
+          taxRate: line.taxRate || "",
+          memo: line.memo || ""
+        }))
+      };
+    }
+
+    async function saveDraft() {
+      if (!currentDraft) {
+        alert("保存する候補がありません。");
+        return;
+      }
+
+      const payload = collectDraftPayload();
+
+      const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(currentDraft.id), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("保存失敗: " + (data.error || ""));
+        return;
+      }
+
+      alert("保存しました。");
+      await loadDetail(selectedId);
+    }
+
+    async function analyzeReceipt(id) {
+      if (!confirm("AI解析を実行しますか？")) return;
+
+      const formArea = document.getElementById("formArea");
+      formArea.insertAdjacentHTML("afterbegin", '<div class="block"><div class="block-body">AI解析中...</div></div>');
+
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id) + "/analyze", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("AI解析失敗: " + (data.error || ""));
+        await loadDetail(id);
+        return;
+      }
+
+      await loadDetail(id);
+    }
+
+    loadList();
   </script>
 </body>
 </html>

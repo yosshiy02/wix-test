@@ -1,32 +1,10 @@
-﻿const db = require("../db");
+const pool = require("../db");
 
-function getRows(result) {
-  if (Array.isArray(result)) return result;
-  if (result && Array.isArray(result.rows)) return result.rows;
-  return [];
-}
+async function listImports(limit = 100, offset = 0) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+  const safeOffset = Math.max(Number(offset) || 0, 0);
 
-async function runQuery(sql, params) {
-  if (db && typeof db.query === "function") {
-    return db.query(sql, params);
-  }
-
-  if (db && db.pool && typeof db.pool.query === "function") {
-    return db.pool.query(sql, params);
-  }
-
-  if (db && db.default && typeof db.default.query === "function") {
-    return db.default.query(sql, params);
-  }
-
-  throw new Error("db.query が見つかりません。src/db.js の export 形式を確認してください。");
-}
-
-async function listImports(options = {}) {
-  const limit = Math.min(Math.max(parseInt(options.limit || 100, 10), 1), 500);
-  const offset = Math.max(parseInt(options.offset || 0, 10), 0);
-
-  const result = await runQuery(
+  const result = await pool.query(
     `
     SELECT
       id,
@@ -52,14 +30,14 @@ async function listImports(options = {}) {
     ORDER BY imported_at_jst DESC NULLS LAST, id DESC
     LIMIT $1 OFFSET $2
     `,
-    [limit, offset]
+    [safeLimit, safeOffset]
   );
 
-  return getRows(result);
+  return result.rows;
 }
 
 async function getImportById(id) {
-  const result = await runQuery(
+  const result = await pool.query(
     `
     SELECT
       id,
@@ -88,10 +66,120 @@ async function getImportById(id) {
     [id]
   );
 
-  return getRows(result)[0] || null;
+  return result.rows[0] || null;
+}
+
+async function createAiDraft(receiptImportId, draft) {
+  const result = await pool.query(
+    `
+    INSERT INTO accounting.receipt_ai_drafts (
+      receipt_import_id,
+      transaction_date,
+      vendor_name,
+      total_amount,
+      tax_amount,
+      tax_rate,
+      payment_method_name,
+      account_title_name,
+      invoice_number,
+      summary,
+      memo,
+      confidence,
+      line_items,
+      status,
+      ai_model,
+      ai_raw_json,
+      error_message
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6,
+      $7, $8, $9, $10, $11, $12,
+      $13::jsonb, 'draft', $14, $15::jsonb, ''
+    )
+    RETURNING *
+    `,
+    [
+      receiptImportId,
+      draft.transactionDate,
+      draft.vendorName,
+      draft.totalAmount,
+      draft.taxAmount,
+      draft.taxRate,
+      draft.paymentMethodName,
+      draft.accountTitleName,
+      draft.invoiceNumber,
+      draft.summary,
+      draft.memo,
+      draft.confidence,
+      JSON.stringify(draft.lineItems || []),
+      draft.aiModel,
+      JSON.stringify(draft.aiRawJson || {})
+    ]
+  );
+
+  return result.rows[0];
+}
+
+async function getAiDrafts(receiptImportId) {
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_ai_drafts
+    WHERE receipt_import_id = $1
+    ORDER BY id DESC
+    `,
+    [receiptImportId]
+  );
+
+  return result.rows;
+}
+
+async function updateAiDraft(id, patch) {
+  const result = await pool.query(
+    `
+    UPDATE accounting.receipt_ai_drafts
+    SET
+      transaction_date = $2,
+      vendor_name = $3,
+      total_amount = $4,
+      tax_amount = $5,
+      tax_rate = $6,
+      payment_method_name = $7,
+      account_title_name = $8,
+      invoice_number = $9,
+      summary = $10,
+      memo = $11,
+      confidence = $12,
+      line_items = $13::jsonb,
+      status = $14,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1
+    RETURNING *
+    `,
+    [
+      id,
+      patch.transactionDate || null,
+      patch.vendorName || "",
+      patch.totalAmount === "" || patch.totalAmount === undefined ? null : Number(patch.totalAmount),
+      patch.taxAmount === "" || patch.taxAmount === undefined ? null : Number(patch.taxAmount),
+      patch.taxRate || "",
+      patch.paymentMethodName || "",
+      patch.accountTitleName || "",
+      patch.invoiceNumber || "",
+      patch.summary || "",
+      patch.memo || "",
+      patch.confidence === "" || patch.confidence === undefined ? null : Number(patch.confidence),
+      JSON.stringify(Array.isArray(patch.lineItems) ? patch.lineItems : []),
+      patch.status || "draft"
+    ]
+  );
+
+  return result.rows[0] || null;
 }
 
 module.exports = {
   listImports,
-  getImportById
+  getImportById,
+  createAiDraft,
+  getAiDrafts,
+  updateAiDraft,
 };

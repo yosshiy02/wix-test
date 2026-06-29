@@ -9,6 +9,7 @@ const { handleItemsRoutes } = require("./src/items/items.routes");
 const { handleBackupRoutes } = require("./src/backups/backup.routes");
 const { handleProjectBackupRoutes } = require("./src/projectBackup/projectBackup.routes");
 const { handleExpenseRoutes } = require("./src/expenses/expenses.routes");
+const { handleReceiptRoutes } = require("./src/receipts/receipts.routes");
 const { handleMasterRoutes } = require("./src/masters/masters.routes");
 const { makeAppRoutes } = require("./src/app/app.routes");
 
@@ -22,6 +23,7 @@ const server = http.createServer(async (req, res) => {
       if (await handleBackupRoutes(req, res)) return;
       if (await handleProjectBackupRoutes(req, res)) return;
       if (await handleExpenseRoutes(req, res)) return;
+      if (await handleReceiptRoutes(req, res)) return;
       if (await handleAppRoutes(req, res)) return;
 
       return sendJson(res, 404, { ok: false, error: "API not found" });
@@ -55,6 +57,7 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
+
 
 
 
