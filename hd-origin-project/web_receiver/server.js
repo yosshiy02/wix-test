@@ -44,6 +44,8 @@ async function start() {
   writeProjectStatus();
   await ensureDatabaseReady();
 
+
+
   server.listen(config.PORT, () => {
     console.log(`HD Origin Project running: http://localhost:${config.PORT}`);
   });
@@ -53,4 +55,6 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
+
+
 

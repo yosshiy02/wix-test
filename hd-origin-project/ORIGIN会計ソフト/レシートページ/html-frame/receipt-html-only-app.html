@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>レシート登録</title>
+  <title>レシートOCR登録</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -51,7 +51,6 @@
 
     input,
     select,
-    textarea,
     button {
       width: 100%;
       font-size: 16px;
@@ -59,11 +58,6 @@
       padding: 11px;
       border: 1px solid #d1d5db;
       background: #fff;
-    }
-
-    textarea {
-      min-height: 70px;
-      resize: vertical;
     }
 
     button {
@@ -113,24 +107,14 @@
       color: #6b7280;
       margin-top: 4px;
     }
-
-    .ok {
-      color: #166534;
-      font-weight: 700;
-    }
-
-    .ng {
-      color: #991b1b;
-      font-weight: 700;
-    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>レシート登録</h1>
-      <p>レシートを撮影し、画像を圧縮して保存します。OCRテストもできます。</p>
+      <h1>レシートOCR登録</h1>
+      <p>レシート画像を圧縮し、OCRで読み取った生テキストを保存します。</p>
 
       <label>レシート画像</label>
       <input id="fileInput" type="file" accept="image/*" capture="environment">
@@ -138,52 +122,26 @@
     </div>
 
     <div class="card">
-      <label>レシート日付</label>
-      <input id="receiptDate" type="date">
-
-      <label>店名</label>
-      <input id="vendorName" type="text" placeholder="例：セブンイレブン">
-
-      <label>合計金額</label>
-      <input id="totalAmount" type="number" inputmode="numeric" placeholder="例：1250">
-
-      <label>支払方法</label>
-      <select id="paymentMethod">
-        <option value="">選択してください</option>
-        <option value="現金">現金</option>
-        <option value="カード">カード</option>
-        <option value="電子マネー">電子マネー</option>
-        <option value="振込">振込</option>
-        <option value="その他">その他</option>
-      </select>
-
-      <label>メモ</label>
-      <textarea id="memo" placeholder="必要ならメモ"></textarea>
-    </div>
-
-    <div class="card">
       <div class="row">
         <div>
           <label>長辺px</label>
           <select id="maxSize">
-            <option value="1200">1200</option>
-            <option value="1600" selected>1600</option>
-            <option value="2000">2000</option>
+            <option value="1200" selected>1200</option>
+            <option value="1600">1600</option>
           </select>
         </div>
 
         <div>
           <label>画質</label>
           <select id="quality">
-            <option value="0.6">0.6</option>
-            <option value="0.7" selected>0.7</option>
-            <option value="0.8">0.8</option>
+            <option value="0.6" selected>0.6 標準</option>
+            <option value="0.5">0.5 軽量</option>
           </select>
         </div>
       </div>
 
       <button id="rotateBtn" class="secondary">90度回転</button>
-      <button id="compressBtn">画像を圧縮</button>
+      <button id="compressBtn">画像を圧縮 / 再圧縮</button>
     </div>
 
     <div class="card">
@@ -191,9 +149,8 @@
     </div>
 
     <div class="card">
-      <button id="ocrTestBtn" class="secondary">OCRテスト</button>
+      <button id="ocrTestBtn" class="secondary">OCR読み込み / 再読み込み</button>
       <button id="saveBtn">Wixへ保存</button>
-      <button id="downloadBtn" class="secondary">圧縮画像だけ保存</button>
       <button id="resetBtn" class="danger">入力をクリア</button>
     </div>
 
@@ -208,12 +165,6 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
-  const receiptDate = document.getElementById("receiptDate");
-  const vendorName = document.getElementById("vendorName");
-  const totalAmount = document.getElementById("totalAmount");
-  const paymentMethod = document.getElementById("paymentMethod");
-  const memo = document.getElementById("memo");
-
   const maxSizeEl = document.getElementById("maxSize");
   const qualityEl = document.getElementById("quality");
 
@@ -221,24 +172,25 @@
   const compressBtn = document.getElementById("compressBtn");
   const ocrTestBtn = document.getElementById("ocrTestBtn");
   const saveBtn = document.getElementById("saveBtn");
-  const downloadBtn = document.getElementById("downloadBtn");
   const resetBtn = document.getElementById("resetBtn");
   const statusEl = document.getElementById("status");
 
   let sourceImage = null;
   let sourceFileName = "";
   let rotation = 0;
+
   let lastDataUrl = "";
   let lastBytes = 0;
   let lastReceiptId = "";
 
+  let lastOcrRawText = "";
+  let lastOcrProvider = "";
+  let lastOcrLineCount = 0;
+  let lastOcrWordCount = 0;
+  let lastOcrImageKey = "";
+
   function pad2(n) {
     return String(n).padStart(2, "0");
-  }
-
-  function todayText() {
-    const d = new Date();
-    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
   }
 
   function makeReceiptId() {
@@ -255,6 +207,30 @@
 
   function setStatus(text) {
     statusEl.textContent = text;
+  }
+
+  function clearOcrState() {
+    lastOcrRawText = "";
+    lastOcrProvider = "";
+    lastOcrLineCount = 0;
+    lastOcrWordCount = 0;
+    lastOcrImageKey = "";
+  }
+
+  function clearCompressedState() {
+    lastDataUrl = "";
+    lastBytes = 0;
+    clearOcrState();
+  }
+
+  function currentImageKey() {
+    return [
+      lastReceiptId,
+      String(lastBytes),
+      String(maxSizeEl.value),
+      String(qualityEl.value),
+      String(rotation)
+    ].join("|");
   }
 
   function dataUrlBytes(dataUrl) {
@@ -326,8 +302,10 @@
     drawImage();
 
     const quality = Number(qualityEl.value);
+
     lastDataUrl = canvas.toDataURL("image/jpeg", quality);
     lastBytes = dataUrlBytes(lastDataUrl);
+    clearOcrState();
 
     if (!lastReceiptId) {
       lastReceiptId = makeReceiptId();
@@ -338,7 +316,8 @@
       "receipt_id: " + lastReceiptId + "\n" +
       "サイズ: 約 " + Math.round(lastBytes / 1024) + " KB\n" +
       "長辺: " + maxSizeEl.value + "px\n" +
-      "画質: " + quality
+      "画質: " + quality + "\n\n" +
+      "OCRは未実行です。OCR読み込みを押してください。"
     );
 
     return true;
@@ -352,8 +331,9 @@
     sourceFileName = file.name || "";
     sourceImage = await loadFile(file);
     rotation = 0;
-    lastDataUrl = "";
     lastReceiptId = makeReceiptId();
+
+    clearCompressedState();
 
     drawImage();
 
@@ -361,14 +341,51 @@
       "画像を読み込みました。\n" +
       "receipt_id: " + lastReceiptId + "\n" +
       "元ファイル: " + sourceFileName + "\n" +
-      "元サイズ: " + sourceImage.naturalWidth + " x " + sourceImage.naturalHeight + "\n" +
+      "元サイズ: " + sourceImage.naturalWidth + " x " + sourceImage.naturalHeight + "\n\n" +
       "次に「画像を圧縮」を押してください。"
     );
   });
 
   rotateBtn.addEventListener("click", () => {
+    if (!sourceImage) {
+      setStatus("画像がありません。");
+      return;
+    }
+
     rotation = (rotation + 90) % 360;
+    clearCompressedState();
     drawImage();
+
+    setStatus(
+      "90度回転しました。\n" +
+      "圧縮画像とOCR結果はクリアしました。\n\n" +
+      "もう一度「画像を圧縮」を押してください。"
+    );
+  });
+
+  maxSizeEl.addEventListener("change", () => {
+    if (!sourceImage) return;
+
+    clearCompressedState();
+    drawImage();
+
+    setStatus(
+      "長辺pxを変更しました。\n" +
+      "圧縮画像とOCR結果はクリアしました。\n\n" +
+      "もう一度「画像を圧縮」を押してください。"
+    );
+  });
+
+  qualityEl.addEventListener("change", () => {
+    if (!sourceImage) return;
+
+    clearCompressedState();
+
+    setStatus(
+      "画質を変更しました。\n" +
+      "圧縮画像とOCR結果はクリアしました。\n\n" +
+      "もう一度「画像を圧縮」を押してください。"
+    );
   });
 
   compressBtn.addEventListener("click", compressImage);
@@ -378,6 +395,8 @@
       const ok = await compressImage();
       if (!ok) return;
     }
+
+    clearOcrState();
 
     const payload = {
       type: "TEST_AZURE_READ_OCR",
@@ -393,30 +412,35 @@
     window.parent.postMessage(payload, "*");
 
     setStatus(
-      "Azure OCRテスト依頼を送りました。\n" +
+      "Azure OCR読み込み依頼を送りました。\n" +
       "receipt_id: " + payload.receiptId + "\n" +
       "OCR結果を待っています。"
     );
   });
+
   saveBtn.addEventListener("click", async () => {
     if (!lastDataUrl) {
       const ok = await compressImage();
       if (!ok) return;
     }
 
+    const ocrIsCurrent =
+      lastOcrRawText &&
+      lastOcrImageKey &&
+      lastOcrImageKey === currentImageKey();
+
     const payload = {
       type: "SAVE_RECEIPT",
       receiptId: lastReceiptId || makeReceiptId(),
-      receiptDate: receiptDate.value || todayText(),
-      vendorName: vendorName.value || "",
-      totalAmount: Number(totalAmount.value || 0),
-      paymentMethod: paymentMethod.value || "",
-      memo: memo.value || "",
       originalFileName: sourceFileName || "",
       compressedFileName: (lastReceiptId || makeReceiptId()) + "_compressed.jpg",
       mimeType: "image/jpeg",
       imageDataUrl: lastDataUrl,
       bytes: lastBytes,
+      ocrRawText: ocrIsCurrent ? lastOcrRawText : "",
+      ocrProvider: ocrIsCurrent ? lastOcrProvider : "",
+      ocrLineCount: ocrIsCurrent ? lastOcrLineCount : 0,
+      ocrWordCount: ocrIsCurrent ? lastOcrWordCount : 0,
       createdAt: new Date().toISOString()
     };
 
@@ -425,61 +449,71 @@
     setStatus(
       "Wixへ保存依頼を送りました。\n" +
       "receipt_id: " + payload.receiptId + "\n" +
+      "OCR保存: " + (ocrIsCurrent ? "あり" : "なし") + "\n" +
       "保存結果を待っています。"
     );
-  });
-
-  downloadBtn.addEventListener("click", async () => {
-    if (!lastDataUrl) {
-      const ok = await compressImage();
-      if (!ok) return;
-    }
-
-    const a = document.createElement("a");
-    a.href = lastDataUrl;
-    a.download = (lastReceiptId || makeReceiptId()) + "_compressed.jpg";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
   });
 
   resetBtn.addEventListener("click", () => {
     sourceImage = null;
     sourceFileName = "";
     rotation = 0;
-    lastDataUrl = "";
-    lastBytes = 0;
     lastReceiptId = "";
 
-    fileInput.value = "";
-    receiptDate.value = todayText();
-    vendorName.value = "";
-    totalAmount.value = "";
-    paymentMethod.value = "";
-    memo.value = "";
+    clearCompressedState();
 
+    fileInput.value = "";
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     setStatus("クリアしました。画像を選んでください。");
   });
 
   window.addEventListener("message", (event) => {
     const data = event.data;
 
-    if (!data || data.type !== "SAVE_RECEIPT_RESULT") return;
+    if (!data || !data.type) return;
 
-    if (data.ok) {
-      setStatus(
-        "保存完了\n" +
-        "receipt_id: " + data.receiptId + "\n" +
-        "画像URL: " + (data.imageUrl || "")
-      );
-    } else {
-      setStatus("保存エラー\n" + (data.message || "原因不明"));
+    if (data.type === "SAVE_RECEIPT_RESULT") {
+      if (data.ok) {
+        setStatus(
+          "保存完了\n" +
+          "receipt_id: " + data.receiptId + "\n" +
+          "status: " + (data.status || "") + "\n" +
+          "画像URL: " + (data.imageUrl || "")
+        );
+      } else {
+        setStatus("保存エラー\n" + (data.message || "原因不明"));
+      }
+
+      return;
+    }
+
+    if (data.type === "TEST_AZURE_READ_OCR_RESULT") {
+      if (data.ok) {
+        lastOcrRawText = data.rawText || "";
+        lastOcrProvider = data.provider || "";
+        lastOcrLineCount = data.lineCount || 0;
+        lastOcrWordCount = data.wordCount || 0;
+        lastOcrImageKey = currentImageKey();
+
+        setStatus(
+          "OCR読み込み完了\n" +
+          "provider: " + lastOcrProvider + "\n" +
+          "行数: " + lastOcrLineCount + "\n" +
+          "単語数: " + lastOcrWordCount + "\n\n" +
+          "----- OCR rawText -----\n" +
+          lastOcrRawText
+        );
+      } else {
+        clearOcrState();
+        setStatus("OCR読み込みエラー\n" + (data.message || "原因不明"));
+      }
+
+      return;
     }
   });
-
-  receiptDate.value = todayText();
 })();
 </script>
 </body>
 </html>
+

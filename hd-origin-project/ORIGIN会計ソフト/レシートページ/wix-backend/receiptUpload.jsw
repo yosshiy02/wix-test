@@ -1,7 +1,7 @@
 ﻿import wixData from "wix-data";
 import { mediaManager } from "wix-media-backend";
 import { fetch } from "wix-fetch";
-import { secrets } from "wix-secrets-backend.v2";
+import { getSecret } from "wix-secrets-backend";
 import { Buffer } from "buffer";
 
 const COLLECTION_ID = "ReceiptUploads";
@@ -96,34 +96,21 @@ function toNullableNumber(value) {
 
 function buildReceiptJson(data) {
   return {
-    receiptDate: data.receiptDate || "",
-    vendorName: data.vendorName || "",
-    totalAmount: toNullableNumber(data.totalAmount),
-    paymentMethod: data.paymentMethod || "",
-    taxAmount: null,
-    invoiceNumber: "",
-    lines: [],
     ocr: {
-      provider: "",
-      rawText: "",
-      confidence: null
+      provider: data.ocrProvider || "",
+      rawText: data.ocrRawText || "",
+      confidence: null,
+      lineCount: toNullableNumber(data.ocrLineCount),
+      wordCount: toNullableNumber(data.ocrWordCount)
     }
   };
 }
 
 async function getSecretText(secretName) {
-  const result = await secrets.getSecretValue(secretName);
+  const value = await getSecret(secretName);
 
-  if (typeof result === "string") {
-    return result;
-  }
-
-  if (result && typeof result.value === "string") {
-    return result.value;
-  }
-
-  if (result && result.secret && typeof result.secret.value === "string") {
-    return result.secret.value;
+  if (typeof value === "string" && value !== "") {
+    return value;
   }
 
   throw new Error(`${secretName} の値を取得できませんでした。`);
@@ -340,6 +327,12 @@ export async function saveReceiptFromHtml(data) {
 
     const capturedAtJst = toJstDateTimeText(new Date());
 
+    const hasOcrText =
+      typeof data.ocrRawText === "string" &&
+      data.ocrRawText.trim() !== "";
+
+    const status = hasOcrText ? "ocr_done" : "uploaded";
+
     const row = {
       title: uploadId,
       uploadId: uploadId,
@@ -347,12 +340,12 @@ export async function saveReceiptFromHtml(data) {
       imageSizeBytes: imageBuffer.length,
       originalFileName: data.originalFileName || "",
       capturedAtJst: capturedAtJst,
-      status: "uploaded",
+      status: status,
       receiptJson: buildReceiptJson(data),
       errorMessage: "",
       exportBatchId: "",
       exportedAtJst: "",
-      memo: data.memo || ""
+      memo: ""
     };
 
     const inserted = await wixData.insert(COLLECTION_ID, row);
@@ -367,7 +360,7 @@ export async function saveReceiptFromHtml(data) {
       imageUrl: imageUrl,
       imageSizeBytes: imageBuffer.length,
       capturedAtJst: capturedAtJst,
-      status: "uploaded",
+      status: status,
       itemId: inserted._id
     };
 
