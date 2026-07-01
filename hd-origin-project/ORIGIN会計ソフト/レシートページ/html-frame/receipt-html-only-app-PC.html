@@ -891,7 +891,7 @@
         saveCurrentItem("OCRエラー");
 
         if (pendingOcrResolve) {
-          pendingOcrResolve({ ok: false, message: data.message || "原因不明" });
+          pendingOcrResolve({ ok: false, message: "OCRエラー" });
         }
       }
     }
@@ -1167,7 +1167,7 @@
     }
   });
 
-  batchif (saveBtn) saveBtn.addEventListener("click", async () => {
+  if (batchSaveBtn) batchSaveBtn.addEventListener("click", async () => {
     if (batchRunning) return;
     setBatchButtonsDisabled(true);
     try {
@@ -1265,7 +1265,7 @@
         saveCurrentItem("OCRエラー");
 
         if (pendingOcrResolve) {
-          pendingOcrResolve({ ok: false, message: data.message || "原因不明" });
+          pendingOcrResolve({ ok: false, message: "OCRエラー" });
         }
         setStatus("OCR読み込みエラー\n" + (data.message || "原因不明"));
       }
@@ -1277,6 +1277,7 @@
 </script>
 </body>
 </html>
+
 
 
 

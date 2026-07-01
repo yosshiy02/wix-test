@@ -1,4 +1,4 @@
-const pool = require("../db");
+﻿const pool = require("../db");
 
 async function listImports(limit = 100, offset = 0) {
   const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
@@ -176,10 +176,106 @@ async function updateAiDraft(id, patch) {
   return result.rows[0] || null;
 }
 
+
+async function getImportByImageHashSha256(hash) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      upload_id,
+      wix_item_id,
+      wix_image_url,
+      local_image_file_name,
+      local_image_path,
+      image_hash_sha256,
+      image_size_bytes,
+      original_file_name,
+      captured_at_jst,
+      imported_at_jst,
+      import_batch_id,
+      ocr_provider,
+      ocr_raw_text,
+      ocr_line_count,
+      ocr_word_count,
+      status,
+      created_at,
+      updated_at
+    FROM accounting.receipt_imports
+    WHERE image_hash_sha256 = $1
+    ORDER BY id DESC
+    LIMIT 1
+    `,
+    [hash]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function createLocalImport(data) {
+  const result = await pool.query(
+    `
+    INSERT INTO accounting.receipt_imports (
+      upload_id,
+      wix_item_id,
+      wix_image_url,
+      local_image_file_name,
+      local_image_path,
+      image_hash_sha256,
+      image_size_bytes,
+      original_file_name,
+      captured_at_jst,
+      imported_at_jst,
+      import_batch_id,
+      ocr_provider,
+      ocr_raw_text,
+      ocr_line_count,
+      ocr_word_count,
+      status
+    ) VALUES (
+      $1,
+      null,
+      null,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      CURRENT_TIMESTAMP,
+      $8,
+      $9,
+      $10,
+      $11,
+      $12,
+      'imported'
+    )
+    RETURNING *
+    `,
+    [
+      data.uploadId,
+      data.localImageFileName,
+      data.localImagePath,
+      data.imageHashSha256,
+      data.imageSizeBytes,
+      data.originalFileName,
+      data.capturedAtJst,
+      data.importBatchId,
+      data.ocrProvider,
+      data.ocrRawText,
+      data.ocrLineCount,
+      data.ocrWordCount
+    ]
+  );
+
+  return result.rows[0];
+}
+
 module.exports = {
   listImports,
   getImportById,
   createAiDraft,
   getAiDrafts,
   updateAiDraft,
+  getImportByImageHashSha256,
+  createLocalImport,
 };

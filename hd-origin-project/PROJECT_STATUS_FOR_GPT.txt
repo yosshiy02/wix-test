@@ -5,7 +5,7 @@ HD Origin Project 現状引き継ぎメモ
 DB_PASSWORD等の秘密情報は伏せています。
 
 [生成情報]
-生成日時: 2026/6/30 17:55:29
+生成日時: 2026/7/1 22:55:51
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -98,49 +98,64 @@ hd-origin-project\
 │     ├─ master_management_setup.sql.bak_20260626_202651
 │     └─ master_management_setup.sql.bak_20260626_202709
 ├─ ORIGIN会計ソフト\
-│  └─ レシートページ\
-│     ├─ _old_20260627_082025\
-│     │  ├─ data\
-│     │  │  └─ receipts_sample.csv
-│     │  ├─ docs\
-│     │  │  ├─ 00_このフォルダーの説明.txt
-│     │  │  ├─ 01_Wixページに置く部品一覧.txt
-│     │  │  ├─ 02_Wix_CMS_Receipts_項目.csv
-│     │  │  └─ 03_作業順番.txt
-│     │  ├─ html-frame\
-│     │  │  └─ receipt-camera-compress.html
-│     │  ├─ local-test\
-│     │  │  └─ receipt-camera-local-test.html
-│     │  ├─ wix\
-│     │  │  └─ 01_receipt_page_uploadbutton.js
-│     │  └─ TODO_レシートページ.txt
-│     ├─ docs\
-│     │  ├─ 00_最初に読む.txt
-│     │  ├─ 01_Wix_CMS_Receipts_項目.csv
-│     │  ├─ 01_Wix_CMS_Receipts_項目.csv.bak_20260628_090303
-│     │  ├─ 01_Wix_CMS_ReceiptUploads_項目.csv
-│     │  ├─ 02_Wix設置手順_HTML埋め込み版.txt
-│     │  ├─ 03_Backend修正メモ.txt
-│     │  ├─ 03_ReceiptUploads_CMS確定メモ.txt
-│     │  ├─ 03_日付修正メモ.txt
-│     │  └─ 04_Wix埋め込みHTML版.txt
-│     ├─ exports\
+│  ├─ レシートページ\
+│  │  ├─ _old_20260627_082025\
+│  │  │  ├─ data\
+│  │  │  │  └─ receipts_sample.csv
+│  │  │  ├─ docs\
+│  │  │  │  ├─ 00_このフォルダーの説明.txt
+│  │  │  │  ├─ 01_Wixページに置く部品一覧.txt
+│  │  │  │  ├─ 02_Wix_CMS_Receipts_項目.csv
+│  │  │  │  └─ 03_作業順番.txt
+│  │  │  ├─ html-frame\
+│  │  │  │  └─ receipt-camera-compress.html
+│  │  │  ├─ local-test\
+│  │  │  │  └─ receipt-camera-local-test.html
+│  │  │  ├─ wix\
+│  │  │  │  └─ 01_receipt_page_uploadbutton.js
+│  │  │  └─ TODO_レシートページ.txt
+│  │  ├─ docs\
+│  │  │  ├─ 00_最初に読む.txt
+│  │  │  ├─ 01_Wix_CMS_Receipts_項目.csv
+│  │  │  ├─ 01_Wix_CMS_Receipts_項目.csv.bak_20260628_090303
+│  │  │  ├─ 01_Wix_CMS_ReceiptUploads_項目.csv
+│  │  │  ├─ 02_Wix設置手順_HTML埋め込み版.txt
+│  │  │  ├─ 03_Backend修正メモ.txt
+│  │  │  ├─ 03_ReceiptUploads_CMS確定メモ.txt
+│  │  │  ├─ 03_日付修正メモ.txt
+│  │  │  └─ 04_Wix埋め込みHTML版.txt
+│  │  ├─ exports\
+│  │  │  └─ .gitkeep
+│  │  ├─ html-frame\
+│  │  │  ├─ receipt-html-only-app-PC.html
+│  │  │  └─ receipt-html-only-app.html
+│  │  ├─ images\
+│  │  │  └─ .gitkeep
+│  │  ├─ local-import\
+│  │  │  ├─ create_receipt_imports.sql
+│  │  │  └─ import-wix-receipts-to-dropbox.ps1
+│  │  ├─ wix\
+│  │  │  ├─ 03_receipt_page_html_only_bridge.js
+│  │  │  └─ page-code.js
+│  │  └─ wix-backend\
+│  │     ├─ http-functions.js
+│  │     ├─ receiptUpload.jsw
+│  │     └─ receiptUpload.jsw.bak_20260628_090303
+│  └─ レシート関係\
+│     ├─ duplicate\
 │     │  └─ .gitkeep
-│     ├─ html-frame\
-│     │  ├─ receipt-html-only-app-PC.html
-│     │  └─ receipt-html-only-app.html
-│     ├─ images\
+│     ├─ error\
 │     │  └─ .gitkeep
-│     ├─ local-import\
-│     │  ├─ create_receipt_imports.sql
-│     │  └─ import-wix-receipts-to-dropbox.ps1
-│     ├─ wix\
-│     │  ├─ 03_receipt_page_html_only_bridge.js
-│     │  └─ page-code.js
-│     └─ wix-backend\
-│        ├─ http-functions.js
-│        ├─ receiptUpload.jsw
-│        └─ receiptUpload.jsw.bak_20260628_090303
+│     ├─ imported\
+│     │  ├─ .gitkeep
+│     │  └─ 2026-07-01 21.59.06.png
+│     ├─ memo\
+│     │  ├─ .gitkeep
+│     │  └─ README_RECEIPT_IMPORT.txt
+│     ├─ scan_inbox\
+│     │  └─ .gitkeep
+│     └─ work\
+│        └─ .gitkeep
 ├─ web_receiver\
 │  ├─ public\
 │  │  ├─ expenses\
@@ -164,7 +179,8 @@ hd-origin-project\
 │  │  │  ├─ master-management.html.bak_fix_20260626_203047
 │  │  │  └─ master-management.html.bak_fix_20260626_203103
 │  │  ├─ receipts\
-│  │  │  └─ receipt-list.html
+│  │  │  ├─ receipt-list.html
+│  │  │  └─ receipt-scan-inbox.html
 │  │  ├─ index.html
 │  │  ├─ index.html.bak_20260625_151513
 │  │  ├─ index.html.bak_20260625_152408
@@ -218,6 +234,7 @@ hd-origin-project\
 │  ├─ apply_master_management_setup_tmp.js
 │  ├─ check_expenses_tables_tmp.js
 │  ├─ check_expenses_tables_with_password_tmp.js
+│  ├─ check_receipt_imports_columns_tmp.js
 │  ├─ list_databases_tmp.js
 │  ├─ package.json
 │  ├─ seed_expense_masters.js
