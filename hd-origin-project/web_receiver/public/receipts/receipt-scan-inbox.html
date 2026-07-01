@@ -152,12 +152,47 @@
       word-break: break-all;
       white-space: pre-wrap;
     }
+  
+    /* PC_RECEIPT_FILE_INPUT */
+    #uploadInput {
+      max-width: 18rem;
+      font-size: 0.85rem;
+      padding: 0.35rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.45rem;
+      background: #fff;
+    }
+  
+    /* PC_RECEIPT_LIST_DELETE_BUTTON */
+    .item-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.35rem;
+      align-items: stretch;
+    }
+
+    .delete-mini {
+      border: 1px solid #b00020;
+      color: #b00020;
+      background: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.35rem 0.55rem;
+      border-radius: 0.5rem;
+      min-width: 4rem;
+      cursor: pointer;
+    }
+
+    .delete-mini:hover {
+      background: #ffecec;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <h1>レシート取込</h1>
+      <input id="uploadInput" type="file" accept="image/*" multiple onchange="uploadSelectedFiles()">
       <button onclick="loadInbox()">再読込</button>
       <button onclick="runImportAll()">全件処理</button>
       <button class="secondary" onclick="openConfirmPage()">読取確認ページ</button>
@@ -191,6 +226,192 @@
 
   function kb(bytes) {
     return Math.round((Number(bytes) || 0) / 1024) + " KB";
+  }
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const RECEIPT_UPLOAD_MAX_BYTES = 100 * 1024;
+
+  function dataUrlBytes(dataUrl) {
+    const base64 = String(dataUrl || "").split(",")[1] || "";
+    return Math.round(base64.length * 3 / 4);
+  }
+
+  function fileNameWithoutExt(fileName) {
+    return String(fileName || "receipt").replace(/\.[^.]+$/, "");
+  }
+
+  function readFileAsImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const img = new Image();
+
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function drawImageToDataUrl(img, maxSide, quality) {
+    let w = img.naturalWidth;
+    let h = img.naturalHeight;
+
+    const longSide = Math.max(w, h);
+
+    if (longSide > maxSide) {
+      const scale = maxSide / longSide;
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  async function prepareReceiptImageForUpload(file) {
+    if (file.size <= RECEIPT_UPLOAD_MAX_BYTES) {
+      return {
+        dataUrl: await readFileAsDataUrl(file),
+        fileName: file.name,
+        mimeType: file.type || "image/jpeg",
+        originalBytes: file.size,
+        uploadBytes: file.size,
+        compressed: false
+      };
+    }
+
+    const img = await readFileAsImage(file);
+
+    const attempts = [
+      { maxSide: 1600, quality: 0.72 },
+      { maxSide: 1400, quality: 0.68 },
+      { maxSide: 1200, quality: 0.64 },
+      { maxSide: 1000, quality: 0.58 },
+      { maxSide: 900,  quality: 0.52 },
+      { maxSide: 800,  quality: 0.48 },
+      { maxSide: 700,  quality: 0.44 },
+      { maxSide: 600,  quality: 0.40 },
+      { maxSide: 520,  quality: 0.36 }
+    ];
+
+    let bestDataUrl = "";
+    let bestBytes = Number.MAX_SAFE_INTEGER;
+
+    for (const attempt of attempts) {
+      const dataUrl = drawImageToDataUrl(img, attempt.maxSide, attempt.quality);
+      const bytes = dataUrlBytes(dataUrl);
+
+      if (bytes < bestBytes) {
+        bestDataUrl = dataUrl;
+        bestBytes = bytes;
+      }
+
+      if (bytes <= RECEIPT_UPLOAD_MAX_BYTES) {
+        break;
+      }
+    }
+
+    return {
+      dataUrl: bestDataUrl,
+      fileName: fileNameWithoutExt(file.name) + "_compressed.jpg",
+      mimeType: "image/jpeg",
+      originalBytes: file.size,
+      uploadBytes: bestBytes,
+      compressed: true
+    };
+  }
+
+  async function uploadSelectedFiles() {
+    const input = document.getElementById("uploadInput");
+    const summary = document.getElementById("summary");
+
+    const files = Array.from(input.files || []).filter((file) => {
+      return file && file.type && file.type.indexOf("image/") === 0;
+    });
+
+    if (!files.length) {
+      summary.textContent = "画像ファイルが選択されていません。";
+      return;
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    summary.textContent =
+      "画像を追加中です。\n" +
+      "対象: " + files.length + "件";
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      try {
+        summary.textContent =
+          "画像を追加中です。\n" +
+          "処理中: " + (i + 1) + " / " + files.length + "\n" +
+          "ファイル: " + file.name + "\n" +
+          "100KB超の画像は自動圧縮します。";
+
+        const prepared = await prepareReceiptImageForUpload(file);
+
+        const res = await fetch("/api/receipts/scan-inbox/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({
+            fileName: prepared.fileName,
+            mimeType: prepared.mimeType,
+            dataUrl: prepared.dataUrl
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || "追加失敗");
+        }
+
+        successCount++;
+      } catch (error) {
+        errorCount++;
+        errors.push(file.name + ": " + (error.message || String(error)));
+      }
+    }
+
+    input.value = "";
+
+    await loadInbox();
+
+    document.getElementById("summary").textContent =
+      "画像追加完了\n" +
+      "追加成功: " + successCount + "件\n" +
+      "エラー: " + errorCount + "件\n\n" +
+      (errors.length ? errors.join("\n") + "\n\n" : "") +
+      document.getElementById("summary").textContent;
   }
 
   async function loadInbox() {
@@ -228,15 +449,58 @@
 
     list.innerHTML = items.map((item, index) => {
       return `
-        <button class="item" onclick="selectItem(${index})">
-          <span class="no">${index + 1}</span>
-          <span class="name">${esc(item.fileName)}</span>
-          <span class="size">${kb(item.sizeBytes)}</span>
-        </button>
+        <div class="item-row">
+          <button class="item" onclick="selectItem(${index})">
+            <span class="no">${index + 1}</span>
+            <span class="name">${esc(item.fileName)}</span>
+            <span class="size">${kb(item.sizeBytes)}</span>
+          </button>
+          <button class="delete-mini" onclick="deleteInboxItem(event, ${index})">削除</button>
+        </div>
       `;
     }).join("");
+selectItem(0);
+  }
 
-    selectItem(0);
+  async function deleteInboxItem(event, index) {
+    event.stopPropagation();
+
+    const item = items[index];
+    if (!item) return;
+
+    const ok = confirm(
+      "この画像を削除しますか？\n\n" +
+      item.fileName + "\n\n" +
+      "scan_inbox から削除します。"
+    );
+
+    if (!ok) return;
+
+    const summary = document.getElementById("summary");
+
+    summary.textContent =
+      "削除中です。\n" +
+      item.fileName;
+
+    const url = "/api/receipts/scan-inbox/delete?fileName=" + encodeURIComponent(item.fileName);
+
+    const res = await fetch(url, {
+      method: "POST"
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      summary.textContent = "削除エラー:\n" + (data.error || "原因不明");
+      return;
+    }
+
+    await loadInbox();
+
+    document.getElementById("summary").textContent =
+      "削除しました。\n" +
+      item.fileName + "\n\n" +
+      document.getElementById("summary").textContent;
   }
 
   function selectItem(index) {
@@ -259,6 +523,50 @@
       "パス: " + item.fullPath;
   }
 
+  async function confirmContentDuplicatesAfterImportAll(data) {
+    const candidates = (data.results || []).filter((r) => {
+      return r.status === "content_duplicate_needs_confirm";
+    });
+
+    if (!candidates.length) {
+      return;
+    }
+
+    for (const item of candidates) {
+      const ok = confirm(
+        "内容重複候補があります。\n\n" +
+        "ファイル: " + item.fileName + "\n" +
+        "既存ID: " + (item.existingId || "") + "\n" +
+        "類似度: " + (item.similarity || "") + "\n\n" +
+        "それでも取り込みますか？\n\n" +
+        "はい：取り込む\n" +
+        "いいえ：scan_inbox に残す"
+      );
+
+      if (!ok) {
+        continue;
+      }
+
+      const url =
+        "/api/receipts/scan-inbox/import-one?allowContentDuplicate=1&fileName=" +
+        encodeURIComponent(item.fileName);
+
+      const res = await fetch(url, {
+        method: "POST"
+      });
+
+      const forced = await res.json();
+
+      if (!forced.ok) {
+        alert(
+          "強制取込に失敗しました。\n\n" +
+          item.fileName + "\n" +
+          (forced.error || forced.message || "原因不明")
+        );
+      }
+    }
+  }
+
   async function runImportAll(force) {
     const summary = document.getElementById("summary");
 
@@ -272,7 +580,9 @@
 
     const data = await res.json();
 
-    if (!data.ok && data.requireForce) {
+    
+    await confirmContentDuplicatesAfterImportAll(data);
+if (!data.ok && data.requireForce) {
       if (confirm(data.error + "\n\n続行しますか？")) {
         await runImportAll(true);
       } else {
@@ -308,4 +618,9 @@
 </script>
 </body>
 </html>
+
+
+
+
+
 

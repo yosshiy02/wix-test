@@ -40,8 +40,8 @@ function readJsonBody(req) {
 
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 5 * 1024 * 1024) {
-        reject(new Error("本文が大きすぎます。"));
+      if (body.length > 25 * 1024 * 1024) {
+        reject(new Error("本文が大きすぎます。25MB以内にしてください。"));
       }
     });
 
@@ -62,6 +62,32 @@ function readJsonBody(req) {
   });
 }
 
+
+
+function extensionFromMimeType(mimeType, fallbackFileName) {
+  const fallbackExt = path.extname(fallbackFileName || "").toLowerCase();
+
+  if (fallbackExt) return fallbackExt;
+  if (mimeType === "image/png") return ".png";
+  if (mimeType === "image/webp") return ".webp";
+  if (mimeType === "image/gif") return ".gif";
+  if (mimeType === "image/bmp") return ".bmp";
+
+  return ".jpg";
+}
+
+function parseDataUrlImage(dataUrl) {
+  const match = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
+
+  if (!match) {
+    throw new Error("画像DataURLではありません。");
+  }
+
+  return {
+    mimeType: match[1],
+    buffer: Buffer.from(match[2], "base64"),
+  };
+}
 
 function getProjectRoot() {
   return path.resolve(__dirname, "..", "..", "..");
@@ -381,6 +407,128 @@ function moveFileToDir(filePath, envName, fallbackName) {
   return destPath;
 }
 
+
+function normalizeOcrTextForDuplicate(text) {
+  return String(text || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[￥¥]/g, "円")
+    .replace(/[\s　\r\n\t]+/g, "")
+    .replace(/[\u0000-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007F]/g, "")
+    .replace(/[、。，．・：；！？（）［］【】「」『』]/g, "");
+}
+
+function makeBigramMap(text) {
+  const map = new Map();
+
+  if (!text || text.length < 2) {
+    return map;
+  }
+
+  for (let i = 0; i < text.length - 1; i++) {
+    const key = text.slice(i, i + 2);
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+
+  return map;
+}
+
+function diceSimilarity(a, b) {
+  const left = normalizeOcrTextForDuplicate(a);
+  const right = normalizeOcrTextForDuplicate(b);
+
+  if (!left || !right) return 0;
+  if (left === right) return 1;
+
+  const minLen = Math.min(left.length, right.length);
+  const maxLen = Math.max(left.length, right.length);
+
+  if (minLen < 30) return 0;
+  if (minLen / maxLen < 0.55) return 0;
+
+  const leftMap = makeBigramMap(left);
+  const rightMap = makeBigramMap(right);
+
+  let intersection = 0;
+  let leftCount = 0;
+  let rightCount = 0;
+
+  for (const value of leftMap.values()) {
+    leftCount += value;
+  }
+
+  for (const value of rightMap.values()) {
+    rightCount += value;
+  }
+
+  for (const [key, leftValue] of leftMap.entries()) {
+    const rightValue = rightMap.get(key) || 0;
+    intersection += Math.min(leftValue, rightValue);
+  }
+
+  if (!leftCount || !rightCount) return 0;
+
+  return (2 * intersection) / (leftCount + rightCount);
+}
+
+async function findOcrContentDuplicate(ocrRawText) {
+  const normalized = normalizeOcrTextForDuplicate(ocrRawText);
+
+  if (!normalized || normalized.length < 30) {
+    return null;
+  }
+
+  const threshold = Number(getEnvValue("RECEIPT_OCR_DUPLICATE_THRESHOLD") || 0.88);
+  const candidates = await repo.listImportsForOcrDuplicateCheck(300);
+
+  let best = null;
+
+  for (const item of candidates) {
+    const otherText = item.ocr_raw_text || "";
+    const otherNormalized = normalizeOcrTextForDuplicate(otherText);
+
+    if (!otherNormalized || otherNormalized.length < 30) {
+      continue;
+    }
+
+    let similarity = 0;
+    let reason = "";
+
+    if (normalized === otherNormalized) {
+      similarity = 1;
+      reason = "OCR本文の正規化後完全一致";
+    } else {
+      similarity = diceSimilarity(normalized, otherNormalized);
+      reason = "OCR本文類似";
+    }
+
+    if (!best || similarity > best.similarity) {
+      best = {
+        id: item.id,
+        uploadId: item.upload_id || "",
+        fileName: item.local_image_file_name || item.original_file_name || "",
+        importedAtJst: item.imported_at_jst,
+        similarity,
+        reason,
+      };
+    }
+  }
+
+  if (best && best.similarity >= threshold) {
+    return {
+      id: best.id,
+      uploadId: best.uploadId,
+      fileName: best.fileName,
+      importedAtJst: best.importedAtJst,
+      similarity: Math.round(best.similarity * 10000) / 10000,
+      threshold,
+      reason: best.reason,
+    };
+  }
+
+  return null;
+}
+
 async function handleReceiptRoutes(req, res) {
   const pathname = getPathname(req);
   
@@ -389,7 +537,79 @@ async function handleReceiptRoutes(req, res) {
 
   
 
-  if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/import-all") {
+  
+
+  
+
+  if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/delete") {
+    try {
+      const fileName = getSearchParam(req, "fileName");
+      const filePath = getScanInboxFilePathByName(fileName);
+      const removedFileName = path.basename(filePath);
+
+      fs.unlinkSync(filePath);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "削除しました。",
+        fileName: removedFileName,
+      });
+
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error),
+      });
+    }
+
+    return true;
+  }
+if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/upload") {
+    try {
+      const body = await readJsonBody(req);
+
+      const originalName = String(body.fileName || "receipt").trim();
+      const parsed = parseDataUrlImage(body.dataUrl);
+
+      if (!parsed.buffer.length) {
+        throw new Error("画像データが空です。");
+      }
+
+      const dir = getReceiptScanInboxDir();
+      ensureDir(dir);
+
+      let safeName = makeSafeFileName(originalName);
+      const ext = extensionFromMimeType(parsed.mimeType, safeName);
+
+      if (!path.extname(safeName)) {
+        safeName += ext;
+      }
+
+      const destPath = getUniqueFilePath(dir, safeName);
+
+      fs.writeFileSync(destPath, parsed.buffer);
+
+      const stat = fs.statSync(destPath);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "scan_inboxへ追加しました。",
+        fileName: path.basename(destPath),
+        fullPath: destPath,
+        sizeBytes: stat.size,
+        sha256: sha256File(destPath),
+      });
+
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error),
+      });
+    }
+
+    return true;
+  }
+if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/import-all") {
     try {
       const inbox = listReceiptScanInboxFiles();
       const files = inbox.files || [];
@@ -462,10 +682,23 @@ async function handleReceiptRoutes(req, res) {
 
             continue;
           }
-
           const ocr = await runAzureReadOcrForFile(sourcePath);
 
-          movedPath = moveFileToDir(
+          const contentDuplicate = await findOcrContentDuplicate(ocr.rawText);
+
+          if (contentDuplicate) {
+            results.push({
+              fileName: file.fileName,
+              status: "content_duplicate_needs_confirm",
+              message: "内容重複候補。確認が必要なため未処理のまま残しました。",
+              existingId: contentDuplicate.id,
+              similarity: contentDuplicate.similarity,
+              reason: contentDuplicate.reason,
+            });
+
+            continue;
+          }
+movedPath = moveFileToDir(
             sourcePath,
             "RECEIPT_IMPORTED_DIR",
             "imported"
@@ -519,6 +752,7 @@ async function handleReceiptRoutes(req, res) {
       const importedCount = results.filter((r) => r.status === "imported").length;
       const duplicateCount = results.filter((r) => r.status === "duplicate").length;
       const errorCount = results.filter((r) => r.status === "error").length;
+      const contentDuplicateCount = results.filter((r) => r.status === "content_duplicate_needs_confirm").length;
 
       sendJson(res, 200, {
         ok: true,
@@ -571,10 +805,26 @@ if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/import-one")
 
         return true;
       }
-
       const ocr = await runAzureReadOcrForFile(sourcePath);
 
-      const batchId = makeLocalImportBatchId();
+      const contentDuplicate = await findOcrContentDuplicate(ocr.rawText);
+
+      const allowContentDuplicate = getSearchParam(req, "allowContentDuplicate") === "1";
+
+      if (contentDuplicate && !allowContentDuplicate) {
+        sendJson(res, 409, {
+          ok: false,
+          requiresConfirm: true,
+          duplicateType: "ocr_content",
+          contentDuplicate: true,
+          message: "OCR本文が既存レシートと近いため、確認が必要です。",
+          fileName: path.basename(sourcePath),
+          match: contentDuplicate,
+        });
+
+        return true;
+      }
+const batchId = makeLocalImportBatchId();
 
       movedPath = moveFileToDir(
         sourcePath,
@@ -719,6 +969,54 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
 
+
+  const deleteMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)$/);
+
+  if (req.method === "DELETE" && deleteMatch) {
+    try {
+      const id = Number(deleteMatch[1]);
+      const deleted = await repo.deleteImportById(id);
+
+      if (!deleted) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "削除対象のレシートが見つかりません。",
+        });
+
+        return true;
+      }
+
+      let imageDeleted = false;
+      let imageDeleteError = "";
+
+      if (deleted.local_image_path && fs.existsSync(deleted.local_image_path)) {
+        try {
+          fs.unlinkSync(deleted.local_image_path);
+          imageDeleted = true;
+        } catch (error) {
+          imageDeleteError = error.message || String(error);
+        }
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "レシートを削除しました。",
+        deletedId: id,
+        imageDeleted,
+        imageDeleteError,
+        deleted,
+      });
+
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error),
+      });
+    }
+
+    return true;
+  }
+
   const detailMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)$/);
 
   if (req.method === "GET" && detailMatch) {
@@ -843,6 +1141,14 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
 module.exports = {
   handleReceiptRoutes,
 };
+
+
+
+
+
+
+
+
 
 
 

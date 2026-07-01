@@ -270,7 +270,93 @@ async function createLocalImport(data) {
   return result.rows[0];
 }
 
+
+async function listImportsForOcrDuplicateCheck(limit = 300) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 300, 1), 1000);
+
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      upload_id,
+      local_image_file_name,
+      local_image_path,
+      image_hash_sha256,
+      original_file_name,
+      imported_at_jst,
+      ocr_provider,
+      ocr_raw_text,
+      ocr_line_count,
+      ocr_word_count,
+      status,
+      created_at,
+      updated_at
+    FROM accounting.receipt_imports
+    WHERE ocr_raw_text IS NOT NULL
+      AND length(trim(ocr_raw_text)) > 0
+    ORDER BY id DESC
+    LIMIT $1
+    `,
+    [safeLimit]
+  );
+
+  return result.rows;
+}
+
+
+async function deleteImportById(id) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const found = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_imports
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    const item = found.rows[0] || null;
+
+    if (!item) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    await client.query(
+      `
+      DELETE FROM accounting.receipt_ai_drafts
+      WHERE receipt_import_id = $1
+      `,
+      [id]
+    );
+
+    await client.query(
+      `
+      DELETE FROM accounting.receipt_imports
+      WHERE id = $1
+      `,
+      [id]
+    );
+
+    await client.query("COMMIT");
+
+    return item;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
+  deleteImportById,
+  listImportsForOcrDuplicateCheck,
   listImports,
   getImportById,
   createAiDraft,
@@ -279,3 +365,6 @@ module.exports = {
   getImportByImageHashSha256,
   createLocalImport,
 };
+
+
+
