@@ -186,21 +186,104 @@
     .delete-mini:hover {
       background: #ffecec;
     }
+  
+    /* RECEIPT_SCAN_ROTATE_BUTTONS_START */
+    .item-row {
+      grid-template-columns: minmax(0, 1fr) auto auto auto !important;
+    }
+
+    .rotate-mini {
+      border: 1px solid #374151;
+      color: #111827;
+      background: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.5rem;
+      min-width: 3.2rem;
+      cursor: pointer;
+    }
+
+    .rotate-mini:hover {
+      background: #f3f4f6;
+    }
+    /* RECEIPT_SCAN_ROTATE_BUTTONS_END */
+
+    /* RECEIPT_SCAN_PREVIEW_SIZE_START */
+
+    /*
+      レシート取込画面：
+      画像プレビューは画面内に収まる確認用サイズ。
+      固定長は使わず、相対単位で指定する。
+    */
+
+    #preview {
+      width: 100% !important;
+      height: clamp(18rem, calc(100dvh - 16rem), 46rem) !important;
+      max-height: calc(100dvh - 16rem) !important;
+      min-height: 45dvh !important;
+      overflow: hidden !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: #f7f7f7 !important;
+      border-radius: 0.625rem !important;
+    }
+
+    #preview img {
+      display: block !important;
+      max-width: 100% !important;
+      max-height: calc(100dvh - 17.5rem) !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      margin: 0 auto !important;
+    }
+
+    @media (max-height: 48rem) {
+      #preview {
+        height: clamp(15rem, calc(100dvh - 14rem), 36rem) !important;
+        max-height: calc(100dvh - 14rem) !important;
+        min-height: 42dvh !important;
+      }
+
+      #preview img {
+        max-height: calc(100dvh - 15.5rem) !important;
+      }
+    }
+
+    @media (max-height: 39rem) {
+      #preview {
+        height: clamp(12rem, calc(100dvh - 12rem), 30rem) !important;
+        max-height: calc(100dvh - 12rem) !important;
+        min-height: 38dvh !important;
+      }
+
+      #preview img {
+        max-height: calc(100dvh - 13.5rem) !important;
+      }
+    }
+
+    /* RECEIPT_SCAN_PREVIEW_SIZE_END */
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <h1>レシート取込</h1>
-      <input id="uploadInput" type="file" accept="image/*" multiple onchange="uploadSelectedFiles()">
+      <button id="uploadFileButton" onclick="document.getElementById('uploadInput').click()">ファイル追加</button>
+      <button id="uploadFolderButton" onclick="document.getElementById('folderInput').click()">フォルダ追加</button>
+      <input id="uploadInput" type="file" accept="image/*" multiple onchange="uploadSelectedFiles()" style="display:none">
+      <input id="folderInput" type="file" accept="image/*" multiple webkitdirectory onchange="uploadSelectedFolder()" style="display:none">
       <button onclick="loadInbox()">再読込</button>
-      <button onclick="runImportAll()">全件処理</button>
+      <button onclick="runImportAll()">取込待ちを処理</button>
+      <button type="button" onclick="location.href=&quot;/&quot;">メインページ</button>
       <button class="secondary" onclick="openConfirmPage()">読取確認ページ</button>
-      <span class="muted">scan_inbox の画像をPROJECT側で処理します。</span>
+      <span class="muted">選択した画像をPROJECT内部で処理します。</span>
     </div>
 
     <section class="panel">
-      <div class="panel-title">scan_inbox 一覧</div>
+      <div class="panel-title">取込待ち一覧</div>
       <div id="summary" class="summary">読込中...</div>
       <div id="list" class="list"></div>
     </section>
@@ -345,7 +428,15 @@
   }
 
   async function uploadSelectedFiles() {
-    const input = document.getElementById("uploadInput");
+    return uploadSelectedFilesFromInput("uploadInput");
+  }
+
+  async function uploadSelectedFolder() {
+    return uploadSelectedFilesFromInput("folderInput");
+  }
+
+  async function uploadSelectedFilesFromInput(inputId) {
+    const input = document.getElementById(inputId);
     const summary = document.getElementById("summary");
 
     const files = Array.from(input.files || []).filter((file) => {
@@ -362,7 +453,7 @@
     const errors = [];
 
     summary.textContent =
-      "画像を追加中です。\n" +
+      "取込待ちへ追加中です。\n" +
       "対象: " + files.length + "件";
 
     for (let i = 0; i < files.length; i++) {
@@ -370,7 +461,7 @@
 
       try {
         summary.textContent =
-          "画像を追加中です。\n" +
+          "取込待ちへ追加中です。\n" +
           "処理中: " + (i + 1) + " / " + files.length + "\n" +
           "ファイル: " + file.name + "\n" +
           "100KB超の画像は自動圧縮します。";
@@ -407,7 +498,7 @@
     await loadInbox();
 
     document.getElementById("summary").textContent =
-      "画像追加完了\n" +
+      "取込待ち追加完了\n" +
       "追加成功: " + successCount + "件\n" +
       "エラー: " + errorCount + "件\n\n" +
       (errors.length ? errors.join("\n") + "\n\n" : "") +
@@ -437,7 +528,7 @@
     selectedIndex = -1;
 
     summary.textContent =
-      "フォルダ: " + data.dir + "\n" +
+      "一時保存先: " + data.dir + "\n" +
       "件数: " + data.count + "件\n" +
       "通常上限: " + data.normalLimit + "件\n" +
       "最大上限: " + data.hardLimit + "件";
@@ -455,13 +546,140 @@
             <span class="name">${esc(item.fileName)}</span>
             <span class="size">${kb(item.sizeBytes)}</span>
           </button>
+          <button class="rotate-mini" onclick="rotateInboxItem(event, ${index}, -90)">左回転</button>
+          <button class="rotate-mini" onclick="rotateInboxItem(event, ${index}, 90)">右回転</button>
           <button class="delete-mini" onclick="deleteInboxItem(event, ${index})">削除</button>
         </div>
       `;
     }).join("");
 selectItem(0);
   }
+  function inboxImageSrc(fileName) {
+    return "/api/receipts/scan-inbox/image?fileName=" +
+      encodeURIComponent(fileName) +
+      "&v=" + Date.now();
+  }
+function mimeForRotatedOutput(fileName) {
+    const ext = String(fileName || "").toLowerCase();
 
+    if (ext.endsWith(".png")) return "image/png";
+    if (ext.endsWith(".webp")) return "image/webp";
+
+    return "image/jpeg";
+  }
+
+  function loadInboxImageForRotate(fileName) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("画像の読み込みに失敗しました。"));
+
+      img.src = inboxImageSrc(fileName);
+    });
+  }
+
+  function drawRotatedDataUrl(img, degrees, fileName) {
+    const normalized = ((degrees % 360) + 360) % 360;
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (normalized === 90 || normalized === 270) {
+      canvas.width = h;
+      canvas.height = w;
+    } else {
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+
+    if (normalized === 90) {
+      ctx.translate(canvas.width, 0);
+      ctx.rotate(Math.PI / 2);
+    } else if (normalized === 180) {
+      ctx.translate(canvas.width, canvas.height);
+      ctx.rotate(Math.PI);
+    } else if (normalized === 270) {
+      ctx.translate(0, canvas.height);
+      ctx.rotate(-Math.PI / 2);
+    }
+
+    ctx.drawImage(img, 0, 0);
+    ctx.restore();
+
+    const mime = mimeForRotatedOutput(fileName);
+
+    if (mime === "image/jpeg") {
+      return canvas.toDataURL(mime, 0.9);
+    }
+
+    return canvas.toDataURL(mime);
+  }
+
+  async function rotateInboxItem(event, index, degrees) {
+    event.stopPropagation();
+
+    const item = items[index];
+    if (!item) return;
+
+    const summary = document.getElementById("summary");
+
+    summary.textContent =
+      "画像を回転保存中です。\n" +
+      item.fileName;
+
+    try {
+      const img = await loadInboxImageForRotate(item.fileName);
+      const dataUrl = drawRotatedDataUrl(img, degrees, item.fileName);
+
+      const res = await fetch("/api/receipts/scan-inbox/replace", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({
+          fileName: item.fileName,
+          dataUrl
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "回転保存に失敗しました。");
+      }
+
+      const fileName = item.fileName;
+
+      refreshInboxPreview(fileName);
+
+      await loadInbox();
+
+      const nextIndex = items.findIndex((x) => x.fileName === fileName);
+      if (nextIndex >= 0) {
+        selectItem(nextIndex);
+      
+        refreshInboxPreview(fileName);}
+
+      document.getElementById("summary").textContent =
+        "画像の向きを保存しました。\n" +
+        fileName + "\n\n" +
+        document.getElementById("summary").textContent;
+
+    } catch (error) {
+      summary.textContent =
+        "回転保存エラー:\n" +
+        item.fileName + "\n" +
+        (error.message || String(error));
+    }
+  }
   async function deleteInboxItem(event, index) {
     event.stopPropagation();
 
@@ -471,7 +689,7 @@ selectItem(0);
     const ok = confirm(
       "この画像を削除しますか？\n\n" +
       item.fileName + "\n\n" +
-      "scan_inbox から削除します。"
+      "取込待ちから削除します。"
     );
 
     if (!ok) return;
@@ -503,6 +721,19 @@ selectItem(0);
       document.getElementById("summary").textContent;
   }
 
+  function refreshInboxPreview(fileName) {
+    const preview = document.getElementById("preview");
+    if (!preview || !fileName) return;
+
+    const src = inboxImageSrc(fileName);
+    const img = preview.querySelector("img");
+
+    if (img) {
+      img.src = src;
+    } else {
+      preview.innerHTML = '<img src="' + src + '" alt="receipt">';
+    }
+  }
   function selectItem(index) {
     selectedIndex = index;
     const item = items[index];
@@ -511,7 +742,7 @@ selectItem(0);
       el.classList.toggle("active", i === index);
     });
 
-    const src = "/api/receipts/scan-inbox/image?fileName=" + encodeURIComponent(item.fileName);
+    const src = inboxImageSrc(item.fileName);
 
     document.getElementById("preview").innerHTML =
       '<img src="' + src + '" alt="receipt">';
@@ -570,7 +801,7 @@ selectItem(0);
   async function runImportAll(force) {
     const summary = document.getElementById("summary");
 
-    summary.textContent = "全件処理中です。しばらく待ってください。";
+    summary.textContent = "取込待ちを処理中です。しばらく待ってください。";
 
     const url = "/api/receipts/scan-inbox/import-all" + (force ? "?force=1" : "");
 
@@ -586,18 +817,18 @@ if (!data.ok && data.requireForce) {
       if (confirm(data.error + "\n\n続行しますか？")) {
         await runImportAll(true);
       } else {
-        summary.textContent = "全件処理をキャンセルしました。";
+        summary.textContent = "取込待ちを処理をキャンセルしました。";
       }
       return;
     }
 
     if (!data.ok) {
-      summary.textContent = "全件処理エラー:\n" + (data.error || "原因不明");
+      summary.textContent = "取込待ちを処理エラー:\n" + (data.error || "原因不明");
       return;
     }
 
     const resultText =
-      "全件処理完了\n" +
+      "取込待ちを処理完了\n" +
       "対象: " + (data.count || 0) + "件\n" +
       "取込成功: " + (data.importedCount || 0) + "件\n" +
       "重複: " + (data.duplicateCount || 0) + "件\n" +

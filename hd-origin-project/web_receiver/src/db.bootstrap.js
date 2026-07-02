@@ -78,6 +78,111 @@ async function ensureDatabaseReady() {
   }
 
   const baseSql = `
+CREATE SCHEMA IF NOT EXISTS accounting;
+
+CREATE TABLE IF NOT EXISTS accounting.receipt_imports (
+  id BIGSERIAL PRIMARY KEY,
+  upload_id TEXT,
+  wix_item_id TEXT,
+  wix_image_url TEXT,
+  local_image_file_name TEXT,
+  local_image_path TEXT,
+  image_hash_sha256 TEXT,
+  image_size_bytes BIGINT,
+  original_file_name TEXT,
+  captured_at_jst TIMESTAMP,
+  imported_at_jst TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  import_batch_id TEXT,
+  ocr_provider TEXT,
+  ocr_raw_text TEXT,
+  ocr_line_count INTEGER,
+  ocr_word_count INTEGER,
+  status TEXT NOT NULL DEFAULT 'imported',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE accounting.receipt_imports
+  ADD COLUMN IF NOT EXISTS upload_id TEXT,
+  ADD COLUMN IF NOT EXISTS wix_item_id TEXT,
+  ADD COLUMN IF NOT EXISTS wix_image_url TEXT,
+  ADD COLUMN IF NOT EXISTS local_image_file_name TEXT,
+  ADD COLUMN IF NOT EXISTS local_image_path TEXT,
+  ADD COLUMN IF NOT EXISTS image_hash_sha256 TEXT,
+  ADD COLUMN IF NOT EXISTS image_size_bytes BIGINT,
+  ADD COLUMN IF NOT EXISTS original_file_name TEXT,
+  ADD COLUMN IF NOT EXISTS captured_at_jst TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS imported_at_jst TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS import_batch_id TEXT,
+  ADD COLUMN IF NOT EXISTS ocr_provider TEXT,
+  ADD COLUMN IF NOT EXISTS ocr_raw_text TEXT,
+  ADD COLUMN IF NOT EXISTS ocr_line_count INTEGER,
+  ADD COLUMN IF NOT EXISTS ocr_word_count INTEGER,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'imported',
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_receipt_imports_upload_id
+ON accounting.receipt_imports (upload_id)
+WHERE upload_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_receipt_imports_wix_item_id
+ON accounting.receipt_imports (wix_item_id)
+WHERE wix_item_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_receipt_imports_hash
+ON accounting.receipt_imports (image_hash_sha256)
+WHERE image_hash_sha256 IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS accounting.receipt_ai_drafts (
+  id BIGSERIAL PRIMARY KEY,
+  receipt_import_id BIGINT NOT NULL REFERENCES accounting.receipt_imports(id) ON DELETE CASCADE,
+  transaction_date DATE,
+  vendor_name TEXT,
+  total_amount NUMERIC(14,2),
+  tax_amount NUMERIC(14,2),
+  tax_rate TEXT,
+  tax_treatment_name TEXT,
+  payment_method_name TEXT,
+  account_title_name TEXT,
+  invoice_number TEXT,
+  summary TEXT,
+  memo TEXT,
+  confidence INTEGER,
+  line_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft',
+  ai_model TEXT,
+  ai_raw_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  error_message TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS receipt_import_id BIGINT,
+  ADD COLUMN IF NOT EXISTS transaction_date DATE,
+  ADD COLUMN IF NOT EXISTS vendor_name TEXT,
+  ADD COLUMN IF NOT EXISTS total_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_rate TEXT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_name TEXT,
+  ADD COLUMN IF NOT EXISTS payment_method_name TEXT,
+  ADD COLUMN IF NOT EXISTS account_title_name TEXT,
+  ADD COLUMN IF NOT EXISTS invoice_number TEXT,
+  ADD COLUMN IF NOT EXISTS summary TEXT,
+  ADD COLUMN IF NOT EXISTS memo TEXT,
+  ADD COLUMN IF NOT EXISTS confidence INTEGER,
+  ADD COLUMN IF NOT EXISTS line_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'draft',
+  ADD COLUMN IF NOT EXISTS ai_model TEXT,
+  ADD COLUMN IF NOT EXISTS ai_raw_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS error_message TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS ix_receipt_ai_drafts_receipt_import_id
+ON accounting.receipt_ai_drafts(receipt_import_id);
+
 CREATE SCHEMA IF NOT EXISTS expenses;
 
 CREATE TABLE IF NOT EXISTS expenses.account_titles (
@@ -116,6 +221,19 @@ CREATE TABLE IF NOT EXISTS expenses.tax_categories (
 CREATE UNIQUE INDEX IF NOT EXISTS tax_categories_tax_name_uidx
 ON expenses.tax_categories(tax_name);
 
+
+CREATE TABLE IF NOT EXISTS expenses.tax_treatments (
+  tax_treatment_id BIGSERIAL PRIMARY KEY,
+  treatment_name TEXT NOT NULL,
+  treatment_code TEXT,
+  is_tax_included BOOLEAN,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS tax_treatments_treatment_name_uidx
+ON expenses.tax_treatments(treatment_name);
 CREATE TABLE IF NOT EXISTS expenses.vendors (
   vendor_id BIGSERIAL PRIMARY KEY,
   vendor_name TEXT NOT NULL,
@@ -227,6 +345,8 @@ CREATE TABLE IF NOT EXISTS expenses.expense_details (
   amount NUMERIC(14,2) NOT NULL DEFAULT 0,
   tax_category_id BIGINT,
   tax_category_name TEXT,
+  tax_treatment_id BIGINT,
+  tax_treatment_name TEXT,
   tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
   memo TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -241,10 +361,121 @@ ALTER TABLE expenses.expense_details
   ADD COLUMN IF NOT EXISTS amount NUMERIC(14,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS tax_category_id BIGINT,
   ADD COLUMN IF NOT EXISTS tax_category_name TEXT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_name TEXT,
   ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS memo TEXT,
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
+
+-- RECEIPT_RELATIONSHIP_SCHEMA_START
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS payment_method_id BIGINT;
+
+CREATE TABLE IF NOT EXISTS accounting.receipt_tax_breakdowns (
+  id BIGSERIAL PRIMARY KEY,
+  receipt_ai_draft_id BIGINT NOT NULL,
+  tax_category_id BIGINT,
+  tax_category_name TEXT NOT NULL DEFAULT '',
+  tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
+  tax_treatment_id BIGINT,
+  tax_treatment_name TEXT NOT NULL DEFAULT '',
+  target_amount NUMERIC(14,2),
+  tax_amount NUMERIC(14,2),
+  ai_confidence NUMERIC(5,4),
+  is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE accounting.receipt_tax_breakdowns
+  ADD COLUMN IF NOT EXISTS receipt_ai_draft_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_category_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_category_name TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tax_treatment_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_name TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS target_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS ai_confidence NUMERIC(5,4),
+  ADD COLUMN IF NOT EXISTS is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_draft_idx
+ON accounting.receipt_tax_breakdowns(receipt_ai_draft_id);
+
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_category_idx
+ON accounting.receipt_tax_breakdowns(tax_category_id);
+
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_treatment_idx
+ON accounting.receipt_tax_breakdowns(tax_treatment_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_draft_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_draft_fkey
+      FOREIGN KEY (receipt_ai_draft_id)
+      REFERENCES accounting.receipt_ai_drafts(id)
+      ON DELETE CASCADE;
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_category_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_category_fkey
+      FOREIGN KEY (tax_category_id)
+      REFERENCES expenses.tax_categories(tax_category_id);
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_treatment_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_treatment_fkey
+      FOREIGN KEY (tax_treatment_id)
+      REFERENCES expenses.tax_treatments(tax_treatment_id);
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_ai_drafts_payment_method_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_ai_drafts
+      ADD CONSTRAINT receipt_ai_drafts_payment_method_fkey
+      FOREIGN KEY (payment_method_id)
+      REFERENCES expenses.payment_methods(payment_method_id);
+  END IF;
+END
+$$;
+
+-- RECEIPT_RELATIONSHIP_SCHEMA_END
 INSERT INTO expenses.account_titles (account_code, account_name, sort_order)
 VALUES
 ('001', '消耗品費', 10),
@@ -283,6 +514,21 @@ VALUES
 ('対象外', 0.0000, 50)
 ON CONFLICT (tax_name) DO UPDATE SET
   tax_rate = EXCLUDED.tax_rate,
+  sort_order = EXCLUDED.sort_order,
+  is_active = TRUE;
+
+INSERT INTO expenses.tax_treatments (treatment_name, treatment_code, is_tax_included, sort_order)
+VALUES
+('税込・内税', 'tax_included', TRUE, 10),
+('税抜・外税', 'tax_excluded', FALSE, 20),
+('非課税', 'non_taxable', NULL, 30),
+('不課税', 'out_of_scope', NULL, 40),
+('免税', 'tax_exempt', NULL, 50),
+('対象外', 'not_applicable', NULL, 60),
+('不明', 'unknown', NULL, 90)
+ON CONFLICT (treatment_name) DO UPDATE SET
+  treatment_code = EXCLUDED.treatment_code,
+  is_tax_included = EXCLUDED.is_tax_included,
   sort_order = EXCLUDED.sort_order,
   is_active = TRUE;
 `;

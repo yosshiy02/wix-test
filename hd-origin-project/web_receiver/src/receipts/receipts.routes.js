@@ -284,6 +284,9 @@ async function runAzureReadOcrForFile(filePath) {
     headers: {
       "Ocp-Apim-Subscription-Key": key,
       "Content-Type": getImageContentType(filePath),
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
     },
     body: fs.readFileSync(filePath),
   });
@@ -541,6 +544,143 @@ async function handleReceiptRoutes(req, res) {
 
   
 
+
+  if (req.method === "GET" && pathname === "/api/receipts/master-options") {
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    const repository = require("./receipts.repository");
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    const data = await repository.getReceiptMasterOptions();
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    res.end(JSON.stringify({ ok: true, ...data }));
+
+    return true;
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    return;
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  }
+  
+
+  
+
+  
+
+  
+
+  
+
+
+    
+
+  
+
+  
+
+  
+
+  
+
+
+  if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/replace") {
+    try {
+      const body = await readJsonBody(req);
+
+      const fileName = String(body.fileName || getSearchParam(req, "fileName") || "").trim();
+      const parsed = parseDataUrlImage(body.dataUrl);
+
+      if (!fileName) {
+        throw new Error("fileName is required");
+      }
+
+      if (!parsed.buffer.length) {
+        throw new Error("画像データが空です。");
+      }
+
+      const filePath = getScanInboxFilePathByName(fileName);
+
+      fs.writeFileSync(filePath, parsed.buffer);
+
+      const stat = fs.statSync(filePath);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "画像の向きを保存しました。",
+        fileName: path.basename(filePath),
+        fullPath: filePath,
+        sizeBytes: stat.size,
+        sha256: sha256File(filePath),
+      });
+
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error),
+      });
+    }
+
+    return true;
+  }
   if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/delete") {
     try {
       const fileName = getSearchParam(req, "fileName");
@@ -593,7 +733,7 @@ if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/upload") {
 
       sendJson(res, 200, {
         ok: true,
-        message: "scan_inboxへ追加しました。",
+        message: "取込待ちへ追加しました。",
         fileName: path.basename(destPath),
         fullPath: destPath,
         sizeBytes: stat.size,
@@ -631,7 +771,7 @@ if (req.method === "POST" && pathname === "/api/receipts/scan-inbox/import-all")
       if (files.length > hardLimit) {
         sendJson(res, 400, {
           ok: false,
-          error: "一度に処理できる上限は " + hardLimit + " 件です。フォルダを分けてください。",
+          error: "一度に処理できる上限は " + hardLimit + " 件です。件数を分けて処理してください。",
           count: files.length,
           hardLimit,
         });
@@ -918,6 +1058,9 @@ if (req.method === "GET" && pathname === "/api/receipts/scan-inbox/image") {
 
       res.writeHead(200, {
         "Content-Type": getImageContentType(filePath),
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
       });
 
       fs.createReadStream(filePath).pipe(res);
@@ -941,8 +1084,8 @@ if (req.method === "GET" && pathname === "/api/receipts/scan-inbox/image") {
         dir: result.dir,
         missing: result.missing,
         count: result.files.length,
-        normalLimit: Number(process.env.RECEIPT_BATCH_NORMAL_LIMIT || 20),
-        hardLimit: Number(process.env.RECEIPT_BATCH_HARD_LIMIT || 50),
+        normalLimit: Number(getEnvValue("RECEIPT_BATCH_NORMAL_LIMIT") || process.env.RECEIPT_BATCH_NORMAL_LIMIT || 20),
+        hardLimit: Number(getEnvValue("RECEIPT_BATCH_HARD_LIMIT") || process.env.RECEIPT_BATCH_HARD_LIMIT || 50),
         items: result.files,
       });
     } catch (error) {
@@ -1076,6 +1219,69 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
 
+
+  const taxBreakdownMatch = pathname.match(/^\/api\/receipts\/ai-drafts\/(\d+)\/tax-breakdowns$/);
+
+  if (req.method === "GET" && taxBreakdownMatch) {
+    try {
+      const repository = require("./receipts.repository");
+      const draftId = Number(taxBreakdownMatch[1]);
+      const items = await repository.getReceiptTaxBreakdowns(draftId);
+
+      sendJson(res, 200, {
+        ok: true,
+        items
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "消費税内訳の取得に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+
+  if ((req.method === "PUT" || req.method === "PATCH") && taxBreakdownMatch) {
+    try {
+      const repository = require("./receipts.repository");
+      const draftId = Number(taxBreakdownMatch[1]);
+      const body = await readJsonBody(req);
+
+      const items = Array.isArray(body.items)
+        ? body.items
+        : Array.isArray(body.taxBreakdowns)
+          ? body.taxBreakdowns
+          : [];
+
+      const saved = await repository.replaceReceiptTaxBreakdowns(draftId, items);
+
+      if (saved === null) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "AI下書きが見つかりません。"
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        items: saved
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "消費税内訳の保存に失敗しました。"
+      });
+
+      return true;
+    }
+  }
   const draftMatch = pathname.match(/^\/api\/receipts\/ai-drafts\/(\d+)$/);
 
   if ((req.method === "PUT" || req.method === "PATCH") && draftMatch) {

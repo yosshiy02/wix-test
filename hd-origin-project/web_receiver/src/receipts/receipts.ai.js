@@ -1,31 +1,51 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 
 function readDotEnv() {
-  const envPath = path.resolve(__dirname, "../../..", ".env");
   const map = {};
+  const candidates = [];
+  const projectRoot = path.resolve(__dirname, "../../..");
 
-  if (!fs.existsSync(envPath)) {
-    throw new Error(".env file not found: " + envPath);
+  if (process.env.HD_ORIGIN_ENV_PATH) {
+    candidates.push(process.env.HD_ORIGIN_ENV_PATH);
   }
 
-  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+  const envPathFile = path.join(projectRoot, ".env_path.txt");
+  if (fs.existsSync(envPathFile)) {
+    const p = fs.readFileSync(envPathFile, "utf8").trim();
+    if (p) candidates.push(p);
+  }
 
-  for (const line of lines) {
-    if (!line || /^\s*#/.test(line)) continue;
+  candidates.push(path.join(projectRoot, ".env"));
 
-    const index = line.indexOf("=");
-    if (index < 0) continue;
+  for (const envPath of candidates) {
+    if (!envPath || !fs.existsSync(envPath)) continue;
 
-    const key = line.slice(0, index).trim();
-    const value = line.slice(index + 1).trim();
+    const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
 
-    map[key] = value;
+    for (const line of lines) {
+      if (!line || /^\s*#/.test(line)) continue;
+
+      const index = line.indexOf("=");
+      if (index < 0) continue;
+
+      const key = line.slice(0, index).trim();
+      const value = line.slice(index + 1).trim().replace(/^["']|["']$/g, "");
+
+      if (key && map[key] === undefined) {
+        map[key] = value;
+      }
+    }
+  }
+
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined && value !== "") {
+      map[key] = value;
+    }
   }
 
   return map;
 }
-
 function extractOutputText(responseJson) {
   const output = Array.isArray(responseJson.output) ? responseJson.output : [];
 
@@ -78,11 +98,19 @@ function normalizeNumber(value) {
 function normalizeConfidence(value) {
   if (value === null || value === undefined || value === "") return null;
 
-  const n = Number(value);
+  let n = Number(String(value).replace(/[^\d.-]/g, ""));
   if (!Number.isFinite(n)) return null;
 
-  if (n <= 1) return Math.round(n * 100);
-  return Math.round(n);
+  // DBは 0.0000 ～ 1.0000 の小数で保存する。
+  // AIが 85 や 85% と返した場合は 0.85 に直す。
+  if (n > 1) {
+    n = n / 100;
+  }
+
+  if (n < 0) n = 0;
+  if (n > 1) n = 1;
+
+  return Math.round(n * 10000) / 10000;
 }
 
 function normalizeLineItems(value) {
@@ -125,10 +153,26 @@ async function analyzeReceiptImport(receiptImport) {
     "あなたは日本のレシートOCRテキスト解析AIです。",
     "画像は見ません。与えられたOCR本文だけから判断してください。",
     "目的は会計確定ではなく、人間が画像を見ながら修正するための読取候補作成です。",
-    "店名、日付、合計、税額、支払方法、インボイス番号、明細行をJSONだけで返してください。",
+    "店名、日付、合計、税額、消費税内訳、税率、税処理、支払方法、インボイス番号、明細行をJSONだけで返してください。",
     "推測できない項目は null または空文字にしてください。",
     "インボイス番号は T + 13桁 の登録番号だけを入れてください。",
+    "",
+    "【店舗情報ルール】",
+    "vendorName には、レシートに印字されている店名・支払先名を入れてください。",
+    "vendorAddress には、レシートに印字されている住所を入れてください。読めない場合は空文字にしてください。",
+    "vendorPhone には、レシートに印字されている電話番号を入れてください。読めない場合は空文字にしてください。",
+    "receiptTimeText には、レシートに印字されている時刻を HH:mm 形式で入れてください。読めない場合は空文字にしてください。",
     "伝票番号、注文番号、レジ番号、会員番号、承認番号、カード番号は invoiceNumber に入れず、memo に入れてください。",
+    "",
+    "【消費税内訳ルール】",
+    "taxBreakdowns は、レシート本文に明記されている税率別内訳から作ってください。",
+    "例：(10%内税対象 2900)(10%内消費税額 263) のような記載がある場合だけ、課税10%の内訳行を作ってください。",
+    "例：(8%内税対象 648)(8%内消費税額 48)(10%内税対象 548)(10%内消費税額 49) のように複数ある場合は、必要な行だけ複数作ってください。",
+    "非課税対象、不課税対象、対象外がOCR本文に明記されている場合は、それぞれ taxBreakdowns に行を作り、taxAmount は0にしてください。",
+    "合計金額 totalAmount と消費税合計 taxAmount だけから、消費税内訳を勝手に1行生成してはいけません。",
+    "税率別内訳がOCR本文から読めない場合、taxBreakdowns は空配列 [] にしてください。",
+    "taxCategoryName は必ず 課税10% / 軽減8% / 非課税 / 不課税 / 対象外 のいずれかに寄せてください。",
+    "taxTreatmentName は必ず 税込・内税 / 税抜・外税 / 非課税 / 不課税 / 対象外 / 不明 のいずれかに寄せてください。",
 
     "【明細強化ルール】",
     "明細行は最重要です。OCR本文から読める商品名・料理名・サービス名・品名は必ず lineItems に入れてください。",
@@ -146,9 +190,21 @@ async function analyzeReceiptImport(receiptImport) {
     "{",
     "  \"transactionDate\": \"YYYY-MM-DD または null\",",
     "  \"vendorName\": \"店名・支払先名\",",
+    "  \"vendorAddress\": \"住所または空文字\",",
+    "  \"vendorPhone\": \"電話番号または空文字\",",
+    "  \"receiptTimeText\": \"HH:mm または空文字\",",
     "  \"totalAmount\": 0,",
     "  \"taxAmount\": 0,",
     "  \"taxRate\": \"10%/8%/混在/不明\",",
+    "  \"taxTreatmentName\": \"税込・内税/税抜・外税/非課税/不課税/免税/対象外/不明\",",
+    "  \"taxBreakdowns\": [",
+    "    {",
+    "      \"taxCategoryName\": \"課税10%/軽減8%/非課税/不課税/対象外\",",
+    "      \"taxTreatmentName\": \"税込・内税/税抜・外税/非課税/不課税/対象外/不明\",",
+    "      \"targetAmount\": 0,",
+    "      \"taxAmount\": 0",
+    "    }",
+    "  ],",
     "  \"paymentMethodName\": \"現金/クレジットカード/電子マネー/不明\",",
     "  \"invoiceNumber\": \"Tから始まる13桁番号または空文字\",",
     "  \"summary\": \"摘要候補\",",
@@ -190,7 +246,7 @@ async function analyzeReceiptImport(receiptImport) {
         ]
       }
     ],
-    max_output_tokens: 1200,
+    max_output_tokens: 1800,
     store: false
   };
 
@@ -216,9 +272,14 @@ async function analyzeReceiptImport(receiptImport) {
   return {
     transactionDate: parsed.transactionDate || null,
     vendorName: parsed.vendorName || "",
+    vendorAddress: parsed.vendorAddress || parsed.vendor_address || "",
+    vendorPhone: parsed.vendorPhone || parsed.vendor_phone || "",
+    receiptTimeText: parsed.receiptTimeText || parsed.receipt_time_text || "",
     totalAmount: normalizeInteger(parsed.totalAmount),
     taxAmount: normalizeInteger(parsed.taxAmount),
     taxRate: parsed.taxRate || "",
+    taxTreatmentName: parsed.taxTreatmentName || "",
+    taxBreakdowns: Array.isArray(parsed.taxBreakdowns) ? parsed.taxBreakdowns : [],
     paymentMethodName: parsed.paymentMethodName || "",
     accountTitleName: parsed.accountTitleName || "",
     invoiceNumber: parsed.invoiceNumber || "",

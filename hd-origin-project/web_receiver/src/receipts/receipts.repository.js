@@ -69,6 +69,179 @@ async function getImportById(id) {
   return result.rows[0] || null;
 }
 
+
+function normalizeReceiptTaxCategory(row) {
+  const raw = String(
+    row.taxCategoryName ||
+    row.tax_category_name ||
+    row.taxRate ||
+    row.tax_rate ||
+    ""
+  ).trim();
+
+  if (raw.includes("軽減") || raw.includes("8")) {
+    return {
+      taxCategoryId: 2,
+      taxCategoryName: "軽減8%",
+      taxRate: "0.08"
+    };
+  }
+
+  if (raw.includes("非課税")) {
+    return {
+      taxCategoryId: 3,
+      taxCategoryName: "非課税",
+      taxRate: "0"
+    };
+  }
+
+  if (raw.includes("不課税")) {
+    return {
+      taxCategoryId: 4,
+      taxCategoryName: "不課税",
+      taxRate: "0"
+    };
+  }
+
+  if (raw.includes("対象外")) {
+    return {
+      taxCategoryId: 5,
+      taxCategoryName: "対象外",
+      taxRate: "0"
+    };
+  }
+
+  if (raw.includes("10") || raw.includes("課税") || raw === "") {
+    return {
+      taxCategoryId: 1,
+      taxCategoryName: "課税10%",
+      taxRate: "0.10"
+    };
+  }
+
+  return {
+    taxCategoryId: null,
+    taxCategoryName: raw,
+    taxRate: ""
+  };
+}
+
+function normalizeReceiptTaxTreatment(row) {
+  const raw = String(
+    row.taxTreatmentName ||
+    row.tax_treatment_name ||
+    ""
+  ).trim();
+
+  if (raw.includes("税抜") || raw.includes("外税")) {
+    return {
+      taxTreatmentId: 2,
+      taxTreatmentName: "税抜・外税"
+    };
+  }
+
+  if (raw.includes("非課税")) {
+    return {
+      taxTreatmentId: 3,
+      taxTreatmentName: "非課税"
+    };
+  }
+
+  if (raw.includes("不課税")) {
+    return {
+      taxTreatmentId: 4,
+      taxTreatmentName: "不課税"
+    };
+  }
+
+  if (raw.includes("免税")) {
+    return {
+      taxTreatmentId: 5,
+      taxTreatmentName: "免税"
+    };
+  }
+
+  if (raw.includes("対象外")) {
+    return {
+      taxTreatmentId: 6,
+      taxTreatmentName: "対象外"
+    };
+  }
+
+  if (raw.includes("不明")) {
+    return {
+      taxTreatmentId: 7,
+      taxTreatmentName: "不明"
+    };
+  }
+
+  return {
+    taxTreatmentId: 1,
+    taxTreatmentName: "税込・内税"
+  };
+}
+
+function buildReceiptTaxBreakdownsFromDraft(draft) {
+  const rawItems =
+    Array.isArray(draft.taxBreakdowns) ? draft.taxBreakdowns :
+    Array.isArray(draft.tax_breakdowns) ? draft.tax_breakdowns :
+    draft.aiRawJson && Array.isArray(draft.aiRawJson.taxBreakdowns) ? draft.aiRawJson.taxBreakdowns :
+    draft.ai_raw_json && Array.isArray(draft.ai_raw_json.taxBreakdowns) ? draft.ai_raw_json.taxBreakdowns :
+    [];
+
+  const sourceItems = rawItems.length > 0
+    ? rawItems
+    : [];
+const rows = [];
+
+  for (let i = 0; i < sourceItems.length; i++) {
+    const item = sourceItems[i] || {};
+
+    const category = normalizeReceiptTaxCategory(item);
+    const treatment = normalizeReceiptTaxTreatment(item);
+
+    const targetAmount =
+      item.targetAmount ??
+      item.target_amount ??
+      item.taxableAmount ??
+      item.taxable_amount ??
+      item.amount ??
+      "";
+
+    const taxAmount =
+      item.taxAmount ??
+      item.tax_amount ??
+      item.consumptionTaxAmount ??
+      item.consumption_tax_amount ??
+      "";
+
+    const hasMeaning =
+      category.taxCategoryId ||
+      category.taxCategoryName ||
+      treatment.taxTreatmentId ||
+      String(targetAmount || "").trim() !== "" ||
+      String(taxAmount || "").trim() !== "";
+
+    if (!hasMeaning) {
+      continue;
+    }
+
+    rows.push({
+      taxCategoryId: category.taxCategoryId,
+      taxCategoryName: category.taxCategoryName,
+      taxRate: category.taxRate,
+      taxTreatmentId: treatment.taxTreatmentId,
+      taxTreatmentName: treatment.taxTreatmentName,
+      targetAmount,
+      taxAmount,
+      aiConfidence: item.aiConfidence ?? item.ai_confidence ?? draft.confidence ?? null,
+      isConfirmed: false,
+      sortOrder: Number(item.sortOrder || item.sort_order || (i + 1) * 10)
+    });
+  }
+
+  return rows;
+}
 async function createAiDraft(receiptImportId, draft) {
   const result = await pool.query(
     `
@@ -76,9 +249,13 @@ async function createAiDraft(receiptImportId, draft) {
       receipt_import_id,
       transaction_date,
       vendor_name,
+      vendor_address,
+      vendor_phone,
+      receipt_time_text,
       total_amount,
       tax_amount,
       tax_rate,
+      tax_treatment_name,
       payment_method_name,
       account_title_name,
       invoice_number,
@@ -91,9 +268,10 @@ async function createAiDraft(receiptImportId, draft) {
       ai_raw_json,
       error_message
     ) VALUES (
-      $1, $2, $3, $4, $5, $6,
+            $1, $2, $3, $4, $5, $6,
       $7, $8, $9, $10, $11, $12,
-      $13::jsonb, 'draft', $14, $15::jsonb, ''
+      $13, $14, $15, $16, $17::jsonb,
+      'draft', $18, $19::jsonb, ''
     )
     RETURNING *
     `,
@@ -101,9 +279,13 @@ async function createAiDraft(receiptImportId, draft) {
       receiptImportId,
       draft.transactionDate,
       draft.vendorName,
+      draft.vendorAddress || "",
+      draft.vendorPhone || "",
+      draft.receiptTimeText || "",
       draft.totalAmount,
       draft.taxAmount,
       draft.taxRate,
+      draft.taxTreatmentName || draft.tax_treatment_name || "",
       draft.paymentMethodName,
       draft.accountTitleName,
       draft.invoiceNumber,
@@ -115,8 +297,15 @@ async function createAiDraft(receiptImportId, draft) {
       JSON.stringify(draft.aiRawJson || {})
     ]
   );
+  const savedDraft = result.rows[0];
 
-  return result.rows[0];
+  const aiTaxBreakdowns = buildReceiptTaxBreakdownsFromDraft(draft);
+
+  if (aiTaxBreakdowns.length > 0) {
+    await replaceReceiptTaxBreakdowns(Number(savedDraft.id), aiTaxBreakdowns);
+  }
+
+  return savedDraft;
 }
 
 async function getAiDrafts(receiptImportId) {
@@ -140,17 +329,21 @@ async function updateAiDraft(id, patch) {
     SET
       transaction_date = $2,
       vendor_name = $3,
-      total_amount = $4,
-      tax_amount = $5,
-      tax_rate = $6,
-      payment_method_name = $7,
-      account_title_name = $8,
-      invoice_number = $9,
-      summary = $10,
-      memo = $11,
-      confidence = $12,
-      line_items = $13::jsonb,
-      status = $14,
+      vendor_address = $4,
+      vendor_phone = $5,
+      receipt_time_text = $6,
+      total_amount = $7,
+      tax_amount = $8,
+      tax_rate = $9,
+      tax_treatment_name = $10,
+      payment_method_name = $11,
+      account_title_name = $12,
+      invoice_number = $13,
+      summary = $14,
+      memo = $15,
+      confidence = $16,
+      line_items = $17::jsonb,
+      status = $18,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING *
@@ -159,9 +352,13 @@ async function updateAiDraft(id, patch) {
       id,
       patch.transactionDate || null,
       patch.vendorName || "",
+      patch.vendorAddress || patch.vendor_address || "",
+      patch.vendorPhone || patch.vendor_phone || "",
+      patch.receiptTimeText || patch.receipt_time_text || "",
       patch.totalAmount === "" || patch.totalAmount === undefined ? null : Number(patch.totalAmount),
       patch.taxAmount === "" || patch.taxAmount === undefined ? null : Number(patch.taxAmount),
       patch.taxRate || "",
+      patch.taxTreatmentName || patch.tax_treatment_name || "",
       patch.paymentMethodName || "",
       patch.accountTitleName || "",
       patch.invoiceNumber || "",
@@ -354,7 +551,230 @@ async function deleteImportById(id) {
   }
 }
 
+
+async function getReceiptMasterOptions() {
+  const taxCategoriesResult = await pool.query(
+    `
+    SELECT
+      tax_category_id,
+      tax_name,
+      tax_rate,
+      sort_order
+    FROM expenses.tax_categories
+    WHERE is_active = TRUE
+    ORDER BY sort_order, tax_category_id
+    `
+  );
+
+  const taxTreatmentsResult = await pool.query(
+    `
+    SELECT
+      tax_treatment_id,
+      treatment_name,
+      treatment_code,
+      is_tax_included,
+      sort_order
+    FROM expenses.tax_treatments
+    WHERE is_active = TRUE
+    ORDER BY sort_order, tax_treatment_id
+    `
+  );
+
+  const paymentMethodsResult = await pool.query(
+    `
+    SELECT
+      payment_method_id,
+      method_name AS payment_method_name,
+      sort_order
+    FROM expenses.payment_methods
+    WHERE is_active = TRUE
+    ORDER BY sort_order, payment_method_id
+    `
+  );
+
+  return {
+    taxCategories: taxCategoriesResult.rows,
+    taxTreatments: taxTreatmentsResult.rows,
+    paymentMethods: paymentMethodsResult.rows
+  };
+}
+
+async function getReceiptTaxBreakdowns(receiptAiDraftId) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      receipt_ai_draft_id,
+      tax_category_id,
+      tax_category_name,
+      tax_rate,
+      tax_treatment_id,
+      tax_treatment_name,
+      target_amount,
+      tax_amount,
+      ai_confidence,
+      is_confirmed,
+      sort_order
+    FROM accounting.receipt_tax_breakdowns
+    WHERE receipt_ai_draft_id = $1
+    ORDER BY sort_order, id
+    `,
+    [receiptAiDraftId]
+  );
+
+  return result.rows;
+}
+
+async function replaceReceiptTaxBreakdowns(receiptAiDraftId, items) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const draftCheck = await client.query(
+      `
+      SELECT id
+      FROM accounting.receipt_ai_drafts
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [receiptAiDraftId]
+    );
+
+    if (draftCheck.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    await client.query(
+      `
+      DELETE FROM accounting.receipt_tax_breakdowns
+      WHERE receipt_ai_draft_id = $1
+      `,
+      [receiptAiDraftId]
+    );
+
+    const rows = Array.isArray(items) ? items : [];
+    const inserted = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] || {};
+
+      const taxCategoryId = row.taxCategoryId || row.tax_category_id || null;
+      const taxCategoryName = row.taxCategoryName || row.tax_category_name || "";
+      const taxRate = row.taxRate || row.tax_rate || "";
+
+      const taxTreatmentId = row.taxTreatmentId || row.tax_treatment_id || null;
+      const taxTreatmentName = row.taxTreatmentName || row.tax_treatment_name || "";
+
+      const targetAmount = row.targetAmount ?? row.target_amount ?? "";
+      const taxAmount = row.taxAmount ?? row.tax_amount ?? "";
+      const aiConfidence = row.aiConfidence ?? row.ai_confidence ?? "";
+
+      const isConfirmed =
+        row.isConfirmed === false || row.is_confirmed === false
+          ? false
+          : true;
+
+      const sortOrder = Number(row.sortOrder || row.sort_order || (i + 1) * 10);
+
+      const hasMeaning =
+        taxCategoryId ||
+        taxCategoryName ||
+        taxTreatmentId ||
+        taxTreatmentName ||
+        String(targetAmount || "").trim() !== "" ||
+        String(taxAmount || "").trim() !== "";
+
+      if (!hasMeaning) {
+        continue;
+      }
+
+      const result = await client.query(
+        `
+        INSERT INTO accounting.receipt_tax_breakdowns (
+          receipt_ai_draft_id,
+          tax_category_id,
+          tax_category_name,
+          tax_rate,
+          tax_treatment_id,
+          tax_treatment_name,
+          target_amount,
+          tax_amount,
+          ai_confidence,
+          is_confirmed,
+          sort_order
+        ) VALUES (
+          $1,
+          $2::BIGINT,
+          COALESCE(
+            (SELECT tax_name FROM expenses.tax_categories WHERE tax_category_id = $2::BIGINT),
+            $3::TEXT,
+            ''
+          ),
+          COALESCE(
+            (SELECT tax_rate FROM expenses.tax_categories WHERE tax_category_id = $2::BIGINT),
+            NULLIF($4::TEXT, '')::NUMERIC,
+            0
+          ),
+          $5::BIGINT,
+          COALESCE(
+            (SELECT treatment_name FROM expenses.tax_treatments WHERE tax_treatment_id = $5::BIGINT),
+            $6::TEXT,
+            ''
+          ),
+          NULLIF($7::TEXT, '')::NUMERIC,
+          NULLIF($8::TEXT, '')::NUMERIC,
+          NULLIF($9::TEXT, '')::NUMERIC,
+          $10::BOOLEAN,
+          $11::INTEGER
+        )
+        RETURNING
+          id,
+          receipt_ai_draft_id,
+          tax_category_id,
+          tax_category_name,
+          tax_rate,
+          tax_treatment_id,
+          tax_treatment_name,
+          target_amount,
+          tax_amount,
+          ai_confidence,
+          is_confirmed,
+          sort_order
+        `,
+        [
+          receiptAiDraftId,
+          taxCategoryId ? String(taxCategoryId) : null,
+          taxCategoryName,
+          taxRate,
+          taxTreatmentId ? String(taxTreatmentId) : null,
+          taxTreatmentName,
+          targetAmount,
+          taxAmount,
+          aiConfidence,
+          isConfirmed,
+          sortOrder
+        ]
+      );
+
+      inserted.push(result.rows[0]);
+    }
+
+    await client.query("COMMIT");
+
+    return inserted;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 module.exports = {
+  getReceiptTaxBreakdowns,
+  replaceReceiptTaxBreakdowns,
+  getReceiptMasterOptions,
   deleteImportById,
   listImportsForOcrDuplicateCheck,
   listImports,
