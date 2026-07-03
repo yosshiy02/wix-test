@@ -3,8 +3,53 @@ const path = require("path");
 const config = require("../config");
 const { runCommand } = require("../utils/command");
 const { timestamp } = require("../utils/time");
+const { listMigrationStatus } = require("../migrations/migration.service");
 
 fs.mkdirSync(config.backupDir, { recursive: true });
+
+function samePath(a, b) {
+  if (!a || !b) return false;
+
+  return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
+}
+
+function cloneBackupFile(filePath, fileName) {
+  const cloneDir = config.backupCloneDir;
+
+  if (!cloneDir) {
+    return {
+      enabled: false,
+      skipped: true,
+      reason: "クローン保存先が未設定です。"
+    };
+  }
+
+  if (samePath(config.backupDir, cloneDir)) {
+    return {
+      enabled: true,
+      skipped: true,
+      reason: "第1保存先と第2保存先が同じため、コピーを省略しました。",
+      backup_clone_dir: cloneDir
+    };
+  }
+
+  fs.mkdirSync(cloneDir, { recursive: true });
+
+  const clonePath = path.join(cloneDir, fileName);
+
+  fs.copyFileSync(filePath, clonePath);
+
+  const stat = fs.statSync(clonePath);
+
+  return {
+    enabled: true,
+    skipped: false,
+    file_name: fileName,
+    full_path: clonePath,
+    size_bytes: stat.size,
+    copied_at: stat.mtime
+  };
+}
 
 function pgTool(name) {
   return path.join(config.pgBinPath, `${name}.exe`);
@@ -101,6 +146,30 @@ function safeBackupFileName(filename) {
   return base;
 }
 
+
+async function getMigrationSnapshot() {
+  try {
+    const status = await listMigrationStatus();
+    const applied = status.filter(item => item.applied);
+    const latest = applied.length ? applied[applied.length - 1] : null;
+
+    return {
+      ok: true,
+      latest_version: latest ? latest.version : null,
+      latest_name: latest ? latest.name : null,
+      applied_count: applied.length,
+      migrations: status
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      latest_version: null,
+      latest_name: null,
+      applied_count: 0,
+      error: err.message
+    };
+  }
+}
 async function createBackup(prefix = process.env.DB_NAME || "database") {
   const dbName = process.env.DB_NAME;
   const fileName = `${prefix}_${timestamp()}.backup`;
@@ -120,6 +189,8 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
   });
 
   const stat = fs.statSync(filePath);
+  const migrationSnapshot = await getMigrationSnapshot();
+  const cloneBackup = cloneBackupFile(filePath, fileName);
   const cleanup = cleanupOldBackups();
 
   return {
@@ -127,6 +198,9 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
     full_path: filePath,
     size_bytes: stat.size,
     created_at: stat.mtime,
+    migration_version: migrationSnapshot.latest_version,
+    migration_snapshot: migrationSnapshot,
+    clone_backup: cloneBackup,
     cleanup
   };
 }
@@ -169,3 +243,5 @@ module.exports = {
   createBackup,
   restoreBackup,
 };
+
+
