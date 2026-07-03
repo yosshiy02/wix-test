@@ -1,6 +1,7 @@
 ﻿const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { TextDecoder } = require("util");
 const config = require("./config");
 
 const EXCLUDE_DIRS = new Set([
@@ -38,36 +39,57 @@ function maskSecret(key, value) {
   return value;
 }
 
-function readEnvSafe(projectRoot) {
-  const envPath = path.join(projectRoot, ".env");
+function readTextAuto(filePath) {
+  const buffer = fs.readFileSync(filePath);
 
-  if (!fs.existsSync(envPath)) {
+  const utf8 = buffer.toString("utf8");
+
+  if (!utf8.includes("�")) {
+    return utf8;
+  }
+
+  try {
+    return new TextDecoder("shift_jis").decode(buffer);
+  } catch {
+    return utf8;
+  }
+}
+
+function readRuntimePathsSafe(projectRoot) {
+  const runtimePath = path.join(projectRoot, "HD_ORIGIN_RUNTIME_PATHS.txt");
+
+  if (!fs.existsSync(runtimePath)) {
     return {
-      envPath,
-      lines: ["※ .env が見つかりません。"]
+      filePath: runtimePath,
+      lines: ["※ HD_ORIGIN_RUNTIME_PATHS.txt が見つかりません。"],
+      values: {}
     };
   }
 
-  const raw = fs.readFileSync(envPath, "utf8");
+  const raw = readTextAuto(runtimePath);
+  const values = {};
+
   const lines = raw
     .split(/\r?\n/)
     .map(line => {
       if (!line.trim()) return line;
-      if (line.trim().startsWith("#")) return line;
 
       const index = line.indexOf("=");
 
       if (index < 0) return line;
 
-      const key = line.slice(0, index);
+      const key = line.slice(0, index).trim();
       const value = line.slice(index + 1);
+
+      values[key] = value;
 
       return `${key}=${maskSecret(key, value)}`;
     });
 
   return {
-    envPath,
-    lines
+    filePath: runtimePath,
+    lines,
+    values
   };
 }
 
@@ -136,41 +158,50 @@ function fileExistsText(filePath) {
   return fs.existsSync(filePath) ? "あり" : "なし";
 }
 
-function writeProjectStatus(extraMemo = "") {
+function writeProjectStatus() {
   const projectRoot = config.projectRoot;
   const webDir = config.webDir;
   const outputPath = path.join(projectRoot, "PROJECT_STATUS_FOR_GPT.txt");
 
-  const env = readEnvSafe(projectRoot);
+  const runtime = readRuntimePathsSafe(projectRoot);
+  const runtimeValues = runtime.values || {};
   const tree = buildTree(projectRoot);
 
   const importantFiles = [
-    path.join(projectRoot, ".env"),
+    path.join(projectRoot, "HD_ORIGIN_RUNTIME_PATHS.txt"),
+    path.join(projectRoot, "HD_ORIGIN_PC_RULES.txt"),
+    path.join(projectRoot, ".env_path.txt"),
     path.join(projectRoot, ".env.example"),
     path.join(projectRoot, "README.md"),
-    path.join(projectRoot, "database", "expenses", "master_management_setup.sql"),
-    path.join(projectRoot, "database", "expenses", "add_classification_masters.sql"),
+    path.join(webDir, "start_hd_origin.bat"),
     path.join(webDir, "server.js"),
     path.join(webDir, "src", "config.js"),
     path.join(webDir, "src", "db.js"),
     path.join(webDir, "src", "db.bootstrap.js"),
     path.join(webDir, "src", "projectStatus.js"),
+    path.join(webDir, "src", "backups", "backup.routes.js"),
+    path.join(webDir, "src", "backups", "backup.service.js"),
     path.join(webDir, "src", "expenses", "expenses.routes.js"),
     path.join(webDir, "src", "expenses", "expenses.repository.js"),
     path.join(webDir, "src", "masters", "masters.routes.js"),
     path.join(webDir, "src", "masters", "master.repository.js"),
+    path.join(webDir, "src", "receipts", "receipts.routes.js"),
+    path.join(webDir, "src", "receipts", "receipts.repository.js"),
+    path.join(webDir, "src", "receipts", "receipts.ai.js"),
     path.join(webDir, "public", "expenses", "expense-input.html"),
     path.join(webDir, "public", "expenses", "expense-list.html"),
     path.join(webDir, "public", "masters", "master-management.html"),
+    path.join(webDir, "public", "receipts", "receipt-list.html"),
+    path.join(webDir, "public", "receipts", "receipt-scan-inbox.html"),
     path.join(webDir, "public", "settings.html")
   ];
 
   const lines = [];
 
-  lines.push("HD Origin Project 現状引き継ぎメモ");
-  lines.push("===================================");
+  lines.push("HD Origin Project 構造・起動パス確認メモ");
+  lines.push("=======================================");
   lines.push("");
-  lines.push("このファイルは、別のGPTへ現状を伝えるために起動時に自動生成されています。");
+  lines.push("このファイルは、起動BATが確定したPC別パスとフォルダ構造を次のGPTへ伝えるために自動生成されています。");
   lines.push("DB_PASSWORD等の秘密情報は伏せています。");
   lines.push("");
   lines.push("[生成情報]");
@@ -180,51 +211,29 @@ function writeProjectStatus(extraMemo = "") {
   lines.push(`Node.js: ${process.version}`);
   lines.push(`作業ディレクトリ: ${process.cwd()}`);
   lines.push("");
-  lines.push("[プロジェクト基本情報]");
-  lines.push(`PROJECT_ROOT: ${projectRoot}`);
-  lines.push(`WEB_DIR: ${webDir}`);
-  lines.push(`PUBLIC_DIR: ${config.publicDir}`);
-  lines.push(`SERVER_ENTRY: ${path.join(webDir, "server.js")}`);
-  lines.push(`PORT: ${config.PORT}`);
+  lines.push("[起動BAT確定パス情報]");
+  lines.push(`RUNTIME_PATHS_FILE: ${runtime.filePath}`);
+  lines.push("-----------------------------------");
+  lines.push(...runtime.lines);
+  lines.push("-----------------------------------");
   lines.push("");
-  lines.push("[DB接続情報 ※パスワード非表示]");
-  lines.push(`DB_HOST: ${config.db.host}`);
-  lines.push(`DB_PORT: ${config.db.port}`);
-  lines.push(`DB_NAME: ${config.db.database}`);
-  lines.push(`DB_USER: ${config.db.user}`);
+  lines.push("[主要確定値]");
+  lines.push(`PROJECT_ROOT: ${runtimeValues.PROJECT_ROOT || projectRoot}`);
+  lines.push(`WEB_DIR: ${runtimeValues.WEB_DIR || webDir}`);
+  lines.push(`HD_ORIGIN_ENV_PATH: ${maskSecret("HD_ORIGIN_ENV_PATH", runtimeValues.HD_ORIGIN_ENV_PATH || "")}`);
+  lines.push(`DB_HOST: ${runtimeValues.DB_HOST || ""}`);
+  lines.push(`DB_PORT: ${runtimeValues.DB_PORT || ""}`);
+  lines.push(`DB_NAME: ${runtimeValues.DB_NAME || ""}`);
+  lines.push(`DB_USER: ${runtimeValues.DB_USER || ""}`);
   lines.push("DB_PASSWORD: ********");
-  lines.push(`PG_BIN_PATH: ${config.pgBinPath}`);
-  lines.push("");
-  lines.push("[バックアップ情報]");
-  lines.push(`BACKUP_DIR: ${config.backupDir}`);
-  lines.push("");
-  lines.push("[.env 内容 ※秘密情報マスク済み]");
-  lines.push(`ENV_PATH: ${env.envPath}`);
-  lines.push("-----------------------------------");
-  lines.push(...env.lines);
-  lines.push("-----------------------------------");
+  lines.push(`PG_BIN_PATH: ${runtimeValues.PG_BIN_PATH || ""}`);
+  lines.push(`BACKUP_DIR: ${runtimeValues.BACKUP_DIR || ""}`);
+  lines.push(`NODE_PATH: ${runtimeValues.NODE_PATH || ""}`);
+  lines.push(`NPM_PATH: ${runtimeValues.NPM_PATH || ""}`);
   lines.push("");
   lines.push("[重要ファイル存在確認]");
   for (const file of importantFiles) {
     lines.push(`${fileExistsText(file)} : ${file}`);
-  }
-  lines.push("");
-  lines.push("[現在の処理メモ]");
-  lines.push("- 画面は HTML/CSS/JS。");
-  lines.push("- サーバーは Node.js の server.js。");
-  lines.push("- DBはPostgreSQL。");
-  lines.push("- .env は接続先設定であり、DB本体ではない。");
-  lines.push("- 経費入力画面のマスタ選択肢は /api/expenses/masters から取得する。");
-  lines.push("- /api/expenses/masters は web_receiver/src/expenses/expenses.routes.js から expenses.repository.js の getMasters() を呼ぶ。");
-  lines.push("- 証憑・インボイスはHTML固定選択肢。");
-  lines.push("- 対象者・目的・案件・部門・勘定科目・支払方法・税区分・支払先はPostgreSQLのexpenses系テーブルを見る。");
-  lines.push("- DBが無いPCでは、起動時に基本構造を作る設計へ移行中。");
-  lines.push("- 過去データは設定画面のDBリストアで戻す方針。");
-  lines.push("- このファイルは、他GPTへ状況を伝えるための自動メモ。");
-  if (extraMemo) {
-    lines.push("");
-    lines.push("[追加メモ]");
-    lines.push(String(extraMemo));
   }
   lines.push("");
   lines.push("[プロジェクトツリー]");

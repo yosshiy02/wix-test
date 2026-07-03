@@ -238,6 +238,30 @@ rem 12. Start Node server
 rem --------------------------------
 cd /d "%WEB_DIR%"
 
+
+rem PROJECT_STATUS_AUTOGEN_START
+echo Writing PROJECT_STATUS_FOR_GPT.txt...
+echo.
+
+if defined NODE_PATH (
+    "%NODE_PATH%" -e "require('./src/projectStatus').writeProjectStatus('start_hd_origin.bat startup regeneration')"
+) else (
+    node -e "require('./src/projectStatus').writeProjectStatus('start_hd_origin.bat startup regeneration')"
+)
+
+if errorlevel 1 (
+    echo WARNING: PROJECT_STATUS_FOR_GPT.txt generation failed.
+    echo.
+) else (
+    echo PROJECT_STATUS_FOR_GPT.txt was regenerated.
+    echo %PROJECT_ROOT%\PROJECT_STATUS_FOR_GPT.txt
+    echo Opening memo window...
+    start "" notepad "%PROJECT_ROOT%\PROJECT_STATUS_FOR_GPT.txt"
+    echo.
+)
+rem PROJECT_STATUS_AUTOGEN_END
+
+
 if not exist "%WEB_DIR%\package.json" (
     echo ERROR: package.json was not found.
     echo %WEB_DIR%\package.json
@@ -555,6 +579,8 @@ for %%D in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
 )
 
 exit /b 0
+
+
 
 
 
