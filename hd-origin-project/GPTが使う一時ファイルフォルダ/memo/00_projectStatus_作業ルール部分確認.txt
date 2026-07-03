@@ -1,0 +1,8 @@
+﻿projectStatus.js の作業ルール候補行です。
+
+206:   lines.push("DB_PASSWORD等の秘密情報は伏せています。");
+208:   lines.push("[作業ルール]");
+213:   lines.push("- GPTに見せる・修正する・UNDO用に残すファイルは、プロジェクト直下の「GPTが使う一時ファイルフォルダ」に集める。");
+214:   lines.push("- 「GPTが使う一時ファイルフォルダ」には、before / after / apply / undo / memo を置く。");
+215:   lines.push("- before には修正前コピー、after には修正版、apply には本体反映手順、undo には戻し手順、memo には確認結果・作業メモを書く。");
+216:   lines.push("- 今後の修正は、本体へいきなり直接当てず、before に修正前、after に修正版を作り、確認後に apply で本体へ反映する。\n- 問題が出た場合は、undo の手順で before から本体へ戻す。\n- 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。\n- .env、秘密情報、DB、画像、実バックアップは、ユーザーが明示しない限り収集・削除・移動・変更しない。");

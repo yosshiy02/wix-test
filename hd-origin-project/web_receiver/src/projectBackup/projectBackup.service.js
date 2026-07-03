@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const config = require("../config");
 const { runCommand } = require("../utils/command");
@@ -60,6 +60,8 @@ async function createProjectBackup() {
   const filePath = path.join(dir, fileName);
 
   const script = `
+$ErrorActionPreference = "Stop"
+
 $Source = ${JSON.stringify(config.projectRoot)}
 $Dest = ${JSON.stringify(filePath)}
 $Temp = Join-Path $env:TEMP ("hd_origin_project_backup_" + [guid]::NewGuid().ToString("N"))
@@ -73,22 +75,46 @@ $ExcludeDirs = @(
   (Join-Path $Source ".vs"),
   (Join-Path $Source "bin"),
   (Join-Path $Source "obj"),
+  (Join-Path $Source "__pycache__"),
+  (Join-Path $Source "_manual_patch_backup"),
+  (Join-Path $Source "GPTが見たいファイル一時フォルダ"),
   (Join-Path $Source "web_receiver\\node_modules")
 )
 
-robocopy $Source $Temp /E /XD $ExcludeDirs /XF "*.log" "npm-debug.log*" | Out-Null
+$ExcludeFiles = @(
+  ".env",
+  ".env.local",
+  ".env.development",
+  ".env.production",
+  ".env.test",
+  "*.log",
+  "npm-debug.log*",
+  "*.tmp",
+  "*.bak",
+  "*.bak_*",
+  "*.broken_*",
+  "*_tmp.js",
+  "00_*.txt"
+)
 
-if ($LASTEXITCODE -gt 7) {
-  throw "robocopy failed. code=$LASTEXITCODE"
+try {
+  robocopy $Source $Temp /E /XD $ExcludeDirs /XF $ExcludeFiles /R:1 /W:1 | Out-Null
+
+  if ($LASTEXITCODE -gt 7) {
+    throw "robocopy failed. code=$LASTEXITCODE"
+  }
+
+  if (Test-Path $Dest) {
+    Remove-Item $Dest -Force
+  }
+
+  Compress-Archive -Path (Join-Path $Temp "*") -DestinationPath $Dest -Force
 }
-
-if (Test-Path $Dest) {
-  Remove-Item $Dest -Force
+finally {
+  if (Test-Path $Temp) {
+    Remove-Item $Temp -Recurse -Force
+  }
 }
-
-Compress-Archive -Path (Join-Path $Temp "*") -DestinationPath $Dest -Force
-
-Remove-Item $Temp -Recurse -Force
 `;
 
   await runCommand("powershell.exe", [

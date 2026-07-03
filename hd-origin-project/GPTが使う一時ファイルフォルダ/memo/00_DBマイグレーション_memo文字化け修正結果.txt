@@ -1,0 +1,28 @@
+﻿DBマイグレーション memo文字化け修正結果
+==============================
+
+日時: 2026/07/03 20:50:52
+終了コード: 0
+
+[Node結果]
+{
+  "ok": true,
+  "updated": [
+    {
+      "version": "20260703_001_baseline_current_schema",
+      "name": "baseline_current_schema",
+      "file_name": "20260703_001_baseline_current_schema.sql",
+      "applied_at": "2026-07-03T11:49:19.358Z",
+      "applied_by": "postgres",
+      "memo": "Current DB schema registered as baseline"
+    }
+  ]
+}
+
+
+[修正内容]
+system.schema_migrations の baseline memo を英数字へ修正。
+
+[注意]
+業務テーブルは触っていません。
+バックアップファイル、.env、画像は触っていません。

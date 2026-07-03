@@ -1,0 +1,46 @@
+﻿DBバックアップ 2か所保存 実作成テスト結果
+==============================
+
+日時: 2026/07/03 20:23:50
+API: http://localhost:3000/api/backup/create
+
+[API結果]
+{
+    "ok":  true,
+    "message":  "バックアップを作成しました。",
+    "backup":  {
+                   "file_name":  "hd_origin_project_20260703_202350.backup",
+                   "full_path":  "C:\\Users\\yossh.2FLABO\\Desktop\\新しいフォルダー\\wix-test\\hd-origin-project\\backup\\hd_origin_project_20260703_202350.backup",
+                   "size_bytes":  73310,
+                   "created_at":  "2026-07-03T11:23:50.843Z",
+                   "clone_backup":  {
+                                        "enabled":  true,
+                                        "skipped":  false,
+                                        "file_name":  "hd_origin_project_20260703_202350.backup",
+                                        "full_path":  "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\hd_origin_project_20260703_202350.backup",
+                                        "size_bytes":  73310,
+                                        "copied_at":  "2026-07-03T11:23:50.843Z"
+                                    },
+                   "cleanup":  {
+                                   "keep_normal":  10,
+                                   "keep_before_restore":  3,
+                                   "deleted":  [
+                                                   "hd_origin_project_20260625_142529.backup"
+                                               ]
+                               }
+               }
+}
+
+[確認]
+第1保存先 full_path: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\backup\hd_origin_project_20260703_202350.backup
+第2保存先 clone_backup.full_path: F:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\Backup\hd_origin_project_20260703_202350.backup
+
+第1保存先: あり | 73310 bytes | 07/03/2026 20:23:50
+第2保存先: あり | 73310 bytes | 07/03/2026 20:23:50
+
+サイズ一致: True
+
+[注意]
+これはバックアップ作成テストです。
+DB本体、.env、画像は触っていません。
+既存バックアップの削除はしていません。

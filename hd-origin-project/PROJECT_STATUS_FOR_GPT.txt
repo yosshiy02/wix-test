@@ -4,8 +4,25 @@ HD Origin Project 構造・起動パス確認メモ
 このファイルは、起動BATが確定したPC別パスとフォルダ構造を次のGPTへ伝えるために自動生成されています。
 DB_PASSWORD等の秘密情報は伏せています。
 
+[作業ルール]
+- 基本的にファイル編集は PowerShell で行う。
+- PowerShellで確認テキストを出す場合は、コンソール表示だけにせず、メモ帳など別ウインドウで開く。
+- ただし、ユーザーが明示しない限り、クリップボードは触らない。
+- 確認結果だけを出す場合は、ユーザーが明示しない限り、フォルダを勝手に開かない。
+- GPTに見せるファイルは、プロジェクト直下の「GPTが使う一時ファイルフォルダ」に集める。
+- 「GPTが使う一時ファイルフォルダ」は一時作業用なので、収集前に古い作業ファイルを残さない。
+- GPTが読むためのコピーは「GPTが使う一時ファイルフォルダ\GPTに渡すフォルダ」に集める。
+- 「GPTに渡すフォルダ」は毎回クリーンしてから、今回必要なファイルだけコピーする。
+- GPTに渡すファイル数は、原則15ファイル以内。複雑な確認で必要な場合のみ最大20ファイルまで可。それを超える場合は分割する。
+- 「GPTが使う一時ファイルフォルダ」には、GPTに渡すフォルダ / before / after / apply / undo / memo を置く。
+- before には修正前コピー、after には修正版、apply には本体反映手順、undo には戻し手順、memo には確認結果・作業メモを書く。
+- 今後の修正は、本体へいきなり直接当てず、before に修正前、after に修正版を作り、確認後に apply で本体へ反映する。
+- 問題が出た場合は、undo の手順で before から本体へ戻す。
+- 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。
+- .env、秘密情報、DB、画像、実バックアップ、backup フォルダは、ユーザーが明示しない限り収集・削除・移動・変更しない。
+
 [生成情報]
-生成日時: 2026/7/3 17:53:57
+生成日時: 2026/7/3 21:00:05
 PC名: 2FLABO
 OS: win32 10.0.19045 x64
 Node.js: v20.16.0
@@ -94,9 +111,117 @@ hd-origin-project\
 │  ├─ env_initializer.cpython-312.pyc
 │  └─ env_initializer.cpython-313.pyc
 ├─ database\
-│  └─ expenses\
-│     ├─ master_management_setup.sql.bak_20260626_202651
-│     └─ master_management_setup.sql.bak_20260626_202709
+│  ├─ expenses\
+│  │  ├─ master_management_setup.sql.bak_20260626_202651
+│  │  └─ master_management_setup.sql.bak_20260626_202709
+│  └─ migrations\
+│     ├─ 20260703_001_baseline_current_schema.sql
+│     └─ README_MIGRATIONS.txt
+├─ GPTが使う一時ファイルフォルダ\
+│  ├─ after\
+│  │  ├─ database\
+│  │  │  └─ migrations\
+│  │  │     ├─ 20260703_001_baseline_current_schema.sql
+│  │  │     └─ README_MIGRATIONS.txt
+│  │  └─ web_receiver\
+│  │     └─ src\
+│  │        ├─ backups\
+│  │        │  └─ backup.service.js
+│  │        ├─ migrations\
+│  │        │  └─ migration.service.js
+│  │        ├─ config.js
+│  │        └─ projectStatus.js
+│  ├─ apply\
+│  │  ├─ apply_backup_migration_snapshot_v2.ps1
+│  │  ├─ apply_db_backup_clone_save_safe.ps1
+│  │  ├─ apply_migration_foundation.ps1
+│  │  ├─ apply_projectStatus_file_count_rule_20.ps1
+│  │  └─ apply_projectStatus_temp_folder_clean_rule.ps1
+│  ├─ before\
+│  │  ├─ web_receiver\
+│  │  │  ├─ src\
+│  │  │  │  ├─ backups\
+│  │  │  │  │  ├─ backup.service_before_clone_save_safe.js
+│  │  │  │  │  ├─ backup.service_before_clone_save.js
+│  │  │  │  │  ├─ backup.service_before_migration_snapshot_v2.js
+│  │  │  │  │  ├─ backup.service_before_migration_snapshot.js
+│  │  │  │  │  └─ backup.service_before_migration_version.js
+│  │  │  │  ├─ migrations\
+│  │  │  │  │  ├─ migration.service_before_bom_fix_v2.js
+│  │  │  │  │  └─ migration.service_before_bom_fix.js
+│  │  │  │  ├─ config_before_backup_clone_dir_safe.js
+│  │  │  │  ├─ config_before_backup_clone_dir.js
+│  │  │  │  ├─ projectStatus_before_file_count_20_rule.js
+│  │  │  │  ├─ projectStatus_before_file_count_rule_20.js
+│  │  │  │  ├─ projectStatus_before_js_newline_escape_fix.js
+│  │  │  │  ├─ projectStatus_before_newline_fix.js
+│  │  │  │  ├─ projectStatus_before_temp_folder_clean_rule_final.js
+│  │  │  │  ├─ projectStatus_before_temp_folder_clean_rule.js
+│  │  │  │  └─ projectStatus.js
+│  │  │  └─ start_hd_origin.bat
+│  │  └─ PROJECT_STATUS_FOR_GPT.txt
+│  ├─ GPTに渡すフォルダ\
+│  │  └─ web_receiver\
+│  │     └─ src\
+│  │        ├─ backups\
+│  │        │  └─ backup.service.js
+│  │        ├─ migrations\
+│  │        │  └─ migration.service.js
+│  │        └─ db.js
+│  ├─ memo\
+│  │  ├─ 00_DBバックアップ_2か所比較確認結果.txt
+│  │  ├─ 00_DBバックアップ_2か所保存_実作成テスト結果.txt
+│  │  ├─ 00_DBバックアップ_2か所保存後_整合性確認結果.txt
+│  │  ├─ 00_DBバックアップ_2か所保存処理修正_safe結果.txt
+│  │  ├─ 00_DBバックアップ_BからA不足分コピー結果.txt
+│  │  ├─ 00_DBバックアップ_Bのみ新規分をAへコピー結果.txt
+│  │  ├─ 00_DBバックアップ_migration_snapshot追加_v2結果.txt
+│  │  ├─ 00_DBバックアップ_migration_version追加用_収集結果.txt
+│  │  ├─ 00_DBバックアップ_元指定場所_gitignore確認とクローン結果.txt
+│  │  ├─ 00_DBバックアップ修正用_収集結果.txt
+│  │  ├─ 00_DBマイグレーション_memo文字化け修正結果.txt
+│  │  ├─ 00_DBマイグレーション土台_baseline適用_BOM除去結果.txt
+│  │  ├─ 00_DBマイグレーション土台_途中停止後確認.txt
+│  │  ├─ 00_DBリストア失敗後_現在DB状態確認.txt
+│  │  ├─ 00_GPT引継ぎメモ_一時フォルダ運用追記結果.txt
+│  │  ├─ 00_GPT作業用一時フォルダ運用ルール_設定結果.txt
+│  │  ├─ 00_projectStatus_20ファイルルール再修正用_収集結果.txt
+│  │  ├─ 00_projectStatus_20ファイルルール失敗後確認.txt
+│  │  ├─ 00_projectStatus_20ファイル上限ルール追加結果.txt
+│  │  ├─ 00_projectStatus_JS改行エスケープ修正結果.txt
+│  │  ├─ 00_projectStatus_緊急復旧結果.txt
+│  │  ├─ 00_projectStatus_作業ルール差し替え結果.txt
+│  │  ├─ 00_projectStatus_作業ルール部分確認.txt
+│  │  ├─ 00_projectStatus_作業ルール文言修正結果.txt
+│  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_after作成結果.txt
+│  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_反映結果.txt
+│  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_未反映.txt
+│  │  ├─ 00_バックアップ修正用_収集結果.txt
+│  │  ├─ 00_レシートAPI起動確認手順.txt
+│  │  ├─ 00_引継ぎメモ_一時フォルダ文言修正結果.txt
+│  │  ├─ 00_起動後文書_生成元確認用_収集結果.txt
+│  │  ├─ 00_古いバックアップ_スキーマ確認結果.txt
+│  │  ├─ apply_baseline_migration_no_bom_node_output.txt
+│  │  ├─ apply_baseline_migration_no_bom.js
+│  │  ├─ apply_baseline_migration_node_output.txt
+│  │  ├─ apply_baseline_migration.js
+│  │  ├─ check_migration_foundation_status_node_output.txt
+│  │  ├─ check_migration_foundation_status.js
+│  │  ├─ fix_schema_migration_memo_node_output.txt
+│  │  ├─ fix_schema_migration_memo.js
+│  │  └─ old_backup_schema_20260625_143008.sql
+│  ├─ undo\
+│  │  ├─ undo_backup_migration_snapshot_v2.ps1
+│  │  ├─ undo_db_backup_clone_save_safe.ps1
+│  │  ├─ undo_migration_foundation_files_only.ps1
+│  │  ├─ undo_projectStatus_file_count_rule_20.ps1
+│  │  ├─ undo_projectStatus_JS改行エスケープ修正.ps1
+│  │  └─ undo_projectStatus_作業ルール文言.ps1
+│  ├─ 00_レシートAPI_DB台帳対応_修正結果.txt
+│  ├─ 00_レシート画面API確認用_収集結果.txt
+│  ├─ HD_ORIGIN_PC_RULES.txt
+│  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
+│  └─ PROJECT_STATUS_FOR_GPT.txt
 ├─ ORIGIN会計ソフト\
 │  ├─ レシートページ\
 │  │  ├─ _old_20260627_082025\
@@ -220,6 +345,8 @@ hd-origin-project\
 │  │  │  ├─ masters.routes.js
 │  │  │  ├─ masters.routes.js.bak_fix_20260626_203047
 │  │  │  └─ masters.routes.js.bak_fix_20260626_203103
+│  │  ├─ migrations\
+│  │  │  └─ migration.service.js
 │  │  ├─ projectBackup\
 │  │  │  ├─ projectBackup.routes.js
 │  │  │  └─ projectBackup.service.js
@@ -237,8 +364,14 @@ hd-origin-project\
 │  │  ├─ response.js
 │  │  └─ static.js
 │  ├─ _apply_receipt_relationship_schema.js
+│  ├─ _apply_receipt_stage_tables_for_gpt.js
+│  ├─ _check_db_connection_fixed_for_gpt.js
+│  ├─ _check_env_db_user_for_gpt.js
+│  ├─ _check_receipt_db_structure_for_gpt.js
+│  ├─ _check_receipt_tables_fixed_for_gpt.js
 │  ├─ _check_tax_treatment_db.js
 │  ├─ _debug_receipt_ai_drafts_columns.js
+│  ├─ _register_existing_receipt_files_for_gpt.js
 │  ├─ apply_master_management_setup_tmp.js
 │  ├─ check_expenses_tables_tmp.js
 │  ├─ check_expenses_tables_with_password_tmp.js
@@ -257,6 +390,7 @@ hd-origin-project\
 ├─ .gitignore
 ├─ CURRENT_TREE_FOR_GPT.txt
 ├─ env_initializer.py
+├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
 ├─ HD_ORIGIN_PC_RULES.txt
 ├─ HD_ORIGIN_RUNTIME_PATHS.txt
 ├─ PROJECT_STATUS_FOR_GPT.txt

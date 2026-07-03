@@ -1,6 +1,7 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const config = require("../config");
 const { sendJson } = require("../response");
 const repo = require("./receipts.repository");
 const ai = require("./receipts.ai");
@@ -94,16 +95,15 @@ function getProjectRoot() {
 }
 
 function getReceiptScanInboxDir() {
-  if (process.env.RECEIPT_SCAN_INBOX) {
-    return path.resolve(getProjectRoot(), process.env.RECEIPT_SCAN_INBOX);
+  const fromEnv = getEnvValue("RECEIPT_SCAN_INBOX");
+
+  if (fromEnv) {
+    return path.isAbsolute(fromEnv)
+      ? path.resolve(fromEnv)
+      : path.resolve(config.receiptRoot, fromEnv);
   }
 
-  return path.resolve(
-    getProjectRoot(),
-    "ORIGIN会計ソフト",
-    "レシート関係",
-    "scan_inbox"
-  );
+  return path.resolve(config.receiptRoot, "scan_inbox");
 }
 
 function isReceiptImageFile(fileName) {
@@ -349,15 +349,12 @@ function getReceiptImportSubDir(envName, fallbackName) {
   const fromEnv = getEnvValue(envName);
 
   if (fromEnv) {
-    return path.resolve(getProjectRoot(), fromEnv);
+    return path.isAbsolute(fromEnv)
+      ? path.resolve(fromEnv)
+      : path.resolve(config.receiptRoot, fromEnv);
   }
 
-  return path.resolve(
-    getProjectRoot(),
-    "ORIGIN会計ソフト",
-    "レシート関係",
-    fallbackName
-  );
+  return path.resolve(config.receiptRoot, fallbackName);
 }
 
 function ensureDir(dir) {

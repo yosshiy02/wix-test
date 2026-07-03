@@ -1,0 +1,49 @@
+﻿古いバックアップ スキーマ確認結果
+==============================
+
+日時: 2026/07/03 20:38:28
+対象バックアップ: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\backup\hd_origin_project_20260625_143008.backup
+
+[抽出SQL]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\old_backup_schema_20260625_143008.sql
+
+
+[CREATE TABLE expenses.expense_headers]
+CREATE TABLE expenses.expense_headers (
+    expense_id bigint NOT NULL,
+    expense_date date NOT NULL,
+    payee text,
+    payment_method text,
+    total_amount numeric(12,2) DEFAULT 0 NOT NULL,
+    memo text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+[CREATE TABLE expenses.expense_details]
+CREATE TABLE expenses.expense_details (
+    detail_id bigint NOT NULL,
+    expense_id bigint NOT NULL,
+    account_title text,
+    description text,
+    amount numeric(12,2) DEFAULT 0 NOT NULL,
+    tax_category text,
+    memo text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+[CREATE TABLE public.received_items]
+CREATE TABLE public.received_items (
+    id bigint NOT NULL,
+    received_at timestamp with time zone DEFAULT now() NOT NULL,
+    type text,
+    amount numeric(12,2),
+    name text,
+    deal_date date,
+    memo text,
+    payload jsonb NOT NULL
+);
+
+[注意]
+確認だけです。現在DBには接続していません。
+DBの削除・復元・上書きはしていません。

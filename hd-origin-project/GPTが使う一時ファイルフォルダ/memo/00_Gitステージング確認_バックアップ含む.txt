@@ -1,0 +1,86 @@
+﻿Gitステージング確認 バックアップ含む
+==============================
+
+日時: 2026/07/03 21:07:38
+
+[git status --short]
+ M .gitignore
+ M HD_ORIGIN_PC_RULES.txt
+ M PROJECT_STATUS_FOR_GPT.txt
+ M PROJECT_TODO_FOR_GPT.txt
+A  backup/hd_origin_project_20260625_142531.backup
+A  backup/hd_origin_project_20260625_142536.backup
+A  backup/hd_origin_project_20260625_142541.backup
+A  backup/hd_origin_project_20260625_142542.backup
+A  backup/hd_origin_project_20260625_143008.backup
+A  backup/hd_origin_project_20260703_202226.backup
+A  backup/hd_origin_project_20260703_202350.backup
+A  backup/hd_origin_project_20260703_210017.backup
+A  backup/hd_origin_project_before_receipt_file_register_20260703_190705.backup
+A  backup/hd_origin_project_before_receipt_tables_20260703_185916.backup
+A  backup/hd_origin_project_before_restore_20260625_131753.backup
+A  backup/hd_origin_project_before_restore_20260703_203035.backup
+A  backup/project/hd-origin-project_program_20260703_183419.zip
+A  database/migrations/20260703_001_baseline_current_schema.sql
+A  database/migrations/README_MIGRATIONS.txt
+ M web_receiver/public/settings.html
+M  web_receiver/src/backups/backup.service.js
+M  web_receiver/src/config.js
+A  web_receiver/src/migrations/migration.service.js
+ M web_receiver/src/projectBackup/projectBackup.service.js
+ M web_receiver/src/projectStatus.js
+ M web_receiver/src/receipts/receipts.repository.js
+ M web_receiver/src/receipts/receipts.routes.js
+?? GPT_WORKFLOW_HANDOFF_MEMO.txt
+?? "GPT\343\201\214\344\275\277\343\201\206\344\270\200\346\231\202\343\203\225\343\202\241\343\202\244\343\203\253\343\203\225\343\202\251\343\203\253\343\203\200/"
+?? web_receiver/_apply_receipt_stage_tables_for_gpt.js
+?? web_receiver/_check_db_connection_fixed_for_gpt.js
+?? web_receiver/_check_env_db_user_for_gpt.js
+?? web_receiver/_check_receipt_db_structure_for_gpt.js
+?? web_receiver/_check_receipt_tables_fixed_for_gpt.js
+?? web_receiver/_register_existing_receipt_files_for_gpt.js
+
+[ステージ済みファイル]
+hd-origin-project/backup/hd_origin_project_20260625_142531.backup
+hd-origin-project/backup/hd_origin_project_20260625_142536.backup
+hd-origin-project/backup/hd_origin_project_20260625_142541.backup
+hd-origin-project/backup/hd_origin_project_20260625_142542.backup
+hd-origin-project/backup/hd_origin_project_20260625_143008.backup
+hd-origin-project/backup/hd_origin_project_20260703_202226.backup
+hd-origin-project/backup/hd_origin_project_20260703_202350.backup
+hd-origin-project/backup/hd_origin_project_20260703_210017.backup
+hd-origin-project/backup/hd_origin_project_before_receipt_file_register_20260703_190705.backup
+hd-origin-project/backup/hd_origin_project_before_receipt_tables_20260703_185916.backup
+hd-origin-project/backup/hd_origin_project_before_restore_20260625_131753.backup
+hd-origin-project/backup/hd_origin_project_before_restore_20260703_203035.backup
+hd-origin-project/backup/project/hd-origin-project_program_20260703_183419.zip
+hd-origin-project/database/migrations/20260703_001_baseline_current_schema.sql
+hd-origin-project/database/migrations/README_MIGRATIONS.txt
+hd-origin-project/web_receiver/src/backups/backup.service.js
+hd-origin-project/web_receiver/src/config.js
+hd-origin-project/web_receiver/src/migrations/migration.service.js
+
+[ステージ済み stat]
+ .../hd_origin_project_20260625_142531.backup       | Bin 0 -> 8788 bytes
+ .../hd_origin_project_20260625_142536.backup       | Bin 0 -> 8788 bytes
+ .../hd_origin_project_20260625_142541.backup       | Bin 0 -> 8788 bytes
+ .../hd_origin_project_20260625_142542.backup       | Bin 0 -> 8788 bytes
+ .../hd_origin_project_20260625_143008.backup       | Bin 0 -> 8788 bytes
+ .../hd_origin_project_20260703_202226.backup       | Bin 0 -> 73310 bytes
+ .../hd_origin_project_20260703_202350.backup       | Bin 0 -> 73310 bytes
+ .../hd_origin_project_20260703_210017.backup       | Bin 0 -> 77164 bytes
+ ...re_receipt_file_register_20260703_190705.backup | Bin 0 -> 72211 bytes
+ ...ct_before_receipt_tables_20260703_185916.backup | Bin 0 -> 57413 bytes
+ ...n_project_before_restore_20260625_131753.backup | Bin 0 -> 8812 bytes
+ ...n_project_before_restore_20260703_203035.backup | Bin 0 -> 73310 bytes
+ .../hd-origin-project_program_20260703_183419.zip  | Bin 0 -> 2584604 bytes
+ .../20260703_001_baseline_current_schema.sql       |  21 +++
+ .../database/migrations/README_MIGRATIONS.txt      |  15 ++
+ .../web_receiver/src/backups/backup.service.js     |  76 +++++++++
+ hd-origin-project/web_receiver/src/config.js       |  90 ++++++++++-
+ .../src/migrations/migration.service.js            | 180 +++++++++++++++++++++
+ 18 files changed, 378 insertions(+), 4 deletions(-)
+
+[注意]
+git add だけ実行しました。git commit はまだしていません。
+GPT一時フォルダ、確認用JSは add していません。

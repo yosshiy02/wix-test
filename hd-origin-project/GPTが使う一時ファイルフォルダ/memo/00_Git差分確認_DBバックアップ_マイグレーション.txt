@@ -1,0 +1,298 @@
+﻿Git差分確認 DBバックアップ・マイグレーション
+==============================
+
+日時: 2026/07/03 21:02:28
+
+[git status --short]
+ M .gitignore
+ M HD_ORIGIN_PC_RULES.txt
+ M PROJECT_STATUS_FOR_GPT.txt
+ M PROJECT_TODO_FOR_GPT.txt
+ M web_receiver/public/settings.html
+ M web_receiver/src/backups/backup.service.js
+ M web_receiver/src/config.js
+ M web_receiver/src/projectBackup/projectBackup.service.js
+ M web_receiver/src/projectStatus.js
+ M web_receiver/src/receipts/receipts.repository.js
+ M web_receiver/src/receipts/receipts.routes.js
+?? GPT_WORKFLOW_HANDOFF_MEMO.txt
+?? "GPT\343\201\214\344\275\277\343\201\206\344\270\200\346\231\202\343\203\225\343\202\241\343\202\244\343\203\253\343\203\225\343\202\251\343\203\253\343\203\200/"
+?? backup/hd_origin_project_20260625_142531.backup
+?? backup/hd_origin_project_20260625_142536.backup
+?? backup/hd_origin_project_20260625_142541.backup
+?? backup/hd_origin_project_20260625_142542.backup
+?? backup/hd_origin_project_20260625_143008.backup
+?? backup/hd_origin_project_20260703_202226.backup
+?? backup/hd_origin_project_20260703_202350.backup
+?? backup/hd_origin_project_20260703_210017.backup
+?? backup/hd_origin_project_before_receipt_file_register_20260703_190705.backup
+?? backup/hd_origin_project_before_receipt_tables_20260703_185916.backup
+?? backup/hd_origin_project_before_restore_20260625_131753.backup
+?? backup/hd_origin_project_before_restore_20260703_203035.backup
+?? backup/project/hd-origin-project_program_20260703_183419.zip
+?? database/migrations/
+?? web_receiver/_apply_receipt_stage_tables_for_gpt.js
+?? web_receiver/_check_db_connection_fixed_for_gpt.js
+?? web_receiver/_check_env_db_user_for_gpt.js
+?? web_receiver/_check_receipt_db_structure_for_gpt.js
+?? web_receiver/_check_receipt_tables_fixed_for_gpt.js
+?? web_receiver/_register_existing_receipt_files_for_gpt.js
+?? web_receiver/src/migrations/
+
+[git diff --name-only]
+hd-origin-project/.gitignore
+hd-origin-project/HD_ORIGIN_PC_RULES.txt
+hd-origin-project/PROJECT_STATUS_FOR_GPT.txt
+hd-origin-project/PROJECT_TODO_FOR_GPT.txt
+hd-origin-project/web_receiver/public/settings.html
+hd-origin-project/web_receiver/src/backups/backup.service.js
+hd-origin-project/web_receiver/src/config.js
+hd-origin-project/web_receiver/src/projectBackup/projectBackup.service.js
+hd-origin-project/web_receiver/src/projectStatus.js
+hd-origin-project/web_receiver/src/receipts/receipts.repository.js
+hd-origin-project/web_receiver/src/receipts/receipts.routes.js
+
+[対象ファイル diff stat]
+ .../web_receiver/src/backups/backup.service.js     | 76 ++++++++++++++++++
+ hd-origin-project/web_receiver/src/config.js       | 90 +++++++++++++++++++++-
+ 2 files changed, 162 insertions(+), 4 deletions(-)
+
+[対象ファイル diff]
+diff --git a/hd-origin-project/web_receiver/src/backups/backup.service.js b/hd-origin-project/web_receiver/src/backups/backup.service.js
+index 3b92586..870314b 100644
+--- a/hd-origin-project/web_receiver/src/backups/backup.service.js
++++ b/hd-origin-project/web_receiver/src/backups/backup.service.js
+@@ -3,9 +3,54 @@ const path = require("path");
+ const config = require("../config");
+ const { runCommand } = require("../utils/command");
+ const { timestamp } = require("../utils/time");
++const { listMigrationStatus } = require("../migrations/migration.service");
+ 
+ fs.mkdirSync(config.backupDir, { recursive: true });
+ 
++function samePath(a, b) {
++  if (!a || !b) return false;
++
++  return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
++}
++
++function cloneBackupFile(filePath, fileName) {
++  const cloneDir = config.backupCloneDir;
++
++  if (!cloneDir) {
++    return {
++      enabled: false,
++      skipped: true,
++      reason: "繧ｯ繝ｭ繝ｼ繝ｳ菫晏ｭ伜・縺梧悴險ｭ螳壹〒縺吶・
++    };
++  }
++
++  if (samePath(config.backupDir, cloneDir)) {
++    return {
++      enabled: true,
++      skipped: true,
++      reason: "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
++      backup_clone_dir: cloneDir
++    };
++  }
++
++  fs.mkdirSync(cloneDir, { recursive: true });
++
++  const clonePath = path.join(cloneDir, fileName);
++
++  fs.copyFileSync(filePath, clonePath);
++
++  const stat = fs.statSync(clonePath);
++
++  return {
++    enabled: true,
++    skipped: false,
++    file_name: fileName,
++    full_path: clonePath,
++    size_bytes: stat.size,
++    copied_at: stat.mtime
++  };
++}
++
+ function pgTool(name) {
+   return path.join(config.pgBinPath, `${name}.exe`);
+ }
+@@ -101,6 +146,30 @@ function safeBackupFileName(filename) {
+   return base;
+ }
+ 
++
++async function getMigrationSnapshot() {
++  try {
++    const status = await listMigrationStatus();
++    const applied = status.filter(item => item.applied);
++    const latest = applied.length ? applied[applied.length - 1] : null;
++
++    return {
++      ok: true,
++      latest_version: latest ? latest.version : null,
++      latest_name: latest ? latest.name : null,
++      applied_count: applied.length,
++      migrations: status
++    };
++  } catch (err) {
++    return {
++      ok: false,
++      latest_version: null,
++      latest_name: null,
++      applied_count: 0,
++      error: err.message
++    };
++  }
++}
+ async function createBackup(prefix = process.env.DB_NAME || "database") {
+   const dbName = process.env.DB_NAME;
+   const fileName = `${prefix}_${timestamp()}.backup`;
+@@ -120,6 +189,8 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
+   });
+ 
+   const stat = fs.statSync(filePath);
++  const migrationSnapshot = await getMigrationSnapshot();
++  const cloneBackup = cloneBackupFile(filePath, fileName);
+   const cleanup = cleanupOldBackups();
+ 
+   return {
+@@ -127,6 +198,9 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
+     full_path: filePath,
+     size_bytes: stat.size,
+     created_at: stat.mtime,
++    migration_version: migrationSnapshot.latest_version,
++    migration_snapshot: migrationSnapshot,
++    clone_backup: cloneBackup,
+     cleanup
+   };
+ }
+@@ -169,3 +243,5 @@ module.exports = {
+   createBackup,
+   restoreBackup,
+ };
++
++
+diff --git a/hd-origin-project/web_receiver/src/config.js b/hd-origin-project/web_receiver/src/config.js
+index 26650f6..2102e9b 100644
+--- a/hd-origin-project/web_receiver/src/config.js
++++ b/hd-origin-project/web_receiver/src/config.js
+@@ -1,7 +1,67 @@
+-・ｿconst path = require("path");
+-require("dotenv").config({ path: path.join(__dirname, "..", "..", ".env") });
++・ｿconst fs = require("fs");
++const path = require("path");
++const dotenv = require("dotenv");
+ 
+ const projectRoot = path.join(__dirname, "..", "..");
++const runtimePathsFile = path.join(projectRoot, "HD_ORIGIN_RUNTIME_PATHS.txt");
++const envPathFile = path.join(projectRoot, ".env_path.txt");
++
++function readKeyValueFile(filePath) {
++  const values = {};
++
++  if (!filePath || !fs.existsSync(filePath)) {
++    return values;
++  }
++
++  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
++
++  for (const line of lines) {
++    const trimmed = String(line || "").trim();
++
++    if (!trimmed || trimmed.startsWith("#")) {
++      continue;
++    }
++
++    const eq = trimmed.indexOf("=");
++
++    if (eq < 0) {
++      continue;
++    }
++
++    const key = trimmed.slice(0, eq).trim();
++    const value = trimmed.slice(eq + 1).trim();
++
++    if (key) {
++      values[key] = value;
++    }
++  }
++
++  return values;
++}
++
++const runtimeValues = readKeyValueFile(runtimePathsFile);
++
++for (const [key, value] of Object.entries(runtimeValues)) {
++  if (value && !process.env[key]) {
++    process.env[key] = value;
++  }
++}
++
++let envPath = process.env.HD_ORIGIN_ENV_PATH || "";
++
++if (!envPath && fs.existsSync(envPathFile)) {
++  envPath = fs.readFileSync(envPathFile, "utf8").trim();
++}
++
++if (!envPath) {
++  envPath = path.join(projectRoot, ".env");
++}
++
++dotenv.config({
++  path: envPath,
++  override: false
++});
++
+ const webDir = path.join(projectRoot, "web_receiver");
+ const publicDir = path.join(webDir, "public");
+ 
+@@ -9,15 +69,39 @@ const backupDir = path.isAbsolute(process.env.BACKUP_DIR || "")
+   ? process.env.BACKUP_DIR
+   : path.join(projectRoot, process.env.BACKUP_DIR || "backup");
+ 
++const backupCloneDir = (() => {
++  const raw = process.env.BACKUP_CLONE_DIR || process.env.BACKUP_COPY_DIR || "";
++
++  if (raw) {
++    return path.isAbsolute(raw)
++      ? raw
++      : path.join(projectRoot, raw);
++  }
++
++  if (envPath) {
++    return path.join(path.dirname(envPath), "Backup");
++  }
++
++  return "";
++})();
++
+ const pgBinPath = process.env.PG_BIN_PATH || "C:\\Program Files\\PostgreSQL\\17\\bin";
+ 
++const receiptRoot = path.isAbsolute(process.env.HD_ORIGIN_RECEIPT_ROOT || "")
++  ? process.env.HD_ORIGIN_RECEIPT_ROOT
++  : path.join(projectRoot, process.env.HD_ORIGIN_RECEIPT_ROOT || "ORIGIN莨夊ｨ医た繝輔ヨ\\繝ｬ繧ｷ繝ｼ繝磯未菫・);
++
+ module.exports = {
+   PORT: Number(process.env.PORT || 3000),
+   projectRoot,
++  runtimePathsFile,
++  envPath,
+   webDir,
+   publicDir,
+   backupDir,
++  backupCloneDir,
+   pgBinPath,
++  receiptRoot,
+   db: {
+     host: process.env.DB_HOST || "127.0.0.1",
+     port: Number(process.env.DB_PORT || 5432),
+@@ -26,5 +110,3 @@ module.exports = {
+     password: String(process.env.DB_PASSWORD || ""),
+   },
+ };
+-
+-
+
+[注意]
+確認だけです。git add / git commit はしていません。

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -57,7 +57,8 @@
       color: #666;
       line-height: 1.7;
     }
-    #result {
+    #result,
+    #projectBackupResult {
       white-space: pre-wrap;
       background: #f0f0f0;
       border: 1px solid #ddd;
@@ -76,6 +77,7 @@
       border: 1px solid #ddd;
       padding: 8px;
       text-align: left;
+      word-break: break-all;
     }
     th {
       background: #eee;
@@ -115,12 +117,13 @@
       <h2>バックアップ一覧</h2>
       <div id="backupList">読み込み中...</div>
     </div>
-      <div class="card">
+
+    <div class="card">
       <h2>プログラム本体バックアップ</h2>
       <p class="note">
         対象：hd-origin-project のプログラム本体<br>
-        含む：HTML / server.js / database / docs / .env など<br>
-        除外：.git / node_modules / backup / 一時ファイル<br>
+        含む：HTML / JavaScript / server.js / database / docs など<br>
+        除外：.env / .git / node_modules / backup / 一時ファイル / GPT用一時フォルダ<br>
         保存先：backup/project フォルダ
       </p>
 
@@ -132,7 +135,7 @@
       <div id="projectBackupResult">待機中</div>
       <div id="projectBackupList">読み込み中...</div>
     </div>
-</main>
+  </main>
 
 <script>
 function showResult(data) {
@@ -140,15 +143,23 @@ function showResult(data) {
     typeof data === "string" ? data : JSON.stringify(data, null, 2);
 }
 
+function showProjectResult(data) {
+  document.getElementById("projectBackupResult").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
 function formatBytes(bytes) {
   if (!bytes) return "0 B";
+
   const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
   let unit = 0;
+
   while (size >= 1024 && unit < units.length - 1) {
     size = size / 1024;
     unit++;
   }
+
   return `${size.toFixed(1)} ${units[unit]}`;
 }
 
@@ -169,122 +180,126 @@ function formatJst(value) {
   }).format(d);
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+
+  let data;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (err) {
+    data = {
+      ok: false,
+      error: "JSONとして読めませんでした。",
+      raw: text
+    };
+  }
+
+  if (!res.ok && data.ok !== false) {
+    data.ok = false;
+    data.error = data.error || `HTTP ${res.status}`;
+  }
+
+  return data;
+}
+
 async function createBackup() {
   showResult("バックアップ作成中です。少し待ってください。");
 
-  const res = await fetch("/api/backup/create", {
-    method: "POST"
-  });
+  try {
+    const data = await fetchJson("/api/backup/create", {
+      method: "POST"
+    });
 
-  const data = await res.json();
-  showResult(data);
-  await async function createProjectBackup() {
-  document.getElementById("projectBackupResult").textContent =
-    "プログラム本体バックアップ作成中です。少し待ってください。";
-
-  const res = await fetch("/api/project-backup/create", {
-    method: "POST"
-  });
-
-  const data = await res.json();
-
-  document.getElementById("projectBackupResult").textContent =
-    JSON.stringify(data, null, 2);
-
-  await loadProjectBackups();
-}
-
-async function loadProjectBackups() {
-  const res = await fetch("/api/project-backup/list");
-  const data = await res.json();
-
-  if (!data.ok) {
-    document.getElementById("projectBackupList").textContent =
-      JSON.stringify(data, null, 2);
-    return;
+    showResult(data);
+    await loadBackups();
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
   }
-
-  if (!data.backups.length) {
-    document.getElementById("projectBackupList").textContent =
-      "プログラム本体バックアップはまだありません。";
-    return;
-  }
-
-  let html = "<table><tr><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
-
-  for (const backup of data.backups) {
-    html += `
-      <tr>
-        <td>${backup.file_name}</td>
-        <td>${formatBytes(backup.size_bytes)}</td>
-        <td>${formatJst(backup.updated_at)}</td>
-      </tr>
-    `;
-  }
-
-  html += "</table>";
-  document.getElementById("projectBackupList").innerHTML = html;
-}
-
-loadBackups();
-loadProjectBackups();
 }
 
 async function loadBackups() {
-  const res = await fetch("/api/backup/list");
-  const data = await res.json();
-
-  if (!data.ok) {
-    showResult(data);
-    return;
-  }
-
   const select = document.getElementById("backupSelect");
-  select.innerHTML = "";
 
-  if (!data.backups.length) {
-    document.getElementById("backupList").textContent = "バックアップはまだありません。";
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "バックアップなし";
-    select.appendChild(opt);
-    return;
+  try {
+    const data = await fetchJson("/api/backup/list");
+
+    if (!data.ok) {
+      showResult(data);
+      document.getElementById("backupList").textContent =
+        "バックアップ一覧を読み込めませんでした。";
+      return;
+    }
+
+    select.innerHTML = "";
+
+    if (!data.backups.length) {
+      document.getElementById("backupList").textContent =
+        "バックアップはまだありません。";
+
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "バックアップなし";
+      select.appendChild(opt);
+      return;
+    }
+
+    let html = "<table><tr><th>区分</th><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
+
+    for (const backup of data.backups) {
+      const label =
+        backup.is_latest_normal
+          ? "【最新版】" + backup.file_name
+          : backup.is_safety_backup
+            ? "【リストア前保険】" + backup.file_name
+            : backup.file_name;
+
+      const opt = document.createElement("option");
+      opt.value = backup.file_name;
+      opt.textContent = label;
+      select.appendChild(opt);
+
+      const typeLabel =
+        backup.is_latest_normal
+          ? "最新版"
+          : backup.is_safety_backup
+            ? "リストア前保険"
+            : "通常";
+
+      html += `
+        <tr>
+          <td>${escapeHtml(typeLabel)}</td>
+          <td>${escapeHtml(label)}</td>
+          <td>${escapeHtml(formatBytes(backup.size_bytes))}</td>
+          <td>${escapeHtml(formatJst(backup.updated_at))}</td>
+        </tr>
+      `;
+    }
+
+    html += "</table>";
+    document.getElementById("backupList").innerHTML = html;
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
+
+    document.getElementById("backupList").textContent =
+      "バックアップ一覧を読み込めませんでした。";
   }
-
-  let html = "<table><tr><th>区分</th><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
-
-  for (const backup of data.backups) {
-    const label =
-      backup.is_latest_normal
-        ? "【最新版】" + backup.file_name
-        : backup.is_safety_backup
-          ? "【リストア前保険】" + backup.file_name
-          : backup.file_name;
-
-    const opt = document.createElement("option");
-    opt.value = backup.file_name;
-    opt.textContent = label;
-    select.appendChild(opt);
-
-    const typeLabel =
-      backup.is_latest_normal
-        ? "最新版"
-        : backup.is_safety_backup
-          ? "リストア前保険"
-          : "通常";
-
-    html += `
-      <tr>
-        <td>${typeLabel}</td>
-        <td>${label}</td>
-        <td>${formatBytes(backup.size_bytes)}</td>
-        <td>${formatJst(backup.updated_at)}</td>
-      </tr>
-    `;
-  }
-
-  html += "</table>";
-  document.getElementById("backupList").innerHTML = html;
 }
 
 async function restoreBackup() {
@@ -315,119 +330,87 @@ async function restoreBackup() {
 
   showResult("リストア中です。少し待ってください。");
 
-  const res = await fetch("/api/backup/restore", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file_name: fileName })
-  });
+  try {
+    const data = await fetchJson("/api/backup/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_name: fileName })
+    });
 
-  const data = await res.json();
-  showResult(data);
-  await async function createProjectBackup() {
-  document.getElementById("projectBackupResult").textContent =
-    "プログラム本体バックアップ作成中です。少し待ってください。";
-
-  const res = await fetch("/api/project-backup/create", {
-    method: "POST"
-  });
-
-  const data = await res.json();
-
-  document.getElementById("projectBackupResult").textContent =
-    JSON.stringify(data, null, 2);
-
-  await loadProjectBackups();
-}
-
-async function loadProjectBackups() {
-  const res = await fetch("/api/project-backup/list");
-  const data = await res.json();
-
-  if (!data.ok) {
-    document.getElementById("projectBackupList").textContent =
-      JSON.stringify(data, null, 2);
-    return;
+    showResult(data);
+    await loadBackups();
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
   }
-
-  if (!data.backups.length) {
-    document.getElementById("projectBackupList").textContent =
-      "プログラム本体バックアップはまだありません。";
-    return;
-  }
-
-  let html = "<table><tr><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
-
-  for (const backup of data.backups) {
-    html += `
-      <tr>
-        <td>${backup.file_name}</td>
-        <td>${formatBytes(backup.size_bytes)}</td>
-        <td>${formatJst(backup.updated_at)}</td>
-      </tr>
-    `;
-  }
-
-  html += "</table>";
-  document.getElementById("projectBackupList").innerHTML = html;
-}
-
-loadBackups();
-loadProjectBackups();
 }
 
 async function createProjectBackup() {
-  document.getElementById("projectBackupResult").textContent =
-    "プログラム本体バックアップ作成中です。少し待ってください。";
+  showProjectResult("プログラム本体バックアップ作成中です。少し待ってください。");
 
-  const res = await fetch("/api/project-backup/create", {
-    method: "POST"
-  });
+  try {
+    const data = await fetchJson("/api/project-backup/create", {
+      method: "POST"
+    });
 
-  const data = await res.json();
-
-  document.getElementById("projectBackupResult").textContent =
-    JSON.stringify(data, null, 2);
-
-  await loadProjectBackups();
+    showProjectResult(data);
+    await loadProjectBackups();
+  } catch (err) {
+    showProjectResult({
+      ok: false,
+      error: err.message
+    });
+  }
 }
 
 async function loadProjectBackups() {
-  const res = await fetch("/api/project-backup/list");
-  const data = await res.json();
+  try {
+    const data = await fetchJson("/api/project-backup/list");
 
-  if (!data.ok) {
+    if (!data.ok) {
+      showProjectResult(data);
+      document.getElementById("projectBackupList").textContent =
+        "プログラム本体バックアップ一覧を読み込めませんでした。";
+      return;
+    }
+
+    if (!data.backups.length) {
+      document.getElementById("projectBackupList").textContent =
+        "プログラム本体バックアップはまだありません。";
+      return;
+    }
+
+    let html = "<table><tr><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
+
+    for (const backup of data.backups) {
+      html += `
+        <tr>
+          <td>${escapeHtml(backup.file_name)}</td>
+          <td>${escapeHtml(formatBytes(backup.size_bytes))}</td>
+          <td>${escapeHtml(formatJst(backup.updated_at))}</td>
+        </tr>
+      `;
+    }
+
+    html += "</table>";
+    document.getElementById("projectBackupList").innerHTML = html;
+  } catch (err) {
+    showProjectResult({
+      ok: false,
+      error: err.message
+    });
+
     document.getElementById("projectBackupList").textContent =
-      JSON.stringify(data, null, 2);
-    return;
+      "プログラム本体バックアップ一覧を読み込めませんでした。";
   }
-
-  if (!data.backups.length) {
-    document.getElementById("projectBackupList").textContent =
-      "プログラム本体バックアップはまだありません。";
-    return;
-  }
-
-  let html = "<table><tr><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
-
-  for (const backup of data.backups) {
-    html += `
-      <tr>
-        <td>${backup.file_name}</td>
-        <td>${formatBytes(backup.size_bytes)}</td>
-        <td>${formatJst(backup.updated_at)}</td>
-      </tr>
-    `;
-  }
-
-  html += "</table>";
-  document.getElementById("projectBackupList").innerHTML = html;
 }
 
-loadBackups();
-loadProjectBackups();
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadBackups();
+  await loadProjectBackups();
+});
 </script>
 </body>
 </html>
-
-
-
