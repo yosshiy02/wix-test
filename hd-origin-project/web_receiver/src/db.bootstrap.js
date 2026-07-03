@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
 const config = require("./config");
@@ -370,8 +370,95 @@ ALTER TABLE expenses.expense_details
 
 -- RECEIPT_RELATIONSHIP_SCHEMA_START
 
+-- RECEIPT_AI_DRAFT_VENDOR_COLUMNS_20260703_START
+
 ALTER TABLE accounting.receipt_ai_drafts
-  ADD COLUMN IF NOT EXISTS payment_method_id BIGINT;
+  ADD COLUMN IF NOT EXISTS vendor_address TEXT,
+  ADD COLUMN IF NOT EXISTS vendor_phone TEXT,
+  ADD COLUMN IF NOT EXISTS receipt_time_text TEXT;
+
+-- RECEIPT_AI_DRAFT_VENDOR_COLUMNS_20260703_END
+
+-- RECEIPT_TEMP_MASTER_NAMES_SCHEMA_20260703_START
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS purpose_temp_name TEXT,
+  ADD COLUMN IF NOT EXISTS project_temp_name TEXT,
+  ADD COLUMN IF NOT EXISTS department_temp_name TEXT;
+
+-- RECEIPT_TEMP_MASTER_NAMES_SCHEMA_20260703_END
+
+-- RECEIPT_INVOICE_EVIDENCE_MASTERS_START
+
+CREATE TABLE IF NOT EXISTS expenses.invoice_types (
+  invoice_type_id BIGSERIAL PRIMARY KEY,
+  invoice_type_name TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS expenses.evidence_types (
+  evidence_type_id BIGSERIAL PRIMARY KEY,
+  evidence_type_name TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO expenses.invoice_types (invoice_type_name, sort_order)
+SELECT '\u9069\u683C\u8ACB\u6C42\u66F8', 10
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.invoice_types WHERE invoice_type_name = '\u9069\u683C\u8ACB\u6C42\u66F8'
+);
+
+INSERT INTO expenses.invoice_types (invoice_type_name, sort_order)
+SELECT '\u975E\u9069\u683C\u8ACB\u6C42\u66F8', 20
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.invoice_types WHERE invoice_type_name = '\u975E\u9069\u683C\u8ACB\u6C42\u66F8'
+);
+
+INSERT INTO expenses.invoice_types (invoice_type_name, sort_order)
+SELECT '\u5BFE\u8C61\u5916', 90
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.invoice_types WHERE invoice_type_name = '\u5BFE\u8C61\u5916'
+);
+
+INSERT INTO expenses.evidence_types (evidence_type_name, sort_order)
+SELECT '\u30EC\u30B7\u30FC\u30C8', 10
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.evidence_types WHERE evidence_type_name = '\u30EC\u30B7\u30FC\u30C8'
+);
+
+INSERT INTO expenses.evidence_types (evidence_type_name, sort_order)
+SELECT '\u9818\u53CE\u66F8', 20
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.evidence_types WHERE evidence_type_name = '\u9818\u53CE\u66F8'
+);
+
+INSERT INTO expenses.evidence_types (evidence_type_name, sort_order)
+SELECT '\u8ACB\u6C42\u66F8', 30
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.evidence_types WHERE evidence_type_name = '\u8ACB\u6C42\u66F8'
+);
+
+INSERT INTO expenses.evidence_types (evidence_type_name, sort_order)
+SELECT '\u305D\u306E\u4ED6', 90
+WHERE NOT EXISTS (
+  SELECT 1 FROM expenses.evidence_types WHERE evidence_type_name = '\u305D\u306E\u4ED6'
+);
+
+-- RECEIPT_INVOICE_EVIDENCE_MASTERS_END
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS payment_method_id BIGINT,
+  ADD COLUMN IF NOT EXISTS target_person_id BIGINT,
+  ADD COLUMN IF NOT EXISTS purpose_id BIGINT,
+  ADD COLUMN IF NOT EXISTS project_id BIGINT,
+  ADD COLUMN IF NOT EXISTS department_id BIGINT,
+  ADD COLUMN IF NOT EXISTS invoice_type_id BIGINT,
+  ADD COLUMN IF NOT EXISTS evidence_type_id BIGINT,
+  ADD COLUMN IF NOT EXISTS evidence_memo TEXT;
 
 CREATE TABLE IF NOT EXISTS accounting.receipt_tax_breakdowns (
   id BIGSERIAL PRIMARY KEY,
@@ -549,3 +636,4 @@ ON CONFLICT (treatment_name) DO UPDATE SET
 module.exports = {
   ensureDatabaseReady
 };
+

@@ -336,14 +336,25 @@ async function updateAiDraft(id, patch) {
       tax_amount = $8,
       tax_rate = $9,
       tax_treatment_name = $10,
-      payment_method_name = $11,
-      account_title_name = $12,
-      invoice_number = $13,
-      summary = $14,
-      memo = $15,
-      confidence = $16,
-      line_items = $17::jsonb,
-      status = $18,
+      payment_method_id = $11,
+      payment_method_name = $12,
+      target_person_id = $13,
+      purpose_id = $14,
+      project_id = $15,
+      department_id = $16,
+      invoice_type_id = $17,
+      evidence_type_id = $18,
+      evidence_memo = $19,
+      account_title_name = $20,
+      invoice_number = $21,
+      summary = $22,
+      memo = $23,
+      confidence = $24,
+      line_items = $25::jsonb,
+      status = $26,
+      purpose_temp_name = $27,
+      project_temp_name = $28,
+      department_temp_name = $29,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING *
@@ -359,14 +370,25 @@ async function updateAiDraft(id, patch) {
       patch.taxAmount === "" || patch.taxAmount === undefined ? null : Number(patch.taxAmount),
       patch.taxRate || "",
       patch.taxTreatmentName || patch.tax_treatment_name || "",
-      patch.paymentMethodName || "",
-      patch.accountTitleName || "",
-      patch.invoiceNumber || "",
+      patch.paymentMethodId || patch.payment_method_id || null,
+      patch.paymentMethodName || patch.payment_method_name || "",
+      patch.targetPersonId || patch.target_person_id || null,
+      patch.purposeId || patch.purpose_id || null,
+      patch.projectId || patch.project_id || null,
+      patch.departmentId || patch.department_id || null,
+      patch.invoiceTypeId || patch.invoice_type_id || null,
+      patch.evidenceTypeId || patch.evidence_type_id || null,
+      patch.evidenceMemo || patch.evidence_memo || "",
+      patch.accountTitleName || patch.account_title_name || "",
+      patch.invoiceNumber || patch.invoice_number || "",
       patch.summary || "",
       patch.memo || "",
       patch.confidence === "" || patch.confidence === undefined ? null : Number(patch.confidence),
       JSON.stringify(Array.isArray(patch.lineItems) ? patch.lineItems : []),
-      patch.status || "draft"
+      patch.status || "draft",
+      patch.purposeTempName || patch.purpose_temp_name || "",
+      patch.projectTempName || patch.project_temp_name || "",
+      patch.departmentTempName || patch.department_temp_name || ""
     ]
   );
 
@@ -592,13 +614,90 @@ async function getReceiptMasterOptions() {
     `
   );
 
+  const targetPeopleResult = await pool.query(
+    `
+    SELECT
+      target_person_id,
+      target_person_name,
+      sort_order
+    FROM expenses.target_people
+    WHERE is_active = TRUE
+    ORDER BY sort_order, target_person_id
+    `
+  );
+
+  const purposesResult = await pool.query(
+    `
+    SELECT
+      purpose_id,
+      purpose_name,
+      sort_order
+    FROM expenses.purposes
+    WHERE is_active = TRUE
+    ORDER BY sort_order, purpose_id
+    `
+  );
+
+  const projectsResult = await pool.query(
+    `
+    SELECT
+      project_id,
+      project_name,
+      sort_order
+    FROM expenses.projects
+    WHERE is_active = TRUE
+    ORDER BY sort_order, project_id
+    `
+  );
+
+  const departmentsResult = await pool.query(
+    `
+    SELECT
+      department_id,
+      department_name,
+      sort_order
+    FROM expenses.departments
+    WHERE is_active = TRUE
+    ORDER BY sort_order, department_id
+    `
+  );
+
+  const invoiceTypesResult = await pool.query(
+    `
+    SELECT
+      invoice_type_id,
+      invoice_type_name,
+      sort_order
+    FROM expenses.invoice_types
+    WHERE is_active = TRUE
+    ORDER BY sort_order, invoice_type_id
+    `
+  );
+
+  const evidenceTypesResult = await pool.query(
+    `
+    SELECT
+      evidence_type_id,
+      evidence_type_name,
+      sort_order
+    FROM expenses.evidence_types
+    WHERE is_active = TRUE
+    ORDER BY sort_order, evidence_type_id
+    `
+  );
+
   return {
     taxCategories: taxCategoriesResult.rows,
     taxTreatments: taxTreatmentsResult.rows,
-    paymentMethods: paymentMethodsResult.rows
+    paymentMethods: paymentMethodsResult.rows,
+    targetPeople: targetPeopleResult.rows,
+    purposes: purposesResult.rows,
+    projects: projectsResult.rows,
+    departments: departmentsResult.rows,
+    invoiceTypes: invoiceTypesResult.rows,
+    evidenceTypes: evidenceTypesResult.rows
   };
 }
-
 async function getReceiptTaxBreakdowns(receiptAiDraftId) {
   const result = await pool.query(
     `
@@ -785,6 +884,7 @@ module.exports = {
   getImportByImageHashSha256,
   createLocalImport,
 };
+
 
 
 
