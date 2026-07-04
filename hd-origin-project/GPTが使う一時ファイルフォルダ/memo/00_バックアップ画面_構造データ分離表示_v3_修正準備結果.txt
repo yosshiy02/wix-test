@@ -1,0 +1,31 @@
+﻿==============================
+バックアップ画面 構造/データ分離表示 v3 修正準備結果
+==============================
+日時: 2026-07-04 08:56:08
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\settings.html
+
+OK: 補助関数を fetchJson の直前に追加しました。
+OK: loadBackups 関数を丸ごと置換しました。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\settings_before_backup_split_ui_v3.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\settings.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_backup_split_ui_v3.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_backup_split_ui_v3.ps1
+
+[確認]
+OK: 構造 .schema.sql
+OK: データ .data.backup
+OK: function artifactStatus
+OK: function artifactName
+OK: function artifactSize
+OK: backup.schema_backup
+OK: backup.data_backup
+OK: 復元対象：full .backup のみ
+
+結果: OK
+
+[注意]
+まだ本体には反映していません。
+結果が OK の場合だけ、Copy-Item で反映してください。
+DB、.env、画像、実バックアップファイルは変更していません。

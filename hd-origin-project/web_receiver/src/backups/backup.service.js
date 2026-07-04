@@ -13,7 +13,35 @@ function samePath(a, b) {
   return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
 }
 
-function cloneBackupFile(filePath, fileName) {
+function backupBaseName(fileName) {
+  return String(fileName || "").replace(/\.backup$/i, "");
+}
+
+function sidecarBackupFiles(fileName) {
+  const base = backupBaseName(fileName);
+
+  return {
+    schema_file_name: `${base}.schema.sql`,
+    data_file_name: `${base}.data.backup`
+  };
+}
+
+function backupArtifactInfo(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) {
+    return null;
+  }
+
+  const stat = fs.statSync(filePath);
+
+  return {
+    file_name: path.basename(filePath),
+    full_path: filePath,
+    size_bytes: stat.size,
+    updated_at: stat.mtime
+  };
+}
+
+function cloneOneBackupFile(filePath, fileName) {
   const cloneDir = config.backupCloneDir;
 
   if (!cloneDir) {
@@ -24,10 +52,20 @@ function cloneBackupFile(filePath, fileName) {
     };
   }
 
+  if (!filePath || !fs.existsSync(filePath)) {
+    return {
+      enabled: true,
+      skipped: true,
+      file_name: fileName,
+      reason: "コピー元ファイルが見つからないため、コピーを省略しました。"
+    };
+  }
+
   if (samePath(config.backupDir, cloneDir)) {
     return {
       enabled: true,
       skipped: true,
+      file_name: fileName,
       reason: "第1保存先と第2保存先が同じため、コピーを省略しました。",
       backup_clone_dir: cloneDir
     };
@@ -51,6 +89,14 @@ function cloneBackupFile(filePath, fileName) {
   };
 }
 
+function cloneBackupSet(files) {
+  return {
+    full: cloneOneBackupFile(files.full_path, files.full_file_name),
+    schema: cloneOneBackupFile(files.schema_path, files.schema_file_name),
+    data: cloneOneBackupFile(files.data_path, files.data_file_name)
+  };
+}
+
 function pgTool(name) {
   return path.join(config.pgBinPath, `${name}.exe`);
 }
@@ -62,17 +108,27 @@ function pgEnv() {
   };
 }
 
+function isFullBackupFile(name) {
+  return (
+    name.endsWith(".backup") &&
+    !name.endsWith(".data.backup")
+  );
+}
+
 function listBackups() {
   if (!fs.existsSync(config.backupDir)) {
     return [];
   }
 
   const backups = fs.readdirSync(config.backupDir)
-    .filter(name => name.endsWith(".backup"))
+    .filter(isFullBackupFile)
     .map(name => {
       const fullPath = path.join(config.backupDir, name);
       const stat = fs.statSync(fullPath);
       const isSafetyBackup = name.includes("_before_restore_");
+      const sidecars = sidecarBackupFiles(name);
+      const schemaPath = path.join(config.backupDir, sidecars.schema_file_name);
+      const dataPath = path.join(config.backupDir, sidecars.data_file_name);
 
       return {
         file_name: name,
@@ -81,7 +137,10 @@ function listBackups() {
         updated_at: stat.mtime,
         backup_type: isSafetyBackup ? "before_restore" : "normal",
         is_safety_backup: isSafetyBackup,
-        is_latest_normal: false
+        is_latest_normal: false,
+        backup_format: "full",
+        schema_backup: backupArtifactInfo(schemaPath),
+        data_backup: backupArtifactInfo(dataPath)
       };
     })
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
@@ -93,6 +152,15 @@ function listBackups() {
   }
 
   return backups;
+}
+
+function deleteIfExists(filePath, deleted) {
+  if (!filePath || !fs.existsSync(filePath)) {
+    return;
+  }
+
+  fs.unlinkSync(filePath);
+  deleted.push(path.basename(filePath));
 }
 
 function cleanupOldBackups() {
@@ -118,8 +186,15 @@ function cleanupOldBackups() {
 
   for (const target of deleteTargets) {
     try {
-      fs.unlinkSync(target.full_path);
-      deleted.push(target.file_name);
+      deleteIfExists(target.full_path, deleted);
+
+      if (target.schema_backup) {
+        deleteIfExists(target.schema_backup.full_path, deleted);
+      }
+
+      if (target.data_backup) {
+        deleteIfExists(target.data_backup.full_path, deleted);
+      }
     } catch (err) {
       console.error("backup cleanup failed:", target.file_name, err.message);
     }
@@ -139,13 +214,16 @@ function safeBackupFileName(filename) {
     throw new Error("backupファイルではありません。");
   }
 
+  if (base.endsWith(".data.backup")) {
+    throw new Error("data-onlyバックアップは本番リストア対象にできません。");
+  }
+
   if (base !== filename) {
     throw new Error("不正なファイル名です。");
   }
 
   return base;
 }
-
 
 async function getMigrationSnapshot() {
   try {
@@ -170,10 +248,53 @@ async function getMigrationSnapshot() {
     };
   }
 }
+
+async function createSchemaOnlyBackup(schemaPath) {
+  await runCommand(pgTool("pg_dump"), [
+    "-h", process.env.DB_HOST || "127.0.0.1",
+    "-p", String(process.env.DB_PORT || 5432),
+    "-U", process.env.DB_USER || "postgres",
+    "-d", process.env.DB_NAME,
+    "--schema-only",
+    "--no-owner",
+    "--no-privileges",
+    "-F", "p",
+    "-f", schemaPath
+  ], {
+    env: pgEnv()
+  });
+
+  return backupArtifactInfo(schemaPath);
+}
+
+async function createDataOnlyBackup(dataPath) {
+  await runCommand(pgTool("pg_dump"), [
+    "-h", process.env.DB_HOST || "127.0.0.1",
+    "-p", String(process.env.DB_PORT || 5432),
+    "-U", process.env.DB_USER || "postgres",
+    "-d", process.env.DB_NAME,
+    "--data-only",
+    "--no-owner",
+    "--no-privileges",
+    "-F", "c",
+    "-b",
+    "-v",
+    "-f", dataPath
+  ], {
+    env: pgEnv()
+  });
+
+  return backupArtifactInfo(dataPath);
+}
+
 async function createBackup(prefix = process.env.DB_NAME || "database") {
   const dbName = process.env.DB_NAME;
-  const fileName = `${prefix}_${timestamp()}.backup`;
+  const stamp = timestamp();
+  const fileName = `${prefix}_${stamp}.backup`;
   const filePath = path.join(config.backupDir, fileName);
+  const sidecars = sidecarBackupFiles(fileName);
+  const schemaPath = path.join(config.backupDir, sidecars.schema_file_name);
+  const dataPath = path.join(config.backupDir, sidecars.data_file_name);
 
   await runCommand(pgTool("pg_dump"), [
     "-h", process.env.DB_HOST || "127.0.0.1",
@@ -188,9 +309,21 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
     env: pgEnv()
   });
 
+  const schemaBackup = await createSchemaOnlyBackup(schemaPath);
+  const dataBackup = await createDataOnlyBackup(dataPath);
+
   const stat = fs.statSync(filePath);
   const migrationSnapshot = await getMigrationSnapshot();
-  const cloneBackup = cloneBackupFile(filePath, fileName);
+
+  const cloneBackup = cloneBackupSet({
+    full_file_name: fileName,
+    full_path: filePath,
+    schema_file_name: sidecars.schema_file_name,
+    schema_path: schemaPath,
+    data_file_name: sidecars.data_file_name,
+    data_path: dataPath
+  });
+
   const cleanup = cleanupOldBackups();
 
   return {
@@ -198,6 +331,12 @@ async function createBackup(prefix = process.env.DB_NAME || "database") {
     full_path: filePath,
     size_bytes: stat.size,
     created_at: stat.mtime,
+    backup_format: "full",
+    backup_artifacts: {
+      full: backupArtifactInfo(filePath),
+      schema: schemaBackup,
+      data: dataBackup
+    },
     migration_version: migrationSnapshot.latest_version,
     migration_snapshot: migrationSnapshot,
     clone_backup: cloneBackup,
@@ -243,5 +382,3 @@ module.exports = {
   createBackup,
   restoreBackup,
 };
-
-

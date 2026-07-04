@@ -1,0 +1,27 @@
+﻿==============================
+バックアップ画面 構造/データ分離表示 修正準備結果
+==============================
+日時: 2026-07-04 08:54:14
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\settings.html
+
+注意: バックアップ一覧の行テンプレート置換対象が見つかりませんでした。
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\settings_before_backup_split_ui.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\settings.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_backup_split_ui.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_backup_split_ui.ps1
+
+[確認]
+NG: 画面表示用の文言または関数が不足しています。
+
+[修正内容]
+・設定画面のDBバックアップ説明を full/schema/data 表記に変更
+・バックアップ一覧に 構造 .schema.sql 列を追加
+・バックアップ一覧に データ .data.backup 列を追加
+・復元対象は full .backup のみであることを画面上に表示
+・リストア用 select は従来どおり full .backup のみ
+
+[注意]
+まだ本体には反映していません。
+反映する場合は apply_backup_split_ui.ps1 を実行、または Copy-Item で反映してください。
+DB、.env、画像、実バックアップファイルは変更していません。
