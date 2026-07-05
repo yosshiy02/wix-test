@@ -1,0 +1,51 @@
+﻿==============================
+目的・案件・部門 一時入力削除 結果
+==============================
+日時: 2026-07-05 07:43:01
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+実施:
+- 目的の一時入力ボタンを削除しました。
+- 案件の一時入力ボタンを削除しました。
+- 部門の一時入力ボタンを削除しました。
+- 目的の一時入力欄を削除しました。
+- 案件の一時入力欄を削除しました。
+- 部門の一時入力欄を削除しました。
+- 新規登録ボタンは残しました。
+- receipt-list.css は触っていません。
+
+確認:
+一時入力ボタンなし:
+True
+
+purposeTempNameなし:
+False
+
+projectTempNameなし:
+False
+
+departmentTempNameなし:
+False
+
+新規登録 purpose あり:
+True
+
+新規登録 project あり:
+True
+
+新規登録 department あり:
+True
+
+作成:
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_remove_temp_master_inputs_20260705_074301.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_remove_temp_master_inputs_20260705_074301.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_remove_temp_master_inputs_20260705_074301.ps1"
+
+次:
+ブラウザを Ctrl + F5 で更新して、目的・案件・部門が
+「選択 + 新規登録」だけになったか確認してください。

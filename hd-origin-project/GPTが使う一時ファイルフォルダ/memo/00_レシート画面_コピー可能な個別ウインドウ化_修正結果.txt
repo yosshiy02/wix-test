@@ -1,0 +1,25 @@
+﻿==============================
+レシート画面 個別ウインドウ化 修正結果
+==============================
+日時: 2026-07-04 15:05:56
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- alert() の標準ポップアップを使わず、自作の個別ウインドウ風モーダルで表示するようにしました。
+- エラー詳細は textarea に出るため、全文選択・コピーできます。
+- confirm() が必要だった削除・AI解析・まとめてAI・まとめて保存を、自作確認ウインドウに変更しました。
+- JavaScriptエラー / 非同期エラーもコピー可能な詳細欄に出します。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_custom_dialog.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_list_custom_dialog.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート画面_コピー可能な個別ウインドウ化_修正結果.txt
+
+[変更有無]
+変更あり
+
+[確認してほしいこと]
+1. レシート読取確認画面を更新してください。
+2. AI解析ボタンを押した時、ブラウザ標準の小さい警告ではなく、画面中央の確認ウインドウが出るか確認してください。
+3. エラー時に詳細欄を全選択してコピーできるか確認してください。

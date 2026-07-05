@@ -1,0 +1,21 @@
+﻿==============================
+レシート読取確認 会計候補表示と注意ラベル削除
+==============================
+日時: 2026-07-04 13:40:50
+
+[対応]
+1. 勘定科目候補の表示を currentDraft.account_title_name だけでなく ai_raw_json.accountTitleName / ai_raw_json.account_title_name も見るように変更。
+2. 会計候補下の「ここは確定ではなく候補です。画像を見ながら確認・修正してください。」ラベルを削除。
+
+[注意]
+既存の古いAI下書きに勘定科目候補が保存されていない場合は、画面修正だけでは値は出ません。
+その場合は、レシート読取確認で AI再解析 を実行してください。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_account_title_display_and_label_remove.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_list_account_title_display_and_label_remove.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_list_account_title_display_and_label_remove.ps1
+
+[次に実行する反映コマンド]
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_list_account_title_display_and_label_remove.ps1"

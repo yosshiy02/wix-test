@@ -1,0 +1,37 @@
+﻿==============================
+まとめて保存 候補名payload修正 結果
+==============================
+日時: 2026-07-05 07:58:06
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+実施:
+- 前回エラーになった buildDraftPayloadForBulk 側の候補名追加を修正しました。
+- purposeName / projectName / departmentName を一括保存payloadにも入れるようにしました。
+- receipt-list.css は触っていません。
+
+確認:
+purposeName あり:
+True
+
+projectName あり:
+True
+
+departmentName あり:
+True
+
+候補名入力欄あり:
+True
+
+作成:
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_fix_bulk_candidate_names_20260705_075806.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_fix_bulk_candidate_names_20260705_075806.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_fix_bulk_candidate_names_20260705_075806.ps1"
+
+次:
+ブラウザを Ctrl + F5 で更新してください。
+その後、まず1件保存でエラーが出ないか確認してください。

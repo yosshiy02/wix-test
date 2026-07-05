@@ -1,0 +1,58 @@
+﻿==============================
+明細行 税処理欄 AI・人間兼用 修正結果
+==============================
+日時: 2026-07-05 08:29:53
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+実施:
+- 明細内訳モーダルに「税処理」列を追加しました。
+- 税処理は select で選択します。
+- 候補は receiptMasterOptions.taxTreatments を優先し、なければ既存の taxTreatmentOptions を使います。
+- currentLineItems[index].taxTreatmentName に保存されます。
+- 既存の保存payloadは line.taxTreatmentName を送る形なので、保存処理本体は触っていません。
+- AIの明細JSON例に taxTreatmentName を追加しました。
+- normalizeLineItems で taxTreatmentName を拾うようにしました。
+- AI指示に「明細行の taxTreatmentName」ルールを追加しました。
+
+確認:
+HTML 税処理列ラッパーあり:
+True
+
+CSS 税処理列あり:
+True
+
+AI taxTreatmentName あり:
+True
+
+normalizeLineItems taxTreatmentName あり:
+True
+
+AI構文チェックOK:
+True
+
+AI構文チェック出力:
+
+
+作成:
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_line_tax_treatment_20260705_082953.html
+before CSS : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_line_tax_treatment_20260705_082953.css
+before AI  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_line_tax_treatment_20260705_082953.js
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after CSS  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+after AI   : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_line_tax_treatment_20260705_082953.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_line_tax_treatment_20260705_082953.ps1"
+
+次:
+1. ブラウザを Ctrl + F5 で更新
+2. 明細内訳モーダルを開く
+3. 税処理列が出るか確認
+4. 税処理を選択して候補保存
+5. 再読込後も残るか確認
+6. AI再解析後、明細に税処理候補が入るか確認

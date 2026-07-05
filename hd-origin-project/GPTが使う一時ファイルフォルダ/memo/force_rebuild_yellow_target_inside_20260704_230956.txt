@@ -1,0 +1,86 @@
+﻿==============================
+黄色エリア 強制HTML再構築 結果
+==============================
+日時: 2026-07-04 23:09:56
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- 黄色エリア receipt-apply-group-block をHTMLで丸ごと再構築しました。
+- 対象者 targetPersonId を黄色エリア内の receipt-apply-row-top 先頭に固定しました。
+- CSSで移動していません。HTML構造で入れています。
+
+[ID個数]
+id="targetPersonId" : 1
+id="summary" : 1
+id="memo" : 1
+id="accountTitleName" : 1
+id="confidence" : 1
+id="purposeId" : 1
+id="projectId" : 1
+id="departmentId" : 1
+
+[必要構造]
+OKあり : receipt-apply-group-block count=9
+OKあり : receipt-apply-group-grid count=5
+OKあり : receipt-apply-row-top count=2
+OKあり : receipt-target-person-row count=7
+OKあり : receipt-summary-field count=2
+OKあり : receipt-apply-row-memo count=3
+OKあり : receipt-memo-field count=2
+OKあり : receipt-apply-row-account count=2
+OKあり : receipt-account-title-field count=2
+OKあり : receipt-confidence-field count=3
+OKあり : RECEIPT_FORCE_REBUILD_YELLOW_TARGET_INSIDE_20260704_START count=1
+
+[古い黄色行CSS]
+.receipt-apply-group-row : 0
+
+[黄色エリアHTMLの抜粋]
+1: <div class="block receipt-apply-group-block">
+2:                 <div class="block-body">
+3:                   <div class="receipt-apply-group-grid">
+4: 
+5:                     <div class="receipt-apply-row-top">
+6:                       <div class="receipt-target-person-row">
+7:                         <label>対象者</label>
+8:                         <select id="targetPersonId">
+9:                           ${optionHtml((receiptMasterOptions || {}).targetPeople || [], "target_person_id", "target_person_name", currentDraft.target_person_id)}
+10:                         </select>
+11:                       </div>
+12: 
+13:                       <div class="receipt-summary-field">
+14:                         <label>摘要</label>
+15:                         <input id="summary" value="${esc(currentDraft.summary)}">
+16:                       </div>
+17:                     </div>
+18: 
+19:                     <div class="receipt-apply-row-memo">
+20:                       <div class="receipt-memo-field">
+21:                         <label>メモ・注意点</label>
+22:                         <textarea id="memo">${esc(currentDraft.memo)}</textarea>
+23:                       </div>
+24:                     </div>
+25: 
+26:                     <div class="receipt-apply-row-account">
+27:                       <div class="receipt-account-title-field">
+28:                         <label>勘定科目候補</label>
+29:                         <input id="accountTitleName" value="${esc(currentDraft.account_title_name || raw.accountTitleName || raw.account_title_name || "")}">
+30:                       </div>
+31: 
+32:                       <div class="receipt-confidence-field">
+33:                         <label>信頼度</label>
+34:                         <input id="confidence" type="number" value="${esc(numValue(currentDraft.confidence))}">
+35:                       </div>
+36:                     </div>
+37: 
+38:                   </div>
+39:                 </div>
+40:               </div>
+41: 
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_force_rebuild_yellow_target_inside_20260704_230956.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_force_rebuild_yellow_target_inside_20260704_230956.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_force_rebuild_yellow_target_inside_20260704_230956.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\force_rebuild_yellow_target_inside_20260704_230956.txt

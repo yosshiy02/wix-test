@@ -1,0 +1,23 @@
+﻿==============================
+レシート読取確認 accounting hotfix 結果
+==============================
+日時: 2026-07-04 12:57:04
+
+[方針]
+作業途中の RECEIPT_DB_LEDGER_OVERRIDE は消さずに残す。
+ただし現DBで動くように、module.exports の直前へ accounting.receipt_imports 用の関数再定義を追加。
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.repository_before_accounting_hotfix.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.repository.js
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_repository_accounting_hotfix.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_repository_accounting_hotfix.ps1
+
+[構文チェック]
+OK: node --check 成功
+
+[次に実行する反映コマンド]
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_repository_accounting_hotfix.ps1"

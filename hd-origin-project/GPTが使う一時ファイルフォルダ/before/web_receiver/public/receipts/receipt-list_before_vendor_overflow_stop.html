@@ -1,0 +1,3751 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>レシート読取確認</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      color: #222;
+    }
+
+    header {
+      height: 3rem;
+      box-sizing: border-box;
+      padding: 0.75rem 1rem;
+      background: #222;
+      color: #fff;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 18.75rem 1fr 32.5rem;
+      gap: 0.625rem;
+      padding: 0.625rem;
+      height: calc(100vh - 3rem);
+      box-sizing: border-box;
+    }
+
+    .panel {
+      background: #fff;
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .panel-title {
+      height: 2.625rem;
+      box-sizing: border-box;
+      padding: 0.5625rem 0.625rem;
+      border-bottom: 0.0625rem solid #ddd;
+      background: #fafafa;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scroll {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+    }
+
+    .list-item {
+      padding: 0.625rem;
+      border-bottom: 0.0625rem solid #eee;
+      cursor: pointer;
+    }
+
+    .list-item:hover {
+      background: #f0f4ff;
+    }
+
+    .list-item.active {
+      background: #e8f0ff;
+      border-left: 0.25rem solid #333;
+    }
+
+    .list-main {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .list-sub {
+      font-size: 0.75rem;
+      color: #666;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .image-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      background: #eee;
+      text-align: center;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .image-area img {
+      max-width: 100%;
+      border: 0.0625rem solid #ccc;
+      background: #fff;
+    }
+
+    .form-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .block {
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      margin-bottom: 0.625rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .block-title {
+      padding: 0.5rem 0.625rem;
+      background: #fafafa;
+      border-bottom: 0.0625rem solid #ddd;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .block-body {
+      padding: 0.625rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: #444;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.4375rem;
+      border: 0.0625rem solid #bbb;
+      border-radius: 0.3125rem;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 4rem;
+      resize: vertical;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .grid1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    button {
+      border: 0.0625rem solid #aaa;
+      background: #fff;
+      padding: 0.4375rem 0.625rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f2f2;
+    }
+
+    button.primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+
+    button.primary:hover {
+      background: #444;
+    }
+
+    button.danger {
+      color: #b00020;
+      border-color: #d8a0aa;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.625rem;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    .warn {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    .ok {
+      color: #087a28;
+      font-weight: 700;
+    }
+
+    table.lines {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+
+    table.lines th,
+    table.lines td {
+      border: 0.0625rem solid #ddd;
+      padding: 0.3125rem;
+      vertical-align: top;
+    }
+
+    table.lines th {
+      background: #fafafa;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    table.lines input {
+      padding: 0.3125rem;
+      font-size: 0.8125rem;
+    }
+
+    .line-name {
+      min-width: 9.375rem;
+    }
+
+    .line-small {
+      width: 4.375rem;
+    }
+
+    .line-money {
+      width: 5.625rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #111;
+      color: #eee;
+      padding: 0.625rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      max-height: 11.25rem;
+      overflow: auto;
+    }
+  
+    /* RECEIPT_HEADER_IMPORT_NAV */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    .receipt-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .receipt-header-actions button {
+      background: #fff;
+      color: #111;
+      border: 0.0625rem solid #fff;
+      border-radius: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .receipt-header-actions button:hover {
+      background: #f1f1f1;
+    }
+  
+    /* RECEIPT_COMPACT_ACCOUNTING_LAYOUT */
+    body {
+      overflow: hidden;
+    }
+
+    .receipt-compact-layout {
+      display: grid !important;
+      grid-template-columns: 11.875rem minmax(42.5rem, 1fr) 20.625rem !important;
+      gap: 0.375rem !important;
+      height: calc(100vh - 3.625rem) !important;
+      padding: 0.375rem 0.5rem !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-compact-layout > * {
+      min-width: 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-list-panel {
+      order: 1 !important;
+    }
+
+    .receipt-candidate-panel {
+      order: 2 !important;
+    }
+
+    .receipt-image-panel {
+      order: 3 !important;
+    }
+
+    .receipt-list-panel .panel-title,
+    .receipt-candidate-panel .panel-title,
+    .receipt-image-panel .panel-title {
+      padding: 0.375rem 0.5rem !important;
+      font-size: 0.875rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .receipt-list-panel button,
+    .receipt-list-panel .item {
+      font-size: 0.75rem !important;
+      line-height: 1.25 !important;
+      padding: 0.375rem 0.4375rem !important;
+    }
+
+    .receipt-list-panel small,
+    .receipt-list-panel .meta,
+    .receipt-list-panel .sub {
+      font-size: 0.625rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .receipt-list-panel {
+      font-size: 0.75rem !important;
+    }
+
+    .receipt-candidate-panel {
+      font-size: 0.75rem !important;
+    }
+
+    .receipt-image-panel {
+      font-size: 0.75rem !important;
+    }
+
+    #formArea {
+      height: calc(100vh - 7rem) !important;
+      overflow: auto !important;
+      padding: 0.5rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea input,
+    #formArea select,
+    #formArea textarea {
+      font-size: 0.75rem !important;
+      padding: 0.25rem 0.375rem !important;
+      min-height: 1.625rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea textarea {
+      min-height: 3rem !important;
+      max-height: 4.75rem !important;
+    }
+
+    #formArea table {
+      width: 100% !important;
+      table-layout: fixed !important;
+      font-size: 0.75rem !important;
+    }
+
+    #formArea th,
+    #formArea td {
+      padding: 0.1875rem !important;
+      font-size: 0.75rem !important;
+      vertical-align: middle !important;
+    }
+
+    #formArea button {
+      font-size: 0.75rem !important;
+      padding: 0.3125rem 0.5rem !important;
+      min-height: 1.75rem !important;
+    }
+
+    #formArea .card,
+    #formArea .section,
+    #formArea fieldset {
+      margin-bottom: 0.5rem !important;
+      padding: 0.5rem !important;
+    }
+
+    #imageArea {
+      height: calc(100vh - 7rem) !important;
+      overflow: hidden !important;
+      padding: 0.375rem !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: center !important;
+      background: #fff !important;
+    }
+
+    #imageArea img {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      cursor: zoom-in !important;
+    }
+
+    #receiptImageModal {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.78);
+      padding: 1.125rem;
+      box-sizing: border-box;
+    }
+
+    #receiptImageModal img {
+      max-width: 96vw;
+      max-height: 94vh;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 0.5rem;
+      cursor: zoom-out;
+    }
+
+    #receiptImageModal .modal-note {
+      position: fixed;
+      top: 0.625rem;
+      right: 1rem;
+      color: #fff;
+      font-size: 0.8125rem;
+      background: rgba(0,0,0,0.45);
+      padding: 0.375rem 0.625rem;
+      border-radius: 0.375rem;
+    }
+
+    @media (max-width: 81.25rem) {
+      .receipt-compact-layout {
+        grid-template-columns: 10.625rem minmax(35rem, 1fr) 17.5rem !important;
+      }
+    }
+/* RECEIPT_LEFT_LIST_ONE_LINE_AND_COMPACT_BASIC removed by editor card layout repair */
+/* RECEIPT_FIELD_LAYOUT removed by editor card layout repair */
+/* RECEIPT_CONFIRM_IMAGE_FIT removed by editor card layout repair */
+
+/* RECEIPT_BASIC_DIRECT_LAYOUT removed by editor card layout repair */
+/* RECEIPT_PAYMENT_MAX_WIDTH removed by editor card layout repair */
+/* RECEIPT_TAX_TREATMENT_LAYOUT removed by editor card layout repair */
+
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_STYLE_START */
+
+    .tax-total-with-button {
+      display: grid !important;
+      grid-template-columns: minmax(8em, 1fr) auto !important;
+      gap: 0.5rem !important;
+      align-items: center !important;
+      width: 100% !important;
+    }
+
+    #taxAmount {
+      width: 100% !important;
+      min-width: 8em !important;
+    }
+
+    #taxBreakdownButton {
+      white-space: nowrap !important;
+      height: 2.4rem !important;
+      padding: 0 0.8rem !important;
+    }
+
+    #formArea .grid-tax-row > div:has(#taxRate),
+    #formArea .grid-tax-row > div:has(#taxTreatmentName) {
+      display: none !important;
+    }
+
+    #formArea .grid-tax-row {
+      grid-template-columns: minmax(16em, 1fr) !important;
+    }
+
+    .tax-breakdown-modal.hidden {
+      display: none !important;
+    }
+
+    .tax-breakdown-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+    }
+
+    .tax-breakdown-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .tax-breakdown-dialog {
+      position: relative;
+      width: min(64rem, calc(100vw - 3rem));
+      max-height: calc(100dvh - 3rem);
+      background: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .tax-breakdown-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      padding: 1rem 1.25rem;
+      border-bottom: 0.0625rem solid #ddd;
+    }
+
+    .tax-breakdown-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .tax-breakdown-subtitle {
+      margin-top: 0.25rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .tax-breakdown-close {
+      font-size: 1.4rem;
+      line-height: 1;
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+
+    .tax-breakdown-body {
+      overflow: auto;
+      padding: 1rem 1.25rem;
+    }
+
+    .tax-breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tax-breakdown-table th,
+    .tax-breakdown-table td {
+      border-bottom: 0.0625rem solid #e5e5e5;
+      padding: 0.45rem;
+      vertical-align: middle;
+      text-align: left;
+    }
+
+    .tax-breakdown-table th {
+      font-size: 0.85rem;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .tax-breakdown-table select,
+    .tax-breakdown-table input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .tax-breakdown-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-top: 0.0625rem solid #ddd;
+    }
+
+    .tax-breakdown-total {
+      font-weight: 700;
+    }
+
+    .tax-breakdown-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .tax-breakdown-delete-button {
+      background: #b00020 !important;
+      color: #fff !important;
+      border-color: #b00020 !important;
+      white-space: nowrap !important;
+    }
+
+    .tax-breakdown-delete-button:hover {
+      background: #8a0019 !important;
+      border-color: #8a0019 !important;
+    }
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_STYLE_END */
+/* RECEIPT_BASIC_TOP_FINAL_LAYOUT_20260702 removed by editor card layout repair */
+/* RECEIPT_LAYOUT_ONLY_FINAL_20260702 removed by editor card layout repair */
+/* RECEIPT_OVERLAP_FIX_20260702 removed by editor card layout repair */
+/* RECEIPT_TAX_BUTTON_OVERLAP_FIX_20260702 removed by editor card layout repair */
+
+
+    /* RECEIPT_LIST_CHECKBOX_20260702_START */
+
+    .receipt-list-with-check {
+      display: grid !important;
+      grid-template-columns: auto minmax(0, 1fr) !important;
+      column-gap: 0.45rem !important;
+      row-gap: 0.1rem !important;
+      align-items: start !important;
+    }
+
+    .receipt-list-with-check .receipt-ai-check {
+      grid-column: 1 !important;
+      grid-row: 1 / span 2 !important;
+      width: 1rem !important;
+      min-width: 1rem !important;
+      height: 1rem !important;
+      min-height: 1rem !important;
+      margin: 0.15rem 0 0 0 !important;
+      padding: 0 !important;
+      cursor: pointer !important;
+    }
+
+    .receipt-list-with-check .list-main {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .receipt-list-with-check .list-sub {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      min-width: 0 !important;
+    }
+
+    /* RECEIPT_LIST_CHECKBOX_20260702_END */
+
+
+    /* RECEIPT_MASTER_FIELDS_LAYOUT_20260703_START */
+
+    #formArea .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(10em, 1fr)) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      margin-top: 0.45rem !important;
+    }
+
+    #formArea .receipt-master-select-row > div {
+      min-width: 0 !important;
+    }
+
+    #formArea .receipt-master-select-row select,
+    #formArea .receipt-master-select-row input {
+      width: 100% !important;
+      height: 1.65rem !important;
+      min-height: 1.65rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_MASTER_FIELDS_LAYOUT_20260703_END */
+
+
+    /* RECEIPT_TEMP_MASTER_INPUT_LAYOUT_20260703_START */
+
+    #formArea .receipt-master-combo-row {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(13em, 1fr)) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      margin-top: 0.45rem !important;
+    }
+
+    #formArea .receipt-master-action-line {
+      display: grid !important;
+      grid-template-columns: minmax(8em, 1fr) auto auto !important;
+      gap: 0.25rem !important;
+      align-items: center !important;
+    }
+
+    #formArea .receipt-master-action-line select {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 1.65rem !important;
+    }
+
+    #formArea .receipt-master-action-line button {
+      white-space: nowrap !important;
+      padding: 0.25rem 0.4rem !important;
+      font-size: 0.72rem !important;
+      line-height: 1.1 !important;
+      min-height: 1.65rem !important;
+    }
+
+    #formArea .receipt-temp-master-input {
+      width: 100% !important;
+      margin-top: 0.25rem !important;
+      height: 1.65rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_TEMP_MASTER_INPUT_LAYOUT_20260703_END */
+
+
+    /* RECEIPT_VENDOR_OVERFLOW_FIX_20260703_START */
+
+    /*
+      目的・案件・部門の3列UIで左側が広がり、
+      店名・住所・電話番号・インボイス番号ブロックが枠外へ出るのを防ぐ。
+    */
+
+    #formArea .grid-basic-top-row {
+      grid-template-columns: minmax(0, 22em) minmax(0, 24em) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-basic-left-stack {
+      width: 22em !important;
+      min-width: 0 !important;
+      max-width: 22em !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack {
+      width: 24em !important;
+      min-width: 0 !important;
+      max-width: 24em !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-date-payment-row {
+      grid-template-columns: 8em minmax(0, 1fr) !important;
+      width: 22em !important;
+      max-width: 22em !important;
+    }
+
+    #formArea #transactionDate {
+      width: 8em !important;
+      min-width: 8em !important;
+      max-width: 8em !important;
+    }
+
+    #formArea #paymentMethodName {
+      width: 13.25em !important;
+      min-width: 0 !important;
+      max-width: 13.25em !important;
+    }
+
+    #formArea .receipt-master-combo-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 22em !important;
+      min-width: 0 !important;
+      max-width: 22em !important;
+      gap: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 22em !important;
+      min-width: 0 !important;
+      max-width: 22em !important;
+      gap: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-master-action-line {
+      grid-template-columns: minmax(0, 1fr) auto auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-master-action-line select,
+    #formArea .receipt-temp-master-input,
+    #formArea .receipt-master-select-row select,
+    #formArea .receipt-master-select-row input {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #vendorName,
+    #formArea #vendorAddress,
+    #formArea #vendorPhone,
+    #formArea #invoiceNumber {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_VENDOR_OVERFLOW_FIX_20260703_END */
+
+    /* RECEIPT_BASIC_BLOCK_MOVE_20260703_START */
+
+    /*
+      左：取引日・支払方法 → 金額 → 対象者 → 目的・案件・部門
+      右：店名・住所・電話・インボイス番号 → インボイス区分・証憑区分・証憑メモ
+    */
+
+    #formArea .grid-basic-top-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 22em) minmax(0, 24em) !important;
+      column-gap: 0.75rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      align-items: start !important;
+    }
+
+    #formArea .receipt-basic-left-stack,
+    #formArea .receipt-vendor-direct-stack {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-date-payment-row {
+      display: grid !important;
+      grid-template-columns: 8em minmax(0, 1fr) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #transactionDate {
+      width: 8em !important;
+      min-width: 8em !important;
+      max-width: 8em !important;
+    }
+
+    #formArea #paymentMethodName {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+
+    #formArea .receipt-amount-direct-row {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-target-person-row {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #targetPersonId {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-basic-left-stack .receipt-master-combo-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-master-action-line {
+      grid-template-columns: minmax(0, 1fr) auto auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-master-action-line select,
+    #formArea .receipt-temp-master-input,
+    #formArea .receipt-master-select-row select,
+    #formArea .receipt-master-select-row input,
+    #formArea #vendorName,
+    #formArea #vendorAddress,
+    #formArea #vendorPhone,
+    #formArea #invoiceNumber {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_BASIC_BLOCK_MOVE_20260703_END */
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FIX_20260703_START */
+
+    /*
+      インボイス区分・証憑区分・証憑メモは、
+      右側の店名・支払先ブロック内、インボイス番号の下に置く。
+    */
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      gap: 0.45rem !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row > div {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row select,
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row input {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-basic-left-stack > .receipt-master-select-row {
+      display: none !important;
+    }
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FIX_20260703_END */
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FORCE_FIX_2_20260703_START */
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      gap: 0.45rem !important;
+      margin-top: 0.45rem !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row > div,
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row select,
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row input {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-basic-left-stack > .receipt-master-select-row {
+      display: none !important;
+    }
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FORCE_FIX_2_20260703_END */
+
+    /* RECEIPT_COPY_SYSTEM_STYLE_20260703_START */
+
+    .receipt-copy-system-panel {
+      border: 0.0625rem solid #d8c7c7 !important;
+      background: #fffafa !important;
+      border-radius: 0.45rem !important;
+      padding: 0.6rem !important;
+      margin-bottom: 0.75rem !important;
+      box-sizing: border-box !important;
+    }
+
+    .receipt-copy-system-title {
+      font-weight: 700 !important;
+      margin-bottom: 0.4rem !important;
+      color: #7a0015 !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 0.5rem !important;
+    }
+
+    .receipt-copy-system-buttons {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 0.35rem !important;
+      margin-bottom: 0.4rem !important;
+    }
+
+    .receipt-copy-system-buttons button {
+      padding: 0.3rem 0.55rem !important;
+      font-size: 0.78rem !important;
+      line-height: 1.2 !important;
+      cursor: pointer !important;
+    }
+
+    #receiptCopySystemText {
+      width: 100% !important;
+      min-height: 8rem !important;
+      max-height: 18rem !important;
+      resize: vertical !important;
+      box-sizing: border-box !important;
+      font-family: Consolas, "Yu Gothic", monospace !important;
+      font-size: 0.8rem !important;
+      line-height: 1.45 !important;
+      white-space: pre !important;
+      user-select: text !important;
+    }
+
+    .receipt-copy-system-note {
+      font-size: 0.72rem !important;
+      color: #666 !important;
+      margin-top: 0.25rem !important;
+    }
+
+    /* RECEIPT_COPY_SYSTEM_STYLE_20260703_END */
+/* RECEIPT_DINING_REVIEW_UI_START */
+.receipt-ai-review-note {
+  display: none !important;
+}
+
+.receipt-ai-needs-review {
+  background: #fff !important;
+  border-color: #bbb !important;
+}
+
+.receipt-ai-review-field {
+  min-width: 7rem !important;
+}
+/* RECEIPT_DINING_REVIEW_UI_END */
+    /* RECEIPT_CUSTOM_DIALOG_START */
+    .receipt-dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 1.125rem;
+      box-sizing: border-box;
+    }
+
+    .receipt-dialog-backdrop.open {
+      display: flex;
+    }
+
+    .receipt-dialog-window {
+      width: min(57.5rem, 96vw);
+      max-height: 92vh;
+      background: #fff;
+      border: 0.125rem solid #222;
+      border-radius: 0.625rem;
+      box-shadow: 0 1.125rem 3.75rem rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .receipt-dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.625rem;
+      padding: 0.625rem 0.75rem;
+      background: #222;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .receipt-dialog-head.warning {
+      background: #7a4d00;
+    }
+
+    .receipt-dialog-head.error {
+      background: #8a0018;
+    }
+
+    .receipt-dialog-body {
+      padding: 0.75rem;
+      overflow: auto;
+    }
+
+    .receipt-dialog-message {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      margin-bottom: 0.625rem;
+      font-weight: 700;
+    }
+
+    .receipt-dialog-detail-label {
+      font-size: 0.75rem;
+      color: #555;
+      margin: 0.5rem 0 0.25rem;
+      font-weight: 700;
+    }
+
+    .receipt-dialog-detail {
+      width: 100%;
+      min-height: 13.75rem;
+      max-height: 48vh;
+      resize: vertical;
+      box-sizing: border-box;
+      font-family: Consolas, monospace;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      padding: 0.5rem;
+      border: 0.0625rem solid #aaa;
+      border-radius: 0.375rem;
+      background: #fff;
+      color: #111;
+      white-space: pre;
+    }
+
+    .receipt-dialog-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      padding: 0.625rem 0.75rem;
+      border-top: 0.0625rem solid #ddd;
+      background: #fafafa;
+    }
+
+    .receipt-dialog-actions button {
+      min-width: 5.125rem;
+      font-weight: 800;
+    }
+
+    .receipt-dialog-actions .primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+    /* RECEIPT_CUSTOM_DIALOG_END */
+/* RECEIPT_TIME_AI_MINIMAL_FIX_20260704_START */
+
+/* 時刻・会議費候補を黄色にしない */
+.receipt-ai-review-note {
+  display: none !important;
+}
+
+.receipt-ai-needs-review {
+  background: #fff !important;
+  border-color: #bbb !important;
+}
+
+#receiptTimeText {
+  background: #fff !important;
+  border-color: #bbb !important;
+  color: #111 !important;
+  box-shadow: none !important;
+}
+
+/* RECEIPT_TIME_AI_MINIMAL_FIX_20260704_END */
+/* RECEIPT_TIME_ROW_REGEX_INSERT_20260704_START */
+
+#formArea .receipt-date-payment-row {
+  grid-template-columns: 18ch 9ch 26em !important;
+}
+
+#formArea #receiptTimeText {
+  width: 9ch !important;
+  min-width: 9ch !important;
+  max-width: 9ch !important;
+  height: 1.65rem !important;
+  min-height: 1.65rem !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  background: #fff !important;
+  border-color: #bbb !important;
+  color: #111 !important;
+  box-shadow: none !important;
+}
+
+/* RECEIPT_TIME_ROW_REGEX_INSERT_20260704_END */
+
+    /* RECEIPT_RIGHT_SPACE_HALF_20260704_START */
+
+    /*
+      現在の並び：
+      左：レシート選択
+      中：読み取り候補の編集
+      右：レシート表示スペース
+
+      修正内容：
+      - 右の画像表示スペースを前回拡張指定の約半分にする
+      - レシート画像そのものの width / max-width / height / object-fit は触らない
+      - %指定は使わない
+    */
+
+    main.receipt-compact-layout,
+    .receipt-compact-layout {
+      display: grid !important;
+      grid-template-columns:
+        clamp(9rem, 10vw, 12rem)
+        minmax(30rem, 1fr)
+        minmax(21rem, 1fr) !important;
+      gap: 0.5rem !important;
+      align-items: stretch !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-list-panel {
+      order: 1 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-candidate-panel {
+      order: 2 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-image-panel {
+      order: 3 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    #imageArea {
+      overflow: auto !important;
+      box-sizing: border-box !important;
+    }
+
+    @media (max-width: 92rem) {
+      main.receipt-compact-layout,
+      .receipt-compact-layout {
+        grid-template-columns:
+          clamp(8rem, 10vw, 10rem)
+          minmax(26rem, 1fr)
+          minmax(17rem, 1fr) !important;
+      }
+    }
+
+    @media (max-width: 76rem) {
+      main.receipt-compact-layout,
+      .receipt-compact-layout {
+        grid-template-columns: 1fr !important;
+        overflow: auto !important;
+      }
+    }
+
+    /* RECEIPT_RIGHT_SPACE_HALF_20260704_END */
+
+    /* RECEIPT_FIELD_TINT_VISIBLE_20260704_START */
+
+    /*
+      レシート読取確認ページ：
+      読み取り候補の編集欄で、入力エリア単位の色分けを見えるようにする。
+      画像表示スペース、画像サイズ、3列レイアウトは触らない。
+    */
+
+    #formArea .receipt-date-payment-row > div,
+    #formArea .receipt-vendor-direct-stack,
+    #formArea .receipt-vendor-direct-stack > div,
+    #formArea .receipt-amount-direct-row > div,
+    #formArea .receipt-amount-direct-field,
+    #formArea .receipt-master-combo-row > div,
+    #formArea .receipt-master-select-row > div,
+    #formArea .grid1 > div,
+    #formArea .grid2 > div,
+    #formArea .receipt-field {
+      border-radius: 0.45rem !important;
+      padding: 0.32rem !important;
+      box-sizing: border-box !important;
+      border: 1px solid rgba(0, 0, 0, 0.14) !important;
+      border-left-width: 0.35rem !important;
+    }
+
+    /* 日付・時刻・支払方法 */
+    #formArea .receipt-date-payment-row > div {
+      background: #dfeeff !important;
+      border-left-color: #4d8fe8 !important;
+    }
+
+    /* 店名・支払先など */
+    #formArea .receipt-vendor-direct-stack,
+    #formArea .receipt-vendor-direct-stack > div {
+      background: #fff0d6 !important;
+      border-left-color: #f0a331 !important;
+    }
+
+    /* 合計・税額など金額系 */
+    #formArea .receipt-amount-direct-row > div,
+    #formArea .receipt-amount-direct-field {
+      background: #ddf7e4 !important;
+      border-left-color: #38a85a !important;
+    }
+
+    /* 対象者・目的・案件・部門などマスタ選択系 */
+    #formArea .receipt-master-combo-row > div,
+    #formArea .receipt-master-select-row > div {
+      background: #eee2ff !important;
+      border-left-color: #8b5bd6 !important;
+    }
+
+    /* その他の入力グリッド */
+    #formArea .grid1 > div,
+    #formArea .grid2 > div,
+    #formArea .receipt-field {
+      background: #ececec !important;
+      border-left-color: #777 !important;
+    }
+
+    /*
+      入力欄そのものも完全な白だと外側の色が見えにくいので、
+      ほんの少しだけ透明寄りにする。
+    */
+    #formArea input,
+    #formArea select,
+    #formArea textarea {
+      background-color: rgba(255, 255, 255, 0.82) !important;
+      border-color: rgba(0, 0, 0, 0.28) !important;
+    }
+
+    #formArea label {
+      display: inline-block !important;
+      padding: 0.08rem 0.25rem !important;
+      border-radius: 0.25rem !important;
+      background: rgba(255, 255, 255, 0.45) !important;
+    }
+
+    /* 明細テーブルは行とセルで見えるようにする */
+    #formArea table.lines th {
+      background: #eadfca !important;
+      border-color: #c8b58f !important;
+    }
+
+    #formArea table.lines td {
+      background: #fff3d8 !important;
+      border-color: #d7bf89 !important;
+    }
+
+    #formArea table.lines input,
+    #formArea table.lines select {
+      background-color: rgba(255, 255, 255, 0.86) !important;
+    }
+
+    /* OCR本文は黒背景維持 */
+    #formArea pre {
+      background: #151515 !important;
+      color: #eeeeee !important;
+    }
+
+    /* RECEIPT_FIELD_TINT_VISIBLE_20260704_END */
+
+    /* RECEIPT_AMOUNT_TAX_COMPACT_20260704_START */
+
+    /*
+      読み取り候補の編集欄：
+      合計金額と消費税合計を横並びにして、幅を詰める。
+      画像表示スペース・3列レイアウトは触らない。
+    */
+
+    #formArea .receipt-amount-direct-row {
+      display: grid !important;
+      grid-template-columns: 11rem 11rem auto !important;
+      gap: 0.5rem !important;
+      align-items: end !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow: visible !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-amount-direct-row > div,
+    #formArea .receipt-amount-direct-field {
+      min-width: 0 !important;
+      max-width: 11rem !important;
+      width: 11rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-amount-direct-row input,
+    #formArea .receipt-amount-direct-field input {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      text-align: right !important;
+      font-variant-numeric: tabular-nums !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-amount-direct-row button {
+      width: auto !important;
+      white-space: nowrap !important;
+    }
+
+    @media (max-width: 72rem) {
+      #formArea .receipt-amount-direct-row {
+        grid-template-columns: 1fr 1fr !important;
+        width: 100% !important;
+      }
+
+      #formArea .receipt-amount-direct-row > div,
+      #formArea .receipt-amount-direct-field {
+        width: auto !important;
+        max-width: none !important;
+      }
+    }
+
+    /* RECEIPT_AMOUNT_TAX_COMPACT_20260704_END */
+
+    /* RECEIPT_VENDOR_SPACE_BETWEEN_20260704_START */
+
+    /*
+      店名・支払先コンテナを、編集欄の基本情報行の右端へ配置する。
+      方針：
+      - left で動かさない
+      - width で伸ばさない
+      - input 幅も変えない
+      - グリッド内で左グループと右グループを両端配置する
+      - はみ出さない
+    */
+
+    #formArea .grid-basic-top-row {
+      display: grid !important;
+      grid-template-columns: max-content max-content !important;
+      justify-content: space-between !important;
+      align-items: start !important;
+      column-gap: 0.75rem !important;
+      row-gap: 0.5rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    #formArea .receipt-basic-left-stack {
+      justify-self: start !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack {
+      justify-self: end !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      position: static !important;
+      left: auto !important;
+      right: auto !important;
+      transform: none !important;
+      width: auto !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    @media (max-width: 86rem) {
+      #formArea .grid-basic-top-row {
+        grid-template-columns: 1fr !important;
+        justify-content: stretch !important;
+      }
+
+      #formArea .receipt-basic-left-stack,
+      #formArea .receipt-vendor-direct-stack {
+        justify-self: stretch !important;
+        width: auto !important;
+        max-width: 100% !important;
+      }
+    }
+
+    /* RECEIPT_VENDOR_SPACE_BETWEEN_20260704_END */
+</style>
+</head>
+<body>
+  <header>レシート読取確認
+
+      <!-- RECEIPT_HEADER_IMPORT_NAV_START -->
+      <div class="receipt-header-actions">
+        <button type="button" onclick="location.href=&quot;/&quot;">メインページ</button>
+      <button type="button" id="bulkAiButton" onclick="bulkAnalyzeCheckedReceipts()">まとめてAI</button>
+      <button type="button" id="bulkSaveButton" onclick="bulkSaveCheckedReceipts()">まとめて保存</button>
+      <button onclick="location.href='/receipts/receipt-scan-inbox.html'">レシート取込へ</button>
+      </div>
+      <!-- RECEIPT_HEADER_IMPORT_NAV_END -->
+    </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-title">
+        <span>レシート</span>
+        <button onclick="loadList()">再読込</button>
+      </div>
+      <div id="list" class="scroll">読込中...</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">画像</div>
+      <div id="imageArea" class="image-area">左から選択してください。</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">読取候補の編集</div>
+      <div id="formArea" class="form-area">左から選択してください。</div>
+    </section>
+  </main>
+
+  <script>
+    /* RECEIPT_CUSTOM_DIALOG_SCRIPT_START */
+    (function () {
+      if (window.receiptDialogInstalled) return;
+      window.receiptDialogInstalled = true;
+
+      let activeResolve = null;
+
+      function ensureReceiptDialog() {
+        let backdrop = document.getElementById("receiptDialogBackdrop");
+        if (backdrop) return backdrop;
+
+        backdrop = document.createElement("div");
+        backdrop.id = "receiptDialogBackdrop";
+        backdrop.className = "receipt-dialog-backdrop";
+        backdrop.innerHTML = [
+          '<div class="receipt-dialog-window" role="dialog" aria-modal="true">',
+          '  <div id="receiptDialogHead" class="receipt-dialog-head">',
+          '    <div id="receiptDialogTitle">メッセージ</div>',
+          '    <button type="button" id="receiptDialogCloseTop">×</button>',
+          '  </div>',
+          '  <div class="receipt-dialog-body">',
+          '    <div id="receiptDialogMessage" class="receipt-dialog-message"></div>',
+          '    <div id="receiptDialogDetailLabel" class="receipt-dialog-detail-label">コピー用詳細</div>',
+          '    <textarea id="receiptDialogDetail" class="receipt-dialog-detail" readonly></textarea>',
+          '  </div>',
+          '  <div class="receipt-dialog-actions">',
+          '    <button type="button" id="receiptDialogSelectAll">全選択</button>',
+          '    <button type="button" id="receiptDialogNo">いいえ</button>',
+          '    <button type="button" id="receiptDialogYes" class="primary">はい</button>',
+          '    <button type="button" id="receiptDialogClose">閉じる</button>',
+          '  </div>',
+          '</div>'
+        ].join("");
+
+        document.body.appendChild(backdrop);
+
+        document.getElementById("receiptDialogSelectAll").addEventListener("click", function () {
+          const area = document.getElementById("receiptDialogDetail");
+          if (!area) return;
+          area.focus();
+          area.select();
+        });
+
+        document.getElementById("receiptDialogClose").addEventListener("click", function () {
+          closeReceiptDialog(false);
+        });
+
+        document.getElementById("receiptDialogCloseTop").addEventListener("click", function () {
+          closeReceiptDialog(false);
+        });
+
+        document.getElementById("receiptDialogNo").addEventListener("click", function () {
+          closeReceiptDialog(false);
+        });
+
+        document.getElementById("receiptDialogYes").addEventListener("click", function () {
+          closeReceiptDialog(true);
+        });
+
+        backdrop.addEventListener("click", function (event) {
+          if (event.target === backdrop) closeReceiptDialog(false);
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && backdrop.classList.contains("open")) {
+            closeReceiptDialog(false);
+          }
+        });
+
+        return backdrop;
+      }
+
+      function closeReceiptDialog(result) {
+        const backdrop = document.getElementById("receiptDialogBackdrop");
+        if (backdrop) backdrop.classList.remove("open");
+
+        if (typeof activeResolve === "function") {
+          const resolve = activeResolve;
+          activeResolve = null;
+          resolve(!!result);
+        }
+      }
+
+      function buildDetail(title, message, detail) {
+        const parts = [];
+        parts.push("【" + String(title || "メッセージ") + "】");
+        parts.push(new Date().toLocaleString());
+        parts.push("");
+        parts.push(String(message || ""));
+
+        if (detail !== undefined && detail !== null && String(detail).trim()) {
+          parts.push("");
+          parts.push("【詳細】");
+          parts.push(String(detail));
+        }
+
+        return parts.join("\n");
+      }
+
+      window.receiptShowDialog = function (options) {
+        const opts = options || {};
+        const title = String(opts.title || "メッセージ");
+        const message = String(opts.message || "");
+        const detail = String(opts.detail || "");
+        const type = String(opts.type || "info");
+        const mode = String(opts.mode || "alert");
+
+        const backdrop = ensureReceiptDialog();
+        const head = document.getElementById("receiptDialogHead");
+        const titleEl = document.getElementById("receiptDialogTitle");
+        const messageEl = document.getElementById("receiptDialogMessage");
+        const detailEl = document.getElementById("receiptDialogDetail");
+        const detailLabel = document.getElementById("receiptDialogDetailLabel");
+        const yesButton = document.getElementById("receiptDialogYes");
+        const noButton = document.getElementById("receiptDialogNo");
+        const closeButton = document.getElementById("receiptDialogClose");
+
+        head.className = "receipt-dialog-head" + (type === "error" ? " error" : (type === "warning" ? " warning" : ""));
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        const fullDetail = buildDetail(title, message, detail);
+        detailEl.value = fullDetail;
+        detailEl.style.display = fullDetail.trim() ? "block" : "none";
+        detailLabel.style.display = fullDetail.trim() ? "block" : "none";
+
+        if (mode === "confirm") {
+          yesButton.style.display = "inline-block";
+          noButton.style.display = "inline-block";
+          closeButton.style.display = "none";
+        } else {
+          yesButton.style.display = "none";
+          noButton.style.display = "none";
+          closeButton.style.display = "inline-block";
+        }
+
+        backdrop.classList.add("open");
+
+        setTimeout(function () {
+          if (mode === "confirm") {
+            yesButton.focus();
+          } else if (detailEl.style.display !== "none") {
+            detailEl.focus();
+            detailEl.select();
+          } else {
+            closeButton.focus();
+          }
+        }, 0);
+
+        return new Promise(function (resolve) {
+          activeResolve = resolve;
+        });
+      };
+
+      window.receiptAlert = function (message, title, detail, type) {
+        return window.receiptShowDialog({
+          title: title || "メッセージ",
+          message: message || "",
+          detail: detail || "",
+          type: type || "info",
+          mode: "alert"
+        });
+      };
+
+      window.receiptError = function (message, detail, title) {
+        return window.receiptShowDialog({
+          title: title || "エラー",
+          message: message || "処理に失敗しました。",
+          detail: detail || "",
+          type: "error",
+          mode: "alert"
+        });
+      };
+
+      window.receiptConfirm = function (message, title, detail) {
+        return window.receiptShowDialog({
+          title: title || "確認",
+          message: message || "実行しますか？",
+          detail: detail || "",
+          type: "warning",
+          mode: "confirm"
+        });
+      };
+
+      window.alert = function (message) {
+        window.receiptAlert(String(message || ""), "メッセージ");
+      };
+
+      window.addEventListener("error", function (event) {
+        const detail = [
+          "message: " + (event.message || ""),
+          "source: " + (event.filename || ""),
+          "line: " + (event.lineno || ""),
+          "column: " + (event.colno || ""),
+          "error: " + (event.error && event.error.stack ? event.error.stack : event.error || "")
+        ].join("\n");
+
+        window.receiptError("画面のJavaScriptエラーが発生しました。", detail, "JavaScriptエラー");
+      });
+
+      window.addEventListener("unhandledrejection", function (event) {
+        const reason = event.reason;
+        const detail = reason && reason.stack ? reason.stack : String(reason || "");
+        window.receiptError("非同期処理でエラーが発生しました。", detail, "処理エラー");
+      });
+    })();
+    /* RECEIPT_CUSTOM_DIALOG_SCRIPT_END */
+
+    let currentItems = [];
+    let selectedId = null;
+    let currentDraft = null;
+    let currentLineItems = [];
+    let selectedBulkReceiptIds = new Set();
+
+    function toggleBulkReceiptCheck(el) {
+      const id = Number(el && el.dataset ? el.dataset.receiptId : "");
+      if (!Number.isFinite(id) || id <= 0) return;
+
+      if (el.checked) {
+        selectedBulkReceiptIds.add(id);
+      } else {
+        selectedBulkReceiptIds.delete(id);
+      }
+    }
+
+    function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function toDateInput(value, rawJson) {
+      if (rawJson && rawJson.transactionDate) return rawJson.transactionDate;
+      if (!value) return "";
+      return String(value).slice(0, 10);
+    }
+
+    function numValue(value) {
+      if (value === null || value === undefined || value === "") return "";
+
+      let s = String(value).trim().replace(/,/g, "");
+      if (!s) return "";
+
+      const n = Number(s);
+      if (!Number.isFinite(n)) return String(value);
+
+      if (s.indexOf(".") >= 0) {
+        s = s.replace(/\.0+$/, "");
+        s = s.replace(/(\.\d*?[1-9])0+$/, "$1");
+      }
+
+      return s;
+    }
+
+    function taxTreatmentOptions(value) {
+      const current = String(value || "").trim();
+      const options = [
+        "",
+        "税込・内税",
+        "税抜・外税",
+        "非課税",
+        "不課税",
+        "免税",
+        "対象外",
+        "不明"
+      ];
+
+      return options.map((x) => {
+        const label = x || "選択";
+        const selected = x === current ? " selected" : "";
+        return '<option value="' + esc(x) + '"' + selected + '>' + esc(label) + '</option>';
+      }).join("");
+    }
+    function invoiceNote(value) {
+      const v = String(value || "").trim();
+      if (!v) return "";
+      if (!/^T\d{13}$/.test(v)) {
+        return '<div class="warn">T番号ではありません。伝票番号の可能性があります。</div>';
+      }
+      return '<div class="ok">T番号形式です。</div>';
+    }
+
+    async function loadList() {
+      const list = document.getElementById("list");
+      list.innerHTML = "読込中...";
+
+      const res = await fetch("/api/receipts/imports?limit=100");
+      const data = await res.json();
+
+      if (!data.ok) {
+        list.innerHTML = '<div class="list-item warn">読込失敗: ' + esc(data.error) + '</div>';
+        return;
+      }
+
+      currentItems = data.items || [];
+
+      if (currentItems.length === 0) {
+        list.innerHTML = '<div class="list-item">レシートがありません。</div>';
+        return;
+      }
+
+      list.innerHTML = currentItems.map(item => {
+        const active = Number(item.id) === Number(selectedId) ? " active" : "";
+
+        return `
+          <div class="list-item${active} receipt-list-with-check" onclick="loadDetail(${item.id})">
+                        <input
+              type="checkbox"
+              class="receipt-ai-check"
+              data-receipt-id="${esc(item.id)}"
+              ${selectedBulkReceiptIds.has(Number(item.id)) ? "checked" : ""}
+              onclick="event.stopPropagation()"
+              onchange="toggleBulkReceiptCheck(this)"
+            >
+            <div class="list-main">ID ${esc(item.id)} / ${esc(item.upload_id || "")}</div>
+            <div class="list-sub">
+              ${esc(item.local_image_file_name || "")}<br>
+              ${esc(item.imported_at_jst || "")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function loadDetail(id) {
+      selectedId = id;
+      await loadList();
+
+      document.getElementById("imageArea").innerHTML = `<img src="/api/receipts/image/${id}" alt="receipt">`;
+      document.getElementById("formArea").innerHTML = "読込中...";
+
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
+      const data = await res.json();
+
+      if (!data.ok) {
+        document.getElementById("formArea").innerHTML = '<div class="warn">読込失敗: ' + esc(data.error) + '</div>';
+        return;
+      }
+
+      await loadReceiptMasterOptions();
+      renderForm(data.item, data.aiDrafts || []);
+    }
+
+    function receiptExtractTimeText(value) {
+      const text = String(value === null || value === undefined ? "" : value)
+        .replace(/：/g, ":")
+        .replace(/．/g, ".");
+
+      if (!text.trim()) return "";
+
+      const patterns = [
+        /(^|[^\d])([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/,
+        /(^|[^\d])([01]?\d|2[0-3])\s*時\s*([0-5]?\d)\s*分?/,
+        /(^|[^\d])([01]?\d|2[0-3])\s*\.\s*([0-5]\d)(?!\d)/
+      ];
+
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (!match) continue;
+
+        const hour = Number(match[2]);
+        const minute = Number(match[3]);
+
+        if (
+          Number.isFinite(hour) &&
+          Number.isFinite(minute) &&
+          hour >= 0 &&
+          hour <= 23 &&
+          minute >= 0 &&
+          minute <= 59
+        ) {
+          return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+        }
+      }
+
+      return "";
+    }
+
+    function receiptTimeValueForForm(currentDraft, raw, item) {
+      return receiptExtractTimeText(
+        (currentDraft && (currentDraft.receipt_time_text || currentDraft.receiptTimeText)) ||
+        (raw && (raw.receiptTimeText || raw.receipt_time_text)) ||
+        (item && (item.ocr_raw_text || item.ocrRawText)) ||
+        ""
+      );
+    }
+    function renderForm(item, drafts) {
+      currentDraft = drafts[0] || null;
+
+      if (!currentDraft) {
+        currentLineItems = [];
+currentReceiptAiDraftId = currentDraft && currentDraft.id ? Number(currentDraft.id) : null;
+receiptTaxBreakdowns = [];
+receiptTaxBreakdownsLoadedDraftId = null;
+document.getElementById("formArea").innerHTML = `
+          <div class="actions">
+            <button class="primary" onclick="analyzeReceipt(${item.id})">AIで読取候補を作成</button>
+            <button class="danger" onclick="deleteReceiptImport(${item.id})">削除</button>
+          </div>
+          <div class="muted">まだ読取候補がありません。画像とOCR本文を確認し、必要に応じてAI解析してください。</div>
+        `;
+        return;
+      }
+
+      const raw = currentDraft.ai_raw_json || {};
+      currentLineItems = Array.isArray(currentDraft.line_items) ? currentDraft.line_items : [];
+currentReceiptAiDraftId = currentDraft && currentDraft.id ? Number(currentDraft.id) : null;
+receiptTaxBreakdowns = [];
+receiptTaxBreakdownsLoadedDraftId = null;
+document.getElementById("formArea").innerHTML = `
+        <div class="actions">
+          <button class="primary" onclick="saveDraft()">候補を保存</button>
+          <button onclick="analyzeReceipt(${item.id})">AI再解析</button>
+          <button class="danger" onclick="deleteReceiptImport(${item.id})">削除</button>
+        </div>
+
+        <div class="block">
+          <div class="block-title">基本情報</div>
+          <div class="block-body">
+            <div class="grid-basic-top-row">
+              <div class="receipt-basic-left-stack">
+                <div class="receipt-date-payment-row">
+                  <div>
+                    <label>取引日</label>
+                    <input id="transactionDate" type="date" value="${esc(toDateInput(currentDraft.transaction_date, raw))}">
+                  </div>
+                  
+                  <div>
+                    <label>時刻</label>
+                    <input id="receiptTimeText" value="${esc(receiptTimeValueForForm(currentDraft, raw, item))}">
+                  </div><div>
+                    <label>支払方法</label>
+                    <input id="paymentMethodName" value="${esc(currentDraft.payment_method_name)}">
+                  </div>
+                </div>
+                <div class="receipt-amount-direct-row">
+                  <div class="receipt-amount-direct-field receipt-amount-total">
+                    <label>合計金額</label>
+                    <input id="totalAmount" type="number" step="any" value="${esc(numValue(currentDraft.total_amount))}">
+                  </div>
+                  <div class="receipt-amount-direct-field receipt-amount-tax">
+                    <label>消費税合計</label>
+                    <input id="taxAmount" type="number" step="any" value="${esc(numValue(currentDraft.tax_amount))}">
+                  </div>
+                  <button type="button" id="taxBreakdownButton" onclick="openTaxBreakdown()">消費税内訳</button>
+                </div>
+                  <div class="receipt-target-person-row">
+                    <label>対象者</label>
+                    <select id="targetPersonId">
+                      ${optionHtml((receiptMasterOptions || {}).targetPeople || [], "target_person_id", "target_person_name", currentDraft.target_person_id)}
+                    </select>
+                  </div>
+
+
+
+                <div class="receipt-master-combo-row">
+                  <div class="receipt-master-combo-field">
+                    <label>目的</label>
+                    <div class="receipt-master-action-line">
+                      <select id="purposeId">
+                        ${optionHtml((receiptMasterOptions || {}).purposes || [], "purpose_id", "purpose_name", currentDraft.purpose_id)}
+                      </select>
+                      <button type="button" onclick="registerReceiptMasterFromTemp('purpose')">新規登録</button>
+                      <button type="button" onclick="focusReceiptTempInput('purpose')">一時入力</button>
+                    </div>
+                    <input id="purposeTempName" class="receipt-temp-master-input" placeholder="目的の一時入力" value="${esc(currentDraft.purpose_temp_name || raw.purposeTempName || raw.purpose_temp_name || "")}">
+                  </div>
+                  <div class="receipt-master-combo-field">
+                    <label>案件</label>
+                    <div class="receipt-master-action-line">
+                      <select id="projectId">
+                        ${optionHtml((receiptMasterOptions || {}).projects || [], "project_id", "project_name", currentDraft.project_id)}
+                      </select>
+                      <button type="button" onclick="registerReceiptMasterFromTemp('project')">新規登録</button>
+                      <button type="button" onclick="focusReceiptTempInput('project')">一時入力</button>
+                    </div>
+                    <input id="projectTempName" class="receipt-temp-master-input" placeholder="案件の一時入力" value="${esc(currentDraft.project_temp_name || raw.projectTempName || raw.project_temp_name || "")}">
+                  </div>
+                  <div class="receipt-master-combo-field">
+                    <label>部門</label>
+                    <div class="receipt-master-action-line">
+                      <select id="departmentId">
+                        ${optionHtml((receiptMasterOptions || {}).departments || [], "department_id", "department_name", currentDraft.department_id)}
+                      </select>
+                      <button type="button" onclick="registerReceiptMasterFromTemp('department')">新規登録</button>
+                      <button type="button" onclick="focusReceiptTempInput('department')">一時入力</button>
+                    </div>
+                    <input id="departmentTempName" class="receipt-temp-master-input" placeholder="部門の一時入力" value="${esc(currentDraft.department_temp_name || raw.departmentTempName || raw.department_temp_name || "")}">
+                  </div>
+                </div>
+
+
+
+              </div>
+
+              <div class="receipt-vendor-direct-stack">
+                <label>店名・支払先</label>
+                <input id="vendorName" value="${esc(currentDraft.vendor_name)}">
+
+                <label>住所</label>
+                <input id="vendorAddress" value="${esc(currentDraft.vendor_address || raw.vendorAddress || raw.vendor_address || "")}">
+
+                <label>電話番号</label>
+                <input id="vendorPhone" value="${esc(currentDraft.vendor_phone || raw.vendorPhone || raw.vendor_phone || "")}">
+
+                <label>インボイス番号</label>
+                <input id="invoiceNumber" value="${esc(currentDraft.invoice_number)}">
+                <div class="invoice-note-wrap">${invoiceNote(currentDraft.invoice_number)}</div>
+                <div class="receipt-master-select-row">
+                  <div>
+                    <label>インボイス区分</label>
+                    <select id="invoiceTypeId">
+                      ${optionHtml((receiptMasterOptions || {}).invoiceTypes || [], "invoice_type_id", "invoice_type_name", currentDraft.invoice_type_id)}
+                    </select>
+                  </div>
+                  <div>
+                    <label>証憑区分</label>
+                    <select id="evidenceTypeId">
+                      ${optionHtml((receiptMasterOptions || {}).evidenceTypes || [], "evidence_type_id", "evidence_type_name", currentDraft.evidence_type_id)}
+                    </select>
+                  </div>
+                  <div>
+                    <label>証憑メモ</label>
+                    <input id="evidenceMemo" value="${esc(currentDraft.evidence_memo)}">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="receipt-hidden-tax-fields">
+              <input id="taxRate" value="${esc(currentDraft.tax_rate)}">
+              <select id="taxTreatmentName">${taxTreatmentOptions(currentDraft.tax_treatment_name || currentDraft.taxTreatmentName || raw.taxTreatmentName)}</select>
+            </div>
+
+            <div class="grid1">
+              <div>
+                <label>摘要</label>
+                <input id="summary" value="${esc(currentDraft.summary)}">
+              </div>
+              <div>
+                <label>メモ・注意点</label>
+                <textarea id="memo">${esc(currentDraft.memo)}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">
+            <span>明細</span>
+            <button onclick="addLineItem()">明細追加</button>
+          </div>
+          <div class="block-body">
+            <div id="lineItemsArea"></div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">会計候補</div>
+          <div class="block-body">
+            <div class="grid2">
+              <div>
+                <label>勘定科目候補</label>
+                <input id="accountTitleName" value="${esc(currentDraft.account_title_name || raw.accountTitleName || raw.account_title_name || "")}">
+              </div>
+              <div>
+                <label>信頼度</label>
+                <input id="confidence" type="number" value="${esc(numValue(currentDraft.confidence))}">
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-title">OCR本文</div>
+          <div class="block-body">
+            <pre>${esc(item.ocr_raw_text || "")}</pre>
+          </div>
+        </div>
+      `;
+
+      renderLineItems();
+    }
+
+    function renderLineItems() {
+      const area = document.getElementById("lineItemsArea");
+
+      if (!area) return;
+
+      if (!currentLineItems.length) {
+        area.innerHTML = `
+          <div class="muted">明細がありません。</div>
+          <div style="margin-top:0.5rem;">
+            <button onclick="addLineItem()">明細追加</button>
+          </div>
+        `;
+        return;
+      }
+
+      area.innerHTML = `
+        <table class="lines">
+          <thead>
+            <tr>
+              <th>品名</th>
+              <th>数量</th>
+              <th>単価</th>
+              <th>金額</th>
+              <th>税率</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${currentLineItems.map((line, index) => `
+              <tr>
+                <td><input class="line-name" value="${esc(line.name || "")}" oninput="currentLineItems[${index}].name=this.value"></td>
+                <td><input class="line-small" type="number" step="0.01" value="${esc(numValue(line.quantity))}" oninput="currentLineItems[${index}].quantity=this.value"></td>
+                <td><input class="line-money" type="number" value="${esc(numValue(line.unitPrice))}" oninput="currentLineItems[${index}].unitPrice=this.value"></td>
+                <td><input class="line-money" type="number" value="${esc(numValue(line.amount))}" oninput="currentLineItems[${index}].amount=this.value"></td>
+                <td><input class="line-small" value="${esc(line.taxRate || "")}" oninput="currentLineItems[${index}].taxRate=this.value"></td>
+                <td><input value="${esc(line.memo || "")}" oninput="currentLineItems[${index}].memo=this.value"></td>
+                <td><button class="danger" onclick="removeLineItem(${index})">削除</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function addLineItem() {
+      currentLineItems.push({
+        name: "",
+        quantity: "",
+        unitPrice: "",
+        amount: "",
+        taxRate: "",
+        memo: ""
+      });
+
+      renderLineItems();
+    }
+
+    function removeLineItem(index) {
+      currentLineItems.splice(index, 1);
+      renderLineItems();
+    }
+
+    function getInput(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    }
+
+    function cleanNumber(value) {
+      if (value === "") return null;
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      return n;
+    }
+
+    function collectDraftPayload() {
+      return {
+        transactionDate: getInput("transactionDate") || null,
+        vendorName: getInput("vendorName"),
+                vendorAddress: getInput("vendorAddress"),
+        vendorPhone: getInput("vendorPhone"),
+totalAmount: cleanNumber(getInput("totalAmount")),
+        taxAmount: cleanNumber(getInput("taxAmount")),
+        taxRate: getInput("taxRate"),
+        taxTreatmentName: getInput("taxTreatmentName"),
+        paymentMethodName: getInput("paymentMethodName"),
+        receiptTimeText: getInput("receiptTimeText") || null,
+        targetPersonId: getInput("targetPersonId"),
+        purposeId: getInput("purposeId"),
+        projectId: getInput("projectId"),
+        departmentId: getInput("departmentId"),
+        invoiceTypeId: getInput("invoiceTypeId"),
+        evidenceTypeId: getInput("evidenceTypeId"),
+        evidenceMemo: getInput("evidenceMemo"),
+        accountTitleName: getInput("accountTitleName"),
+        invoiceNumber: getInput("invoiceNumber"),
+        summary: getInput("summary"),
+        memo: getInput("memo"),
+        confidence: cleanNumber(getInput("confidence")),
+        status: "draft",
+        lineItems: currentLineItems.map(line => ({
+          name: line.name || "",
+          quantity: cleanNumber(line.quantity),
+          unitPrice: cleanNumber(line.unitPrice),
+          amount: cleanNumber(line.amount),
+          taxRate: line.taxRate || "",
+          taxTreatmentName: line.taxTreatmentName || getInput("taxTreatmentName"),
+          memo: line.memo || ""
+        }))
+      };
+    }
+
+    async function saveDraft() {
+      if (!currentDraft) {
+        alert("保存する候補がありません。");
+        return;
+      }
+
+      const payload = collectDraftPayload();
+
+      const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(currentDraft.id), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("保存失敗: " + (data.error || ""));
+        return;
+      }
+
+      alert("保存しました。");
+      await loadDetail(selectedId);
+    }
+
+    async function deleteReceiptImport(id) {
+      if (!id) return;
+
+      const ok = confirm(
+        "このレシートを削除しますか？\n\n" +
+        "DBの取込データ、AI下書き、画像ファイルを削除します。"
+      );
+
+      if (!ok) return;
+
+      const formArea = document.getElementById("formArea");
+      formArea.innerHTML = '<div class="warn">削除中...</div>';
+
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id), {
+        method: "DELETE"
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        formArea.innerHTML = '<div class="warn">削除失敗: ' + esc(data.error || "原因不明") + '</div>';
+        return;
+      }
+
+      selectedId = null;
+      currentDraft = null;
+      currentLineItems = [];
+
+      document.getElementById("imageArea").innerHTML = "左から選択してください。";
+      document.getElementById("formArea").innerHTML =
+        '<div class="warn">削除しました。画像削除: ' +
+        (data.imageDeleted ? "済" : "なし/失敗") +
+        '</div>';
+
+      await loadList();
+    }
+
+    async function analyzeReceipt(id) {
+      if (!(await receiptConfirm("AI解析を実行しますか？", "AI解析確認"))) return;
+
+      const formArea = document.getElementById("formArea");
+      formArea.insertAdjacentHTML("afterbegin", '<div class="block"><div class="block-body">AI解析中...</div></div>');
+
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id) + "/analyze", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("AI解析失敗: " + (data.error || ""));
+        await loadDetail(id);
+        return;
+      }
+
+      await loadDetail(id);
+    }
+
+
+    /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_START */
+
+    function getSelectedBulkReceiptIdsInListOrder() {
+      const selected = selectedBulkReceiptIds || new Set();
+
+      const ordered = (currentItems || [])
+        .map((item) => Number(item.id))
+        .filter((id) => Number.isFinite(id) && selected.has(id));
+
+      const rest = Array.from(selected)
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id) && !ordered.includes(id));
+
+      return ordered.concat(rest);
+    }
+
+    function setBulkButtonsDisabled(disabled) {
+      ["bulkAiButton", "bulkSaveButton"].forEach((id) => {
+        const button = document.getElementById(id);
+        if (button) button.disabled = !!disabled;
+      });
+    }
+
+    async function fetchReceiptDetailForBulk(id) {
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ("詳細取得失敗 ID " + id));
+      }
+
+      return data;
+    }
+
+    function draftDateForBulk(draft) {
+      const raw = draft.ai_raw_json || {};
+      if (raw.transactionDate) return raw.transactionDate;
+      if (draft.transaction_date) return String(draft.transaction_date).slice(0, 10);
+      return null;
+    }
+
+    function buildDraftPayloadForBulk(draft) {
+      const raw = draft.ai_raw_json || {};
+      const lineItems = Array.isArray(draft.line_items) ? draft.line_items : [];
+
+      return {
+        transactionDate: draftDateForBulk(draft),
+        vendorName: draft.vendor_name || raw.vendorName || raw.vendor_name || "",
+        vendorAddress: draft.vendor_address || raw.vendorAddress || raw.vendor_address || "",
+        vendorPhone: draft.vendor_phone || raw.vendorPhone || raw.vendor_phone || "",
+        totalAmount: cleanNumber(draft.total_amount),
+        taxAmount: cleanNumber(draft.tax_amount),
+        taxRate: draft.tax_rate || "",
+        taxTreatmentName: draft.tax_treatment_name || raw.taxTreatmentName || raw.tax_treatment_name || "",
+        paymentMethodName: draft.payment_method_name || raw.paymentMethodName || raw.payment_method_name || "",
+        targetPersonId: draft.target_person_id || raw.targetPersonId || raw.target_person_id || null,
+        purposeId: draft.purpose_id || raw.purposeId || raw.purpose_id || null,
+        projectId: draft.project_id || raw.projectId || raw.project_id || null,
+        departmentId: draft.department_id || raw.departmentId || raw.department_id || null,
+        invoiceTypeId: draft.invoice_type_id || raw.invoiceTypeId || raw.invoice_type_id || null,
+        evidenceTypeId: draft.evidence_type_id || raw.evidenceTypeId || raw.evidence_type_id || null,
+        evidenceMemo: draft.evidence_memo || raw.evidenceMemo || raw.evidence_memo || "",
+        accountTitleName: draft.account_title_name || "",
+        invoiceNumber: draft.invoice_number || raw.invoiceNumber || raw.invoice_number || "",
+        summary: draft.summary || "",
+        memo: draft.memo || "",
+        confidence: cleanNumber(draft.confidence),
+        status: "draft",
+        lineItems: lineItems.map((line) => {
+          return {
+            name: line.name || "",
+            quantity: cleanNumber(line.quantity),
+            unitPrice: cleanNumber(line.unitPrice),
+            amount: cleanNumber(line.amount),
+            taxRate: line.taxRate || line.tax_rate || "",
+            taxTreatmentName: line.taxTreatmentName || line.tax_treatment_name || draft.tax_treatment_name || "",
+            memo: line.memo || ""
+          };
+        })
+      };
+    }
+
+    async function patchDraftForBulk(draftId, payload) {
+      const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(draftId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ("保存失敗 draft_id " + draftId));
+      }
+
+      return data;
+    }
+
+    async function bulkAnalyzeCheckedReceipts() {
+      const ids = getSelectedBulkReceiptIdsInListOrder();
+
+      if (!ids.length) {
+        alert("AI解析するレシートにチェックを入れてください。");
+        return;
+      }
+
+      if (!confirm("チェックした " + ids.length + " 件を順番にAI解析しますか？")) {
+        return;
+      }
+
+      const button = document.getElementById("bulkAiButton");
+      const originalText = button ? button.textContent : "";
+
+      let success = 0;
+      let failed = 0;
+      const failedIds = [];
+
+      setBulkButtonsDisabled(true);
+
+      try {
+        for (let i = 0; i < ids.length; i++) {
+          const id = ids[i];
+
+          if (button) {
+            button.textContent = (i + 1) + " / " + ids.length + " AI中";
+          }
+
+          try {
+            const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id) + "/analyze", {
+              method: "POST"
+            });
+
+            const data = await res.json().catch(() => {
+              return { ok: false, error: "JSON読込失敗" };
+            });
+
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || ("AI解析失敗 ID " + id));
+            }
+
+            success++;
+          } catch (error) {
+            failed++;
+            failedIds.push(id);
+            console.error("まとめてAI失敗 ID " + id, error);
+          }
+        }
+      } finally {
+        if (button) {
+          button.textContent = originalText || "まとめてAI";
+        }
+
+        setBulkButtonsDisabled(false);
+      }
+
+      await loadList();
+
+      alert(
+        "まとめてAI完了\n" +
+        "成功: " + success + " 件\n" +
+        "失敗: " + failed + " 件" +
+        (failedIds.length ? "\n失敗ID: " + failedIds.join(", ") : "")
+      );
+    }
+
+    async function bulkSaveCheckedReceipts() {
+      const ids = getSelectedBulkReceiptIdsInListOrder();
+
+      if (!ids.length) {
+        alert("保存するレシートにチェックを入れてください。");
+        return;
+      }
+
+      if (!confirm("チェックした " + ids.length + " 件を順番に保存しますか？")) {
+        return;
+      }
+
+      const button = document.getElementById("bulkSaveButton");
+      const originalText = button ? button.textContent : "";
+
+      let success = 0;
+      let failed = 0;
+      let noDraft = 0;
+      const failedIds = [];
+
+      setBulkButtonsDisabled(true);
+
+      try {
+        for (let i = 0; i < ids.length; i++) {
+          const id = ids[i];
+
+          if (button) {
+            button.textContent = (i + 1) + " / " + ids.length + " 保存中";
+          }
+
+          try {
+            let draftId = null;
+            let payload = null;
+
+            if (Number(id) === Number(selectedId) && currentDraft) {
+              draftId = currentDraft.id;
+              payload = collectDraftPayload();
+            } else {
+              const detail = await fetchReceiptDetailForBulk(id);
+              const drafts = detail.aiDrafts || detail.ai_drafts || [];
+              const draft = drafts[0] || null;
+
+              if (!draft || !draft.id) {
+                noDraft++;
+                continue;
+              }
+
+              draftId = draft.id;
+              payload = buildDraftPayloadForBulk(draft);
+            }
+
+            await patchDraftForBulk(draftId, payload);
+            success++;
+          } catch (error) {
+            failed++;
+            failedIds.push(id);
+            console.error("まとめて保存失敗 ID " + id, error);
+          }
+        }
+      } finally {
+        if (button) {
+          button.textContent = originalText || "まとめて保存";
+        }
+
+        setBulkButtonsDisabled(false);
+      }
+
+      if (selectedId) {
+        await loadDetail(selectedId);
+      } else {
+        await loadList();
+      }
+
+      alert(
+        "まとめて保存完了\n" +
+        "成功: " + success + " 件\n" +
+        "AI候補なし: " + noDraft + " 件\n" +
+        "失敗: " + failed + " 件" +
+        (failedIds.length ? "\n失敗ID: " + failedIds.join(", ") : "")
+      );
+    }
+
+    /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_END */
+
+    /* RECEIPT_DINING_REVIEW_UI_START */
+(function () {
+  function receiptDiningValue(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || "").trim() : "";
+  }
+  function receiptDiningExtractTimeFromOcrText(value) {
+    var text = String(value === null || value === undefined ? "" : value)
+      .replace(/：/g, ":")
+      .replace(/．/g, ".");
+
+    if (!text.trim()) return "";
+
+    var patterns = [
+      /(^|[^\d])([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/,
+      /(^|[^\d])([01]?\d|2[0-3])\s*時\s*([0-5]?\d)\s*分?/,
+      /(^|[^\d])([01]?\d|2[0-3])\s*\.\s*([0-5]\d)(?!\d)/
+    ];
+
+    for (var i = 0; i < patterns.length; i++) {
+      var match = text.match(patterns[i]);
+      if (match) {
+        var hour = Number(match[2]);
+        var minute = Number(match[3]);
+
+        if (
+          Number.isFinite(hour) &&
+          Number.isFinite(minute) &&
+          hour >= 0 &&
+          hour <= 23 &&
+          minute >= 0 &&
+          minute <= 59
+        ) {
+          return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+        }
+      }
+    }
+
+    return "";
+  }
+
+  function receiptDiningFindOcrTextForTime(draft) {
+    var raw = draft && draft.ai_raw_json ? draft.ai_raw_json : {};
+    var sources = [
+      draft && draft.ocr_raw_text,
+      draft && draft.ocrRawText,
+      raw && raw.ocr_raw_text,
+      raw && raw.ocrRawText,
+      raw && raw.rawText,
+      raw && raw.ocrText,
+      window.currentItem && window.currentItem.ocr_raw_text,
+      window.currentItem && window.currentItem.ocrRawText,
+      window.currentReceipt && window.currentReceipt.ocr_raw_text,
+      window.currentReceipt && window.currentReceipt.ocrRawText
+    ];
+
+    for (var i = 0; i < sources.length; i++) {
+      var text = String(sources[i] || "");
+      if (text.trim()) return text;
+    }
+
+    return "";
+  }
+  function receiptDiningNormalizeTime(value) {
+    var s = String(value === null || value === undefined ? "" : value).trim();
+
+    if (!s) return "";
+    if (s.toLowerCase() === "null") return "";
+    if (s.toLowerCase() === "undefined") return "";
+
+    s = s.replace("：", ":");
+
+    var match = s.match(/^([0-2]?\d):([0-5]\d)$/);
+    if (!match) return s;
+
+    var hour = Number(match[1]);
+    var minute = Number(match[2]);
+
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return s;
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return s;
+
+    return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+  }
+
+  function receiptDiningEnsureReviewNote() {
+    return;
+  }
+
+  function receiptDiningHighlightNeedsReview() {
+    return;
+  }
+  function receiptDiningLooksLikeDining() {
+    var summary = receiptDiningValue("summary");
+    var memo = receiptDiningValue("memo");
+    var account = receiptDiningValue("accountTitleName");
+
+    var text = [
+      summary,
+      memo,
+      account,
+      (window.currentLineItems || []).map(function (x) {
+        return [x.name, x.memo].join(" ");
+      }).join(" ")
+    ].join(" ");
+
+    return /飲食|定食|食事|ランチ|弁当|レストラン|カフェ|喫茶|ラーメン|カレー|みそかつ|寿司|焼肉|居酒屋|会議費|打合せ|打ち合わせ/.test(text);
+  }
+
+  function receiptDiningEnsureReceiptTimeField() {
+    return;
+  }
+  function receiptDiningHighlightNeedsReview() {
+    return;
+  }
+
+  function receiptDiningNormalizeDraftFields() {
+    if (!receiptDiningLooksLikeDining()) return;
+
+    var summary = document.getElementById("summary");
+    var account = document.getElementById("accountTitleName");
+    var memo = document.getElementById("memo");
+    var time = document.getElementById("receiptTimeText");
+
+    if (summary && !String(summary.value || "").trim()) {
+      summary.value = "飲食代";
+    }
+
+    if (summary && /定食|ランチ|弁当|食事|みそかつ|ロース|カレー|ラーメン|寿司|焼肉/.test(summary.value)) {
+      summary.value = "飲食代";
+    }
+
+    if (account && (!String(account.value || "").trim() || String(account.value || "").trim() === "消耗品費")) {
+      account.value = "会議費";
+    }
+
+    if (memo) {
+      var memoText = String(memo.value || "").trim();
+      var needText = "要追記：出張・打合せ目的・相手先・参加者・割り勘・自社負担額・打合せ内容を確認。";
+      var timeText = "";
+
+      if (!memoText) {
+        memo.value = needText + timeText;
+      } else if (!/要追記|要確認|相手先|割り勘|自社負担|打合せ|打ち合わせ/.test(memoText)) {
+        memo.value = memoText + " / " + needText + timeText;
+      }
+    }
+  }
+
+  function receiptDiningApplyUi() {
+    receiptDiningEnsureReceiptTimeField();
+    receiptDiningNormalizeDraftFields();
+
+    if (typeof receiptDiningEnsureReviewNote === "function") {
+      receiptDiningEnsureReviewNote();
+    }
+
+    if (typeof receiptDiningHighlightNeedsReview === "function") {
+      receiptDiningHighlightNeedsReview();
+    }
+  }
+
+  var oldRenderForm = window.renderForm;
+  if (typeof oldRenderForm === "function" && !oldRenderForm.__receiptDiningWrapped) {
+    var wrapped = function (item, drafts) {
+      oldRenderForm(item, drafts);
+      setTimeout(receiptDiningApplyUi, 0);
+    };
+    wrapped.__receiptDiningWrapped = true;
+    window.renderForm = wrapped;
+    renderForm = wrapped;
+  }
+
+  var oldCollectDraftPayload = window.collectDraftPayload;
+  if (typeof oldCollectDraftPayload === "function" && !oldCollectDraftPayload.__receiptDiningWrapped) {
+    var wrappedCollect = function () {
+      var payload = oldCollectDraftPayload();
+      var receiptTimeValue = receiptDiningNormalizeTime(receiptDiningValue("receiptTimeText"));
+      payload.receiptTimeText = receiptTimeValue ? receiptTimeValue : null;
+      return payload;
+    };
+    wrappedCollect.__receiptDiningWrapped = true;
+    window.collectDraftPayload = wrappedCollect;
+    collectDraftPayload = wrappedCollect;
+  }
+
+  document.addEventListener("input", function (event) {
+    if (!event || !event.target) return;
+    if (["summary", "memo", "accountTitleName", "receiptTimeText"].indexOf(event.target.id) >= 0) {
+      setTimeout(function () {
+        if (typeof receiptDiningEnsureReviewNote === "function") {
+          receiptDiningEnsureReviewNote();
+        }
+
+        if (typeof receiptDiningHighlightNeedsReview === "function") {
+          receiptDiningHighlightNeedsReview();
+        }
+      }, 0);
+    }
+  });
+})();
+/* RECEIPT_DINING_REVIEW_UI_END */
+loadList();
+  </script>
+
+  <!-- RECEIPT_COMPACT_ACCOUNTING_LAYOUT_SCRIPT_START -->
+  <script>
+    function setupCompactReceiptAccountingLayout() {
+      const titles = Array.from(document.querySelectorAll(".panel-title"));
+
+      function findPanel(label) {
+        const title = titles.find((el) => {
+          return String(el.textContent || "").trim().includes(label);
+        });
+
+        if (!title) return null;
+
+        return title.closest(".panel") || title.parentElement;
+      }
+
+      const listPanel = findPanel("レシート");
+      const imagePanel = findPanel("画像");
+      const candidatePanel = findPanel("読取候補");
+
+      if (!listPanel || !imagePanel || !candidatePanel) {
+        return;
+      }
+
+      const parent = candidatePanel.parentElement;
+
+      if (!parent) return;
+
+      parent.classList.add("receipt-compact-layout");
+
+      listPanel.classList.add("receipt-list-panel");
+      imagePanel.classList.add("receipt-image-panel");
+      candidatePanel.classList.add("receipt-candidate-panel");
+    }
+
+    function setupReceiptImageModal() {
+      if (document.getElementById("receiptImageModal")) {
+        return;
+      }
+
+      const modal = document.createElement("div");
+      modal.id = "receiptImageModal";
+      modal.innerHTML =
+        '<div class="modal-note">クリックで閉じる</div>' +
+        '<img alt="レシート拡大表示">';
+
+      document.body.appendChild(modal);
+
+      const modalImg = modal.querySelector("img");
+
+      modal.addEventListener("click", () => {
+        modal.style.display = "none";
+        modalImg.src = "";
+      });
+
+      const imageArea = document.getElementById("imageArea");
+
+      if (imageArea) {
+        imageArea.addEventListener("click", (event) => {
+          const img = event.target.closest("img");
+          if (!img) return;
+
+          modalImg.src = img.src;
+          modal.style.display = "flex";
+        });
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupCompactReceiptAccountingLayout();
+      setupReceiptImageModal();
+
+      setTimeout(setupCompactReceiptAccountingLayout, 300);
+      setTimeout(setupCompactReceiptAccountingLayout, 800);
+    });
+  </script>
+  <!-- RECEIPT_COMPACT_ACCOUNTING_LAYOUT_SCRIPT_END -->
+
+  <!-- RECEIPT_LEFT_LIST_ONE_LINE_SCRIPT_START -->
+  <script>
+    function findValueDeep(obj, keys) {
+      if (!obj || typeof obj !== "object") return "";
+
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== null && obj[key] !== undefined && obj[key] !== "") {
+          return obj[key];
+        }
+      }
+
+      for (const value of Object.values(obj)) {
+        if (value && typeof value === "object") {
+          const found = findValueDeep(value, keys);
+          if (found !== "") return found;
+        }
+      }
+
+      return "";
+    }
+
+    function formatYenForList(value) {
+      const n = Number(String(value || "").replace(/[^\d.-]/g, ""));
+      if (!Number.isFinite(n) || n <= 0) return "";
+      return n.toLocaleString("ja-JP") + "円";
+    }
+
+    async function decorateReceiptListRowsOneLine() {
+      const listPanel =
+        document.querySelector(".receipt-list-panel") ||
+        Array.from(document.querySelectorAll(".panel")).find((panel) => {
+          return String(panel.textContent || "").includes("レシート");
+        });
+
+      if (!listPanel) return;
+
+      const rows = Array.from(listPanel.querySelectorAll("button, .item"));
+
+      for (const row of rows) {
+        if (row.dataset.oneLineDone === "1") continue;
+
+        const raw = String(row.textContent || "").replace(/\s+/g, " ").trim();
+        const idMatch = raw.match(/ID\s*(\d+)/i);
+
+        if (!idMatch) continue;
+
+        const id = idMatch[1];
+
+        try {
+          const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
+          const data = await res.json();
+
+          const source = data.item || data.receipt || data.data || data;
+
+          const summary =
+            findValueDeep(source, ["summary", "description", "memo", "vendorName", "vendor_name", "payeeName", "payee_name"]) ||
+            "レシート";
+
+          const amount =
+            findValueDeep(source, ["totalAmount", "total_amount", "amount", "税込金額", "支払総額"]) ||
+            "";
+
+          const amountText = formatYenForList(amount);
+
+          const label =
+            "ID" + id + "　" +
+            String(summary).replace(/\s+/g, " ").slice(0, 14) +
+            (amountText ? "　" + amountText : "");
+
+          row.innerHTML = '<span class="receipt-list-one-line">' + label.replace(/[&<>"']/g, (c) => {
+            return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+          }) + '</span>';
+
+          row.title = raw;
+          row.dataset.oneLineDone = "1";
+
+        } catch (error) {
+          row.innerHTML = '<span class="receipt-list-one-line">' + raw + '</span>';
+          row.dataset.oneLineDone = "1";
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(decorateReceiptListRowsOneLine, 300);
+      setTimeout(decorateReceiptListRowsOneLine, 900);
+      setTimeout(decorateReceiptListRowsOneLine, 1600);
+    });
+
+    document.addEventListener("click", () => {
+      setTimeout(decorateReceiptListRowsOneLine, 300);
+    });
+  </script>
+  <!-- RECEIPT_LEFT_LIST_ONE_LINE_SCRIPT_END -->
+
+  <!-- RECEIPT_FIELD_LAYOUT_SCRIPT_START -->
+  <script>
+    function applyReceiptFieldLayout() {
+      const form = document.getElementById("formArea");
+      if (!form) return;
+
+      const classMap = {
+        "取引日": "receipt-field-date",
+        "支払方法": "receipt-field-payment",
+        "店名・支払先": "receipt-field-vendor",
+        "合計金額": "receipt-field-total",
+        "消費税額": "receipt-field-tax-amount",
+        "税率": "receipt-field-tax-rate",
+        "インボイス番号": "receipt-field-invoice",
+        "摘要": "receipt-field-summary",
+        "メモ・注意点": "receipt-field-memo"
+      };
+
+      form.querySelectorAll("label").forEach((label) => {
+        const labelText = String(label.textContent || "").trim();
+        const field = label.closest("div");
+        if (!field) return;
+
+        field.classList.add("receipt-field");
+
+        Object.entries(classMap).forEach(([key, className]) => {
+          if (labelText === key) {
+            field.classList.add(className);
+          }
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("formArea");
+
+      if (form) {
+        const observer = new MutationObserver(() => {
+          applyReceiptFieldLayout();
+        });
+
+        observer.observe(form, {
+          childList: true,
+          subtree: true
+        });
+      }
+
+      setTimeout(applyReceiptFieldLayout, 100);
+      setTimeout(applyReceiptFieldLayout, 400);
+      setTimeout(applyReceiptFieldLayout, 900);
+    });
+
+    document.addEventListener("click", () => {
+      setTimeout(applyReceiptFieldLayout, 100);
+    });
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_SCRIPT_START */
+
+    let receiptMasterOptions = null;
+    let receiptTaxBreakdowns = [];
+    let receiptTaxBreakdownsLoadedDraftId = null;
+    let currentReceiptAiDraftId = null;
+    let receiptSaveDraftWrapped = false;
+
+    function toNumberValue(value) {
+      const n = Number(String(value || "").replace(/,/g, ""));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatYen(value) {
+      const n = Math.round(toNumberValue(value));
+      return n.toLocaleString("ja-JP") + "円";
+    }
+
+    async function loadReceiptMasterOptions(force = false) {
+      if (receiptMasterOptions && !force) {
+        return receiptMasterOptions;
+      }
+
+      const res = await fetch("/api/receipts/master-options");
+
+      if (!res.ok) {
+        throw new Error("マスター取得に失敗しました。");
+      }
+
+      const data = await res.json();
+
+      receiptMasterOptions = {
+        taxCategories: data.taxCategories || [],
+        taxTreatments: data.taxTreatments || [],
+        paymentMethods: data.paymentMethods || [],
+        targetPeople: data.targetPeople || [],
+        purposes: data.purposes || [],
+        projects: data.projects || [],
+        departments: data.departments || [],
+        invoiceTypes: data.invoiceTypes || [],
+        evidenceTypes: data.evidenceTypes || []
+      };
+
+      return receiptMasterOptions;
+    }
+
+    function optionHtml(items, valueKey, labelKey, currentValue) {
+      const current = String(currentValue || "");
+      const empty = '<option value="">選択</option>';
+
+      const body = items.map((item) => {
+        const value = String(item[valueKey] || "");
+        const label = String(item[labelKey] || "");
+        const selected = value === current ? " selected" : "";
+
+        return '<option value="' + esc(value) + '"' + selected + '>' + esc(label) + '</option>';
+      }).join("");
+
+      return empty + body;
+    }
+
+    function createEmptyTaxBreakdownRow() {
+      return {
+        taxCategoryId: "",
+        taxCategoryName: "",
+        taxRate: "",
+        taxTreatmentId: "",
+        taxTreatmentName: "",
+        targetAmount: "",
+        taxAmount: "",
+        isConfirmed: true,
+        sortOrder: (receiptTaxBreakdowns.length + 1) * 10
+      };
+    }
+
+    function mapTaxBreakdownFromApi(row) {
+      return {
+        id: row.id || null,
+        taxCategoryId: String(row.tax_category_id || row.taxCategoryId || ""),
+        taxCategoryName: String(row.tax_category_name || row.taxCategoryName || ""),
+        taxRate: String(row.tax_rate || row.taxRate || ""),
+        taxTreatmentId: String(row.tax_treatment_id || row.taxTreatmentId || ""),
+        taxTreatmentName: String(row.tax_treatment_name || row.taxTreatmentName || ""),
+        targetAmount: row.target_amount !== null && row.target_amount !== undefined ? String(row.target_amount) : String(row.targetAmount || ""),
+        taxAmount: row.tax_amount !== null && row.tax_amount !== undefined ? String(row.tax_amount) : String(row.taxAmount || ""),
+        aiConfidence: row.ai_confidence ?? row.aiConfidence ?? null,
+        isConfirmed: row.is_confirmed === false || row.isConfirmed === false ? false : true,
+        sortOrder: Number(row.sort_order || row.sortOrder || 0)
+      };
+    }
+
+    function hasMeaningTaxBreakdownRow(row) {
+      return String(row.taxCategoryId || "").trim() ||
+        String(row.taxTreatmentId || "").trim() ||
+        String(row.targetAmount || "").trim() ||
+        String(row.taxAmount || "").trim();
+    }
+
+    function getTaxBreakdownsForSave() {
+      return receiptTaxBreakdowns
+        .filter(hasMeaningTaxBreakdownRow)
+        .map((row, index) => {
+          return {
+            taxCategoryId: row.taxCategoryId || null,
+            taxCategoryName: row.taxCategoryName || "",
+            taxRate: row.taxRate || "",
+            taxTreatmentId: row.taxTreatmentId || null,
+            taxTreatmentName: row.taxTreatmentName || "",
+            targetAmount: row.targetAmount || "",
+            taxAmount: row.taxAmount || "",
+            isConfirmed: true,
+            sortOrder: row.sortOrder || (index + 1) * 10
+          };
+        });
+    }
+
+    async function loadTaxBreakdownsForCurrentDraft() {
+      if (!currentReceiptAiDraftId) {
+        receiptTaxBreakdowns = [];
+        receiptTaxBreakdownsLoadedDraftId = null;
+        return;
+      }
+
+      if (receiptTaxBreakdownsLoadedDraftId === currentReceiptAiDraftId) {
+        return;
+      }
+
+      const res = await fetch("/api/receipts/ai-drafts/" + currentReceiptAiDraftId + "/tax-breakdowns");
+
+      if (!res.ok) {
+        throw new Error("消費税内訳の取得に失敗しました。");
+      }
+
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+
+      receiptTaxBreakdowns = items.map(mapTaxBreakdownFromApi);
+      receiptTaxBreakdownsLoadedDraftId = currentReceiptAiDraftId;
+    }
+
+    async function saveTaxBreakdownsForCurrentDraft() {
+      if (!currentReceiptAiDraftId) {
+        return;
+      }
+
+      if (receiptTaxBreakdownsLoadedDraftId !== currentReceiptAiDraftId) {
+        return;
+      }
+
+      const items = getTaxBreakdownsForSave();
+
+      const res = await fetch("/api/receipts/ai-drafts/" + currentReceiptAiDraftId + "/tax-breakdowns", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!res.ok) {
+        throw new Error("消費税内訳の保存に失敗しました。");
+      }
+
+      const data = await res.json();
+      receiptTaxBreakdowns = Array.isArray(data.items) ? data.items.map(mapTaxBreakdownFromApi) : receiptTaxBreakdowns;
+      receiptTaxBreakdownsLoadedDraftId = currentReceiptAiDraftId;
+    }
+
+    async function openTaxBreakdown() {
+      try {
+        await loadReceiptMasterOptions();
+        await loadTaxBreakdownsForCurrentDraft();
+
+        if (!Array.isArray(receiptTaxBreakdowns)) {
+          receiptTaxBreakdowns = [];
+        }
+
+        if (receiptTaxBreakdowns.length === 0) {
+          receiptTaxBreakdowns.push(createEmptyTaxBreakdownRow());
+        }
+
+        renderTaxBreakdownRows();
+
+        const modal = document.getElementById("taxBreakdownModal");
+        if (modal) {
+          modal.classList.remove("hidden");
+        }
+      } catch (error) {
+        alert(error.message || "消費税内訳を開けませんでした。");
+      }
+    }
+
+    function closeTaxBreakdown() {
+      updateTaxBreakdown();
+    }
+
+    function addTaxBreakdownRow() {
+      receiptTaxBreakdowns.push(createEmptyTaxBreakdownRow());
+      renderTaxBreakdownRows();
+    }
+
+    function deleteTaxBreakdownRow(index) {
+      receiptTaxBreakdowns.splice(index, 1);
+      renderTaxBreakdownRows();
+    }
+
+    function renderTaxBreakdownRows() {
+      const tbody = document.getElementById("taxBreakdownRows");
+      if (!tbody) return;
+
+      const masters = receiptMasterOptions || {};
+      const taxCategories = masters.taxCategories || [];
+      const taxTreatments = masters.taxTreatments || [];
+
+      if (!receiptTaxBreakdowns.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align:center; color:#777; padding:1rem;">
+              必要な税区分だけ「行追加」で入力してください。
+            </td>
+          </tr>
+        `;
+        updateTaxBreakdownTotalText();
+        return;
+      }
+
+      tbody.innerHTML = receiptTaxBreakdowns.map((row, index) => {
+        return `
+          <tr data-index="${index}">
+            <td>
+              <select data-field="taxCategoryId" onchange="onTaxBreakdownCategoryChange(${index}, this.value)">
+                ${optionHtml(taxCategories, "tax_category_id", "tax_name", row.taxCategoryId)}
+              </select>
+            </td>
+            <td>
+              <input data-field="targetAmount" type="number" value="${esc(numValue(row.targetAmount))}" oninput="onTaxBreakdownInput(${index}, 'targetAmount', this.value)">
+            </td>
+            <td>
+              <input data-field="taxAmount" type="number" value="${esc(numValue(row.taxAmount))}" oninput="onTaxBreakdownInput(${index}, 'taxAmount', this.value)">
+            </td>
+            <td>
+              <select data-field="taxTreatmentId" onchange="onTaxBreakdownTreatmentChange(${index}, this.value)">
+                ${optionHtml(taxTreatments, "tax_treatment_id", "treatment_name", row.taxTreatmentId)}
+              </select>
+            </td>
+            <td>
+              <button type="button" class="tax-breakdown-delete-button" onclick="deleteTaxBreakdownRow(${index})">削除</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      updateTaxBreakdownTotalText();
+    }
+
+    function onTaxBreakdownCategoryChange(index, value) {
+      const masters = receiptMasterOptions || {};
+      const found = (masters.taxCategories || []).find((x) => String(x.tax_category_id || "") === String(value || ""));
+
+      if (!receiptTaxBreakdowns[index]) return;
+
+      receiptTaxBreakdowns[index].taxCategoryId = String(value || "");
+      receiptTaxBreakdowns[index].taxCategoryName = found ? String(found.tax_name || "") : "";
+      receiptTaxBreakdowns[index].taxRate = found ? String(found.tax_rate || "") : "";
+    }
+
+    function onTaxBreakdownTreatmentChange(index, value) {
+      const masters = receiptMasterOptions || {};
+      const found = (masters.taxTreatments || []).find((x) => String(x.tax_treatment_id || "") === String(value || ""));
+
+      if (!receiptTaxBreakdowns[index]) return;
+
+      receiptTaxBreakdowns[index].taxTreatmentId = String(value || "");
+      receiptTaxBreakdowns[index].taxTreatmentName = found ? String(found.treatment_name || "") : "";
+    }
+
+    function onTaxBreakdownInput(index, field, value) {
+      if (!receiptTaxBreakdowns[index]) return;
+
+      receiptTaxBreakdowns[index][field] = value;
+      updateTaxBreakdownTotalText();
+    }
+
+    function updateTaxBreakdownTotalText() {
+      const total = receiptTaxBreakdowns.reduce((sum, row) => {
+        return sum + toNumberValue(row.taxAmount);
+      }, 0);
+
+      const el = document.getElementById("taxBreakdownTotalText");
+      if (el) {
+        el.textContent = "消費税合計：" + formatYen(total);
+      }
+    }
+
+    function updateTaxBreakdown() {
+      receiptTaxBreakdowns.forEach((row) => { row.isConfirmed = true; });
+
+      const total = receiptTaxBreakdowns.reduce((sum, row) => {
+        return sum + toNumberValue(row.taxAmount);
+      }, 0);
+
+      const taxAmount = document.getElementById("taxAmount");
+      if (taxAmount) {
+        taxAmount.value = total ? String(Math.round(total)) : "";
+      }
+
+      const activeRows = receiptTaxBreakdowns.filter(hasMeaningTaxBreakdownRow);
+
+      const taxRateInput = document.getElementById("taxRate");
+      if (taxRateInput) {
+        if (activeRows.length === 0) {
+          taxRateInput.value = "";
+        } else if (activeRows.length === 1) {
+          taxRateInput.value = activeRows[0].taxCategoryName || "";
+        } else {
+          taxRateInput.value = "混在";
+        }
+      }
+
+      const taxTreatmentInput = document.getElementById("taxTreatmentName");
+      if (taxTreatmentInput && activeRows.length > 0) {
+        const first = activeRows[0].taxTreatmentName || "";
+        const same = activeRows.every((row) => (row.taxTreatmentName || "") === first);
+        taxTreatmentInput.value = same ? first : "混在";
+      }
+
+      const modal = document.getElementById("taxBreakdownModal");
+      if (modal) {
+        modal.classList.add("hidden");
+      }
+    }
+
+    function wrapSaveDraftForTaxBreakdowns() {
+      if (receiptSaveDraftWrapped) return;
+
+      const originalSaveDraft = window.saveDraft;
+
+      if (typeof originalSaveDraft !== "function") {
+        setTimeout(wrapSaveDraftForTaxBreakdowns, 100);
+        return;
+      }
+
+      window.saveDraft = async function() {
+        const result = await originalSaveDraft.apply(this, arguments);
+
+        try {
+          await saveTaxBreakdownsForCurrentDraft();
+        } catch (error) {
+          alert(error.message || "消費税内訳の保存に失敗しました。");
+          throw error;
+        }
+
+        return result;
+      };
+
+      receiptSaveDraftWrapped = true;
+    }
+
+    wrapSaveDraftForTaxBreakdowns();
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_SCRIPT_END */
+
+</script>
+  <!-- RECEIPT_FIELD_LAYOUT_SCRIPT_END -->
+
+  <!-- RECEIPT_TAX_BREAKDOWN_MODAL_START -->
+  <div id="taxBreakdownModal" class="tax-breakdown-modal hidden">
+    <div class="tax-breakdown-backdrop" onclick="closeTaxBreakdown()"></div>
+
+    <div class="tax-breakdown-dialog">
+      <div class="tax-breakdown-header">
+        <div>
+          <div class="tax-breakdown-title">消費税内訳</div>
+          <div class="tax-breakdown-subtitle">必要な税区分だけ表示します。選択肢はマスターから取得します。</div>
+        </div>
+        <button type="button" class="tax-breakdown-close" onclick="closeTaxBreakdown()">×</button>
+      </div>
+
+      <div class="tax-breakdown-body">
+        <table class="tax-breakdown-table">
+          <thead>
+            <tr>
+              <th>税区分</th>
+              <th>対象金額</th>
+              <th>消費税額</th>
+              <th>税処理</th>
+              <th>削除</th>
+            </tr>
+          </thead>
+          <tbody id="taxBreakdownRows"></tbody>
+        </table>
+      </div>
+
+      <div class="tax-breakdown-footer">
+        <div id="taxBreakdownTotalText" class="tax-breakdown-total">消費税合計：0円</div>
+        <div class="tax-breakdown-actions">
+          <button type="button" onclick="addTaxBreakdownRow()">行追加</button>
+          <button type="button" onclick="closeTaxBreakdown()">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- RECEIPT_TAX_BREAKDOWN_MODAL_END -->
+
+
+
+
+  <!-- RECEIPT_COPY_SYSTEM_SCRIPT_20260703_START -->
+  <script>
+    (function () {
+      if (window.receiptCopySystemInstalled) return;
+      window.receiptCopySystemInstalled = true;
+
+      let receiptNativeAlert = window.alert;
+
+      function receiptCopyGetInput(id) {
+        const el = document.getElementById(id);
+        if (!el) return "";
+
+        if (String(el.tagName || "").toUpperCase() === "SELECT") {
+          const opt = el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
+          const text = opt ? String(opt.textContent || "").trim() : "";
+          if (text === "選択") return "";
+          return text;
+        }
+
+        return String(el.value || "").trim();
+      }
+
+      function receiptCopyLine(label, value) {
+        const v = String(value || "").trim();
+        return label + "：" + v;
+      }
+
+      function receiptCopyMasterValue(selectId, tempId) {
+        const selected = receiptCopyGetInput(selectId);
+        const temp = receiptCopyGetInput(tempId);
+
+        if (selected) return selected;
+        if (temp) return "一時入力：" + temp;
+
+        return "";
+      }
+
+      function receiptCopyBuildCurrentText() {
+        const lines = [];
+
+        lines.push("【レシート読取結果】");
+        lines.push(receiptCopyLine("取引日", receiptCopyGetInput("transactionDate")));
+        lines.push(receiptCopyLine("支払方法", receiptCopyGetInput("paymentMethodName")));
+        lines.push(receiptCopyLine("店名・支払先", receiptCopyGetInput("vendorName")));
+        lines.push(receiptCopyLine("住所", receiptCopyGetInput("vendorAddress")));
+        lines.push(receiptCopyLine("電話番号", receiptCopyGetInput("vendorPhone")));
+        lines.push(receiptCopyLine("インボイス番号", receiptCopyGetInput("invoiceNumber")));
+        lines.push("");
+
+        lines.push("【金額】");
+        lines.push(receiptCopyLine("合計金額", receiptCopyGetInput("totalAmount")));
+        lines.push(receiptCopyLine("消費税合計", receiptCopyGetInput("taxAmount")));
+        lines.push(receiptCopyLine("税率", receiptCopyGetInput("taxRate")));
+        lines.push(receiptCopyLine("税処理", receiptCopyGetInput("taxTreatmentName")));
+        lines.push("");
+
+        lines.push("【分類】");
+        lines.push(receiptCopyLine("対象者", receiptCopyGetInput("targetPersonId")));
+        lines.push(receiptCopyLine("目的", receiptCopyMasterValue("purposeId", "purposeTempName")));
+        lines.push(receiptCopyLine("案件", receiptCopyMasterValue("projectId", "projectTempName")));
+        lines.push(receiptCopyLine("部門", receiptCopyMasterValue("departmentId", "departmentTempName")));
+        lines.push(receiptCopyLine("インボイス区分", receiptCopyGetInput("invoiceTypeId")));
+        lines.push(receiptCopyLine("証憑区分", receiptCopyGetInput("evidenceTypeId")));
+        lines.push(receiptCopyLine("証憑メモ", receiptCopyGetInput("evidenceMemo")));
+        lines.push("");
+
+        lines.push("【摘要・メモ】");
+        lines.push(receiptCopyLine("摘要", receiptCopyGetInput("summary")));
+        lines.push(receiptCopyLine("メモ", receiptCopyGetInput("memo")));
+        lines.push(receiptCopyLine("信頼度", receiptCopyGetInput("confidence")));
+
+        try {
+          if (typeof currentLineItems !== "undefined" && Array.isArray(currentLineItems) && currentLineItems.length > 0) {
+            lines.push("");
+            lines.push("【明細】");
+
+            currentLineItems.forEach((line, index) => {
+              const name = line.name || line.description || "";
+              const quantity = line.quantity || "";
+              const unitPrice = line.unitPrice || line.unit_price || "";
+              const amount = line.amount || "";
+              const taxRate = line.taxRate || line.tax_rate || "";
+
+              lines.push(
+                (index + 1) + ". " +
+                "品名：" + name +
+                " / 数量：" + quantity +
+                " / 単価：" + unitPrice +
+                " / 金額：" + amount +
+                " / 税率：" + taxRate
+              );
+            });
+          }
+        } catch (error) {
+          lines.push("");
+          lines.push("【明細】取得できませんでした。");
+        }
+
+        return lines.join("\n");
+      }
+
+      function receiptCopyEnsurePanel() {
+        let panel = document.getElementById("receiptCopySystemPanel");
+        if (panel) return panel;
+
+        panel = document.createElement("div");
+        panel.id = "receiptCopySystemPanel";
+        panel.className = "receipt-copy-system-panel";
+
+        panel.innerHTML = [
+          '<div class="receipt-copy-system-title">',
+          '  <span>読取結果コピー</span>',
+          '</div>',
+          '<div class="receipt-copy-system-buttons">',
+          '  <button type="button" onclick="receiptCopyMakeCurrentText()">現在の読取結果をテキスト化</button>',
+          '  <button type="button" onclick="receiptCopyCopyTextArea()">この欄をコピー</button>',
+          '  <button type="button" onclick="receiptCopyCopyVisibleForm()">画面表示をコピー</button>',
+          '  <button type="button" onclick="receiptCopyClearText()">クリア</button>',
+          '</div>',
+          '<textarea id="receiptCopySystemText" readonly placeholder="AI処理後の結果や、コピー用テキストがここに出ます。"></textarea>',
+          '<div class="receipt-copy-system-note">※ AI処理後に「現在の読取結果をテキスト化」を押すと、下の欄にコピー用の文字が出ます。</div>'
+        ].join("");
+
+        const host =
+          document.getElementById("formArea") ||
+          document.querySelector(".receipt-candidate-panel") ||
+          document.querySelector("main") ||
+          document.body;
+
+        if (host && host.firstChild) {
+          host.insertBefore(panel, host.firstChild);
+        } else if (host) {
+          host.appendChild(panel);
+        }
+
+        return panel;
+      }
+
+      function receiptCopySetText(text, append) {
+        receiptCopyEnsurePanel();
+
+        const area = document.getElementById("receiptCopySystemText");
+        if (!area) return;
+
+        const value = String(text || "");
+
+        if (append && area.value) {
+          area.value = area.value + "\n\n" + value;
+        } else {
+          area.value = value;
+        }
+
+        area.focus();
+        area.select();
+      }
+
+      async function receiptCopyToClipboard(text) {
+        const value = String(text || "");
+
+        if (!value) {
+          alert("コピーする内容がありません。");
+          return false;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(value);
+            return true;
+          }
+        } catch (error) {
+          // fallbackへ
+        }
+
+        const temp = document.createElement("textarea");
+        temp.value = value;
+        temp.setAttribute("readonly", "readonly");
+        temp.style.position = "fixed";
+        temp.style.left = "-624.9375rem";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+
+        let ok = false;
+
+        try {
+          ok = document.execCommand("copy");
+        } catch (error) {
+          ok = false;
+        }
+
+        document.body.removeChild(temp);
+        return ok;
+      }
+
+      window.receiptCopyMakeCurrentText = async function () {
+        const text = receiptCopyBuildCurrentText();
+        receiptCopySetText(text, false);
+
+        const ok = await receiptCopyToClipboard(text);
+        if (ok) {
+          alert("現在の読取結果をコピーしました。");
+        } else {
+          alert("テキスト欄に出しました。必要なら手動でコピーしてください。");
+        }
+      };
+
+      window.receiptCopyCopyTextArea = async function () {
+        receiptCopyEnsurePanel();
+
+        const area = document.getElementById("receiptCopySystemText");
+        const text = area ? area.value : "";
+
+        const ok = await receiptCopyToClipboard(text);
+
+        if (ok) {
+          alert("コピーしました。");
+        } else {
+          alert("コピーできませんでした。テキスト欄から手動でコピーしてください。");
+        }
+      };
+
+      window.receiptCopyCopyVisibleForm = async function () {
+        const form = document.getElementById("formArea");
+        const text = form ? String(form.innerText || "").trim() : "";
+        receiptCopySetText(text, false);
+
+        const ok = await receiptCopyToClipboard(text);
+
+        if (ok) {
+          alert("画面表示テキストをコピーしました。");
+        } else {
+          alert("テキスト欄に出しました。必要なら手動でコピーしてください。");
+        }
+      };
+
+      window.receiptCopyClearText = function () {
+        receiptCopySetText("", false);
+      };
+
+      window.receiptCopyAppendLog = function (title, body) {
+        const now = new Date();
+        const stamp = now.toLocaleString();
+
+        const text = [
+          "【" + String(title || "処理結果") + "】",
+          stamp,
+          String(body || "")
+        ].join("\n");
+
+        receiptCopySetText(text, true);
+      };
+
+      window.alert = function (message) {
+        try {
+          const msg = String(message || "");
+          if (msg) {
+            window.receiptCopyAppendLog("画面メッセージ", msg);
+          }
+        } catch (error) {
+          // alertを止めない
+        }
+
+        return receiptNativeAlert.apply(window, arguments);
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+          setTimeout(receiptCopyEnsurePanel, 300);
+        });
+      } else {
+        setTimeout(receiptCopyEnsurePanel, 300);
+      }
+    })();
+  </script>
+  <!-- RECEIPT_COPY_SYSTEM_SCRIPT_20260703_END -->
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

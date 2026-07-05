@@ -222,6 +222,21 @@ function writeProjectStatus() {
   lines.push("- 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。");
   lines.push("- .env、秘密情報、DB、画像、実バックアップ、backup フォルダは、ユーザーが明示しない限り収集・削除・移動・変更しない。");
   lines.push("");
+  lines.push("");
+  lines.push("[日本語文字化け・Node日本語パス注意]");
+  lines.push("- PowerShell経由で日本語入りの JavaScript / SQL / 一時スクリプトを作ると、環境によって文字コードがズレてDBマスタ名が文字化けすることがある。");
+  lines.push("- DBへ日本語マスタを投入・更新する場合、日本語文字列をPowerShell内へ直書きしない。");
+  lines.push("- 安全策として、JavaScript側では日本語を Unicodeエスケープで定義する。例: \\u4f1a\\u8b70 = 会議。");
+  lines.push("- 既にUTF-8で保存された外部ファイルをNodeで読み込む方法も可。ただし文字コード確認を必須にする。");
+  lines.push("- Set-ContentでJSを作る場合、日本語を含む内容は特に注意する。UnicodeエスケープだけのJSなら Encoding ASCII でも可。");
+  lines.push("- console.table の日本語出力は文字化けしやすい。確認結果は UTF-8 の txt に書き出して notepad で開く。");
+  lines.push("- Node / PowerShell のコンソール表示だけで判断しない。DB内の値まで壊れている場合があるため、必ずDB再確認する。");
+  lines.push("- Node一時スクリプトを「GPTが使う一時ファイルフォルダ」など日本語パス配下で実行し、__dirname から結果ファイルを書こうとすると、パス自体が文字化けして失敗することがある。");
+  lines.push("- NodeでDB修復・マスタ投入を行う場合は、web_receiver直下など英数字パスに一時JSを置き、結果ファイル名も英数字にする。");
+  lines.push("- DB更新後に結果ファイル保存で失敗しても、COMMIT後ならDB更新済みの場合がある。再実行前に必ずDB確認する。");
+  lines.push("- 今回、expenses.purposes の目的マスタ追加で日本語が文字化けした。v1修復は一意制約で失敗、v3は結果ファイル保存で失敗したが、DB確認では有効目的マスタが正常化済み。");
+  lines.push("- 現在の目的マスタは、10:会議、20:商談、30:出張先会議、40:出張、50:来客対応、60:取引先訪問、70:仕入先訪問、80:社内会議、90:社内打合せ、100:打合せ、以降350:私用まで正常。");
+  lines.push("- 以後の日本語マスタ投入では、同じ事故を繰り返さない。");
   lines.push("[生成情報]");
   lines.push(`生成日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`);
   lines.push(`PC名: ${os.hostname()}`);
@@ -270,6 +285,7 @@ function writeProjectStatus() {
 module.exports = {
   writeProjectStatus
 };
+
 
 
 

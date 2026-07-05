@@ -1,0 +1,34 @@
+﻿==============================
+明細ブロックタイトル 色付け v2 修正結果
+==============================
+日時: 2026-07-05 08:04:17
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+実施:
+- 実HTMLに合わせて、span入りの「明細 / 明細追加」タイトル行を検出しました。
+- その行に receipt-line-block-title クラスを付けました。
+- 明細ブロックタイトル行だけに色を付けました。
+- 明細テーブル本体、入力欄、保存処理は触っていません。
+
+確認:
+HTMLに receipt-line-block-title あり:
+True
+
+CSSに明細ブロックタイトル色付けあり:
+True
+
+作成:
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_line_block_title_color_v2_20260705_080417.html
+before CSS : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_line_block_title_color_v2_20260705_080417.css
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after CSS  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_line_block_title_color_v2_20260705_080417.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_line_block_title_color_v2_20260705_080417.ps1"
+
+次:
+ブラウザを Ctrl + F5 で更新して、「明細 / 明細追加」の行だけ色が付くか確認してください。

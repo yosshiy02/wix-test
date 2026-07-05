@@ -1,0 +1,36 @@
+﻿==============================
+目的マスタ 文字化け修復結果 v2
+==============================
+日時: 2026-07-04 14:44:08
+
+[方針]
+重複した目的名があるため、sort_order 10-350 の対象行を一度すべて仮名へ退避。
+その後、各sort_orderの代表行へ正しい日本語名をUnicodeエスケープで再設定。
+余った重複行は無効化したまま残す。
+
+[実行結果]
+NG: 目的マスタ文字化け修復失敗
+
+node:fs:2422
+    return binding.writeFileUtf8(
+                   ^
+System.Management.Automation.RemoteException
+Error: ENOENT: no such file or directory, open 'G:\GITHUB\wix-test\hd-origin-project\GPT縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝\memo\00_?????_??????_node??_v2.txt'
+    at Object.writeFileSync (node:fs:2422:20)
+    at G:\GITHUB\wix-test\hd-origin-project\GPT縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝\apply\fix_purpose_master_names_unicode_v2.js:178:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'G:\\GITHUB\\wix-test\\hd-origin-project\\GPT縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝\\memo\\00_?????_??????_node??_v2.txt'
+}
+System.Management.Automation.RemoteException
+Node.js v24.18.0
+
+[作成]
+apply js    : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\fix_purpose_master_names_unicode_v2.js
+node result : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_目的マスタ_文字化け修復_node結果_v2.txt
+memo        : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_目的マスタ_文字化け修復結果_v2.txt
+
+[確認]
+notepad "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_目的マスタ_文字化け修復_node結果_v2.txt"

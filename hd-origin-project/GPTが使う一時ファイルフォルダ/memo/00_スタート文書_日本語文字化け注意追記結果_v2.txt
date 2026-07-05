@@ -1,0 +1,24 @@
+﻿==============================
+スタート文書 日本語文字化け注意追記結果 v2
+==============================
+日時: 2026-07-04 14:47:44
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\projectStatus.js
+
+[修正内容]
+projectStatus.js は lines.push で文書を生成するため、文章を直貼りせず lines.push 形式で追記。
+PowerShell経由の日本語入りJS/SQL/一時スクリプトによるDBマスタ名文字化け注意を追記。
+
+[構文チェック]
+OK: node --check 成功
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\projectStatus_before_japanese_mojibake_rule_v2.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\projectStatus.js
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_projectStatus_japanese_mojibake_rule_v2.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_projectStatus_japanese_mojibake_rule_v2.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_スタート文書_日本語文字化け注意追記結果_v2.txt
+
+[反映コマンド]
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_projectStatus_japanese_mojibake_rule_v2.ps1"

@@ -1,0 +1,67 @@
+﻿==============================
+レシート時刻 行ブロック正規表現差し込み 修正結果
+==============================
+日時: 2026-07-04 16:13:51
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- receipt-date-payment-row 内の取引日と支払方法の間へ、時刻欄を追加しました。
+- 古い後付け関数内の receiptTimeText の有無は判定に使わないようにしました。
+- OCR本文の 18時03分 / 18:03 / 18.03 を 18:03 として表示します。
+- 取引日 / 時刻 / 支払方法 の3列にしました。
+- 保存payloadにも receiptTimeText を追加しました。
+- 古い後付け時刻欄関数は無効化しました。
+
+[確認結果]
+基本情報本体の時刻欄あり: True
+OCR時刻抽出関数あり: True
+時刻値関数あり: True
+保存payloadあり: True
+CSSあり: True
+
+[基本情報行HTML断片]
+      <div class="block-title">基本情報</div>
+          <div class="block-body">
+            <div class="grid-basic-top-row">
+              <div class="receipt-basic-left-stack">
+                <div class="receipt-date-payment-row">
+                  <div>
+                    <label>取引日</label>
+                    <input id="transactionDate" type="date" value="${esc(toDateInput(currentDraft.transaction_date, raw))}">
+                  </div>
+                  
+                  <div>
+                    <label>時刻</label>
+                    <input id="receiptTimeText" value="${esc(receiptTimeValueForForm(currentDraft, raw, item))}">
+                  </div><div>
+                    <label>支払方法</label>
+                    <input id="paymentMethodName" value="${esc(currentDraft.payment_method_name)}">
+                  </div>
+                </div>
+                <div class="receipt-amount-direct-row">
+                  <div class="receipt-amount-direct-field receipt-amount-total">
+                    <label>合計金額</label>
+                    <input id="totalAmount" type="number" step="any" value="${esc(numValue(currentDraft.total_amount))}">
+                  </div>
+                  <div class="receipt-amount-direct-field receipt-amount-tax">
+                    <label>消費税合計</label>
+                    <input id="taxAmount" type="number" step="any" value="${esc(numValue(currentDraft.tax_amount))}">
+                  </div>
+                  <button type="button" id="taxBreakdownButton" onclick="openTaxBreakdown()">消費税内訳</button>
+                </div>
+ 
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_time_row_regex_insert.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_list_time_row_regex_insert.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_行ブロック正規表現差し込み_修正結果.txt
+
+[変更有無]
+変更あり
+
+[確認]
+1. レシート画面を Ctrl + F5 してください。
+2. みそかつレシートを開いてください。
+3. 取引日 / 時刻 / 支払方法 の順で表示されるか確認してください。
+4. OCR本文の 18時03分000101 から、時刻欄が 18:03 になるか確認してください。

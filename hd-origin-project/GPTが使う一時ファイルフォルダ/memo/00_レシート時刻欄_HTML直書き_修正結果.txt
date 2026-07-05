@@ -1,0 +1,28 @@
+﻿==============================
+レシート時刻欄 HTML直書き 修正結果
+==============================
+日時: 2026-07-04 15:29:15
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- 後付け監視JS方式をやめました。
+- renderForm の基本情報HTMLに、時刻欄を固定で1個追加しました。
+- 並びは 取引日 / 時刻 / 支払方法 / 支払先 です。
+- NULL / null / undefined は画面上は空欄にします。
+- 空欄でも黄色くしません。
+- 保存時は空欄なら receiptTimeText=null にします。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_receipt_time_direct_field.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_time_direct_field.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻欄_HTML直書き_修正結果.txt
+
+[変更有無]
+変更あり
+
+[確認]
+1. レシート読取確認画面を Ctrl + F5 で再読み込みしてください。
+2. 読み込み中で止まらないことを確認してください。
+3. 基本情報に 時刻 欄が出ることを確認してください。
+4. 時刻なしは空欄、時刻ありは 18:03 のように表示されることを確認してください。

@@ -1,0 +1,44 @@
+OK: 初期HTML内 .receipt-basic-left-stack なし
+OK: 初期HTML内 .receipt-date-payment-row なし
+OK: 初期HTML内 .receipt-master-select-row なし
+OK: 支払方法あり
+OK: 取引日あり
+OK: 時刻あり
+OK: 対象者あり
+OK: 目的あり
+OK: 案件あり
+OK: 部門あり
+OK: インボイス区分あり
+OK: 証憑区分あり
+OK: 証憑メモあり
+OK: 表示後DOM移動JS 削除1
+OK: 表示後DOM移動JS 削除2
+
+修正後 初期HTMLツリー
+
+.grid-basic-top-row
+├─ .receipt-amount-direct-row
+│  ├─ 支払方法
+│  ├─ 合計金額
+│  ├─ 消費税合計
+│  └─ 消費税内訳ボタン
+│
+├─ .receipt-vendor-direct-stack
+│  ├─ 取引日
+│  ├─ 時刻
+│  ├─ 店名・支払先
+│  ├─ 住所
+│  ├─ 電話番号
+│  ├─ インボイス番号
+│  ├─ .invoice-note-wrap
+│  ├─ インボイス区分
+│  ├─ 証憑区分
+│  └─ 証憑メモ
+│
+├─ .receipt-master-combo-row
+│  ├─ 目的
+│  ├─ 案件
+│  └─ 部門
+│
+└─ .receipt-target-person-row
+   └─ 対象者

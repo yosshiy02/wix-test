@@ -1,0 +1,30 @@
+﻿==============================
+基本情報レイアウト DOM移動JS 削除結果
+==============================
+日時: 2026-07-04 22:33:12
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- function unwrapElement から window.normalizeBasicInfoGroups までのレイアウト後付けDOM移動ブロックを削除しました。
+- moveReceiptDateTimeIntoVendorContainer / movePaymentAmountFieldsIntoContainer の呼び出しも削除対象に含めました。
+- appendChild / insertBefore はモーダル等でも使われるため、今回の削除対象にはしていません。
+
+[消えているべきもの]
+OKなし : unwrapElement
+OKなし : normalizeBasicInfoGroups
+OKなし : runNormalizeBasicInfoGroups
+OKなし : moveReceiptDateTimeIntoVendorContainer
+OKなし : movePaymentAmountFieldsIntoContainer
+
+[参考: 今回は消さないもの]
+参考残存: appendChild count=4
+参考残存: insertBefore count=1
+
+[該当行: 残っていたら表示]
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_remove_basic_dom_move_js_20260704_223312.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_remove_basic_dom_move_js_20260704_223312.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_remove_basic_dom_move_js_20260704_223312.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\receipt_remove_basic_dom_move_js_20260704_223312.txt

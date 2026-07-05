@@ -1,0 +1,46 @@
+﻿==============================
+レシート時刻 AI認識 最小修正結果
+==============================
+日時: 2026-07-04 15:41:49
+
+[対象]
+HTML: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+AI  : G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- 監視JSは追加していません。
+- HTML直書きで時刻欄を追加していません。
+- 既存の receiptDiningEnsureReceiptTimeField だけを最小修正しました。
+- レシート時刻欄の placeholder 例：18:03 を削除しました。
+- null / NULL / undefined は画面上は空欄にします。
+- レシート時刻を黄色対象から外しました。
+- メモへレシート時刻を自動追記しないようにしました。
+- 保存時、時刻欄が空なら receiptTimeText=null にします。
+- AI指示に「時刻」を明記しました。
+- OCR本文にある 18:03 / 9:05 / 18時03分 / 18.03 を時刻として認識し、HH:mmへ正規化するよう指示しました。
+- AIには、時刻なし・読めない場合は receiptTimeText=null とするよう指示しました。
+- receipts.ai.js の .parsed 構文ミスを ...parsed に修正しました。
+
+[作成]
+before html: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_time_ai_minimal_fix.html
+before ai  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_time_ai_minimal_fix.js
+after html : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after ai   : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_time_ai_minimal_fix.ps1
+memo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_AI認識_最小修正結果.txt
+
+[変更有無]
+HTML変更: True
+AI変更  : True
+
+[構文チェック]
+receipts.ai.js: OK
+
+[確認]
+1. サーバーを再起動してください。
+2. レシート読取確認画面を Ctrl + F5 で再読み込みしてください。
+3. ページが応答しなくならないことを確認してください。
+4. AI再解析してください。
+5. OCR本文に時刻があるレシートで、レシート時刻欄に HH:mm が入るか確認してください。
+6. 時刻がないレシートは空欄、保存値は null になることを確認してください。
+7. メモにレシート時刻が混ざらないことを確認してください。

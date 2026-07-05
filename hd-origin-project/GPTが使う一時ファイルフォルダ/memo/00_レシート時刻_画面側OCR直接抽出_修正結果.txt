@@ -1,0 +1,26 @@
+﻿==============================
+レシート時刻 画面側OCR直接抽出 修正結果
+==============================
+日時: 2026-07-04 15:55:39
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- OCR本文に 18時03分 / 18:03 / 18.03 があれば、画面側でも直接 18:03 として拾うようにしました。
+- AI結果やDB保存値で時刻が落ちても、画面に出せるようにしました。
+- placeholder 例：18:03 は出しません。
+- 一括保存payloadにも receiptTimeText を入れるようにしました。
+- 手動保存時も、時刻欄が空ならOCR本文から補完します。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_screen_ocr_time_fallback.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_list_screen_ocr_time_fallback.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_画面側OCR直接抽出_修正結果.txt
+
+[変更有無]
+変更あり
+
+[確認]
+1. レシート画面を Ctrl + F5 してください。
+2. 該当レシートを開いてください。
+3. OCR本文に 2026年 1月18日(日)18時03分000101 がある場合、時刻欄に 18:03 が入るか確認してください。

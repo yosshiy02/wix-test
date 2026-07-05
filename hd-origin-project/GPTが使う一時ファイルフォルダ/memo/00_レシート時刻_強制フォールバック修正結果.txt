@@ -1,0 +1,34 @@
+﻿==============================
+レシート時刻 強制フォールバック 修正結果
+==============================
+日時: 2026-07-04 15:51:46
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- 前回の反映済み判定ミスを避け、全てのAI返却箇所を確認しました。
+- OCR本文から時刻を直接抜く extractReceiptTimeTextFromOcr を確認しました。
+- ocrReceiptTimeText を各AI処理の ocrText 直後に入れました。
+- receiptTimeText の返却を AI値 || OCR直接抽出値 にしました。
+- .parsed 構文ミスを ...parsed に修正しました。
+
+[確認結果]
+extractReceiptTimeTextFromOcrあり: True
+ocrReceiptTimeText個数: 2
+receiptTimeText fallback個数: 2
+.parsed残存: False
+receipts.ai.js --check: OK
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_force_time_fallback.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_force_time_fallback.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_強制フォールバック修正結果.txt
+
+[変更有無]
+既に反映済み。ただし確認はOK
+
+[次の確認]
+1. サーバー再起動
+2. レシート画面 Ctrl + F5
+3. 該当レシートをAI再解析
+4. レシート時刻欄を見る

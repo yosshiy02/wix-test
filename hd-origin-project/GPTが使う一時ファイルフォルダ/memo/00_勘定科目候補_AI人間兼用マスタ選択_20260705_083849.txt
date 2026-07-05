@@ -1,0 +1,47 @@
+﻿==============================
+勘定科目候補 AI・人間兼用マスタ選択 修正結果
+==============================
+日時: 2026-07-05 08:38:49
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+実施:
+- 勘定科目候補をマスタ選択 select 化する後付け処理を追加しました。
+- 既存の勘定科目候補入力欄は、画面表示時に accountTitleId select + hidden 名称欄へ変換します。
+- AI候補の accountTitleId / accountTitleName があれば初期選択に使います。
+- 人間が select で選び直すと hidden の勘定科目候補名に同期します。
+- collectDraftPayload に accountTitleId / accountTitleName / accountTitleCandidateName を入れるよう後付けしました。
+- DBやAPIルートは触っていません。
+
+確認:
+JSブロックあり:
+True
+
+accountTitleIdあり:
+True
+
+receiptApplyAccountTitleMasterSelectあり:
+True
+
+CSSブロックあり:
+True
+
+作成:
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_account_title_master_select_20260705_083849.html
+before CSS : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_account_title_master_select_20260705_083849.css
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after CSS  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_account_title_master_select_20260705_083849.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_account_title_master_select_20260705_083849.ps1"
+
+次:
+1. ブラウザを Ctrl + F5 で更新
+2. レシートを開く
+3. 勘定科目候補が select になっているか確認
+4. マスタ候補が出るか確認
+5. 勘定科目候補を選び直して保存
+6. 再読込後に残るか確認

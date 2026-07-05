@@ -1,0 +1,31 @@
+﻿==============================
+レシート時刻 OCR本文から機械抽出 修正結果
+==============================
+日時: 2026-07-04 15:45:12
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- AI任せをやめ、OCR本文から時刻を機械的に抽出する関数を追加しました。
+- 対応形式: 18:03 / 9:05 / 18時03分 / 18.03
+- AIが receiptTimeText を返した場合はAI値を使います。
+- AIが時刻を返さない場合でも、OCR本文から拾えた時刻を receiptTimeText に入れます。
+- memo に時刻を書かせる古い矛盾指示を修正しました。
+- .parsed 構文ミスが残っていた場合は ...parsed に修正しました。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_ocr_time_extract.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_ocr_time_extract.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_OCR本文から機械抽出_修正結果.txt
+
+[変更有無]
+変更あり
+
+[構文チェック]
+receipts.ai.js: OK
+
+[確認]
+1. サーバーを再起動してください。
+2. レシート読取確認画面を Ctrl + F5 で再読み込みしてください。
+3. AI再解析してください。
+4. OCR本文に 18:03 等があるレシートで、レシート時刻欄に入るか確認してください。

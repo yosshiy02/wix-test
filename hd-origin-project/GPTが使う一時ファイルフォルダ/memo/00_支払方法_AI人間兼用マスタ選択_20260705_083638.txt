@@ -1,0 +1,47 @@
+﻿==============================
+支払方法 AI・人間兼用マスタ選択 修正結果
+==============================
+日時: 2026-07-05 08:36:38
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+実施:
+- 支払方法をマスタ選択 select 化する後付け処理を追加しました。
+- 既存の paymentMethodName 入力欄は、画面表示時に paymentMethodId select + hidden paymentMethodName へ変換します。
+- AI候補の payment_method_id / payment_method_name があれば初期選択に使います。
+- 人間が select で選び直すと hidden paymentMethodName に名称を同期します。
+- collectDraftPayload に paymentMethodId / paymentMethodName を入れるよう後付けしました。
+- DBやAPIルートは触っていません。
+
+確認:
+JSブロックあり:
+True
+
+paymentMethodIdあり:
+True
+
+receiptApplyPaymentMethodMasterSelectあり:
+True
+
+CSSブロックあり:
+True
+
+作成:
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_payment_method_master_select_20260705_083638.html
+before CSS : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_payment_method_master_select_20260705_083638.css
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after CSS  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_method_master_select_20260705_083638.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_method_master_select_20260705_083638.ps1"
+
+次:
+1. ブラウザを Ctrl + F5 で更新
+2. レシートを開く
+3. 支払方法が select になっているか確認
+4. マスタ候補が出るか確認
+5. 支払方法を選び直して保存
+6. 再読込後に残るか確認

@@ -1,0 +1,27 @@
+﻿==============================
+レシートAI 目的マスタ候補対応 修正結果
+==============================
+日時: 2026-07-04 15:15:25
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- AIへ目的マスタ expenses.purposes を渡すようにしました。
+- AIに purposeId / purposeName を返させるようにしました。
+- 飲食・会議・打合せっぽい場合も、画面側の推測ではなくAIが目的候補から選ぶ方針にしました。
+- レシート時刻は receiptTimeText に入れ、memoへ重複して書かないようAI指示を変更しました。
+- aiRawJson.masterHintsUsed に purposeCount を追加しました。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_purpose_ai_master_hints.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_purpose_master_hints.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシートAI_目的マスタ候補対応_修正結果.txt
+
+[構文チェック]
+receipts.ai.js: OK
+
+[次の確認]
+1. サーバーを再起動してください。
+2. レシート読取確認画面で AI再解析してください。
+3. AI結果に purposeId / purposeName が入るか確認してください。
+4. レシート時刻が memo ではなく receiptTimeText 側に入るか確認してください。

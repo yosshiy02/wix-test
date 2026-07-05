@@ -1,0 +1,31 @@
+﻿==============================
+右レシート表示スペース 2倍比率化
+==============================
+日時: 2026-07-04 16:34:24
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+作成:
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_right_receipt_space_2fr.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_right_receipt_space_2fr.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_right_receipt_space_2fr.ps1
+
+現在の前提:
+左：レシート選択
+中：読み取り候補の編集
+右：レシート表示スペース
+
+変更内容:
+- receipt-list.html のみ変更。
+- %指定は使っていません。
+- CSS Grid の grid-template-columns を最後勝ちで整理。
+- 左一覧: clamp(9rem, 10vw, 12rem)
+- 中編集: minmax(30rem, 1fr)
+- 右レシート表示: minmax(42rem, 2fr)
+- 右レシート表示スペースを中編集欄の約2倍比率にしました。
+- API、DB、AI、repository は変更なし。
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_right_receipt_space_2fr.ps1"

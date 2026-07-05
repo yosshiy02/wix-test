@@ -1,0 +1,31 @@
+﻿==============================
+信頼度 幅いっぱい 修正結果
+==============================
+日時: 2026-07-05 07:30:22
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+実施:
+- receipt-list.css だけを修正しました。
+- 信頼度を狭くしていた古いCSSブロックを削除しました。
+- 信頼度を適用側の枠いっぱいに伸ばすCSSを追加しました。
+- receipt-list.html は触っていません。
+
+確認:
+古い narrow ブロックなし:
+True
+
+新しい full width ブロックあり:
+True
+
+作成:
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_confidence_full_width_20260705_073022.css
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_confidence_full_width_20260705_073022.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_confidence_full_width_20260705_073022.ps1"
+
+次:
+ブラウザを Ctrl + F5 で更新して、信頼度が適用側の幅いっぱいになったか確認してください。

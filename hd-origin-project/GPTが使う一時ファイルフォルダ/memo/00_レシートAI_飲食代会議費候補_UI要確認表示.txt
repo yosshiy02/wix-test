@@ -1,0 +1,32 @@
+﻿==============================
+レシートAI 飲食代・会議費候補ルール / UI要確認表示
+==============================
+日時: 2026-07-04 14:25:06
+
+[方針]
+・飲食レシートは消耗品費にしない。
+・摘要は原則「飲食代」。
+・勘定科目は第一候補「会議費」。ただし確定ではなく、人間の追記が必要。
+・レシート時刻がある場合は receiptTimeText フィールドで表示・保存する。
+・メモには明細を繰り返さず、出張/打合せ/相手先/参加者/割り勘/自社負担額/内容の追記が必要だと出す。
+・要確認欄を薄い黄色で塗る。
+
+[摘要について]
+摘要はレシートの但し書きそのものではなく、帳簿上の短い内容説明。今回の飲食レシートでは「飲食代」でよい。
+
+[作成]
+before AI  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_dining_meeting_rule.js
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_dining_review_ui.html
+after AI   : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+apply      : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_dining_meeting_rule_and_ui.ps1
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_dining_meeting_rule_and_ui.ps1
+
+[構文チェック receipts.ai.js]
+OK: node --check 成功
+
+[HTML追加確認]
+OK: UI追加マーカー確認成功
+
+[次に実行する反映コマンド]
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_dining_meeting_rule_and_ui.ps1"

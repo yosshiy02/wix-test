@@ -20,9 +20,20 @@ DB_PASSWORD等の秘密情報は伏せています。
 - 問題が出た場合は、undo の手順で before から本体へ戻す。
 - 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。
 - .env、秘密情報、DB、画像、実バックアップ、backup フォルダは、ユーザーが明示しない限り収集・削除・移動・変更しない。
+- レイアウト編集は、応急処置的に表示後JSでDOMを動かして直さない。
+- appendChild / insertBefore / unwrapElement などで、画面表示後に項目を移動して帳尻を合わせる修正を増やさない。
+- レイアウトを直す場合は、まず renderForm などの初期HTML生成部分を確認し、最初から正しいDOM構造で出るように根本から編集する。
+- CSSだけで無理に位置を合わせない。特に width: calc(...), マイナスmargin, overflow:hidden, position, transform, margin-left:auto, justify-self で逃げない。
+- レイアウト編集では、先にコード上のツリーを出す。画面画像だけで親子関係を断定しない。
+- グループ単位をユーザーと確定してから編集する。勝手にグループを増やさない、細分化しない。
+- 「解体」と言われたグループは、そのラッパーをツリーから外し、中身を親グループ直下へ上げた前提で考える。解体済みグループを後の説明で復活させない。
+- 境界線確認は、確定したグループだけに付ける。余計な親枠・仮グループ・思いつきの線を追加しない。
+- 既存の後付けレイアウトJSや過去のRECEIPT_系CSSブロックがある場合は、追加修正の前に「残す」「削る」「初期HTMLへ戻す」を一覧化する。
+- ユーザーが「ツリー出して」「解体して」と言った場合は、コードを書かず、まずツリーだけを書く。
+- PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。
 
 [生成情報]
-生成日時: 2026/7/4 12:42:18
+生成日時: 2026/7/5 8:53:39
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -127,6 +138,9 @@ hd-origin-project\
 │  │     ├─ public\
 │  │     │  ├─ masters\
 │  │     │  │  └─ master-management.html
+│  │     │  ├─ receipts\
+│  │     │  │  ├─ receipt-list.css
+│  │     │  │  └─ receipt-list.html
 │  │     │  └─ settings.html
 │  │     └─ src\
 │  │        ├─ backups\
@@ -135,6 +149,9 @@ hd-origin-project\
 │  │        │  └─ master.repository.js
 │  │        ├─ migrations\
 │  │        │  └─ migration.service.js
+│  │        ├─ receipts\
+│  │        │  ├─ receipts.ai.js
+│  │        │  └─ receipts.repository.js
 │  │        ├─ config.js
 │  │        └─ projectStatus.js
 │  ├─ apply\
@@ -144,21 +161,169 @@ hd-origin-project\
 │  │  ├─ apply_backup_split_ui_v3.ps1
 │  │  ├─ apply_backup_split_ui.ps1
 │  │  ├─ apply_backup_visual_select.ps1
+│  │  ├─ apply_confidence_width_narrow_20260705_070627.ps1
 │  │  ├─ apply_db_backup_clone_save_safe.ps1
+│  │  ├─ apply_force_rebuild_yellow_target_inside_20260704_230956.ps1
 │  │  ├─ apply_master_id_label_autonumber_rule.ps1
 │  │  ├─ apply_master_management_button_ui.ps1
 │  │  ├─ apply_master_management_practical_update.ps1
 │  │  ├─ apply_master_payment_method_hide_account_rule_and_small_buttons.ps1
 │  │  ├─ apply_master_sort_arrows.ps1
 │  │  ├─ apply_migration_foundation.ps1
+│  │  ├─ apply_move_target_person_into_yellow_html_20260704_230724.ps1
 │  │  ├─ apply_projectStatus_file_count_rule_20.ps1
+│  │  ├─ apply_projectStatus_japanese_mojibake_rule_v2.ps1
+│  │  ├─ apply_projectStatus_japanese_mojibake_rule_v3.ps1
+│  │  ├─ apply_projectStatus_japanese_mojibake_rule.ps1
 │  │  ├─ apply_projectStatus_next_receipt_save.ps1
-│  │  └─ apply_projectStatus_temp_folder_clean_rule.ps1
+│  │  ├─ apply_projectStatus_temp_folder_clean_rule.ps1
+│  │  ├─ apply_purpose_master_34_items.js
+│  │  ├─ apply_purpose_master_meeting_first.js
+│  │  ├─ apply_receipt_ai_master_hints.ps1
+│  │  ├─ apply_receipt_apply_group_title_remove_color_20260704_220343.ps1
+│  │  ├─ apply_receipt_basic_info_html_rebuild_20260704_222712.ps1
+│  │  ├─ apply_receipt_cleanup_old_yellow_css_20260704_230124.ps1
+│  │  ├─ apply_receipt_dining_meeting_rule_and_ui.ps1
+│  │  ├─ apply_receipt_editor_card_layout.ps1
+│  │  ├─ apply_receipt_green_outside_grid_html_fixed_20260704_222047.ps1
+│  │  ├─ apply_receipt_layout_group_fix_20260704_201236.ps1
+│  │  ├─ apply_receipt_list_account_title_display_and_label_remove.ps1
+│  │  ├─ apply_receipt_list_css_split_20260705_071714.ps1
+│  │  ├─ apply_receipt_list_layout_repair.ps1
+│  │  ├─ apply_receipt_list_px_to_rem_only.ps1
+│  │  ├─ apply_receipt_remove_basic_dom_move_js_20260704_223312.ps1
+│  │  ├─ apply_receipt_remove_layout_lines_20260704_201659.ps1
+│  │  ├─ apply_receipt_repository_accounting_hotfix.ps1
+│  │  ├─ apply_receipt_repository_remove_wrong_expenses_override.ps1
+│  │  ├─ apply_receipt_target_block_meaning_fix_20260704_221317.ps1
+│  │  ├─ apply_receipt_target_person_back_to_yellow_20260704_221004.ps1
+│  │  ├─ apply_receipt_target_person_purple_remove_20260704_220535.ps1
+│  │  ├─ apply_receipt_target_person_under_payment_20260704_220740.ps1
+│  │  ├─ apply_receipt_yellow_area_3row_html_20260704_222440.ps1
+│  │  ├─ apply_receipt_yellow_area_3row_html_20260704_225316.ps1
+│  │  ├─ apply_receipt_yellow_group_target_inside_3row_20260704_225749.ps1
+│  │  ├─ apply_receipt_yellow_under_blue_green_out_20260704_221627.ps1
+│  │  ├─ apply_remove_last_apply_group_row_css_20260704_230408.ps1
+│  │  ├─ apply_right_receipt_space_2fr.ps1
+│  │  ├─ apply_yellow_height_expand_20260704_232458.ps1
+│  │  ├─ apply_yellow_inline_top_left_target_20260704_232008.ps1
+│  │  ├─ apply_yellow_top_left_target_20260704_231231.ps1
+│  │  ├─ fix_purpose_master_names_unicode_v2.js
+│  │  ├─ fix_purpose_master_names_unicode_v3.js
+│  │  └─ fix_purpose_master_names_unicode.js
 │  ├─ before\
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
 │  │  │  │  ├─ masters\
 │  │  │  │  │  └─ master-management.html
+│  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipt-list_before_account_confidence_html_20260705_072626.html
+│  │  │  │  │  ├─ receipt-list_before_account_confidence_right_20260705_072508.css
+│  │  │  │  │  ├─ receipt-list_before_account_title_display_and_label_remove.html
+│  │  │  │  │  ├─ receipt-list_before_account_title_master_select_20260705_083849.css
+│  │  │  │  │  ├─ receipt-list_before_account_title_master_select_20260705_083849.html
+│  │  │  │  │  ├─ receipt-list_before_account_titles_master_options_20260705_085301.html
+│  │  │  │  │  ├─ receipt-list_before_amount_tax_compact.html
+│  │  │  │  │  ├─ receipt-list_before_apply_group_title_remove_color_20260704_220343.html
+│  │  │  │  │  ├─ receipt-list_before_basic_info_html_rebuild_20260704_222712.html
+│  │  │  │  │  ├─ receipt-list_before_clean_payment_area_css.html
+│  │  │  │  │  ├─ receipt-list_before_cleanup_old_yellow_css_20260704_230124.html
+│  │  │  │  │  ├─ receipt-list_before_confidence_full_width_20260705_073022.css
+│  │  │  │  │  ├─ receipt-list_before_confidence_width_narrow_20260705_070627.html
+│  │  │  │  │  ├─ receipt-list_before_core_time_field_by_index.html
+│  │  │  │  │  ├─ receipt-list_before_core_time_field_regex.html
+│  │  │  │  │  ├─ receipt-list_before_core_time_field.html
+│  │  │  │  │  ├─ receipt-list_before_css_split_20260705_071714.html
+│  │  │  │  │  ├─ receipt-list_before_custom_dialog.html
+│  │  │  │  │  ├─ receipt-list_before_date_time_and_area_color_fix.html
+│  │  │  │  │  ├─ receipt-list_before_date_time_flat_in_vendor.html
+│  │  │  │  │  ├─ receipt-list_before_date_time_into_vendor_container.html
+│  │  │  │  │  ├─ receipt-list_before_debug_all_area_outline.html
+│  │  │  │  │  ├─ receipt-list_before_dining_review_ui.html
+│  │  │  │  │  ├─ receipt-list_before_editor_card_layout.ps1.html
+│  │  │  │  │  ├─ receipt-list_before_emergency_repair_20260704_202747.html
+│  │  │  │  │  ├─ receipt-list_before_exact_time_field_insert.html
+│  │  │  │  │  ├─ receipt-list_before_field_container_tint.html
+│  │  │  │  │  ├─ receipt-list_before_field_tint_visible.html
+│  │  │  │  │  ├─ receipt-list_before_fix_bulk_candidate_names_20260705_075806.html
+│  │  │  │  │  ├─ receipt-list_before_fix_missing_dining_functions.html
+│  │  │  │  │  ├─ receipt-list_before_fix_old_master_display_call_20260705_075907.html
+│  │  │  │  │  ├─ receipt-list_before_force_rebuild_yellow_target_inside_20260704_230956.html
+│  │  │  │  │  ├─ receipt-list_before_green_outside_grid_html_20260704_221901.html
+│  │  │  │  │  ├─ receipt-list_before_green_outside_grid_html_fixed_20260704_222047.html
+│  │  │  │  │  ├─ receipt-list_before_layout_group_fix_20260704_201236.html
+│  │  │  │  │  ├─ receipt-list_before_layout_repair.html
+│  │  │  │  │  ├─ receipt-list_before_line_block_title_color_20260705_080305.css
+│  │  │  │  │  ├─ receipt-list_before_line_block_title_color_20260705_080305.html
+│  │  │  │  │  ├─ receipt-list_before_line_block_title_color_v2_20260705_080417.css
+│  │  │  │  │  ├─ receipt-list_before_line_block_title_color_v2_20260705_080417.html
+│  │  │  │  │  ├─ receipt-list_before_line_count_badge_safe_20260705_081414.css
+│  │  │  │  │  ├─ receipt-list_before_line_count_badge_safe_20260705_081414.html
+│  │  │  │  │  ├─ receipt-list_before_line_items_color_20260705_080031.css
+│  │  │  │  │  ├─ receipt-list_before_line_items_modal_20260705_080648.css
+│  │  │  │  │  ├─ receipt-list_before_line_items_modal_20260705_080648.html
+│  │  │  │  │  ├─ receipt-list_before_line_modal_top_20260705_081653.css
+│  │  │  │  │  ├─ receipt-list_before_line_tax_master_options_fix_20260705_083320.html
+│  │  │  │  │  ├─ receipt-list_before_line_tax_treatment_20260705_082953.css
+│  │  │  │  │  ├─ receipt-list_before_line_tax_treatment_20260705_082953.html
+│  │  │  │  │  ├─ receipt-list_before_line_title_color_20260705_080143.css
+│  │  │  │  │  ├─ receipt-list_before_master_candidate_name_20260705_075628.css
+│  │  │  │  │  ├─ receipt-list_before_master_candidate_name_20260705_075628.html
+│  │  │  │  │  ├─ receipt-list_before_master_selected_display_20260705_075137.css
+│  │  │  │  │  ├─ receipt-list_before_master_selected_display_20260705_075137.html
+│  │  │  │  │  ├─ receipt-list_before_move_target_person_into_yellow_html_20260704_230724.html
+│  │  │  │  │  ├─ receipt-list_before_payment_amount_container.html
+│  │  │  │  │  ├─ receipt-list_before_payment_container_clean_outer_only.html
+│  │  │  │  │  ├─ receipt-list_before_payment_container_double_height.html
+│  │  │  │  │  ├─ receipt-list_before_payment_container_height_only_fix.html
+│  │  │  │  │  ├─ receipt-list_before_payment_container_outer_width_only.html
+│  │  │  │  │  ├─ receipt-list_before_payment_container_wider_right.html
+│  │  │  │  │  ├─ receipt-list_before_payment_green_container_extend_right_only.html
+│  │  │  │  │  ├─ receipt-list_before_payment_method_master_select_20260705_083638.css
+│  │  │  │  │  ├─ receipt-list_before_payment_method_master_select_20260705_083638.html
+│  │  │  │  │  ├─ receipt-list_before_payment_with_amounts.html
+│  │  │  │  │  ├─ receipt-list_before_px_to_rem_only.html
+│  │  │  │  │  ├─ receipt-list_before_receipt_ai_ui_adjust.html
+│  │  │  │  │  ├─ receipt-list_before_receipt_time_direct_field.html
+│  │  │  │  │  ├─ receipt-list_before_receipt_time_field_restore.html
+│  │  │  │  │  ├─ receipt-list_before_receipt_time_null_display_fix.html
+│  │  │  │  │  ├─ receipt-list_before_receipt_time_null_rule.html
+│  │  │  │  │  ├─ receipt-list_before_remove_bad_payment_wider_right.html
+│  │  │  │  │  ├─ receipt-list_before_remove_basic_dom_move_js_20260704_223312.html
+│  │  │  │  │  ├─ receipt-list_before_remove_last_apply_group_row_css_20260704_230408.html
+│  │  │  │  │  ├─ receipt-list_before_remove_layout_lines_20260704_201659.html
+│  │  │  │  │  ├─ receipt-list_before_remove_temp_master_inputs_20260705_074301.html
+│  │  │  │  │  ├─ receipt-list_before_right_receipt_space_2fr.html
+│  │  │  │  │  ├─ receipt-list_before_right_space_half.html
+│  │  │  │  │  ├─ receipt-list_before_right_space_only.html
+│  │  │  │  │  ├─ receipt-list_before_screen_ocr_time_fallback.html
+│  │  │  │  │  ├─ receipt-list_before_swap_account_confidence_20260705_073140.html
+│  │  │  │  │  ├─ receipt-list_before_target_block_meaning_fix_20260704_221317.html
+│  │  │  │  │  ├─ receipt-list_before_target_person_back_to_yellow_20260704_221004.html
+│  │  │  │  │  ├─ receipt-list_before_target_person_purple_remove_20260704_220535.html
+│  │  │  │  │  ├─ receipt-list_before_target_person_under_payment_20260704_220740.html
+│  │  │  │  │  ├─ receipt-list_before_time_ai_minimal_fix.html
+│  │  │  │  │  ├─ receipt-list_before_time_insert_before_payment.html
+│  │  │  │  │  ├─ receipt-list_before_time_min_fix.html
+│  │  │  │  │  ├─ receipt-list_before_time_row_regex_insert.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_align_right_only.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_container_right.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_flush_right.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_more_right.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_move_5rem_right.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_move_more_right.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_overflow_fix.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_overflow_stop.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_position_only.html
+│  │  │  │  │  ├─ receipt-list_before_vendor_space_between.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_area_3row_html_20260704_222440.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_area_3row_html_20260704_225316.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_group_target_inside_3row_20260704_225749.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_height_expand_20260704_232458.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_inline_top_left_target_20260704_232008.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_top_left_target_20260704_231231.html
+│  │  │  │  │  ├─ receipt-list_before_yellow_under_blue_green_out_20260704_221627.html
+│  │  │  │  │  └─ receipt-list_broken_time_ui_rollback_source.html
 │  │  │  │  ├─ settings_before_backup_split_ui_v2.html
 │  │  │  │  ├─ settings_before_backup_split_ui_v3.html
 │  │  │  │  ├─ settings_before_backup_split_ui.html
@@ -176,10 +341,29 @@ hd-origin-project\
 │  │  │  │  ├─ migrations\
 │  │  │  │  │  ├─ migration.service_before_bom_fix_v2.js
 │  │  │  │  │  └─ migration.service_before_bom_fix.js
+│  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipts.ai_before_dining_meeting_rule.js
+│  │  │  │  │  ├─ receipts.ai_before_dot_parsed_fix.js
+│  │  │  │  │  ├─ receipts.ai_before_force_time_fallback.js
+│  │  │  │  │  ├─ receipts.ai_before_line_tax_treatment_20260705_082953.js
+│  │  │  │  │  ├─ receipts.ai_before_master_hints.js
+│  │  │  │  │  ├─ receipts.ai_before_ocr_time_extract.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_ai_master_hints.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_hints.html
+│  │  │  │  │  ├─ receipts.ai_before_receipt_time_null_rule.js
+│  │  │  │  │  ├─ receipts.ai_before_receipt_time_ocr_extract_final.js
+│  │  │  │  │  ├─ receipts.ai_before_time_ai_minimal_fix.js
+│  │  │  │  │  ├─ receipts.repository_before_account_titles_master_options_20260705_085301.js
+│  │  │  │  │  ├─ receipts.repository_before_accounting_hotfix.js
+│  │  │  │  │  ├─ receipts.repository_before_ai_master_hints_save.js
+│  │  │  │  │  └─ receipts.repository_before_remove_wrong_expenses_override.js
 │  │  │  │  ├─ config_before_backup_clone_dir_safe.js
 │  │  │  │  ├─ config_before_backup_clone_dir.js
 │  │  │  │  ├─ projectStatus_before_file_count_20_rule.js
 │  │  │  │  ├─ projectStatus_before_file_count_rule_20.js
+│  │  │  │  ├─ projectStatus_before_japanese_mojibake_rule_v2.js
+│  │  │  │  ├─ projectStatus_before_japanese_mojibake_rule_v3.js
+│  │  │  │  ├─ projectStatus_before_japanese_mojibake_rule.js
 │  │  │  │  ├─ projectStatus_before_js_newline_escape_fix.js
 │  │  │  │  ├─ projectStatus_before_newline_fix.js
 │  │  │  │  ├─ projectStatus_before_temp_folder_clean_rule_final.js
@@ -188,27 +372,20 @@ hd-origin-project\
 │  │  │  └─ start_hd_origin.bat
 │  │  └─ PROJECT_STATUS_FOR_GPT.txt
 │  ├─ GPTに渡すフォルダ\
-│  │  ├─ web_receiver\
-│  │  │  ├─ public\
-│  │  │  │  ├─ masters\
-│  │  │  │  │  └─ master-management.html
-│  │  │  │  └─ index.html
-│  │  │  ├─ src\
-│  │  │  │  ├─ app\
-│  │  │  │  │  └─ app.routes.js
-│  │  │  │  ├─ masters\
-│  │  │  │  │  ├─ master.repository.js
-│  │  │  │  │  ├─ master.routes.js
-│  │  │  │  │  └─ masters.routes.js
-│  │  │  │  ├─ db.js
-│  │  │  │  ├─ projectStatus.js
-│  │  │  │  └─ response.js
-│  │  │  └─ server.js
-│  │  ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
-│  │  ├─ PROJECT_STATUS_FOR_GPT.txt
-│  │  └─ PROJECT_TODO_FOR_GPT.txt
+│  │  ├─ public\
+│  │  │  └─ receipts\
+│  │  │     └─ receipt-list.html
+│  │  ├─ src\
+│  │  │  ├─ masters\
+│  │  │  │  └─ master.repository.js
+│  │  │  ├─ receipts\
+│  │  │  │  └─ receipts.routes.js
+│  │  │  └─ db.js
+│  │  └─ 00_収集結果_最低限_勘定科目マスタ確認.txt
 │  ├─ memo\
+│  │  ├─ 00_apply_group_id_check.txt
 │  │  ├─ 00_baseline_migration_適用結果.txt
+│  │  ├─ 00_color_block_check.txt
 │  │  ├─ 00_DBバックアップ_2か所比較確認結果.txt
 │  │  ├─ 00_DBバックアップ_2か所保存_実作成テスト結果.txt
 │  │  ├─ 00_DBバックアップ_2か所保存後_整合性確認結果.txt
@@ -245,10 +422,18 @@ hd-origin-project\
 │  │  ├─ 00_projectStatus_作業ルール部分確認.txt
 │  │  ├─ 00_projectStatus_作業ルール文言修正結果.txt
 │  │  ├─ 00_projectStatus_次にやること追記結果.txt
+│  │  ├─ 00_receipt_emergency_repair_result_20260704_202747.txt
+│  │  ├─ 00_receipt_layout_group_fix_result_20260704_201236.txt
+│  │  ├─ 00_receipt_list_CSS分離_準備結果_20260705_071714.txt
+│  │  ├─ 00_receipt_list_時刻欄差し込み前_現物確認.txt
+│  │  ├─ 00_receipt_remove_layout_lines_result_20260704_201659.txt
 │  │  ├─ 00_TODO削除_projectStatus収集結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_after作成結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_反映結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_未反映.txt
+│  │  ├─ 00_スタート文書_日本語文字化け注意追記結果_v2.txt
+│  │  ├─ 00_スタート文書_日本語文字化け注意追記結果_v3.txt
+│  │  ├─ 00_スタート文書_日本語文字化け注意追記結果.txt
 │  │  ├─ 00_バックアップ一覧_視覚選択_修正準備結果.txt
 │  │  ├─ 00_バックアップ画面_構造データ分離表示_v2_修正準備結果.txt
 │  │  ├─ 00_バックアップ画面_構造データ分離表示_v3_修正準備結果.txt
@@ -261,8 +446,42 @@ hd-origin-project\
 │  │  ├─ 00_マスタ管理_実務向け修正_after作成結果_v2.txt
 │  │  ├─ 00_マスタ管理_表示順上下ボタン追加結果.txt
 │  │  ├─ 00_マスタ管理不具合修正用_収集結果.txt
+│  │  ├─ 00_まとめて保存_候補名payload修正_20260705_075806.txt
+│  │  ├─ 00_レシートAI_マスタ候補対応_修正準備.txt
+│  │  ├─ 00_レシートAI_飲食代会議費候補_UI要確認表示.txt
+│  │  ├─ 00_レシートAI_動作中画面確認用_収集結果.txt
+│  │  ├─ 00_レシートAI_目的マスタ候補対応_修正結果.txt
 │  │  ├─ 00_レシートAPI起動確認手順.txt
+│  │  ├─ 00_レシートDB台帳対応_作業途中ブロック退避.txt
+│  │  ├─ 00_レシート画面_コピー可能な個別ウインドウ化_修正結果.txt
+│  │  ├─ 00_レシート画面_コンテナ構造確認.txt
+│  │  ├─ 00_レシート画面_時刻UI修正撤退_復旧結果.txt
+│  │  ├─ 00_レシート画面_時刻UI不具合確認用_収集結果.txt
+│  │  ├─ 00_レシート画面_未定義関数エラー修正結果.txt
+│  │  ├─ 00_レシート時刻_AI認識_最小修正結果.txt
+│  │  ├─ 00_レシート時刻_NULL運用_修正結果.txt
+│  │  ├─ 00_レシート時刻_NULL表示と黄色解除_修正結果.txt
+│  │  ├─ 00_レシート時刻_OCR直接抽出_最終修正結果.txt
+│  │  ├─ 00_レシート時刻_OCR本文から機械抽出_修正結果.txt
+│  │  ├─ 00_レシート時刻_画面側OCR直接抽出_修正結果.txt
+│  │  ├─ 00_レシート時刻_強制フォールバック修正結果.txt
+│  │  ├─ 00_レシート時刻_行ブロック正規表現差し込み_修正結果.txt
+│  │  ├─ 00_レシート時刻_最小修正_結果.txt
+│  │  ├─ 00_レシート時刻欄_HTML直書き_修正結果.txt
+│  │  ├─ 00_レシート時刻欄_再表示修正結果.txt
+│  │  ├─ 00_レシート取り込みAI関係_収集結果.txt
+│  │  ├─ 00_レシート読取確認_accounting_hotfix結果.txt
+│  │  ├─ 00_レシート読取確認_expenses_receipt_importsエラー修正準備.txt
+│  │  ├─ 00_レシート読取確認_px_rem変換のみ.txt
+│  │  ├─ 00_レシート読取確認_レイアウト応急復旧.txt
+│  │  ├─ 00_レシート読取確認_会計候補表示と注意ラベル削除.txt
+│  │  ├─ 00_レシート読取確認_編集欄レイアウト整理_薄色カード化.txt
+│  │  ├─ 00_レシート読取確認ページ編集用_収集結果_20260705_072155.txt
+│  │  ├─ 00_レシート保存処理用_収集結果.txt
 │  │  ├─ 00_引継ぎメモ_一時フォルダ文言修正結果.txt
+│  │  ├─ 00_右レシート表示スペース_2倍比率化.txt
+│  │  ├─ 00_右レシート表示スペース_半分化.txt
+│  │  ├─ 00_右レシート表示スペースのみ拡張.txt
 │  │  ├─ 00_勘定科目_account_code_ID確認結果.txt
 │  │  ├─ 00_勘定科目_code_NULL化_並べ直し後結果.txt
 │  │  ├─ 00_勘定科目_code_NULL化結果.txt
@@ -272,42 +491,108 @@ hd-origin-project\
 │  │  ├─ 00_勘定科目ID並べ直し結果.txt
 │  │  ├─ 00_勘定科目ID並べ直し前_参照確認.txt
 │  │  ├─ 00_勘定科目ハンコデータ導入結果.txt
+│  │  ├─ 00_勘定科目マスタ候補_master-options追加_20260705_085301.txt
+│  │  ├─ 00_勘定科目候補_AI人間兼用マスタ選択_20260705_083849.txt
+│  │  ├─ 00_勘定科目幅広げ_信頼度右端_HTML修正_20260705_072626.txt
 │  │  ├─ 00_起動後文書_生成元確認用_収集結果.txt
 │  │  ├─ 00_現在DBと復元DB_構造確認結果.txt
 │  │  ├─ 00_古いバックアップ_スキーマ確認結果.txt
 │  │  ├─ 00_古いバックアップ_検証完了_移行不要判断.txt
 │  │  ├─ 00_古いバックアップ_検証用DBリストア結果.txt
 │  │  ├─ 00_古いバックアップ_検証用DBリストア再実行結果.txt
+│  │  ├─ 00_古い表示欄関数呼び出し修正_20260705_075907.txt
 │  │  ├─ 00_古い復元DB_received_items内容確認結果.txt
 │  │  ├─ 00_古い復元DB_データ件数確認結果.txt
-│  │  ├─ 00_失敗した検証用DB_削除結果.txt
-│  │  ├─ apply_baseline_migration_no_bom_node_output.txt
-│  │  ├─ apply_baseline_migration_no_bom.js
-│  │  ├─ apply_baseline_migration_node_output.txt
-│  │  ├─ apply_baseline_migration.js
-│  │  ├─ check_migration_foundation_status_node_output.txt
-│  │  ├─ check_migration_foundation_status.js
-│  │  ├─ fix_schema_migration_memo_node_output.txt
-│  │  ├─ fix_schema_migration_memo.js
-│  │  └─ old_backup_schema_20260625_143008.sql
+│  │  └─ ... 80 items omitted
 │  ├─ undo\
+│  │  ├─ used\
+│  │  │  ├─ undo_receipt_basic_info_html_rebuild_20260704_222712.ps1
+│  │  │  ├─ undo_receipt_remove_basic_dom_move_js_20260704_223312.ps1
+│  │  │  └─ undo_receipt_yellow_area_3row_html_20260704_222440.ps1
+│  │  ├─ undo_account_confidence_html_20260705_072626.ps1
+│  │  ├─ undo_account_confidence_right_20260705_072508.ps1
+│  │  ├─ undo_account_title_master_select_20260705_083849.ps1
+│  │  ├─ undo_account_titles_master_options_20260705_085301.ps1
 │  │  ├─ undo_backup_migration_snapshot_v2.ps1
 │  │  ├─ undo_backup_split_schema_data.ps1
 │  │  ├─ undo_backup_split_ui_v2.ps1
 │  │  ├─ undo_backup_split_ui_v3.ps1
 │  │  ├─ undo_backup_split_ui.ps1
 │  │  ├─ undo_backup_visual_select.ps1
+│  │  ├─ undo_confidence_full_width_20260705_073022.ps1
+│  │  ├─ undo_confidence_width_narrow_20260705_070627.ps1
 │  │  ├─ undo_db_backup_clone_save_safe.ps1
+│  │  ├─ undo_fix_bulk_candidate_names_20260705_075806.ps1
+│  │  ├─ undo_fix_old_master_display_call_20260705_075907.ps1
+│  │  ├─ undo_force_rebuild_yellow_target_inside_20260704_230956.ps1
+│  │  ├─ undo_line_block_title_color_v2_20260705_080417.ps1
+│  │  ├─ undo_line_count_badge_safe_20260705_081414.ps1
+│  │  ├─ undo_line_items_color_20260705_080031.ps1
+│  │  ├─ undo_line_items_modal_20260705_080648.ps1
+│  │  ├─ undo_line_modal_top_20260705_081653.ps1
+│  │  ├─ undo_line_tax_master_options_fix_20260705_083320.ps1
+│  │  ├─ undo_line_tax_treatment_20260705_082953.ps1
+│  │  ├─ undo_line_title_color_20260705_080143.ps1
+│  │  ├─ undo_master_candidate_name_20260705_075628.ps1
 │  │  ├─ undo_master_id_label_autonumber_rule.ps1
 │  │  ├─ undo_master_management_button_ui.ps1
 │  │  ├─ undo_master_management_practical_update.ps1
 │  │  ├─ undo_master_payment_method_hide_account_rule_and_small_buttons.ps1
+│  │  ├─ undo_master_selected_display_20260705_075137.ps1
 │  │  ├─ undo_master_sort_arrows.ps1
 │  │  ├─ undo_migration_foundation_files_only.ps1
+│  │  ├─ undo_move_target_person_into_yellow_html_20260704_230724.ps1
+│  │  ├─ undo_payment_method_master_select_20260705_083638.ps1
 │  │  ├─ undo_projectStatus_file_count_rule_20.ps1
+│  │  ├─ undo_projectStatus_japanese_mojibake_rule_v2.ps1
+│  │  ├─ undo_projectStatus_japanese_mojibake_rule_v3.ps1
+│  │  ├─ undo_projectStatus_japanese_mojibake_rule.ps1
 │  │  ├─ undo_projectStatus_JS改行エスケープ修正.ps1
 │  │  ├─ undo_projectStatus_next_receipt_save.ps1
-│  │  └─ undo_projectStatus_作業ルール文言.ps1
+│  │  ├─ undo_projectStatus_作業ルール文言.ps1
+│  │  ├─ undo_purpose_master_34_items_disable.js
+│  │  ├─ undo_receipt_ai_master_hints.ps1
+│  │  ├─ undo_receipt_apply_group_title_remove_color_20260704_220343.ps1
+│  │  ├─ undo_receipt_cleanup_old_yellow_css_20260704_230124.ps1
+│  │  ├─ undo_receipt_dining_meeting_rule_and_ui.ps1
+│  │  ├─ undo_receipt_editor_card_layout.ps1
+│  │  ├─ undo_receipt_green_outside_grid_html_fixed_20260704_222047.ps1
+│  │  ├─ undo_receipt_layout_group_fix_20260704_201236.ps1
+│  │  ├─ undo_receipt_list_account_title_display_and_label_remove.ps1
+│  │  ├─ undo_receipt_list_css_split_20260705_071714.ps1
+│  │  ├─ undo_receipt_list_custom_dialog.ps1
+│  │  ├─ undo_receipt_list_fix_missing_dining_functions.ps1
+│  │  ├─ undo_receipt_list_layout_repair.ps1
+│  │  ├─ undo_receipt_list_px_to_rem_only.ps1
+│  │  ├─ undo_receipt_list_screen_ocr_time_fallback.ps1
+│  │  ├─ undo_receipt_list_time_row_regex_insert.ps1
+│  │  ├─ undo_receipt_remove_layout_lines_20260704_201659.ps1
+│  │  ├─ undo_receipt_repository_accounting_hotfix.ps1
+│  │  ├─ undo_receipt_repository_remove_wrong_expenses_override.ps1
+│  │  ├─ undo_receipt_target_block_meaning_fix_20260704_221317.ps1
+│  │  ├─ undo_receipt_target_person_back_to_yellow_20260704_221004.ps1
+│  │  ├─ undo_receipt_target_person_purple_remove_20260704_220535.ps1
+│  │  ├─ undo_receipt_target_person_under_payment_20260704_220740.ps1
+│  │  ├─ undo_receipt_time_ai_minimal_fix.ps1
+│  │  ├─ undo_receipt_time_direct_field.ps1
+│  │  ├─ undo_receipt_time_field_restore.ps1
+│  │  ├─ undo_receipt_time_min_fix.ps1
+│  │  ├─ undo_receipt_time_null_display_fix.ps1
+│  │  ├─ undo_receipt_time_null_rule.ps1
+│  │  ├─ undo_receipt_yellow_area_3row_html_20260704_225316.ps1
+│  │  ├─ undo_receipt_yellow_group_target_inside_3row_20260704_225749.ps1
+│  │  ├─ undo_receipt_yellow_under_blue_green_out_20260704_221627.ps1
+│  │  ├─ undo_receipts_ai_force_time_fallback.ps1
+│  │  ├─ undo_receipts_ai_ocr_time_extract.ps1
+│  │  ├─ undo_receipts_ai_purpose_master_hints.ps1
+│  │  ├─ undo_receipts_ai_receipt_time_ocr_extract_final.ps1
+│  │  ├─ undo_remove_last_apply_group_row_css_20260704_230408.ps1
+│  │  ├─ undo_remove_temp_master_inputs_20260705_074301.ps1
+│  │  ├─ undo_right_receipt_space_2fr.ps1
+│  │  ├─ undo_swap_account_confidence_20260705_073140.ps1
+│  │  ├─ undo_yellow_height_expand_20260704_232458.ps1
+│  │  ├─ undo_yellow_inline_top_left_target_20260704_232008.ps1
+│  │  └─ undo_yellow_top_left_target_20260704_231231.ps1
 │  ├─ 00_レシートAPI_DB台帳対応_修正結果.txt
 │  ├─ 00_レシート画面API確認用_収集結果.txt
 │  ├─ HD_ORIGIN_PC_RULES.txt
@@ -403,7 +688,30 @@ hd-origin-project\
 │  │  │  ├─ master-management.html.bak_fix_20260626_203047
 │  │  │  └─ master-management.html.bak_fix_20260626_203103
 │  │  ├─ receipts\
+│  │  │  ├─ receipt-list.css
 │  │  │  ├─ receipt-list.html
+│  │  │  ├─ receipt-list.html.before_active_renderform_apply_group_20260704_214403.bak
+│  │  │  ├─ receipt-list.html.before_all_group_area_color_20260704_203440.bak
+│  │  │  ├─ receipt-list.html.before_amount_tax_button_3columns_20260704_210109.bak
+│  │  │  ├─ receipt-list.html.before_amount_tax_row_html_fix_20260704_210418.bak
+│  │  │  ├─ receipt-list.html.before_apply_group_direct_html_20260704_214808.bak
+│  │  │  ├─ receipt-list.html.before_apply_group_direct_html_save_20260704_215037.bak
+│  │  │  ├─ receipt-list.html.before_apply_group_fix_20260704_214059.bak
+│  │  │  ├─ receipt-list.html.before_date_time_inline_html_20260704_210615.bak
+│  │  │  ├─ receipt-list.html.before_invoice_evidence_inline_20260704_211648.bak
+│  │  │  ├─ receipt-list.html.before_invoice_note_right_20260704_211342.bak
+│  │  │  ├─ receipt-list.html.before_note_account_group_20260704_212507.bak
+│  │  │  ├─ receipt-list.html.before_remove_lines_colors_20260704_202955.bak
+│  │  │  ├─ receipt-list.html.before_remove_main_tax_choice_20260704_212106.bak
+│  │  │  ├─ receipt-list.html.before_remove_old_normalize_20260704_213118.bak
+│  │  │  ├─ receipt-list.html.before_remove_remaining_lines_colors_20260704_203218.bak
+│  │  │  ├─ receipt-list.html.before_remove_visual_css_20260704_203100.bak
+│  │  │  ├─ receipt-list.html.before_tax_button_fit_blue_area_20260704_210240.bak
+│  │  │  ├─ receipt-list.html.before_vendor_address_2lines_20260704_210826.bak
+│  │  │  ├─ receipt-list.html.before_vendor_address_2lines_20260704_210849.bak
+│  │  │  ├─ receipt-list.html.before_vendor_address_2lines_20260704_210937.bak
+│  │  │  ├─ receipt-list.html.before_vendor_name_2lines_20260704_210734.bak
+│  │  │  ├─ receipt-list.html.before_visible_area_color_redo_20260704_203547.bak
 │  │  │  └─ receipt-scan-inbox.html
 │  │  ├─ index.html
 │  │  ├─ index.html.bak_20260625_151513
@@ -465,6 +773,9 @@ hd-origin-project\
 │  ├─ _check_db_connection_fixed_for_gpt.js
 │  ├─ _check_env_db_user_for_gpt.js
 │  ├─ _check_migration_snapshot_for_gpt.js
+│  ├─ _check_purpose_master_for_gpt_result.txt
+│  ├─ _check_purpose_master_for_gpt.js
+│  ├─ _check_receipt_counts_for_gpt.js
 │  ├─ _check_receipt_db_structure_for_gpt.js
 │  ├─ _check_receipt_tables_fixed_for_gpt.js
 │  ├─ _check_tax_treatment_db.js
@@ -473,10 +784,13 @@ hd-origin-project\
 │  ├─ _debug_receipt_ai_drafts_columns.js
 │  ├─ _export_account_titles_utf8_for_gpt.js
 │  ├─ _normalize_account_title_sort_order_for_gpt.js
+│  ├─ _purpose_master_check_result.txt
+│  ├─ _purpose_master_check.js
 │  ├─ _register_existing_receipt_files_for_gpt.js
 │  ├─ _renumber_account_title_ids_for_gpt.js
 │  ├─ _renumber_account_titles_priority_for_gpt.js
 │  ├─ _seed_account_titles_from_stamps_for_gpt.js
+│  ├─ _show_latest_receipt_ai_result_for_gpt.js
 │  ├─ _test_create_split_backup_for_gpt.js
 │  ├─ apply_master_management_setup_tmp.js
 │  ├─ check_expenses_tables_tmp.js

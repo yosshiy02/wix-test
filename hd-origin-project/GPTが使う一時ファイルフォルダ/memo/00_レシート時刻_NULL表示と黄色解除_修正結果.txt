@@ -1,0 +1,25 @@
+﻿==============================
+レシート時刻 NULL表示と黄色解除 修正結果
+==============================
+日時: 2026-07-04 15:23:19
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- レシート時刻欄に NULL / null / undefined が表示された場合、画面上は空欄に戻すようにしました。
+- レシート時刻欄の placeholder は引き続き表示しません。
+- レシート時刻欄が空欄でも黄色表示にしないようにしました。
+- 内部保存値は空欄の場合 null のまま扱う方針です。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_receipt_time_null_display_fix.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_time_null_display_fix.ps1
+memo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_NULL表示と黄色解除_修正結果.txt
+
+[変更有無]
+変更あり
+
+[確認]
+1. レシート読取確認画面を Ctrl + F5 で再読み込みしてください。
+2. レシート時刻欄に NULL と表示されないことを確認してください。
+3. レシート時刻欄が空欄でも黄色くならないことを確認してください。

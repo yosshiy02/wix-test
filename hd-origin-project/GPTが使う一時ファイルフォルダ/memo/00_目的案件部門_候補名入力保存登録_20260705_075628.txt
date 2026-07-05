@@ -1,0 +1,58 @@
+﻿==============================
+目的・案件・部門 候補名入力・保存・新規登録 修正結果
+==============================
+日時: 2026-07-05 07:56:28
+
+対象:
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+実施:
+- 目的・案件・部門の一時入力ボタンを削除しました。
+- 候補名入力欄を追加・統一しました。
+- プルダウン選択時、候補名欄へ選択名を反映します。
+- 候補名欄は人間が編集できます。
+- 保存payloadへ purposeName / projectName / departmentName を追加します。
+- 新規登録ボタンは候補名欄の文字をマスタ登録します。
+- コピー文面も新しい候補名欄を見るようにしました。
+
+確認:
+purposeCandidateNameあり:
+True
+
+projectCandidateNameあり:
+True
+
+departmentCandidateNameあり:
+True
+
+registerReceiptMasterFromCandidateあり:
+True
+
+保存payload patchあり:
+True
+
+一時入力ボタンなし:
+True
+
+CSSあり:
+True
+
+作成:
+before HTML: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_master_candidate_name_20260705_075628.html
+before CSS : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_master_candidate_name_20260705_075628.css
+after HTML : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after CSS  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.css
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_master_candidate_name_20260705_075628.ps1
+
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_master_candidate_name_20260705_075628.ps1"
+
+次:
+ブラウザを Ctrl + F5 で更新してください。
+目的・案件・部門で
+1. プルダウン選択 → 候補名欄へ入る
+2. 候補名欄を手修正できる
+3. 新規登録で候補名欄の文字がマスタ登録される
+4. 候補保存でエラーが出ない
+を確認してください。

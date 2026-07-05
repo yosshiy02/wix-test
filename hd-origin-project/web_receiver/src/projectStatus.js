@@ -221,6 +221,17 @@ function writeProjectStatus() {
   lines.push("- 問題が出た場合は、undo の手順で before から本体へ戻す。");
   lines.push("- 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。");
   lines.push("- .env、秘密情報、DB、画像、実バックアップ、backup フォルダは、ユーザーが明示しない限り収集・削除・移動・変更しない。");
+  lines.push("- レイアウト編集は、応急処置的に表示後JSでDOMを動かして直さない。");
+  lines.push("- appendChild / insertBefore / unwrapElement などで、画面表示後に項目を移動して帳尻を合わせる修正を増やさない。");
+  lines.push("- レイアウトを直す場合は、まず renderForm などの初期HTML生成部分を確認し、最初から正しいDOM構造で出るように根本から編集する。");
+  lines.push("- CSSだけで無理に位置を合わせない。特に width: calc(...), マイナスmargin, overflow:hidden, position, transform, margin-left:auto, justify-self で逃げない。");
+  lines.push("- レイアウト編集では、先にコード上のツリーを出す。画面画像だけで親子関係を断定しない。");
+  lines.push("- グループ単位をユーザーと確定してから編集する。勝手にグループを増やさない、細分化しない。");
+  lines.push("- 「解体」と言われたグループは、そのラッパーをツリーから外し、中身を親グループ直下へ上げた前提で考える。解体済みグループを後の説明で復活させない。");
+  lines.push("- 境界線確認は、確定したグループだけに付ける。余計な親枠・仮グループ・思いつきの線を追加しない。");
+  lines.push("- 既存の後付けレイアウトJSや過去のRECEIPT_系CSSブロックがある場合は、追加修正の前に「残す」「削る」「初期HTMLへ戻す」を一覧化する。");
+  lines.push("- ユーザーが「ツリー出して」「解体して」と言った場合は、コードを書かず、まずツリーだけを書く。");
+  lines.push("- PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。");
   lines.push("");
   lines.push("[生成情報]");
   lines.push(`生成日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`);
@@ -270,6 +281,7 @@ function writeProjectStatus() {
 module.exports = {
   writeProjectStatus
 };
+
 
 
 

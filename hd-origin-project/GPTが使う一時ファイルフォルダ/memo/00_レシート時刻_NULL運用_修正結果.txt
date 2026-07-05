@@ -1,0 +1,39 @@
+﻿==============================
+レシート時刻 NULL運用 修正結果
+==============================
+日時: 2026-07-04 15:20:47
+
+[対象]
+HTML: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+AI  : G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- レシート時刻欄の placeholder 例：18:03 を削除しました。
+- レシート時刻欄は、値があれば HH:mm に整形します。
+- レシート時刻欄が空欄なら、保存時 payload.receiptTimeText は null にします。
+- AIには、レシートに時刻がある場合だけ receiptTimeText に入れるよう指示しました。
+- AIには、時刻が読めない場合・印字がない場合は null にするよう指示しました。
+- AIには、memo にレシート時刻を書かないよう指示しました。
+
+[作成]
+before html: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_receipt_time_null_rule.html
+before ai  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_receipt_time_null_rule.js
+after html : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after ai   : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_time_null_rule.ps1
+memo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_レシート時刻_NULL運用_修正結果.txt
+
+[変更有無]
+HTML変更: True
+AI変更  : True
+
+[構文チェック]
+receipts.ai.js: OK
+
+[確認]
+1. サーバーを再起動してください。
+2. レシート読取確認画面を Ctrl + F5 で再読み込みしてください。
+3. レシート時刻欄に 例：18:03 が表示されないことを確認してください。
+4. 時刻ありレシートをAI再解析し、レシート時刻欄に 18:03 のように入るか確認してください。
+5. 時刻なしレシートをAI再解析し、レシート時刻欄が空欄になるか確認してください。
+6. メモに レシート時刻 が混ざらないことを確認してください。

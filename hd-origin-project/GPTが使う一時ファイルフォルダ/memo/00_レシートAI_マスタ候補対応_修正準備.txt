@@ -1,0 +1,26 @@
+﻿==============================
+レシートAI マスタ候補対応 修正準備結果
+==============================
+日時: 2026-07-04 13:37:10
+
+[方針]
+AIへ、勘定科目最大30件・支払方法全件・インボイス区分全件・証憑区分全件を渡す。
+画像AIは使わず、OCR本文だけをOpenAIへ渡す方針は維持。
+AI下書き保存時に payment_method_id / invoice_type_id / evidence_type_id / evidence_memo も保存する。
+
+[作成]
+before AI  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_master_hints.js
+before Repo: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.repository_before_ai_master_hints_save.js
+after AI   : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+after Repo : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.repository.js
+apply      : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_ai_master_hints.ps1
+undo       : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_ai_master_hints.ps1
+
+[構文チェック receipts.ai.js]
+OK: node --check 成功
+
+[構文チェック receipts.repository.js]
+OK: node --check 成功
+
+[次に実行する反映コマンド]
+powershell -ExecutionPolicy Bypass -File "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_ai_master_hints.ps1"
