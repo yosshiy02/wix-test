@@ -1,0 +1,32 @@
+﻿==============================
+レシート台帳 証憑パス削除 準備結果
+==============================
+日時: 2026-07-05 21:14:43
+
+[修正対象]
+- web_receiver\public\receipts\receipt-saved-list.html
+
+[修正内容]
+- 証憑管理情報から証憑画像パスを削除
+- 保存場所として Dropbox証憑 を表示
+
+[残す項目]
+- 保存ID
+- 取込ID
+- 元ファイル名
+- 保存ファイル名
+- 保存場所
+- 取込ステータス
+
+[理由]
+- 証憑パスはPCやDropboxの場所で動的に変わるため、画面表示項目として不適切
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-saved-list_before_remove_evidence_path_20260705_211443.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-saved-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_saved_list_remove_evidence_path_20260705_211443.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_saved_list_remove_evidence_path_20260705_211443.ps1
+
+[確認]
+- after 作成 OK
+- 本体未反映

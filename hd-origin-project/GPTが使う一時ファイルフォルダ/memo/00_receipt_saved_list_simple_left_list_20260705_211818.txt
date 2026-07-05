@@ -1,0 +1,32 @@
+﻿==============================
+レシート台帳 左一覧 簡略化 準備結果
+==============================
+日時: 2026-07-05 21:18:18
+
+[修正対象]
+- web_receiver\public\receipts\receipt-saved-list.html
+
+[修正内容]
+- 左側レシート一覧を1行表示に変更
+- 表示形式: 取引日 + ID
+- 例: 2026-01-18　ID:3
+
+[左一覧から外した項目]
+- 支払先
+- 金額
+- 清算状態
+- 対象者
+
+[理由]
+- 左一覧は選択用なので情報量を減らす
+- 内容確認は右側の保存データ詳細で行う
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-saved-list_before_simple_left_list_20260705_211818.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-saved-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_saved_list_simple_left_list_20260705_211818.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_saved_list_simple_left_list_20260705_211818.ps1
+
+[確認]
+- after 作成 OK
+- 本体未反映

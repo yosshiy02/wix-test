@@ -87,9 +87,23 @@ const backupCloneDir = (() => {
 
 const pgBinPath = process.env.PG_BIN_PATH || "C:\\Program Files\\PostgreSQL\\17\\bin";
 
-const receiptRoot = path.isAbsolute(process.env.HD_ORIGIN_RECEIPT_ROOT || "")
-  ? process.env.HD_ORIGIN_RECEIPT_ROOT
-  : path.join(projectRoot, process.env.HD_ORIGIN_RECEIPT_ROOT || "ORIGIN会計ソフト\\レシート関係");
+const receiptRoot = (() => {
+  const explicitRoot = process.env.HD_ORIGIN_RECEIPT_ROOT || "";
+
+  if (explicitRoot) {
+    return path.isAbsolute(explicitRoot)
+      ? explicitRoot
+      : path.join(projectRoot, explicitRoot);
+  }
+
+  const hddbtestRoot = process.env.HDDBTEST_ROOT || "";
+
+  if (hddbtestRoot) {
+    return path.join(hddbtestRoot, "HDDB_PROJECT", "ORIGIN", "receipts");
+  }
+
+  return path.join(projectRoot, "ORIGIN会計ソフト\\レシート関係");
+})();
 
 module.exports = {
   PORT: Number(process.env.PORT || 3000),
@@ -110,3 +124,4 @@ module.exports = {
     password: String(process.env.DB_PASSWORD || ""),
   },
 };
+

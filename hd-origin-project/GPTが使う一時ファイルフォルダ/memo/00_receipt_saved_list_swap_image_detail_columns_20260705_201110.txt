@@ -1,0 +1,31 @@
+﻿==============================
+レシート台帳 画像列・保存データ列 入れ替え 準備結果
+==============================
+日時: 2026-07-05 20:11:10
+
+[修正対象]
+- web_receiver\public\receipts\receipt-saved-list.html
+
+[変更前]
+- 左: 本保存済み一覧
+- 中央: 証憑画像
+- 右: 保存データ
+
+[変更後]
+- 左: 本保存済み一覧
+- 中央: 保存データ
+- 右: 証憑画像
+
+[方針]
+- HTML上のsection順を入れ替え
+- JSで後からDOM移動しない
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-saved-list_before_swap_image_detail_columns_20260705_201110.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-saved-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_saved_list_swap_image_detail_columns_20260705_201110.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_saved_list_swap_image_detail_columns_20260705_201110.ps1
+
+[確認]
+- after 作成 OK
+- 本体未反映

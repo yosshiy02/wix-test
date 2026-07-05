@@ -1,0 +1,21 @@
+﻿==============================
+saved一覧へインボイス区分・証憑区分名追加 v3
+==============================
+
+対象:
+- web_receiver\src\receipts\receipts.repository.js
+
+追加:
+- it.type_name AS invoice_type_name
+- et.type_name AS evidence_type_name
+
+方式:
+- invoice_type_id を含む最初の行の直後へ追加
+- evidence_type_id を含む最初の行の直後へ追加
+- d. 決め打ちはしない
+
+作成物:
+- before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.repository_before_invoice_evidence_list_fields_v3.js
+- after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.repository.js
+- apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipts_repository_invoice_evidence_list_fields_v3.ps1
+- undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_repository_invoice_evidence_list_fields_v3.ps1

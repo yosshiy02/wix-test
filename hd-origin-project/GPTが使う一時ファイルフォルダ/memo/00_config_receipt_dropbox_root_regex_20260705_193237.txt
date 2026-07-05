@@ -1,0 +1,26 @@
+﻿==============================
+config.js レシート画像保存先 Dropbox寄せ 修正準備結果
+==============================
+日時: 2026-07-05 19:32:38
+
+[目的]
+- 新規レシート取込分の画像保存先をDropbox側 ORIGIN\receipts に寄せる
+- 既存画像・既存DBデータは移動しない
+- .env は触らない
+
+[修正対象]
+- web_receiver\src\config.js
+
+[修正内容]
+- HD_ORIGIN_RECEIPT_ROOT があれば最優先
+- なければ HDDBTEST_ROOT\HDDB_PROJECT\ORIGIN\receipts を receiptRoot にする
+- HDDBTEST_ROOT もなければ従来の PROJECT配下 ORIGIN会計ソフト\レシート関係 に戻す
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\config_before_receipt_dropbox_root_regex_20260705_193237.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\config.js
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_config_receipt_dropbox_root_regex_20260705_193237.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_config_receipt_dropbox_root_regex_20260705_193237.ps1
+
+[確認]
+node --check after config.js: OK

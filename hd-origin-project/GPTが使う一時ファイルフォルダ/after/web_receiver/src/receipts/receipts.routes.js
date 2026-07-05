@@ -1492,6 +1492,64 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
   /* RECEIPT_POST_SAVE_ROUTES_20260705_END */
 
 
+
+  /* RECEIPT_SAVED_LEDGER_ROUTES_20260705_START */
+  if (req.method === "GET" && pathname === "/api/receipts/saved") {
+    try {
+      const items = await repo.listSavedReceipts(
+        getSearchParam(req, "limit"),
+        getSearchParam(req, "offset")
+      );
+
+      sendJson(res, 200, {
+        ok: true,
+        count: items.length,
+        items
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "本保存済みレシート一覧の取得に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+
+  const savedReceiptMatch = pathname.match(/^\/api\/receipts\/saved\/(\d+)$/);
+
+  if (req.method === "GET" && savedReceiptMatch) {
+    try {
+      const item = await repo.getSavedReceiptById(Number(savedReceiptMatch[1]));
+
+      if (!item) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "本保存済みレシートが見つかりません。"
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        item
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "本保存済みレシート詳細の取得に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+  /* RECEIPT_SAVED_LEDGER_ROUTES_20260705_END */
+
   const imageMatch = pathname.match(/^\/api\/receipts\/image\/(\d+)$/);
 
   if (req.method === "GET" && imageMatch) {
@@ -1526,6 +1584,7 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
 module.exports = {
   handleReceiptRoutes,
 };
+
 
 
 

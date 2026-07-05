@@ -1,0 +1,31 @@
+﻿==============================
+レシート台帳 明細ブロックを表だけに整理 準備結果
+==============================
+日時: 2026-07-05 20:47:16
+
+[修正対象]
+- web_receiver\public\receipts\receipt-saved-list.html
+
+[方針]
+- 明細ブロックでは明細内訳表だけを表示
+- 基本情報と重複する detail.xxx 表示を個別削除
+- 基本情報側 first.xxx は触らない
+
+[明細に残す項目]
+- 品名
+- 数量
+- 単価
+- 金額
+- 税区分
+- 税処理
+- メモ
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-saved-list_before_detail_table_only_lines_20260705_204716.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-saved-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_saved_list_detail_table_only_lines_20260705_204716.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_saved_list_detail_table_only_lines_20260705_204716.ps1
+
+[確認]
+- after 作成 OK
+- 本体未反映

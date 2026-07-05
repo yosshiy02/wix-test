@@ -3083,5 +3083,187 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
 module.exports.postReceiptDraftByImportId = postReceiptDraftByImportId;
 /* RECEIPT_POST_SAVE_REPOSITORY_20260705_END */
 
+/* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_START */
+function __savedLedgerLimit(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return 100;
+  return Math.min(Math.floor(n), 500);
+}
+
+function __savedLedgerOffset(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+}
+
+async function listSavedReceipts(limit = 100, offset = 0) {
+  const safeLimit = __savedLedgerLimit(limit);
+  const safeOffset = __savedLedgerOffset(offset);
+
+  const result = await pool.query(
+    `
+    SELECT
+      r.receipt_id,
+      r.receipt_import_id,
+      r.receipt_name,
+      r.receipt_image_path,
+      r.saved_status,
+      r.saved_at,
+      r.created_at,
+      r.updated_at,
+
+      d.receipt_detail_id,
+      d.transaction_date,
+      d.receipt_time_text,
+      d.vendor_name,
+      d.total_amount,
+      d.tax_total_amount,
+      d.summary,
+      d.memo,
+      COALESCE(d.is_settled, false) AS is_settled,
+
+      pm.method_name AS payment_method_name,
+      d.target_person_id,
+      tp.target_person_name,
+      at.account_name AS account_title_name,
+      p.purpose_name,
+      pr.project_name,
+      dep.department_name,
+      it.invoice_type_name,
+      et.evidence_type_name,
+
+      ri.local_image_file_name,
+      ri.local_image_path,
+      ri.original_file_name,
+      ri.imported_at_jst,
+      ri.status AS import_status
+
+    FROM accounting.receipts r
+    LEFT JOIN LATERAL (
+      SELECT *
+      FROM accounting.receipt_details d
+      WHERE d.receipt_id = r.receipt_id
+      ORDER BY d.receipt_detail_id
+      LIMIT 1
+    ) d ON TRUE
+    LEFT JOIN accounting.receipt_imports ri ON ri.id = r.receipt_import_id
+    LEFT JOIN expenses.payment_methods pm ON pm.payment_method_id = d.payment_method_id
+    LEFT JOIN expenses.target_people tp ON tp.target_person_id = d.target_person_id
+    LEFT JOIN expenses.account_titles at ON at.account_title_id = d.account_title_id
+    LEFT JOIN expenses.purposes p ON p.purpose_id = d.purpose_id
+    LEFT JOIN expenses.projects pr ON pr.project_id = d.project_id
+    LEFT JOIN expenses.departments dep ON dep.department_id = d.department_id
+    LEFT JOIN expenses.invoice_types it ON it.invoice_type_id = d.invoice_type_id
+    LEFT JOIN expenses.evidence_types et ON et.evidence_type_id = d.evidence_type_id
+    ORDER BY r.saved_at DESC NULLS LAST, r.receipt_id DESC
+    LIMIT $1
+    OFFSET $2
+    `,
+    [safeLimit, safeOffset]
+  );
+
+  return result.rows;
+}
+
+async function getSavedReceiptById(receiptId) {
+  const id = Number(receiptId);
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return null;
+  }
+
+  const receiptResult = await pool.query(
+    `
+    SELECT
+      r.*,
+      ri.local_image_file_name,
+      ri.local_image_path,
+      ri.original_file_name,
+      ri.imported_at_jst,
+      ri.ocr_provider,
+      ri.ocr_line_count,
+      ri.ocr_word_count,
+      ri.status AS import_status
+    FROM accounting.receipts r
+    LEFT JOIN accounting.receipt_imports ri ON ri.id = r.receipt_import_id
+    WHERE r.receipt_id = $1
+    LIMIT 1
+    `,
+    [id]
+  );
+
+  const receipt = receiptResult.rows[0] || null;
+  if (!receipt) return null;
+
+  const detailsResult = await pool.query(
+    `
+    SELECT
+      d.*,
+      COALESCE(d.is_settled, false) AS is_settled,
+      pm.method_name AS payment_method_name,
+      d.target_person_id,
+      tp.target_person_name,
+      at.account_name AS account_title_name,
+      p.purpose_name,
+      pr.project_name,
+      dep.department_name,
+      it.invoice_type_name,
+      et.evidence_type_name
+    FROM accounting.receipt_details d
+    LEFT JOIN expenses.payment_methods pm ON pm.payment_method_id = d.payment_method_id
+    LEFT JOIN expenses.target_people tp ON tp.target_person_id = d.target_person_id
+    LEFT JOIN expenses.account_titles at ON at.account_title_id = d.account_title_id
+    LEFT JOIN expenses.purposes p ON p.purpose_id = d.purpose_id
+    LEFT JOIN expenses.projects pr ON pr.project_id = d.project_id
+    LEFT JOIN expenses.departments dep ON dep.department_id = d.department_id
+    LEFT JOIN expenses.invoice_types it ON it.invoice_type_id = d.invoice_type_id
+    LEFT JOIN expenses.evidence_types et ON et.evidence_type_id = d.evidence_type_id
+    WHERE d.receipt_id = $1
+    ORDER BY d.receipt_detail_id
+    `,
+    [id]
+  );
+
+  const breakdownsResult = await pool.query(
+    `
+    SELECT
+      b.*,
+      tc.tax_name AS tax_category_name,
+      tt.treatment_name AS tax_treatment_name
+    FROM accounting.receipt_detail_breakdowns b
+    LEFT JOIN expenses.tax_categories tc ON tc.tax_category_id = b.tax_category_id
+    LEFT JOIN expenses.tax_treatments tt ON tt.tax_treatment_id = b.tax_treatment_id
+    WHERE b.receipt_id = $1
+    ORDER BY b.receipt_detail_id, b.receipt_detail_breakdown_id
+    `,
+    [id]
+  );
+
+  const breakdownsByDetailId = new Map();
+
+  for (const row of breakdownsResult.rows || []) {
+    const key = Number(row.receipt_detail_id);
+    if (!breakdownsByDetailId.has(key)) {
+      breakdownsByDetailId.set(key, []);
+    }
+    breakdownsByDetailId.get(key).push(row);
+  }
+
+  const details = (detailsResult.rows || []).map((detail) => ({
+    ...detail,
+    breakdowns: breakdownsByDetailId.get(Number(detail.receipt_detail_id)) || []
+  }));
+
+  return {
+    ...receipt,
+    details
+  };
+}
+
+module.exports.listSavedReceipts = listSavedReceipts;
+module.exports.getSavedReceiptById = getSavedReceiptById;
+/* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_END */
+
+
 
 

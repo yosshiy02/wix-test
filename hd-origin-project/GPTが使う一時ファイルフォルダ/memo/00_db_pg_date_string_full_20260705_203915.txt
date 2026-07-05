@@ -1,0 +1,31 @@
+﻿==============================
+db.js PostgreSQL DATE文字列化 修正準備結果
+==============================
+日時: 2026-07-05 20:39:15
+
+[目的]
+- 取引日が1日前になる問題を根本修正する
+- PostgreSQL DATE 型を JS Date に変換せず YYYY-MM-DD 文字列のまま扱う
+
+[修正対象]
+- web_receiver\src\db.js
+
+[修正内容]
+- db.js を短い現物構成に合わせて作り直し
+- pg の types を読み込む
+- types.setTypeParser(1082, value => value) を追加
+- DATE 型 OID 1082 を文字列として返す
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\db_before_pg_date_string_full_20260705_203915.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\db.js
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_db_pg_date_string_full_20260705_203915.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_db_pg_date_string_full_20260705_203915.ps1
+
+[確認]
+node --check after db.js: OK
+
+[注意]
+- DBデータ自体は変更しない
+- 画面側で日付をごまかす修正ではない
+- サーバー再起動後に有効

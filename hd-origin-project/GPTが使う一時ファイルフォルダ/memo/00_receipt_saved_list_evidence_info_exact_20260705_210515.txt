@@ -1,0 +1,34 @@
+﻿==============================
+レシート台帳 証憑管理情報 折りたたみ追加 準備結果
+==============================
+日時: 2026-07-05 21:05:15
+
+[修正対象]
+- web_receiver\public\receipts\receipt-saved-list.html
+
+[実物確認]
+- 現在のHTMLは detailTables を作成し、detailArea.innerHTML = basic + detailTables; で表示している
+
+[修正内容]
+- detailArea.innerHTML = basic + detailTables + evidenceInfoBlock(item); に変更
+- evidenceInfoBlock(item) を追加
+- 証憑管理情報は折りたたみ表示
+
+[追加項目]
+- 保存ID
+- 取込ID
+- 元ファイル名
+- 保存ファイル名
+- 証憑画像パス
+- 取込日時
+- 取込ステータス
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-saved-list_before_evidence_info_exact_20260705_210515.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-saved-list.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_saved_list_evidence_info_exact_20260705_210515.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_saved_list_evidence_info_exact_20260705_210515.ps1
+
+[確認]
+- after 作成 OK
+- 本体未反映

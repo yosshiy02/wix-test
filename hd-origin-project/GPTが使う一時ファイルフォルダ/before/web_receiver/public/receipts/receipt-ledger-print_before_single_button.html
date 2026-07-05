@@ -1,0 +1,760 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>レシート台帳 帳票形式</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      font-size: 14px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #222;
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button, select, input {
+      font: inherit;
+    }
+
+    .header-actions button {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .wrap {
+      padding: 16px;
+    }
+
+    .filters {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      font-size: 14px;
+    }
+
+    .action-row {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sort-field {
+      min-width: 240px;
+    }
+
+    .action-row button {
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .summary {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .table-wrap {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 2200px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 9px;
+      vertical-align: top;
+      text-align: left;
+      background: #fff;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #fafafa;
+      white-space: nowrap;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status-badge.is-settled {
+      color: #137333;
+      background: #e6f4ea;
+      border-color: #b7dfc4;
+    }
+
+    .status-badge.is-unsettled {
+      color: #b3261e;
+      background: #fdecea;
+      border-color: #f3c0bc;
+    }
+
+    .detail-toggle {
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      background: #fff;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .detail-row td {
+      background: #fcfcfc;
+    }
+
+    .detail-box {
+      padding: 8px 0;
+    }
+
+    .detail-table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .detail-table th,
+    .detail-table td {
+      border: 1px solid #ddd;
+      padding: 6px 7px;
+      vertical-align: top;
+    }
+
+    .detail-table th {
+      background: #f5f5f5;
+      white-space: nowrap;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 14px;
+    }
+
+    .cell-pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-width: 180px;
+    }
+
+    .cell-wide {
+      min-width: 140px;
+    }
+
+    @media print {
+      header,
+      .filters,
+      .action-row,
+      .summary {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .wrap {
+        padding: 0;
+      }
+
+      .table-wrap {
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+      }
+
+      table {
+        min-width: 0;
+        font-size: 11px;
+      }
+
+      thead th {
+        position: static;
+      }
+
+      .detail-toggle {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span>レシート台帳</span>
+      <span>帳票形式</span>
+    </div>
+    <div class="header-actions">
+      <button type="button" onclick="location.href='/receipts/receipt-saved-list.html'">台帳へ戻る</button>
+      <button type="button" onclick="loadLedger()">再読込</button>
+      <button type="button" onclick="window.print()">印刷</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="filters">
+      <div class="field">
+        <label for="filterDateFrom">開始日</label>
+        <input id="filterDateFrom" type="date" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterDateTo">終了日</label>
+        <input id="filterDateTo" type="date" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterFree">フリー</label>
+        <input id="filterFree" type="text" placeholder="ID・日付・対象者・支払先・摘要・メモ" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterSettled">清算状態</label>
+        <select id="filterSettled" onchange="renderLedger()">
+          <option value="">すべて</option>
+          <option value="unsettled">未精算</option>
+          <option value="settled">清算済み</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filterTargetPerson">対象者</label>
+        <select id="filterTargetPerson" onchange="renderLedger()">
+          <option value="">すべて</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="filterVendor">支払先</label>
+        <input id="filterVendor" type="text" placeholder="支払先" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterPaymentMethod">支払方法</label>
+        <input id="filterPaymentMethod" type="text" placeholder="支払方法" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterAccountTitle">勘定科目</label>
+        <input id="filterAccountTitle" type="text" placeholder="勘定科目" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterProject">案件</label>
+        <input id="filterProject" type="text" placeholder="案件" oninput="renderLedger()">
+      </div>
+      <div class="field">
+        <label for="filterDepartment">部門</label>
+        <input id="filterDepartment" type="text" placeholder="部門" oninput="renderLedger()">
+      </div>
+    </div>
+
+    <div class="action-row">
+      <div class="field sort-field">
+        <label for="sortOrder">並び順</label>
+        <select id="sortOrder" onchange="renderLedger()">
+          <option value="date_desc">取引日 降順</option>
+          <option value="date_asc">取引日 昇順</option>
+          <option value="id_desc">保存ID 降順</option>
+          <option value="id_asc">保存ID 昇順</option>
+          <option value="target_person_asc">対象者順</option>
+          <option value="vendor_asc">支払先順</option>
+          <option value="total_desc">合計金額 降順</option>
+          <option value="total_asc">合計金額 昇順</option>
+        </select>
+      </div>
+
+      <button type="button" onclick="clearFilters()">条件クリア</button>
+      <button type="button" onclick="setThisMonth()">今月</button>
+      <button type="button" onclick="setPrevMonth()">前月</button>
+      <button type="button" onclick="setUnsettledOnly()">未精算のみ</button>
+      <button type="button" onclick="setSettledOnly()">清算済みのみ</button>
+      <button type="button" onclick="loadLedger()">再読込</button>
+      <button type="button" onclick="window.print()">印刷</button>
+    </div>
+
+    <div id="summary" class="summary">読込中...</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>保存ID</th>
+            <th>取引日</th>
+            <th>清算状態</th>
+            <th>対象者</th>
+            <th>合計金額</th>
+            <th>消費税</th>
+            <th>明細</th>
+            <th>支払先</th>
+            <th>支払方法</th>
+            <th>勘定科目</th>
+            <th>目的</th>
+            <th>案件</th>
+            <th>部門</th>
+            <th>インボイス区分</th>
+            <th>証憑区分</th>
+            <th>摘要</th>
+            <th>メモ</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody">
+          <tr><td colspan="17" class="muted">読込中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentItems = [];
+    let savedTargetPeople = [];
+    let detailCache = {};
+    let openDetailIds = new Set();
+
+    function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function yen(value) {
+      if (value === null || value === undefined || value === "") return "";
+      const n = Number(value);
+      if (!Number.isFinite(n)) return esc(value);
+      return n.toLocaleString("ja-JP") + " 円";
+    }
+
+    function dateText(value) {
+      if (!value) return "";
+      return String(value).slice(0, 10);
+    }
+
+    function getValue(id) {
+      const el = document.getElementById(id);
+      return el ? String(el.value || "").trim() : "";
+    }
+
+    function setValue(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value;
+    }
+
+    function todayDateText() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + d;
+    }
+
+    function monthFirstDay(year, monthZeroBased) {
+      const d = new Date(year, monthZeroBased, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + day;
+    }
+
+    function monthLastDay(year, monthZeroBased) {
+      const d = new Date(year, monthZeroBased + 1, 0);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + day;
+    }
+
+    function clearFilters() {
+      [
+        "filterDateFrom",
+        "filterDateTo",
+        "filterFree",
+        "filterSettled",
+        "filterTargetPerson",
+        "filterVendor",
+        "filterPaymentMethod",
+        "filterAccountTitle",
+        "filterProject",
+        "filterDepartment"
+      ].forEach((id) => setValue(id, ""));
+      setValue("sortOrder", "date_desc");
+      renderLedger();
+    }
+
+    function setThisMonth() {
+      const now = new Date();
+      setValue("filterDateFrom", monthFirstDay(now.getFullYear(), now.getMonth()));
+      setValue("filterDateTo", monthLastDay(now.getFullYear(), now.getMonth()));
+      renderLedger();
+    }
+
+    function setPrevMonth() {
+      const now = new Date();
+      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      setValue("filterDateFrom", monthFirstDay(prev.getFullYear(), prev.getMonth()));
+      setValue("filterDateTo", monthLastDay(prev.getFullYear(), prev.getMonth()));
+      renderLedger();
+    }
+
+    function setUnsettledOnly() {
+      setValue("filterSettled", "unsettled");
+      renderLedger();
+    }
+
+    function setSettledOnly() {
+      setValue("filterSettled", "settled");
+      renderLedger();
+    }
+
+    async function loadSavedTargetPeople(force = false) {
+      if (savedTargetPeople.length && !force) return savedTargetPeople;
+
+      const res = await fetch("/api/receipts/master-options");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error("対象者マスター取得に失敗しました。");
+      }
+
+      savedTargetPeople = Array.isArray(data.targetPeople) ? data.targetPeople : [];
+      renderTargetPeople();
+      return savedTargetPeople;
+    }
+
+    function renderTargetPeople() {
+      const el = document.getElementById("filterTargetPerson");
+      if (!el) return;
+
+      const current = String(el.value || "");
+      el.innerHTML =
+        '<option value="">すべて</option>' +
+        savedTargetPeople.map((item) => {
+          const id = String(item.target_person_id || "");
+          const name = String(item.target_person_name || "");
+          const selected = id === current ? " selected" : "";
+          return '<option value="' + esc(id) + '"' + selected + '>' + esc(name) + '</option>';
+        }).join("");
+    }
+
+    function compareText(a, b) {
+      return String(a || "").localeCompare(String(b || ""), "ja");
+    }
+
+    function compareNumber(a, b) {
+      return Number(a || 0) - Number(b || 0);
+    }
+
+    function getFilteredItems() {
+      const from = getValue("filterDateFrom");
+      const to = getValue("filterDateTo");
+      const free = getValue("filterFree").toLowerCase();
+      const settled = getValue("filterSettled");
+      const targetPersonId = getValue("filterTargetPerson");
+      const vendor = getValue("filterVendor").toLowerCase();
+      const paymentMethod = getValue("filterPaymentMethod").toLowerCase();
+      const accountTitle = getValue("filterAccountTitle").toLowerCase();
+      const project = getValue("filterProject").toLowerCase();
+      const department = getValue("filterDepartment").toLowerCase();
+      const sortOrder = getValue("sortOrder") || "date_desc";
+
+      let items = currentItems.filter((item) => {
+        const date = dateText(item.transaction_date);
+        const itemTargetPersonId = String(item.target_person_id || item.targetPersonId || "");
+        const vendorName = String(item.vendor_name || "");
+        const paymentMethodName = String(item.payment_method_name || "");
+        const accountTitleName = String(item.account_title_name || "");
+        const projectName = String(item.project_name || "");
+        const departmentName = String(item.department_name || "");
+
+        const text = [
+          item.receipt_id,
+          item.transaction_date || "",
+          item.target_person_name || "",
+          vendorName,
+          paymentMethodName,
+          accountTitleName,
+          item.purpose_name || "",
+          projectName,
+          departmentName,
+          item.summary || "",
+          item.memo || "",
+          item.is_settled ? "清算済み" : "未精算"
+        ].join(" ").toLowerCase();
+
+        if (from && date < from) return false;
+        if (to && date > to) return false;
+        if (settled === "settled" && !item.is_settled) return false;
+        if (settled === "unsettled" && item.is_settled) return false;
+        if (targetPersonId && itemTargetPersonId !== targetPersonId) return false;
+        if (vendor && !vendorName.toLowerCase().includes(vendor)) return false;
+        if (paymentMethod && !paymentMethodName.toLowerCase().includes(paymentMethod)) return false;
+        if (accountTitle && !accountTitleName.toLowerCase().includes(accountTitle)) return false;
+        if (project && !projectName.toLowerCase().includes(project)) return false;
+        if (department && !departmentName.toLowerCase().includes(department)) return false;
+        if (free && !text.includes(free)) return false;
+        return true;
+      });
+
+      items.sort((a, b) => {
+        const ad = dateText(a.transaction_date);
+        const bd = dateText(b.transaction_date);
+
+        switch (sortOrder) {
+          case "date_asc":
+            return ad.localeCompare(bd) || compareNumber(a.receipt_id, b.receipt_id);
+          case "id_desc":
+            return compareNumber(b.receipt_id, a.receipt_id);
+          case "id_asc":
+            return compareNumber(a.receipt_id, b.receipt_id);
+          case "target_person_asc":
+            return compareText(a.target_person_name, b.target_person_name) || bd.localeCompare(ad) || compareNumber(b.receipt_id, a.receipt_id);
+          case "vendor_asc":
+            return compareText(a.vendor_name, b.vendor_name) || bd.localeCompare(ad) || compareNumber(b.receipt_id, a.receipt_id);
+          case "total_desc":
+            return compareNumber(b.total_amount, a.total_amount) || bd.localeCompare(ad) || compareNumber(b.receipt_id, a.receipt_id);
+          case "total_asc":
+            return compareNumber(a.total_amount, b.total_amount) || bd.localeCompare(ad) || compareNumber(b.receipt_id, a.receipt_id);
+          case "date_desc":
+          default:
+            return bd.localeCompare(ad) || compareNumber(b.receipt_id, a.receipt_id);
+        }
+      });
+
+      return items;
+    }
+
+    function settledBadge(value) {
+      const cls = value ? "is-settled" : "is-unsettled";
+      const text = value ? "清算済み" : "未精算";
+      return '<span class="status-badge ' + cls + '">' + text + '</span>';
+    }
+
+    async function loadLedger() {
+      const summary = document.getElementById("summary");
+      const body = document.getElementById("ledgerBody");
+
+      summary.textContent = "読込中...";
+      body.innerHTML = '<tr><td colspan="17" class="muted">読込中...</td></tr>';
+
+      try {
+        await loadSavedTargetPeople();
+      } catch (error) {
+        summary.textContent = "対象者マスター読込失敗";
+        body.innerHTML = '<tr><td colspan="17" class="muted">' + esc(error && error.message ? error.message : error) + '</td></tr>';
+        return;
+      }
+
+      const res = await fetch("/api/receipts/saved?limit=200");
+      const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+      if (!res.ok || !data.ok) {
+        summary.textContent = "読込失敗";
+        body.innerHTML = '<tr><td colspan="17" class="muted">' + esc(data.error || "") + '</td></tr>';
+        return;
+      }
+
+      currentItems = Array.isArray(data.items) ? data.items : [];
+      renderLedger();
+    }
+
+    async function ensureDetail(receiptId) {
+      const key = String(receiptId);
+      if (detailCache[key]) return detailCache[key];
+
+      const res = await fetch("/api/receipts/saved/" + encodeURIComponent(receiptId));
+      const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+      if (!res.ok || !data.ok || !data.item) {
+        throw new Error(data.error || "詳細読込失敗");
+      }
+
+      detailCache[key] = data.item;
+      return detailCache[key];
+    }
+
+    async function toggleDetail(receiptId) {
+      const key = String(receiptId);
+
+      if (openDetailIds.has(key)) {
+        openDetailIds.delete(key);
+        renderLedger();
+        return;
+      }
+
+      try {
+        await ensureDetail(receiptId);
+        openDetailIds.add(key);
+        renderLedger();
+      } catch (error) {
+        alert("詳細読込失敗: " + (error && error.message ? error.message : error));
+      }
+    }
+
+    function renderDetailRow(receiptId) {
+      const key = String(receiptId);
+      const full = detailCache[key];
+
+      if (!full) {
+        return '<tr class="detail-row"><td colspan="17" class="muted">詳細がありません。</td></tr>';
+      }
+
+      const details = Array.isArray(full.details) ? full.details : [];
+      const rows = details.flatMap((detail) => Array.isArray(detail.breakdowns) ? detail.breakdowns : []);
+
+      const tableHtml = rows.length
+        ? [
+            '<table class="detail-table">',
+            '<thead><tr><th>品名</th><th>数量</th><th>単価</th><th>金額</th><th>税区分</th><th>税処理</th><th>メモ</th></tr></thead>',
+            '<tbody>',
+            rows.map((row) => [
+              '<tr>',
+              '<td>' + esc(row.item_name || "") + '</td>',
+              '<td>' + esc(row.quantity || "") + '</td>',
+              '<td>' + esc(yen(row.unit_price)) + '</td>',
+              '<td>' + esc(yen(row.amount)) + '</td>',
+              '<td>' + esc(row.tax_category_name || "") + '</td>',
+              '<td>' + esc(row.tax_treatment_name || "") + '</td>',
+              '<td>' + esc(row.note || "") + '</td>',
+              '</tr>'
+            ].join("")).join(""),
+            '</tbody>',
+            '</table>'
+          ].join("")
+        : '<div class="muted">明細はありません。</div>';
+
+      return '<tr class="detail-row"><td colspan="17"><div class="detail-box">' + tableHtml + '</div></td></tr>';
+    }
+
+    function renderLedger() {
+      const summary = document.getElementById("summary");
+      const body = document.getElementById("ledgerBody");
+      const items = getFilteredItems();
+
+      summary.textContent = items.length + " 件";
+
+      if (!items.length) {
+        body.innerHTML = '<tr><td colspan="17" class="muted">条件に合うレシートはありません。</td></tr>';
+        return;
+      }
+
+      const html = [];
+
+      for (const item of items) {
+        const key = String(item.receipt_id);
+        const open = openDetailIds.has(key);
+
+        html.push([
+          '<tr>',
+          '<td>' + esc(item.receipt_id) + '</td>',
+          '<td>' + esc(dateText(item.transaction_date)) + '</td>',
+          '<td>' + settledBadge(item.is_settled) + '</td>',
+          '<td class="cell-wide">' + esc(item.target_person_name || "") + '</td>',
+          '<td>' + esc(yen(item.total_amount)) + '</td>',
+          '<td>' + esc(yen(item.tax_total_amount)) + '</td>',
+          '<td><button type="button" class="detail-toggle" onclick="toggleDetail(' + esc(item.receipt_id) + ')">' + (open ? '明細閉じる' : '明細表示') + '</button></td>',
+          '<td class="cell-wide">' + esc(item.vendor_name || "") + '</td>',
+          '<td>' + esc(item.payment_method_name || "") + '</td>',
+          '<td>' + esc(item.account_title_name || "") + '</td>',
+          '<td>' + esc(item.purpose_name || "") + '</td>',
+          '<td>' + esc(item.project_name || "") + '</td>',
+          '<td>' + esc(item.department_name || "") + '</td>',
+          '<td>' + esc(item.invoice_type_name || "") + '</td>',
+          '<td>' + esc(item.evidence_type_name || "") + '</td>',
+          '<td class="cell-pre">' + esc(item.summary || "") + '</td>',
+          '<td class="cell-pre">' + esc(item.memo || "") + '</td>',
+          '</tr>'
+        ].join(""));
+
+        if (open) {
+          html.push(renderDetailRow(item.receipt_id));
+        }
+      }
+
+      body.innerHTML = html.join("");
+    }
+
+    loadLedger();
+  </script>
+</body>
+</html>
+
+
