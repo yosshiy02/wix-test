@@ -1,0 +1,34 @@
+﻿==============================
+レシート旧PATCH 新6下書き更新向け替え 準備結果
+==============================
+日時: 2026-07-05 16:13:43
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.routes.js
+
+[修正内容]
+PATCH /api/receipts/ai-drafts/:id の保存先を変更
+変更前: repo.updateAiDraft(...)
+変更後: repo.updateReceiptDraftDetail(...)
+
+[理由]
+画面側 currentDraft.id は新6テーブルの draft_receipt_detail_id として返されているため。
+旧 accounting.receipt_ai_drafts 更新へ流すと、下書き3テーブルとズレるため。
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.routes_before_ai_drafts_patch_to_new6_20260705_161340.js
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.routes.js
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_ai_drafts_patch_to_new6_20260705_161340.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_ai_drafts_patch_to_new6_20260705_161340.ps1
+
+[確認]
+置換件数: 1
+repository updateReceiptDraftDetail あり: True
+旧呼び出し残存: False
+新呼び出しあり: True
+node --check OK: True
+
+[次にやること]
+このメモで OK なら、apply を実行して本体へ反映する。
+反映後、レシート画面で1件保存し、下書き3テーブル側が更新されるか確認する。
+その後、本保存APIを作る。

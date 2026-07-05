@@ -1,0 +1,39 @@
+﻿レシートDB 6テーブル方針メモ
+================================
+
+目的:
+- 既存DBをすぐ壊さない。
+- まず設計案だけ作る。
+- DB反映はまだ行わない。
+- 下書き用3テーブル、本保存用3テーブルに分ける。
+
+既存DB:
+- accounting.receipt_imports
+  現在の画像取込・OCR取込台帳。
+- accounting.receipt_ai_drafts
+  現在のAI下書き・画面保存先。
+- accounting.receipt_tax_breakdowns
+  現在のAI下書きに紐づく税内訳。
+
+新方針:
+下書き側:
+- accounting.receipt_drafts
+- accounting.receipt_draft_details
+- accounting.receipt_draft_detail_breakdowns
+
+本保存側:
+- accounting.receipts
+- accounting.receipt_details
+- accounting.receipt_detail_breakdowns
+
+考え方:
+- 下書きは作業中・修正可能。
+- 本保存は正式保存。原則、通常上書きしない。
+- 下書きから本保存へコピーする流れにする。
+- 本保存後の修正は、後で「取消」「訂正」「再保存」など別扱いを検討する。
+
+重要:
+- 今回は設計案だけ。
+- db.bootstrap.js へはまだ反映しない。
+- PostgreSQLへもまだ実行しない。
+- 既存 receipt_imports / receipt_ai_drafts / receipt_tax_breakdowns は当面残す。

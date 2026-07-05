@@ -1,0 +1,31 @@
+﻿==============================
+レシート新6 信頼度保存表示追加結果
+==============================
+日時: 2026-07-05 16:00:07
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+DB: hd_origin_project
+
+[DB列追加]
+ALTER TABLE
+ALTER TABLE
+ table_schema |      table_name       |  column_name  | data_type 
+--------------+-----------------------+---------------+-----------
+ accounting   | receipt_details       | ai_confidence | numeric
+ accounting   | receipt_draft_details | ai_confidence | numeric
+(2 行)
+
+DB ExitCode: 0
+
+[repository]
+- 信頼度保存・表示用ブロックを追加しました。
+- createReceiptDraftFromAi を信頼度対応版へ再上書きしました。
+- getReceiptDraftByImportId を信頼度返却版へ再上書きしました。
+
+node --check ExitCode: 0
+
+判定: OK
+信頼度保存・表示対応は構文チェックOKです。
+
+次:
+サーバー再起動後、新しく1件AI解析してください。
+既存3件は ai_confidence がnullなので、信頼度はまだ出ません。

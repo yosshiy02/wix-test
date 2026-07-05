@@ -1,0 +1,44 @@
+﻿==============================
+receipt_6tables migration history fix v2
+==============================
+日時: 2026-07-05 16:36:43
+
+[target]
+version : 20260705_001_receipt_6tables
+file    : G:\GITHUB\wix-test\hd-origin-project\database\migrations\20260705_001_receipt_6tables.sql
+temp sql: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\00_migration_receipt_6tables_fix_v2.sql
+
+[checksum]
+2acac54fa34936cf5b6c40f1d56a30cbec5a28e7f91160d4517ded9236218c56
+
+[result]
+psql exit code: 0
+
+[psql output]
+BEGIN
+psql.exe : psql:G:/GITHUB/wix-test/hd-origin-project/GPTが使う一時ファイルフォルダ/memo/00_migration_receipt_6tables_fix_v2.sql:3: NOTICE:  schema
+ "system" already exists, skipping
+発生場所 行:127 文字:11
++ $Result = & $Psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -v ON_E ...
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (psql:G:/GITHUB/...xists, skipping:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+CREATE SCHEMA
+psql:G:/GITHUB/wix-test/hd-origin-project/GPTが使う一時ファイルフォルダ/memo/00_migration_receipt_6tables_fix_v2.sql:13: NOTICE:  relation "schema
+_migrations" already exists, skipping
+CREATE TABLE
+DO
+INSERT 0 1
+COMMIT
+           version            |      name       |            file_name             |                         checksum_sha256                          |          applied_at           | checksum_matches 
+------------------------------+-----------------+----------------------------------+------------------------------------------------------------------+-------------------------------+------------------
+ 20260705_001_receipt_6tables | receipt_6tables | 20260705_001_receipt_6tables.sql | 2acac54fa34936cf5b6c40f1d56a30cbec5a28e7f91160d4517ded9236218c56 | 2026-07-05 16:36:43.768307+09 | t
+(1 行)
+
+
+
+[next]
+Create DB backup again.
+OK if migration_version is 20260705_001_receipt_6tables.
+OK if migration_snapshot shows applied=true and checksum_matches=true.

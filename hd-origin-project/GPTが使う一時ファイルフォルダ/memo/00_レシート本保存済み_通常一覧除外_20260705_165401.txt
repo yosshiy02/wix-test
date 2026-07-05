@@ -1,0 +1,35 @@
+﻿==============================
+レシート本保存済み 通常一覧除外 修正結果
+==============================
+日時: 2026-07-05 16:54:01
+
+[修正内容]
+- 通常の /api/receipts/imports では status が 本保存済み/saved/posted/completed の取込を出さない
+- include_saved=1 または includeSaved=1 の場合だけ保存済みも表示できる
+- DBから削除はしない
+- 下書きも削除しない
+
+[作成]
+before repo : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.repository_before_hide_saved_imports_20260705_165401.js
+before route: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.routes_before_hide_saved_imports_20260705_165401.js
+after repo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.repository.js
+after route : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.routes.js
+undo        : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_hide_saved_imports_20260705_165401.ps1
+
+[構文チェック]
+repository node --check OK: True
+routes node --check OK: True
+
+[本体反映確認]
+repository markerあり: True
+routes markerあり: True
+include_saved 逃げ道あり: True
+
+[次にやること]
+1. サーバー再起動。
+2. ブラウザ再読み込み。
+3. 本保存前の一覧が普通に出るか確認。
+4. 本保存後、そのレシートが通常一覧から消えるか確認。
+
+[保存済み確認用URL]
+http://localhost:3000/api/receipts/imports?limit=100&include_saved=1

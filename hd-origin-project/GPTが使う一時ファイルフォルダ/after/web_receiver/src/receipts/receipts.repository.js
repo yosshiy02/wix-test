@@ -1,40 +1,56 @@
 ﻿const pool = require("../db");
 
-async function listImports(limit = 100, offset = 0) {
-  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
-  const safeOffset = Math.max(Number(offset) || 0, 0);
+/* RECEIPT_HIDE_SAVED_IMPORTS_20260705_START */
+async function listImports(limit = 100, offset = 0, options = {}) {
+  const safeLimit = Math.min(Number(limit) || 100, 500);
+  const safeOffset = Number(offset) || 0;
+
+  const includeSaved = !!(
+    options &&
+    (
+      options.includeSaved === true ||
+      options.include_saved === true ||
+      options.includeSaved === "1" ||
+      options.include_saved === "1"
+    )
+  );
+
+  const savedStatuses = [
+    "本保存済み",
+    "saved",
+    "posted",
+    "completed"
+  ];
+
+  const params = [];
+  let whereSql = "";
+
+  if (!includeSaved) {
+    params.push(savedStatuses);
+    whereSql = "WHERE NOT (COALESCE(status, '') = ANY($1::text[]))";
+  }
+
+  params.push(safeLimit);
+  params.push(safeOffset);
+
+  const limitIndex = params.length - 1;
+  const offsetIndex = params.length;
 
   const result = await pool.query(
     `
-    SELECT
-      id,
-      upload_id,
-      wix_item_id,
-      wix_image_url,
-      local_image_file_name,
-      local_image_path,
-      image_hash_sha256,
-      image_size_bytes,
-      original_file_name,
-      captured_at_jst,
-      imported_at_jst,
-      import_batch_id,
-      ocr_provider,
-      ocr_raw_text,
-      ocr_line_count,
-      ocr_word_count,
-      status,
-      created_at,
-      updated_at
+    SELECT *
     FROM accounting.receipt_imports
+    ${whereSql}
     ORDER BY imported_at_jst DESC NULLS LAST, id DESC
-    LIMIT $1 OFFSET $2
+    LIMIT $${limitIndex}
+    OFFSET $${offsetIndex}
     `,
-    [safeLimit, safeOffset]
+    params
   );
 
   return result.rows;
 }
+/* RECEIPT_HIDE_SAVED_IMPORTS_20260705_END */
 
 async function getImportById(id) {
   const result = await pool.query(
@@ -1320,4 +1336,1752 @@ if (module.exports && typeof module.exports.getReceiptMasterOptions === "functio
   };
 }
 /* RECEIPT_ACCOUNT_TITLES_MASTER_OPTIONS_20260705_END */
+
+/* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_START */
+/*
+  新レシートDB 6テーブル用 repository 関数。
+  旧 receipt_ai_drafts / receipt_tax_breakdowns はここでは変更しない。
+  既存APIを壊さないため、module.exports へ追加代入する。
+*/
+
+function __receiptNew6ToNumberOrNull(value) {
+  if (value === "" || value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function __receiptNew6Text(value) {
+  if (value === undefined || value === null) return "";
+  return String(value);
+}
+
+function __receiptNew6FirstDefined() {
+  for (const value of arguments) {
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return null;
+}
+
+function __receiptNew6ToBoolean(value) {
+  if (value === true) return true;
+  if (value === false) return false;
+  if (value === 1 || value === "1") return true;
+  if (value === 0 || value === "0") return false;
+
+  const s = String(value === undefined || value === null ? "" : value).trim().toLowerCase();
+
+  if (["true", "t", "yes", "y", "on", "清算済み", "精算済み"].includes(s)) return true;
+  return false;
+}
+
+function __receiptNew6BuildLineItems(draft) {
+  if (!draft) return [];
+
+  if (Array.isArray(draft.lineItems)) return draft.lineItems;
+  if (Array.isArray(draft.line_items)) return draft.line_items;
+  if (Array.isArray(draft.items)) return draft.items;
+  if (Array.isArray(draft.details)) return draft.details;
+
+  return [];
+}
+
+async function createReceiptDraftFromImport(receiptImportId) {
+  const importResult = await pool.query(
+    `
+    SELECT
+      id,
+      local_image_file_name,
+      local_image_path,
+      image_hash_sha256,
+      original_file_name,
+      imported_at_jst
+    FROM accounting.receipt_imports
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const item = importResult.rows[0] || null;
+
+  if (!item) {
+    return null;
+  }
+
+  const receiptName =
+    item.original_file_name ||
+    item.local_image_file_name ||
+    ("receipt_import_" + item.id);
+
+  const result = await pool.query(
+    `
+    INSERT INTO accounting.receipt_drafts (
+      receipt_import_id,
+      receipt_name,
+      receipt_image_path,
+      receipt_imported_at,
+      image_hash_sha256,
+      draft_status
+    ) VALUES (
+      $1, $2, $3, $4, $5, '取込済み'
+    )
+    RETURNING *
+    `,
+    [
+      item.id,
+      receiptName,
+      item.local_image_path || "",
+      item.imported_at_jst || null,
+      item.image_hash_sha256 || ""
+    ]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, draft) {
+  const importResult = await pool.query(
+    `
+    SELECT
+      id,
+      ocr_raw_text
+    FROM accounting.receipt_imports
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const importItem = importResult.rows[0] || {};
+
+  const result = await pool.query(
+    `
+    INSERT INTO accounting.receipt_draft_details (
+      draft_receipt_id,
+      receipt_import_id,
+
+      transaction_date,
+      receipt_time_text,
+
+      vendor_name,
+      vendor_address,
+      vendor_phone,
+
+      payment_method_id,
+
+      total_amount,
+      tax_total_amount,
+
+      invoice_number,
+      invoice_type_id,
+
+      evidence_type_id,
+      evidence_memo,
+
+      target_person_id,
+
+      summary,
+      memo,
+
+      account_title_id,
+      purpose_id,
+      project_id,
+      department_id,
+
+      ocr_raw_text
+    ) VALUES (
+      $1, $2,
+      $3, $4,
+      $5, $6, $7,
+      $8,
+      $9, $10,
+      $11, $12,
+      $13, $14,
+      $15,
+      $16, $17,
+      $18, $19, $20, $21,
+      $22
+    )
+    RETURNING *
+    `,
+    [
+      draftReceiptId,
+      receiptImportId,
+
+      __receiptNew6FirstDefined(draft.transactionDate, draft.transaction_date),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.receiptTimeText, draft.receipt_time_text)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorName, draft.vendor_name)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorAddress, draft.vendor_address)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorPhone, draft.vendor_phone)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.paymentMethodId, draft.payment_method_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.totalAmount, draft.total_amount)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.taxAmount, draft.tax_total_amount, draft.tax_amount)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.invoiceNumber, draft.invoice_number)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.invoiceTypeId, draft.invoice_type_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.evidenceTypeId, draft.evidence_type_id)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.evidenceMemo, draft.evidence_memo)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.targetPersonId, draft.target_person_id)),
+
+      __receiptNew6Text(draft.summary),
+      __receiptNew6Text(draft.memo),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.accountTitleId, draft.account_title_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.purposeId, draft.purpose_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.projectId, draft.project_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.departmentId, draft.department_id)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.ocrRawText, draft.ocr_raw_text, importItem.ocr_raw_text))
+    ]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptDetailId, items) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await client.query(
+      `
+      DELETE FROM accounting.receipt_draft_detail_breakdowns
+      WHERE draft_receipt_detail_id = $1
+      `,
+      [draftReceiptDetailId]
+    );
+
+    const rows = Array.isArray(items) ? items : [];
+    const inserted = [];
+
+    for (const row of rows) {
+      const itemName = __receiptNew6Text(
+        __receiptNew6FirstDefined(
+          row.itemName,
+          row.item_name,
+          row.name,
+          row.description,
+          row.productName,
+          row.product_name
+        )
+      ).trim();
+
+      const quantity = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.quantity, row.qty)
+      );
+
+      const unitPrice = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.unitPrice, row.unit_price)
+      );
+
+      const amount = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.amount, row.price, row.total)
+      );
+
+      const taxCategoryId = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.taxCategoryId, row.tax_category_id)
+      );
+
+      const taxTreatmentId = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.taxTreatmentId, row.tax_treatment_id)
+      );
+
+      const note = __receiptNew6Text(
+        __receiptNew6FirstDefined(row.note, row.memo, row.remarks)
+      );
+
+      const hasMeaning =
+        itemName ||
+        quantity !== null ||
+        unitPrice !== null ||
+        amount !== null ||
+        taxCategoryId !== null ||
+        taxTreatmentId !== null ||
+        note;
+
+      if (!hasMeaning) {
+        continue;
+      }
+
+      const result = await client.query(
+        `
+        INSERT INTO accounting.receipt_draft_detail_breakdowns (
+          draft_receipt_id,
+          draft_receipt_detail_id,
+          item_name,
+          quantity,
+          unit_price,
+          amount,
+          tax_category_id,
+          tax_treatment_id,
+          note
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9
+        )
+        RETURNING *
+        `,
+        [
+          draftReceiptId,
+          draftReceiptDetailId,
+          itemName,
+          quantity,
+          unitPrice,
+          amount,
+          taxCategoryId,
+          taxTreatmentId,
+          note
+        ]
+      );
+
+      inserted.push(result.rows[0]);
+    }
+
+    await client.query("COMMIT");
+    return inserted;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function createReceiptDraftFromAi(receiptImportId, draft) {
+  const receiptDraft = await createReceiptDraftFromImport(receiptImportId);
+
+  if (!receiptDraft) {
+    return null;
+  }
+
+  const detail = await createReceiptDraftDetailFromAi(
+    Number(receiptDraft.draft_receipt_id),
+    Number(receiptImportId),
+    draft || {}
+  );
+
+  const lineItems = __receiptNew6BuildLineItems(draft || {});
+
+  const breakdowns = detail
+    ? await replaceReceiptDraftDetailBreakdowns(
+        Number(receiptDraft.draft_receipt_id),
+        Number(detail.draft_receipt_detail_id),
+        lineItems
+      )
+    : [];
+
+  return {
+    ...(detail || {}),
+    id: detail ? detail.draft_receipt_detail_id : null,
+    draft_receipt_id: receiptDraft.draft_receipt_id,
+    draftReceiptId: receiptDraft.draft_receipt_id,
+    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    receipt_import_id: receiptImportId,
+    receiptImportId,
+    line_items: lineItems,
+    lineItems,
+    breakdowns
+  };
+}
+
+async function getReceiptDraftByImportId(receiptImportId) {
+  const draftResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_drafts
+    WHERE receipt_import_id = $1
+    ORDER BY draft_receipt_id DESC
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const draft = draftResult.rows[0] || null;
+
+  if (!draft) {
+    return null;
+  }
+
+  const detailsResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_draft_details
+    WHERE draft_receipt_id = $1
+    ORDER BY draft_receipt_detail_id DESC
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  return {
+    ...draft,
+    details: detailsResult.rows
+  };
+}
+
+async function updateReceiptDraftDetail(id, patch) {
+  const result = await pool.query(
+    `
+    UPDATE accounting.receipt_draft_details
+    SET
+      transaction_date = $2,
+      receipt_time_text = $3,
+
+      vendor_name = $4,
+      vendor_address = $5,
+      vendor_phone = $6,
+
+      payment_method_id = $7,
+
+      total_amount = $8,
+      tax_total_amount = $9,
+
+      invoice_number = $10,
+      invoice_type_id = $11,
+
+      evidence_type_id = $12,
+      evidence_memo = $13,
+
+      target_person_id = $14,
+      is_settled = $15,
+
+      summary = $16,
+      memo = $17,
+
+      account_title_id = $18,
+      purpose_id = $19,
+      project_id = $20,
+      department_id = $21,
+
+      updated_at = CURRENT_TIMESTAMP
+    WHERE draft_receipt_detail_id = $1
+    RETURNING *
+    `,
+    [
+      id,
+
+      __receiptNew6FirstDefined(patch.transactionDate, patch.transaction_date),
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.receiptTimeText, patch.receipt_time_text)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.vendorName, patch.vendor_name)),
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.vendorAddress, patch.vendor_address)),
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.vendorPhone, patch.vendor_phone)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.paymentMethodId, patch.payment_method_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.totalAmount, patch.total_amount)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.taxAmount, patch.taxTotalAmount, patch.tax_total_amount, patch.tax_amount)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.invoiceNumber, patch.invoice_number)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.invoiceTypeId, patch.invoice_type_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.evidenceTypeId, patch.evidence_type_id)),
+      __receiptNew6Text(__receiptNew6FirstDefined(patch.evidenceMemo, patch.evidence_memo)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.targetPersonId, patch.target_person_id)),
+      __receiptNew6ToBoolean(__receiptNew6FirstDefined(patch.isSettled, patch.is_settled)),
+
+      __receiptNew6Text(patch.summary),
+      __receiptNew6Text(patch.memo),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.accountTitleId, patch.account_title_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.purposeId, patch.purpose_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.projectId, patch.project_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.departmentId, patch.department_id))
+    ]
+  );
+
+  return result.rows[0] || null;
+}
+
+module.exports.createReceiptDraftFromImport = createReceiptDraftFromImport;
+module.exports.createReceiptDraftDetailFromAi = createReceiptDraftDetailFromAi;
+module.exports.replaceReceiptDraftDetailBreakdowns = replaceReceiptDraftDetailBreakdowns;
+module.exports.createReceiptDraftFromAi = createReceiptDraftFromAi;
+module.exports.getReceiptDraftByImportId = getReceiptDraftByImportId;
+module.exports.updateReceiptDraftDetail = updateReceiptDraftDetail;
+/* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_END */
+
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_20260705_START */
+/*
+  新6テーブル下書き取得の上書き。
+  明細 details に receipt_draft_detail_breakdowns を付けて返す。
+  画面側の日付ズレ対策として DATE は YYYY-MM-DD 文字列で返す。
+*/
+async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
+  const draftResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_drafts
+    WHERE receipt_import_id = $1
+    ORDER BY draft_receipt_id DESC
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const draft = draftResult.rows[0] || null;
+
+  if (!draft) {
+    return null;
+  }
+
+  const detailsResult = await pool.query(
+    `
+    SELECT
+      *,
+      to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
+    FROM accounting.receipt_draft_details
+    WHERE draft_receipt_id = $1
+    ORDER BY draft_receipt_detail_id DESC
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_draft_detail_breakdowns
+    WHERE draft_receipt_id = $1
+    ORDER BY draft_receipt_detail_id, draft_receipt_detail_breakdown_id
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsByDetailId = new Map();
+
+  for (const row of breakdownsResult.rows) {
+    const key = Number(row.draft_receipt_detail_id);
+    if (!breakdownsByDetailId.has(key)) {
+      breakdownsByDetailId.set(key, []);
+    }
+
+    breakdownsByDetailId.get(key).push({
+      ...row,
+
+      id: row.draft_receipt_detail_breakdown_id,
+
+      itemName: row.item_name,
+      item_name: row.item_name,
+
+      quantity: row.quantity,
+      unitPrice: row.unit_price,
+      unit_price: row.unit_price,
+      amount: row.amount,
+
+      taxCategoryId: row.tax_category_id,
+      tax_category_id: row.tax_category_id,
+
+      taxTreatmentId: row.tax_treatment_id,
+      tax_treatment_id: row.tax_treatment_id,
+
+      note: row.note
+    });
+  }
+
+  const details = detailsResult.rows.map((detail) => {
+    const key = Number(detail.draft_receipt_detail_id);
+    const breakdowns = breakdownsByDetailId.get(key) || [];
+    const transactionDateText = detail.transaction_date_text || "";
+
+    return {
+      ...detail,
+
+      transaction_date: transactionDateText,
+      transactionDate: transactionDateText,
+      receipt_date: transactionDateText,
+      receiptDate: transactionDateText,
+
+      breakdowns,
+      line_items: breakdowns,
+      lineItems: breakdowns
+    };
+  });
+
+  return {
+    ...draft,
+    details
+  };
+}
+
+module.exports.getReceiptDraftByImportId = getReceiptDraftByImportIdWithBreakdowns;
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_20260705_END */
+
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_V2_20260705_START */
+/*
+  新6テーブル下書き取得 V2。
+  画面表示用に、明細内訳の商品名フィールド別名を増やす。
+  tax_category_id / tax_treatment_id が入っている場合はマスタ名も返す。
+  既存の getReceiptDraftByImportId を末尾で再上書きする。
+*/
+async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
+  const draftResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_drafts
+    WHERE receipt_import_id = $1
+    ORDER BY draft_receipt_id DESC
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const draft = draftResult.rows[0] || null;
+
+  if (!draft) {
+    return null;
+  }
+
+  const detailsResult = await pool.query(
+    `
+    SELECT
+      *,
+      to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
+    FROM accounting.receipt_draft_details
+    WHERE draft_receipt_id = $1
+    ORDER BY draft_receipt_detail_id DESC
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsResult = await pool.query(
+    `
+    SELECT
+      b.*,
+      tc.tax_name AS tax_category_name,
+      tc.tax_rate AS tax_rate,
+      tt.treatment_name AS tax_treatment_name
+    FROM accounting.receipt_draft_detail_breakdowns b
+    LEFT JOIN expenses.tax_categories tc
+      ON tc.tax_category_id = b.tax_category_id
+    LEFT JOIN expenses.tax_treatments tt
+      ON tt.tax_treatment_id = b.tax_treatment_id
+    WHERE b.draft_receipt_id = $1
+    ORDER BY b.draft_receipt_detail_id, b.draft_receipt_detail_breakdown_id
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsByDetailId = new Map();
+
+  for (const row of breakdownsResult.rows) {
+    const key = Number(row.draft_receipt_detail_id);
+    if (!breakdownsByDetailId.has(key)) {
+      breakdownsByDetailId.set(key, []);
+    }
+
+    const name = row.item_name || "";
+
+    breakdownsByDetailId.get(key).push({
+      ...row,
+
+      id: row.draft_receipt_detail_breakdown_id,
+
+      item_name: name,
+      itemName: name,
+      product_name: name,
+      productName: name,
+      name: name,
+      description: name,
+      title: name,
+
+      quantity: row.quantity,
+      qty: row.quantity,
+
+      unit_price: row.unit_price,
+      unitPrice: row.unit_price,
+
+      amount: row.amount,
+      total: row.amount,
+      price: row.amount,
+
+      tax_category_id: row.tax_category_id,
+      taxCategoryId: row.tax_category_id,
+      tax_category_name: row.tax_category_name || "",
+      taxCategoryName: row.tax_category_name || "",
+      tax_rate: row.tax_rate,
+      taxRate: row.tax_rate,
+
+      tax_treatment_id: row.tax_treatment_id,
+      taxTreatmentId: row.tax_treatment_id,
+      tax_treatment_name: row.tax_treatment_name || "",
+      taxTreatmentName: row.tax_treatment_name || "",
+
+      note: row.note || "",
+      memo: row.note || "",
+      remarks: row.note || ""
+    });
+  }
+
+  const details = detailsResult.rows.map((detail) => {
+    const key = Number(detail.draft_receipt_detail_id);
+    const breakdowns = breakdownsByDetailId.get(key) || [];
+    const transactionDateText = detail.transaction_date_text || "";
+
+    return {
+      ...detail,
+
+      id: detail.draft_receipt_detail_id,
+
+      transaction_date: transactionDateText,
+      transactionDate: transactionDateText,
+      receipt_date: transactionDateText,
+      receiptDate: transactionDateText,
+
+      tax_amount: detail.tax_total_amount,
+      taxAmount: detail.tax_total_amount,
+      tax_total_amount: detail.tax_total_amount,
+      taxTotalAmount: detail.tax_total_amount,
+
+      total_amount: detail.total_amount,
+      totalAmount: detail.total_amount,
+
+      vendor_name: detail.vendor_name,
+      vendorName: detail.vendor_name,
+
+      payment_method_id: detail.payment_method_id,
+      paymentMethodId: detail.payment_method_id,
+
+      account_title_id: detail.account_title_id,
+      accountTitleId: detail.account_title_id,
+
+      purpose_id: detail.purpose_id,
+      purposeId: detail.purpose_id,
+
+      project_id: detail.project_id,
+      projectId: detail.project_id,
+
+      department_id: detail.department_id,
+      departmentId: detail.department_id,
+
+      breakdowns,
+      line_items: breakdowns,
+      lineItems: breakdowns,
+      items: breakdowns
+    };
+  });
+
+  return {
+    ...draft,
+    details
+  };
+}
+
+module.exports.getReceiptDraftByImportId = getReceiptDraftByImportIdWithBreakdownsV2;
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_V2_20260705_END */
+
+/* RECEIPT_NEW_6_TAX_SAVE_V2_20260705_START */
+/*
+  新6テーブル保存 V2。
+  AI解析結果の税区分・税処理を、明細内訳 receipt_draft_detail_breakdowns にも入れる。
+  既存データは自動では変わらない。次回AI解析分から反映される。
+*/
+
+function __receiptNew6PickTaxFallbackFromDraft(draft) {
+  const rows = buildReceiptTaxBreakdownsFromDraft(draft || {});
+  const first = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+
+  if (!first) {
+    return {
+      taxCategoryId: null,
+      taxTreatmentId: null
+    };
+  }
+
+  return {
+    taxCategoryId: first.taxCategoryId || first.tax_category_id || null,
+    taxTreatmentId: first.taxTreatmentId || first.tax_treatment_id || null
+  };
+}
+
+function __receiptNew6ApplyTaxFallbackToLineItems(lineItems, draft) {
+  const fallback = __receiptNew6PickTaxFallbackFromDraft(draft || {});
+  const rows = Array.isArray(lineItems) ? lineItems : [];
+
+  return rows.map((row) => {
+    const item = row || {};
+
+    return {
+      ...item,
+
+      taxCategoryId:
+        item.taxCategoryId ||
+        item.tax_category_id ||
+        fallback.taxCategoryId ||
+        null,
+
+      tax_category_id:
+        item.tax_category_id ||
+        item.taxCategoryId ||
+        fallback.taxCategoryId ||
+        null,
+
+      taxTreatmentId:
+        item.taxTreatmentId ||
+        item.tax_treatment_id ||
+        fallback.taxTreatmentId ||
+        null,
+
+      tax_treatment_id:
+        item.tax_treatment_id ||
+        item.taxTreatmentId ||
+        fallback.taxTreatmentId ||
+        null
+    };
+  });
+}
+
+async function createReceiptDraftFromAiTaxSaveV2(receiptImportId, draft) {
+  const receiptDraft = await createReceiptDraftFromImport(receiptImportId);
+
+  if (!receiptDraft) {
+    return null;
+  }
+
+  const detail = await createReceiptDraftDetailFromAi(
+    Number(receiptDraft.draft_receipt_id),
+    Number(receiptImportId),
+    draft || {}
+  );
+
+  const rawLineItems = __receiptNew6BuildLineItems(draft || {});
+  const lineItems = __receiptNew6ApplyTaxFallbackToLineItems(rawLineItems, draft || {});
+
+  const breakdowns = detail
+    ? await replaceReceiptDraftDetailBreakdowns(
+        Number(receiptDraft.draft_receipt_id),
+        Number(detail.draft_receipt_detail_id),
+        lineItems
+      )
+    : [];
+
+  return {
+    ...(detail || {}),
+    id: detail ? detail.draft_receipt_detail_id : null,
+    draft_receipt_id: receiptDraft.draft_receipt_id,
+    draftReceiptId: receiptDraft.draft_receipt_id,
+    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    receipt_import_id: receiptImportId,
+    receiptImportId,
+    line_items: lineItems,
+    lineItems,
+    breakdowns
+  };
+}
+
+module.exports.createReceiptDraftFromAi = createReceiptDraftFromAiTaxSaveV2;
+/* RECEIPT_NEW_6_TAX_SAVE_V2_20260705_END */
+
+/* RECEIPT_NEW_6_TAX_BREAKDOWNS_API_20260705_START */
+/*
+  新6テーブル用 税額内訳API。
+  旧 receipt_tax_breakdowns は使わず、
+  receipt_draft_details / receipt_draft_detail_breakdowns から画面互換の税額内訳を返す。
+*/
+
+async function getReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId) {
+  const detailResult = await pool.query(
+    `
+    SELECT
+      draft_receipt_detail_id,
+      draft_receipt_id,
+      total_amount,
+      tax_total_amount
+    FROM accounting.receipt_draft_details
+    WHERE draft_receipt_detail_id = $1
+    LIMIT 1
+    `,
+    [draftReceiptDetailId]
+  );
+
+  const detail = detailResult.rows[0] || null;
+
+  if (!detail) {
+    return null;
+  }
+
+  const firstTaxResult = await pool.query(
+    `
+    SELECT
+      b.tax_category_id,
+      b.tax_treatment_id,
+      tc.tax_name AS tax_category_name,
+      tc.tax_rate,
+      tt.treatment_name AS tax_treatment_name
+    FROM accounting.receipt_draft_detail_breakdowns b
+    LEFT JOIN expenses.tax_categories tc
+      ON tc.tax_category_id = b.tax_category_id
+    LEFT JOIN expenses.tax_treatments tt
+      ON tt.tax_treatment_id = b.tax_treatment_id
+    WHERE b.draft_receipt_detail_id = $1
+      AND (
+        b.tax_category_id IS NOT NULL
+        OR b.tax_treatment_id IS NOT NULL
+      )
+    ORDER BY b.draft_receipt_detail_breakdown_id
+    LIMIT 1
+    `,
+    [draftReceiptDetailId]
+  );
+
+  const tax = firstTaxResult.rows[0] || {};
+
+  const targetAmount = detail.total_amount;
+  const taxAmount = detail.tax_total_amount;
+
+  if (targetAmount === null && taxAmount === null) {
+    return [];
+  }
+
+  return [
+    {
+      id: Number(draftReceiptDetailId),
+      receipt_ai_draft_id: Number(draftReceiptDetailId),
+      draft_receipt_detail_id: Number(draftReceiptDetailId),
+
+      tax_category_id: tax.tax_category_id || null,
+      taxCategoryId: tax.tax_category_id || null,
+      tax_category_name: tax.tax_category_name || "",
+      taxCategoryName: tax.tax_category_name || "",
+      tax_rate: tax.tax_rate || null,
+      taxRate: tax.tax_rate || null,
+
+      tax_treatment_id: tax.tax_treatment_id || null,
+      taxTreatmentId: tax.tax_treatment_id || null,
+      tax_treatment_name: tax.tax_treatment_name || "",
+      taxTreatmentName: tax.tax_treatment_name || "",
+
+      target_amount: targetAmount,
+      targetAmount: targetAmount,
+
+      tax_amount: taxAmount,
+      taxAmount: taxAmount,
+
+      ai_confidence: null,
+      aiConfidence: null,
+
+      is_confirmed: true,
+      isConfirmed: true,
+
+      sort_order: 10,
+      sortOrder: 10
+    }
+  ];
+}
+
+async function replaceReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId, items) {
+  const rows = Array.isArray(items) ? items : [];
+  const first = rows[0] || {};
+
+  const taxAmountRaw =
+    first.taxAmount ??
+    first.tax_amount ??
+    first.amountTax ??
+    first.amount_tax ??
+    null;
+
+  const targetAmountRaw =
+    first.targetAmount ??
+    first.target_amount ??
+    null;
+
+  const taxCategoryId =
+    first.taxCategoryId ||
+    first.tax_category_id ||
+    null;
+
+  const taxTreatmentId =
+    first.taxTreatmentId ||
+    first.tax_treatment_id ||
+    null;
+
+  const taxAmount =
+    taxAmountRaw === "" || taxAmountRaw === undefined || taxAmountRaw === null
+      ? null
+      : Number(taxAmountRaw);
+
+  const targetAmount =
+    targetAmountRaw === "" || targetAmountRaw === undefined || targetAmountRaw === null
+      ? null
+      : Number(targetAmountRaw);
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const detailCheck = await client.query(
+      `
+      SELECT
+        draft_receipt_detail_id,
+        total_amount
+      FROM accounting.receipt_draft_details
+      WHERE draft_receipt_detail_id = $1
+      LIMIT 1
+      `,
+      [draftReceiptDetailId]
+    );
+
+    const detail = detailCheck.rows[0] || null;
+
+    if (!detail) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    await client.query(
+      `
+      UPDATE accounting.receipt_draft_details
+      SET
+        tax_total_amount = $2,
+        total_amount = COALESCE($3, total_amount),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE draft_receipt_detail_id = $1
+      `,
+      [
+        draftReceiptDetailId,
+        Number.isFinite(taxAmount) ? taxAmount : null,
+        Number.isFinite(targetAmount) ? targetAmount : null
+      ]
+    );
+
+    if (taxCategoryId || taxTreatmentId) {
+      await client.query(
+        `
+        UPDATE accounting.receipt_draft_detail_breakdowns
+        SET
+          tax_category_id = COALESCE($2::BIGINT, tax_category_id),
+          tax_treatment_id = COALESCE($3::BIGINT, tax_treatment_id),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE draft_receipt_detail_id = $1
+        `,
+        [
+          draftReceiptDetailId,
+          taxCategoryId || null,
+          taxTreatmentId || null
+        ]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return await getReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId);
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports.getReceiptDraftDetailTaxBreakdowns = getReceiptDraftDetailTaxBreakdowns;
+module.exports.replaceReceiptDraftDetailTaxBreakdowns = replaceReceiptDraftDetailTaxBreakdowns;
+/* RECEIPT_NEW_6_TAX_BREAKDOWNS_API_20260705_END */
+
+/* RECEIPT_NEW_6_CONFIDENCE_20260705_START */
+/*
+  新6テーブル 信頼度対応。
+  receipt_draft_details.ai_confidence にAI信頼度を保存し、
+  画面返却時に confidence / aiConfidence として返す。
+*/
+
+function __receiptNew6ConfidenceToNumberOrNull(value) {
+  if (value === "" || value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function __receiptNew6PickConfidence(draft) {
+  const raw =
+    draft.confidence ??
+    draft.aiConfidence ??
+    draft.ai_confidence ??
+    draft.confidenceScore ??
+    draft.confidence_score ??
+    null;
+
+  return __receiptNew6ConfidenceToNumberOrNull(raw);
+}
+
+async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receiptImportId, draft) {
+  const importResult = await pool.query(
+    `
+    SELECT
+      id,
+      ocr_raw_text
+    FROM accounting.receipt_imports
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const importItem = importResult.rows[0] || {};
+
+  const result = await pool.query(
+    `
+    INSERT INTO accounting.receipt_draft_details (
+      draft_receipt_id,
+      receipt_import_id,
+
+      transaction_date,
+      receipt_time_text,
+
+      vendor_name,
+      vendor_address,
+      vendor_phone,
+
+      payment_method_id,
+
+      total_amount,
+      tax_total_amount,
+
+      invoice_number,
+      invoice_type_id,
+
+      evidence_type_id,
+      evidence_memo,
+
+      target_person_id,
+
+      summary,
+      memo,
+
+      account_title_id,
+      purpose_id,
+      project_id,
+      department_id,
+
+      ocr_raw_text,
+      ai_confidence
+    ) VALUES (
+      $1, $2,
+      $3, $4,
+      $5, $6, $7,
+      $8,
+      $9, $10,
+      $11, $12,
+      $13, $14,
+      $15,
+      $16, $17,
+      $18, $19, $20, $21,
+      $22, $23
+    )
+    RETURNING *
+    `,
+    [
+      draftReceiptId,
+      receiptImportId,
+
+      __receiptNew6FirstDefined(draft.transactionDate, draft.transaction_date),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.receiptTimeText, draft.receipt_time_text)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorName, draft.vendor_name)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorAddress, draft.vendor_address)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.vendorPhone, draft.vendor_phone)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.paymentMethodId, draft.payment_method_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.totalAmount, draft.total_amount)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.taxAmount, draft.tax_total_amount, draft.tax_amount)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.invoiceNumber, draft.invoice_number)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.invoiceTypeId, draft.invoice_type_id)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.evidenceTypeId, draft.evidence_type_id)),
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.evidenceMemo, draft.evidence_memo)),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.targetPersonId, draft.target_person_id)),
+
+      __receiptNew6Text(draft.summary),
+      __receiptNew6Text(draft.memo),
+
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.accountTitleId, draft.account_title_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.purposeId, draft.purpose_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.projectId, draft.project_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.departmentId, draft.department_id)),
+
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.ocrRawText, draft.ocr_raw_text, importItem.ocr_raw_text)),
+      __receiptNew6PickConfidence(draft || {})
+    ]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function createReceiptDraftFromAiConfidenceV3(receiptImportId, draft) {
+  const receiptDraft = await createReceiptDraftFromImport(receiptImportId);
+
+  if (!receiptDraft) {
+    return null;
+  }
+
+  const detail = await createReceiptDraftDetailFromAiConfidenceV2(
+    Number(receiptDraft.draft_receipt_id),
+    Number(receiptImportId),
+    draft || {}
+  );
+
+  const rawLineItems = __receiptNew6BuildLineItems(draft || {});
+  const lineItems = __receiptNew6ApplyTaxFallbackToLineItems(rawLineItems, draft || {});
+
+  const breakdowns = detail
+    ? await replaceReceiptDraftDetailBreakdowns(
+        Number(receiptDraft.draft_receipt_id),
+        Number(detail.draft_receipt_detail_id),
+        lineItems
+      )
+    : [];
+
+  return {
+    ...(detail || {}),
+
+    id: detail ? detail.draft_receipt_detail_id : null,
+    draft_receipt_id: receiptDraft.draft_receipt_id,
+    draftReceiptId: receiptDraft.draft_receipt_id,
+    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    receipt_import_id: receiptImportId,
+    receiptImportId,
+
+    confidence: detail ? detail.ai_confidence : null,
+    aiConfidence: detail ? detail.ai_confidence : null,
+    ai_confidence: detail ? detail.ai_confidence : null,
+
+    line_items: lineItems,
+    lineItems,
+    breakdowns
+  };
+}
+
+async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
+  const draftResult = await pool.query(
+    `
+    SELECT *
+    FROM accounting.receipt_drafts
+    WHERE receipt_import_id = $1
+    ORDER BY draft_receipt_id DESC
+    LIMIT 1
+    `,
+    [receiptImportId]
+  );
+
+  const draft = draftResult.rows[0] || null;
+
+  if (!draft) {
+    return null;
+  }
+
+  const detailsResult = await pool.query(
+    `
+    SELECT
+      *,
+      to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
+    FROM accounting.receipt_draft_details
+    WHERE draft_receipt_id = $1
+    ORDER BY draft_receipt_detail_id DESC
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsResult = await pool.query(
+    `
+    SELECT
+      b.*,
+      tc.tax_name AS tax_category_name,
+      tc.tax_rate AS tax_rate,
+      tt.treatment_name AS tax_treatment_name
+    FROM accounting.receipt_draft_detail_breakdowns b
+    LEFT JOIN expenses.tax_categories tc
+      ON tc.tax_category_id = b.tax_category_id
+    LEFT JOIN expenses.tax_treatments tt
+      ON tt.tax_treatment_id = b.tax_treatment_id
+    WHERE b.draft_receipt_id = $1
+    ORDER BY b.draft_receipt_detail_id, b.draft_receipt_detail_breakdown_id
+    `,
+    [draft.draft_receipt_id]
+  );
+
+  const breakdownsByDetailId = new Map();
+
+  for (const row of breakdownsResult.rows) {
+    const key = Number(row.draft_receipt_detail_id);
+    if (!breakdownsByDetailId.has(key)) {
+      breakdownsByDetailId.set(key, []);
+    }
+
+    const name = row.item_name || "";
+
+    breakdownsByDetailId.get(key).push({
+      ...row,
+
+      id: row.draft_receipt_detail_breakdown_id,
+
+      item_name: name,
+      itemName: name,
+      product_name: name,
+      productName: name,
+      name: name,
+      description: name,
+      title: name,
+
+      quantity: row.quantity,
+      qty: row.quantity,
+
+      unit_price: row.unit_price,
+      unitPrice: row.unit_price,
+
+      amount: row.amount,
+      total: row.amount,
+      price: row.amount,
+
+      tax_category_id: row.tax_category_id,
+      taxCategoryId: row.tax_category_id,
+      tax_category_name: row.tax_category_name || "",
+      taxCategoryName: row.tax_category_name || "",
+      tax_rate: row.tax_rate,
+      taxRate: row.tax_rate,
+
+      tax_treatment_id: row.tax_treatment_id,
+      taxTreatmentId: row.tax_treatment_id,
+      tax_treatment_name: row.tax_treatment_name || "",
+      taxTreatmentName: row.tax_treatment_name || "",
+
+      note: row.note || "",
+      memo: row.note || "",
+      remarks: row.note || ""
+    });
+  }
+
+  const details = detailsResult.rows.map((detail) => {
+    const key = Number(detail.draft_receipt_detail_id);
+    const breakdowns = breakdownsByDetailId.get(key) || [];
+    const transactionDateText = detail.transaction_date_text || "";
+
+    return {
+      ...detail,
+
+      id: detail.draft_receipt_detail_id,
+
+      transaction_date: transactionDateText,
+      transactionDate: transactionDateText,
+      receipt_date: transactionDateText,
+      receiptDate: transactionDateText,
+
+      confidence: detail.ai_confidence,
+      aiConfidence: detail.ai_confidence,
+      ai_confidence: detail.ai_confidence,
+
+      tax_amount: detail.tax_total_amount,
+      taxAmount: detail.tax_total_amount,
+      tax_total_amount: detail.tax_total_amount,
+      taxTotalAmount: detail.tax_total_amount,
+
+      total_amount: detail.total_amount,
+      totalAmount: detail.total_amount,
+
+      vendor_name: detail.vendor_name,
+      vendorName: detail.vendor_name,
+
+      payment_method_id: detail.payment_method_id,
+      paymentMethodId: detail.payment_method_id,
+
+      account_title_id: detail.account_title_id,
+      accountTitleId: detail.account_title_id,
+
+      purpose_id: detail.purpose_id,
+      purposeId: detail.purpose_id,
+
+      project_id: detail.project_id,
+      projectId: detail.project_id,
+
+      department_id: detail.department_id,
+      departmentId: detail.department_id,
+
+      breakdowns,
+      line_items: breakdowns,
+      lineItems: breakdowns,
+      items: breakdowns
+    };
+  });
+
+  return {
+    ...draft,
+    details
+  };
+}
+
+module.exports.createReceiptDraftDetailFromAi = createReceiptDraftDetailFromAiConfidenceV2;
+module.exports.createReceiptDraftFromAi = createReceiptDraftFromAiConfidenceV3;
+module.exports.getReceiptDraftByImportId = getReceiptDraftByImportIdConfidenceV3;
+/* RECEIPT_NEW_6_CONFIDENCE_20260705_END */
+
+/* RECEIPT_POST_SAVE_REPOSITORY_20260705_START */
+/*
+  下書き3テーブルから本保存3テーブルへ確定保存する。
+  慎重保存:
+  - 下書きは削除しない
+  - 画像は削除しない
+  - 1レシートごとにトランザクション
+  - source_draft_receipt_id で二重本保存を防ぐ
+*/
+function __receiptPostSaveNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function __receiptPostSaveMissing(value) {
+  return value === undefined || value === null || value === "";
+}
+
+async function postReceiptDraftByImportId(receiptImportId, options = {}) {
+  const importId = __receiptPostSaveNumber(receiptImportId);
+
+  if (!importId || importId <= 0) {
+    throw new Error("receipt_import_id が不正です。");
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const draftResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_drafts
+      WHERE receipt_import_id = $1
+      ORDER BY draft_receipt_id DESC
+      LIMIT 1
+      FOR UPDATE
+      `,
+      [importId]
+    );
+
+    const draft = draftResult.rows[0] || null;
+
+    if (!draft) {
+      await client.query("COMMIT");
+      return {
+        ok: false,
+        skipped: true,
+        reason: "draft_not_found",
+        receipt_import_id: importId,
+        message: "下書きがありません。"
+      };
+    }
+
+    const existingResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipts
+      WHERE source_draft_receipt_id = $1
+      ORDER BY receipt_id DESC
+      LIMIT 1
+      `,
+      [draft.draft_receipt_id]
+    );
+
+    const existing = existingResult.rows[0] || null;
+
+    if (existing) {
+      await client.query(
+        `
+        UPDATE accounting.receipt_drafts
+        SET draft_status = '本保存済み',
+            updated_at = NOW()
+        WHERE draft_receipt_id = $1
+        `,
+        [draft.draft_receipt_id]
+      );
+
+      await client.query(
+        `
+        UPDATE accounting.receipt_imports
+        SET status = '本保存済み',
+            updated_at = NOW()
+        WHERE id = $1
+        `,
+        [importId]
+      );
+
+      await client.query("COMMIT");
+
+      return {
+        ok: true,
+        already_saved: true,
+        receipt_import_id: importId,
+        draft_receipt_id: draft.draft_receipt_id,
+        receipt_id: existing.receipt_id,
+        message: "既に本保存済みです。二重登録はしていません。"
+      };
+    }
+
+    const detailsResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_draft_details
+      WHERE draft_receipt_id = $1
+      ORDER BY draft_receipt_detail_id
+      FOR UPDATE
+      `,
+      [draft.draft_receipt_id]
+    );
+
+    const details = detailsResult.rows || [];
+
+    if (!details.length) {
+      await client.query("COMMIT");
+      return {
+        ok: false,
+        skipped: true,
+        reason: "detail_not_found",
+        receipt_import_id: importId,
+        draft_receipt_id: draft.draft_receipt_id,
+        message: "下書き明細がありません。"
+      };
+    }
+
+    const validationErrors = [];
+
+    details.forEach((detail, index) => {
+      const label = "明細" + String(index + 1);
+
+      if (__receiptPostSaveMissing(detail.account_title_id)) {
+        validationErrors.push(label + ": 勘定科目が未選択です。");
+      }
+
+      if (__receiptPostSaveMissing(detail.total_amount)) {
+        validationErrors.push(label + ": 合計金額が未入力です。");
+      }
+    });
+
+    if (validationErrors.length) {
+      await client.query("COMMIT");
+      return {
+        ok: false,
+        skipped: true,
+        reason: "validation_error",
+        receipt_import_id: importId,
+        draft_receipt_id: draft.draft_receipt_id,
+        message: validationErrors.join(" / "),
+        validation_errors: validationErrors
+      };
+    }
+
+    const receiptResult = await client.query(
+      `
+      INSERT INTO accounting.receipts (
+        source_draft_receipt_id,
+        receipt_import_id,
+        receipt_name,
+        receipt_image_path,
+        receipt_imported_at,
+        image_hash_sha256,
+        saved_status,
+        saved_at,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6,
+        '本保存済み',
+        NOW(),
+        NOW(),
+        NOW()
+      )
+      RETURNING *
+      `,
+      [
+        draft.draft_receipt_id,
+        draft.receipt_import_id,
+        draft.receipt_name,
+        draft.receipt_image_path,
+        draft.receipt_imported_at,
+        draft.image_hash_sha256
+      ]
+    );
+
+    const receipt = receiptResult.rows[0];
+    const detailIdMap = new Map();
+
+    for (const detail of details) {
+      const savedDetailResult = await client.query(
+        `
+        INSERT INTO accounting.receipt_details (
+          receipt_id,
+          source_draft_receipt_detail_id,
+          transaction_date,
+          receipt_time_text,
+          vendor_name,
+          vendor_address,
+          vendor_phone,
+          payment_method_id,
+          total_amount,
+          tax_total_amount,
+          invoice_number,
+          invoice_type_id,
+          evidence_type_id,
+          evidence_memo,
+          target_person_id,
+          is_settled,
+          summary,
+          memo,
+          account_title_id,
+          purpose_id,
+          project_id,
+          department_id,
+          ocr_raw_text,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8,
+          $9, $10, $11, $12, $13, $14, $15,
+          $16, $17, $18, $19, $20, $21, $22, $23,
+          NOW(), NOW()
+        )
+        RETURNING *
+        `,
+        [
+          receipt.receipt_id,
+          detail.draft_receipt_detail_id,
+          detail.transaction_date,
+          detail.receipt_time_text,
+          detail.vendor_name,
+          detail.vendor_address,
+          detail.vendor_phone,
+          detail.payment_method_id,
+          detail.total_amount,
+          detail.tax_total_amount,
+          detail.invoice_number,
+          detail.invoice_type_id,
+          detail.evidence_type_id,
+          detail.evidence_memo,
+          detail.target_person_id,
+          __receiptNew6ToBoolean(detail.is_settled),
+          detail.summary,
+          detail.memo,
+          detail.account_title_id,
+          detail.purpose_id,
+          detail.project_id,
+          detail.department_id,
+          detail.ocr_raw_text
+        ]
+      );
+
+      const savedDetail = savedDetailResult.rows[0];
+      detailIdMap.set(Number(detail.draft_receipt_detail_id), Number(savedDetail.receipt_detail_id));
+    }
+
+    const breakdownResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_draft_detail_breakdowns
+      WHERE draft_receipt_id = $1
+      ORDER BY draft_receipt_detail_breakdown_id
+      `,
+      [draft.draft_receipt_id]
+    );
+
+    let savedBreakdownCount = 0;
+
+    for (const breakdown of breakdownResult.rows || []) {
+      const receiptDetailId = detailIdMap.get(Number(breakdown.draft_receipt_detail_id));
+
+      if (!receiptDetailId) {
+        throw new Error("明細内訳の親明細が見つかりません。draft_breakdown_id=" + breakdown.draft_receipt_detail_breakdown_id);
+      }
+
+      await client.query(
+        `
+        INSERT INTO accounting.receipt_detail_breakdowns (
+          receipt_id,
+          receipt_detail_id,
+          source_draft_receipt_detail_breakdown_id,
+          item_name,
+          quantity,
+          unit_price,
+          amount,
+          tax_category_id,
+          tax_treatment_id,
+          note,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8,
+          $9, $10,
+          NOW(), NOW()
+        )
+        `,
+        [
+          receipt.receipt_id,
+          receiptDetailId,
+          breakdown.draft_receipt_detail_breakdown_id,
+          breakdown.item_name,
+          breakdown.quantity,
+          breakdown.unit_price,
+          breakdown.amount,
+          breakdown.tax_category_id,
+          breakdown.tax_treatment_id,
+          breakdown.note
+        ]
+      );
+
+      savedBreakdownCount++;
+    }
+
+    await client.query(
+      `
+      UPDATE accounting.receipt_drafts
+      SET draft_status = '本保存済み',
+          updated_at = NOW()
+      WHERE draft_receipt_id = $1
+      `,
+      [draft.draft_receipt_id]
+    );
+
+    await client.query(
+      `
+      UPDATE accounting.receipt_imports
+      SET status = '本保存済み',
+          updated_at = NOW()
+      WHERE id = $1
+      `,
+      [importId]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      ok: true,
+      receipt_import_id: importId,
+      draft_receipt_id: draft.draft_receipt_id,
+      receipt_id: receipt.receipt_id,
+      detail_count: details.length,
+      breakdown_count: savedBreakdownCount,
+      message: "本保存しました。"
+    };
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (_) {}
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports.postReceiptDraftByImportId = postReceiptDraftByImportId;
+/* RECEIPT_POST_SAVE_REPOSITORY_20260705_END */
+
+
 

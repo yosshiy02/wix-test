@@ -1,0 +1,61 @@
+﻿==============================
+レシート6テーブル migration 本実行結果
+==============================
+日時: 2026-07-05 14:55:23
+DB: hd_origin_project
+Host: 127.0.0.1
+Migration: G:\GITHUB\wix-test\hd-origin-project\database\migrations\20260705_001_receipt_6tables.sql
+
+[migration実行結果]
+psql:G:/GITHUB/wix-test/hd-origin-project/database/migrations/20260705_001_receipt_6tables.sql:14: NOTICE:  schema "accounting" already exists, skipping
+CREATE SCHEMA
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+
+ExitCode: 0
+
+[6テーブル存在確認]
+ table_schema |           table_name            
+--------------+---------------------------------
+ accounting   | receipt_detail_breakdowns
+ accounting   | receipt_details
+ accounting   | receipt_draft_detail_breakdowns
+ accounting   | receipt_draft_details
+ accounting   | receipt_drafts
+ accounting   | receipts
+(6 行)
+
+
+
+[判定]
+OK: レシート6テーブル migration 本実行成功。
+OK: 下書き3テーブル・本保存3テーブルがDB上に作成されました。
+
+[作成された想定テーブル]
+下書き側:
+- accounting.receipt_drafts
+- accounting.receipt_draft_details
+- accounting.receipt_draft_detail_breakdowns
+
+本保存側:
+- accounting.receipts
+- accounting.receipt_details
+- accounting.receipt_detail_breakdowns

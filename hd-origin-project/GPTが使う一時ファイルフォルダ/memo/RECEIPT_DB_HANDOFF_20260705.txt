@@ -1,0 +1,111 @@
+﻿==============================
+レシートDB 新6テーブル移行 引き継ぎメモ
+==============================
+日時: 2026-07-05 16:05:19
+PROJECT_ROOT: G:\GITHUB\wix-test\hd-origin-project
+
+【結論】
+レシート機能は、本保存手前まで到達。
+旧 receipt_ai_drafts / receipt_tax_breakdowns ではなく、新6テーブルへAI解析結果を保存する流れは成功済み。
+
+【新DB構成】
+下書き側:
+- accounting.receipt_drafts
+- accounting.receipt_draft_details
+- accounting.receipt_draft_detail_breakdowns
+
+本保存側:
+- accounting.receipts
+- accounting.receipt_details
+- accounting.receipt_detail_breakdowns
+
+【確認済み】
+- 4枚取込のうち1枚重複、3枚取込成功
+- まとめてAI解析3枚成功
+- DB確認で以下を確認済み
+  - receipt_imports = 3
+  - receipt_drafts = 3
+  - receipt_draft_details = 3
+  - receipt_draft_detail_breakdowns = 4
+  - receipt_ai_drafts = 0
+  - receipt_tax_breakdowns = 0
+  - receipts = 0
+  - receipt_details = 0
+  - receipt_detail_breakdowns = 0
+
+【修正済み】
+1. receipts.repository.js
+- 新6テーブル用関数を追加
+  - createReceiptDraftFromImport
+  - createReceiptDraftDetailFromAi
+  - replaceReceiptDraftDetailBreakdowns
+  - createReceiptDraftFromAi
+  - getReceiptDraftByImportId
+  - updateReceiptDraftDetail
+- getReceiptDraftByImportId を明細内訳付きで返すように上書き
+- 日付を YYYY-MM-DD 文字列で返すように補正
+- 明細内訳の商品名表示用フィールドを追加
+  - itemName
+  - productName
+  - name
+  - description
+  - title
+- 明細内訳の税区分・税処理を保存・表示できるように補正
+- 税額内訳API用の新6テーブル関数を追加予定または追加中
+  - getReceiptDraftDetailTaxBreakdowns
+  - replaceReceiptDraftDetailTaxBreakdowns
+- 信頼度 ai_confidence は列追加・保存対応の確認が必要
+
+2. receipts.routes.js
+- POST /api/receipts/imports/:id/analyze の保存先を変更
+  旧:
+    repo.createAiDraft(item.id, analyzed)
+  新:
+    repo.createReceiptDraftFromAi(item.id, analyzed)
+- レシート選択時の取得を変更
+  旧:
+    repo.getAiDrafts(item.id)
+  新:
+    repo.getReceiptDraftByImportId(item.id)
+- 画面互換のため aiDrafts 配列として返す形は維持
+
+【直ったこと】
+- 新6テーブルへAI解析結果が保存される
+- レシート選択時に新6テーブルから画面表示される
+- 明細内訳の件数が表示される
+- 数量・単価・金額が表示される
+- 日付がマイナス1日になる問題は修正
+- 商品名の表示補正済み
+- 明細内訳の税区分・税処理は完成とのユーザー確認あり
+
+【まだ残っていること】
+1. 税額内訳ボタンまわり
+- 内訳ボタンがまだ旧 receipt_tax_breakdowns 前提だったため、新6テーブル対応が必要
+- 閉じた後に税額合計が null になる問題あり
+- getReceiptDraftDetailTaxBreakdowns / replaceReceiptDraftDetailTaxBreakdowns の追加・確認が必要
+
+2. 信頼度
+- 旧 receipt_ai_drafts には confidence があった
+- 新 receipt_draft_details には ai_confidence 列追加が必要
+- ai_confidence 保存・返却対応の実行結果確認が必要
+- 既存3件は保存時点で信頼度列が無かったため null の可能性あり
+- 新規AI解析分で確認すること
+
+3. 画面保存API
+- 画面の保存ボタンはまだ旧 /api/receipts/ai-drafts/:id を使っている可能性が高い
+- 新6テーブル用 updateReceiptDraftDetail() へ切替が必要
+
+4. 本保存
+- 下書き3テーブルから本保存3テーブルへコピーする処理は未実装
+- 次の大きな作業は saveReceiptDraftToFinal 相当
+  - receipt_drafts → receipts
+  - receipt_draft_details → receipt_details
+  - receipt_draft_detail_breakdowns → receipt_detail_breakdowns
+
+【次に触る時の注意】
+- receipt_imports は今後も入口として使う。消さない。
+- receipt_ai_drafts / receipt_tax_breakdowns は新ルートでは使わないが、完全移行までDROPしない。
+- 旧関数はすぐ消さず、追加・上書きで段階移行する。
+- サーバー再起動しないと routes/repository の変更は反映されない。
+- PowerShell実行後は node --check を必ず確認する。
+- 本保存実装の前に、税額内訳・信頼度・画面保存APIを先に確認する。

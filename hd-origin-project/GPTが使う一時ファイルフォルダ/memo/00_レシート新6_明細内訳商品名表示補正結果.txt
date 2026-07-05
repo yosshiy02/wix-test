@@ -1,0 +1,21 @@
+﻿==============================
+レシート新6 明細内訳商品名表示補正結果
+==============================
+日時: 2026-07-05 15:44:20
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+
+実施内容:
+- getReceiptDraftByImportId をV2で再上書きしました。
+- 明細内訳の商品名を itemName / productName / name / description / title でも返すようにしました。
+- tax_category_id / tax_treatment_id が入っている場合、マスタ名も返すようにしました。
+
+node --check ExitCode: 0
+
+判定: OK
+構文チェックOKです。
+
+次:
+サーバーを再起動して、同じレシートを選び直してください。
+
+注意:
+既存データの tax_category_id / tax_treatment_id がnullの場合、税区分・税処理はまだ表示されません。

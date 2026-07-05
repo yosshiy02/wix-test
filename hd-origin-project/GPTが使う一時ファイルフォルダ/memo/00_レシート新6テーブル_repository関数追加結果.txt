@@ -1,0 +1,23 @@
+﻿==============================
+レシート新6テーブル repository関数追加結果
+==============================
+日時: 2026-07-05 15:11:17
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+
+実施内容:
+- 旧 receipt_ai_drafts / receipt_tax_breakdowns 関数は削除していません。
+- 新6テーブル用 repository 関数を末尾に追加しました。
+- module.exports へ追加代入しました。
+
+追加関数:
+- createReceiptDraftFromImport
+- createReceiptDraftDetailFromAi
+- replaceReceiptDraftDetailBreakdowns
+- createReceiptDraftFromAi
+- getReceiptDraftByImportId
+- updateReceiptDraftDetail
+
+node --check ExitCode: 0
+
+判定: OK
+receipts.repository.js の構文チェックは通りました。

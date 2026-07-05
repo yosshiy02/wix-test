@@ -699,6 +699,34 @@ const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
     }
 
     /* RECEIPT_MASTER_CANDIDATE_NAME_20260705_END */
+    /* RECEIPT_SETTLED_CHECKBOX_20260705_START */
+    function receiptIsSettledValue(value) {
+      return value === true ||
+        value === 1 ||
+        value === "1" ||
+        String(value || "").toLowerCase() === "true" ||
+        String(value || "").toLowerCase() === "t" ||
+        String(value || "").toLowerCase() === "yes";
+    }
+
+    function updateReceiptSettledLabel() {
+      const checkbox = document.getElementById("isSettled");
+      const label = document.getElementById("isSettledLabelText");
+
+      if (!checkbox || !label) return;
+
+      const isSettled = !!checkbox.checked;
+
+      checkbox.value = isSettled ? "true" : "false";
+      label.textContent = isSettled ? "清算済み" : "未精算";
+      label.style.color = isSettled ? "#17652a" : "#b00020";
+
+      if (currentDraft) {
+        currentDraft.is_settled = isSettled;
+        currentDraft.isSettled = isSettled;
+      }
+    }
+    /* RECEIPT_SETTLED_CHECKBOX_20260705_END */
 
 function renderForm(item, drafts) {
       currentDraft = drafts[0] || null;
@@ -764,7 +792,26 @@ document.getElementById("formArea").innerHTML = `
                       <select id="targetPersonId">
                         ${optionHtml((receiptMasterOptions || {}).targetPeople || [], "target_person_id", "target_person_name", currentDraft.target_person_id)}
                       </select>
-                    </div>
+                      <!-- RECEIPT_SETTLED_CHECKBOX_20260705_UI_START -->
+                      <label
+                        class="receipt-settlement-check-label"
+                        style="display: flex; align-items: center; gap: 0.35rem; margin-top: 0.35rem; font-size: 0.75rem; font-weight: 900;"
+                      >
+                        <input
+                          id="isSettled"
+                          type="checkbox"
+                          value="${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "true" : "false"}"
+                          ${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "checked" : ""}
+                          onchange="updateReceiptSettledLabel()"
+                          style="width: auto !important; min-height: 0 !important; margin: 0;"
+                        >
+                        <span
+                          id="isSettledLabelText"
+                          style="color: ${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "#17652a" : "#b00020"};"
+                        >${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "清算済み" : "未精算"}</span>
+                      </label>
+                      <!-- RECEIPT_SETTLED_CHECKBOX_20260705_UI_END -->
+</div>
 
                     <div class="receipt-summary-field" style="grid-column: 2 / 3 !important; grid-row: 1 !important; order: 2 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>摘要</label>
@@ -1073,6 +1120,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         paymentMethodName: getInput("paymentMethodName"),
         receiptTimeText: getInput("receiptTimeText") || null,
         targetPersonId: getInput("targetPersonId"),
+        isSettled: !!(document.getElementById("isSettled") && document.getElementById("isSettled").checked),
+        is_settled: !!(document.getElementById("isSettled") && document.getElementById("isSettled").checked),
         purposeId: getInput("purposeId"),
         projectId: getInput("projectId"),
         departmentId: getInput("departmentId"),
@@ -1123,6 +1172,243 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       alert("保存しました。");
       await loadDetail(selectedId);
     }
+    /* RECEIPT_AUTO_DRAFT_SAVE_20260705_START */
+    /*
+      画面変更時の下書き自動保存。
+      - 保存ボタンは本保存用にする前提なので、ここでは押させない。
+      - input / select / textarea の変更を拾い、現在の下書きへ静かにPATCHする。
+      - 明細内訳モーダルは既存の saveTaxBreakdownsForCurrentDraft を使う。
+      - アラートは出さず、右下に状態だけ出す。
+    */
+    let receiptAutoDraftSaveTimer = null;
+    let receiptAutoDraftSaveRunning = false;
+    let receiptAutoDraftSaveQueued = false;
+    let receiptAutoDraftSaveLastJson = "";
+
+    let receiptAutoTaxSaveTimer = null;
+    let receiptAutoTaxSaveRunning = false;
+    let receiptAutoTaxSaveQueued = false;
+
+    function ensureReceiptAutoSaveStatus() {
+      let el = document.getElementById("receiptAutoSaveStatus");
+      if (el) return el;
+
+      el = document.createElement("div");
+      el.id = "receiptAutoSaveStatus";
+      el.style.position = "fixed";
+      el.style.right = "0.75rem";
+      el.style.bottom = "0.75rem";
+      el.style.zIndex = "100001";
+      el.style.padding = "0.4rem 0.65rem";
+      el.style.borderRadius = "0.45rem";
+      el.style.border = "0.0625rem solid #bbb";
+      el.style.background = "#ffffff";
+      el.style.color = "#333";
+      el.style.fontSize = "0.75rem";
+      el.style.fontWeight = "800";
+      el.style.boxShadow = "0 0.25rem 0.8rem rgba(0,0,0,0.18)";
+      el.style.display = "none";
+      document.body.appendChild(el);
+
+      return el;
+    }
+
+    function setReceiptAutoSaveStatus(text, kind) {
+      const el = ensureReceiptAutoSaveStatus();
+      el.textContent = String(text || "");
+      el.style.display = text ? "block" : "none";
+
+      if (kind === "error") {
+        el.style.borderColor = "#d95c5c";
+        el.style.background = "#ffe8e8";
+        el.style.color = "#8a1f1f";
+      } else if (kind === "saving") {
+        el.style.borderColor = "#d6a100";
+        el.style.background = "#fff7d6";
+        el.style.color = "#6b5000";
+      } else {
+        el.style.borderColor = "#72b979";
+        el.style.background = "#ecffef";
+        el.style.color = "#0f5f1d";
+      }
+    }
+
+    function getReceiptAutoSaveDraftId() {
+      if (!currentDraft || !currentDraft.id) return null;
+
+      const id = Number(currentDraft.id);
+      if (!Number.isFinite(id) || id <= 0) return null;
+
+      return id;
+    }
+
+    function queueReceiptDraftAutoSave(reason) {
+      const draftId = getReceiptAutoSaveDraftId();
+      if (!draftId) return;
+
+      const receiptId = Number(selectedId || 0);
+
+      clearTimeout(receiptAutoDraftSaveTimer);
+      setReceiptAutoSaveStatus("下書き保存待ち", "saving");
+
+      receiptAutoDraftSaveTimer = setTimeout(function () {
+        runReceiptDraftAutoSave(draftId, receiptId, reason || "change");
+      }, 700);
+    }
+
+    async function runReceiptDraftAutoSave(draftId, receiptId, reason) {
+      if (!draftId) return;
+
+      if (!currentDraft || Number(currentDraft.id) !== Number(draftId)) {
+        return;
+      }
+
+      if (Number(selectedId || 0) !== Number(receiptId || 0)) {
+        return;
+      }
+
+      if (receiptAutoDraftSaveRunning) {
+        receiptAutoDraftSaveQueued = true;
+        return;
+      }
+
+      let payload;
+
+      try {
+        payload = collectDraftPayload();
+      } catch (error) {
+        setReceiptAutoSaveStatus("下書き保存失敗", "error");
+        console.error("collectDraftPayload failed", error);
+        return;
+      }
+
+      const json = JSON.stringify(payload);
+
+      if (json === receiptAutoDraftSaveLastJson) {
+        setReceiptAutoSaveStatus("下書き保存済", "ok");
+        return;
+      }
+
+      receiptAutoDraftSaveRunning = true;
+      receiptAutoDraftSaveQueued = false;
+      setReceiptAutoSaveStatus("下書き保存中", "saving");
+
+      try {
+        const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(draftId), {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: json
+        });
+
+        const data = await res.json().catch(function () {
+          return { ok: false, error: "JSON読込失敗" };
+        });
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "下書き保存に失敗しました。");
+        }
+
+        receiptAutoDraftSaveLastJson = json;
+
+        if (data.draft) {
+          currentDraft = Object.assign({}, currentDraft || {}, data.draft);
+        }
+
+        setReceiptAutoSaveStatus("下書き保存済", "ok");
+      } catch (error) {
+        setReceiptAutoSaveStatus("下書き保存失敗", "error");
+        console.error("receipt auto draft save failed", error);
+      } finally {
+        receiptAutoDraftSaveRunning = false;
+
+        if (receiptAutoDraftSaveQueued) {
+          receiptAutoDraftSaveQueued = false;
+          setTimeout(function () {
+            runReceiptDraftAutoSave(draftId, receiptId, reason || "queued");
+          }, 250);
+        }
+      }
+    }
+
+    function queueReceiptTaxBreakdownAutoSave() {
+      if (typeof saveTaxBreakdownsForCurrentDraft !== "function") return;
+      if (typeof updateTaxBreakdown !== "function") return;
+      if (!currentReceiptAiDraftId) return;
+
+      const draftId = Number(currentReceiptAiDraftId || 0);
+      clearTimeout(receiptAutoTaxSaveTimer);
+      setReceiptAutoSaveStatus("明細内訳保存待ち", "saving");
+
+      receiptAutoTaxSaveTimer = setTimeout(function () {
+        runReceiptTaxBreakdownAutoSave(draftId);
+      }, 700);
+    }
+
+    async function runReceiptTaxBreakdownAutoSave(draftId) {
+      if (!draftId) return;
+      if (Number(currentReceiptAiDraftId || 0) !== Number(draftId)) return;
+
+      if (receiptAutoTaxSaveRunning) {
+        receiptAutoTaxSaveQueued = true;
+        return;
+      }
+
+      receiptAutoTaxSaveRunning = true;
+      receiptAutoTaxSaveQueued = false;
+      setReceiptAutoSaveStatus("明細内訳保存中", "saving");
+
+      try {
+        updateTaxBreakdown();
+        await saveTaxBreakdownsForCurrentDraft();
+        setReceiptAutoSaveStatus("明細内訳保存済", "ok");
+      } catch (error) {
+        setReceiptAutoSaveStatus("明細内訳保存失敗", "error");
+        console.error("receipt tax breakdown auto save failed", error);
+      } finally {
+        receiptAutoTaxSaveRunning = false;
+
+        if (receiptAutoTaxSaveQueued) {
+          receiptAutoTaxSaveQueued = false;
+          setTimeout(function () {
+            runReceiptTaxBreakdownAutoSave(draftId);
+          }, 250);
+        }
+      }
+    }
+
+    function handleReceiptAutoSaveEvent(event) {
+      const target = event && event.target ? event.target : null;
+      if (!target || !target.closest) return;
+
+      const tag = String(target.tagName || "").toUpperCase();
+      if (!["INPUT", "SELECT", "TEXTAREA"].includes(tag)) return;
+
+      if (target.id === "receiptCopySystemText") return;
+      if (target.classList && target.classList.contains("receipt-ai-check")) return;
+
+      if (target.closest("#taxBreakdownModal")) {
+        queueReceiptTaxBreakdownAutoSave();
+        return;
+      }
+
+      if (!target.closest("#formArea")) return;
+
+      queueReceiptDraftAutoSave(event.type || "change");
+    }
+
+    function installReceiptAutoDraftSave() {
+      if (window.receiptAutoDraftSaveInstalled) return;
+      window.receiptAutoDraftSaveInstalled = true;
+
+      document.addEventListener("input", handleReceiptAutoSaveEvent);
+      document.addEventListener("change", handleReceiptAutoSaveEvent);
+    }
+
+    installReceiptAutoDraftSave();
+    /* RECEIPT_AUTO_DRAFT_SAVE_20260705_END */
+
 
     async function deleteReceiptImport(id) {
       if (!id) return;
@@ -1357,65 +1643,122 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       );
     }
 
+        /* RECEIPT_POST_SAVE_HTML_20260705_START */
+    async function flushCurrentReceiptDraftBeforePost(ids) {
+      const list = Array.isArray(ids) ? ids.map((id) => Number(id)) : [];
+
+      if (!list.includes(Number(selectedId || 0))) {
+        return;
+      }
+
+      if (!currentDraft || !currentDraft.id) {
+        return;
+      }
+
+      try {
+        const payload = collectDraftPayload();
+        await patchDraftForBulk(currentDraft.id, payload);
+      } catch (error) {
+        throw new Error("現在表示中の下書き自動保存に失敗しました: " + (error && error.message ? error.message : error));
+      }
+    }
+
+    async function bulkPostReceiptImports(ids) {
+      const res = await fetch("/api/receipts/imports/bulk-post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({
+          receiptImportIds: ids
+        })
+      });
+
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+
+      if (!res.ok) {
+        throw new Error(data.error || "本保存APIが失敗しました。");
+      }
+
+      return data;
+    }
+
+    function buildBulkPostResultText(data) {
+      const summary = data.summary || {};
+      const results = Array.isArray(data.results) ? data.results : [];
+      const failed = results.filter((row) => !row.ok);
+      const already = results.filter((row) => row.ok && row.already_saved);
+
+      const lines = [];
+      lines.push("本保存結果");
+      lines.push("");
+      lines.push("対象: " + (summary.total ?? results.length) + " 件");
+      lines.push("成功: " + (summary.success ?? 0) + " 件");
+      lines.push("既に本保存済み: " + (summary.already_saved ?? already.length) + " 件");
+      lines.push("失敗: " + (summary.failed ?? failed.length) + " 件");
+
+      if (failed.length) {
+        lines.push("");
+        lines.push("失敗内容:");
+        failed.forEach((row) => {
+          lines.push("- ID " + (row.receipt_import_id || "") + ": " + (row.message || row.reason || "失敗"));
+        });
+      }
+
+      return lines.join("\n");
+    }
+
     async function bulkSaveCheckedReceipts() {
       const ids = getSelectedBulkReceiptIdsInListOrder();
 
       if (!ids.length) {
-        alert("保存するレシートにチェックを入れてください。");
+        await receiptAlert("本保存するレシートにチェックを入れてください。", "まとめて本保存");
         return;
       }
 
-      if (!confirm("チェックした " + ids.length + " 件を順番に保存しますか？")) {
+      if (!(await receiptConfirm(
+        "チェックした " + ids.length + " 件を本保存します。\n\n下書きは削除せず、本保存済みとして記録します。\n既に本保存済みのものは二重登録しません。\n\n実行しますか？",
+        "まとめて本保存"
+      ))) {
         return;
       }
 
       const button = document.getElementById("bulkSaveButton");
       const originalText = button ? button.textContent : "";
 
-      let success = 0;
-      let failed = 0;
-      let noDraft = 0;
-      const failedIds = [];
-
       setBulkButtonsDisabled(true);
 
       try {
-        for (let i = 0; i < ids.length; i++) {
-          const id = ids[i];
-
-          if (button) {
-            button.textContent = (i + 1) + " / " + ids.length + " 保存中";
-          }
-
-          try {
-            let draftId = null;
-            let payload = null;
-
-            if (Number(id) === Number(selectedId) && currentDraft) {
-              draftId = currentDraft.id;
-              payload = collectDraftPayload();
-            } else {
-              const detail = await fetchReceiptDetailForBulk(id);
-              const drafts = detail.aiDrafts || detail.ai_drafts || [];
-              const draft = drafts[0] || null;
-
-              if (!draft || !draft.id) {
-                noDraft++;
-                continue;
-              }
-
-              draftId = draft.id;
-              payload = buildDraftPayloadForBulk(draft);
-            }
-
-            await patchDraftForBulk(draftId, payload);
-            success++;
-          } catch (error) {
-            failed++;
-            failedIds.push(id);
-            console.error("まとめて保存失敗 ID " + id, error);
-          }
+        if (button) {
+          button.textContent = "本保存準備中";
         }
+
+        await flushCurrentReceiptDraftBeforePost(ids);
+
+        if (button) {
+          button.textContent = "本保存中";
+        }
+
+        const data = await bulkPostReceiptImports(ids);
+        const message = buildBulkPostResultText(data);
+
+        selectedBulkReceiptIds.clear();
+
+        if (selectedId) {
+          await loadDetail(selectedId);
+        } else {
+          await loadList();
+        }
+
+        await receiptAlert(message, "まとめて本保存");
+      } catch (error) {
+        await receiptError(
+          "まとめて本保存に失敗しました。",
+          error && error.stack ? error.stack : String(error || ""),
+          "まとめて本保存"
+        );
       } finally {
         if (button) {
           button.textContent = originalText || "まとめて保存";
@@ -1423,22 +1766,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
         setBulkButtonsDisabled(false);
       }
-
-      if (selectedId) {
-        await loadDetail(selectedId);
-      } else {
-        await loadList();
-      }
-
-      alert(
-        "まとめて保存完了\n" +
-        "成功: " + success + " 件\n" +
-        "AI候補なし: " + noDraft + " 件\n" +
-        "失敗: " + failed + " 件" +
-        (failedIds.length ? "\n失敗ID: " + failedIds.join(", ") : "")
-      );
     }
-
+    /* RECEIPT_POST_SAVE_HTML_20260705_END */
     /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_END */
 
     /* RECEIPT_DINING_REVIEW_UI_START */
@@ -1699,6 +2028,133 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       setTimeout(window.updateReceiptLineCountBadge, 0);
     })();
     /* RECEIPT_LINE_COUNT_BADGE_SAFE_20260705_END */
+    /* RECEIPT_LINE_TAX_CATEGORY_SELECT_20260705_START */
+    (function () {
+      if (window.receiptLineTaxCategorySelectInstalled) return;
+      window.receiptLineTaxCategorySelectInstalled = true;
+
+      function receiptLineTaxCategoryOptions(currentName) {
+        const current = String(currentName || "").trim();
+
+        const masterItems =
+          receiptMasterOptions &&
+          Array.isArray(receiptMasterOptions.taxCategories)
+            ? receiptMasterOptions.taxCategories
+            : [];
+
+        if (masterItems.length) {
+          const body = masterItems.map((item) => {
+            const name = String(
+              item.tax_name ||
+              item.taxCategoryName ||
+              item.tax_category_name ||
+              item.name ||
+              item.label ||
+              ""
+            ).trim();
+
+            if (!name) return "";
+
+            const selected = name === current ? " selected" : "";
+            return '<option value="' + esc(name) + '"' + selected + '>' + esc(name) + '</option>';
+          }).join("");
+
+          return '<option value="">選択</option>' + body;
+        }
+
+        const fallback = ["", "課税10%", "軽減8%", "非課税", "不課税", "対象外", "不明"];
+
+        return fallback.map((name) => {
+          const label = name || "選択";
+          const selected = name === current ? " selected" : "";
+          return '<option value="' + esc(name) + '"' + selected + '>' + esc(label) + '</option>';
+        }).join("");
+      }
+
+      function receiptNormalizeLineTaxCategoryName(line) {
+        if (!line) return "";
+
+        const explicit = String(
+          line.taxCategoryName ||
+          line.tax_category_name ||
+          line.taxCategory ||
+          line.tax_category ||
+          ""
+        ).trim();
+
+        if (explicit) return explicit;
+
+        const rate = String(line.taxRate || line.tax_rate || "").trim();
+
+        if (rate === "10%" || rate === "10") return "課税10%";
+        if (rate === "8%" || rate === "8") return "軽減8%";
+        if (rate === "非課税") return "非課税";
+        if (rate === "不課税") return "不課税";
+        if (rate === "対象外") return "対象外";
+        if (rate === "不明") return "不明";
+
+        return "";
+      }
+
+      function receiptApplyLineTaxCategorySelect() {
+        const table = document.querySelector("#receiptLineItemsModalBody table.lines");
+        if (!table || !Array.isArray(currentLineItems)) return;
+
+        const headerRow = table.querySelector("thead tr");
+        if (headerRow) {
+          Array.from(headerRow.children).forEach((th) => {
+            if (String(th.textContent || "").trim() === "税率") {
+              th.textContent = "税区分";
+              th.classList.add("receipt-line-tax-category-head");
+            }
+          });
+        }
+
+        const rows = Array.from(table.querySelectorAll("tbody tr"));
+        rows.forEach((row, index) => {
+          const line = currentLineItems[index];
+          if (!line) return;
+
+          const cells = Array.from(row.children);
+          const headerCells = headerRow ? Array.from(headerRow.children) : [];
+          const taxIndex = headerCells.findIndex((th) => {
+            const text = String(th.textContent || "").trim();
+            return text === "税区分" || text === "税率";
+          });
+
+          if (taxIndex < 0 || !cells[taxIndex]) return;
+
+          if (line.taxCategoryName === undefined) {
+            line.taxCategoryName = receiptNormalizeLineTaxCategoryName(line);
+          }
+
+          const td = cells[taxIndex];
+          td.classList.add("receipt-line-tax-category-cell");
+
+          td.innerHTML =
+            '<select class="receipt-line-tax-category-select" ' +
+            'onchange="currentLineItems[' + index + '].taxCategoryName=this.value; currentLineItems[' + index + '].taxRate=this.value">' +
+            receiptLineTaxCategoryOptions(line.taxCategoryName) +
+            '</select>';
+        });
+      }
+
+      window.receiptApplyLineTaxCategorySelect = receiptApplyLineTaxCategorySelect;
+
+      const originalRenderLineItemsModalBody = window.renderLineItemsModalBody;
+      if (typeof originalRenderLineItemsModalBody === "function" && !originalRenderLineItemsModalBody.__taxCategorySelectWrapped) {
+        const wrapped = function () {
+          originalRenderLineItemsModalBody.apply(this, arguments);
+          setTimeout(receiptApplyLineTaxCategorySelect, 0);
+          setTimeout(receiptApplyLineTaxCategorySelect, 150);
+        };
+
+        wrapped.__taxCategorySelectWrapped = true;
+        window.renderLineItemsModalBody = wrapped;
+        renderLineItemsModalBody = wrapped;
+      }
+    })();
+    /* RECEIPT_LINE_TAX_CATEGORY_SELECT_20260705_END */
     /* RECEIPT_LINE_TAX_TREATMENT_SELECT_20260705_START */
     (function () {
       if (window.receiptLineTaxTreatmentSelectInstalled) return;
@@ -3371,6 +3827,13 @@ loadList();
 <!-- RECEIPT_CONFIRM_REQUIRED_FILL_20260705_END -->
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 

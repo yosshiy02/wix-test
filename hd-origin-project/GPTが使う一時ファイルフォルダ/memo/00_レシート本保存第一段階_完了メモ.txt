@@ -1,0 +1,81 @@
+﻿==============================
+レシート本保存第一段階 完了メモ
+==============================
+日時: 2026-07-05 17:38:22
+
+[結論]
+レシート本保存第一段階は完了。
+
+[本保存テスト結果]
+対象: 1 件
+成功: 1 件
+既に本保存済み: 0 件
+失敗: 0 件
+
+[完了した内容]
+- レシート下書き自動保存
+- 黄色エリアの対象者下に 未精算 / 清算済み チェック追加
+- 初期値 false = 未精算
+- true = 清算済み
+- 未精算は赤、清算済みは緑
+- is_settled をDB保存対応
+- accounting.receipt_draft_details.is_settled 追加済み
+- accounting.receipt_details.is_settled 追加済み
+- 下書きPATCHで is_settled 保存対応
+- 詳細取得で is_settled / isSettled 返却対応
+- 本保存時に下書き明細から本保存明細へ is_settled コピー対応
+- 本保存API動作確認
+- 本保存済みは通常一覧から除外
+- include_saved=1 の場合のみ保存済みも表示
+
+[確認済み]
+通常一覧:
+http://localhost:3000/api/receipts/imports?limit=100
+
+結果:
+本保存済み ID15 は通常一覧から消えた。
+
+保存済み込み一覧:
+http://localhost:3000/api/receipts/imports?limit=100&include_saved=1
+
+結果:
+ID15 が status=本保存済み で表示された。
+
+[重要な考え方]
+レシート本保存 = 証憑として会社に保存すること。
+レシート本保存 = 清算済み、ではない。
+
+清算済みかどうかは is_settled で別管理する。
+対象者 = 基本的にお金を渡す相手、精算相手として扱う。
+
+[今回発生した注意点]
+- migration 実行時に日本語コメント/BOMと思われる文字コード問題が出た。
+- そのため最初は receipt_details 側だけ is_settled が追加された。
+- 後から psql -c で receipt_draft_details / receipt_details の両方に ADD COLUMN IF NOT EXISTS を実行。
+- 最終確認では2テーブルとも is_settled boolean default false を確認済み。
+- 今後のmigrationは、日本語コメントなし、またはUTF-8固定に注意する。
+
+[最後に修正した点]
+- 本保存自体は成功したが、通常一覧に status=本保存済み のID15が残った。
+- receipts.routes.js 側で repo返却後にも二重フィルターを追加。
+- include_saved=false の場合、本保存済み / saved / posted / completed を除外。
+- include_saved=1 の場合は保存済みも表示。
+
+[現在の到達点]
+- 下書き保存 OK
+- 清算済みチェック OK
+- DB保存 OK
+- 本保存 OK
+- 本保存済み通常一覧除外 OK
+- include_saved=1 逃げ道 OK
+
+[次にやるなら]
+1. 2件目以降のレシートで同じ流れを確認
+2. 同じレシートを再度まとめて保存して、既に本保存済みになるか確認
+3. DB側で receipts / receipt_details / receipt_detail_breakdowns を直接確認
+4. 必要なら保存済み一覧画面を別途作る
+5. 本保存済みレシートの取消・無効処理を将来検討
+
+[状態]
+UNDO不要。
+レシート本保存第一段階は完了。

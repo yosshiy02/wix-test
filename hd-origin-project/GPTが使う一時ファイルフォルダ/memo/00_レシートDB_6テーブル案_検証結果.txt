@@ -1,0 +1,23 @@
+﻿==============================
+レシートDB 6テーブル案 検証結果
+==============================
+日時: 2026-07-05 14:47:47
+
+検証結果:
+OK: 下書き3テーブル / 本保存3テーブル方針
+OK: マスタID型 BIGINT
+OK: OCR本文は明細側
+OK: 明細内訳の項目絞り込み
+OK: 下書き→本保存の元ID追跡
+
+修正対象:
+draft_status TEXT NOT NULL DEFAULT '下書き'
+↓
+draft_status TEXT NOT NULL DEFAULT '取込済み'
+
+注意:
+DBへはまだ実行しない。
+db.bootstrap.js へはまだ入れない。
+
+SQL案修正: OK
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\database\design\receipt_6tables_design_draft.sql

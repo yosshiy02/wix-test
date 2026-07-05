@@ -1,0 +1,20 @@
+﻿==============================
+レシート新6 税区分税処理保存補正結果
+==============================
+日時: 2026-07-05 15:49:40
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+
+実施内容:
+- createReceiptDraftFromAi をV2で再上書きしました。
+- AI解析結果の税区分・税処理を明細内訳へ入れるようにしました。
+- 旧 receipt_ai_drafts は触っていません。
+- 既存3件のnullデータはまだ変わりません。
+
+node --check ExitCode: 0
+
+判定: OK
+構文チェックOKです。
+
+次:
+サーバー再起動後、1件新しくAI解析してください。
+その新規解析分で tax_category_id / tax_treatment_id が入るか確認します。

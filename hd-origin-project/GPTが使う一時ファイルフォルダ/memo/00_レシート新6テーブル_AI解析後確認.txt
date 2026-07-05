@@ -1,0 +1,50 @@
+﻿==============================
+レシート新6テーブル AI解析後確認
+==============================
+日時: 2026-07-05 15:15:28
+DB: hd_origin_project
+Host: 127.0.0.1
+
+確認目的:
+AI解析後の保存先が旧 receipt_ai_drafts ではなく、新6テーブル側になっているか確認する。
+
+期待する状態:
+- receipt_imports は 1以上
+- receipt_drafts は 1以上
+- receipt_draft_details は 1以上
+- receipt_ai_drafts は 0 のままが望ましい
+- receipt_tax_breakdowns は 0 のままが望ましい
+- 本保存側 receipts / receipt_details / receipt_detail_breakdowns はまだ 0
+
+[psql結果]
+           table_name            | count 
+---------------------------------+-------
+ receipt_ai_drafts               |     0
+ receipt_detail_breakdowns       |     0
+ receipt_details                 |     0
+ receipt_draft_detail_breakdowns |     0
+ receipt_draft_details           |     0
+ receipt_drafts                  |     0
+ receipt_imports                 |     0
+ receipt_tax_breakdowns          |     0
+ receipts                        |     0
+(9 行)
+
+ draft_receipt_id | receipt_import_id | receipt_name | receipt_image_path | receipt_imported_at | image_hash_sha256 | draft_status | created_at 
+------------------+-------------------+--------------+--------------------+---------------------+-------------------+--------------+------------
+(0 行)
+
+ draft_receipt_detail_id | draft_receipt_id | receipt_import_id | transaction_date | receipt_time_text | vendor_name | vendor_address | vendor_phone | payment_method_id | total_amount | tax_total_amount | invoice_number | invoice_type_id | evidence_type_id | evidence_memo | target_person_id | summary | memo | account_title_id | purpose_id | project_id | department_id | ocr_raw_text_head | created_at 
+-------------------------+------------------+-------------------+------------------+-------------------+-------------+----------------+--------------+-------------------+--------------+------------------+----------------+-----------------+------------------+---------------+------------------+---------+------+------------------+------------+------------+---------------+-------------------+------------
+(0 行)
+
+ draft_receipt_detail_breakdown_id | draft_receipt_id | draft_receipt_detail_id | item_name | quantity | unit_price | amount | tax_category_id | tax_treatment_id | note | created_at 
+-----------------------------------+------------------+-------------------------+-----------+----------+------------+--------+-----------------+------------------+------+------------
+(0 行)
+
+
+ExitCode: 0
+
+[判定メモ]
+psqlは正常終了しました。
+件数を見て、新6テーブル側へ入ったか確認してください。

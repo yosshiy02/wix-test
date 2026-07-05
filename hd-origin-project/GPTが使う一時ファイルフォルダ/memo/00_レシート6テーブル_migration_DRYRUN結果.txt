@@ -1,0 +1,43 @@
+﻿==============================
+レシート6テーブル migration DRYRUN結果
+==============================
+日時: 2026-07-05 14:54:20
+DB: hd_origin_project
+Host: 127.0.0.1
+Migration: G:\GITHUB\wix-test\hd-origin-project\database\migrations\20260705_001_receipt_6tables.sql
+
+内容:
+BEGIN → migration実行 → ROLLBACK
+つまり、構文と参照先だけ確認し、DBには残しません。
+
+[psql結果]
+BEGIN
+psql:G:/GITHUB/wix-test/hd-origin-project/database/migrations/20260705_001_receipt_6tables.sql:14: NOTICE:  schema "accounting" already exists, skipping
+CREATE SCHEMA
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ROLLBACK
+
+[判定]
+OK: DRYRUN成功。構文と参照先は通りました。
+DB変更はROLLBACK済みなので残っていません。
+
+ExitCode: 0

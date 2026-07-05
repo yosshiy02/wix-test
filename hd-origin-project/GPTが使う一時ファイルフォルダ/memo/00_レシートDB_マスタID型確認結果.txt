@@ -1,0 +1,30 @@
+﻿==============================
+レシートDB マスタID型確認結果
+==============================
+日時: 2026-07-05 14:42:01
+DB: hd_origin_project
+Host: 127.0.0.1
+
+[確認目的]
+新しく作るレシート系テーブルの *_id 型を、既存マスタ側のID型と揃えるため。
+
+[psql結果]
+ table_schema |   table_name    |    column_name    | data_type | udt_name 
+--------------+-----------------+-------------------+-----------+----------
+ expenses     | account_titles  | account_title_id  | bigint    | int8
+ expenses     | departments     | department_id     | bigint    | int8
+ expenses     | evidence_types  | evidence_type_id  | bigint    | int8
+ expenses     | invoice_types   | invoice_type_id   | bigint    | int8
+ expenses     | payment_methods | payment_method_id | bigint    | int8
+ expenses     | projects        | project_id        | bigint    | int8
+ expenses     | purposes        | purpose_id        | bigint    | int8
+ expenses     | target_people   | target_person_id  | bigint    | int8
+ expenses     | tax_categories  | tax_category_id   | bigint    | int8
+ expenses     | tax_treatments  | tax_treatment_id  | bigint    | int8
+(10 行)
+
+
+[見方]
+data_type が integer なら、新テーブル側も INTEGER にする。
+data_type が bigint なら、新テーブル側も BIGINT にする。
+ここで既存マスタIDの型に合わせる。

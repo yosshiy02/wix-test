@@ -1,0 +1,20 @@
+﻿==============================
+レシート analyze 新6テーブル切替結果
+==============================
+日時: 2026-07-05 15:13:11
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.routes.js
+
+実施内容:
+- POST /api/receipts/imports/:id/analyze の保存先を切り替えました。
+- 旧 createAiDraft は削除していません。
+- 税内訳API、画面保存APIはまだ触っていません。
+
+変更:
+const saved = await repo.createAiDraft(item.id, analyzed);
+↓
+const saved = await repo.createReceiptDraftFromAi(item.id, analyzed);
+
+node --check ExitCode: 0
+
+判定: OK
+receipts.routes.js の構文チェックは通りました。

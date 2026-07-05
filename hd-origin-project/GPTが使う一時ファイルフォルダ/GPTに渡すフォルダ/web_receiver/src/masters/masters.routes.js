@@ -1,0 +1,171 @@
+const { sendJson, readBody } = require("../response");
+const repo = require("./master.repository");
+
+function normalizeUrl(url) {
+  return String(url || "").split("?")[0].replace(/\/+$/, "");
+}
+
+function parseMasterType(url) {
+  const clean = normalizeUrl(url);
+
+  let match = clean.match(/^\/api\/masters\/([^\/]+)$/);
+  if (match) return decodeURIComponent(match[1]);
+
+  match = clean.match(/^\/api\/master\/([^\/]+)$/);
+  if (match) return decodeURIComponent(match[1]);
+
+  return null;
+}
+
+function parseMasterTarget(url) {
+  const clean = normalizeUrl(url);
+
+  let match = clean.match(/^\/api\/masters\/([^\/]+)\/(\d+)$/);
+  if (match) {
+    return {
+      type: decodeURIComponent(match[1]),
+      id: Number(match[2])
+    };
+  }
+
+  match = clean.match(/^\/api\/master\/([^\/]+)\/(\d+)$/);
+  if (match) {
+    return {
+      type: decodeURIComponent(match[1]),
+      id: Number(match[2])
+    };
+  }
+
+  return null;
+}
+
+async function readJson(req) {
+  const raw = await readBody(req);
+  return JSON.parse(raw || "{}");
+}
+
+async function handleMasterRoutes(req, res) {
+  const clean = normalizeUrl(req.url);
+  const parsedForQuery = new URL(req.url, "http://localhost");
+  const queryType = parsedForQuery.searchParams.get("type");
+
+  if (req.method === "GET" && clean === "/api/masters" && queryType) {
+    const rows = await repo.listMasters(queryType);
+
+    sendJson(res, 200, {
+      ok: true,
+      type: queryType,
+      items: rows,
+      rows,
+      masters: rows
+    });
+
+    return true;
+  }
+
+  if (req.method === "GET" && (
+    clean === "/api/masters" ||
+    clean === "/api/masters/types" ||
+    clean === "/api/master" ||
+    clean === "/api/master/types"
+  )) {
+    const types = await repo.listMasterTypes();
+
+    sendJson(res, 200, {
+      ok: true,
+      types
+    });
+
+    return true;
+  }
+
+  if (req.method === "GET") {
+    const type = parseMasterType(req.url);
+
+    if (type && type !== "types") {
+      const rows = await repo.listMasters(type);
+
+      sendJson(res, 200, {
+        ok: true,
+        type,
+        rows,
+        masters: rows
+      });
+
+      return true;
+    }
+  }
+
+  if (req.method === "POST" && clean === "/api/masters") {
+    const payload = await readJson(req);
+
+    if (payload.type) {
+      const row = await repo.createMaster(payload.type, payload);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "マスタを追加しました。",
+        row,
+        item: row
+      });
+
+      return true;
+    }
+  }
+
+  if (req.method === "POST") {
+    const type = parseMasterType(req.url);
+
+    if (type) {
+      const payload = await readJson(req);
+      const row = await repo.createMaster(type, payload);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "マスタを追加しました。",
+        row
+      });
+
+      return true;
+    }
+  }
+
+  if (req.method === "PUT" || req.method === "PATCH") {
+    const target = parseMasterTarget(req.url);
+
+    if (target) {
+      const payload = await readJson(req);
+      const row = await repo.updateMaster(target.type, target.id, payload);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "マスタを更新しました。",
+        row
+      });
+
+      return true;
+    }
+  }
+
+  if (req.method === "DELETE") {
+    const target = parseMasterTarget(req.url);
+
+    if (target) {
+      const row = await repo.disableMaster(target.type, target.id);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "マスタを無効化しました。",
+        row
+      });
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+module.exports = {
+  handleMasterRoutes
+};
