@@ -33,7 +33,7 @@ DB_PASSWORD等の秘密情報は伏せています。
 - PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。
 
 [生成情報]
-生成日時: 2026/7/5 8:53:39
+生成日時: 2026/7/5 12:13:15
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -134,26 +134,28 @@ hd-origin-project\
 │  │  │  └─ migrations\
 │  │  │     ├─ 20260703_001_baseline_current_schema.sql
 │  │  │     └─ README_MIGRATIONS.txt
-│  │  └─ web_receiver\
-│  │     ├─ public\
-│  │     │  ├─ masters\
-│  │     │  │  └─ master-management.html
-│  │     │  ├─ receipts\
-│  │     │  │  ├─ receipt-list.css
-│  │     │  │  └─ receipt-list.html
-│  │     │  └─ settings.html
-│  │     └─ src\
-│  │        ├─ backups\
-│  │        │  └─ backup.service.js
-│  │        ├─ masters\
-│  │        │  └─ master.repository.js
-│  │        ├─ migrations\
-│  │        │  └─ migration.service.js
-│  │        ├─ receipts\
-│  │        │  ├─ receipts.ai.js
-│  │        │  └─ receipts.repository.js
-│  │        ├─ config.js
-│  │        └─ projectStatus.js
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  ├─ masters\
+│  │  │  │  │  └─ master-management.html
+│  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipt-list.css
+│  │  │  │  │  └─ receipt-list.html
+│  │  │  │  └─ settings.html
+│  │  │  ├─ src\
+│  │  │  │  ├─ backups\
+│  │  │  │  │  └─ backup.service.js
+│  │  │  │  ├─ masters\
+│  │  │  │  │  └─ master.repository.js
+│  │  │  │  ├─ migrations\
+│  │  │  │  │  └─ migration.service.js
+│  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipts.ai.js
+│  │  │  │  │  └─ receipts.repository.js
+│  │  │  │  ├─ config.js
+│  │  │  │  └─ projectStatus.js
+│  │  │  └─ server.js
+│  │  └─ restart_hd_origin.bat
 │  ├─ apply\
 │  │  ├─ apply_backup_migration_snapshot_v2.ps1
 │  │  ├─ apply_backup_split_schema_data.ps1
@@ -187,6 +189,7 @@ hd-origin-project\
 │  │  ├─ apply_receipt_editor_card_layout.ps1
 │  │  ├─ apply_receipt_green_outside_grid_html_fixed_20260704_222047.ps1
 │  │  ├─ apply_receipt_layout_group_fix_20260704_201236.ps1
+│  │  ├─ apply_receipt_line_count_window_fix_20260705_091544.ps1
 │  │  ├─ apply_receipt_list_account_title_display_and_label_remove.ps1
 │  │  ├─ apply_receipt_list_css_split_20260705_071714.ps1
 │  │  ├─ apply_receipt_list_layout_repair.ps1
@@ -195,6 +198,7 @@ hd-origin-project\
 │  │  ├─ apply_receipt_remove_layout_lines_20260704_201659.ps1
 │  │  ├─ apply_receipt_repository_accounting_hotfix.ps1
 │  │  ├─ apply_receipt_repository_remove_wrong_expenses_override.ps1
+│  │  ├─ apply_receipt_server_restart_button_20260705_110700.ps1
 │  │  ├─ apply_receipt_target_block_meaning_fix_20260704_221317.ps1
 │  │  ├─ apply_receipt_target_person_back_to_yellow_20260704_221004.ps1
 │  │  ├─ apply_receipt_target_person_purple_remove_20260704_220535.ps1
@@ -203,6 +207,7 @@ hd-origin-project\
 │  │  ├─ apply_receipt_yellow_area_3row_html_20260704_225316.ps1
 │  │  ├─ apply_receipt_yellow_group_target_inside_3row_20260704_225749.ps1
 │  │  ├─ apply_receipt_yellow_under_blue_green_out_20260704_221627.ps1
+│  │  ├─ apply_receipts_ai_company_account_prompt_20260705_110056.ps1
 │  │  ├─ apply_remove_last_apply_group_row_css_20260704_230408.ps1
 │  │  ├─ apply_right_receipt_space_2fr.ps1
 │  │  ├─ apply_yellow_height_expand_20260704_232458.ps1
@@ -240,6 +245,8 @@ hd-origin-project\
 │  │  │  │  │  ├─ receipt-list_before_date_time_into_vendor_container.html
 │  │  │  │  │  ├─ receipt-list_before_debug_all_area_outline.html
 │  │  │  │  │  ├─ receipt-list_before_dining_review_ui.html
+│  │  │  │  │  ├─ receipt-list_before_duplicate_guard_final_20260705_102036.html
+│  │  │  │  │  ├─ receipt-list_before_duplicate_guard_position_fix_20260705_101806.html
 │  │  │  │  │  ├─ receipt-list_before_editor_card_layout.ps1.html
 │  │  │  │  │  ├─ receipt-list_before_emergency_repair_20260704_202747.html
 │  │  │  │  │  ├─ receipt-list_before_exact_time_field_insert.html
@@ -259,6 +266,7 @@ hd-origin-project\
 │  │  │  │  │  ├─ receipt-list_before_line_block_title_color_v2_20260705_080417.html
 │  │  │  │  │  ├─ receipt-list_before_line_count_badge_safe_20260705_081414.css
 │  │  │  │  │  ├─ receipt-list_before_line_count_badge_safe_20260705_081414.html
+│  │  │  │  │  ├─ receipt-list_before_line_count_window_fix_20260705_091544.html
 │  │  │  │  │  ├─ receipt-list_before_line_items_color_20260705_080031.css
 │  │  │  │  │  ├─ receipt-list_before_line_items_modal_20260705_080648.css
 │  │  │  │  │  ├─ receipt-list_before_line_items_modal_20260705_080648.html
@@ -269,6 +277,9 @@ hd-origin-project\
 │  │  │  │  │  ├─ receipt-list_before_line_title_color_20260705_080143.css
 │  │  │  │  │  ├─ receipt-list_before_master_candidate_name_20260705_075628.css
 │  │  │  │  │  ├─ receipt-list_before_master_candidate_name_20260705_075628.html
+│  │  │  │  │  ├─ receipt-list_before_master_duplicate_guard_20260705_101153.html
+│  │  │  │  │  ├─ receipt-list_before_master_duplicate_guard_v2_20260705_101601.html
+│  │  │  │  │  ├─ receipt-list_before_master_register_screen_refresh_20260705_103221.html
 │  │  │  │  │  ├─ receipt-list_before_master_selected_display_20260705_075137.css
 │  │  │  │  │  ├─ receipt-list_before_master_selected_display_20260705_075137.html
 │  │  │  │  │  ├─ receipt-list_before_move_target_person_into_yellow_html_20260704_230724.html
@@ -293,6 +304,7 @@ hd-origin-project\
 │  │  │  │  │  ├─ receipt-list_before_remove_last_apply_group_row_css_20260704_230408.html
 │  │  │  │  │  ├─ receipt-list_before_remove_layout_lines_20260704_201659.html
 │  │  │  │  │  ├─ receipt-list_before_remove_temp_master_inputs_20260705_074301.html
+│  │  │  │  │  ├─ receipt-list_before_restart_button_20260705_110700.html
 │  │  │  │  │  ├─ receipt-list_before_right_receipt_space_2fr.html
 │  │  │  │  │  ├─ receipt-list_before_right_space_half.html
 │  │  │  │  │  ├─ receipt-list_before_right_space_only.html
@@ -342,6 +354,10 @@ hd-origin-project\
 │  │  │  │  │  ├─ migration.service_before_bom_fix_v2.js
 │  │  │  │  │  └─ migration.service_before_bom_fix.js
 │  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipts.ai_before_account_title_prompt_strong_20260705_092252.js
+│  │  │  │  │  ├─ receipts.ai_before_account_title_prompt_strong_v2_20260705_092352.js
+│  │  │  │  │  ├─ receipts.ai_before_business_trip_meeting_tuning_20260705_100258.js
+│  │  │  │  │  ├─ receipts.ai_before_company_account_prompt_20260705_110056.js
 │  │  │  │  │  ├─ receipts.ai_before_dining_meeting_rule.js
 │  │  │  │  │  ├─ receipts.ai_before_dot_parsed_fix.js
 │  │  │  │  │  ├─ receipts.ai_before_force_time_fallback.js
@@ -349,13 +365,24 @@ hd-origin-project\
 │  │  │  │  │  ├─ receipts.ai_before_master_hints.js
 │  │  │  │  │  ├─ receipts.ai_before_ocr_time_extract.js
 │  │  │  │  │  ├─ receipts.ai_before_purpose_ai_master_hints.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_business_meeting_priority_20260705_100521.js
 │  │  │  │  │  ├─ receipts.ai_before_purpose_hints.html
+│  │  │  │  │  ├─ receipts.ai_before_purpose_name_required_20260705_093749.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_name_required_v2_20260705_093851.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_name_required_v3_20260705_093944.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_null_ban_candidate_20260705_095803.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_osaka_rule_20260705_093456.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_priority_outside_osaka_20260705_100024.js
+│  │  │  │  │  ├─ receipts.ai_before_purpose_prompt_ai_only_20260705_095158.js
 │  │  │  │  │  ├─ receipts.ai_before_receipt_time_null_rule.js
 │  │  │  │  │  ├─ receipts.ai_before_receipt_time_ocr_extract_final.js
 │  │  │  │  │  ├─ receipts.ai_before_time_ai_minimal_fix.js
 │  │  │  │  │  ├─ receipts.repository_before_account_titles_master_options_20260705_085301.js
 │  │  │  │  │  ├─ receipts.repository_before_accounting_hotfix.js
 │  │  │  │  │  ├─ receipts.repository_before_ai_master_hints_save.js
+│  │  │  │  │  ├─ receipts.repository_before_create_ai_draft_purpose_save_20260705_094144.js
+│  │  │  │  │  ├─ receipts.repository_before_create_ai_draft_purpose_save_v2_20260705_094304.js
+│  │  │  │  │  ├─ receipts.repository_before_create_ai_draft_purpose_save_v3_20260705_094351.js
 │  │  │  │  │  └─ receipts.repository_before_remove_wrong_expenses_override.js
 │  │  │  │  ├─ config_before_backup_clone_dir_safe.js
 │  │  │  │  ├─ config_before_backup_clone_dir.js
@@ -369,23 +396,25 @@ hd-origin-project\
 │  │  │  │  ├─ projectStatus_before_temp_folder_clean_rule_final.js
 │  │  │  │  ├─ projectStatus_before_temp_folder_clean_rule.js
 │  │  │  │  └─ projectStatus.js
+│  │  │  ├─ server_before_restart_button_20260705_110700.js
 │  │  │  └─ start_hd_origin.bat
-│  │  └─ PROJECT_STATUS_FOR_GPT.txt
+│  │  ├─ PROJECT_STATUS_FOR_GPT.txt
+│  │  └─ restart_hd_origin_before_restart_button_20260705_110700.bat
 │  ├─ GPTに渡すフォルダ\
-│  │  ├─ public\
-│  │  │  └─ receipts\
-│  │  │     └─ receipt-list.html
 │  │  ├─ src\
-│  │  │  ├─ masters\
-│  │  │  │  └─ master.repository.js
-│  │  │  ├─ receipts\
-│  │  │  │  └─ receipts.routes.js
-│  │  │  └─ db.js
-│  │  └─ 00_収集結果_最低限_勘定科目マスタ確認.txt
+│  │  │  └─ config.js
+│  │  ├─ 00_収集結果_最低限_サーバー再起動_BAT系.txt
+│  │  ├─ env_initializer.py
+│  │  ├─ HD_ORIGIN_PC_RULES.txt
+│  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
+│  │  ├─ run_env_initializer.bat
+│  │  ├─ server.js
+│  │  └─ start_hd_origin.bat
 │  ├─ memo\
 │  │  ├─ 00_apply_group_id_check.txt
 │  │  ├─ 00_baseline_migration_適用結果.txt
 │  │  ├─ 00_color_block_check.txt
+│  │  ├─ 00_createAiDraft_現物確認_20260705_094216.txt
 │  │  ├─ 00_DBバックアップ_2か所比較確認結果.txt
 │  │  ├─ 00_DBバックアップ_2か所保存_実作成テスト結果.txt
 │  │  ├─ 00_DBバックアップ_2か所保存後_整合性確認結果.txt
@@ -427,6 +456,7 @@ hd-origin-project\
 │  │  ├─ 00_receipt_list_CSS分離_準備結果_20260705_071714.txt
 │  │  ├─ 00_receipt_list_時刻欄差し込み前_現物確認.txt
 │  │  ├─ 00_receipt_remove_layout_lines_result_20260704_201659.txt
+│  │  ├─ 00_registerReceiptMasterFromCandidate_現物_20260705_101904.txt
 │  │  ├─ 00_TODO削除_projectStatus収集結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_after作成結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_反映結果.txt
@@ -447,14 +477,31 @@ hd-origin-project\
 │  │  ├─ 00_マスタ管理_表示順上下ボタン追加結果.txt
 │  │  ├─ 00_マスタ管理不具合修正用_収集結果.txt
 │  │  ├─ 00_まとめて保存_候補名payload修正_20260705_075806.txt
+│  │  ├─ 00_レシート_マスタ重複防止_HTML正規チェック_20260705_101312.txt
+│  │  ├─ 00_レシート_マスタ重複防止_最終修正_20260705_102036.txt
+│  │  ├─ 00_レシート_マスタ新規登録_重複防止_20260705_101153.txt
+│  │  ├─ 00_レシート_マスタ新規登録_重複防止_v2_20260705_101601.txt
+│  │  ├─ 00_レシート_マスタ登録後画面反映_20260705_103221.txt
 │  │  ├─ 00_レシートAI_マスタ候補対応_修正準備.txt
 │  │  ├─ 00_レシートAI_飲食代会議費候補_UI要確認表示.txt
+│  │  ├─ 00_レシートAI_会社基本情報_勘定科目プロンプト追加_20260705_110056.txt
+│  │  ├─ 00_レシートAI_勘定科目候補_信頼度強化_v2_20260705_092352.txt
+│  │  ├─ 00_レシートAI_出張先会議と出張先打合せ調整_20260705_100258.txt
+│  │  ├─ 00_レシートAI_商談より出張先打合せ優先_20260705_100521.txt
 │  │  ├─ 00_レシートAI_動作中画面確認用_収集結果.txt
+│  │  ├─ 00_レシートAI_目的_createAiDraft保存修正_v3_20260705_094351.txt
+│  │  ├─ 00_レシートAI_目的_大阪出張判定ルール_20260705_093456.txt
+│  │  ├─ 00_レシートAI_目的_大阪府外優先_20260705_100024.txt
+│  │  ├─ 00_レシートAI_目的NULL禁止_AI新候補_20260705_095803.txt
+│  │  ├─ 00_レシートAI_目的が出ない切り分け_20260705_094547.txt
+│  │  ├─ 00_レシートAI_目的プロンプト_AI担当化_20260705_095158.txt
 │  │  ├─ 00_レシートAI_目的マスタ候補対応_修正結果.txt
+│  │  ├─ 00_レシートAI_目的表記必須_v3_20260705_093944.txt
 │  │  ├─ 00_レシートAPI起動確認手順.txt
 │  │  ├─ 00_レシートDB台帳対応_作業途中ブロック退避.txt
 │  │  ├─ 00_レシート画面_コピー可能な個別ウインドウ化_修正結果.txt
 │  │  ├─ 00_レシート画面_コンテナ構造確認.txt
+│  │  ├─ 00_レシート画面_サーバー再起動ボタン追加_20260705_110700.txt
 │  │  ├─ 00_レシート画面_時刻UI修正撤退_復旧結果.txt
 │  │  ├─ 00_レシート画面_時刻UI不具合確認用_収集結果.txt
 │  │  ├─ 00_レシート画面_未定義関数エラー修正結果.txt
@@ -478,32 +525,13 @@ hd-origin-project\
 │  │  ├─ 00_レシート読取確認_編集欄レイアウト整理_薄色カード化.txt
 │  │  ├─ 00_レシート読取確認ページ編集用_収集結果_20260705_072155.txt
 │  │  ├─ 00_レシート保存処理用_収集結果.txt
+│  │  ├─ 00_レシート明細件数_window参照修正結果_20260705_091544.txt
 │  │  ├─ 00_引継ぎメモ_一時フォルダ文言修正結果.txt
 │  │  ├─ 00_右レシート表示スペース_2倍比率化.txt
 │  │  ├─ 00_右レシート表示スペース_半分化.txt
 │  │  ├─ 00_右レシート表示スペースのみ拡張.txt
 │  │  ├─ 00_勘定科目_account_code_ID確認結果.txt
-│  │  ├─ 00_勘定科目_code_NULL化_並べ直し後結果.txt
-│  │  ├─ 00_勘定科目_code_NULL化結果.txt
-│  │  ├─ 00_勘定科目_UTF8直接書き出し確認.txt
-│  │  ├─ 00_勘定科目_表示順_ID順整理結果.txt
-│  │  ├─ 00_勘定科目ID_よく使う順_並べ直し結果.txt
-│  │  ├─ 00_勘定科目ID並べ直し結果.txt
-│  │  ├─ 00_勘定科目ID並べ直し前_参照確認.txt
-│  │  ├─ 00_勘定科目ハンコデータ導入結果.txt
-│  │  ├─ 00_勘定科目マスタ候補_master-options追加_20260705_085301.txt
-│  │  ├─ 00_勘定科目候補_AI人間兼用マスタ選択_20260705_083849.txt
-│  │  ├─ 00_勘定科目幅広げ_信頼度右端_HTML修正_20260705_072626.txt
-│  │  ├─ 00_起動後文書_生成元確認用_収集結果.txt
-│  │  ├─ 00_現在DBと復元DB_構造確認結果.txt
-│  │  ├─ 00_古いバックアップ_スキーマ確認結果.txt
-│  │  ├─ 00_古いバックアップ_検証完了_移行不要判断.txt
-│  │  ├─ 00_古いバックアップ_検証用DBリストア結果.txt
-│  │  ├─ 00_古いバックアップ_検証用DBリストア再実行結果.txt
-│  │  ├─ 00_古い表示欄関数呼び出し修正_20260705_075907.txt
-│  │  ├─ 00_古い復元DB_received_items内容確認結果.txt
-│  │  ├─ 00_古い復元DB_データ件数確認結果.txt
-│  │  └─ ... 80 items omitted
+│  │  └─ ... 116 items omitted
 │  ├─ undo\
 │  │  ├─ used\
 │  │  │  ├─ undo_receipt_basic_info_html_rebuild_20260704_222712.ps1
@@ -555,9 +583,11 @@ hd-origin-project\
 │  │  ├─ undo_receipt_apply_group_title_remove_color_20260704_220343.ps1
 │  │  ├─ undo_receipt_cleanup_old_yellow_css_20260704_230124.ps1
 │  │  ├─ undo_receipt_dining_meeting_rule_and_ui.ps1
+│  │  ├─ undo_receipt_duplicate_guard_final_20260705_102036.ps1
 │  │  ├─ undo_receipt_editor_card_layout.ps1
 │  │  ├─ undo_receipt_green_outside_grid_html_fixed_20260704_222047.ps1
 │  │  ├─ undo_receipt_layout_group_fix_20260704_201236.ps1
+│  │  ├─ undo_receipt_line_count_window_fix_20260705_091544.ps1
 │  │  ├─ undo_receipt_list_account_title_display_and_label_remove.ps1
 │  │  ├─ undo_receipt_list_css_split_20260705_071714.ps1
 │  │  ├─ undo_receipt_list_custom_dialog.ps1
@@ -566,9 +596,13 @@ hd-origin-project\
 │  │  ├─ undo_receipt_list_px_to_rem_only.ps1
 │  │  ├─ undo_receipt_list_screen_ocr_time_fallback.ps1
 │  │  ├─ undo_receipt_list_time_row_regex_insert.ps1
+│  │  ├─ undo_receipt_master_duplicate_guard_20260705_101153.ps1
+│  │  ├─ undo_receipt_master_duplicate_guard_v2_20260705_101601.ps1
+│  │  ├─ undo_receipt_master_register_screen_refresh_20260705_103221.ps1
 │  │  ├─ undo_receipt_remove_layout_lines_20260704_201659.ps1
 │  │  ├─ undo_receipt_repository_accounting_hotfix.ps1
 │  │  ├─ undo_receipt_repository_remove_wrong_expenses_override.ps1
+│  │  ├─ undo_receipt_server_restart_button_20260705_110700.ps1
 │  │  ├─ undo_receipt_target_block_meaning_fix_20260704_221317.ps1
 │  │  ├─ undo_receipt_target_person_back_to_yellow_20260704_221004.ps1
 │  │  ├─ undo_receipt_target_person_purple_remove_20260704_220535.ps1
@@ -582,10 +616,20 @@ hd-origin-project\
 │  │  ├─ undo_receipt_yellow_area_3row_html_20260704_225316.ps1
 │  │  ├─ undo_receipt_yellow_group_target_inside_3row_20260704_225749.ps1
 │  │  ├─ undo_receipt_yellow_under_blue_green_out_20260704_221627.ps1
+│  │  ├─ undo_receipts_ai_account_title_prompt_strong_v2_20260705_092352.ps1
+│  │  ├─ undo_receipts_ai_business_trip_meeting_tuning_20260705_100258.ps1
+│  │  ├─ undo_receipts_ai_company_account_prompt_20260705_110056.ps1
 │  │  ├─ undo_receipts_ai_force_time_fallback.ps1
 │  │  ├─ undo_receipts_ai_ocr_time_extract.ps1
+│  │  ├─ undo_receipts_ai_purpose_business_meeting_priority_20260705_100521.ps1
 │  │  ├─ undo_receipts_ai_purpose_master_hints.ps1
+│  │  ├─ undo_receipts_ai_purpose_name_required_v3_20260705_093944.ps1
+│  │  ├─ undo_receipts_ai_purpose_null_ban_candidate_20260705_095803.ps1
+│  │  ├─ undo_receipts_ai_purpose_osaka_rule_20260705_093456.ps1
+│  │  ├─ undo_receipts_ai_purpose_priority_outside_osaka_20260705_100024.ps1
+│  │  ├─ undo_receipts_ai_purpose_prompt_ai_only_20260705_095158.ps1
 │  │  ├─ undo_receipts_ai_receipt_time_ocr_extract_final.ps1
+│  │  ├─ undo_receipts_repository_create_ai_draft_purpose_save_v3_20260705_094351.ps1
 │  │  ├─ undo_remove_last_apply_group_row_css_20260704_230408.ps1
 │  │  ├─ undo_remove_temp_master_inputs_20260705_074301.ps1
 │  │  ├─ undo_right_receipt_space_2fr.ps1
@@ -657,7 +701,8 @@ hd-origin-project\
 │     │  └─ .gitkeep
 │     ├─ imported\
 │     │  ├─ .gitkeep
-│     │  └─ 2026-07-01 21.59.06.png
+│     │  ├─ 2026-07-01 21.59.06.png
+│     │  └─ 2026-07-05 10.37.03.png
 │     ├─ memo\
 │     │  ├─ .gitkeep
 │     │  └─ README_RECEIPT_IMPORT.txt
@@ -772,9 +817,11 @@ hd-origin-project\
 │  ├─ _check_account_titles_id_and_code_for_gpt.js
 │  ├─ _check_db_connection_fixed_for_gpt.js
 │  ├─ _check_env_db_user_for_gpt.js
+│  ├─ _check_latest_receipt_ai_purpose_for_gpt.js
 │  ├─ _check_migration_snapshot_for_gpt.js
 │  ├─ _check_purpose_master_for_gpt_result.txt
 │  ├─ _check_purpose_master_for_gpt.js
+│  ├─ _check_purpose_master_utf8_for_gpt.js
 │  ├─ _check_receipt_counts_for_gpt.js
 │  ├─ _check_receipt_db_structure_for_gpt.js
 │  ├─ _check_receipt_tables_fixed_for_gpt.js
@@ -817,5 +864,6 @@ hd-origin-project\
 ├─ PROJECT_STATUS_FOR_GPT.txt
 ├─ PROJECT_TODO_FOR_GPT.txt
 ├─ README.md
+├─ restart_hd_origin.bat
 └─ run_env_initializer.bat
 -----------------------------------

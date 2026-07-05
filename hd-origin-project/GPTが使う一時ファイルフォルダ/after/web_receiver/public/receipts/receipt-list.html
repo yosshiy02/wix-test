@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
@@ -14,6 +14,7 @@
         <button type="button" onclick="location.href=&quot;/&quot;">メインページ</button>
       <button type="button" id="bulkAiButton" onclick="bulkAnalyzeCheckedReceipts()">まとめてAI</button>
       <button type="button" id="bulkSaveButton" onclick="bulkSaveCheckedReceipts()">まとめて保存</button>
+      <button type="button" onclick="restartHdOriginServer()">サーバー再起動</button>
       <button onclick="location.href='/receipts/receipt-scan-inbox.html'">レシート取込へ</button>
       </div>
       <!-- RECEIPT_HEADER_IMPORT_NAV_END -->
@@ -325,6 +326,32 @@
       return '<div class="ok">T番号形式です。</div>';
     }
 
+    async function restartHdOriginServer() {
+      if (!(await receiptConfirm("HD Origin Project サーバーを再起動しますか？`n未保存の編集中データがある場合は先に保存してください。", "サーバー再起動"))) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/system/restart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({})
+        });
+
+        const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+        if (!res.ok || !data.ok) {
+          await receiptAlert("サーバー再起動要求に失敗しました: " + (data.error || ""), "サーバー再起動");
+          return;
+        }
+
+        await receiptAlert("サーバー再起動を要求しました。黒い画面が閉じて新しく起動した後、ブラウザを再読み込みしてください。", "サーバー再起動");
+      } catch (error) {
+        await receiptAlert("サーバー再起動要求でエラーが発生しました: " + (error && error.message ? error.message : error), "サーバー再起動");
+      }
+    }
     async function loadList() {
       const list = document.getElementById("list");
       list.innerHTML = "読込中...";
@@ -511,7 +538,38 @@
       return payload;
     }
 
-    async function registerReceiptMasterFromCandidate(kind) {
+    
+function normalizeReceiptMasterDuplicateName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[　\s]+/g, "")
+    .replace(/[‐-‒–—―ー－]/g, "-")
+    .toLowerCase();
+}
+
+function findExistingReceiptMasterOptionByName(select, name) {
+  if (!select || !select.options) return null;
+
+  const normalized = normalizeReceiptMasterDuplicateName(name);
+  if (!normalized) return null;
+
+  for (const option of Array.from(select.options)) {
+    const optionName = String(option.textContent || "").trim();
+
+    if (!option.value) continue;
+
+    if (normalizeReceiptMasterDuplicateName(optionName) === normalized) {
+      return {
+        id: option.value,
+        name: optionName
+      };
+    }
+  }
+
+  return null;
+}
+
+async function registerReceiptMasterFromCandidate(kind) {
       const def = receiptMasterCandidateDef(kind);
       if (!def) return;
 
@@ -522,11 +580,27 @@
         return;
       }
 
-      if (!(await receiptConfirm(def.label + "「" + name + "」をマスタへ登録しますか？", "マスタ登録確認"))) {
+      const duplicateCheckSelect = document.getElementById(def.selectId);
+      const existingSameNameMaster = findExistingReceiptMasterOptionByName(duplicateCheckSelect, name);
+
+      if (existingSameNameMaster) {
+        duplicateCheckSelect.value = String(existingSameNameMaster.id);
+        duplicateCheckSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        syncReceiptMasterCandidateName(kind, true);
+
+        await receiptAlert(
+          "既に同じ名称のマスタがあります。\n新規登録せず、既存の「" + existingSameNameMaster.name + "」を選択しました。",
+          "マスタ登録"
+        );
+
         return;
       }
 
-      const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
+      if (!(await receiptConfirm(def.label + "「" + name + "」をマスタへ登録しますか？", "マスタ登録確認"))) {
+        return;
+      }
+const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8"
@@ -550,10 +624,73 @@
 
       const select = document.getElementById(def.selectId);
       const row = data.row || data.item || {};
-      const newId = row.id || row[def.selectId.replace("Id", "_id")];
+
+      const idKeyByMasterType = {
+        purposes: "purpose_id",
+        projects: "project_id",
+        departments: "department_id",
+        vendors: "vendor_id",
+        payment_methods: "payment_method_id",
+        account_titles: "account_title_id",
+        tax_categories: "tax_category_id",
+        invoice_types: "invoice_type_id",
+        evidence_types: "evidence_type_id"
+      };
+
+      const nameKeyByMasterType = {
+        purposes: "purpose_name",
+        projects: "project_name",
+        departments: "department_name",
+        vendors: "vendor_name",
+        payment_methods: "payment_method_name",
+        account_titles: "account_title_name",
+        tax_categories: "tax_category_name",
+        invoice_types: "invoice_type_name",
+        evidence_types: "evidence_type_name"
+      };
+
+      const idKeys = [
+        idKeyByMasterType[def.masterType],
+        "id",
+        def.idKey,
+        def.valueKey,
+        "master_id"
+      ].filter(Boolean);
+
+      const nameKeys = [
+        nameKeyByMasterType[def.masterType],
+        "name",
+        def.nameKey,
+        def.labelKey,
+        "master_name"
+      ].filter(Boolean);
+
+      const pickFirstValue = (obj, keys) => {
+        for (const key of keys) {
+          if (obj && obj[key] !== undefined && obj[key] !== null && String(obj[key]) !== "") {
+            return obj[key];
+          }
+        }
+        return "";
+      };
+
+      const newId = pickFirstValue(row, idKeys);
+      const newName = String(pickFirstValue(row, nameKeys) || name || "").trim();
 
       if (select && newId !== undefined && newId !== null && String(newId) !== "") {
+        let option = Array.from(select.options || []).find((item) => {
+          return String(item.value) === String(newId);
+        });
+
+        if (!option) {
+          option = new Option(newName || String(newId), String(newId));
+          select.add(option);
+        } else if (newName) {
+          option.textContent = newName;
+        }
+
         select.value = String(newId);
+        select.dispatchEvent(new Event("change", { bubbles: true }));
       }
 
       syncReceiptMasterCandidateName(kind, true);
@@ -1538,7 +1675,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
           label.appendChild(badge);
         }
 
-        const count = Array.isArray(window.currentLineItems) ? window.currentLineItems.length : 0;
+        const count = Array.isArray(currentLineItems) ? currentLineItems.length : 0;
         badge.textContent = String(count) + "件";
 
         const area = document.getElementById("lineItemsArea");
@@ -3173,6 +3310,8 @@ loadList();
 </script>
 </body>
 </html>
+
+
 
 
 

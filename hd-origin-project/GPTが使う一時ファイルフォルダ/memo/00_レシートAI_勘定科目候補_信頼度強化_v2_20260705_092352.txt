@@ -1,0 +1,40 @@
+﻿==============================
+レシートAI 勘定科目候補・信頼度 強化 v2
+==============================
+日時: 2026-07-05 09:23:53
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- 勘定科目候補を「迷ったら空」から「完全に判断不能な場合以外は候補から一番近いものを選ぶ」に変更しました。
+- accountTitleId / accountTitleName をAI返却例に追加しました。
+- accountTitleName はマスタ候補名と一字一句合わせるように指示しました。
+- AI返却後に accountTitleId / accountTitleName をマスタ候補と照合し、正式な勘定科目名へ寄せる処理を追加しました。
+- confidence が 0 / 空の場合は 0.5 に補正する処理を追加しました。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_account_title_prompt_strong_v2_20260705_092352.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_account_title_prompt_strong_v2_20260705_092352.ps1
+
+[確認結果]
+after構文チェックOK: True
+本体構文チェックOK: True
+勘定科目強化ルールあり: True
+accountTitleIdあり: True
+マスタ照合関数あり: True
+信頼度補正関数あり: True
+
+[次の確認]
+1. サーバー再起動
+2. レシート読取確認画面を開く
+3. 既存レシートで AI再解析
+4. 勘定科目候補が選択されるか確認
+5. 信頼度が 0 ではなくなるか確認
+
+[注意]
+既存AI候補には自動反映されません。
+AI再解析が必要です。

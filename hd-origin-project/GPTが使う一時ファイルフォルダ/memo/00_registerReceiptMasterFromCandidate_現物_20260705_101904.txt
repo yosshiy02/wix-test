@@ -1,0 +1,71 @@
+﻿   1: async function registerReceiptMasterFromCandidate(kind) {
+   2:       const def = receiptMasterCandidateDef(kind);
+   3:       if (!def) return;
+   4: 
+   5:       const name = getReceiptMasterCandidateName(kind);
+   6: 
+   7:       if (!name) {
+   8:         await receiptAlert(def.label + "の候補名が空です。", "マスタ登録");
+   9:         return;
+  10:       }
+  11: 
+  12:       if (!(await receiptConfirm(def.label + "「" + name + "」をマスタへ登録しますか？", "マスタ登録確認"))) {
+  13:         return;
+  14:       }
+  15: 
+  16:       
+  17:   const existingSameNameMaster = findExistingReceiptMasterOptionByName(select, name);
+  18:   if (existingSameNameMaster) {
+  19:     select.value = String(existingSameNameMaster.id);
+  20:     select.dispatchEvent(new Event("change", { bubbles: true }));
+  21: 
+  22:     if (input) {
+  23:       input.value = existingSameNameMaster.name;
+  24:       input.dispatchEvent(new Event("input", { bubbles: true }));
+  25:       input.dispatchEvent(new Event("change", { bubbles: true }));
+  26:     }
+  27: 
+  28:     await receiptAlert(
+  29:       "既に同じ名称のマスタがあります。\n新規登録せず、既存の「" + existingSameNameMaster.name + "」を選択しました。",
+  30:       "マスタ登録"
+  31:     );
+  32: 
+  33:     return;
+  34:   }
+  35: 
+  36: 
+  37: 
+  38:       const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
+  39:         method: "POST",
+  40:         headers: {
+  41:           "Content-Type": "application/json; charset=utf-8"
+  42:         },
+  43:         body: JSON.stringify({
+  44:           name: name,
+  45:           is_active: true
+  46:         })
+  47:       });
+  48: 
+  49:       const data = await res.json().catch(() => {
+  50:         return { ok: false, error: "JSON読込失敗" };
+  51:       });
+  52: 
+  53:       if (!res.ok || !data.ok) {
+  54:         await receiptAlert("マスタ登録に失敗しました: " + (data.error || ""), "マスタ登録");
+  55:         return;
+  56:       }
+  57: 
+  58:       await loadReceiptMasterOptions();
+  59: 
+  60:       const select = document.getElementById(def.selectId);
+  61:       const row = data.row || data.item || {};
+  62:       const newId = row.id || row[def.selectId.replace("Id", "_id")];
+  63: 
+  64:       if (select && newId !== undefined && newId !== null && String(newId) !== "") {
+  65:         select.value = String(newId);
+  66:       }
+  67: 
+  68:       syncReceiptMasterCandidateName(kind, true);
+  69: 
+  70:       await receiptAlert(def.label + "を登録しました。", "マスタ登録");
+  71:     }

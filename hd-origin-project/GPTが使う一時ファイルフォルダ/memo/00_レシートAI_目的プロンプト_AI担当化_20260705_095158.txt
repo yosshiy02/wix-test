@@ -1,0 +1,45 @@
+﻿==============================
+レシートAI 目的プロンプト AI担当化
+==============================
+日時: 2026-07-05 09:51:58
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- 目的はコード側で補完せず、AIがOCR本文と目的候補一覧から選ぶようにプロンプトを強化しました。
+- purposeId / purposeName をセットで返すように強く指示しました。
+- purposeName は目的候補一覧の名称を一字一句そのまま返すようにしました。
+- 大阪府内は出張扱いしない、大阪府外のみ出張関連候補を検討するルールを入れました。
+- 飲食・会議費・交通・宿泊などの目的選択ルールをAIプロンプトへ入れました。
+- 前回のコード側目的補完関数が入っていた場合は削除しました。
+- confidence のJSON例が 0 の場合は 0.70 に寄せました。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_purpose_prompt_ai_only_20260705_095158.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_purpose_prompt_ai_only_20260705_095158.ps1
+
+[fixer]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\fix_receipts_ai_purpose_prompt_ai_only_20260705_095158.js
+
+[確認結果]
+after構文チェックOK: True
+本体構文チェックOK: True
+目的プロンプトあり: True
+AI担当明記あり: True
+大阪ルールあり: True
+purposeName必須あり: True
+コード補完関数なし: True
+
+[次の確認]
+1. サーバー再起動
+2. AI再解析
+3. 確認SQLで AI raw purposeId / purposeName が入るか確認
+4. 画面の目的欄に表示されるか確認
+
+[注意]
+既存AI候補には反映されません。
+必ずAI再解析してください。

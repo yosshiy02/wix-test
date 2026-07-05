@@ -1,0 +1,30 @@
+﻿==============================
+レシート明細件数 window参照修正 結果
+==============================
+日時: 2026-07-05 09:15:44
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[修正内容]
+明細件数バッジが window.currentLineItems を見ていたため、
+実体の currentLineItems を見るように変更しました。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_line_count_window_fix_20260705_091544.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+
+[apply]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_line_count_window_fix_20260705_091544.ps1
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_line_count_window_fix_20260705_091544.ps1
+
+[確認結果]
+旧 window.currentLineItems 参照なし: True
+新 currentLineItems 参照あり: True
+
+[次の確認]
+1. apply を実行
+2. レシート読取確認画面を再読込
+3. 明細1件があるレシートで「明細 1件」になるか確認

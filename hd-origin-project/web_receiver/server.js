@@ -1,4 +1,5 @@
 ﻿const http = require("http");
+const { spawn } = require("child_process");
 const config = require("./src/config");
 const { sendJson } = require("./src/response");
 const { serveStatic } = require("./src/static");
@@ -15,9 +16,43 @@ const { makeAppRoutes } = require("./src/app/app.routes");
 
 let handleAppRoutes;
 
+function handleSystemRestartRoute(req, res) {
+  if (req.method !== "POST" || !req.url.startsWith("/api/system/restart")) {
+    return false;
+  }
+
+  const path = require("path");
+  const restartBat = path.join(config.projectRoot, "restart_hd_origin.bat");
+
+  sendJson(res, 200, {
+    ok: true,
+    message: "HD Origin Project server restart requested."
+  });
+
+  setTimeout(() => {
+    const child = spawn("cmd.exe", ["/c", "start", "", restartBat, String(process.pid), String(process.ppid || "")], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: false
+    });
+
+    child.unref();
+
+    server.close(() => {
+      process.exit(0);
+    });
+
+    setTimeout(() => {
+      process.exit(0);
+    }, 1500);
+  }, 300);
+
+  return true;
+}
 const server = http.createServer(async (req, res) => {
   try {
     if (req.url.startsWith("/api/")) {
+      if (handleSystemRestartRoute(req, res)) return;
       if (await handleMasterRoutes(req, res)) return;
       if (await handleItemsRoutes(req, res)) return;
       if (await handleBackupRoutes(req, res)) return;
@@ -57,6 +92,9 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
+
+
+
 
 
 

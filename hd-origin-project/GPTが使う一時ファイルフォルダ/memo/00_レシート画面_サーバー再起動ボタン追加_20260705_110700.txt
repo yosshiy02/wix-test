@@ -1,0 +1,25 @@
+﻿==============================
+レシート読取確認 サーバー再起動ボタン追加
+==============================
+日時: 2026/07/05 11:07:01
+
+[実施内容]
+- receipt-list.html に「サーバー再起動」ボタンを追加しました。
+- server.js に POST /api/system/restart を追加しました。
+- restart_hd_origin.bat を新規作成しました。
+- 再起動時は既存の web_receiver\start_hd_origin.bat を起動します。
+
+[作成]
+before server : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\server_before_restart_button_20260705_110700.js
+before receipt: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_restart_button_20260705_110700.html
+before restart: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\restart_hd_origin_before_restart_button_20260705_110700.bat
+after server  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\server.js
+after receipt : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+after restart : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\restart_hd_origin.bat
+apply         : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_receipt_server_restart_button_20260705_110700.ps1
+undo          : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_server_restart_button_20260705_110700.ps1
+
+[構文チェック]
+
+
+OK: after の構文チェック成功。本体反映する場合は apply を実行してください。

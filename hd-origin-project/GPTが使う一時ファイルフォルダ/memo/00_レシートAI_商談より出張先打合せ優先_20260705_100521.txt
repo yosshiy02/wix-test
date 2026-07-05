@@ -1,0 +1,41 @@
+﻿==============================
+レシートAI 商談より出張先打合せ優先 修正結果
+==============================
+日時: 2026-07-05 10:05:23
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+
+[実施内容]
+- 大阪府外 + 飲食 + 夕方/夜 + 会議費/打合せ/商談文脈では、商談より出張先打合せを優先するルールを追加しました。
+- 目的候補の優先順位を「出張先打合せ → 出張先会議 → 商談 → 会議」にしました。
+- 商談は、販売交渉・契約・受注などが明確な場合に限定寄りにしました。
+- 名古屋18:00前後の飲食レシートでは、出張先打合せを選ぶように強めました。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\receipts\receipts.ai_before_purpose_business_meeting_priority_20260705_100521.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\receipts\receipts.ai.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipts_ai_purpose_business_meeting_priority_20260705_100521.ps1
+
+[fixer]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\fix_receipts_ai_purpose_business_meeting_priority_20260705_100521.js
+
+[確認結果]
+after構文チェックOK: True
+本体構文チェックOK: True
+商談より出張先打合せルールあり: True
+優先順位あり: True
+名古屋18時ルールあり: True
+商談限定条件あり: True
+
+[次の確認]
+1. サーバー再起動
+2. 名古屋18:00レシートをAI再解析
+3. 目的が「出張先打合せ」になるか確認
+4. 販売交渉・契約・受注などが明確なレシートでは「商談」になるか確認
+
+[注意]
+既存AI候補には反映されません。
+必ずAI再解析してください。

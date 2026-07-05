@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 const pool = require("../db");
 
@@ -263,6 +263,64 @@ async function analyzeReceiptImport(receiptImport) {
   }
 
   const instruction = [
+    "【会社基本情報・勘定科目判断ルール】",
+    "当社は靴の製造・卸・小売業です。",
+    "生地・底材・梱包材・金型・資材は製造/仕入系として判断してください。",
+    "少額の社内使用物品は、候補にあれば勘定科目「消耗品費」＋目的「消耗品購入」を優先してください。",
+    "目的「備品購入」は什器・設備・長期使用物など備品性が明確な場合だけ使ってください。",
+    "目的「その他業務」は該当目的がない場合の最終候補にしてください。",
+    "summary は15文字前後を目安に、商品名・ブランド名ではなく用途中心の短い帳簿摘要にしてください。明細に品名が残るため、摘要で商品名を詳述しないでください。例: PC接続アダプタ購入、梱包資材購入、靴資材購入。",
+    "memo は任意です。注意・確認・補足が必要な場合だけ書いてください。通常の少額消耗品や、内容が明細・摘要で分かる支出では空欄にしてください。",
+    "【商談より出張先打合せを優先するルール】",
+    "大阪府外 + 飲食 + 夕方/夜 + 会議費/打合せ/商談文脈の場合は、「商談」よりも「出張先打合せ」を優先してください。",
+    "この条件では、目的候補の優先順位を「出張先打合せ」→「出張先会議」→「商談」→「会議」の順にしてください。",
+    "「商談」は、販売交渉・価格交渉・契約・受注・営業先訪問などの商談文脈が明確な場合に選んでください。",
+    "単なる飲食レシート、夕方夜の飲食、会議費候補、名古屋など大阪府外のレシートでは、「商談」に逃げず「出張先打合せ」を第一候補にしてください。",
+    "名古屋18:00前後の飲食レシートで会議費候補の場合は、目的候補に存在するなら必ず「出張先打合せ」を選んでください。",
+    "【出張先会議と出張先打合せの使い分け】",
+    "大阪府外 + 飲食店/食事/レストラン/喫茶/居酒屋/弁当 + 夕方または夜の時刻 + 会議費の文脈がある場合は、「出張先会議」より「出張先打合せ」を優先してください。",
+    "大阪府外 + 飲食のレシートは、会議室やセミナー会場などの明確な会議文脈がない限り、「出張先会議」ではなく「出張先打合せ」を第一候補にしてください。",
+    "「出張先会議」は、会議室、会議場、セミナー、説明会、研修、展示会、資料、参加費など、会議そのものの文脈が明確な場合に使ってください。",
+    "「出張先打合せ」は、飲食、喫茶、レストラン、夕食、昼食、打合せ、訪問先での面談など、出張先で相手と話した可能性が高い文脈で使ってください。この条件では「商談」よりも「出張先打合せ」を優先してください。",
+    "名古屋など大阪府外の18:00前後の飲食レシートで会議費の文脈がある場合は、「出張先打合せ」を第一候補にしてください。",
+    "【目的候補の優先順位】",
+    "目的候補は、必ず次の優先順位で判断してください。",
+    "最優先: 会社所在地は大阪府です。OCR本文に名古屋・東京・神戸・京都・奈良・和歌山など大阪府外の地名や住所が明確にある場合は、大阪府内扱いにしないでください。",
+    "大阪府外 + 飲食店/食事/弁当/レストラン/喫茶/居酒屋 + 勘定科目が会議費または打合せ/会議/商談の文脈がある場合は、「会議」よりも「出張先打合せ」または「出張先会議」を優先してください。",
+    "特に名古屋のレシートで、時刻が夕方・夜、かつ飲食/会議費の文脈がある場合は、通常の「会議」や「出張先会議」ではなく「出張先打合せ」を第一候補にしてください。",
+    "大阪府外条件がある場合、「会議費だから会議」と短絡しないでください。大阪府外条件を会議費条件より優先してください。",
+    "大阪府内 + 飲食 + 会議費の場合だけ、「会議」「打合せ」「社内会議」「社内打合せ」「商談」を優先してください。",
+    "地域が不明な場合は、出張先打合せに寄せすぎず、「会議」「打合せ」など一般目的を選んでください。",
+    "【目的候補 purposeId / purposeName / purposeTempName のルール】",
+    "目的はAIが判断して返してください。コード側では目的を補完しません。",
+    "purposeId と purposeName は原則NULL禁止・空文字禁止です。",
+    "完全一致する目的がなくても、目的候補一覧から最も近いものを必ず1つ選んでください。",
+    "purposeId には選んだ目的候補のIDを数値で返してください。",
+    "purposeName には選んだ目的候補の名称を、目的候補一覧の表記と一字一句同じ文字で返してください。",
+    "purposeIdだけ、purposeNameだけ、null、空文字は禁止です。必ずIDと名称をセットで返してください。",
+    "既存の目的候補にぴったり合うものがない場合は、候補一覧にある「その他業務」「その他」「対象外」「不明」など最も近い逃げ先を選んでください。",
+    "そのうえで、AIがより適切だと考える新しい目的名を purposeTempName と purposeCandidateName に書いてください。",
+    "purposeTempName / purposeCandidateName はマスタ追加候補です。既存マスタを勝手に追加した扱いではありません。",
+    "既存マスタで十分に表現できる場合は、purposeTempName と purposeCandidateName は purposeName と同じでも、より具体的な候補名でも構いません。",
+    "会社所在地は大阪府です。大阪府内の店舗・住所・地域名がOCR本文から読み取れる場合は、「出張」「出張先会議」「出張先打合せ」を選ばないでください。",
+    "大阪府外の店舗・住所・地域名がOCR本文から明確に読み取れる場合は、通常の「会議」よりも「出張先打合せ」「出張先会議」「出張」などを優先して検討してください。",
+    "名古屋・東京・神戸・京都・奈良・和歌山など大阪府外の地名は、大阪府内扱いにしないでください。",
+    "大阪府外 + 飲食 + 会議費 または 打合せ/商談の文脈がある場合は、目的候補に存在するなら「出張先打合せ」を第一候補にしてください。「商談」は販売交渉・契約・受注などが明確な場合だけ選んでください。「出張先会議」は会議そのものの文脈が明確な場合だけ優先してください。",
+    "大阪府内 + 飲食 + 会議費の場合は、「会議」「打合せ」「社内会議」「社内打合せ」「商談」などを優先してください。",
+    "交通・電車・バス・タクシー・高速道路・駐車場・宿泊・ホテルの場合は、目的候補から「出張」「交通・移動」「宿泊」「取引先訪問」など最も近いものを選んでください。",
+    "【目的候補 purposeId / purposeName の必須ルール】",
+    "目的はコード側で補完しません。あなたがOCR本文全体と目的候補一覧から選んでください。",
+    "目的は会計確定ではなく、人間が画面で確認・修正するための候補です。完全に判断不能な場合以外は空にしないでください。",
+    "purposeId は目的候補一覧にあるIDを数値で返してください。",
+    "purposeName は目的候補一覧の名称を一字一句そのまま返してください。",
+    "purposeId を返す場合は、purposeName も必ず返してください。IDだけ、名称だけ、空文字は禁止です。",
+    "レシート単体で厳密な目的が分からない場合でも、OCR本文・店名・住所・明細・摘要・勘定科目候補から最も近い一般的な目的を1つ選んでください。",
+    "会社所在地は大阪府です。大阪府内の店舗・住所・地域名がOCR本文から読み取れる場合は、「出張」「出張先会議」「出張先打合せ」を選ばないでください。",
+    "大阪府外の店舗・住所・地域名がOCR本文から明確に読み取れる場合のみ、「出張」「出張先会議」「出張先打合せ」を検討してください。",
+    "大阪府外であっても、飲食代だけで自動的に出張先打合せとは決めないでください。会議・打合せ・訪問・交通・宿泊などの文脈がある場合だけ出張関連を優先してください。",
+    "飲食店・喫茶店・レストラン・弁当などで勘定科目候補が会議費になる場合、大阪府内または地域不明なら「会議」「打合せ」「商談」「社内会議」「社内打合せ」を選んでください。ただし大阪府外が明確な場合は、このルールより出張先打合せ/出張先会議を優先してください。",
+    "交通・電車・バス・タクシー・高速道路・駐車場・宿泊・ホテルの場合は、目的候補から「出張」「交通・移動」「宿泊」「取引先訪問」など最も近いものを選んでください。",
+    "目的候補一覧に存在しない名称を自作しないでください。必ず候補一覧の表記をそのまま使ってください。",
     "あなたは日本のレシートOCRテキスト解析AIです。",
     "画像は見ません。与えられたOCR本文だけから判断してください。",
     "目的は会計確定ではなく、人間が画像を見ながら修正するための読取候補作成です。",
@@ -297,7 +355,7 @@ async function analyzeReceiptImport(receiptImport) {
     "非課税対象、不課税対象、対象外がOCR本文に明記されている場合は、それぞれ taxBreakdowns に行を作り、taxAmount は0にしてください。",
     "合計金額 totalAmount と消費税合計 taxAmount だけから、消費税内訳を勝手に1行生成してはいけません。",
     "税率別内訳がOCR本文から読めない場合、taxBreakdowns は空配列 [] にしてください。",
-    "明細行の taxTreatmentName には、OCR本文で明細ごとの税込・内税、税抜・外税、非課税、不課税、対象外、不明が読める場合だけ入れてください。迷う場合は不明または空文字にしてください。",
+    "明細行の taxTreatmentName は、税処理候補の名称から選んでください。レシート全体から一括補完せず、各明細行ごとにOCR本文の明細周辺にある税区分・税率・内税/外税/非課税/不課税/対象外などを読んで判断してください。明細ごとの根拠がない場合は空文字または税処理候補の「不明」を選んでください。",
     "taxCategoryName は必ず 課税10% / 軽減8% / 非課税 / 不課税 / 対象外 のいずれかに寄せてください。",
     "taxTreatmentName は必ず 税込・内税 / 税抜・外税 / 非課税 / 不課税 / 対象外 / 不明 のいずれかに寄せてください。",
 
@@ -313,7 +371,12 @@ async function analyzeReceiptImport(receiptImport) {
 
     "勘定科目は控えめな候補でよいです。迷う場合は空文字にしてください。",
 
-    "返すJSON形式:",
+    "【明細ごとの税処理ルール】",
+    "lineItems[].taxTreatmentName は、レシート全体の taxTreatmentName や税内訳から一括補完しないでください。",
+    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
+    "taxTreatmentName は税処理マスタ候補にある名称と一致するものを選んでください。",
+    "明細ごとの根拠がない場合は、空文字または不明にしてください。",
+    "",    "返すJSON形式:",
     "{",
     "  \"transactionDate\": \"YYYY-MM-DD または null\",",
     "  \"vendorName\": \"店名・支払先名\",",
@@ -337,7 +400,7 @@ async function analyzeReceiptImport(receiptImport) {
     "  \"summary\": \"摘要候補\",",
     "  \"memo\": \"注意点・伝票番号・注文番号など\",",
     "  \"accountTitleName\": \"控えめな会計候補\",",
-    "  \"confidence\": 0,",
+    "  \"confidence\": 0.70,",
     "  \"lineItems\": [",
     "    {",
     "      \"name\": \"品名\",",
@@ -396,6 +459,8 @@ async function analyzeReceiptImport(receiptImport) {
   const responseJson = JSON.parse(responseText);
   const outputText = extractOutputText(responseJson);
   const parsed = parseJsonLoose(outputText);
+  const resolvedPurpose = resolveReceiptAiPurpose(parsed, masterHints);
+  const resolvedAccountTitle = resolveReceiptAiAccountTitle(parsed, masterHints);
 
   return {
     transactionDate: parsed.transactionDate || null,
@@ -413,7 +478,7 @@ async function analyzeReceiptImport(receiptImport) {
     invoiceNumber: parsed.invoiceNumber || "",
     summary: parsed.summary || "",
     memo: parsed.memo || "",
-    confidence: normalizeConfidence(parsed.confidence),
+    confidence: normalizeReceiptAiConfidenceForDraft(parsed.confidence),
     lineItems: normalizeLineItems(parsed.lineItems),
     aiModel: model,
     aiRawJson: parsed
@@ -447,6 +512,7 @@ async function getReceiptAiMasterHints() {
     accountTitlesResult,
     paymentMethodsResult,
     purposesResult,
+    taxTreatmentsResult,
     invoiceTypesResult,
     evidenceTypesResult
   ] = await Promise.all([
@@ -479,6 +545,15 @@ async function getReceiptAiMasterHints() {
     `),
     pool.query(`
       SELECT
+        tax_treatment_id,
+        treatment_name,
+        sort_order
+      FROM expenses.tax_treatments
+      WHERE is_active = TRUE
+      ORDER BY sort_order, tax_treatment_id
+    `),
+    pool.query(`
+      SELECT
         invoice_type_id,
         invoice_type_name
       FROM expenses.invoice_types
@@ -499,6 +574,7 @@ async function getReceiptAiMasterHints() {
     accountTitles: accountTitlesResult.rows,
     paymentMethods: paymentMethodsResult.rows,
     purposes: purposesResult.rows,
+    taxTreatments: taxTreatmentsResult.rows,
     invoiceTypes: invoiceTypesResult.rows,
     evidenceTypes: evidenceTypesResult.rows
   };
@@ -509,7 +585,7 @@ function formatReceiptAiMasterHints(masters) {
 
   lines.push("【マスタ候補】");
   lines.push("次の候補から選べる場合は、IDと名称をそのまま返してください。");
-  lines.push("候補から判断できない場合は、IDは null、名称は空文字または控えめな候補にしてください。");
+  lines.push("完全に判断不能な場合を除き、候補から一番近いものを1つ選び、IDと名称をそのまま返してください。");
   lines.push("");
 
   lines.push("【勘定科目候補 最大40件】");
@@ -531,6 +607,12 @@ function formatReceiptAiMasterHints(masters) {
   lines.push("【目的候補】");
   for (const item of masters.purposes || []) {
     lines.push(receiptAiMasterLine(item.purpose_id, item.purpose_name, ""));
+  }
+
+  lines.push("");
+  lines.push("【税処理候補】");
+  for (const item of masters.taxTreatments || []) {
+    lines.push(receiptAiMasterLine(item.tax_treatment_id, item.treatment_name, ""));
   }
 
   lines.push("");
@@ -557,6 +639,120 @@ function normalizeNullableInteger(value) {
   return Math.trunc(n);
 }
 
+
+function normalizeReceiptAiMasterName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/[‐-‒–—―ー－]/g, "-");
+}
+
+function resolveReceiptAiAccountTitle(parsed, masterHints) {
+  const accountTitles = masterHints && Array.isArray(masterHints.accountTitles)
+    ? masterHints.accountTitles
+    : [];
+
+  const rawId = parsed.accountTitleId ?? parsed.account_title_id ?? parsed.accountId ?? parsed.account_id ?? null;
+  const idNum = normalizeNullableInteger(rawId);
+
+  if (idNum !== null) {
+    const byId = accountTitles.find((row) => Number(row.account_title_id) === Number(idNum));
+    if (byId) {
+      return {
+        id: Number(byId.account_title_id),
+        name: String(byId.account_name || "").trim()
+      };
+    }
+  }
+
+  const rawName = String(parsed.accountTitleName || parsed.account_title_name || "").trim();
+
+  if (rawName) {
+    const exact = accountTitles.find((row) => String(row.account_name || "").trim() === rawName);
+    if (exact) {
+      return {
+        id: Number(exact.account_title_id),
+        name: String(exact.account_name || "").trim()
+      };
+    }
+
+    const key = normalizeReceiptAiMasterName(rawName);
+    const loose = accountTitles.find((row) => normalizeReceiptAiMasterName(row.account_name) === key);
+    if (loose) {
+      return {
+        id: Number(loose.account_title_id),
+        name: String(loose.account_name || "").trim()
+      };
+    }
+  }
+
+  return {
+    id: null,
+    name: rawName
+  };
+}
+
+function normalizeReceiptAiConfidenceForDraft(value) {
+  const n = normalizeConfidence(value);
+
+  if (n === null || n <= 0) {
+    return 0.5;
+  }
+
+  return n;
+}
+
+function normalizeReceiptAiPurposeName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/[‐-‒–—―ー－]/g, "-");
+}
+
+function resolveReceiptAiPurpose(parsed, masterHints) {
+  const purposes = masterHints && Array.isArray(masterHints.purposes)
+    ? masterHints.purposes
+    : [];
+
+  const rawId = parsed.purposeId ?? parsed.purpose_id ?? null;
+  const idNum = normalizeNullableInteger(rawId);
+
+  if (idNum !== null) {
+    const byId = purposes.find((row) => Number(row.purpose_id) === Number(idNum));
+    if (byId) {
+      return {
+        id: Number(byId.purpose_id),
+        name: String(byId.purpose_name || "").trim()
+      };
+    }
+  }
+
+  const rawName = String(parsed.purposeName || parsed.purpose_name || "").trim();
+
+  if (rawName) {
+    const exact = purposes.find((row) => String(row.purpose_name || "").trim() === rawName);
+    if (exact) {
+      return {
+        id: Number(exact.purpose_id),
+        name: String(exact.purpose_name || "").trim()
+      };
+    }
+
+    const key = normalizeReceiptAiPurposeName(rawName);
+    const loose = purposes.find((row) => normalizeReceiptAiPurposeName(row.purpose_name) === key);
+    if (loose) {
+      return {
+        id: Number(loose.purpose_id),
+        name: String(loose.purpose_name || "").trim()
+      };
+    }
+  }
+
+  return {
+    id: idNum,
+    name: rawName
+  };
+}
 analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receiptImport) {
   const env = readDotEnv();
 
@@ -578,14 +774,99 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
   const masterText = formatReceiptAiMasterHints(masterHints);
 
   const instruction = [
+    "【会社基本情報・勘定科目判断ルール】",
+    "当社は靴の製造・卸・小売業です。",
+    "生地・底材・梱包材・金型・資材は製造/仕入系として判断してください。",
+    "少額の社内使用物品は、候補にあれば勘定科目「消耗品費」＋目的「消耗品購入」を優先してください。",
+    "目的「備品購入」は什器・設備・長期使用物など備品性が明確な場合だけ使ってください。",
+    "目的「その他業務」は該当目的がない場合の最終候補にしてください。",
+    "summary は15文字前後を目安に、商品名・ブランド名ではなく用途中心の短い帳簿摘要にしてください。明細に品名が残るため、摘要で商品名を詳述しないでください。例: PC接続アダプタ購入、梱包資材購入、靴資材購入。",
+    "memo は任意です。注意・確認・補足が必要な場合だけ書いてください。通常の少額消耗品や、内容が明細・摘要で分かる支出では空欄にしてください。",
+    "【商談より出張先打合せを優先するルール】",
+    "大阪府外 + 飲食 + 夕方/夜 + 会議費/打合せ/商談文脈の場合は、「商談」よりも「出張先打合せ」を優先してください。",
+    "この条件では、目的候補の優先順位を「出張先打合せ」→「出張先会議」→「商談」→「会議」の順にしてください。",
+    "「商談」は、販売交渉・価格交渉・契約・受注・営業先訪問などの商談文脈が明確な場合に選んでください。",
+    "単なる飲食レシート、夕方夜の飲食、会議費候補、名古屋など大阪府外のレシートでは、「商談」に逃げず「出張先打合せ」を第一候補にしてください。",
+    "名古屋18:00前後の飲食レシートで会議費候補の場合は、目的候補に存在するなら必ず「出張先打合せ」を選んでください。",
+    "【出張先会議と出張先打合せの使い分け】",
+    "大阪府外 + 飲食店/食事/レストラン/喫茶/居酒屋/弁当 + 夕方または夜の時刻 + 会議費の文脈がある場合は、「出張先会議」より「出張先打合せ」を優先してください。",
+    "大阪府外 + 飲食のレシートは、会議室やセミナー会場などの明確な会議文脈がない限り、「出張先会議」ではなく「出張先打合せ」を第一候補にしてください。",
+    "「出張先会議」は、会議室、会議場、セミナー、説明会、研修、展示会、資料、参加費など、会議そのものの文脈が明確な場合に使ってください。",
+    "「出張先打合せ」は、飲食、喫茶、レストラン、夕食、昼食、打合せ、商談、訪問先での面談など、出張先で相手と話した可能性が高い文脈で使ってください。",
+    "名古屋など大阪府外の18:00前後の飲食レシートで会議費の文脈がある場合は、「出張先打合せ」を第一候補にしてください。",
+    "【目的候補の優先順位】",
+    "目的候補は、必ず次の優先順位で判断してください。",
+    "最優先: 会社所在地は大阪府です。OCR本文に名古屋・東京・神戸・京都・奈良・和歌山など大阪府外の地名や住所が明確にある場合は、大阪府内扱いにしないでください。",
+    "大阪府外 + 飲食店/食事/弁当/レストラン/喫茶/居酒屋 + 勘定科目が会議費または打合せ/会議/商談の文脈がある場合は、「会議」よりも「出張先打合せ」または「出張先会議」を優先してください。",
+    "特に名古屋のレシートで、時刻が夕方・夜、かつ飲食/会議費の文脈がある場合は、通常の「会議」ではなく「出張先打合せ」を第一候補にしてください。",
+    "大阪府外条件がある場合、「会議費だから会議」と短絡しないでください。大阪府外条件を会議費条件より優先してください。",
+    "大阪府内 + 飲食 + 会議費の場合だけ、「会議」「打合せ」「社内会議」「社内打合せ」「商談」を優先してください。",
+    "地域が不明な場合は、出張先打合せに寄せすぎず、「会議」「打合せ」など一般目的を選んでください。",
+    "【目的候補 purposeId / purposeName / purposeTempName のルール】",
+    "目的はAIが判断して返してください。コード側では目的を補完しません。",
+    "purposeId と purposeName は原則NULL禁止・空文字禁止です。",
+    "完全一致する目的がなくても、目的候補一覧から最も近いものを必ず1つ選んでください。",
+    "purposeId には選んだ目的候補のIDを数値で返してください。",
+    "purposeName には選んだ目的候補の名称を、目的候補一覧の表記と一字一句同じ文字で返してください。",
+    "purposeIdだけ、purposeNameだけ、null、空文字は禁止です。必ずIDと名称をセットで返してください。",
+    "既存の目的候補にぴったり合うものがない場合は、候補一覧にある「その他業務」「その他」「対象外」「不明」など最も近い逃げ先を選んでください。",
+    "そのうえで、AIがより適切だと考える新しい目的名を purposeTempName と purposeCandidateName に書いてください。",
+    "purposeTempName / purposeCandidateName はマスタ追加候補です。既存マスタを勝手に追加した扱いではありません。",
+    "既存マスタで十分に表現できる場合は、purposeTempName と purposeCandidateName は purposeName と同じでも、より具体的な候補名でも構いません。",
+    "会社所在地は大阪府です。大阪府内の店舗・住所・地域名がOCR本文から読み取れる場合は、「出張」「出張先会議」「出張先打合せ」を選ばないでください。",
+    "大阪府外の店舗・住所・地域名がOCR本文から明確に読み取れる場合は、通常の「会議」よりも「出張先打合せ」「出張先会議」「出張」などを優先して検討してください。",
+    "名古屋・東京・神戸・京都・奈良・和歌山など大阪府外の地名は、大阪府内扱いにしないでください。",
+    "大阪府外 + 飲食 + 会議費 または 打合せ/商談の文脈がある場合は、目的候補に存在するなら「出張先打合せ」を第一候補にしてください。「出張先会議」は会議そのものの文脈が明確な場合だけ優先してください。",
+    "大阪府内 + 飲食 + 会議費の場合は、「会議」「打合せ」「社内会議」「社内打合せ」「商談」などを優先してください。",
+    "交通・電車・バス・タクシー・高速道路・駐車場・宿泊・ホテルの場合は、目的候補から「出張」「交通・移動」「宿泊」「取引先訪問」など最も近いものを選んでください。",
+    "【目的候補 purposeId / purposeName の必須ルール】",
+    "目的はコード側で補完しません。あなたがOCR本文全体と目的候補一覧から選んでください。",
+    "目的は会計確定ではなく、人間が画面で確認・修正するための候補です。完全に判断不能な場合以外は空にしないでください。",
+    "purposeId は目的候補一覧にあるIDを数値で返してください。",
+    "purposeName は目的候補一覧の名称を一字一句そのまま返してください。",
+    "purposeId を返す場合は、purposeName も必ず返してください。IDだけ、名称だけ、空文字は禁止です。",
+    "レシート単体で厳密な目的が分からない場合でも、OCR本文・店名・住所・明細・摘要・勘定科目候補から最も近い一般的な目的を1つ選んでください。",
+    "会社所在地は大阪府です。大阪府内の店舗・住所・地域名がOCR本文から読み取れる場合は、「出張」「出張先会議」「出張先打合せ」を選ばないでください。",
+    "大阪府外の店舗・住所・地域名がOCR本文から明確に読み取れる場合のみ、「出張」「出張先会議」「出張先打合せ」を検討してください。",
+    "大阪府外であっても、飲食代だけで自動的に出張先打合せとは決めないでください。会議・打合せ・訪問・交通・宿泊などの文脈がある場合だけ出張関連を優先してください。",
+    "飲食店・喫茶店・レストラン・弁当などで、勘定科目候補が会議費になる場合は、目的候補から「会議」「打合せ」「商談」「社内会議」「社内打合せ」など最も近いものを選んでください。",
+    "交通・電車・バス・タクシー・高速道路・駐車場・宿泊・ホテルの場合は、目的候補から「出張」「交通・移動」「宿泊」「取引先訪問」など最も近いものを選んでください。",
+    "目的候補一覧に存在しない名称を自作しないでください。必ず候補一覧の表記をそのまま使ってください。",
     "あなたは日本のレシートOCRテキスト解析AIです。",
     "画像は見ません。与えられたOCR本文だけから判断してください。",
     "目的は会計確定ではなく、人間が画像を見ながら修正するための読取候補作成です。",
     "店名、日付、時刻、合計、税額、消費税内訳、税率、税処理、支払方法、目的、インボイス番号、インボイス区分、証憑区分、勘定科目候補、明細行をJSONだけで返してください。",
     "推測できない項目は null または空文字にしてください。",
     "支払方法、目的、インボイス区分、証憑区分は、候補一覧から選べる場合だけIDを返してください。",
-    "勘定科目は候補一覧から近いものを控えめに選び、迷う場合は accountTitleName を空文字にしてください。",
-    "目的は目的候補一覧から近いものを控えめに選び、迷う場合は purposeId を null、purposeName を空文字にしてください。",
+    "勘定科目は会計確定ではなく、画面で人間が確認・修正するための候補です。",
+    "勘定科目は、完全に判断不能な場合を除き、必ず【勘定科目候補】の中から一番近いものを1つ選んでください。",
+    "accountTitleId には選んだ勘定科目候補のIDを数値で返してください。",
+    "accountTitleName には選んだ勘定科目候補の名称を、候補一覧の表記と一字一句同じ文字で返してください。",
+    "自分で新しい勘定科目名を作らないでください。候補一覧にない名称へ言い換えないでください。",
+    "飲食店・喫茶店・レストラン・弁当・会食らしい場合は、候補内に会議費があれば会議費を優先候補にしてください。ただし接待・贈答・福利厚生が明確ならそちらを優先してください。",
+    "文具・事務用品・日用品・ホームセンター・消耗する備品らしい場合は、候補内に消耗品費があれば優先してください。",
+    "電車・バス・タクシー・駐車場・高速道路らしい場合は、候補内に旅費交通費または交通費があれば優先してください。",
+    "郵便・宅配・送料らしい場合は、候補内に通信費または荷造運賃があれば優先してください。",
+    "判断に迷う場合でも、OCR本文全体から最も近い候補を選び、memoに迷った理由を短く書いてください。",
+    "目的は目的候補一覧から近いものを選び、完全に判断不能な場合を除き、purposeId と purposeName を必ず返してください。",
+    "purposeId を返す場合は、purposeName も必ず返してください。purposeId だけ返して purposeName を空文字にしないでください。",
+    "purposeName は目的候補一覧の名称を一字一句そのまま返してください。自分で言い換えたり、省略表記にしたりしないでください。",
+    "目的を候補一覧から選べない場合のみ、purposeId は null、purposeName は空文字にしてください。",
+    "【目的候補の判断ルール】",
+    "会社所在地は大阪府です。",
+    "大阪府内の店舗・住所・地域名がOCR本文から読み取れる場合は、目的候補として「出張」「出張先会議」「出張先打合せ」を選ばないでください。",
+    "大阪府外の店舗・住所・地域名がOCR本文から明確に読み取れる場合のみ、目的候補として「出張」「出張先会議」「出張先打合せ」を検討してください。",
+    "ただし、大阪府外であっても、飲食代だけで自動的に「出張先打合せ」と決めないでください。",
+    "店名・住所・地域名・摘要・明細・支払内容から、会議・打合せ・訪問・宿泊・交通などの文脈がある場合に限り、出張関連の目的候補を優先してください。",
+    "大阪府内の飲食代は、「出張先打合せ」ではなく、候補一覧にある場合は「打合せ」「会議」「社内会議」「取引先訪問」「営業活動」などを優先してください。",
+    "大阪府外の飲食代で、会議・打合せ・訪問の文脈がある場合は、候補一覧にある「出張先打合せ」または「出張先会議」を優先してください。",
+    "大阪府外の交通費・宿泊費・高速道路・駐車場・新幹線・電車・バス・タクシーの場合は、候補一覧にある「出張」または出張関連目的を優先してください。",
+    "目的は確定ではなく、人間が確認・修正するための候補です。",
+    "ただし、完全に判断不能な場合を除き、目的候補一覧から一番近い目的を1つ選び、purposeId と purposeName を返してください。",
+    "purposeName は候補一覧の名称を一字一句そのまま返してください。",
+    "confidence は 0 にしないでください。通常は 0.40〜0.95 の小数で返してください。",
+    "店名・日付・金額がある程度読める場合は 0.60 以上を目安にしてください。",
+    "かなり読みにくい場合でも 0.10〜0.30 を返してください。",
     "インボイス番号は T + 13桁 の登録番号だけを入れてください。",
     "",
     "【店舗情報ルール】",
@@ -621,7 +902,7 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "taxBreakdowns は、レシート本文に明記されている税率別内訳から作ってください。",
     "合計金額 totalAmount と消費税合計 taxAmount だけから、消費税内訳を勝手に1行生成してはいけません。",
     "税率別内訳がOCR本文から読めない場合、taxBreakdowns は空配列 [] にしてください。",
-    "明細行の taxTreatmentName には、OCR本文で明細ごとの税込・内税、税抜・外税、非課税、不課税、対象外、不明が読める場合だけ入れてください。迷う場合は不明または空文字にしてください。",
+    "明細行の taxTreatmentName は、税処理候補の名称から選んでください。レシート全体から一括補完せず、各明細行ごとにOCR本文の明細周辺にある税区分・税率・内税/外税/非課税/不課税/対象外などを読んで判断してください。明細ごとの根拠がない場合は空文字または税処理候補の「不明」を選んでください。",
     "taxCategoryName は必ず 課税10% / 軽減8% / 非課税 / 不課税 / 対象外 のいずれかに寄せてください。",
     "",
     "【明細強化ルール】",
@@ -631,7 +912,12 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "合計金額・税額・小計・クレジット計・預り金・釣銭だけを明細として扱わないでください。",
     "読める品名が1つでもある場合、lineItems を空配列にしてはいけません。",
     "",
-    "返すJSON形式:",
+    "【明細ごとの税処理ルール】",
+    "lineItems[].taxTreatmentName は、レシート全体の taxTreatmentName や税内訳から一括補完しないでください。",
+    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
+    "taxTreatmentName は税処理マスタ候補にある名称と一致するものを選んでください。",
+    "明細ごとの根拠がない場合は、空文字または不明にしてください。",
+    "",    "返すJSON形式:",
     "{",
     "  \"transactionDate\": \"YYYY-MM-DD または null\",",
     "  \"vendorName\": \"店名\",",
@@ -653,8 +939,8 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "  ],",
     "  \"paymentMethodId\": null,",
     "  \"paymentMethodName\": \"支払方法候補名または空文字\",",
-    "  \"purposeId\": null,",
-    "  \"purposeName\": \"目的候補名または空文字\",",
+    "  \"purposeId\": 0,",
+    "  \"purposeName\": \"目的候補一覧の名称を一字一句そのまま。purposeIdを返す場合は必須\",",
     "  \"invoiceNumber\": \"Tから始まる13桁番号または空文字\",",
     "  \"invoiceTypeId\": null,",
     "  \"invoiceTypeName\": \"インボイス区分候補名または空文字\",",
@@ -664,7 +950,7 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "  \"summary\": \"摘要候補\",",
     "  \"memo\": \"注意点・伝票番号・注文番号など\",",
     "  \"accountTitleName\": \"勘定科目候補名または空文字\",",
-    "  \"confidence\": 0,",
+    "  \"confidence\": 0.70,",
     "  \"lineItems\": [",
     "    {",
     "      \"name\": \"品名\",",
@@ -723,6 +1009,8 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
   const responseJson = JSON.parse(responseText);
   const outputText = extractOutputText(responseJson);
   const parsed = parseJsonLoose(outputText);
+  const resolvedPurpose = resolveReceiptAiPurpose(parsed, masterHints);
+  const resolvedAccountTitle = resolveReceiptAiAccountTitle(parsed, masterHints);
 
   return {
     transactionDate: parsed.transactionDate || null,
@@ -737,9 +1025,10 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     taxBreakdowns: Array.isArray(parsed.taxBreakdowns) ? parsed.taxBreakdowns : [],
     paymentMethodId: normalizeNullableInteger(parsed.paymentMethodId || parsed.payment_method_id),
     paymentMethodName: parsed.paymentMethodName || parsed.payment_method_name || "",
-    purposeId: normalizeNullableInteger(parsed.purposeId || parsed.purpose_id),
-    purposeName: parsed.purposeName || parsed.purpose_name || "",
-    accountTitleName: parsed.accountTitleName || parsed.account_title_name || "",
+    purposeId: resolvedPurpose.id,
+    purposeName: resolvedPurpose.name || parsed.purposeName || parsed.purpose_name || "",
+    accountTitleId: resolvedAccountTitle.id,
+    accountTitleName: resolvedAccountTitle.name || parsed.accountTitleName || parsed.account_title_name || "",
     invoiceNumber: parsed.invoiceNumber || parsed.invoice_number || "",
     invoiceTypeId: normalizeNullableInteger(parsed.invoiceTypeId || parsed.invoice_type_id),
     invoiceTypeName: parsed.invoiceTypeName || parsed.invoice_type_name || "",
@@ -748,15 +1037,20 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     evidenceMemo: parsed.evidenceMemo || parsed.evidence_memo || "",
     summary: parsed.summary || "",
     memo: parsed.memo || "",
-    confidence: normalizeConfidence(parsed.confidence),
+    confidence: normalizeReceiptAiConfidenceForDraft(parsed.confidence),
     lineItems: normalizeLineItems(parsed.lineItems),
     aiModel: model,
     aiRawJson: {
       ...parsed,
       masterHintsUsed: {
         accountTitleCount: (masterHints.accountTitles || []).length,
+        resolvedAccountTitleId: resolvedAccountTitle.id,
+        resolvedAccountTitleName: resolvedAccountTitle.name,
         paymentMethodCount: (masterHints.paymentMethods || []).length,
         purposeCount: (masterHints.purposes || []).length,
+        taxTreatmentCount: (masterHints.taxTreatments || []).length,
+        resolvedPurposeId: resolvedPurpose.id,
+        resolvedPurposeName: resolvedPurpose.name,
         invoiceTypeCount: (masterHints.invoiceTypes || []).length,
         evidenceTypeCount: (masterHints.evidenceTypes || []).length
       }
@@ -767,6 +1061,15 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
 module.exports = {
   analyzeReceiptImport,
 };
+
+
+
+
+
+
+
+
+
 
 
 

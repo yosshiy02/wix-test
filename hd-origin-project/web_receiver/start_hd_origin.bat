@@ -307,6 +307,11 @@ if defined NODE_PATH (
 
 echo.
 echo Server stopped.
+
+if exist "%PROJECT_ROOT%\HD_ORIGIN_RESTARTING.flag" (
+    del "%PROJECT_ROOT%\HD_ORIGIN_RESTARTING.flag" >nul 2>nul
+    exit /b 0
+)
 pause
 exit /b 0
 
@@ -579,6 +584,7 @@ for %%D in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
 )
 
 exit /b 0
+
 
 
 

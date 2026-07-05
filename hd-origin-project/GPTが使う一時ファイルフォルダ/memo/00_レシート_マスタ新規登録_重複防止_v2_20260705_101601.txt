@@ -1,0 +1,39 @@
+﻿==============================
+レシート マスタ新規登録 重複防止 v2
+==============================
+日時: 2026-07-05 10:16:01
+対象: G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+
+[実施内容]
+- マスタ新規登録前に、同じ名称の option が既にあるか確認する処理を追加しました。
+- 同名がある場合はPOST登録せず、既存の選択肢を選択します。
+- 前回の async function 崩れを避けるため、関数範囲検出を修正しました。
+- HTML全体ではなく、script部分だけを抽出してJSチェックしました。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\receipts\receipt-list_before_master_duplicate_guard_v2_20260705_101601.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\receipts\receipt-list.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receipt_master_duplicate_guard_v2_20260705_101601.ps1
+
+[fixer]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\fix_receipt_master_duplicate_guard_v2_20260705_101601.js
+
+[抽出JS]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\receipt-list_scripts_check_duplicate_guard_v2_20260705_101601.js
+
+[確認結果]
+script構文チェックOK: True
+重複名称正規化あり: True
+既存option検索あり: True
+既存選択メッセージあり: True
+register関数async維持: True
+
+[動作確認]
+1. ブラウザ更新
+2. 目的候補名に既に存在する目的名を入力
+3. 新規登録ボタン
+4. 新規登録せず、既存目的が選択されること

@@ -1,45 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>レシート読取確認</title>
-  
-  <link rel="stylesheet" href="./receipt-list.css">
-</head>
-<body>
-  <header>レシート読取確認
+﻿
+// ==============================
+// script block 1
+// ==============================
 
-      <!-- RECEIPT_HEADER_IMPORT_NAV_START -->
-      <div class="receipt-header-actions">
-        <button type="button" onclick="location.href=&quot;/&quot;">メインページ</button>
-      <button type="button" id="bulkAiButton" onclick="bulkAnalyzeCheckedReceipts()">まとめてAI</button>
-      <button type="button" id="bulkSaveButton" onclick="bulkSaveCheckedReceipts()">まとめて保存</button>
-      <button onclick="location.href='/receipts/receipt-scan-inbox.html'">レシート取込へ</button>
-      </div>
-      <!-- RECEIPT_HEADER_IMPORT_NAV_END -->
-    </header>
-
-  <main>
-    <section class="panel">
-      <div class="panel-title">
-        <span>レシート</span>
-        <button onclick="loadList()">再読込</button>
-      </div>
-      <div id="list" class="scroll">読込中...</div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-title">画像</div>
-      <div id="imageArea" class="image-area">左から選択してください。</div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-title">読取候補の編集</div>
-      <div id="formArea" class="form-area">左から選択してください。</div>
-    </section>
-  </main>
-
-  <script>
     /* RECEIPT_CUSTOM_DIALOG_SCRIPT_START */
     (function () {
       if (window.receiptDialogInstalled) return;
@@ -511,7 +474,38 @@
       return payload;
     }
 
-    async function registerReceiptMasterFromCandidate(kind) {
+    
+function normalizeReceiptMasterDuplicateName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[　\s]+/g, "")
+    .replace(/[‐-‒–—―ー－]/g, "-")
+    .toLowerCase();
+}
+
+function findExistingReceiptMasterOptionByName(select, name) {
+  if (!select || !select.options) return null;
+
+  const normalized = normalizeReceiptMasterDuplicateName(name);
+  if (!normalized) return null;
+
+  for (const option of Array.from(select.options)) {
+    const optionName = String(option.textContent || "").trim();
+
+    if (!option.value) continue;
+
+    if (normalizeReceiptMasterDuplicateName(optionName) === normalized) {
+      return {
+        id: option.value,
+        name: optionName
+      };
+    }
+  }
+
+  return null;
+}
+
+async function registerReceiptMasterFromCandidate(kind) {
       const def = receiptMasterCandidateDef(kind);
       if (!def) return;
 
@@ -525,6 +519,28 @@
       if (!(await receiptConfirm(def.label + "「" + name + "」をマスタへ登録しますか？", "マスタ登録確認"))) {
         return;
       }
+
+      
+  const existingSameNameMaster = findExistingReceiptMasterOptionByName(select, name);
+  if (existingSameNameMaster) {
+    select.value = String(existingSameNameMaster.id);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+
+    if (input) {
+      input.value = existingSameNameMaster.name;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    await receiptAlert(
+      "既に同じ名称のマスタがあります。\n新規登録せず、既存の「" + existingSameNameMaster.name + "」を選択しました。",
+      "マスタ登録"
+    );
+
+    return;
+  }
+
+
 
       const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
         method: "POST",
@@ -1538,7 +1554,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
           label.appendChild(badge);
         }
 
-        const count = Array.isArray(window.currentLineItems) ? window.currentLineItems.length : 0;
+        const count = Array.isArray(currentLineItems) ? currentLineItems.length : 0;
         badge.textContent = String(count) + "件";
 
         const area = document.getElementById("lineItemsArea");
@@ -2207,10 +2223,12 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
 
 loadList();
-  </script>
+  
 
-  <!-- RECEIPT_COMPACT_ACCOUNTING_LAYOUT_SCRIPT_START -->
-  <script>
+// ==============================
+// script block 2
+// ==============================
+
     function setupCompactReceiptAccountingLayout() {
       const titles = Array.from(document.querySelectorAll(".panel-title"));
 
@@ -2283,11 +2301,12 @@ loadList();
       setTimeout(setupCompactReceiptAccountingLayout, 300);
       setTimeout(setupCompactReceiptAccountingLayout, 800);
     });
-  </script>
-  <!-- RECEIPT_COMPACT_ACCOUNTING_LAYOUT_SCRIPT_END -->
+  
 
-  <!-- RECEIPT_LEFT_LIST_ONE_LINE_SCRIPT_START -->
-  <script>
+// ==============================
+// script block 3
+// ==============================
+
     function findValueDeep(obj, keys) {
       if (!obj || typeof obj !== "object") return "";
 
@@ -2378,11 +2397,12 @@ loadList();
     document.addEventListener("click", () => {
       setTimeout(decorateReceiptListRowsOneLine, 300);
     });
-  </script>
-  <!-- RECEIPT_LEFT_LIST_ONE_LINE_SCRIPT_END -->
+  
 
-  <!-- RECEIPT_FIELD_LAYOUT_SCRIPT_START -->
-  <script>
+// ==============================
+// script block 4
+// ==============================
+
     function applyReceiptFieldLayout() {
       const form = document.getElementById("formArea");
       if (!form) return;
@@ -2471,6 +2491,7 @@ loadList();
       receiptMasterOptions = {
         taxCategories: data.taxCategories || [],
         taxTreatments: data.taxTreatments || [],
+        accountTitles: data.accountTitles || [],
         paymentMethods: data.paymentMethods || [],
         targetPeople: data.targetPeople || [],
         purposes: data.purposes || [],
@@ -2799,53 +2820,12 @@ loadList();
 
     /* RECEIPT_TAX_BREAKDOWN_MODAL_SCRIPT_END */
 
-</script>
-  <!-- RECEIPT_FIELD_LAYOUT_SCRIPT_END -->
-
-  <!-- RECEIPT_TAX_BREAKDOWN_MODAL_START -->
-  <div id="taxBreakdownModal" class="tax-breakdown-modal hidden">
-    <div class="tax-breakdown-backdrop" onclick="closeTaxBreakdown()"></div>
-
-    <div class="tax-breakdown-dialog">
-      <div class="tax-breakdown-header">
-        <div>
-          <div class="tax-breakdown-title">消費税内訳</div>
-          <div class="tax-breakdown-subtitle">必要な税区分だけ表示します。選択肢はマスターから取得します。</div>
-        </div>
-        <button type="button" class="tax-breakdown-close" onclick="closeTaxBreakdown()">×</button>
-      </div>
-
-      <div class="tax-breakdown-body">
-        <table class="tax-breakdown-table">
-          <thead>
-            <tr>
-              <th>税区分</th>
-              <th>対象金額</th>
-              <th>消費税額</th>
-              <th>税処理</th>
-              <th>削除</th>
-            </tr>
-          </thead>
-          <tbody id="taxBreakdownRows"></tbody>
-        </table>
-      </div>
-
-      <div class="tax-breakdown-footer">
-        <div id="taxBreakdownTotalText" class="tax-breakdown-total">消費税合計：0円</div>
-        <div class="tax-breakdown-actions">
-          <button type="button" onclick="addTaxBreakdownRow()">行追加</button>
-          <button type="button" onclick="closeTaxBreakdown()">閉じる</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- RECEIPT_TAX_BREAKDOWN_MODAL_END -->
 
 
+// ==============================
+// script block 5
+// ==============================
 
-
-  <!-- RECEIPT_COPY_SYSTEM_SCRIPT_20260703_START -->
-  <script>
     (function () {
       if (window.receiptCopySystemInstalled) return;
       window.receiptCopySystemInstalled = true;
@@ -3115,9 +3095,12 @@ loadList();
         setTimeout(receiptCopyEnsurePanel, 300);
       }
     })();
-  </script>
-  <!-- RECEIPT_COPY_SYSTEM_SCRIPT_20260703_END -->
-<script>
+  
+
+// ==============================
+// script block 6
+// ==============================
+
 /* RECEIPT_BASIC_GROUP_NORMALIZE_20260704_SCRIPT_START */
 (function () {
   function unwrapElement(wrapper) {
@@ -3169,83 +3152,4 @@ loadList();
   window.normalizeBasicInfoGroups = normalizeBasicInfoGroups;
 })();
 /* RECEIPT_BASIC_GROUP_NORMALIZE_20260704_SCRIPT_END */
-</script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

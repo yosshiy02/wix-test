@@ -1,4 +1,4 @@
-const pool = require("../db");
+﻿const pool = require("../db");
 
 async function listImports(limit = 100, offset = 0) {
   const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
@@ -257,6 +257,8 @@ async function createAiDraft(receiptImportId, draft) {
       tax_rate,
       tax_treatment_name,
       payment_method_name,
+      purpose_id,
+      purpose_temp_name,
       account_title_name,
       invoice_number,
       summary,
@@ -269,9 +271,9 @@ async function createAiDraft(receiptImportId, draft) {
       error_message
     ) VALUES (
             $1, $2, $3, $4, $5, $6,
-      $7, $8, $9, $10, $11, $12,
-      $13, $14, $15, $16, $17::jsonb,
-      'draft', $18, $19::jsonb, ''
+      $7, $8, $9, $10, $11, $12, $13,
+      $14, $15, $16, $17, $18, $19::jsonb,
+      'draft', $20, $21::jsonb, ''
     )
     RETURNING *
     `,
@@ -287,6 +289,8 @@ async function createAiDraft(receiptImportId, draft) {
       draft.taxRate,
       draft.taxTreatmentName || draft.tax_treatment_name || "",
       draft.paymentMethodName,
+      draft.purposeId || draft.purpose_id || null,
+      draft.purposeName || draft.purpose_name || "",
       draft.accountTitleName,
       draft.invoiceNumber,
       draft.summary,
@@ -1316,3 +1320,4 @@ if (module.exports && typeof module.exports.getReceiptMasterOptions === "functio
   };
 }
 /* RECEIPT_ACCOUNT_TITLES_MASTER_OPTIONS_20260705_END */
+
