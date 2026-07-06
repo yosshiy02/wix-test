@@ -1,4 +1,4 @@
-HD Origin Project 構造・起動パス確認メモ
+﻿HD Origin Project 構造・起動パス確認メモ
 =======================================
 
 このファイルは、起動BATが確定したPC別パスとフォルダ構造を次のGPTへ伝えるために自動生成されています。
@@ -308,3 +308,6 @@ hd-origin-project\
 ├─ README.md
 └─ run_env_initializer.bat
 -----------------------------------
+【固定パス禁止ルール】
+PCは動的に変わる前提で扱う。PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。
+

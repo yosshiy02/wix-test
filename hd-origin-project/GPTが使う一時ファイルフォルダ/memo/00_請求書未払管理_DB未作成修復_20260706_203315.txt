@@ -1,0 +1,140 @@
+﻿==============================
+請求書・未払管理 DB未作成 修復結果
+==============================
+日時: 2026-07-06 20:33:29
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- DBバックアップ作成後、請求書・未払管理 migration SQL を psql で適用
+- ファイルは変更していません
+
+[migration SQL]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260706_001_payables_professional.sql
+
+[DBバックアップ]
+{
+  "ok": true,
+  "backup": {
+    "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.backup",
+    "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payables_db_fix_20260706_203315_20260706_203316.backup",
+    "size_bytes": 120812,
+    "created_at": "2026-07-06T11:33:17.282Z",
+    "backup_format": "full",
+    "backup_artifacts": {
+      "full": {
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.backup",
+        "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payables_db_fix_20260706_203315_20260706_203316.backup",
+        "size_bytes": 120812,
+        "updated_at": "2026-07-06T11:33:17.282Z"
+      },
+      "schema": {
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.schema.sql",
+        "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payables_db_fix_20260706_203315_20260706_203316.schema.sql",
+        "size_bytes": 62501,
+        "updated_at": "2026-07-06T11:33:18.095Z"
+      },
+      "data": {
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.data.backup",
+        "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payables_db_fix_20260706_203315_20260706_203316.data.backup",
+        "size_bytes": 27914,
+        "updated_at": "2026-07-06T11:33:18.734Z"
+      }
+    },
+    "migration_version": "20260705_001_receipt_6tables",
+    "migration_snapshot": {
+      "ok": true,
+      "latest_version": "20260705_001_receipt_6tables",
+      "latest_name": "receipt_6tables",
+      "applied_count": 2,
+      "migrations": [
+        {
+          "version": "20260703_001_baseline_current_schema",
+          "name": "baseline_current_schema",
+          "file_name": "20260703_001_baseline_current_schema.sql",
+          "checksum_sha256": "30aab0785c45608d3c7a8915d3c52d2a1c6dc43b378d5a56c11623e7cfc69f62",
+          "applied": true,
+          "applied_at": "2026-07-03T23:50:08.039Z",
+          "checksum_matches": false
+        },
+        {
+          "version": "20260705_001_receipt_6tables",
+          "name": "receipt_6tables",
+          "file_name": "20260705_001_receipt_6tables.sql",
+          "checksum_sha256": "e026c88d331f622e6c842b2a3d98e0a9714da27382ca7897abd2466b30639af4",
+          "applied": true,
+          "applied_at": "2026-07-05T07:36:43.768Z",
+          "checksum_matches": false
+        },
+        {
+          "version": "20260705_002_receipt_is_settled",
+          "name": "receipt_is_settled",
+          "file_name": "20260705_002_receipt_is_settled.sql",
+          "checksum_sha256": "dc02cacc12cebde4f56d3b80072e172b8e86fb7cb3c4052b522237c82ce2c98b",
+          "applied": false,
+          "applied_at": null,
+          "checksum_matches": null
+        },
+        {
+          "version": "20260706_001_payables_professional",
+          "name": "payables_professional",
+          "file_name": "20260706_001_payables_professional.sql",
+          "checksum_sha256": "098c47d09d46ccce679c954a061e5ac9542401c11b6c850011822ecabe451869",
+          "applied": false,
+          "applied_at": null,
+          "checksum_matches": null
+        }
+      ]
+    },
+    "clone_backup": {
+      "full": {
+        "enabled": true,
+        "skipped": true,
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.backup",
+        "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+        "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+      },
+      "schema": {
+        "enabled": true,
+        "skipped": true,
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.schema.sql",
+        "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+        "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+      },
+      "data": {
+        "enabled": true,
+        "skipped": true,
+        "file_name": "before_payables_db_fix_20260706_203315_20260706_203316.data.backup",
+        "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+        "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+      }
+    },
+    "cleanup": {
+      "keep_normal": 10,
+      "keep_before_restore": 3,
+      "deleted": [
+        "hd_origin_project_20260703_210017.backup"
+      ]
+    }
+  }
+}
+
+[migration 適用結果]
+
+
+[DB存在確認]
+ payable_documents | payable_lines | payable_payments | payable_status_history | v_payable_documents 
+-------------------+---------------+------------------+------------------------+---------------------
+                   |               |                  |                        | 
+(1 行)
+
+
+[確認]
+payables DB objects: NG
+
+[次]
+- payables DB objects が OK なら HD Origin Project を再起動
+- メイン画面から「請求書・未払管理」を開く
+- まず画面が開くか確認
+- その後、新規保存テスト

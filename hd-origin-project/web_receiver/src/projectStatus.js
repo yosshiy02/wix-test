@@ -232,7 +232,16 @@ function writeProjectStatus() {
   lines.push("- 既存の後付けレイアウトJSや過去のRECEIPT_系CSSブロックがある場合は、追加修正の前に「残す」「削る」「初期HTMLへ戻す」を一覧化する。");
   lines.push("- ユーザーが「ツリー出して」「解体して」と言った場合は、コードを書かず、まずツリーだけを書く。");
   lines.push("- PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。");
+  lines.push("");  lines.push("");
+  lines.push("[スタート文書ルール]");
+  lines.push("HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706");
+  lines.push("- この PROJECT_STATUS_FOR_GPT.txt を、今後『スタート文書』と呼ぶ。");
+  lines.push("- PCは動的に変わる前提で扱う。");
+  lines.push("- PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。");
+  lines.push("- パスは必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。");
+  lines.push("- DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。");
   lines.push("");
+
   lines.push("[生成情報]");
   lines.push(`生成日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`);
   lines.push(`PC名: ${os.hostname()}`);
@@ -281,6 +290,7 @@ function writeProjectStatus() {
 module.exports = {
   writeProjectStatus
 };
+
 
 
 

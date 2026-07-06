@@ -103,7 +103,7 @@ const backupCloneDir = (() => {
   return "";
 })();
 
-const pgBinPath = process.env.PG_BIN_PATH || "C:\\Program Files\\PostgreSQL\\17\\bin";
+const pgBinPath = process.env.PG_BIN_PATH || "";
 
 const receiptRoot = (() => {
   const explicitRoot = process.env.HD_ORIGIN_RECEIPT_ROOT || "";
@@ -142,5 +142,6 @@ module.exports = {
     password: String(process.env.DB_PASSWORD || ""),
   },
 };
+
 
 

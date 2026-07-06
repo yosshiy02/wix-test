@@ -1,0 +1,21 @@
+﻿-- 請求書・未払管理 プロ仕様 設計メモ
+-- 作成日: 2026-07-06
+--
+-- 方針:
+-- 1. レシート = 支払済み証憑
+-- 2. 請求書・未払 = これから払う、または後払いの債務
+-- 3. 買掛金だけに限定せず、未払金・未払費用・カード未払も扱えるようにする
+-- 4. 仕訳入力画面より先に、実務の債務管理を固める
+-- 5. 将来、登録時・支払時に仕訳を自動生成できるように journal_status を持たせる
+--
+-- 主テーブル:
+-- accounting.payable_documents
+-- accounting.payable_lines
+-- accounting.payable_payments
+-- accounting.payable_status_history
+--
+-- 表示用:
+-- accounting.v_payable_documents
+--
+-- 実行SQL本体:
+-- database/migrations/20260706_001_payables_professional.sql

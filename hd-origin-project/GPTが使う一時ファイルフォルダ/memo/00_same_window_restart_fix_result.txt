@@ -1,0 +1,24 @@
+﻿==============================
+同じ黒い画面で再起動する修正 結果
+==============================
+日時: 2026-07-06 18:53:47
+
+[server.js]
+restart_hd_origin.bat 呼び出し残存: False
+cmd.exe 呼び出し残存: False
+process.exit(100) あり: True
+
+[start_hd_origin.bat]
+HD_ORIGIN_SERVER_LOOP あり: True
+終了コード100でgotoあり: True
+
+[判定]
+OK: 再起動は同じ黒い画面で行う形です。
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\server_before_exit100_fix.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\start_hd_origin_before_same_window_loop_fix.bat
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\server_after_exit100_fix.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\start_hd_origin_after_same_window_loop_fix.bat

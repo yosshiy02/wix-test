@@ -1,0 +1,34 @@
+﻿==============================
+右下バックアップウインドウ非表示 結果
+==============================
+日時: 2026-07-06 20:44:43
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- web_receiver\public\hd-origin-exit-guard.js に非表示処理を追加
+- 右下のバックアップ案内ウインドウだけを非表示
+- バックアップAPI / server.js / DB は変更なし
+
+[確認]
+patch marker: OK
+node --check: OK
+changed: YES
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\hd-origin-exit-guard_before_hide_backup_window_20260706_204442.js
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\hd-origin-exit-guard_after_hide_backup_window_20260706_204442.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_hide_backup_window_20260706_204442.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_hide_backup_window_20260706_204442.ps1
+
+[次]
+- ブラウザを再読み込み
+- 右下のバックアップウインドウが消えているか確認
+- 終了ボタンや再起動時のバックアップ機能は残っています

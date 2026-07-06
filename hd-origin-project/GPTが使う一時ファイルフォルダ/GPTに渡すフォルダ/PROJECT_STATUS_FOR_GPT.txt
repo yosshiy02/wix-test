@@ -32,88 +32,97 @@ DB_PASSWORD等の秘密情報は伏せています。
 - ユーザーが「ツリー出して」「解体して」と言った場合は、コードを書かず、まずツリーだけを書く。
 - PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。
 
+
+[スタート文書ルール]
+HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
+- この PROJECT_STATUS_FOR_GPT.txt を、今後『スタート文書』と呼ぶ。
+- PCは動的に変わる前提で扱う。
+- PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。
+- パスは必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。
+- DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
+
 [生成情報]
-生成日時: 2026/7/6 13:16:12
-PC名: DESKTOP-J64US0P
+生成日時: 2026/7/6 20:08:31
+PC名: 2FLABO
 OS: win32 10.0.19045 x64
-Node.js: v24.18.0
-作業ディレクトリ: D:\GITHUB\wix-test\hd-origin-project\web_receiver
+Node.js: v20.16.0
+作業ディレクトリ: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver
 
 [起動BAT確定パス情報]
-RUNTIME_PATHS_FILE: D:\GITHUB\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
+RUNTIME_PATHS_FILE: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
 -----------------------------------
-COMPUTER_NAME=DESKTOP-J64US0P
-USER_NAME=DELL
-PROJECT_ROOT=D:\GITHUB\wix-test\hd-origin-project
-PROJECT_DIR=D:\GITHUB\wix-test\hd-origin-project
-WEB_DIR=D:\GITHUB\wix-test\hd-origin-project\web_receiver
-PROJECT_DRIVE=D:
-RUNTIME_PATHS_FILE=D:\GITHUB\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
-PC_RULES_FILE=D:\GITHUB\wix-test\hd-origin-project\HD_ORIGIN_PC_RULES.txt
-DROPBOX_DRIVE=D:
-DROPBOX_ROOT=D:\Dropbox
-DROPBOX_PATH=D:\Dropbox
-HDDBTEST_ROOT=D:\Dropbox\HDDBTEST
-HD_ORIGIN_ENV_PATH=D:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\.env
+COMPUTER_NAME=2FLABO
+USER_NAME=yossh
+PROJECT_ROOT=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+PROJECT_DIR=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+WEB_DIR=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver
+PROJECT_DRIVE=C:
+RUNTIME_PATHS_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
+PC_RULES_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\HD_ORIGIN_PC_RULES.txt
+DROPBOX_DRIVE=F:
+DROPBOX_ROOT=F:\Dropbox
+DROPBOX_PATH=F:\Dropbox
+HDDBTEST_ROOT=F:\Dropbox\HDDBTEST
+HD_ORIGIN_ENV_PATH=F:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\.env
 PORT=3000
 APP_NAME=HD Origin Project
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=hd_origin_project
 DB_USER=postgres
-PG_BIN_PATH=D:\Apps\PostgreSQL\17\bin
-BACKUP_DIR=D:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\Backup
+PG_BIN_PATH=C:\Program Files\PostgreSQL\17\bin
+BACKUP_DIR=F:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\Backup
 BACKUP_KEEP_NORMAL=10
 BACKUP_KEEP_BEFORE_RESTORE=3
 PROJECT_BACKUP_KEEP=5
-NODE_PATH=D:\Apps\nodejs\node.exe
-NPM_PATH=D:\Apps\nodejs\npm.cmd
+NODE_PATH=C:\Program Files\nodejs\node.exe
+NPM_PATH=C:\Program Files\nodejs\npm.cmd
 CHROME_PATH=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 OPENAI_MODEL=gpt-4.1-mini
 
 -----------------------------------
 
 [主要確定値]
-PROJECT_ROOT: D:\GITHUB\wix-test\hd-origin-project
-WEB_DIR: D:\GITHUB\wix-test\hd-origin-project\web_receiver
-HD_ORIGIN_ENV_PATH: D:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\.env
+PROJECT_ROOT: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+WEB_DIR: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver
+HD_ORIGIN_ENV_PATH: F:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\.env
 DB_HOST: 127.0.0.1
 DB_PORT: 5432
 DB_NAME: hd_origin_project
 DB_USER: postgres
 DB_PASSWORD: ********
-PG_BIN_PATH: D:\Apps\PostgreSQL\17\bin
-BACKUP_DIR: D:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\Backup
-NODE_PATH: D:\Apps\nodejs\node.exe
-NPM_PATH: D:\Apps\nodejs\npm.cmd
+PG_BIN_PATH: C:\Program Files\PostgreSQL\17\bin
+BACKUP_DIR: F:\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\Backup
+NODE_PATH: C:\Program Files\nodejs\node.exe
+NPM_PATH: C:\Program Files\nodejs\npm.cmd
 
 [重要ファイル存在確認]
-あり : D:\GITHUB\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
-あり : D:\GITHUB\wix-test\hd-origin-project\HD_ORIGIN_PC_RULES.txt
-あり : D:\GITHUB\wix-test\hd-origin-project\.env_path.txt
-あり : D:\GITHUB\wix-test\hd-origin-project\.env.example
-あり : D:\GITHUB\wix-test\hd-origin-project\README.md
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\start_hd_origin.bat
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\server.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\config.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\db.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\db.bootstrap.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\projectStatus.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\backups\backup.routes.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\backups\backup.service.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.routes.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.repository.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\masters\masters.routes.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\masters\master.repository.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.routes.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\expenses\expense-input.html
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\expenses\expense-list.html
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\masters\master-management.html
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-scan-inbox.html
-あり : D:\GITHUB\wix-test\hd-origin-project\web_receiver\public\settings.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\HD_ORIGIN_RUNTIME_PATHS.txt
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\HD_ORIGIN_PC_RULES.txt
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\.env_path.txt
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\.env.example
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\README.md
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\start_hd_origin.bat
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\server.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\config.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\db.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\db.bootstrap.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\projectStatus.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\backups\backup.routes.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\backups\backup.service.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.routes.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.repository.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\masters\masters.routes.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\masters\master.repository.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.routes.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.repository.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\receipts\receipts.ai.js
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\expenses\expense-input.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\expenses\expense-list.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\masters\master-management.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-scan-inbox.html
+あり : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\settings.html
 
 [プロジェクトツリー]
 -----------------------------------
@@ -168,7 +177,13 @@ hd-origin-project\
 │  │  ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt.after_receipt_db_handoff.txt
 │  │  ├─ PROJECT_STATUS_FOR_GPT.txt.after_receipt_db_handoff.txt
 │  │  ├─ PROJECT_TODO_FOR_GPT.txt.after_receipt_db_handoff.txt
-│  │  └─ restart_hd_origin.bat
+│  │  ├─ restart_hd_origin_after_no_kill_cmd.bat
+│  │  ├─ restart_hd_origin.bat
+│  │  ├─ server_after_exit100_fix.js
+│  │  ├─ server_after_restart_same_window.js
+│  │  ├─ start_hd_origin_after_loop_structure_fix.bat
+│  │  ├─ start_hd_origin_after_restart_same_window.bat
+│  │  └─ start_hd_origin_after_same_window_loop_fix.bat
 │  ├─ apply\
 │  │  ├─ apply_backup_dir_dynamic_dropbox.ps1
 │  │  ├─ apply_backup_migration_snapshot_v2.ps1
@@ -497,23 +512,69 @@ hd-origin-project\
 │  │  ├─ PROJECT_STATUS_FOR_GPT.txt.before_receipt_db_handoff.txt
 │  │  ├─ PROJECT_TODO_FOR_GPT.txt.before_receipt_db_handoff.txt
 │  │  ├─ restart_hd_origin_before_ascii_20260706_131148.bat
+│  │  ├─ restart_hd_origin_before_no_kill_cmd.bat
 │  │  ├─ restart_hd_origin_before_restart_button_20260705_110700.bat
 │  │  ├─ restart_hd_origin_before_single_window_20260706_131514.bat
-│  │  └─ restart_hd_origin.bat
+│  │  ├─ restart_hd_origin.bat
+│  │  ├─ server_before_exit100_fix.js
+│  │  ├─ server_before_restart_same_window.js
+│  │  ├─ start_hd_origin_before_loop_fix_2.bat
+│  │  ├─ start_hd_origin_before_loop_structure_fix.bat
+│  │  ├─ start_hd_origin_before_restart_same_window.bat
+│  │  └─ start_hd_origin_before_same_window_loop_fix.bat
 │  ├─ GPTに渡すフォルダ\
+│  │  ├─ after_exit_backup_20260706_200429\
+│  │  │  ├─ hd-origin-exit-guard.js
+│  │  │  └─ server.js
+│  │  ├─ before_exit_backup_20260706_200429\
+│  │  │  ├─ index.html.before
+│  │  │  └─ server.js
+│  │  ├─ before_exit_guard_html_inject_20260706_200620\
+│  │  │  ├─ expense-input.html.before
+│  │  │  ├─ expense-list.html.before
+│  │  │  ├─ index.html.before
+│  │  │  ├─ master-management.html.before
+│  │  │  ├─ receipt-ledger-print.html.before
+│  │  │  ├─ receipt-list.html.before
+│  │  │  ├─ receipt-saved-list.html.before
+│  │  │  ├─ receipt-scan-inbox.html.before
+│  │  │  └─ settings.html.before
+│  │  ├─ database\
+│  │  │  └─ migrations\
+│  │  │     ├─ 20260705_001_receipt_6tables.sql
+│  │  │     └─ 20260705_002_receipt_is_settled.sql
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
-│  │  │  │  └─ settings.html
+│  │  │  │  └─ receipts\
+│  │  │  │     ├─ receipt-ledger-print.html
+│  │  │  │     ├─ receipt-list.css
+│  │  │  │     ├─ receipt-list.html
+│  │  │  │     └─ receipt-saved-list.html
 │  │  │  ├─ src\
-│  │  │  │  └─ backups\
-│  │  │  │     ├─ backup.routes.js
-│  │  │  │     └─ backup.service.js
-│  │  │  ├─ server.js
-│  │  │  └─ start_hd_origin.bat
-│  │  ├─ HD_ORIGIN_PC_RULES.txt
+│  │  │  │  ├─ masters\
+│  │  │  │  │  └─ master.repository.js
+│  │  │  │  ├─ receipts\
+│  │  │  │  │  ├─ receipts.ai.js
+│  │  │  │  │  ├─ receipts.repository.js
+│  │  │  │  │  └─ receipts.routes.js
+│  │  │  │  ├─ config.js
+│  │  │  │  └─ db.js
+│  │  │  └─ server.js
+│  │  ├─ 00_config_pgBinPath_固定パス削除結果.txt
+│  │  ├─ 00_exit_backup_修正結果.txt
+│  │  ├─ 00_exit_guard_HTML注入_修正結果.txt
+│  │  ├─ 00_スタート文書_固定パス禁止ルール_追加結果_再実行.txt
+│  │  ├─ 00_スタート文書_固定パス禁止ルール_追加結果.txt
+│  │  ├─ 00_レシート画像API_現状確認.txt
+│  │  ├─ 00_レシート画像API_動的解決_本体置換結果.txt
+│  │  ├─ 00_レシート画像パス_動的解決修正結果.txt
+│  │  ├─ 00_レシート周り_PC変更で壊れる固定パス確認.txt
+│  │  ├─ 00_レシート周り_固定パス候補確認.txt
+│  │  ├─ 00_固定パス禁止ルール_追加結果_やり直し.txt
+│  │  ├─ 00_収集結果_レシート修復_最小.txt
+│  │  ├─ 00_追加収集_レシートCSS_マスタRepo.txt
 │  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
-│  │  ├─ PROJECT_STATUS_FOR_GPT.txt
-│  │  └─ restart_hd_origin.bat
+│  │  └─ undo_exit_backup_20260706_20260706_200429.ps1
 │  ├─ memo\
 │  │  ├─ 00_apply_group_id_check.txt
 │  │  ├─ 00_backup_dir_dynamic_dropbox_fix.txt
@@ -603,9 +664,13 @@ hd-origin-project\
 │  │  ├─ 00_restart_bat_dynamic_fix.txt
 │  │  ├─ 00_restart_bat_rewrite.txt
 │  │  ├─ 00_restart_hd_origin_ascii_rebuild.txt
+│  │  ├─ 00_restart_hd_origin_CMD終了無効化.txt
+│  │  ├─ 00_restart_same_window_fix.txt
+│  │  ├─ 00_same_window_restart_fix_result.txt
 │  │  ├─ 00_saved_list_sql_現物.txt
 │  │  ├─ 00_saved_sql_現物確認.txt
 │  │  ├─ 00_start_hd_origin_bat_utf8nobom_fix.txt
+│  │  ├─ 00_start_hd_origin_serverjs周辺確認.txt
 │  │  ├─ 00_TODO削除_projectStatus収集結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_after作成結果.txt
 │  │  ├─ 00_スタート文書_一時フォルダ清掃ルール_反映結果.txt
@@ -631,11 +696,7 @@ hd-origin-project\
 │  │  ├─ 00_レシート_is_settled_DB保存対応結果.txt
 │  │  ├─ 00_レシート_マスタ重複防止_HTML正規チェック_20260705_101312.txt
 │  │  ├─ 00_レシート_マスタ重複防止_最終修正_20260705_102036.txt
-│  │  ├─ 00_レシート_マスタ新規登録_重複防止_20260705_101153.txt
-│  │  ├─ 00_レシート_マスタ新規登録_重複防止_v2_20260705_101601.txt
-│  │  ├─ 00_レシート_マスタ登録後画面反映_20260705_103221.txt
-│  │  ├─ 00_レシート6テーブル_migration_DRYRUN.sql
-│  │  └─ ... 199 items omitted
+│  │  └─ ... 206 items omitted
 │  ├─ undo\
 │  │  ├─ used\
 │  │  │  ├─ undo_receipt_basic_info_html_rebuild_20260704_222712.ps1
@@ -764,6 +825,7 @@ hd-origin-project\
 │  ├─ 00_レシートAPI_DB台帳対応_修正結果.txt
 │  ├─ 00_レシート画面API確認用_収集結果.txt
 │  ├─ 00_収集結果_Dropboxバックアップ切替確認.txt
+│  ├─ 00_収集結果_レシート本保存一覧確認.txt
 │  ├─ 00_収集結果_再起動固定パス確認.txt
 │  ├─ HD_ORIGIN_PC_RULES.txt
 │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
@@ -814,22 +876,23 @@ hd-origin-project\
 │  └─ レシート関係\
 │     ├─ duplicate\
 │     │  ├─ .gitkeep
-│     │  └─ 2026-07-01 21.59.06.png
+│     │  └─ 2026-07-01 22.03.41.png
 │     ├─ error\
 │     │  └─ .gitkeep
 │     ├─ imported\
 │     │  ├─ .gitkeep
 │     │  ├─ 2026-07-01 21.59.06.png
-│     │  └─ 2026-07-02 14.30.18.png
+│     │  ├─ dummy_receipt_01_10percent_only_food.png
+│     │  ├─ dummy_receipt_02_10_and_8_mixed_compressed.jpg
+│     │  ├─ dummy_receipt_03_tax_excluded_10percent.png
+│     │  ├─ dummy_receipt_04_non_taxable_and_10percent.png
+│     │  ├─ dummy_receipt_05_out_of_scope_and_10percent.png
+│     │  └─ dummy_receipt_06_complex_all_types_compressed.jpg
 │     ├─ memo\
 │     │  ├─ .gitkeep
 │     │  └─ README_RECEIPT_IMPORT.txt
 │     ├─ scan_inbox\
-│     │  ├─ .gitkeep
-│     │  ├─ 写真 2026-06-27 22 40 37 - コピー (2)_compressed.jpg
-│     │  ├─ 写真 2026-06-27 22 40 37 - コピー (3)_compressed.jpg
-│     │  ├─ 写真 2026-06-27 22 40 37 - コピー (4)_compressed.jpg
-│     │  └─ 写真 2026-06-27 22 40 37 - コピー (5)_compressed.jpg
+│     │  └─ .gitkeep
 │     └─ work\
 │        └─ .gitkeep
 ├─ web_receiver\
@@ -882,6 +945,7 @@ hd-origin-project\
 │  │  │  ├─ receipt-list.html.before_visible_area_color_redo_20260704_203547.bak
 │  │  │  ├─ receipt-saved-list.html
 │  │  │  └─ receipt-scan-inbox.html
+│  │  ├─ hd-origin-exit-guard.js
 │  │  ├─ index.html
 │  │  ├─ index.html.bak_20260625_151513
 │  │  ├─ index.html.bak_20260625_152408

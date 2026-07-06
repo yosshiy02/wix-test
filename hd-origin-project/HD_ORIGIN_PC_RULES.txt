@@ -66,4 +66,6 @@ GPTが使う一時ファイルフォルダ
 - まず before に元ファイルをコピーし、after に修正版を作り、確認後に apply で本体反映する。
 - 問題が出た場合は undo の手順で before から本体へ戻す。
 - .env、秘密情報、DB、画像、実バックアップは勝手に削除・移動しない。
+【固定パス禁止ルール】
+PCは動的に変わる前提で扱う。PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。
 

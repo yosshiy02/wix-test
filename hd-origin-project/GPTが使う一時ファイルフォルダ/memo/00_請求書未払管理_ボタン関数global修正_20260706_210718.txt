@@ -1,0 +1,43 @@
+﻿==============================
+請求書・未払管理 ボタン関数global修正 結果
+==============================
+日時: 2026-07-06 21:07:18
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- 請求書・未払管理画面の再読み込みボタンを hdOriginPayablesReload() に変更
+- サーバー再起動ボタンを hdOriginPayablesRestart() に変更
+- 2つの関数を window に明示登録
+- DB / API / server.js / BAT は変更なし
+- DOM移動なし
+
+[確認]
+reload button onclick: OK
+restart button onclick: OK
+window reload function: OK
+window restart function: OK
+restart API: OK
+marker: OK
+changed reload button: YES
+changed restart button: YES
+changed script: YES
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payable-list_before_button_global_fix_20260706_210718.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payable-list_after_button_global_fix_20260706_210718.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payables_button_global_fix_20260706_210718.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payables_button_global_fix_20260706_210718.ps1
+
+[次]
+- 請求書・未払管理画面を Ctrl + F5
+- 再読み込みボタンを押す
+- サーバー再起動ボタンを押して確認ダイアログが出るか確認
+- 確認ダイアログが出れば、ボタン関数は動いています

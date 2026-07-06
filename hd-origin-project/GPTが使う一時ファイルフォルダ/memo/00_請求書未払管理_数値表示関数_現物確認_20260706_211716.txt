@@ -1,0 +1,474 @@
+﻿==============================
+請求書・未払管理 数値表示関数 現物確認
+==============================
+日時: 2026-07-06 21:17:16
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[対象]
+web_receiver\public\payables\payable-list.html
+
+[注意]
+- 今回は確認のみ
+- 本体変更なし
+- DB / API / server.js 変更なし
+
+[抽出結果]
+
+----------------------------------------
+HIT: function money / line 280
+----------------------------------------
+L272: function esc(value) {
+L273:   return String(value ?? "")
+L274:     .replaceAll("&", "&amp;")
+L275:     .replaceAll("<", "&lt;")
+L276:     .replaceAll(">", "&gt;")
+L277:     .replaceAll('"', "&quot;")
+L278:     .replaceAll("'", "&#039;");
+L279: }
+L280: function money(value) {
+L281:   return Number(value || 0).toLocaleString("ja-JP");
+L282: }
+L283: function num(value) {
+L284:   const n = Number(String(value ?? "").replace(/,/g, ""));
+L285:   return Number.isFinite(n) ? n : 0;
+L286: }
+L287: function showResult(data) {
+L288:   document.getElementById("result").textContent =
+L289:     typeof data === "string" ? data : JSON.stringify(data, null, 2);
+L290: }
+L291: async function fetchJson(url, options = {}) {
+L292:   const res = await fetch(url, options);
+
+----------------------------------------
+HIT: toLocaleString / line 281
+----------------------------------------
+L273:   return String(value ?? "")
+L274:     .replaceAll("&", "&amp;")
+L275:     .replaceAll("<", "&lt;")
+L276:     .replaceAll(">", "&gt;")
+L277:     .replaceAll('"', "&quot;")
+L278:     .replaceAll("'", "&#039;");
+L279: }
+L280: function money(value) {
+L281:   return Number(value || 0).toLocaleString("ja-JP");
+L282: }
+L283: function num(value) {
+L284:   const n = Number(String(value ?? "").replace(/,/g, ""));
+L285:   return Number.isFinite(n) ? n : 0;
+L286: }
+L287: function showResult(data) {
+L288:   document.getElementById("result").textContent =
+L289:     typeof data === "string" ? data : JSON.stringify(data, null, 2);
+L290: }
+L291: async function fetchJson(url, options = {}) {
+L292:   const res = await fetch(url, options);
+L293:   const text = await res.text();
+
+----------------------------------------
+HIT: total_amount / line 402
+----------------------------------------
+L394:     return `
+L395:       <div class="list-item${active}" onclick="loadDetail(${esc(item.payable_id)})">
+L396:         <div class="list-main">
+L397:           <span>${esc(item.payable_no)} / ${esc(item.vendor_name)}</span>
+L398:           <span class="status status-${esc(status)}">${esc(statusLabel(status))}</span>
+L399:         </div>
+L400:         <div class="list-sub">
+L401:           請求日: ${esc(dateOnly(item.document_date))} / 支払期限: ${esc(dateOnly(item.due_date))} ${overdue}<br>
+L402:           合計: ${money(item.calculated_total_amount)} / 支払済: ${money(item.calculated_paid_amount)} / 残: ${money(item.calculated_balance_amount)}
+L403:         </div>
+L404:       </div>
+L405:     `;
+L406:   }).join("");
+L407: }
+L408: function clearFilters() {
+L409:   ["filterStatus", "filterVendor", "filterFrom", "filterTo"].forEach(id => {
+L410:     document.getElementById(id).value = "";
+L411:   });
+L412:   loadPayables().catch(error => showResult(error.message));
+L413: }
+L414: function newPayable() {
+
+----------------------------------------
+HIT: unit_price / line 457
+----------------------------------------
+L449: function addLine(data = {}) {
+L450:   const tbody = document.getElementById("lineBody");
+L451:   const tr = document.createElement("tr");
+L452:   tr.innerHTML = `
+L453:     <td><select class="lineAccount">${accountOptions(data.account_title_id || "")}</select></td>
+L454:     <td><input class="lineItem" value="${esc(data.item_name || "")}"></td>
+L455:     <td><input class="lineDescription" value="${esc(data.description || "")}"></td>
+L456:     <td><input class="lineQty money" type="number" value="${esc(data.quantity || 1)}" oninput="recalcLine(this)"></td>
+L457:     <td><input class="lineUnit money" type="number" value="${esc(data.unit_price || 0)}" oninput="recalcLine(this)"></td>
+L458:     <td><input class="lineEx money" type="number" value="${esc(data.amount_ex_tax || 0)}" oninput="recalcTaxFromEx(this)"></td>
+L459:     <td><input class="lineRate money" type="number" value="${esc(data.tax_rate ?? 10)}" oninput="recalcTaxFromEx(this)"></td>
+L460:     <td><input class="lineTax money" type="number" value="${esc(data.tax_amount || 0)}" oninput="recalcInTax(this)"></td>
+L461:     <td><input class="lineIn money" type="number" value="${esc(data.amount_in_tax || 0)}"></td>
+L462:     <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+L463:     <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+L464:     <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+L465:   `;
+L466:   tbody.appendChild(tr);
+L467:   if (!data.amount_ex_tax && !data.amount_in_tax) {
+L468:     recalcLine(tr.querySelector(".lineQty"));
+L469:   }
+
+----------------------------------------
+HIT: amount_ex_tax / line 458
+----------------------------------------
+L450:   const tbody = document.getElementById("lineBody");
+L451:   const tr = document.createElement("tr");
+L452:   tr.innerHTML = `
+L453:     <td><select class="lineAccount">${accountOptions(data.account_title_id || "")}</select></td>
+L454:     <td><input class="lineItem" value="${esc(data.item_name || "")}"></td>
+L455:     <td><input class="lineDescription" value="${esc(data.description || "")}"></td>
+L456:     <td><input class="lineQty money" type="number" value="${esc(data.quantity || 1)}" oninput="recalcLine(this)"></td>
+L457:     <td><input class="lineUnit money" type="number" value="${esc(data.unit_price || 0)}" oninput="recalcLine(this)"></td>
+L458:     <td><input class="lineEx money" type="number" value="${esc(data.amount_ex_tax || 0)}" oninput="recalcTaxFromEx(this)"></td>
+L459:     <td><input class="lineRate money" type="number" value="${esc(data.tax_rate ?? 10)}" oninput="recalcTaxFromEx(this)"></td>
+L460:     <td><input class="lineTax money" type="number" value="${esc(data.tax_amount || 0)}" oninput="recalcInTax(this)"></td>
+L461:     <td><input class="lineIn money" type="number" value="${esc(data.amount_in_tax || 0)}"></td>
+L462:     <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+L463:     <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+L464:     <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+L465:   `;
+L466:   tbody.appendChild(tr);
+L467:   if (!data.amount_ex_tax && !data.amount_in_tax) {
+L468:     recalcLine(tr.querySelector(".lineQty"));
+L469:   }
+L470: }
+
+----------------------------------------
+HIT: tax_amount / line 460
+----------------------------------------
+L452:   tr.innerHTML = `
+L453:     <td><select class="lineAccount">${accountOptions(data.account_title_id || "")}</select></td>
+L454:     <td><input class="lineItem" value="${esc(data.item_name || "")}"></td>
+L455:     <td><input class="lineDescription" value="${esc(data.description || "")}"></td>
+L456:     <td><input class="lineQty money" type="number" value="${esc(data.quantity || 1)}" oninput="recalcLine(this)"></td>
+L457:     <td><input class="lineUnit money" type="number" value="${esc(data.unit_price || 0)}" oninput="recalcLine(this)"></td>
+L458:     <td><input class="lineEx money" type="number" value="${esc(data.amount_ex_tax || 0)}" oninput="recalcTaxFromEx(this)"></td>
+L459:     <td><input class="lineRate money" type="number" value="${esc(data.tax_rate ?? 10)}" oninput="recalcTaxFromEx(this)"></td>
+L460:     <td><input class="lineTax money" type="number" value="${esc(data.tax_amount || 0)}" oninput="recalcInTax(this)"></td>
+L461:     <td><input class="lineIn money" type="number" value="${esc(data.amount_in_tax || 0)}"></td>
+L462:     <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+L463:     <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+L464:     <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+L465:   `;
+L466:   tbody.appendChild(tr);
+L467:   if (!data.amount_ex_tax && !data.amount_in_tax) {
+L468:     recalcLine(tr.querySelector(".lineQty"));
+L469:   }
+L470: }
+L471: function recalcLine(el) {
+L472:   const tr = el.closest("tr");
+
+----------------------------------------
+HIT: amount_in_tax / line 461
+----------------------------------------
+L453:     <td><select class="lineAccount">${accountOptions(data.account_title_id || "")}</select></td>
+L454:     <td><input class="lineItem" value="${esc(data.item_name || "")}"></td>
+L455:     <td><input class="lineDescription" value="${esc(data.description || "")}"></td>
+L456:     <td><input class="lineQty money" type="number" value="${esc(data.quantity || 1)}" oninput="recalcLine(this)"></td>
+L457:     <td><input class="lineUnit money" type="number" value="${esc(data.unit_price || 0)}" oninput="recalcLine(this)"></td>
+L458:     <td><input class="lineEx money" type="number" value="${esc(data.amount_ex_tax || 0)}" oninput="recalcTaxFromEx(this)"></td>
+L459:     <td><input class="lineRate money" type="number" value="${esc(data.tax_rate ?? 10)}" oninput="recalcTaxFromEx(this)"></td>
+L460:     <td><input class="lineTax money" type="number" value="${esc(data.tax_amount || 0)}" oninput="recalcInTax(this)"></td>
+L461:     <td><input class="lineIn money" type="number" value="${esc(data.amount_in_tax || 0)}"></td>
+L462:     <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+L463:     <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+L464:     <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+L465:   `;
+L466:   tbody.appendChild(tr);
+L467:   if (!data.amount_ex_tax && !data.amount_in_tax) {
+L468:     recalcLine(tr.querySelector(".lineQty"));
+L469:   }
+L470: }
+L471: function recalcLine(el) {
+L472:   const tr = el.closest("tr");
+L473:   const qty = num(tr.querySelector(".lineQty").value) || 1;
+
+----------------------------------------
+HIT: amount_ex_tax / line 467
+----------------------------------------
+L459:     <td><input class="lineRate money" type="number" value="${esc(data.tax_rate ?? 10)}" oninput="recalcTaxFromEx(this)"></td>
+L460:     <td><input class="lineTax money" type="number" value="${esc(data.tax_amount || 0)}" oninput="recalcInTax(this)"></td>
+L461:     <td><input class="lineIn money" type="number" value="${esc(data.amount_in_tax || 0)}"></td>
+L462:     <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+L463:     <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+L464:     <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+L465:   `;
+L466:   tbody.appendChild(tr);
+L467:   if (!data.amount_ex_tax && !data.amount_in_tax) {
+L468:     recalcLine(tr.querySelector(".lineQty"));
+L469:   }
+L470: }
+L471: function recalcLine(el) {
+L472:   const tr = el.closest("tr");
+L473:   const qty = num(tr.querySelector(".lineQty").value) || 1;
+L474:   const unit = num(tr.querySelector(".lineUnit").value);
+L475:   tr.querySelector(".lineEx").value = Math.round(qty * unit);
+L476:   recalcTaxFromEx(tr.querySelector(".lineEx"));
+L477: }
+L478: function recalcTaxFromEx(el) {
+L479:   const tr = el.closest("tr");
+
+----------------------------------------
+HIT: unit_price / line 507
+----------------------------------------
+L499:       return;
+L500:     }
+L501:     lines.push({
+L502:       account_title_id: tr.querySelector(".lineAccount").value,
+L503:       tax_category_id: tr.querySelector(".lineTaxCategory").value,
+L504:       item_name: tr.querySelector(".lineItem").value,
+L505:       description: tr.querySelector(".lineDescription").value,
+L506:       quantity: tr.querySelector(".lineQty").value,
+L507:       unit_price: tr.querySelector(".lineUnit").value,
+L508:       amount_ex_tax: amountExTax,
+L509:       tax_rate: tr.querySelector(".lineRate").value,
+L510:       tax_amount: taxAmount,
+L511:       amount_in_tax: amountInTax,
+L512:       target_person_id: document.getElementById("targetPersonId").value,
+L513:       purpose_id: document.getElementById("purposeId").value,
+L514:       project_id: document.getElementById("projectId").value,
+L515:       department_id: document.getElementById("departmentId").value,
+L516:       memo: tr.querySelector(".lineMemo").value
+L517:     });
+L518:   });
+L519:   return {
+
+----------------------------------------
+HIT: amount_ex_tax / line 508
+----------------------------------------
+L500:     }
+L501:     lines.push({
+L502:       account_title_id: tr.querySelector(".lineAccount").value,
+L503:       tax_category_id: tr.querySelector(".lineTaxCategory").value,
+L504:       item_name: tr.querySelector(".lineItem").value,
+L505:       description: tr.querySelector(".lineDescription").value,
+L506:       quantity: tr.querySelector(".lineQty").value,
+L507:       unit_price: tr.querySelector(".lineUnit").value,
+L508:       amount_ex_tax: amountExTax,
+L509:       tax_rate: tr.querySelector(".lineRate").value,
+L510:       tax_amount: taxAmount,
+L511:       amount_in_tax: amountInTax,
+L512:       target_person_id: document.getElementById("targetPersonId").value,
+L513:       purpose_id: document.getElementById("purposeId").value,
+L514:       project_id: document.getElementById("projectId").value,
+L515:       department_id: document.getElementById("departmentId").value,
+L516:       memo: tr.querySelector(".lineMemo").value
+L517:     });
+L518:   });
+L519:   return {
+L520:     document: {
+
+----------------------------------------
+HIT: tax_amount / line 510
+----------------------------------------
+L502:       account_title_id: tr.querySelector(".lineAccount").value,
+L503:       tax_category_id: tr.querySelector(".lineTaxCategory").value,
+L504:       item_name: tr.querySelector(".lineItem").value,
+L505:       description: tr.querySelector(".lineDescription").value,
+L506:       quantity: tr.querySelector(".lineQty").value,
+L507:       unit_price: tr.querySelector(".lineUnit").value,
+L508:       amount_ex_tax: amountExTax,
+L509:       tax_rate: tr.querySelector(".lineRate").value,
+L510:       tax_amount: taxAmount,
+L511:       amount_in_tax: amountInTax,
+L512:       target_person_id: document.getElementById("targetPersonId").value,
+L513:       purpose_id: document.getElementById("purposeId").value,
+L514:       project_id: document.getElementById("projectId").value,
+L515:       department_id: document.getElementById("departmentId").value,
+L516:       memo: tr.querySelector(".lineMemo").value
+L517:     });
+L518:   });
+L519:   return {
+L520:     document: {
+L521:       payable_id: document.getElementById("payableId").value,
+L522:       payable_no: document.getElementById("payableNo").value,
+
+----------------------------------------
+HIT: amount_in_tax / line 511
+----------------------------------------
+L503:       tax_category_id: tr.querySelector(".lineTaxCategory").value,
+L504:       item_name: tr.querySelector(".lineItem").value,
+L505:       description: tr.querySelector(".lineDescription").value,
+L506:       quantity: tr.querySelector(".lineQty").value,
+L507:       unit_price: tr.querySelector(".lineUnit").value,
+L508:       amount_ex_tax: amountExTax,
+L509:       tax_rate: tr.querySelector(".lineRate").value,
+L510:       tax_amount: taxAmount,
+L511:       amount_in_tax: amountInTax,
+L512:       target_person_id: document.getElementById("targetPersonId").value,
+L513:       purpose_id: document.getElementById("purposeId").value,
+L514:       project_id: document.getElementById("projectId").value,
+L515:       department_id: document.getElementById("departmentId").value,
+L516:       memo: tr.querySelector(".lineMemo").value
+L517:     });
+L518:   });
+L519:   return {
+L520:     document: {
+L521:       payable_id: document.getElementById("payableId").value,
+L522:       payable_no: document.getElementById("payableNo").value,
+L523:       status: document.getElementById("status").value,
+
+----------------------------------------
+HIT: balance_amount / line 606
+----------------------------------------
+L598:   document.getElementById("memo").value = h.memo || "";
+L599:   const lineBody = document.getElementById("lineBody");
+L600:   lineBody.innerHTML = "";
+L601:   for (const line of data.payable.lines || []) {
+L602:     addLine(line);
+L603:   }
+L604:   if (!(data.payable.lines || []).length) addLine();
+L605:   renderPayments(data.payable.payments || []);
+L606:   document.getElementById("paymentAmount").value = h.calculated_balance_amount || h.balance_amount || "";
+L607:   showResult(`読込完了: ${h.payable_no} / 残高 ${money(h.calculated_balance_amount)}`);
+L608: }
+L609: function renderPayments(payments) {
+L610:   const tbody = document.getElementById("paymentBody");
+L611:   if (!payments.length) {
+L612:     tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+L613:     return;
+L614:   }
+L615:   tbody.innerHTML = payments.map(p => `
+L616:     <tr>
+L617:       <td>${esc(dateOnly(p.payment_date))}</td>
+L618:       <td class="money">${money(p.payment_amount)}</td>
+
+----------------------------------------
+HIT: balance_amount / line 607
+----------------------------------------
+L599:   const lineBody = document.getElementById("lineBody");
+L600:   lineBody.innerHTML = "";
+L601:   for (const line of data.payable.lines || []) {
+L602:     addLine(line);
+L603:   }
+L604:   if (!(data.payable.lines || []).length) addLine();
+L605:   renderPayments(data.payable.payments || []);
+L606:   document.getElementById("paymentAmount").value = h.calculated_balance_amount || h.balance_amount || "";
+L607:   showResult(`読込完了: ${h.payable_no} / 残高 ${money(h.calculated_balance_amount)}`);
+L608: }
+L609: function renderPayments(payments) {
+L610:   const tbody = document.getElementById("paymentBody");
+L611:   if (!payments.length) {
+L612:     tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+L613:     return;
+L614:   }
+L615:   tbody.innerHTML = payments.map(p => `
+L616:     <tr>
+L617:       <td>${esc(dateOnly(p.payment_date))}</td>
+L618:       <td class="money">${money(p.payment_amount)}</td>
+L619:       <td class="money">${money(p.bank_fee_amount)}</td>
+
+----------------------------------------
+HIT: payment_amount / line 618
+----------------------------------------
+L610:   const tbody = document.getElementById("paymentBody");
+L611:   if (!payments.length) {
+L612:     tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+L613:     return;
+L614:   }
+L615:   tbody.innerHTML = payments.map(p => `
+L616:     <tr>
+L617:       <td>${esc(dateOnly(p.payment_date))}</td>
+L618:       <td class="money">${money(p.payment_amount)}</td>
+L619:       <td class="money">${money(p.bank_fee_amount)}</td>
+L620:       <td>${esc(p.memo || "")}</td>
+L621:       <td><button type="button" class="danger small" onclick="deletePayment(${esc(p.payable_payment_id)})">削除</button></td>
+L622:     </tr>
+L623:   `).join("");
+L624: }
+L625: async function addPayment() {
+L626:   const id = document.getElementById("payableId").value;
+L627:   if (!id) {
+L628:     alert("先に請求書・未払データを保存してください。");
+L629:     return;
+L630:   }
+
+----------------------------------------
+HIT: bank_fee_amount / line 619
+----------------------------------------
+L611:   if (!payments.length) {
+L612:     tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+L613:     return;
+L614:   }
+L615:   tbody.innerHTML = payments.map(p => `
+L616:     <tr>
+L617:       <td>${esc(dateOnly(p.payment_date))}</td>
+L618:       <td class="money">${money(p.payment_amount)}</td>
+L619:       <td class="money">${money(p.bank_fee_amount)}</td>
+L620:       <td>${esc(p.memo || "")}</td>
+L621:       <td><button type="button" class="danger small" onclick="deletePayment(${esc(p.payable_payment_id)})">削除</button></td>
+L622:     </tr>
+L623:   `).join("");
+L624: }
+L625: async function addPayment() {
+L626:   const id = document.getElementById("payableId").value;
+L627:   if (!id) {
+L628:     alert("先に請求書・未払データを保存してください。");
+L629:     return;
+L630:   }
+L631:   const payload = {
+
+----------------------------------------
+HIT: payment_amount / line 634
+----------------------------------------
+L626:   const id = document.getElementById("payableId").value;
+L627:   if (!id) {
+L628:     alert("先に請求書・未払データを保存してください。");
+L629:     return;
+L630:   }
+L631:   const payload = {
+L632:     payment_date: document.getElementById("paymentDate").value || todayIso(),
+L633:     payment_method_id: document.getElementById("paymentMethodId").value,
+L634:     payment_amount: document.getElementById("paymentAmount").value,
+L635:     bank_fee_amount: document.getElementById("bankFeeAmount").value,
+L636:     memo: document.getElementById("paymentMemo").value
+L637:   };
+L638:   const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments`, {
+L639:     method: "POST",
+L640:     headers: { "Content-Type": "application/json" },
+L641:     body: JSON.stringify(payload)
+L642:   });
+L643:   showResult(data);
+L644:   await loadPayables();
+L645:   await loadDetail(id);
+L646: }
+
+----------------------------------------
+HIT: bank_fee_amount / line 635
+----------------------------------------
+L627:   if (!id) {
+L628:     alert("先に請求書・未払データを保存してください。");
+L629:     return;
+L630:   }
+L631:   const payload = {
+L632:     payment_date: document.getElementById("paymentDate").value || todayIso(),
+L633:     payment_method_id: document.getElementById("paymentMethodId").value,
+L634:     payment_amount: document.getElementById("paymentAmount").value,
+L635:     bank_fee_amount: document.getElementById("bankFeeAmount").value,
+L636:     memo: document.getElementById("paymentMemo").value
+L637:   };
+L638:   const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments`, {
+L639:     method: "POST",
+L640:     headers: { "Content-Type": "application/json" },
+L641:     body: JSON.stringify(payload)
+L642:   });
+L643:   showResult(data);
+L644:   await loadPayables();
+L645:   await loadDetail(id);
+L646: }
+L647: async function deletePayment(paymentId) {
+
+[summary]
+hit_count: 18
+
+[次]
+- このメモを見て、既存の money 関数だけを安全に小さく修正する
+- 前回のように広範囲置換はしない

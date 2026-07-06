@@ -408,6 +408,33 @@ function moveFileToDir(filePath, envName, fallbackName) {
 }
 
 
+/* RECEIPT_IMAGE_DYNAMIC_PATH_RESOLVE_20260706_START */
+function resolveReceiptImportImagePath(item) {
+  const candidates = [];
+  const fileName = path.basename(String(item && item.local_image_file_name ? item.local_image_file_name : "").trim());
+  if (fileName) {
+    candidates.push(path.resolve(config.receiptRoot, "imported", fileName));
+    try {
+      candidates.push(path.resolve(getReceiptImportSubDir("RECEIPT_IMPORTED_DIR", "imported"), fileName));
+    } catch (_) {}
+  }
+  if (item && item.local_image_path) {
+    candidates.push(path.resolve(item.local_image_path));
+  }
+  const seen = new Set();
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const key = String(candidate).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return candidates.find(Boolean) || "";
+}
+/* RECEIPT_IMAGE_DYNAMIC_PATH_RESOLVE_20260706_END */
+
 function normalizeOcrTextForDuplicate(text) {
   return String(text || "")
     .normalize("NFKC")
@@ -1554,27 +1581,26 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
 
   if (req.method === "GET" && imageMatch) {
     const item = await repo.getImportById(Number(imageMatch[1]));
-
     if (!item) {
       sendText(res, 404, "レシートが見つかりません。");
       return true;
     }
-
-    if (!item.local_image_path) {
-      sendText(res, 404, "画像パスがありません。");
+    const imageFilePath = resolveReceiptImportImagePath(item);
+    if (!imageFilePath) {
+      sendText(res, 404, "画像ファイル名または画像パスがありません。");
       return true;
     }
-
-    if (!fs.existsSync(item.local_image_path)) {
-      sendText(res, 404, "画像ファイルが見つかりません: " + item.local_image_path);
+    if (!fs.existsSync(imageFilePath)) {
+      sendText(res, 404, "画像ファイルが見つかりません: " + imageFilePath);
       return true;
     }
-
     res.writeHead(200, {
-      "Content-Type": getImageContentType(item.local_image_path),
+      "Content-Type": getImageContentType(imageFilePath),
+      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+      "Pragma": "no-cache",
+      "Expires": "0",
     });
-
-    fs.createReadStream(item.local_image_path).pipe(res);
+    fs.createReadStream(imageFilePath).pipe(res);
     return true;
   }
 
@@ -1584,6 +1610,8 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
 module.exports = {
   handleReceiptRoutes,
 };
+
+
 
 
 

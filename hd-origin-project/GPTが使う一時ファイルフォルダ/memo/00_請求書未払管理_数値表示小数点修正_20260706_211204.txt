@@ -1,0 +1,46 @@
+﻿==============================
+請求書・未払管理 数値表示小数点修正 結果
+==============================
+日時: 2026-07-06 21:12:04
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- 数値表示で .00 は表示しない
+- .50 / .25 / .40 など小数があるものは小数点以下をそのまま表示
+- DB / API / server.js は変更なし
+- DOM移動なし
+
+[表示例]
+68200.00 -> 68,200
+5500.00 -> 5,500
+123.45 -> 123.45
+123.40 -> 123.40
+0.50 -> 0.50
+
+[確認]
+marker: OK
+formatSmartDecimal function: OK
+money function: OK
+.00 remove rule: OK
+decimal keep rule: OK
+changed function: YES
+direct toLocaleString replacements: 1
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payable-list_before_smart_decimal_20260706_211204.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payable-list_after_smart_decimal_20260706_211204.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payables_smart_decimal_20260706_211204.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payables_smart_decimal_20260706_211204.ps1
+
+[次]
+- 請求書・未払管理画面を Ctrl + F5
+- 68,200.00 ではなく 68,200 と表示されるか確認
+- 小数があるものは小数点以下が残るか確認

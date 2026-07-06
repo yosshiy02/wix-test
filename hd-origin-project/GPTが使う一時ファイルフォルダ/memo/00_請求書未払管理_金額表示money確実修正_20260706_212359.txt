@@ -1,0 +1,107 @@
+﻿==============================
+請求書・未払管理 金額表示money確実修正 結果
+==============================
+日時: 2026-07-06 21:24:00
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- payable-list.html の function money(value) だけを差し替え
+- 表示側にカンマ区切りを付ける
+- .00 は小数点なし
+- .50 / .25 / .40 はそのまま表示
+- DB / API / server.js / CSS / 入力欄 type は変更なし
+- DOM移動なし
+
+[表示例]
+68200.00 -> 68,200
+5500.00 -> 5,500
+0.00 -> 0
+123.45 -> 123.45
+123.40 -> 123.40
+0.50 -> 0.50
+126500.00 -> 126,500
+
+[確認]
+old money removed: OK
+money function exists: OK
+comma format exists: OK
+.00 remove rule: OK
+decimal keep rule: OK
+num function still exists: OK
+old failed marker removed: OK
+money display test: OK
+
+[money display test detail]
+{
+  "allOk": true,
+  "result": [
+    {
+      "input": "68200.00",
+      "expected": "68,200",
+      "actual": "68,200",
+      "ok": true
+    },
+    {
+      "input": "5500.00",
+      "expected": "5,500",
+      "actual": "5,500",
+      "ok": true
+    },
+    {
+      "input": "0.00",
+      "expected": "0",
+      "actual": "0",
+      "ok": true
+    },
+    {
+      "input": "123.45",
+      "expected": "123.45",
+      "actual": "123.45",
+      "ok": true
+    },
+    {
+      "input": "123.40",
+      "expected": "123.40",
+      "actual": "123.40",
+      "ok": true
+    },
+    {
+      "input": "0.50",
+      "expected": "0.50",
+      "actual": "0.50",
+      "ok": true
+    },
+    {
+      "input": "126500.00",
+      "expected": "126,500",
+      "actual": "126,500",
+      "ok": true
+    },
+    {
+      "input": "-12345.00",
+      "expected": "-12,345",
+      "actual": "-12,345",
+      "ok": true
+    }
+  ]
+}
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payable-list_before_money_display_fix_20260706_212359.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payable-list_after_money_display_fix_20260706_212359.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payables_money_display_fix_20260706_212359.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payables_money_display_fix_20260706_212359.ps1
+
+[次]
+- 請求書・未払管理画面を Ctrl + F5
+- 読み込み中で止まらないか確認
+- 一覧の金額が 68,200.00 ではなく 68,200 になるか確認
+- カンマ区切りが付くか確認
