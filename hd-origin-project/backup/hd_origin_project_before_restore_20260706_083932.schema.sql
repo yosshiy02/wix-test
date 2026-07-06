@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 0ChOiJ9v0pgPmCQbDqV0gKg6C8pnJFFZExlRMcc8HGFnxTm0aoVf8HqAG9avxhb
+\restrict S3QQHlIsgj0ouOgjzyAH1IAE5deMlgxLlaVbNxWTceb9mDymEU9nUuwfgCc1XTa
 
 -- Dumped from database version 17.10
 -- Dumped by pg_dump version 17.10
@@ -53,23 +53,29 @@ CREATE TABLE accounting.receipt_ai_drafts (
     receipt_import_id bigint NOT NULL,
     transaction_date date,
     vendor_name text,
-    total_amount integer,
-    tax_amount integer,
+    total_amount numeric(14,2),
+    tax_amount numeric(14,2),
     tax_rate text,
+    tax_treatment_name text,
     payment_method_name text,
     account_title_name text,
     invoice_number text,
     summary text,
     memo text,
-    confidence numeric(5,2),
+    confidence integer,
+    line_items jsonb DEFAULT '[]'::jsonb NOT NULL,
     status text DEFAULT 'draft'::text NOT NULL,
     ai_model text,
-    ai_raw_json jsonb,
+    ai_raw_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     error_message text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    line_items jsonb DEFAULT '[]'::jsonb NOT NULL,
-    tax_treatment_name text,
+    vendor_address text,
+    vendor_phone text,
+    receipt_time_text text,
+    purpose_temp_name text,
+    project_temp_name text,
+    department_temp_name text,
     payment_method_id bigint,
     target_person_id bigint,
     purpose_id bigint,
@@ -77,13 +83,7 @@ CREATE TABLE accounting.receipt_ai_drafts (
     department_id bigint,
     invoice_type_id bigint,
     evidence_type_id bigint,
-    evidence_memo text,
-    purpose_temp_name text,
-    project_temp_name text,
-    department_temp_name text,
-    vendor_address text,
-    vendor_phone text,
-    receipt_time_text text
+    evidence_memo text
 );
 
 
@@ -121,7 +121,7 @@ CREATE TABLE accounting.receipt_imports (
     image_size_bytes bigint,
     original_file_name text,
     captured_at_jst timestamp without time zone,
-    imported_at_jst timestamp without time zone,
+    imported_at_jst timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     import_batch_id text,
     ocr_provider text,
     ocr_raw_text text,
@@ -304,11 +304,11 @@ CREATE TABLE expenses.expense_details (
     amount numeric(14,2) DEFAULT 0 NOT NULL,
     tax_category_id bigint,
     tax_category_name text,
+    tax_treatment_id bigint,
+    tax_treatment_name text,
     tax_rate numeric(6,4) DEFAULT 0 NOT NULL,
     memo text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    tax_treatment_id bigint,
-    tax_treatment_name text
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -506,6 +506,158 @@ CREATE SEQUENCE expenses.purposes_purpose_id_seq
 --
 
 ALTER SEQUENCE expenses.purposes_purpose_id_seq OWNED BY expenses.purposes.purpose_id;
+
+
+--
+-- Name: receipt_ai_drafts; Type: TABLE; Schema: expenses; Owner: -
+--
+
+CREATE TABLE expenses.receipt_ai_drafts (
+    receipt_ai_draft_id bigint NOT NULL,
+    receipt_import_id bigint NOT NULL,
+    ai_provider text,
+    ai_model text,
+    draft_status text DEFAULT 'draft'::text NOT NULL,
+    raw_json jsonb,
+    suggested_receipt_date date,
+    suggested_vendor_name text,
+    suggested_total_amount numeric,
+    suggested_tax_amount numeric,
+    suggested_invoice_number text,
+    suggested_payment_method_name text,
+    suggested_target_person text,
+    suggested_purpose text,
+    suggested_project_name text,
+    suggested_department_name text,
+    suggested_evidence_type text,
+    suggested_summary text,
+    confidence numeric,
+    error_message text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT receipt_ai_drafts_draft_status_check CHECK ((draft_status = ANY (ARRAY['draft'::text, 'suggested'::text, 'accepted'::text, 'rejected'::text, 'error'::text])))
+);
+
+
+--
+-- Name: receipt_ai_drafts_receipt_ai_draft_id_seq; Type: SEQUENCE; Schema: expenses; Owner: -
+--
+
+CREATE SEQUENCE expenses.receipt_ai_drafts_receipt_ai_draft_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: receipt_ai_drafts_receipt_ai_draft_id_seq; Type: SEQUENCE OWNED BY; Schema: expenses; Owner: -
+--
+
+ALTER SEQUENCE expenses.receipt_ai_drafts_receipt_ai_draft_id_seq OWNED BY expenses.receipt_ai_drafts.receipt_ai_draft_id;
+
+
+--
+-- Name: receipt_files; Type: TABLE; Schema: expenses; Owner: -
+--
+
+CREATE TABLE expenses.receipt_files (
+    receipt_file_id bigint NOT NULL,
+    receipt_import_id bigint NOT NULL,
+    file_role text DEFAULT 'receipt_image'::text NOT NULL,
+    storage_root_key text DEFAULT 'HD_ORIGIN_RECEIPT_ROOT'::text NOT NULL,
+    original_file_name text,
+    stored_file_name text NOT NULL,
+    relative_path text NOT NULL,
+    mime_type text,
+    file_size bigint,
+    sha256 text,
+    file_status text DEFAULT 'file_pending'::text NOT NULL,
+    last_checked_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT receipt_files_file_status_check CHECK ((file_status = ANY (ARRAY['file_pending'::text, 'file_saved'::text, 'sync_pending'::text, 'ready'::text, 'missing'::text, 'error'::text])))
+);
+
+
+--
+-- Name: receipt_files_receipt_file_id_seq; Type: SEQUENCE; Schema: expenses; Owner: -
+--
+
+CREATE SEQUENCE expenses.receipt_files_receipt_file_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: receipt_files_receipt_file_id_seq; Type: SEQUENCE OWNED BY; Schema: expenses; Owner: -
+--
+
+ALTER SEQUENCE expenses.receipt_files_receipt_file_id_seq OWNED BY expenses.receipt_files.receipt_file_id;
+
+
+--
+-- Name: receipt_imports; Type: TABLE; Schema: expenses; Owner: -
+--
+
+CREATE TABLE expenses.receipt_imports (
+    receipt_import_id bigint NOT NULL,
+    import_source text DEFAULT 'local'::text NOT NULL,
+    import_status text DEFAULT 'draft'::text NOT NULL,
+    original_file_name text,
+    display_file_name text,
+    receipt_date date,
+    vendor_name text,
+    total_amount numeric DEFAULT 0 NOT NULL,
+    tax_amount numeric,
+    invoice_number text,
+    payment_method_id bigint,
+    payment_method_name text,
+    target_person_id bigint,
+    target_person text,
+    purpose_id bigint,
+    purpose text,
+    project_id bigint,
+    project_name text,
+    department_id bigint,
+    department_name text,
+    evidence_type text,
+    evidence_memo text,
+    summary text,
+    ocr_provider text,
+    ocr_status text,
+    ocr_raw_text text,
+    ai_status text,
+    error_message text,
+    confirmed_expense_id bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    confirmed_at timestamp with time zone,
+    CONSTRAINT receipt_imports_import_status_check CHECK ((import_status = ANY (ARRAY['draft'::text, 'file_pending'::text, 'file_saved'::text, 'sync_pending'::text, 'ready'::text, 'confirmed'::text, 'imported'::text, 'duplicate'::text, 'cancelled'::text, 'error'::text])))
+);
+
+
+--
+-- Name: receipt_imports_receipt_import_id_seq; Type: SEQUENCE; Schema: expenses; Owner: -
+--
+
+CREATE SEQUENCE expenses.receipt_imports_receipt_import_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: receipt_imports_receipt_import_id_seq; Type: SEQUENCE OWNED BY; Schema: expenses; Owner: -
+--
+
+ALTER SEQUENCE expenses.receipt_imports_receipt_import_id_seq OWNED BY expenses.receipt_imports.receipt_import_id;
 
 
 --
@@ -739,6 +891,27 @@ ALTER TABLE ONLY expenses.purposes ALTER COLUMN purpose_id SET DEFAULT nextval('
 
 
 --
+-- Name: receipt_ai_drafts receipt_ai_draft_id; Type: DEFAULT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_ai_drafts ALTER COLUMN receipt_ai_draft_id SET DEFAULT nextval('expenses.receipt_ai_drafts_receipt_ai_draft_id_seq'::regclass);
+
+
+--
+-- Name: receipt_files receipt_file_id; Type: DEFAULT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_files ALTER COLUMN receipt_file_id SET DEFAULT nextval('expenses.receipt_files_receipt_file_id_seq'::regclass);
+
+
+--
+-- Name: receipt_imports receipt_import_id; Type: DEFAULT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_imports ALTER COLUMN receipt_import_id SET DEFAULT nextval('expenses.receipt_imports_receipt_import_id_seq'::regclass);
+
+
+--
 -- Name: target_people target_person_id; Type: DEFAULT; Schema: expenses; Owner: -
 --
 
@@ -863,6 +1036,30 @@ ALTER TABLE ONLY expenses.purposes
 
 
 --
+-- Name: receipt_ai_drafts receipt_ai_drafts_pkey; Type: CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_ai_drafts
+    ADD CONSTRAINT receipt_ai_drafts_pkey PRIMARY KEY (receipt_ai_draft_id);
+
+
+--
+-- Name: receipt_files receipt_files_pkey; Type: CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_files
+    ADD CONSTRAINT receipt_files_pkey PRIMARY KEY (receipt_file_id);
+
+
+--
+-- Name: receipt_imports receipt_imports_pkey; Type: CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_imports
+    ADD CONSTRAINT receipt_imports_pkey PRIMARY KEY (receipt_import_id);
+
+
+--
 -- Name: target_people target_people_pkey; Type: CONSTRAINT; Schema: expenses; Owner: -
 --
 
@@ -900,20 +1097,6 @@ ALTER TABLE ONLY expenses.vendors
 
 ALTER TABLE ONLY system.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
--- Name: idx_receipt_ai_drafts_receipt_import_id; Type: INDEX; Schema: accounting; Owner: -
---
-
-CREATE INDEX idx_receipt_ai_drafts_receipt_import_id ON accounting.receipt_ai_drafts USING btree (receipt_import_id);
-
-
---
--- Name: idx_receipt_ai_drafts_status; Type: INDEX; Schema: accounting; Owner: -
---
-
-CREATE INDEX idx_receipt_ai_drafts_status ON accounting.receipt_ai_drafts USING btree (status);
 
 
 --
@@ -977,6 +1160,62 @@ CREATE UNIQUE INDEX account_titles_account_name_uidx ON expenses.account_titles 
 --
 
 CREATE UNIQUE INDEX departments_department_name_uidx ON expenses.departments USING btree (department_name);
+
+
+--
+-- Name: idx_receipt_ai_drafts_import_id; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_ai_drafts_import_id ON expenses.receipt_ai_drafts USING btree (receipt_import_id);
+
+
+--
+-- Name: idx_receipt_files_import_id; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_files_import_id ON expenses.receipt_files USING btree (receipt_import_id);
+
+
+--
+-- Name: idx_receipt_files_relative_path; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_files_relative_path ON expenses.receipt_files USING btree (relative_path);
+
+
+--
+-- Name: idx_receipt_files_sha256; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_files_sha256 ON expenses.receipt_files USING btree (sha256);
+
+
+--
+-- Name: idx_receipt_files_status; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_files_status ON expenses.receipt_files USING btree (file_status);
+
+
+--
+-- Name: idx_receipt_imports_confirmed_expense; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_imports_confirmed_expense ON expenses.receipt_imports USING btree (confirmed_expense_id);
+
+
+--
+-- Name: idx_receipt_imports_receipt_date; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_imports_receipt_date ON expenses.receipt_imports USING btree (receipt_date);
+
+
+--
+-- Name: idx_receipt_imports_status; Type: INDEX; Schema: expenses; Owner: -
+--
+
+CREATE INDEX idx_receipt_imports_status ON expenses.receipt_imports USING btree (import_status);
 
 
 --
@@ -1077,8 +1316,32 @@ ALTER TABLE ONLY expenses.expense_details
 
 
 --
+-- Name: receipt_ai_drafts receipt_ai_drafts_receipt_import_id_fkey; Type: FK CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_ai_drafts
+    ADD CONSTRAINT receipt_ai_drafts_receipt_import_id_fkey FOREIGN KEY (receipt_import_id) REFERENCES expenses.receipt_imports(receipt_import_id) ON DELETE CASCADE;
+
+
+--
+-- Name: receipt_files receipt_files_receipt_import_id_fkey; Type: FK CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_files
+    ADD CONSTRAINT receipt_files_receipt_import_id_fkey FOREIGN KEY (receipt_import_id) REFERENCES expenses.receipt_imports(receipt_import_id) ON DELETE CASCADE;
+
+
+--
+-- Name: receipt_imports receipt_imports_confirmed_expense_id_fkey; Type: FK CONSTRAINT; Schema: expenses; Owner: -
+--
+
+ALTER TABLE ONLY expenses.receipt_imports
+    ADD CONSTRAINT receipt_imports_confirmed_expense_id_fkey FOREIGN KEY (confirmed_expense_id) REFERENCES expenses.expense_headers(expense_id) ON DELETE SET NULL;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 0ChOiJ9v0pgPmCQbDqV0gKg6C8pnJFFZExlRMcc8HGFnxTm0aoVf8HqAG9avxhb
+\unrestrict S3QQHlIsgj0ouOgjzyAH1IAE5deMlgxLlaVbNxWTceb9mDymEU9nUuwfgCc1XTa
 

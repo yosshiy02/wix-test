@@ -1,0 +1,21 @@
+﻿==============================
+restart_hd_origin.bat 動的化 修正結果
+==============================
+対象:
+D:\GITHUB\wix-test\hd-origin-project\restart_hd_origin.bat
+
+[修正内容]
+- G:\ 固定の PROJECT_ROOT / WEB_DIR / START_BAT を削除
+- restart_hd_origin.bat 自身の場所(%~dp0)から PROJECT_ROOT を動的決定
+- START_BAT は %PROJECT_ROOT%\web_receiver\start_hd_origin.bat へ動的決定
+
+[after]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\restart_hd_origin.bat
+
+[apply]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_restart_bat_dynamic.ps1
+
+[undo]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_restart_bat_dynamic.ps1
+
+次: GOなら apply を実行

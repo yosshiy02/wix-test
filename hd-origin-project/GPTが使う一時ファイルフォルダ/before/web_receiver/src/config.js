@@ -65,27 +65,9 @@ dotenv.config({
 const webDir = path.join(projectRoot, "web_receiver");
 const publicDir = path.join(webDir, "public");
 
-const backupDir = (() => {
-  const raw = process.env.BACKUP_DIR || "";
-
-  if (raw) {
-    return path.isAbsolute(raw)
-      ? raw
-      : path.join(projectRoot, raw);
-  }
-
-  if (envPath) {
-    return path.join(path.dirname(envPath), "Backup");
-  }
-
-  const hddbtestRoot = process.env.HDDBTEST_ROOT || "";
-
-  if (hddbtestRoot) {
-    return path.join(hddbtestRoot, "HDDB_PROJECT", "ORIGIN", "Backup");
-  }
-
-  return path.join(projectRoot, "backup");
-})();
+const backupDir = path.isAbsolute(process.env.BACKUP_DIR || "")
+  ? process.env.BACKUP_DIR
+  : path.join(projectRoot, process.env.BACKUP_DIR || "backup");
 
 const backupCloneDir = (() => {
   const raw = process.env.BACKUP_CLONE_DIR || process.env.BACKUP_COPY_DIR || "";
@@ -142,5 +124,4 @@ module.exports = {
     password: String(process.env.DB_PASSWORD || ""),
   },
 };
-
 

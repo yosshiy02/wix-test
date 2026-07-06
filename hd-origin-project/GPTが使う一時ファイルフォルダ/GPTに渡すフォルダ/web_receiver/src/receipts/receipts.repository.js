@@ -3129,6 +3129,8 @@ async function listSavedReceipts(limit = 100, offset = 0) {
       p.purpose_name,
       pr.project_name,
       dep.department_name,
+      it.invoice_type_name,
+      et.evidence_type_name,
 
       ri.local_image_file_name,
       ri.local_image_path,
@@ -3151,6 +3153,8 @@ async function listSavedReceipts(limit = 100, offset = 0) {
     LEFT JOIN expenses.purposes p ON p.purpose_id = d.purpose_id
     LEFT JOIN expenses.projects pr ON pr.project_id = d.project_id
     LEFT JOIN expenses.departments dep ON dep.department_id = d.department_id
+    LEFT JOIN expenses.invoice_types it ON it.invoice_type_id = d.invoice_type_id
+    LEFT JOIN expenses.evidence_types et ON et.evidence_type_id = d.evidence_type_id
     ORDER BY r.saved_at DESC NULLS LAST, r.receipt_id DESC
     LIMIT $1
     OFFSET $2
@@ -3259,6 +3263,7 @@ async function getSavedReceiptById(receiptId) {
 module.exports.listSavedReceipts = listSavedReceipts;
 module.exports.getSavedReceiptById = getSavedReceiptById;
 /* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_END */
+
 
 
 

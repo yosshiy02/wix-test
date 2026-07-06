@@ -42,5 +42,5 @@ if not exist "%START_BAT%" (
   exit /b 1
 )
 
-call "%START_BAT%"
+start "" cmd.exe /k call "%START_BAT%"
 exit /b 0

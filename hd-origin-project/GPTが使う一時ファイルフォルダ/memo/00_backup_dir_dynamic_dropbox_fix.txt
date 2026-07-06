@@ -1,0 +1,24 @@
+﻿==============================
+Dropboxバックアップ動的化 修正結果
+==============================
+対象:
+- web_receiver\start_hd_origin.bat
+- web_receiver\src\config.js
+
+[修正内容]
+- start_hd_origin.bat の BACKUP_DIR 固定行を正規表現で動的化
+- HD_ORIGIN_ENV_PATH の親フォルダから Backup を動的決定
+- 取れない場合のみ HDDBTEST_ROOT、その次に project\backup へフォールバック
+- config.js も同じ順で fallback するよう補強
+
+[after]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\start_hd_origin.bat
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\config.js
+
+[apply]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_backup_dir_dynamic_dropbox.ps1
+
+[undo]
+D:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_backup_dir_dynamic_dropbox.ps1
+
+次: GOなら apply を実行
