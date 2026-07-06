@@ -1,0 +1,53 @@
+﻿==============================
+反映結果: 偽物納品書ボタン削除
+==============================
+日時: 2026-07-07 00:25:25
+
+[今回の修正]
+- 請求書・未払管理内の偽物納品書ボタンを削除
+- newDeliveryNote() を呼ぶ納品書ボタンを削除
+- 納品書ページへ遷移する本物のボタンをヘッダーに1個だけ残した
+
+[削除前]
+納品書button合計: 2
+偽物 newDeliveryNote button: 1
+本物 delivery-note-inbox button: 1
+
+[削除後]
+納品書button合計: 1
+偽物 newDeliveryNote button: 0
+本物 delivery-note-inbox button: 1
+
+[対象]
+web_receiver\public\payables\payable-list.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\payable-list_before_remove_fake_delivery_note_buttons_20260707_002524.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\payable-list_after_remove_fake_delivery_note_buttons_20260707_002524.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_remove_fake_delivery_note_buttons_20260707_002524.ps1
+
+[確認結果]
+OK: 本体 偽物 newDeliveryNote 納品書ボタン 0個
+OK: 本体 本物 納品書ページ遷移ボタン 1個
+OK: 本体 visible 納品書 button 合計 1個
+OK: 本体 固定Windows絶対パスなし
+OK: 本体 納品書ページへの相対パス
+
+[総合判定]
+OK: 偽物納品書ボタンを削除し、本物だけ1個にしました。
+請求書・未払管理画面で Ctrl + F5 を押してください。
+
+[触っていないもの]
+- .env
+- DB本体
+- 実バックアップ
+- 画像
+- backupフォルダ本体
+- server.js
+- routes
+- repository
+- 納品書ページ本体

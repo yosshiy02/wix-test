@@ -12,10 +12,10 @@
   <div class="button-row">
     <button type="button" onclick="location.href='/'">メインへ</button>
     <button type="button" onclick="hdOriginPayablesReload()">再読み込み</button>
-    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_START -->
-    <button type="button" class="header-delivery-note-button" onclick="location.href='../delivery-notes/delivery-note-inbox.html'">納品書</button>
-    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_END -->
-<!-- PAYABLES_RESTART_BUTTON_20260706_START -->
+    <!-- PAYABLES_DELIVERY_NOTE_BUTTON_20260706_START -->
+    <button type="button" class="primary" onclick="newDeliveryNote()">納品書</button>
+    <!-- PAYABLES_DELIVERY_NOTE_BUTTON_20260706_END -->
+      <!-- PAYABLES_RESTART_BUTTON_20260706_START -->
 <button type="button" onclick="hdOriginPayablesRestart()">サーバー再起動</button>
 <!-- PAYABLES_RESTART_BUTTON_20260706_END -->
     </div>
@@ -70,7 +70,7 @@
         <button type="button" onclick="loadPayables()">検索</button>
         <button type="button" onclick="clearFilters()">条件クリア</button>
         <button type="button" class="primary" onclick="newPayable()">新規作成</button>
-</div>
+      </div>
     </div>
     <div class="card card-list"><h2>請求書・未払一覧</h2>
       <div id="list" class="list-wrap">読み込み中...</div>
@@ -781,6 +781,5 @@ loadAll();
 <!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_END -->
 </body>
 </html>
-
 
 

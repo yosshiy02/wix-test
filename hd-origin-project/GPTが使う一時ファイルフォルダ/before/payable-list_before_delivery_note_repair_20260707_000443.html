@@ -12,10 +12,7 @@
   <div class="button-row">
     <button type="button" onclick="location.href='/'">メインへ</button>
     <button type="button" onclick="hdOriginPayablesReload()">再読み込み</button>
-    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_START -->
-    <button type="button" class="header-delivery-note-button" onclick="location.href='../delivery-notes/delivery-note-inbox.html'">納品書</button>
-    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_END -->
-<!-- PAYABLES_RESTART_BUTTON_20260706_START -->
+      <!-- PAYABLES_RESTART_BUTTON_20260706_START -->
 <button type="button" onclick="hdOriginPayablesRestart()">サーバー再起動</button>
 <!-- PAYABLES_RESTART_BUTTON_20260706_END -->
     </div>
@@ -70,7 +67,7 @@
         <button type="button" onclick="loadPayables()">検索</button>
         <button type="button" onclick="clearFilters()">条件クリア</button>
         <button type="button" class="primary" onclick="newPayable()">新規作成</button>
-</div>
+      </div>
     </div>
     <div class="card card-list"><h2>請求書・未払一覧</h2>
       <div id="list" class="list-wrap">読み込み中...</div>
@@ -98,9 +95,6 @@
           <label>書類区分</label>
           <select id="documentType">
             <option value="invoice">請求書</option>
-            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_START -->
-            <option value="delivery_note">納品書</option>
-            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_END -->
             <option value="statement">明細書</option>
             <option value="credit_note">値引・返品</option>
             <option value="other">その他</option>
@@ -781,6 +775,4 @@ loadAll();
 <!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_END -->
 </body>
 </html>
-
-
 

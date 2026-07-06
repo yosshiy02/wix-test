@@ -1,0 +1,41 @@
+﻿==============================
+反映結果: 請求書・未払管理 納品書ヘッダーボタン
+==============================
+日時: 2026-07-07 00:11:02
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payable-list.html
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\payables\payables.repository.js
+
+[今回の修正]
+- 検索エリアの納品書ボタンを削除
+- ヘッダーの再読み込みボタン右に、クリック可能な納品書ボタンを追加
+- onclick: newDeliveryNote()
+- 書類区分 delivery_note は維持
+- 保存側 delivery_note は維持
+
+[確認結果]
+OK: 本体 ヘッダーに納品書ボタン
+OK: 本体 検索エリア納品書ボタン削除
+OK: 本体 書類区分 delivery_note option
+OK: 本体 newDeliveryNote 関数
+OK: 本体 Repo delivery_note 保存許可
+
+[Repo node --check]
+OK: 構文チェック成功
+
+[総合判定]
+OK: 納品書ボタンをヘッダーへ移動しました。
+請求書・未払管理画面で Ctrl + F5 を押してください。
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_delivery_note_header_button_20260707_001101.ps1
+
+[触っていないもの]
+- .env
+- DB本体
+- 実バックアップ
+- 画像
+- backupフォルダ本体
+- server.js
+- routes

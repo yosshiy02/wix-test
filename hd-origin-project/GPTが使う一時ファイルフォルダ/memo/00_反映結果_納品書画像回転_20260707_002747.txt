@@ -1,0 +1,50 @@
+﻿==============================
+反映結果: 納品書画像回転
+==============================
+日時: 2026-07-07 00:27:47
+
+[今回の修正]
+- 納品書取込ページの画像プレビューに回転ボタンを追加
+- 左90度、右90度、回転リセットを追加
+- 新しい画像を選択したら回転を0度に戻す
+- クリア時も回転を0度に戻す
+- HTML内に固定Windows絶対パスを入れていない
+- 文字コードは UTF-8
+
+[対象]
+web_receiver\public\delivery-notes\delivery-note-inbox.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\delivery-note-inbox_before_image_rotate_20260707_002747.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\delivery-note-inbox_after_image_rotate_20260707_002747.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_delivery_note_image_rotate_20260707_002747.ps1
+
+[確認結果]
+OK: 本体 回転ボタン追加
+OK: 本体 左90度ボタン
+OK: 本体 右90度ボタン
+OK: 本体 回転リセットボタン
+OK: 本体 回転CSS追加
+OK: 本体 回転JavaScript追加
+OK: 本体 日本時間処理維持
+OK: 本体 固定Windows絶対パスなし
+
+[総合判定]
+OK: 納品書画像を回転できるようにしました。
+納品書取込ページで Ctrl + F5 を押してください。
+
+[触っていないもの]
+- .env
+- DB本体
+- 実バックアップ
+- 画像保存処理
+- OCR処理
+- AI処理
+- server.js
+- routes
+- repository
+- 請求書・未払管理画面
