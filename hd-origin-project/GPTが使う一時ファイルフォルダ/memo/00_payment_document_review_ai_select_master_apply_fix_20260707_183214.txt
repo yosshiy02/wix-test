@@ -1,0 +1,26 @@
+﻿==============================
+AI候補 select マスタ選択 修正
+==============================
+日時: 2026-07-07 18:32:14
+PROJECT_ROOT: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+対象: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[OK] AI selectマスタ照合 helper を追加
+[OK] aiHardDebugSetControl を selectマスタ照合版へ安全差し替え
+[OK] setById のselect反映もマスタ照合版へ差し替え
+[OK] setByIdAllowEmpty のselect反映もマスタ照合版へ差し替え
+
+[反映確認]
+OK: AI selectマスタ照合 helper あり
+OK: aiHardDebugSetControl が setAiSelectByMaster を使用
+OK: __AI_DEBUG__ 仮option作成なし
+
+[画面確認]
+1. 支払書類 読取内容確認ページを再読み込み
+2. リース契約書ダミーを選択
+3. AI解析
+4. AI判定サマリーの書類種別が選択されること
+5. AI判定サマリーの処理先が選択されること
+6. 基本情報の書類区分が選択されること
+7. 会計・管理の会計区分、処理先、未払種別が選択されること
+8. 選べない場合は、そのselectが薄オレンジになり title にAI値が入ること

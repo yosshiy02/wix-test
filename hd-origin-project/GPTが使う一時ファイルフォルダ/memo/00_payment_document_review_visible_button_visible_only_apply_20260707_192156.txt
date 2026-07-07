@@ -1,0 +1,31 @@
+==============================
+支払書類内容確認 表示ボタン 表示中項目限定 反映結果
+==============================
+日時: 2026-07-07 19:21:56
+
+[反映]
+OK: web_receiver\public\payables\payment-document-review.html
+
+[修正内容]
+- 表示ボタンは残した
+- routes は触っていない
+- CSS は触っていない
+- AIの必要項目だけ表示ロジックは触っていない
+- 表示ボタンで拾う対象を、現在画面上で見えている項目だけに限定
+- ai-section-hidden / ai-field-hidden の項目はmemo対象外
+- 表示中項目の空欄は [空欄] としてmemoへ出る
+
+[確認方法]
+1. 支払書類内容確認ページで Ctrl + F5
+2. OCR済み書類を選択
+3. AI候補作成
+4. 右側の表示ボタン
+5. memoに、画面に表示されている項目だけが出ることを確認
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_visible_button_visible_only_20260707_192156.ps1"
+
+[注意]
+- DB / 画像 / 証憑 / backup / .env は触っていない
+- HTMLだけなので、サーバー再起動は不要。Ctrl+F5は必要

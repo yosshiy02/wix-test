@@ -124,6 +124,36 @@ const receiptRoot = (() => {
 })();
 
 
+/* PAYMENT_DOCUMENT_ROOT_CONFIG_20260707_START */
+const paymentDocumentRoot = (() => {
+  const explicitRoot = process.env.HD_ORIGIN_PAYMENT_DOCUMENT_ROOT || process.env.PAYMENT_DOCUMENT_ROOT || "";
+
+  if (explicitRoot) {
+    if (path.isAbsolute(explicitRoot)) {
+      return explicitRoot;
+    }
+
+    if (envPath) {
+      return path.join(path.dirname(envPath), explicitRoot);
+    }
+
+    return path.join(projectRoot, explicitRoot);
+  }
+
+  if (envPath) {
+    return path.join(path.dirname(envPath), "payment-documents");
+  }
+
+  const hddbtestRoot = process.env.HDDBTEST_ROOT || "";
+
+  if (hddbtestRoot) {
+    return path.join(hddbtestRoot, "HDDB_PROJECT", "ORIGIN", "payment-documents");
+  }
+
+  return path.join(projectRoot, "storage", "payment-documents");
+})();
+/* PAYMENT_DOCUMENT_ROOT_CONFIG_20260707_END */
+
 /* DELIVERY_NOTE_ROOT_CONFIG_20260707_START */
 const deliveryNoteRoot = (() => {
   const explicitRoot = process.env.HD_ORIGIN_DELIVERY_NOTE_ROOT || process.env.DELIVERY_NOTE_ROOT || "";
@@ -154,6 +184,7 @@ module.exports = {
   backupCloneDir,
   pgBinPath,
   receiptRoot,
+  paymentDocumentRoot,
   deliveryNoteRoot,
   db: {
     host: process.env.DB_HOST || "127.0.0.1",

@@ -1,0 +1,40 @@
+﻿==============================
+マスタ管理画面 内部コード表記統一 結果
+==============================
+日時: 2026-07-07 12:40:53
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- master-management.html を修正
+- 支払書類・区分系グループを追加
+- document_types / payment_destinations / accounting_categories / payable_kinds / payment_source_types を表示対象に追加
+- 追加列ラベルの 書類区分コード / 処理先コード / 会計区分コード / 未払種別コード / 入手元区分コード を 内部コード に統一
+- payment_method_code / tax_category_code / invoice_type_code / evidence_type_code も将来用に 内部コード として定義
+- account_code は会計上の科目コードなので、科目コードのまま維持
+- DB、API、保存処理は触っていない
+
+[考え方]
+- ID = DBの自動番号
+- 内部コード = プログラム側で使う固定名
+- 表示名 = 人間が見る名称
+- 科目コード = 会計上の科目コード。内部コードとは分ける
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\masters\master-management_before_internal_code_label_20260707_124053.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\masters\master-management_after_internal_code_label_20260707_124053.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_master_management_internal_code_label_20260707_124053.txt
+
+[確認]
+- サーバーを再起動する
+- マスタ管理画面を開く
+- 支払書類・区分系 が表示されること
+- 書類区分 / 処理先 / 会計区分 / 未払種別 / 入手元区分 のボタンがあること
+- 新規追加欄の追加列が 内部コード と表示されること
+- 一覧の追加列も 内部コード と表示されること
+- 勘定科目の account_code は 科目コード のままであること

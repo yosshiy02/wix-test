@@ -1,0 +1,34 @@
+﻿==============================
+支払書類 読取内容確認 プレビュー幅基準フィット修正 結果
+==============================
+日時: 2026-07-07 16:38:04
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- プレビュー幅の考え方を修正
+- 画像の現在表示サイズではなく、documentPreview枠の内寸を基準にした
+- 画像は naturalWidth / naturalHeight を基準にフィット計算
+- 90度/270度回転時は縦横を入れ替えてフィット計算
+- 画像のCSS幅/高さをJSで明示的に設定し、transformは回転だけにした
+- 原本画像ファイル、DB、OCR本文は変更しない
+- inline JS は node --check 済み
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_preview_fit_real_20260707_163804.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_preview_fit_real_20260707_163804.css
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_preview_fit_real_20260707_163804.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_preview_fit_real_20260707_163804.css
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_preview_fit_real_20260707_163804.txt
+
+[確認]
+- 支払書類 読取内容確認ページを Ctrl+F5 で再読込する
+- 左リストから画像を選ぶ
+- 中央の原本画像プレビュー枠内に画像が収まること
+- 右回転/左回転しても、中央プレビュー枠内に収まること
+- ブラウザ幅を変えても再フィットすること

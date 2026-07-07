@@ -1,0 +1,36 @@
+﻿==============================
+支払書類仕分けシステム 育成修正 結果
+==============================
+日時: 2026-07-07 21:15:49
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回育てた内容]
+- 固定資産税・都市計画税・納税通知書のOCRを税金・公的支払いへ寄せるルールを追加
+- sorting.system.txt に review_reason 空欄禁止寄りの指示を追加
+- sorting.extra-rules.txt に固定資産税・都市計画税ルールを追加
+- routes側でも固定資産税・都市計画税を補正
+- 税金公的判定時、AI判定理由が空欄なら短い理由を補完
+- 1回目仕分けでは fields を空に維持
+- HTML側は重い全項目反映をやめ、仕分けサマリー11項目だけ反映
+
+[期待結果]
+- AI判定理由に「固定資産税・都市計画税、納税通知書、市税事務所等の記載があるため。」が入る
+- aiAppliedCount 相当が 121 ではなく、仕分けサマリー項目数寄りになる
+- 金額・日付・番号・住所・明細などの詳細項目は反映しない
+
+[作成/変更]
+routes before : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_grow_sorting_20260707_211549.js
+routes after  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_grow_sorting_20260707_211549.js
+html before   : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_grow_sorting_20260707_211549.html
+html after    : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_grow_sorting_20260707_211549.html
+system prompt : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+rules prompt  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+undo          : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_grow_sorting_20260707_211549.ps1
+
+[確認]
+OK: prompt外部ファイル更新
+OK: routes node --check 成功
+OK: 仕分け11項目反映関数あり
+OK: 重い全項目反映を停止

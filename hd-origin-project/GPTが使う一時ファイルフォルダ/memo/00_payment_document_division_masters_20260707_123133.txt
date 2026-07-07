@@ -1,0 +1,172 @@
+﻿==============================
+区分系マスタ追加 結果
+==============================
+日時: 2026-07-07 12:31:35
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- master.repository.js の MASTER_DEFS に区分系マスタを追加
+- 書類区分 document_types を追加
+- 処理先 payment_destinations を追加
+- 会計区分 accounting_categories を追加
+- 未払種別 payable_kinds を追加
+- 入手元区分 payment_source_types を追加
+- database\\migrations\\20260707_002_payment_document_division_masters.sql を作成
+- Node経由でマイグレーションSQLを実行
+- マスタ管理画面は MASTER_DEFS / マスタAPI 経由で追加マスタが出る想定
+
+[触っていないもの]
+- payment-document-review.html
+- payment-document-review.css
+- payables.repository.js の保存ロジック
+- paymentDocuments.routes.js
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\masters\master.repository_before_payment_document_masters_20260707_123133.js
+(新規作成のため修正前なし)
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\masters\master.repository_after_payment_document_masters_20260707_123133.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\database\migrations\20260707_002_payment_document_division_masters.sql
+
+[本体反映]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\masters\master.repository.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260707_002_payment_document_division_masters.sql
+
+[DB実行結果]
+[BACKUP_OK]
+{
+  "file_name": "before_payment_document_division_masters_20260707_123133.backup",
+  "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payment_document_division_masters_20260707_123133.backup",
+  "size_bytes": 171806,
+  "created_at": "2026-07-07T03:31:33.922Z",
+  "backup_format": "full",
+  "backup_artifacts": {
+    "full": {
+      "file_name": "before_payment_document_division_masters_20260707_123133.backup",
+      "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payment_document_division_masters_20260707_123133.backup",
+      "size_bytes": 171806,
+      "updated_at": "2026-07-07T03:31:33.922Z"
+    },
+    "schema": {
+      "file_name": "before_payment_document_division_masters_20260707_123133.schema.sql",
+      "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payment_document_division_masters_20260707_123133.schema.sql",
+      "size_bytes": 90013,
+      "updated_at": "2026-07-07T03:31:34.734Z"
+    },
+    "data": {
+      "file_name": "before_payment_document_division_masters_20260707_123133.data.backup",
+      "full_path": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup\\before_payment_document_division_masters_20260707_123133.data.backup",
+      "size_bytes": 40467,
+      "updated_at": "2026-07-07T03:31:35.417Z"
+    }
+  },
+  "migration_version": "20260705_001_receipt_6tables",
+  "migration_snapshot": {
+    "ok": true,
+    "latest_version": "20260705_001_receipt_6tables",
+    "latest_name": "receipt_6tables",
+    "applied_count": 2,
+    "migrations": [
+      {
+        "version": "20260703_001_baseline_current_schema",
+        "name": "baseline_current_schema",
+        "file_name": "20260703_001_baseline_current_schema.sql",
+        "checksum_sha256": "30aab0785c45608d3c7a8915d3c52d2a1c6dc43b378d5a56c11623e7cfc69f62",
+        "applied": true,
+        "applied_at": "2026-07-03T23:50:08.039Z",
+        "checksum_matches": false
+      },
+      {
+        "version": "20260705_001_receipt_6tables",
+        "name": "receipt_6tables",
+        "file_name": "20260705_001_receipt_6tables.sql",
+        "checksum_sha256": "e026c88d331f622e6c842b2a3d98e0a9714da27382ca7897abd2466b30639af4",
+        "applied": true,
+        "applied_at": "2026-07-05T07:36:43.768Z",
+        "checksum_matches": false
+      },
+      {
+        "version": "20260705_002_receipt_is_settled",
+        "name": "receipt_is_settled",
+        "file_name": "20260705_002_receipt_is_settled.sql",
+        "checksum_sha256": "dc02cacc12cebde4f56d3b80072e172b8e86fb7cb3c4052b522237c82ce2c98b",
+        "applied": false,
+        "applied_at": null,
+        "checksum_matches": null
+      },
+      {
+        "version": "20260706_001_payables_professional",
+        "name": "payables_professional",
+        "file_name": "20260706_001_payables_professional.sql",
+        "checksum_sha256": "098c47d09d46ccce679c954a061e5ac9542401c11b6c850011822ecabe451869",
+        "applied": false,
+        "applied_at": null,
+        "checksum_matches": null
+      },
+      {
+        "version": "20260707_001_delivery_notes",
+        "name": "delivery_notes",
+        "file_name": "20260707_001_delivery_notes.sql",
+        "checksum_sha256": "8178983d64af16bdfa273c04a8dcf8767519b6f011e3e6fc58b32a2d7e294581",
+        "applied": false,
+        "applied_at": null,
+        "checksum_matches": null
+      },
+      {
+        "version": "20260707_002_payment_document_division_masters",
+        "name": "payment_document_division_masters",
+        "file_name": "20260707_002_payment_document_division_masters.sql",
+        "checksum_sha256": "e375719314a0add2015c4363108dab1395a217c5eea509e6cf504b88c18d825b",
+        "applied": false,
+        "applied_at": null,
+        "checksum_matches": null
+      }
+    ]
+  },
+  "clone_backup": {
+    "full": {
+      "enabled": true,
+      "skipped": true,
+      "file_name": "before_payment_document_division_masters_20260707_123133.backup",
+      "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+      "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+    },
+    "schema": {
+      "enabled": true,
+      "skipped": true,
+      "file_name": "before_payment_document_division_masters_20260707_123133.schema.sql",
+      "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+      "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+    },
+    "data": {
+      "enabled": true,
+      "skipped": true,
+      "file_name": "before_payment_document_division_masters_20260707_123133.data.backup",
+      "reason": "隨ｬ1菫晏ｭ伜・縺ｨ隨ｬ2菫晏ｭ伜・縺悟酔縺倥◆繧√√さ繝斐・繧堤怐逡･縺励∪縺励◆縲・,
+      "backup_clone_dir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\Backup"
+    }
+  },
+  "cleanup": {
+    "keep_normal": 10,
+    "keep_before_restore": 3,
+    "deleted": [
+      "hd_origin_project_20260707_003122.backup",
+      "hd_origin_project_20260707_003122.schema.sql",
+      "hd_origin_project_20260707_003122.data.backup"
+    ]
+  }
+}
+[MIGRATION_OK] C:\Users\yossh.2FLABO\Desktop\譁ｰ縺励＞繝輔か繝ｫ繝繝ｼ\wix-test\hd-origin-project\database\migrations\20260707_002_payment_document_division_masters.sql
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_division_masters_20260707_123133.txt
+
+[確認]
+- サーバーを再起動する
+- マスタ管理画面を開く
+- 書類区分 / 処理先 / 会計区分 / 未払種別 / 入手元区分 が表示されること
+- 支払書類 読取内容確認ページで、書類区分などのマスタ未接続表示が減ること
+- 進入禁止マークが出ないこと

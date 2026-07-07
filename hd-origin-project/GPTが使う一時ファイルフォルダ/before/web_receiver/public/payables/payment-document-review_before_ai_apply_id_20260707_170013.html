@@ -1,0 +1,1902 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>支払書類 読取内容確認 - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-review.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類 読取内容確認</h1>
+      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+      <span class="muted">OCR済み書類の読取内容を確認する画面です。</span>
+    </header>
+
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <span>OCR済み書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+      <div id="summary" class="summary">読込中...</div>
+      <div id="list" class="list"></div>
+    </section>
+
+    <section class="panel preview-panel">
+      <div class="panel-title preview-title">
+        <span>原本画像プレビュー</span>
+        <div class="preview-rotate-buttons" aria-label="原本画像回転">
+          <button type="button" onclick="rotateDocumentPreview(-90)">左回転</button>
+          <button type="button" onclick="rotateDocumentPreview(90)">右回転</button>
+          <button type="button" onclick="resetDocumentPreviewRotation()">戻す</button>
+        </div>
+      </div>
+      <div id="documentPreview" class="document-preview">
+        左からDB保存済みOCRを選択してください。
+      </div>
+    </section>
+
+    <section class="panel draft-panel">
+      <div class="panel-title">
+        <span>確認・下書き</span>
+      </div>
+
+            <div class="draft-note">
+        支払書類は種類が多いため、OCR本文から取れそうな項目を最大限拾う前提の確認欄です。
+        ここではまだ保存処理は行わず、AI候補・人間確認・下書き保存へ進めるための受け皿を作ります。
+      </div>
+
+      <div class="draft-form-scroll">
+        <section class="draft-section">
+          <div class="draft-section-title">AI判定サマリー</div>
+          <div class="form-grid">
+            <label>
+              書類種別
+              <select class="draft-field master-select" id="draftAiDocumentKind" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              処理先
+              <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              支払対象
+              <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
+            </label>
+            <label>
+              未払登録対象
+              <input class="draft-field" id="draftAiUnpaidFlag" placeholder="例：登録する / しない / 要確認">
+            </label>
+            <label>
+              経費登録対象
+              <input class="draft-field" id="draftAiExpenseFlag" placeholder="例：経費 / 立替 / 対象外">
+            </label>
+            <label>
+              税金・公的支払
+              <input class="draft-field" id="draftAiTaxPublicFlag" placeholder="例：税金 / 社保 / 公共料金 / 対象外">
+            </label>
+            <label>
+              契約・保険・リース
+              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
+            </label>
+            <label>
+              AI信頼度
+              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label class="span2">
+              AI判定理由
+              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：OCR本文内に請求金額、支払期限、振込先があるため請求書と判断。"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">基本情報</div>
+          <div class="form-grid">
+            <label>
+              書類区分
+              <select class="draft-field master-select" id="draftDocumentType" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              証憑区分
+              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              書類名
+              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
+            </label>
+            <label>
+              発行元
+              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
+            </label>
+            <label>
+              支払先
+              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
+            </label>
+            <label>
+              宛名
+              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
+            </label>
+            <label>
+              会社名
+              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
+            </label>
+            <label>
+              個人名
+              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
+            </label>
+            <label>
+              部署名
+              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
+            </label>
+            <label>
+              担当者名
+              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
+            </label>
+            <label class="span2">
+              住所
+              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
+            </label>
+            <label>
+              電話番号
+              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
+            </label>
+            <label>
+              メール
+              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
+            </label>
+            <label class="span2">
+              Webサイト
+              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">番号・識別情報</div>
+          <div class="form-grid">
+            <label>
+              請求書番号
+              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
+            </label>
+            <label>
+              領収書番号
+              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
+            </label>
+            <label>
+              納付番号
+              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
+            </label>
+            <label>
+              通知書番号
+              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
+            </label>
+            <label>
+              管理番号
+              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
+            </label>
+            <label>
+              お客様番号
+              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
+            </label>
+            <label>
+              契約番号
+              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
+            </label>
+            <label>
+              会員番号
+              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
+            </label>
+            <label>
+              注文番号
+              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
+            </label>
+            <label>
+              取引番号
+              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
+            </label>
+            <label>
+              登録番号
+              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
+            </label>
+            <label>
+              法人番号
+              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
+            </label>
+            <label>
+              カード番号下4桁
+              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">日付・期限</div>
+          <div class="form-grid">
+            <label>
+              書類日付
+              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              発行日
+              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              請求日
+              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              取引日・利用日
+              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              納品日
+              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              締日
+              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
+            </label>
+            <label>
+              支払期限・納期限
+              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
+            </label>
+            <label>
+              支払予定日
+              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
+            </label>
+            <label>
+              引落日
+              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
+            </label>
+            <label>
+              決済日
+              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
+            </label>
+            <label>
+              対象開始日
+              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
+            </label>
+            <label>
+              対象終了日
+              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
+            </label>
+            <label>
+              契約開始日
+              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
+            </label>
+            <label>
+              契約終了日
+              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
+            </label>
+            <label>
+              更新日
+              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">金額・税</div>
+          <div class="form-grid">
+            <label>
+              請求・支払金額
+              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              合計金額
+              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              税込金額
+              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
+            </label>
+            <label>
+              税抜金額
+              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
+            </label>
+            <label>
+              消費税額
+              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
+            </label>
+            <label>
+              10%対象金額
+              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
+            </label>
+            <label>
+              10%消費税
+              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
+            </label>
+            <label>
+              8%対象金額
+              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
+            </label>
+            <label>
+              8%消費税
+              <input class="draft-field" id="draftTax8" placeholder="例：800">
+            </label>
+            <label>
+              非課税・不課税
+              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
+            </label>
+            <label>
+              源泉徴収額
+              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
+            </label>
+            <label>
+              手数料
+              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
+            </label>
+            <label>
+              延滞金
+              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
+            </label>
+            <label>
+              値引・割引
+              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
+            </label>
+            <label>
+              前回残高
+              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
+            </label>
+            <label>
+              今回利用額
+              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              入金額
+              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
+            </label>
+            <label>
+              未払残高
+              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">支払情報</div>
+          <div class="form-grid">
+            <label>
+              支払方法
+              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              支払状態
+              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
+            </label>
+            <label>
+              振込先銀行
+              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
+            </label>
+            <label>
+              銀行コード
+              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
+            </label>
+            <label>
+              支店名
+              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
+            </label>
+            <label>
+              支店コード
+              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
+            </label>
+            <label>
+              口座種別
+              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
+            </label>
+            <label>
+              口座番号
+              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
+            </label>
+            <label class="span2">
+              口座名義
+              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
+            </label>
+            <label>
+              引落銀行
+              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
+            </label>
+            <label>
+              カード会社
+              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
+            </label>
+            <label>
+              カード名
+              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
+            </label>
+            <label>
+              決済サービス
+              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
+            </label>
+            <label>
+              コンビニ支払番号
+              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
+            </label>
+            <label>
+              バーコード番号
+              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
+            </label>
+            <label>
+              QR決済情報
+              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">会計・管理</div>
+          <div class="form-grid">
+            <label>
+              会計区分
+              <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              処理先
+              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              未払種別
+              <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              支払先マスタ候補
+              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              勘定科目
+              <select class="draft-field master-select" id="draftAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              税区分
+              <select class="draft-field master-select" id="draftTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              インボイス区分
+              <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              支払方法マスタ
+              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              対象者
+              <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              目的
+              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              案件
+              <select class="draft-field master-select" id="draftProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              部門
+              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label class="span2">
+              摘要
+              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
+            </label>
+            <label>
+              会社負担可否
+              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
+            </label>
+            <label>
+              個人負担混在
+              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
+            </label>
+            <label>
+              立替
+              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
+            </label>
+            <label>
+              精算
+              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
+            </label>
+            <label>
+              未払登録
+              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
+            </label>
+            <label>
+              買掛登録
+              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
+            </label>
+            <label class="span2">
+              社内メモ
+              <textarea class="draft-field small-textarea" id="draftMemo" placeholder="社内メモ"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">明細</div>
+          <div class="form-grid">
+            <label class="span2">
+              明細候補
+              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">書類別追加情報</div>
+          <div class="form-grid">
+            <label>
+              税目
+              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
+            </label>
+            <label>
+              納付先
+              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
+            </label>
+            <label>
+              年度
+              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
+            </label>
+            <label>
+              期別
+              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
+            </label>
+            <label>
+              公共料金お客様番号
+              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
+            </label>
+            <label>
+              使用期間
+              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
+            </label>
+            <label>
+              使用量
+              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
+            </label>
+            <label>
+              保険種類
+              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
+            </label>
+            <label>
+              リース物件
+              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
+            </label>
+            <label>
+              支払回数
+              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
+            </label>
+            <label>
+              メール件名
+              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
+            </label>
+            <label>
+              メール送信者
+              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
+            </label>
+            <label>
+              メール受信日時
+              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
+            </label>
+            <label>
+              添付ファイル名
+              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
+            </label>
+            <label>
+              ダウンロード日
+              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">要確認</div>
+          <div class="form-grid">
+            <label class="span2">
+              要確認メモ
+              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
+            </label>
+          </div>
+        </section>
+
+                <details class="compact-evidence-details" id="compactEvidenceInfo">
+          <summary>証憑情報（必要最低限）</summary>
+          <div class="compact-evidence-grid">
+            <div>
+              <span>ファイル</span>
+              <strong id="compactEvidenceFileName">未選択</strong>
+            </div>
+            <div>
+              <span>OCR</span>
+              <strong id="compactEvidenceOcrStatus">-</strong>
+            </div>
+            <div>
+              <span>保存</span>
+              <strong id="compactEvidenceSavedStatus">-</strong>
+            </div>
+            <div>
+              <span>重複</span>
+              <strong id="compactEvidenceDuplicateStatus">-</strong>
+            </div>
+          </div>
+        </details>
+</div>
+<div class="button-row">
+        <button type="button" onclick="showPlanned('AI解析')">候補作成</button>
+        <button type="button" onclick="showPlanned('下書き保存')">下書き保存</button>
+        <button type="button" class="secondary" onclick="showPlanned('本登録')">登録へ進む</button>
+      </div>
+
+      <details class="ocr-details">
+        <summary>OCR本文</summary>
+        <textarea id="ocrText" readonly placeholder="左からDB保存済みOCRを選択すると、OCR本文がここに表示されます。"></textarea>
+      </details>
+            <button type="button" class="secondary" onclick="runAiDraftFromSelectedOcr()">AI候補作成</button>
+      <div id="result" class="result"></div>
+    </section>
+  </div>
+
+<script>
+  let items = [];
+  let selectedIndex = -1;
+
+  function esc(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatJapanDateTime(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    const parts = new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+  }
+
+  function showResult(message) {
+    document.getElementById("result").textContent = message || "";
+  }
+
+  function hasOcr(item) {
+    return !!(item.ocrRawText || item.ocrTextPreview || item.ocrStatus === "ocr_done");
+  }
+
+/* PAYMENT_DOCUMENT_REVIEW_IMAGE_PREVIEW_20260707_START */
+  function documentPreviewUrl(item) {
+    if (!item) return "";
+
+    if (item.imageUrl) {
+      return item.imageUrl;
+    }
+
+    const id = item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+
+    if (id) {
+      return "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(String(id));
+    }
+
+    const fileName = item.savedFileName || item.fileName || "";
+
+    if (fileName) {
+      return "/api/payment-documents/scan-inbox/file/" + encodeURIComponent(fileName);
+    }
+
+    return "";
+  }
+
+  function isPreviewImage(item, url) {
+    const mime = String(item && item.mimeType || "").toLowerCase();
+
+    if (mime.startsWith("image/")) {
+      return true;
+    }
+
+    return /\.(png|jpg|jpeg|webp|gif)(\?|#|$)/i.test(String(url || ""));
+  }
+
+  function isPreviewPdf(item, url) {
+    const mime = String(item && item.mimeType || "").toLowerCase();
+
+    if (mime === "application/pdf") {
+      return true;
+    }
+
+    return /\.pdf(\?|#|$)/i.test(String(url || ""));
+  }
+
+/* PAYMENT_DOCUMENT_REVIEW_PREVIEW_ROTATE_20260707_START */
+  let documentPreviewRotation = 0;
+/* PAYMENT_DOCUMENT_REVIEW_PREVIEW_REAL_FIT_20260707_START */
+  function previewInnerSize() {
+    const preview = document.getElementById("documentPreview");
+
+    if (!preview) {
+      return { width: 1, height: 1 };
+    }
+
+    const style = window.getComputedStyle(preview);
+    const paddingX =
+      parseFloat(style.paddingLeft || "0") +
+      parseFloat(style.paddingRight || "0");
+    const paddingY =
+      parseFloat(style.paddingTop || "0") +
+      parseFloat(style.paddingBottom || "0");
+
+    return {
+      width: Math.max(1, preview.clientWidth - paddingX),
+      height: Math.max(1, preview.clientHeight - paddingY)
+    };
+  }
+
+  function previewTargetNaturalSize(target) {
+    if (!target) {
+      return { width: 1, height: 1 };
+    }
+
+    if (target.tagName === "IMG") {
+      return {
+        width: Math.max(1, target.naturalWidth || target.width || 1),
+        height: Math.max(1, target.naturalHeight || target.height || 1)
+      };
+    }
+
+    return previewInnerSize();
+  }
+
+  function currentPreviewTarget() {
+    const preview = document.getElementById("documentPreview");
+
+    if (!preview) {
+      return null;
+    }
+
+    return preview.querySelector(".document-preview-image, .document-preview-frame");
+  }
+
+  function applyDocumentPreviewRotation() {
+    const target = currentPreviewTarget();
+
+    if (!target) {
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const box = previewInnerSize();
+    const natural = previewTargetNaturalSize(target);
+    const rotation = ((documentPreviewRotation % 360) + 360) % 360;
+    const sideways = rotation === 90 || rotation === 270;
+
+    const logicalWidth = sideways ? natural.height : natural.width;
+    const logicalHeight = sideways ? natural.width : natural.height;
+
+    const scale = Math.min(
+      box.width / logicalWidth,
+      box.height / logicalHeight
+    );
+
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+
+    target.style.width = displayWidth + "px";
+    target.style.height = displayHeight + "px";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+    window.setTimeout(() => {
+      applyDocumentPreviewRotation();
+    }, 0);
+
+    window.setTimeout(() => {
+      applyDocumentPreviewRotation();
+    }, 80);
+  }
+
+  window.addEventListener("resize", () => {
+    scheduleDocumentPreviewFit();
+  });
+/* PAYMENT_DOCUMENT_REVIEW_PREVIEW_REAL_FIT_20260707_END */
+
+  function rotateDocumentPreview(degrees) {
+    documentPreviewRotation = (documentPreviewRotation + Number(degrees || 0)) % 360;
+
+    if (documentPreviewRotation < 0) {
+      documentPreviewRotation += 360;
+    }
+
+    applyDocumentPreviewRotation();
+  }
+
+  function resetDocumentPreviewRotation(shouldApply = true) {
+    documentPreviewRotation = 0;
+
+    if (shouldApply) {
+      applyDocumentPreviewRotation();
+    }
+  }
+/* PAYMENT_DOCUMENT_REVIEW_PREVIEW_ROTATE_20260707_END */
+function setDocumentPreview(item) {
+    const preview = document.getElementById("documentPreview");
+
+    if (!preview) {
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    if (!item) {
+      preview.innerHTML = '<div class="preview-empty">左からDB保存済みOCRを選択してください。</div>';
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const url = documentPreviewUrl(item);
+    const name = item.originalFileName || item.savedFileName || item.fileName || "原本";
+
+    if (!url) {
+      preview.innerHTML =
+        '<div class="preview-empty">原本ファイルの参照先がありません。</div>';
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    if (isPreviewPdf(item, url)) {
+      preview.innerHTML =
+        '<iframe class="document-preview-frame" src="' + esc(url) + '" title="' + esc(name) + '"></iframe>';
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    if (isPreviewImage(item, url)) {
+      preview.innerHTML =
+        '<img class="document-preview-image" onload="scheduleDocumentPreviewFit()" src="' + esc(url) + '" alt="' + esc(name) + '">';
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    preview.innerHTML =
+      '<div class="preview-empty">' +
+      '<div>この形式は画面内プレビュー対象外です。</div>' +
+      '<a href="' + esc(url) + '" target="_blank" rel="noopener">原本を開く</a>' +
+      '</div>';
+  }
+/* PAYMENT_DOCUMENT_REVIEW_IMAGE_PREVIEW_20260707_END */
+/* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_CLIENT_20260707_START */
+/* PAYMENT_DOCUMENT_SELECTED_ITEM_HELPER_20260707_START */
+  function selectedItem() {
+    if (!Array.isArray(items)) {
+      return null;
+    }
+
+    const index = Number(selectedIndex);
+
+    if (!Number.isInteger(index) || index < 0 || index >= items.length) {
+      return null;
+    }
+
+    return items[index] || null;
+  }
+/* PAYMENT_DOCUMENT_SELECTED_ITEM_HELPER_20260707_END */
+  function selectedOcrImportId() {
+    if (!Array.isArray(items)) {
+      return "";
+    }
+
+    const index = Number(selectedIndex);
+
+    if (!Number.isInteger(index) || index < 0 || index >= items.length) {
+      return "";
+    }
+
+    const item = items[index];
+
+    if (!item) {
+      return "";
+    }
+
+    return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+  }
+  function setMasterSelectByCodeOrText(selector, value) {
+    const select = document.querySelector(selector);
+
+    if (!select) {
+      return;
+    }
+
+    setDraftMasterSelectValue(select, value || "");
+  }
+
+  function setInputValue(selector, value) {
+    const el = document.querySelector(selector);
+
+    if (!el) {
+      return;
+    }
+
+    el.value = value === null || value === undefined ? "" : String(value);
+  }
+
+  function applyAiDraftToForm(draft) {
+    if (!draft) {
+      return;
+    }
+
+    setMasterSelectByCodeOrText('[data-master-type="document_types"]', draft.document_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', draft.payment_destination_code);
+    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', draft.accounting_category_code);
+    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', draft.payable_kind_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', draft.source_type_code);
+
+    setInputValue('[name="vendor_name"], #vendorName', draft.vendor_name);
+    setInputValue('[name="issue_date"], #issueDate', draft.issue_date);
+    setInputValue('[name="due_date"], #dueDate', draft.due_date);
+    setInputValue('[name="invoice_number"], #invoiceNumber', draft.invoice_number);
+    setInputValue('[name="total_amount"], #totalAmount', draft.total_amount);
+    setInputValue('[name="tax_amount"], #taxAmount', draft.tax_amount);
+    setInputValue('[name="summary"], #summary', draft.summary);
+    setInputValue('[name="memo"], #memo', draft.memo);
+  }
+
+  async function runAiDraftFromSelectedOcr() {
+    const id = selectedOcrImportId();
+
+    if (!id) {
+      showResult("左リストからDB保存済みOCRを選択してください。");
+      return;
+    }
+
+    showResult("OCR本文だけをOpenAIへ送信してAI候補を作成しています。画像は送信しません。");
+
+    try {
+      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        showResult(data);
+        return;
+      }
+
+      applyAiDraftToForm(data.draft);
+
+      showResult({
+        ok: true,
+        message: "AI候補を右側の下書き欄へ反映しました。画像はOpenAIへ送信していません。",
+        image_used: data.image_used,
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+  }
+/* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_CLIENT_20260707_END */
+/* PAYMENT_DOCUMENT_OPENAI_WIDE_DRAFT_CLIENT_20260707_START */
+  function normalizeLabelText(value) {
+    return String(value || "")
+      .replace(/\s+/g, "")
+      .replace(/：/g, ":")
+      .trim();
+  }
+
+  function findControlByLabelText(labelText) {
+    const wanted = normalizeLabelText(labelText);
+
+    if (!wanted) {
+      return null;
+    }
+
+    const labels = Array.from(document.querySelectorAll("label, .field-label, .form-label, .label"));
+
+    for (const label of labels) {
+      const text = normalizeLabelText(label.textContent);
+
+      if (!text || text !== wanted) {
+        continue;
+      }
+
+      if (label.htmlFor) {
+        const byFor = document.getElementById(label.htmlFor);
+
+        if (byFor) {
+          return byFor;
+        }
+      }
+
+      const parent = label.closest(".field, .form-field, .input-row, .form-row, div") || label.parentElement;
+
+      if (parent) {
+        const control = parent.querySelector("input, select, textarea");
+
+        if (control) {
+          return control;
+        }
+      }
+
+      const next = label.nextElementSibling;
+
+      if (next && next.matches && next.matches("input, select, textarea")) {
+        return next;
+      }
+    }
+
+    return null;
+  }
+
+  function setControlValue(control, value) {
+    if (!control) {
+      return false;
+    }
+
+    const text = value === null || value === undefined ? "" : String(value);
+
+    if (control.tagName === "SELECT") {
+      setDraftMasterSelectValue(control, text);
+    } else {
+      control.value = text;
+    }
+
+    control.dispatchEvent(new Event("input", { bubbles: true }));
+    control.dispatchEvent(new Event("change", { bubbles: true }));
+
+    return true;
+  }
+
+  function setFieldByLabel(labelText, value) {
+    if (value === null || value === undefined || value === "") {
+      return false;
+    }
+
+    const control = findControlByLabelText(labelText);
+
+    return setControlValue(control, value);
+  }
+
+  function applyAiSummaryFields(summary) {
+    if (!summary) {
+      return;
+    }
+
+    setFieldByLabel("書類種別", summary.document_kind);
+    setFieldByLabel("処理先", summary.destination);
+    setFieldByLabel("支払対象", summary.payment_target);
+    setFieldByLabel("未払登録対象", summary.payable_target);
+    setFieldByLabel("経費登録対象", summary.expense_target);
+    setFieldByLabel("税金・公的支払", summary.tax_public);
+    setFieldByLabel("契約・保険・リース", summary.contract_insurance_lease);
+    setFieldByLabel("AI信頼度", summary.confidence_label);
+    setFieldByLabel("AI判定理由", summary.reason);
+  }
+
+  function applyAiFieldMap(fields) {
+    if (!fields || typeof fields !== "object") {
+      return 0;
+    }
+
+    let count = 0;
+
+    for (const [label, value] of Object.entries(fields)) {
+      if (setFieldByLabel(label, value)) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  function applyAiDraftToForm(draft) {
+    if (!draft) {
+      return;
+    }
+
+    setMasterSelectByCodeOrText('[data-master-type="document_types"]', draft.document_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', draft.payment_destination_code);
+    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', draft.accounting_category_code);
+    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', draft.payable_kind_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', draft.source_type_code);
+
+    setInputValue('[name="vendor_name"], #vendorName', draft.vendor_name);
+    setInputValue('[name="issue_date"], #issueDate', draft.issue_date);
+    setInputValue('[name="due_date"], #dueDate', draft.due_date);
+    setInputValue('[name="invoice_number"], #invoiceNumber', draft.invoice_number);
+    setInputValue('[name="total_amount"], #totalAmount', draft.total_amount);
+    setInputValue('[name="tax_amount"], #taxAmount', draft.tax_amount);
+    setInputValue('[name="summary"], #summary', draft.summary);
+    setInputValue('[name="memo"], #memo', draft.memo);
+
+    applyAiSummaryFields(draft.ai_summary);
+    applyAiFieldMap(draft.fields);
+  }
+/* PAYMENT_DOCUMENT_OPENAI_WIDE_DRAFT_CLIENT_20260707_END */
+  async function loadItems() {
+    const summary = document.getElementById("summary");
+    const list = document.getElementById("list");
+
+    summary.textContent = "読込中...";
+    list.innerHTML = "";
+    selectedIndex = -1;
+
+    document.getElementById("ocrText").value = "";
+    clearDraftFields();
+
+    try {
+      const res = await fetch("/api/payment-documents/ocr-imports");
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "読込失敗");
+      }
+
+      const allItems = data.items || [];
+      items = allItems.filter(hasOcr);
+
+      summary.textContent =
+        "OCR済み: " + items.length + "件 / 全体: " + allItems.length + "件";
+
+      if (!items.length) {
+        list.innerHTML = '<div class="empty">DB保存済みOCRがありません。OCR取込画面でOCR後、保存してください。</div>';
+        scheduleDocumentPreviewFit();
+      return;
+      }
+
+      list.innerHTML = items.map((item, index) => {
+        const active = index === selectedIndex ? " active" : "";
+        const name = item.originalFileName || item.fileName;
+        const time = item.ocrAt ? formatJapanDateTime(item.ocrAt) : "";
+
+        return `
+          <button class="item${active}" onclick="selectItem(${index})">
+            <span class="no">${index + 1}</span>
+            <span class="name">${esc(name)}</span>
+            <span class="time">${esc(time)}</span>
+          </button>
+        `;
+      }).join("");
+    } catch (error) {
+      summary.textContent = "読込エラー: " + (error.message || String(error));
+    }
+  }
+
+  function clearDraftFields() {
+    document.querySelectorAll(".draft-field").forEach(field => {
+      field.value = "";
+    });
+    resetCompactEvidenceInfo();
+    showResult("");
+  }
+
+  function setDraftValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (value === null || value === undefined) {
+      el.value = "";
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    el.value = String(value);
+  }
+
+  function formatDraftBytes(bytes) {
+    const n = Number(bytes) || 0;
+
+    if (n >= 1024 * 1024) {
+      return (n / 1024 / 1024).toFixed(1) + " MB";
+    }
+
+    if (n >= 1024) {
+      return Math.round(n / 1024) + " KB";
+    }
+
+    return n ? n + " B" : "";
+  }
+
+  function setCompactEvidenceText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const text = value === null || value === undefined || value === "" ? "-" : String(value);
+    el.textContent = text;
+  }
+
+  function resetCompactEvidenceInfo() {
+    setCompactEvidenceText("compactEvidenceFileName", "未選択");
+    setCompactEvidenceText("compactEvidenceOcrStatus", "-");
+    setCompactEvidenceText("compactEvidenceSavedStatus", "-");
+    setCompactEvidenceText("compactEvidenceDuplicateStatus", "-");
+  }
+
+  function updateCompactEvidenceInfo(item) {
+    if (!item) {
+      resetCompactEvidenceInfo();
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const savedStatus =
+      item.saveStatus ||
+      item.savedStatus ||
+      (item.evidenceSaved || item.ocrSaved ? "保存済み" : "未保存");
+
+    const duplicateStatus = item.duplicateOfFileName
+      ? "重複元: " + item.duplicateOfFileName
+      : "なし";
+
+    setCompactEvidenceText("compactEvidenceFileName", item.originalFileName || item.fileName || "未選択");
+    setCompactEvidenceText("compactEvidenceOcrStatus", item.ocrStatus || "-");
+    setCompactEvidenceText("compactEvidenceSavedStatus", savedStatus);
+    setCompactEvidenceText("compactEvidenceDuplicateStatus", duplicateStatus);
+  }
+  function fillDraftFromItem(item) {
+    if (!item) return;
+
+    updateCompactEvidenceInfo(item);
+
+    setDraftValue("draftDocumentType", item.documentType || "");
+    setDraftValue("draftAiDocumentKind", item.documentType || "");
+    setDraftValue("draftDestination", item.destination || "");
+    setDraftValue("draftAiDestination", item.destination || "");
+    setDraftValue("draftIssuer", item.vendorName || "");
+    setDraftValue("draftVendorName", item.vendorName || "");
+    setDraftValue("draftVendorMasterCandidate", item.vendorName || "");
+    setDraftValue("draftMemo", item.note || "");
+    setDraftValue("draftEmailSubject", item.emailSubject || "");
+    setDraftValue("draftEmailFrom", item.emailFrom || "");
+
+    setDraftValue("draftOriginalFileName", item.originalFileName || "");
+    setDraftValue("draftSavedFileName", item.fileName || "");
+    setDraftValue("draftMimeType", item.mimeType || "");
+    setDraftValue("draftFileSize", formatDraftBytes(item.sizeBytes));
+    setDraftValue("draftSha256", item.sha256 || "");
+    setDraftValue("draftOcrStatus", item.ocrStatus || "");
+    setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
+    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
+    setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
+  }
+
+  function selectItem(index) {
+    selectedIndex = index;
+    const item = items[index];
+
+    document.querySelectorAll(".item").forEach((el, i) => {
+      el.classList.toggle("active", i === index);
+    });
+
+    document.getElementById("ocrText").value = item.ocrRawText || item.ocrTextPreview || "";
+    resetDocumentPreviewRotation(false);
+    setDocumentPreview(item);
+    clearDraftFields();
+    fillDraftFromItem(item);
+
+    showResult("原本画像とOCR本文を読み込みました。");
+  }
+
+  function showPlanned(name) {
+    const item = selectedIndex >= 0 ? items[selectedIndex] : null;
+
+    if (!item) {
+      showResult("先にOCR済み書類を選択してください。");
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    showResult(
+      name + "は後工程です。\n" +
+      "このページでは画面骨格のみ作成済みです。\n" +
+      "次にDBを作って、AI候補と人間修正下書きを保存できるようにします。"
+    );
+  }
+
+  async function restartServer() {
+    const ok = confirm("サーバーを再起動しますか？\n終了前バックアップありの再起動APIを呼びます。");
+
+    if (!ok) return;
+
+    showResult("サーバー再起動を要求中です。");
+
+    try {
+      const res = await fetch("/api/system/restart-with-backup", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      showResult(JSON.stringify(data, null, 2));
+    } catch (error) {
+      showResult("再起動要求後に接続が切れた可能性があります。\n" + (error.message || String(error)));
+    }
+  }
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_START */
+  let draftMasters = {};
+
+  const DRAFT_MASTER_FIELDS = [
+    { id: "draftAiDocumentKind", type: "document_types", label: "書類区分" },
+    { id: "draftDocumentType", type: "document_types", label: "書類区分" },
+    { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
+    { id: "draftPayableKind", type: "payable_kinds", label: "未払種別" },
+
+    { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
+    { id: "draftVendorMasterCandidate", type: "vendors", label: "支払先" },
+    { id: "draftPaymentMethod", type: "payment_methods", label: "支払方法" },
+    { id: "draftPaymentMethodMaster", type: "payment_methods", label: "支払方法" },
+    { id: "draftAccountTitle", type: "account_titles", label: "勘定科目" },
+    { id: "draftTaxCategory", type: "tax_categories", label: "税区分" },
+    { id: "draftInvoiceType", type: "invoice_types", label: "インボイス区分" },
+    { id: "draftTargetPerson", type: "target_people", label: "対象者" },
+    { id: "draftPurpose", type: "purposes", label: "目的" },
+    { id: "draftProject", type: "projects", label: "案件" },
+    { id: "draftDepartment", type: "departments", label: "部門" }
+  ];
+
+  function normalizeMasterText(value) {
+    return String(value || "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  }
+
+  function getDraftMasterRows(type) {
+    const source = draftMasters || {};
+
+    if (Array.isArray(source[type])) {
+      return source[type];
+    }
+
+    if (source.masters && Array.isArray(source.masters[type])) {
+      return source.masters[type];
+    }
+
+    if (Array.isArray(source.items)) {
+      return source.items.filter(row => row && row.type === type);
+    }
+
+    if (Array.isArray(source)) {
+      return source.filter(row => row && row.type === type);
+    }
+
+    return [];
+  }
+
+  function masterRowName(row) {
+    if (!row) return "";
+
+    return String(
+      row.name ||
+      row.master_name ||
+      row.account_name ||
+      row.method_name ||
+      row.tax_name ||
+      row.vendor_name ||
+      row.target_person_name ||
+      row.purpose_name ||
+      row.project_name ||
+      row.department_name ||
+      row.invoice_type_name ||
+      row.evidence_type_name ||
+      ""
+    ).trim();
+  }
+
+  function masterRowValue(row) {
+    if (!row) return "";
+
+    const id =
+      row.id ??
+      row.account_title_id ??
+      row.payment_method_id ??
+      row.tax_category_id ??
+      row.vendor_id ??
+      row.target_person_id ??
+      row.purpose_id ??
+      row.project_id ??
+      row.department_id ??
+      row.invoice_type_id ??
+      row.evidence_type_id ??
+      "";
+
+    return String(id || masterRowName(row) || "");
+  }
+
+  function masterRowLabel(row) {
+    const name = masterRowName(row);
+
+    if (!name) {
+      return "";
+    }
+
+    if (row.account_code) {
+      return String(row.account_code) + " " + name;
+    }
+
+    if (row.tax_rate !== undefined && row.tax_rate !== null && row.tax_rate !== "") {
+      return name + "（" + row.tax_rate + "%）";
+    }
+
+    return name;
+  }
+
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+
+    const previousValue = select.value;
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = label + "マスタ未接続または未登録";
+      option.disabled = false;
+      select.appendChild(option);
+      select.classList.add("master-missing");
+      select.disabled = false;
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+
+    for (const row of rows) {
+      const name = masterRowName(row);
+      const value = masterRowValue(row);
+      const labelText = masterRowLabel(row);
+
+      if (!name || !value) {
+        continue;
+      }
+
+      const option = document.createElement("option");
+      option.value = value;
+      option.dataset.name = name;
+      option.textContent = labelText;
+      select.appendChild(option);
+    }
+
+    if (previousValue) {
+      setDraftMasterSelectValue(select, previousValue);
+    }
+  }
+
+  function populateDraftMasterSelects() {
+    document.querySelectorAll("select[data-master-type]").forEach(populateOneMasterSelect);
+  }
+
+  function setDraftMasterSelectValue(select, value) {
+    const raw = String(value || "").trim();
+
+    if (!raw) {
+      select.value = "";
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const rawNorm = normalizeMasterText(raw);
+    const options = Array.from(select.options || []);
+
+    const match = options.find(option => {
+      return (
+        String(option.value || "") === raw ||
+        normalizeMasterText(option.textContent) === rawNorm ||
+        normalizeMasterText(option.dataset.name) === rawNorm
+      );
+    });
+
+    select.value = match ? match.value : "";
+  }
+
+  function setDraftValue(id, value) {
+    const el = document.getElementById(id);
+
+    if (!el) {
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    if (el.tagName === "SELECT") {
+      setDraftMasterSelectValue(el, value);
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    if (value === null || value === undefined) {
+      el.value = "";
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    el.value = String(value);
+  }
+
+  async function loadDraftMasters() {
+    try {
+      const res = await fetch("/api/expenses/masters");
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "マスタ読込失敗");
+      }
+
+      draftMasters = data.masters || data.items || data;
+      populateDraftMasterSelects();
+    } catch (error) {
+      draftMasters = {};
+      populateDraftMasterSelects();
+
+      const message =
+        "マスタ読込に失敗しました。\n" +
+        "区分系は固定値にせず、マスタ接続後に選択できるようにしています。\n" +
+        (error.message || String(error));
+
+      showResult(message);
+    }
+  }
+
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_API_20260707_START */
+  function masterRowName(row) {
+    if (!row) return "";
+
+    return String(
+      row.name ||
+      row.master_name ||
+      row.account_name ||
+      row.method_name ||
+      row.tax_name ||
+      row.vendor_name ||
+      row.target_person_name ||
+      row.purpose_name ||
+      row.project_name ||
+      row.department_name ||
+      row.invoice_type_name ||
+      row.evidence_type_name ||
+      row.document_type_name ||
+      row.payment_destination_name ||
+      row.accounting_category_name ||
+      row.payable_kind_name ||
+      row.payment_source_type_name ||
+      ""
+    ).trim();
+  }
+
+  function masterRowCode(row) {
+    if (!row) return "";
+
+    return String(
+      row.account_code ||
+      row.payment_method_code ||
+      row.tax_category_code ||
+      row.invoice_type_code ||
+      row.evidence_type_code ||
+      row.document_type_code ||
+      row.payment_destination_code ||
+      row.accounting_category_code ||
+      row.payable_kind_code ||
+      row.payment_source_type_code ||
+      ""
+    ).trim();
+  }
+
+  function masterRowValue(row) {
+    if (!row) return "";
+
+    const id =
+      row.id ??
+      row.account_title_id ??
+      row.payment_method_id ??
+      row.tax_category_id ??
+      row.vendor_id ??
+      row.target_person_id ??
+      row.purpose_id ??
+      row.project_id ??
+      row.department_id ??
+      row.invoice_type_id ??
+      row.evidence_type_id ??
+      row.document_type_id ??
+      row.payment_destination_id ??
+      row.accounting_category_id ??
+      row.payable_kind_id ??
+      row.payment_source_type_id ??
+      "";
+
+    return String(id || masterRowName(row) || "");
+  }
+
+  function masterRowLabel(row) {
+    const name = masterRowName(row);
+
+    if (!name) {
+      return "";
+    }
+
+    if (row.account_code) {
+      return String(row.account_code) + " " + name;
+    }
+
+    if (row.tax_rate !== undefined && row.tax_rate !== null && row.tax_rate !== "") {
+      return name + "（" + row.tax_rate + "%）";
+    }
+
+    return name;
+  }
+
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+
+    const previousValue = select.value;
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = label + "マスタ未接続または未登録";
+      option.disabled = false;
+      select.appendChild(option);
+
+      select.classList.add("master-missing");
+      select.disabled = false;
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+
+    for (const row of rows) {
+      const name = masterRowName(row);
+      const value = masterRowValue(row);
+      const labelText = masterRowLabel(row);
+      const code = masterRowCode(row);
+
+      if (!name || !value) {
+        continue;
+      }
+
+      const option = document.createElement("option");
+      option.value = value;
+      option.dataset.name = name;
+
+      if (code) {
+        option.dataset.code = code;
+      }
+
+      option.textContent = labelText;
+      select.appendChild(option);
+    }
+
+    if (previousValue) {
+      setDraftMasterSelectValue(select, previousValue);
+    }
+  }
+
+  function setDraftMasterSelectValue(select, value) {
+    const raw = String(value || "").trim();
+
+    if (!raw) {
+      select.value = "";
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const rawNorm = normalizeMasterText(raw);
+    const options = Array.from(select.options || []);
+
+    const match = options.find(option => {
+      return (
+        String(option.value || "") === raw ||
+        normalizeMasterText(option.textContent) === rawNorm ||
+        normalizeMasterText(option.dataset.name) === rawNorm ||
+        normalizeMasterText(option.dataset.code) === rawNorm
+      );
+    });
+
+    select.value = match ? match.value : "";
+  }
+
+  async function fetchDraftMasterRows(type) {
+    const res = await fetch("/api/masters?type=" + encodeURIComponent(type), {
+      cache: "no-store"
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      throw new Error(type + ": " + (data.error || "マスタ読込失敗"));
+    }
+
+    return data.rows || data.items || data.masters || [];
+  }
+
+  async function loadDraftMasters() {
+    const types = Array.from(new Set(
+      DRAFT_MASTER_FIELDS
+        .map(field => field.type)
+        .filter(Boolean)
+    ));
+
+    const nextMasters = {};
+    const errors = [];
+
+    for (const type of types) {
+      try {
+        nextMasters[type] = await fetchDraftMasterRows(type);
+      } catch (error) {
+        nextMasters[type] = [];
+        errors.push(error.message || String(error));
+      }
+    }
+
+    draftMasters = nextMasters;
+    populateDraftMasterSelects();
+
+    if (errors.length) {
+      showResult(
+        "一部のマスタを読み込めませんでした。\n" +
+        "固定optionにはせず、マスタ接続後に選択できる形を維持しています。\n\n" +
+        errors.join("\n")
+      );
+    }
+  }
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_API_20260707_END */
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_EMPTY_STATUS_20260707_START */
+  let draftMasterLoadStatus = {};
+
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+    const previousValue = select.value;
+
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+    select.classList.remove("master-empty");
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+
+      if (draftMasterLoadStatus[type] === false) {
+        option.textContent = label + "マスタ接続エラー";
+        select.classList.add("master-missing");
+      } else {
+        option.textContent = label + "マスタ未登録（接続済み）";
+        select.classList.add("master-empty");
+      }
+
+      option.disabled = false;
+      select.appendChild(option);
+      select.value = "";
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    for (const row of rows) {
+      const name = masterRowName(row);
+      const value = masterRowValue(row);
+      const labelText = masterRowLabel(row);
+      const code = masterRowCode(row);
+
+      if (!name || !value) {
+        continue;
+      }
+
+      const option = document.createElement("option");
+      option.value = value;
+      option.dataset.name = name;
+
+      if (code) {
+        option.dataset.code = code;
+      }
+
+      option.textContent = labelText;
+      select.appendChild(option);
+    }
+
+    if (previousValue) {
+      setDraftMasterSelectValue(select, previousValue);
+    }
+  }
+
+  async function loadDraftMasters() {
+    const types = Array.from(new Set(
+      DRAFT_MASTER_FIELDS
+        .map(field => field.type)
+        .filter(Boolean)
+    ));
+
+    const nextMasters = {};
+    const nextStatus = {};
+    const errors = [];
+
+    for (const type of types) {
+      try {
+        nextMasters[type] = await fetchDraftMasterRows(type);
+        nextStatus[type] = true;
+      } catch (error) {
+        nextMasters[type] = [];
+        nextStatus[type] = false;
+        errors.push(type + ": " + (error.message || String(error)));
+      }
+    }
+
+    draftMasters = nextMasters;
+    draftMasterLoadStatus = nextStatus;
+
+    populateDraftMasterSelects();
+
+    if (errors.length) {
+      showResult(
+        "一部のマスタを読み込めませんでした。\n" +
+        "接続できたが未登録のマスタは、未接続ではなく未登録として表示します。\n\n" +
+        errors.join("\n")
+      );
+    }
+  }
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_EMPTY_STATUS_20260707_END */
+  async function initPaymentDocumentReview() {
+    await loadDraftMasters();
+    await loadItems();
+  }
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_END */
+  initPaymentDocumentReview();
+</script>
+<script src="../hd-origin-exit-guard.js"></script>
+</body>
+</html>

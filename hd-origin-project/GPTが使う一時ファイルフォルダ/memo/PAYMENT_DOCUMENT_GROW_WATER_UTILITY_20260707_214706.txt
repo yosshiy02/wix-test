@@ -1,0 +1,41 @@
+﻿==============================
+支払書類仕分けシステム 水道料金通知書 育成結果
+==============================
+日時: 2026-07-07 21:47:06
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回育てた内容]
+- 水道料金通知書を公共料金通知書へ寄せる
+- 書類区分を空欄にしない
+- 処理先は経費管理へ寄せる
+- 会計区分は公共料金へ寄せる
+- 税金・公的支払ではないものとして扱う
+- 契約・保険・リースは候補へ寄せる
+- 電気/ガス/水道/通信の公共料金理由文を分岐
+- fields は空のまま。詳細抽出はしない
+
+[期待結果]
+- 書類区分: 公共料金通知書
+- 処理先: 経費管理
+- 支払対象: 支払対象候補
+- 未払登録対象: 対象外
+- 経費登録対象: 候補
+- 税金・公的支払: 対象外
+- 契約・保険・リース: 候補
+- 会計区分: 公共料金
+- AI理由: 水道料金通知書であり、水道局・対象期間・支払期限・請求合計の記載があるため。税金ではなく公共料金として扱う。
+
+[作成/変更]
+routes before : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_grow_water_utility_20260707_214706.js
+routes after  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_grow_water_utility_20260707_214706.js
+system prompt : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+rules prompt  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+undo          : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_grow_water_utility_20260707_214706.ps1
+
+[確認]
+OK: prompt外部ファイル更新
+OK: routes node --check 成功
+OK: 水道料金通知書ルールあり
+OK: 公共料金通知書へ寄せるルールあり

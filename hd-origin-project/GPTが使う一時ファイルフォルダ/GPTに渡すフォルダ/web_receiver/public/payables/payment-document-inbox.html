@@ -31,6 +31,7 @@
         <button class="light" onclick="selectAllItems()">全選択</button>
         <button class="light" onclick="clearSelection()">全解除</button>
         <button onclick="runSelectedOcr()">まとめてOCR</button>
+        <button class="secondary" onclick="saveSelectedOcr()">チェック分保存</button>
       </div>
 
       <div id="selectedSummary" class="selected-summary">選択: 0件</div>
@@ -112,6 +113,7 @@
   }
 
   function ocrLabel(item) {
+    if (item.saveStatus === "saved" || item.savedStatus === "saved" || item.evidenceSaved || item.ocrSaved) return "保存済";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "OCR済";
     if (item.ocrStatus === "ocr_error") return "OCR失敗";
     if (item.ocrStatus === "ocr_skipped") return "対象外";
@@ -120,6 +122,7 @@
   }
 
   function ocrClass(item) {
+    if (item.saveStatus === "saved" || item.savedStatus === "saved" || item.evidenceSaved || item.ocrSaved) return "ocr-badge saved";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "ocr-badge done";
     if (item.ocrStatus === "ocr_error") return "ocr-badge error";
     if (item.ocrStatus === "ocr_skipped") return "ocr-badge skipped";
@@ -139,6 +142,156 @@
     el.textContent = text || "";
     el.classList.toggle("has-message", !!text);
   }
+
+  let hdOriginUploadLogWindow = null;
+  let hdOriginUploadLogBody = null;
+
+  function hdOriginUploadLogTime() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" +
+      String(d.getMinutes()).padStart(2, "0") + ":" +
+      String(d.getSeconds()).padStart(2, "0");
+  }
+
+  function ensureUploadLogWindow() {
+    if (hdOriginUploadLogWindow && hdOriginUploadLogBody) {
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.id = "uploadLogWindow";
+    box.style.cssText = [
+      "position:fixed",
+      "right:0.8rem",
+      "bottom:0.8rem",
+      "width:min(42rem, calc(100vw - 1.6rem))",
+      "height:min(24rem, calc(100vh - 1.6rem))",
+      "background:#ffffff",
+      "border:2px solid #111827",
+      "border-radius:0.65rem",
+      "box-shadow:0 12px 35px rgba(0,0,0,0.35)",
+      "z-index:99999",
+      "display:none",
+      "grid-template-rows:auto minmax(0, 1fr)",
+      "overflow:hidden",
+      "font-family:inherit"
+    ].join(";");
+
+    const header = document.createElement("div");
+    header.style.cssText = [
+      "display:flex",
+      "align-items:center",
+      "justify-content:space-between",
+      "gap:0.5rem",
+      "background:#111827",
+      "color:#ffffff",
+      "padding:0.45rem 0.55rem",
+      "font-weight:800",
+      "font-size:0.82rem"
+    ].join(";");
+
+    const title = document.createElement("div");
+    title.id = "uploadLogTitle";
+    title.textContent = "取込ログ";
+
+    const buttons = document.createElement("div");
+    buttons.style.cssText = "display:flex;gap:0.35rem;align-items:center;";
+
+    const clearButton = document.createElement("button");
+    clearButton.type = "button";
+    clearButton.textContent = "クリア";
+    clearButton.style.cssText = "font-size:0.72rem;padding:0.25rem 0.45rem;background:#374151;color:#fff;border:1px solid #6b7280;border-radius:0.35rem;";
+    clearButton.onclick = function () {
+      if (hdOriginUploadLogBody) {
+        hdOriginUploadLogBody.innerHTML = "";
+      }
+    };
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.textContent = "閉じる";
+    closeButton.style.cssText = "font-size:0.72rem;padding:0.25rem 0.45rem;background:#ffffff;color:#111827;border:1px solid #d1d5db;border-radius:0.35rem;";
+    closeButton.onclick = function () {
+      box.style.display = "none";
+    };
+
+    buttons.appendChild(clearButton);
+    buttons.appendChild(closeButton);
+
+    header.appendChild(title);
+    header.appendChild(buttons);
+
+    const body = document.createElement("div");
+    body.id = "uploadLogBody";
+    body.style.cssText = [
+      "overflow:auto",
+      "padding:0.55rem",
+      "background:#f9fafb",
+      "font-size:0.78rem",
+      "line-height:1.45",
+      "white-space:pre-wrap"
+    ].join(";");
+
+    box.appendChild(header);
+    box.appendChild(body);
+    document.body.appendChild(box);
+
+    hdOriginUploadLogWindow = box;
+    hdOriginUploadLogBody = body;
+  }
+
+  function openUploadLog(title) {
+    ensureUploadLogWindow();
+
+    const titleEl = document.getElementById("uploadLogTitle");
+    if (titleEl) {
+      titleEl.textContent = title || "取込ログ";
+    }
+
+    hdOriginUploadLogBody.innerHTML = "";
+    hdOriginUploadLogWindow.style.display = "grid";
+  }
+
+  function appendUploadLog(message, kind) {
+    ensureUploadLogWindow();
+
+    if (hdOriginUploadLogWindow.style.display === "none") {
+      hdOriginUploadLogWindow.style.display = "grid";
+    }
+
+    const line = document.createElement("div");
+    const type = String(kind || "");
+
+    line.textContent = "[" + hdOriginUploadLogTime() + "] " + String(message || "");
+    line.style.cssText = [
+      "padding:0.18rem 0.25rem",
+      "border-bottom:1px solid #e5e7eb",
+      "color:#111827"
+    ].join(";");
+
+    if (type === "ok") {
+      line.style.background = "#ecfdf5";
+      line.style.color = "#065f46";
+      line.style.fontWeight = "700";
+    } else if (type === "dup") {
+      line.style.background = "#fffbeb";
+      line.style.color = "#92400e";
+      line.style.fontWeight = "800";
+    } else if (type === "error") {
+      line.style.background = "#fef2f2";
+      line.style.color = "#991b1b";
+      line.style.fontWeight = "800";
+    } else if (type === "summary") {
+      line.style.background = "#eff6ff";
+      line.style.color = "#1e3a8a";
+      line.style.fontWeight = "900";
+      line.style.marginTop = "0.25rem";
+    }
+
+    hdOriginUploadLogBody.appendChild(line);
+    hdOriginUploadLogBody.scrollTop = hdOriginUploadLogBody.scrollHeight;
+  }
+
 
   function selectedItem() {
     return selectedIndex >= 0 ? items[selectedIndex] : null;
@@ -203,13 +356,19 @@
     }
 
     let successCount = 0;
+    let duplicateCount = 0;
     let errorCount = 0;
+    const duplicates = [];
     const errors = [];
 
     showResult("INBOXへ追加中です。\n対象: " + files.length + "件");
+    openUploadLog("支払書類 取込ログ");
+    appendUploadLog("取込開始: 対象 " + files.length + "件", "summary");
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+
+      appendUploadLog("[" + (i + 1) + "/" + files.length + "] 読込開始: " + file.name + " (" + kb(file.size) + ")", "");
 
       try {
         showResult(
@@ -241,21 +400,54 @@
           throw new Error(data.error || "追加失敗");
         }
 
+        if (data.duplicate || data.skipped) {
+          const existing = data.duplicateItem || data.item || {};
+          const duplicateText = file.name + " → 既にあり: " + (existing.originalFileName || existing.fileName || "既存ファイル");
+          duplicateCount++;
+          duplicates.push(duplicateText);
+          appendUploadLog("重複スキップ: " + duplicateText, "dup");
+          continue;
+        }
+
         successCount++;
+        const added = data.item || {};
+        appendUploadLog("追加成功: " + file.name + " → " + (added.fileName || added.originalFileName || "INBOX"), "ok");
       } catch (error) {
+        const errorText = file.name + ": " + (error.message || String(error));
         errorCount++;
-        errors.push(file.name + ": " + (error.message || String(error)));
+        errors.push(errorText);
+        appendUploadLog("エラー: " + errorText, "error");
       }
     }
 
     input.value = "";
     await loadInbox();
 
+    appendUploadLog(
+      "取込完了: 追加成功 " + successCount + "件 / 重複スキップ " + duplicateCount + "件 / エラー " + errorCount + "件",
+      "summary"
+    );
+
+    const details = [];
+
+    if (duplicates.length) {
+      details.push("[重複スキップ]");
+      details.push(duplicates.join("\n"));
+    }
+
+    if (errors.length) {
+      if (details.length) details.push("");
+      details.push("[エラー]");
+      details.push(errors.join("\n"));
+    }
+
     showResult(
       "INBOX追加完了\n" +
+      "対象: " + files.length + "件\n" +
       "追加成功: " + successCount + "件\n" +
-      "エラー: " + errorCount + "件\n\n" +
-      (errors.length ? errors.join("\n") : "")
+      "重複スキップ: " + duplicateCount + "件\n" +
+      "エラー: " + errorCount + "件" +
+      (details.length ? "\n\n" + details.join("\n") : "")
     );
   }
 
@@ -424,6 +616,89 @@
     }
   }
 
+  function appendSaveLog(message, kind) {
+    if (typeof appendUploadLog === "function") {
+      appendUploadLog(message, kind || "");
+      return;
+    }
+
+    showResult(message);
+  }
+
+  async function saveSelectedOcr() {
+    const fileNames = Array.from(selectedFileNames);
+
+    if (!fileNames.length) {
+      showResult("保存対象にチェックを入れてください。");
+      return;
+    }
+
+    const ok = confirm(
+      "選択した " + fileNames.length + "件を保存しますか？\n\n" +
+      "OCR済みのものだけ、証憑ファイル + OCR本文として保存済みにします。\n" +
+      "OCR未実行のものはエラー扱いになります。"
+    );
+
+    if (!ok) {
+      showResult("");
+      return;
+    }
+
+    if (typeof openUploadLog === "function") {
+      openUploadLog("支払書類 保存ログ");
+    }
+
+    appendSaveLog("保存開始: 対象 " + fileNames.length + "件", "summary");
+
+    try {
+      const res = await fetch("/api/payment-documents/scan-inbox/save-selected", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ fileNames })
+      });
+
+      const data = await res.json();
+      const results = Array.isArray(data.results) ? data.results : [];
+
+      let successCount = Number(data.successCount || 0);
+      let failedCount = Number(data.failedCount || 0);
+
+      for (const result of results) {
+        if (result.ok) {
+          appendSaveLog(
+            "保存済: " + (result.originalFileName || result.fileName) +
+            " / OCR文字数 " + (result.textLength || 0),
+            "ok"
+          );
+          selectedFileNames.delete(result.fileName);
+        } else {
+          appendSaveLog(
+            "保存不可: " + (result.originalFileName || result.fileName || "") +
+            " / " + (result.error || "原因不明"),
+            "error"
+          );
+        }
+      }
+
+      appendSaveLog(
+        "保存完了: 保存 " + successCount + "件 / 失敗 " + failedCount + "件",
+        failedCount ? "error" : "summary"
+      );
+
+      await loadInbox();
+      updateSelectedSummary();
+
+      showResult(
+        "チェック分保存完了\n" +
+        "対象: " + fileNames.length + "件\n" +
+        "保存: " + successCount + "件\n" +
+        "失敗: " + failedCount + "件"
+      );
+    } catch (error) {
+      appendSaveLog("保存エラー: " + (error.message || String(error)), "error");
+      showResult("チェック分保存でエラー:\n" + (error.message || String(error)));
+    }
+  }
   async function deleteItem(event, index) {
     event.stopPropagation();
 

@@ -1,0 +1,34 @@
+﻿==============================
+マスタ管理画面 サーバー再起動ボタン・完了ログ追加 結果
+==============================
+日時: 2026-07-07 12:42:45
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- master-management.html に サーバー再起動 ボタンを追加
+- /api/system/restart-with-backup を呼ぶ
+- 再起動要求ログを result 欄へ出す
+- 再起動前バックアップ結果を result 欄へ出す
+- サーバー再接続を /api/masters/types で確認する
+- 再接続できたら 再起動完了 のログを result 欄へ出す
+- 再起動完了後にマスタ一覧を再読込する
+- server.js、DB、マスタAPI、保存処理は触っていない
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\masters\master-management_before_restart_button_log_20260707_124245.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\masters\master-management_after_restart_button_log_20260707_124245.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_master_management_restart_button_log_20260707_124245.txt
+
+[確認]
+- 画面を再読込する
+- ヘッダーに サーバー再起動 ボタンが出ること
+- 押すと result 欄に 再起動要求 のログが出ること
+- バックアップ名が出ること
+- サーバー復帰後に 再起動完了。マスタAPIへ再接続できました。 と出ること
+- その後 マスタ一覧を再読込しました。 と出ること

@@ -1,0 +1,35 @@
+==============================
+支払書類内容確認 表示ボタン OCR本文追加 反映結果
+==============================
+日時: 2026-07-07 19:38:51
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\public\payables\payment-document-review.html
+OK: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[修正内容]
+- 表示ボタンのpayloadへOCR本文を追加
+- memo末尾に [OCR本文] を追加
+- OCR本文がない場合は [OCR本文なし] と出す
+- 注意文を OCR本文も含める内容へ変更
+
+[構文チェック]
+OK: paymentDocuments.routes.js 構文チェック成功
+
+[確認方法]
+1. サーバー再起動
+2. 支払書類内容確認ページで Ctrl + F5
+3. OCR済み書類を選択
+4. 表示ボタン
+5. memo末尾に [OCR本文] が出ることを確認
+
+[注意]
+- DB / 画像 / 証憑 / .env / backup は触っていない
+- routes変更ありのためサーバー再起動が必要
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_memo_ocr_text_20260707_193850.ps1"

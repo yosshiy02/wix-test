@@ -1,0 +1,51 @@
+支払書類仕分け 追加ルール
+
+このファイルは1回目仕分け専用です。
+詳細項目抽出は行わないこと。
+
+基本方針：
+1. 買掛と未払を混ぜない。
+2. 買掛は、商品仕入・材料仕入・資材仕入・外注加工など、営業仕入債務に限定する。
+3. 保険料、税金、公共料金、通信費、カード利用、リース料、契約料などは原則として買掛にしない。
+4. 支払済み領収書・レシートは、買掛や未払ではなく、支払済み証憑・経費系に寄せる。
+5. 納品書、注文書、発注書、見積書、検収書は原則として照合用。支払登録へ直行させない。
+6. カード会社の利用明細・請求明細はカード未払へ寄せる。
+7. 納付書、税務署、市税、府税、法人税、消費税、源泉所得税、固定資産税、社会保険料などは税金・公的支払へ寄せる。
+8. 保険、リース、契約、公共料金、通信費などは契約・保険・リース系の専門解析へ寄せる。
+9. 判断材料が足りない場合、needs_review=true にする。
+10. AIは会計確定をしない。人間確認前の候補だけを作る。
+
+判定例：
+- 「請求書」かつ材料・資材・仕入・外注・加工が強い
+  → document_type_code=invoice
+  → payment_destination_code=accounts_payable
+  → specialist_route_code=invoice_payable
+
+- 「請求書」だが保険、通信費、公共料金、リース、契約料など
+  → payment_destination_code=unpaid
+  → specialist_route_code=contract_insurance_lease
+
+- 「領収書」「領収済」「支払済」
+  → document_type_code=receipt
+  → payment_destination_code=expense
+  → specialist_route_code=paid_evidence
+
+- 「納付書」「税目」「納付先」「税務署」「市税事務所」「合計納付額」
+  → document_type_code=tax_payment
+  → payment_destination_code=tax_public
+  → specialist_route_code=tax_public
+
+- 「カード明細」「クレジットカード」「ご利用明細」
+  → document_type_code=card_statement
+  → payment_destination_code=card_payable
+  → specialist_route_code=card_statement
+
+- 「納品書」「注文書」「発注書」「見積書」「検収書」
+  → payment_destination_code=evidence_only
+  → specialist_route_code=reference_check
+
+出力注意：
+- fields には詳細項目を入れない。
+- vendor_name、amount、date、invoice_number などは返さない。
+- review_reason は短く具体的にする。
+- confidence が low の場合は needs_review=true にする。

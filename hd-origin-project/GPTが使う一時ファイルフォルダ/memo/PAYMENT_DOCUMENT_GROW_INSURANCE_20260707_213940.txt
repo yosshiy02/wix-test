@@ -1,0 +1,42 @@
+﻿==============================
+支払書類仕分けシステム 保険料通知書 育成結果
+==============================
+日時: 2026-07-07 21:39:40
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回育てた内容]
+- 保険料通知書を契約・保険・リースへ寄せる
+- 会計区分を保険へ寄せる
+- 未払種別を未払金へ寄せる
+- 未払登録対象を対象外ではなく候補へ寄せる
+- 買掛ではなく未払金候補として扱う
+- 税金・公的支払ではないものとして扱う
+- 社会保険料や労働保険料などは別判定できるよう除外語を追加
+- fields は空のまま。詳細抽出はしない
+
+[期待結果]
+- 書類区分: 保険料通知書
+- 処理先: 契約・保険・リース
+- 支払対象: 支払対象候補
+- 未払登録対象: 候補
+- 経費登録対象: 対象外
+- 税金・公的支払: 対象外
+- 契約・保険・リース: 候補
+- 会計区分: 保険
+- 未払種別: 未払金
+- AI理由: 保険料通知書であり、契約番号・支払日・保険料・口座振替の記載があるため。買掛ではなく契約・保険系の未払金候補として扱う。
+
+[作成/変更]
+routes before : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_grow_insurance_20260707_213940.js
+routes after  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_grow_insurance_20260707_213940.js
+system prompt : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+rules prompt  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+undo          : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_grow_insurance_20260707_213940.ps1
+
+[確認]
+OK: prompt外部ファイル更新
+OK: routes node --check 成功
+OK: 保険料通知書ルールあり
+OK: 未払金候補ルールあり

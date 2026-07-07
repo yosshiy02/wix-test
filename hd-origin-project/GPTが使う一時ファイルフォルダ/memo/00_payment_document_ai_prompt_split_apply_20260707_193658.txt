@@ -1,0 +1,57 @@
+==============================
+支払書類AI 書類別プロンプト分割 反映結果
+==============================
+日時: 2026-07-07 19:36:58
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+OK: web_receiver\src\paymentDocuments\paymentDocuments.aiPromptLoader.js
+OK: web_receiver\src\paymentDocuments\prompts\classification.system.txt
+OK: web_receiver\src\paymentDocuments\prompts\detail.system.txt
+OK: web_receiver\src\paymentDocuments\prompts\common-rules.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-invoice.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-insurance.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-tax.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-mail-saved.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-card.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-utility.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-lease.txt
+OK: web_receiver\src\paymentDocuments\prompts\rules-receipt.txt
+
+[修正内容]
+- business-rules.txt 全部読み込み方式ではなく、書類別txt選択方式へ変更
+- AI解析ごとに common-rules.txt + 該当 rules-*.txt だけ読み込む
+- 最大 common + 2ファイルまでに制限
+- 請求書・材料仕入ルールを rules-invoice.txt に分離
+- 保険ルールを rules-insurance.txt に分離
+- 税金ルールは rules-tax.txt に分離し、請求書への誤爆を抑制
+- txt変更だけなら次回AI解析から反映
+
+[構文チェック]
+OK: paymentDocuments.aiPromptLoader.js 構文チェック成功
+OK: paymentDocuments.routes.js 構文チェック成功
+
+[今後の育て方]
+共通ルール:
+web_receiver\src\paymentDocuments\prompts\common-rules.txt
+
+請求書・材料仕入:
+web_receiver\src\paymentDocuments\prompts\rules-invoice.txt
+
+保険:
+web_receiver\src\paymentDocuments\prompts\rules-insurance.txt
+
+税金・納付書:
+web_receiver\src\paymentDocuments\prompts\rules-tax.txt
+
+[注意]
+- DB / 画像 / 証憑 / .env / backup は触っていない
+- routes変更ありのためサーバー再起動が必要
+- サーバー再起動後、材料仕入請求書を再AI解析して確認
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ai_prompt_split_20260707_193658.ps1"

@@ -1,0 +1,71 @@
+﻿==============================
+支払書類 読取内容確認ページ 区分系マスタ選択化 結果
+==============================
+日時: 2026-07-07 12:25:21
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- 区分系inputを select data-master-type へ変換
+- /api/expenses/masters からマスタ候補を読み込むJSを追加
+- 固定optionは作らない
+- マスタ未定義・未登録の区分は、マスタ未接続としてdisabled表示
+- DB保存、AI解析API、本登録処理は触っていない
+
+[マスタ選択へ寄せた項目]
+- draftAiDocumentKind => document_types
+- draftDocumentType => document_types
+- draftAiDestination => payment_destinations
+- draftDestination => payment_destinations
+- draftAccountingCategory => accounting_categories
+- draftPayableKind => payable_kinds
+- draftEvidenceType => evidence_types
+- draftVendorMasterCandidate => vendors
+- draftPaymentMethod => payment_methods
+- draftPaymentMethodMaster => payment_methods
+- draftAccountTitle => account_titles
+- draftTaxCategory => tax_categories
+- draftInvoiceType => invoice_types
+- draftTargetPerson => target_people
+- draftPurpose => purposes
+- draftProject => projects
+- draftDepartment => departments
+
+[今回のHTMLで見つからなかった項目]
+- なし
+
+[既存マスタあり]
+- evidence_types: 証憑区分
+- vendors: 支払先
+- payment_methods: 支払方法
+- account_titles: 勘定科目
+- tax_categories: 税区分
+- invoice_types: インボイス区分
+- target_people: 対象者
+- purposes: 目的
+- projects: 案件
+- departments: 部門
+
+[マスタ追加が必要]
+- document_types: 書類区分
+- payment_destinations: 処理先
+- accounting_categories: 会計区分
+- payable_kinds: 未払種別
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_master_selects_20260707_122521.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_master_selects_20260707_122521.css
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_master_selects_20260707_122521.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_master_selects_20260707_122521.css
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_master_selects_20260707_122521.txt
+
+[確認]
+- 画面を再読込する
+- 証憑区分、支払先、支払方法、勘定科目、税区分、インボイス区分、対象者、目的、案件、部門がマスタ選択になること
+- 書類区分、処理先、会計区分、未払種別は固定値ではなく、マスタ未接続として表示されること
+- OCR本文と書類一覧が従来通り動くこと

@@ -1,0 +1,37 @@
+﻿==============================
+支払書類仕分けシステム メール保存通信費 育成結果
+==============================
+日時: 2026-07-07 21:23:41
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回育てた内容]
+- 支払方法:クレジットカード だけではカード明細にしない
+- メール保存証憑 + 通信費のお知らせ はメール保存証憑として扱う
+- 処理先はカード未払ではなく経費へ寄せる
+- 専門先は契約・通信費系確認へ寄せる
+- カード明細判定はカード利用明細/カード会社明細/利用店名などがある場合に限定
+- AI判定理由を補完
+- fields は空のまま。詳細抽出はしない
+
+[期待結果]
+- 書類区分: メール保存証憑
+- 処理先: 経費
+- 未払登録対象: 対象外
+- 経費登録対象: 候補
+- 税金・公的支払: 対象外
+- 契約・保険・リース: 候補
+- AI理由: メール保存証憑であり、通信費のお知らせ・ご請求額・支払方法の記載があるため。支払方法がクレジットカードでもカード明細そのものではない。
+
+[作成/変更]
+routes before : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_grow_mail_comm_20260707_212341.js
+routes after  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_grow_mail_comm_20260707_212341.js
+system prompt : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+rules prompt  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+undo          : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_grow_mail_comm_20260707_212341.ps1
+
+[確認]
+OK: prompt外部ファイル更新
+OK: routes node --check 成功
+OK: メール保存通信費ルールあり

@@ -1,0 +1,46 @@
+﻿==============================
+支払書類 OCR本文AI解析 画面項目拡張 結果
+==============================
+日時: 2026-07-07 16:54:58
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- AI解析JSONを画面の大量項目に合わせて拡張
+- OpenAIへ送るのはOCR本文のみ。画像は送らない
+- AI判定サマリー用 ai_summary を追加
+- 基本情報/番号/日付/金額/支払情報/会計管理/書類別追加情報/要確認などを fields に返させる
+- 画面側はラベル名を探して、該当するinput/select/textareaへ反映
+- 既存のマスタselectはコードで候補選択
+- DB構造、画像、OCR本文、保存処理は触っていない
+- route JS / HTML内JS は node --check 済み
+
+[重要]
+- これは会計確定ではなくAI下書き候補
+- 分からない項目は空欄
+- 最終確認は原本画像を見て人間が行う
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_openai_wide_draft_20260707_165458.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_openai_wide_draft_20260707_165458.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_openai_wide_draft_20260707_165458.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_openai_wide_draft_20260707_165458.html
+
+[本体反映]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_openai_wide_draft_20260707_165458.txt
+
+[確認]
+- サーバーを再起動する
+- ブラウザで Ctrl+F5
+- 左リストからOCRを1件選ぶ
+- AI候補作成を押す
+- image_used:false が出ること
+- AI判定サマリーだけでなく、基本情報、番号、日付、金額などにも候補が入ること
+- 空欄が残る場合は、OCR本文に根拠がない項目として扱う

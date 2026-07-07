@@ -1,0 +1,39 @@
+==============================
+支払書類内容確認 AI精度改善 before/after作成結果
+==============================
+日時: 2026-07-07 18:45:38
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[対象]
+web_receiver\public\payables\payment-document-review.html
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[作成]
+before HTML : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_ai_accuracy_20260707_184538.html
+before routes: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_ai_accuracy_20260707_184538.js
+after HTML  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_ai_accuracy_20260707_184538.html
+after routes : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_ai_accuracy_20260707_184538.js
+apply       : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_ai_accuracy_20260707_184538.ps1
+undo        : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ai_accuracy_20260707_184538.ps1
+
+[修正内容]
+- AI反映先IDのズレを画面実IDへ修正
+- 支払書類別の業務判断ルールをAIプロンプトへ追加
+- temperature を 0 に変更
+
+[確認]
+ID置換件数: 0
+after内 put() で見つからないID数: 0
+OK: routes after JS構文チェック成功
+
+[本体反映する場合]
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_ai_accuracy_20260707_184538.ps1"
+
+[戻す場合]
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ai_accuracy_20260707_184538.ps1"
+
+[注意]
+- この準備スクリプトでは本体ファイルは変更していません。
+- .env / DB / 画像 / 証憑 / backup は触っていません。

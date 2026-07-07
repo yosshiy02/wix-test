@@ -1,0 +1,44 @@
+==============================
+支払書類AI 請求書表示前クリーンアップ 反映結果
+==============================
+日時: 2026-07-07 20:01:59
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[修正内容]
+- 請求書用の表示前クリーンアップ関数を追加
+- 登録番号を表示対象へ追加
+- 税抜金額を表示対象へ追加
+- 税金系/契約系/メール系など請求書に不要な表示項目を除外
+- 空欄だけの個人名/住所/電話番号などを表示対象から除外
+- ダミー証憑の要確認メモを1本化
+- top-level visible_field_labels は draft.visible_field_labels を優先
+
+[構文チェック]
+OK: paymentDocuments.routes.js 構文チェック成功
+
+[確認方法]
+1. サーバー再起動
+2. 支払書類内容確認ページで Ctrl + F5
+3. ダミー証憑_請求書_材料仕入.png を選択
+4. AI候補作成
+5. 表示ボタン
+
+[期待値]
+- 登録番号: T1234567890123 が出る
+- 税抜金額: 100000 が出る
+- 個人名/住所/電話番号など不要な空欄項目が消える
+- 要確認メモが1行に整理される
+- 税金系/契約系の書類別追加項目は出ない
+
+[注意]
+- DB / 画像 / 証憑 / .env / backup は触っていない
+- routes変更ありのためサーバー再起動が必要
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_invoice_display_cleanup_20260707_200158.ps1"

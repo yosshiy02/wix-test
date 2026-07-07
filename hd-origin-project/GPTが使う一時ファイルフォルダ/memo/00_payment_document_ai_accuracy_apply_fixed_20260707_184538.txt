@@ -1,0 +1,23 @@
+==============================
+支払書類内容確認 AI精度改善 反映結果
+==============================
+日時: 2026-07-07 18:46:57
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\public\payables\payment-document-review.html
+OK: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[内容]
+- AI反映先IDを画面実IDへ合わせた
+- 支払書類AIプロンプトへ業務判断ルールを追加
+- OpenAI呼び出し temperature を 0 に変更
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ai_accuracy_20260707_184538.ps1"
+
+[注意]
+- .env / DB / 画像 / 証憑 / backup は触っていない

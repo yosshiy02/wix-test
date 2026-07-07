@@ -1,0 +1,38 @@
+﻿==============================
+支払書類 AI候補 画面反映ID直指定 修正 結果
+==============================
+日時: 2026-07-07 17:00:13
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[判断]
+- API直接確認ではAI判定は成功していた
+- image_used:false で画像は送信されていない
+- draft.fields に値が入っているため、問題は画面反映側
+
+[今回の修正]
+- ラベル名あいまい反映だけに頼らず、主要項目をID直指定で反映
+- label.textContent がselect option等を含んで一致しない問題に対応
+- applyAiDraftToForm を後勝ちで上書き
+- AI候補作成結果に反映件数を表示
+- DB、画像、OCR本文、OpenAI APIルート、保存処理は触っていない
+- inline JS は node --check 済み
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_ai_apply_id_20260707_170013.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_ai_apply_id_20260707_170013.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_ai_apply_id_20260707_170013.txt
+
+[確認]
+- ブラウザで Ctrl+F5
+- 左リストからOCRを選択
+- AI候補作成を押す
+- 結果に image_used:false が出ること
+- 結果に 反映件数: n件 が出ること
+- 書類区分、処理先、未払種別、発行元、摘要、社内メモ、要確認メモなどに値が入ること
+- 反映件数が0件なら、画面側ID名が想定と違うため現物ID一覧を出して次に修正

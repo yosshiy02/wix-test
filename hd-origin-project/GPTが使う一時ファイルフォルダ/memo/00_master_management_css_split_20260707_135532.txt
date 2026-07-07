@@ -1,0 +1,37 @@
+﻿==============================
+マスタ管理画面 CSS分離 結果
+==============================
+日時: 2026-07-07 13:55:32
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- master-management.html 内の <style>...</style> を外へ分離
+- web_receiver\\public\\masters\\master-management.css を作成
+- master-management.html に <link rel="stylesheet" href="./master-management.css"> を追加
+- JS はまだ分離していない
+- DB、API、マスタ定義、保存処理は触っていない
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\masters\master-management_before_css_split_20260707_135532.html
+(新規作成のため修正前なし)
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\masters\master-management_after_css_split_20260707_135532.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\masters\master-management_after_css_split_20260707_135532.css
+
+[本体反映]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\masters\master-management.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\masters\master-management.css
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_master_management_css_split_20260707_135532.txt
+
+[確認]
+- マスタ管理画面を再読込する
+- 見た目が今まで通りであること
+- HTMLを確認すると <style> が消えていること
+- HTMLに ./master-management.css のlinkがあること
+- master-management.css が作成されていること
+- マスタ選択、追加、更新、使用停止、並び替えが今まで通り動くこと

@@ -1,0 +1,33 @@
+﻿==============================
+支払書類 読取内容確認ページ 証憑管理情報ブロック整理 結果
+==============================
+日時: 2026-07-07 12:17:14
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- 右側フォーム下部の大きい OCR・証憑管理情報 ブロックを削除
+- 読取内容確認ページの主役を、OCR本文と抜き出し項目に戻した
+- 代わりに、選択中の書類を見失わないための小さい表示を追加
+- 小さい表示の内容: ファイル名 / OCR状態 / 保存状態 / 重複
+- SHA-256、ファイルサイズ、ファイル種別などの内部管理項目は画面主役から外した
+- DB保存、AI解析API、本登録処理は触っていない
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_remove_evidence_manage_20260707_121714.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_remove_evidence_manage_20260707_121714.css
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_remove_evidence_manage_20260707_121714.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_remove_evidence_manage_20260707_121714.css
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_remove_evidence_manage_20260707_121714.txt
+
+[確認]
+- 画面を再読込する
+- 右側下部の大きい OCR・証憑管理情報 が消えていること
+- 右側上部に 選択中の書類 の小さい表示があること
+- 左からOCR済み書類を選ぶと、ファイル名 / OCR状態 / 保存状態 / 重複 が表示されること
+- OCR本文と抜き出し項目は従来通り表示されること

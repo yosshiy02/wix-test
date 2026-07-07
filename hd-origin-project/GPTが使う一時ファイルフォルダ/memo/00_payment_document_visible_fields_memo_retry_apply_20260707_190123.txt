@@ -1,0 +1,40 @@
+==============================
+支払書類内容確認 表示項目memoボタン 反映結果
+==============================
+日時: 2026-07-07 19:01:23
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\public\payables\payment-document-review.html
+OK: web_receiver\public\payables\payment-document-review.css
+OK: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[修正内容]
+- 右側「確認・下書き」の横に小さい「表示」ボタンを追加
+- ボタン押下で右側の .draft-field を空欄込みで全取得
+- memoフォルダへ txt 保存し、Windowsではメモ帳で開く
+- urlPath定義の形が違っても挿入できるように修正
+
+[確認]
+HTMLボタン: OK
+HTML JS: OK
+CSS: OK
+routes API: OK
+OK: routes after JS構文チェック成功
+
+[操作]
+1. サーバー再起動
+2. 支払書類内容確認ページを開く
+3. AI候補作成
+4. 右側「確認・下書き」の横の「表示」ボタン
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_visible_fields_memo_retry_20260707_190123.ps1"
+
+[注意]
+- .env / DB / 画像 / 証憑 / backup は触っていない
+- 本体へ反映済み
+- routes変更ありのため、サーバー再起動が必要

@@ -1,0 +1,39 @@
+﻿==============================
+支払書類 AI連動確認 強制作動版 修正 結果
+==============================
+日時: 2026-07-07 17:09:51
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- applyAiDraftToForm ではなく applyAiDraftToFormHardDebug を直接呼ぶように修正
+- 古い反映関数に負けないようにした
+- 空欄/nullでも [AI空欄:項目名] を書き込む
+- date/number/month 欄は確認モード中だけ text に変えて、空欄印が見えるようにした
+- select欄は候補がない場合、一時optionを追加する
+- OpenAI API、OCR本文、画像、DB、保存処理は触っていない
+- inline JS は node --check 済み
+
+[注意]
+- これは本番モードではなく連動確認モード
+- [AI空欄:項目名] が入れば、その項目は連動成功
+- 何も入らない項目は、HTML側ID/ラベルが一致していない
+- 確認後、本番用に戻す必要あり
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_ai_hard_debug_20260707_170951.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_ai_hard_debug_20260707_170951.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_ai_hard_debug_20260707_170951.txt
+
+[確認]
+- ブラウザで Ctrl+F5
+- 左リストからOCRを選択
+- AI候補作成を押す
+- 反映件数が表示されること
+- 空欄項目にも [AI空欄:項目名] が入ること
+- 何も入らない欄が残る場合は、その項目だけID不一致

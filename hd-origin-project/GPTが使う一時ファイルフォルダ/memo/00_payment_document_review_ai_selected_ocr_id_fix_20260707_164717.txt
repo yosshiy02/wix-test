@@ -1,0 +1,30 @@
+﻿==============================
+支払書類 AI候補作成 selectedOcrImportId 直接取得 修正 結果
+==============================
+日時: 2026-07-07 16:47:17
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- selectedItem is not defined エラーを修正
+- selectedOcrImportId が selectedItem() を呼ばないように変更
+- items[selectedIndex] から選択中OCRを直接取得する
+- DB、画像、OCR本文、OpenAI APIルート、保存処理は触っていない
+- inline JS は node --check 済み
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_ai_selected_ocr_id_fix_20260707_164717.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_ai_selected_ocr_id_fix_20260707_164717.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_ai_selected_ocr_id_fix_20260707_164717.txt
+
+[確認]
+- ブラウザで Ctrl+F5
+- 左リストからOCRを1件選ぶ
+- AI候補作成を押す
+- selectedItem is not defined が消えること
+- 次に image_used:false または OPENAI_API_KEY 未設定など、API側の結果が表示されること

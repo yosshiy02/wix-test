@@ -1,0 +1,39 @@
+﻿==============================
+支払書類AI 2段階解析・必要項目だけ表示 修正
+==============================
+日時: 2026-07-07 17:55:21
+PROJECT_ROOT: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+HTML : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+CSS  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.css
+ROUTE: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[OK] paymentDocuments.routes.js に2段階AI関数を追加
+[OK] ai-draft APIを createTwoStepAiDraftFromOcrText に変更
+[OK] ai-draft APIレスポンスへ分類結果・表示対象項目・usageを追加
+[OK] 右側の説明文 draft-note を削除対象にしました
+[WARN] 右下ボタン行が見つかりません
+[OK] 初期AI解析のみ表示・必要項目表示 helper を追加
+[OK] AI解析中メッセージを2段階AI用に変更
+[OK] AI解析後に必要項目だけ表示する処理を追加
+[OK] clear後に初期AI解析のみ表示へ戻す処理を追加
+[WARN] loadItems(); の末尾呼び出しが見つかりません
+[OK] 初期AI解析だけ表示・必要項目表示・ボタン装飾CSSを追加
+
+[反映確認]
+OK: API側 2段階AI関数あり
+OK: APIレスポンスに表示対象項目あり
+OK: 画面側 初期AI解析のみ表示・必要項目表示あり
+OK: CSSあり
+
+[node --check]
+
+
+[画面確認]
+1. サーバー再起動
+2. 支払書類 読取内容確認ページを再読み込み
+3. 右側の最初の表示が AI解析 ボタンだけになっていること
+4. OCR済み書類を選択
+5. AI解析を押す
+6. 内部で 1回目AI分類 → 2回目AI詳細抽出 が走る
+7. 右側フォームに必要項目だけ表示されること
+8. 下書き保存 / 登録へ進む はAI解析後に出ること

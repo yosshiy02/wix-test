@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>支払書類 読取内容確認 - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-review.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類 読取内容確認</h1>
+      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+      <span class="muted">OCR済み書類の読取内容を確認する画面です。</span>
+    </header>
+
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <span>OCR済み書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+      <div id="summary" class="summary">読込中...</div>
+      <div id="list" class="list"></div>
+    </section>
+
+    <section class="panel ocr-panel">
+      <div class="panel-title">
+        <span>OCR本文</span>
+      </div>
+      <textarea id="ocrText" readonly placeholder="左からOCR済み書類を選択してください。"></textarea>
+    </section>
+
+    <section class="panel draft-panel">
+      <div class="panel-title">
+        <span>確認・下書き</span>
+      </div>
+
+            <div class="draft-note">
+        支払書類は種類が多いため、OCR本文から取れそうな項目を最大限拾う前提の確認欄です。
+        ここではまだ保存処理は行わず、AI候補・人間確認・下書き保存へ進めるための受け皿を作ります。
+      </div>
+
+      <div class="draft-form-scroll">
+        <section class="draft-section">
+          <div class="draft-section-title">AI判定サマリー</div>
+          <div class="form-grid">
+            <label>
+              書類種別
+              <input class="draft-field" id="draftAiDocumentKind" placeholder="例：請求書 / 納付書 / Web明細 / カード明細">
+            </label>
+            <label>
+              処理先
+              <input class="draft-field" id="draftAiDestination" placeholder="例：未払 / 買掛 / 経費 / 税金">
+            </label>
+            <label>
+              支払対象
+              <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
+            </label>
+            <label>
+              未払登録対象
+              <input class="draft-field" id="draftAiUnpaidFlag" placeholder="例：登録する / しない / 要確認">
+            </label>
+            <label>
+              経費登録対象
+              <input class="draft-field" id="draftAiExpenseFlag" placeholder="例：経費 / 立替 / 対象外">
+            </label>
+            <label>
+              税金・公的支払
+              <input class="draft-field" id="draftAiTaxPublicFlag" placeholder="例：税金 / 社保 / 公共料金 / 対象外">
+            </label>
+            <label>
+              契約・保険・リース
+              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
+            </label>
+            <label>
+              AI信頼度
+              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label class="span2">
+              AI判定理由
+              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：OCR本文内に請求金額、支払期限、振込先があるため請求書と判断。"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">基本情報</div>
+          <div class="form-grid">
+            <label>
+              書類区分
+              <input class="draft-field" id="draftDocumentType" placeholder="例：請求書 / 納税通知書 / 領収書">
+            </label>
+            <label>
+              証憑区分
+              <input class="draft-field" id="draftEvidenceType" placeholder="例：請求書 / 領収書 / 通知書 / 契約書">
+            </label>
+            <label>
+              書類名
+              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
+            </label>
+            <label>
+              発行元
+              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
+            </label>
+            <label>
+              支払先
+              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
+            </label>
+            <label>
+              宛名
+              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
+            </label>
+            <label>
+              会社名
+              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
+            </label>
+            <label>
+              個人名
+              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
+            </label>
+            <label>
+              部署名
+              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
+            </label>
+            <label>
+              担当者名
+              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
+            </label>
+            <label class="span2">
+              住所
+              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
+            </label>
+            <label>
+              電話番号
+              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
+            </label>
+            <label>
+              メール
+              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
+            </label>
+            <label class="span2">
+              Webサイト
+              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">番号・識別情報</div>
+          <div class="form-grid">
+            <label>
+              請求書番号
+              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
+            </label>
+            <label>
+              領収書番号
+              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
+            </label>
+            <label>
+              納付番号
+              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
+            </label>
+            <label>
+              通知書番号
+              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
+            </label>
+            <label>
+              管理番号
+              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
+            </label>
+            <label>
+              お客様番号
+              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
+            </label>
+            <label>
+              契約番号
+              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
+            </label>
+            <label>
+              会員番号
+              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
+            </label>
+            <label>
+              注文番号
+              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
+            </label>
+            <label>
+              取引番号
+              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
+            </label>
+            <label>
+              登録番号
+              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
+            </label>
+            <label>
+              法人番号
+              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
+            </label>
+            <label>
+              カード番号下4桁
+              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">日付・期限</div>
+          <div class="form-grid">
+            <label>
+              書類日付
+              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              発行日
+              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              請求日
+              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              取引日・利用日
+              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              納品日
+              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
+            </label>
+            <label>
+              締日
+              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
+            </label>
+            <label>
+              支払期限・納期限
+              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
+            </label>
+            <label>
+              支払予定日
+              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
+            </label>
+            <label>
+              引落日
+              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
+            </label>
+            <label>
+              決済日
+              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
+            </label>
+            <label>
+              対象開始日
+              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
+            </label>
+            <label>
+              対象終了日
+              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
+            </label>
+            <label>
+              契約開始日
+              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
+            </label>
+            <label>
+              契約終了日
+              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
+            </label>
+            <label>
+              更新日
+              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">金額・税</div>
+          <div class="form-grid">
+            <label>
+              請求・支払金額
+              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              合計金額
+              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              税込金額
+              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
+            </label>
+            <label>
+              税抜金額
+              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
+            </label>
+            <label>
+              消費税額
+              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
+            </label>
+            <label>
+              10%対象金額
+              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
+            </label>
+            <label>
+              10%消費税
+              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
+            </label>
+            <label>
+              8%対象金額
+              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
+            </label>
+            <label>
+              8%消費税
+              <input class="draft-field" id="draftTax8" placeholder="例：800">
+            </label>
+            <label>
+              非課税・不課税
+              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
+            </label>
+            <label>
+              源泉徴収額
+              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
+            </label>
+            <label>
+              手数料
+              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
+            </label>
+            <label>
+              延滞金
+              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
+            </label>
+            <label>
+              値引・割引
+              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
+            </label>
+            <label>
+              前回残高
+              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
+            </label>
+            <label>
+              今回利用額
+              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              入金額
+              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
+            </label>
+            <label>
+              未払残高
+              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">支払情報</div>
+          <div class="form-grid">
+            <label>
+              支払方法
+              <input class="draft-field" id="draftPaymentMethod" placeholder="例：振込 / 口座振替 / カード / 現金">
+            </label>
+            <label>
+              支払状態
+              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
+            </label>
+            <label>
+              振込先銀行
+              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
+            </label>
+            <label>
+              銀行コード
+              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
+            </label>
+            <label>
+              支店名
+              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
+            </label>
+            <label>
+              支店コード
+              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
+            </label>
+            <label>
+              口座種別
+              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
+            </label>
+            <label>
+              口座番号
+              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
+            </label>
+            <label class="span2">
+              口座名義
+              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
+            </label>
+            <label>
+              引落銀行
+              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
+            </label>
+            <label>
+              カード会社
+              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
+            </label>
+            <label>
+              カード名
+              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
+            </label>
+            <label>
+              決済サービス
+              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
+            </label>
+            <label>
+              コンビニ支払番号
+              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
+            </label>
+            <label>
+              バーコード番号
+              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
+            </label>
+            <label>
+              QR決済情報
+              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">会計・管理</div>
+          <div class="form-grid">
+            <label>
+              会計区分
+              <input class="draft-field" id="draftAccountingCategory" placeholder="例：通常 / 立替 / 税金 / 資産">
+            </label>
+            <label>
+              処理先
+              <input class="draft-field" id="draftDestination" placeholder="例：税金・公的支払い / 未払 / 経費">
+            </label>
+            <label>
+              未払種別
+              <input class="draft-field" id="draftPayableKind" placeholder="例：未払金 / 買掛金 / 未払費用 / カード未払">
+            </label>
+            <label>
+              支払先マスタ候補
+              <input class="draft-field" id="draftVendorMasterCandidate" placeholder="例：既存支払先候補">
+            </label>
+            <label>
+              勘定科目
+              <input class="draft-field" id="draftAccountTitle" placeholder="例：租税公課 / 通信費 / 仕入">
+            </label>
+            <label>
+              税区分
+              <input class="draft-field" id="draftTaxCategory" placeholder="例：課税10% / 非課税 / 対象外">
+            </label>
+            <label>
+              インボイス区分
+              <input class="draft-field" id="draftInvoiceType" placeholder="例：適格 / 非適格 / 対象外">
+            </label>
+            <label>
+              支払方法マスタ
+              <input class="draft-field" id="draftPaymentMethodMaster" placeholder="例：銀行振込 / カード">
+            </label>
+            <label>
+              対象者
+              <input class="draft-field" id="draftTargetPerson" placeholder="例：坂口 / 会社共通">
+            </label>
+            <label>
+              目的
+              <input class="draft-field" id="draftPurpose" placeholder="例：会議 / 仕入 / 税金">
+            </label>
+            <label>
+              案件
+              <input class="draft-field" id="draftProject" placeholder="例：Rasi:m / HELMETTY / 共通">
+            </label>
+            <label>
+              部門
+              <input class="draft-field" id="draftDepartment" placeholder="例：営業 / 製造 / 管理">
+            </label>
+            <label class="span2">
+              摘要
+              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
+            </label>
+            <label>
+              会社負担可否
+              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
+            </label>
+            <label>
+              個人負担混在
+              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
+            </label>
+            <label>
+              立替
+              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
+            </label>
+            <label>
+              精算
+              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
+            </label>
+            <label>
+              未払登録
+              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
+            </label>
+            <label>
+              買掛登録
+              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
+            </label>
+            <label class="span2">
+              社内メモ
+              <textarea class="draft-field small-textarea" id="draftMemo" placeholder="社内メモ"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">明細</div>
+          <div class="form-grid">
+            <label class="span2">
+              明細候補
+              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">書類別追加情報</div>
+          <div class="form-grid">
+            <label>
+              税目
+              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
+            </label>
+            <label>
+              納付先
+              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
+            </label>
+            <label>
+              年度
+              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
+            </label>
+            <label>
+              期別
+              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
+            </label>
+            <label>
+              公共料金お客様番号
+              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
+            </label>
+            <label>
+              使用期間
+              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
+            </label>
+            <label>
+              使用量
+              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
+            </label>
+            <label>
+              保険種類
+              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
+            </label>
+            <label>
+              リース物件
+              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
+            </label>
+            <label>
+              支払回数
+              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
+            </label>
+            <label>
+              メール件名
+              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
+            </label>
+            <label>
+              メール送信者
+              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
+            </label>
+            <label>
+              メール受信日時
+              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
+            </label>
+            <label>
+              添付ファイル名
+              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
+            </label>
+            <label>
+              ダウンロード日
+              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">要確認</div>
+          <div class="form-grid">
+            <label class="span2">
+              要確認メモ
+              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">OCR・証憑管理情報</div>
+          <div class="form-grid">
+            <label>
+              元ファイル名
+              <input class="draft-field draft-readonly" id="draftOriginalFileName" readonly>
+            </label>
+            <label>
+              保存ファイル名
+              <input class="draft-field draft-readonly" id="draftSavedFileName" readonly>
+            </label>
+            <label>
+              ファイル種別
+              <input class="draft-field draft-readonly" id="draftMimeType" readonly>
+            </label>
+            <label>
+              ファイルサイズ
+              <input class="draft-field draft-readonly" id="draftFileSize" readonly>
+            </label>
+            <label class="span2">
+              SHA-256
+              <input class="draft-field draft-readonly" id="draftSha256" readonly>
+            </label>
+            <label>
+              OCR状態
+              <input class="draft-field draft-readonly" id="draftOcrStatus" readonly>
+            </label>
+            <label>
+              OCR日時
+              <input class="draft-field draft-readonly" id="draftOcrAt" readonly>
+            </label>
+            <label>
+              保存状態
+              <input class="draft-field draft-readonly" id="draftSavedStatus" readonly>
+            </label>
+            <label>
+              保存日時
+              <input class="draft-field draft-readonly" id="draftSavedAt" readonly>
+            </label>
+            <label class="span2">
+              重複情報
+              <input class="draft-field draft-readonly" id="draftDuplicateStatus" readonly>
+            </label>
+          </div>
+        </section>
+      </div>
+<div class="button-row">
+        <button type="button" onclick="showPlanned('AI解析')">候補作成</button>
+        <button type="button" onclick="showPlanned('下書き保存')">下書き保存</button>
+        <button type="button" class="secondary" onclick="showPlanned('本登録')">登録へ進む</button>
+      </div>
+
+      <div id="result" class="result"></div>
+    </section>
+  </div>
+
+<script>
+  let items = [];
+  let selectedIndex = -1;
+
+  function esc(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function formatJapanDateTime(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    const parts = new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+  }
+
+  function showResult(message) {
+    document.getElementById("result").textContent = message || "";
+  }
+
+  function hasOcr(item) {
+    return !!(item.ocrRawText || item.ocrTextPreview || item.ocrStatus === "ocr_done");
+  }
+
+  async function loadItems() {
+    const summary = document.getElementById("summary");
+    const list = document.getElementById("list");
+
+    summary.textContent = "読込中...";
+    list.innerHTML = "";
+    selectedIndex = -1;
+
+    document.getElementById("ocrText").value = "";
+    clearDraftFields();
+
+    try {
+      const res = await fetch("/api/payment-documents/scan-inbox");
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "読込失敗");
+      }
+
+      const allItems = data.items || [];
+      items = allItems.filter(hasOcr);
+
+      summary.textContent =
+        "OCR済み: " + items.length + "件 / 全体: " + allItems.length + "件";
+
+      if (!items.length) {
+        list.innerHTML = '<div class="empty">OCR済み書類がありません。先にOCR取込画面でOCRしてください。</div>';
+        return;
+      }
+
+      list.innerHTML = items.map((item, index) => {
+        const active = index === selectedIndex ? " active" : "";
+        const name = item.originalFileName || item.fileName;
+        const time = item.ocrAt ? formatJapanDateTime(item.ocrAt) : "";
+
+        return `
+          <button class="item${active}" onclick="selectItem(${index})">
+            <span class="no">${index + 1}</span>
+            <span class="name">${esc(name)}</span>
+            <span class="time">${esc(time)}</span>
+          </button>
+        `;
+      }).join("");
+    } catch (error) {
+      summary.textContent = "読込エラー: " + (error.message || String(error));
+    }
+  }
+
+  function clearDraftFields() {
+    document.querySelectorAll(".draft-field").forEach(field => {
+      field.value = "";
+    });
+    showResult("");
+  }
+
+  function setDraftValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (value === null || value === undefined) {
+      el.value = "";
+      return;
+    }
+
+    el.value = String(value);
+  }
+
+  function formatDraftBytes(bytes) {
+    const n = Number(bytes) || 0;
+
+    if (n >= 1024 * 1024) {
+      return (n / 1024 / 1024).toFixed(1) + " MB";
+    }
+
+    if (n >= 1024) {
+      return Math.round(n / 1024) + " KB";
+    }
+
+    return n ? n + " B" : "";
+  }
+
+  function fillDraftFromItem(item) {
+    if (!item) return;
+
+    setDraftValue("draftDocumentType", item.documentType || "");
+    setDraftValue("draftAiDocumentKind", item.documentType || "");
+    setDraftValue("draftDestination", item.destination || "");
+    setDraftValue("draftAiDestination", item.destination || "");
+    setDraftValue("draftIssuer", item.vendorName || "");
+    setDraftValue("draftVendorName", item.vendorName || "");
+    setDraftValue("draftVendorMasterCandidate", item.vendorName || "");
+    setDraftValue("draftMemo", item.note || "");
+    setDraftValue("draftEmailSubject", item.emailSubject || "");
+    setDraftValue("draftEmailFrom", item.emailFrom || "");
+
+    setDraftValue("draftOriginalFileName", item.originalFileName || "");
+    setDraftValue("draftSavedFileName", item.fileName || "");
+    setDraftValue("draftMimeType", item.mimeType || "");
+    setDraftValue("draftFileSize", formatDraftBytes(item.sizeBytes));
+    setDraftValue("draftSha256", item.sha256 || "");
+    setDraftValue("draftOcrStatus", item.ocrStatus || "");
+    setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
+    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
+    setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
+  }
+
+  function selectItem(index) {
+    selectedIndex = index;
+    const item = items[index];
+
+    document.querySelectorAll(".item").forEach((el, i) => {
+      el.classList.toggle("active", i === index);
+    });
+
+    document.getElementById("ocrText").value = item.ocrRawText || item.ocrTextPreview || "";
+    clearDraftFields();
+    fillDraftFromItem(item);
+
+    showResult("OCR本文を読み込みました。");
+  }
+
+  function showPlanned(name) {
+    const item = selectedIndex >= 0 ? items[selectedIndex] : null;
+
+    if (!item) {
+      showResult("先にOCR済み書類を選択してください。");
+      return;
+    }
+
+    showResult(
+      name + "は後工程です。\n" +
+      "このページでは画面骨格のみ作成済みです。\n" +
+      "次にDBを作って、AI候補と人間修正下書きを保存できるようにします。"
+    );
+  }
+
+  async function restartServer() {
+    const ok = confirm("サーバーを再起動しますか？\n終了前バックアップありの再起動APIを呼びます。");
+
+    if (!ok) return;
+
+    showResult("サーバー再起動を要求中です。");
+
+    try {
+      const res = await fetch("/api/system/restart-with-backup", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      showResult(JSON.stringify(data, null, 2));
+    } catch (error) {
+      showResult("再起動要求後に接続が切れた可能性があります。\n" + (error.message || String(error)));
+    }
+  }
+
+  loadItems();
+</script>
+<script src="../hd-origin-exit-guard.js"></script>
+</body>
+</html>

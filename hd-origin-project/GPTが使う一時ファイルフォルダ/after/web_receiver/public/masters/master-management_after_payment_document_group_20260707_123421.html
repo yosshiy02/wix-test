@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>マスタ管理 - HD Origin Project</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    main {
+      padding: 12px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      max-width: 1200px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .master-button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    button {
+      box-sizing: border-box;
+      padding: 5px 7px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    button:hover {
+      background: #eee;
+    }
+
+    button.selected {
+      border-color: #222;
+      background: #222;
+      color: white;
+    }
+
+    .danger {
+      border-color: #b00020;
+      color: #b00020;
+    }
+
+    .ok {
+      border-color: #006b2e;
+      color: #006b2e;
+    }
+
+    .group-title {
+      font-weight: 800;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      border-left: 5px solid #222;
+      padding-left: 8px;
+    }
+
+    .note {
+      color: #555;
+      line-height: 1.7;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .important-note {
+      background: #fff8e1;
+      border: 1px solid #e0c15a;
+      border-radius: 10px;
+      padding: 10px 12px;
+      line-height: 1.7;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    input {
+      box-sizing: border-box;
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+
+    .name-input {
+      width: 260px;
+    }
+
+    .sort-input {
+      width: 70px;
+      text-align: right;
+    }
+
+    .sort-cell {
+      min-width: 135px;
+      white-space: nowrap;
+    }
+
+    .move-button {
+      padding: 3px 7px;
+      font-size: 12px;
+      min-width: 28px;
+    }
+
+    .extra-input {
+      width: 180px;
+    }
+
+    table {
+      border-collapse: collapse;
+      background: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    .id-cell {
+      width: 55px;
+      text-align: right;
+      color: #666;
+    }
+
+    .inactive {
+      color: #999;
+      background: #f7f7f7;
+    }
+
+    #result {
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 42px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    #activeMasterTitle {
+      font-size: 20px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>マスタ管理</h1>
+    <div class="button-row">
+      <button onclick="location.href='/'">メインへ</button>
+      <button onclick="location.href='/expenses/expense-input.html'">経費入力</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>管理するマスタを選ぶ</h2>
+
+      <div class="group-title">会計・科目系</div>
+      <div id="accountingMasterButtons" class="master-button-grid"></div>
+
+      <div class="group-title">日常入力系</div>
+      <div id="dailyMasterButtons" class="master-button-grid"></div>
+
+      <div class="group-title">支払書類・区分系</div>
+      <div id="paymentDocumentMasterButtons" class="master-button-grid"></div>
+
+      <div class="important-note">
+        マスタは削除ではなく、原則「使用停止」で管理します。<br>
+        名前変更は、過去に入力済みの経費・レシート・伝票の表示にも影響する可能性があります。<br>
+        誤字修正は名前変更。別人・別会社・別科目にしたい場合は、新規追加して古いものを使用停止にします。<br>
+        管理IDはAccessのオートナンバー相当です。並び替えや会計上の番号には使わず、並びは表示順で管理します。
+      </div>
+
+      <div id="result">待機中</div>
+    </div>
+
+    <div class="card">
+      <h2 id="activeMasterTitle">マスタを選んでください</h2>
+      <div id="activeMasterNote" class="note"></div>
+    </div>
+
+    <div class="card" id="addCard" style="display:none;">
+      <h2>新規追加</h2>
+
+      <div class="form-row">
+        <div>
+          <label id="newNameLabel">名称</label>
+          <input id="newName" class="name-input" placeholder="新しい名称">
+        </div>
+
+        <div id="newExtraFields" class="form-row"></div>
+
+        <div>
+          <label>表示順</label>
+          <input id="newSortOrder" class="sort-input" type="number" value="0">
+        </div>
+
+        <button onclick="addMasterItem()">追加</button>
+      </div>
+    </div>
+
+    <div class="card" id="listCard" style="display:none;">
+      <h2>一覧</h2>
+      <div id="masterList">マスタを選んでください。</div>
+    </div>
+  </main>
+
+<script>
+const MASTER_GROUPS = {
+  accounting: [
+    "account_titles",
+    "payment_methods",
+    "tax_categories",
+    "invoice_types",
+    "evidence_types"
+  ],
+  daily: [
+    "vendors",
+    "target_people",
+    "purposes",
+    "projects",
+    "departments"
+  ],
+  paymentDocuments: [
+    "document_types",
+    "payment_destinations",
+    "accounting_categories",
+    "payable_kinds",
+    "payment_source_types"
+  ]
+};
+
+const MASTER_NOTES = {
+  account_titles:
+    "勘定科目は、借方・貸方の伝票入力や集計の土台になります。紙の勘定科目スタンプを元に整備します。",
+  payment_methods:
+    "支払方法は、現金・普通預金・カードなど、レシート読込や経費入力でも使う支払い手段です。借方・貸方・科目との対応はここに混ぜず、別の仕訳ルール側で扱います。",
+  tax_categories:
+    "税区分は、消費税の扱いに関係します。自由に増やしすぎず、必要なものだけ管理します。",
+  invoice_types:
+    "インボイス区分は、適格請求書かどうかなどの判定に使います。",
+  evidence_types:
+    "証憑区分は、レシート・請求書・領収書など、証拠書類の種類を管理します。",
+  vendors:
+    "支払先は、買った相手・支払った相手を管理します。",
+  target_people:
+    "対象者は、その経費・レシート・伝票が誰に関係するかを見るために使います。",
+  purposes:
+    "目的は、経費の目的や用途を管理します。",
+  projects:
+    "案件は、仕事・イベント・企画などに紐づけるために使います。",
+  departments:
+    "部門は、会社内の部署や管理単位に紐づけるために使います。",
+  document_types:
+    "書類区分は、請求書・納付書・Web明細・カード明細など、支払書類そのものの種類を管理します。固定文字列ではなくマスタから選択します。",
+  payment_destinations:
+    "処理先は、未払管理・買掛管理・経費管理・税金公的支払など、読取後にどこへ回すかを管理します。",
+  accounting_categories:
+    "会計区分は、通常・立替・税金・公共料金・保険・リースなど、会計処理の大枠を管理します。",
+  payable_kinds:
+    "未払種別は、買掛金・未払金・未払費用・カード未払など、未払管理上の区分を管理します。",
+  payment_source_types:
+    "入手元区分は、スキャン・PDF取込・メール保存・Web明細ダウンロードなど、支払書類の入手経路を管理します。",};
+
+const EXTRA_LABELS = {
+  account_code: "科目コード",
+  default_credit_account: "通常貸方科目",
+  tax_rate: "税率",
+  document_type_code: "書類区分コード",
+  payment_destination_code: "処理先コード",
+  accounting_category_code: "会計区分コード",
+  payable_kind_code: "未払種別コード",
+  payment_source_type_code: "入手元区分コード"
+};
+
+let masterTypes = [];
+let currentItems = [];
+let selectedType = "";
+
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function currentType() {
+  return selectedType;
+}
+
+function currentTypeInfo() {
+  return masterTypes.find(t => t.type === currentType()) || null;
+}
+
+function getExtraColumns() {
+  const typeInfo = currentTypeInfo();
+
+  if (!typeInfo) {
+    return [];
+  }
+
+  // 支払方法はレシート読込・経費入力でも使う「支払い手段」なので、
+  // 通常貸方科目などの会計変換ルールはここでは表示しない。
+  // 借方・貸方・科目との対応は、別の仕訳ルール側で扱う。
+  if (typeInfo.type === "payment_methods") {
+    return [];
+  }
+
+  return Array.isArray(typeInfo.extra_columns)
+    ? typeInfo.extra_columns
+    : [];
+}
+
+function getExtraColumnLabel(column) {
+  const typeInfo = currentTypeInfo();
+  const labels = typeInfo && typeInfo.extra_column_labels ? typeInfo.extra_column_labels : {};
+  return labels[column] || EXTRA_LABELS[column] || column;
+}
+
+function getExtraInputType(column) {
+  return column === "tax_rate" ? "number" : "text";
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+async function loadMasterTypes() {
+  const res = await fetch("/api/masters/types");
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  masterTypes = data.types || [];
+  renderMasterButtons();
+
+  const firstType = masterTypes.find(t => t.type === "account_titles") || masterTypes[0];
+
+  if (firstType) {
+    await selectMaster(firstType.type);
+  } else {
+    showResult("マスタ定義がありません。");
+  }
+}
+
+function renderMasterButtons() {
+  renderButtonGroup("accountingMasterButtons", MASTER_GROUPS.accounting);
+  renderButtonGroup("dailyMasterButtons", MASTER_GROUPS.daily);
+  renderButtonGroup("paymentDocumentMasterButtons", MASTER_GROUPS.paymentDocuments);
+}
+
+function renderButtonGroup(elementId, typeList) {
+  const area = document.getElementById(elementId);
+
+  area.innerHTML = typeList
+    .map(type => masterTypes.find(t => t.type === type))
+    .filter(Boolean)
+    .map(typeInfo => `
+      <button
+        type="button"
+        id="master_button_${escapeHtml(typeInfo.type)}"
+        onclick="selectMaster('${escapeHtml(typeInfo.type)}')"
+      >
+        ${escapeHtml(typeInfo.label)}
+      </button>
+    `)
+    .join("");
+}
+
+function updateSelectedButton() {
+  for (const typeInfo of masterTypes) {
+    const btn = document.getElementById(`master_button_${typeInfo.type}`);
+    if (btn) {
+      btn.classList.toggle("selected", typeInfo.type === selectedType);
+    }
+  }
+}
+
+async function selectMaster(type) {
+  selectedType = type;
+  updateSelectedButton();
+
+  const typeInfo = currentTypeInfo();
+
+  if (!typeInfo) {
+    showResult(`未対応のマスタです: ${type}`);
+    return;
+  }
+
+  document.getElementById("addCard").style.display = "";
+  document.getElementById("listCard").style.display = "";
+  document.getElementById("activeMasterTitle").textContent = typeInfo.label;
+  document.getElementById("newNameLabel").textContent = `${typeInfo.label}名`;
+  document.getElementById("activeMasterNote").textContent =
+    (typeInfo.note || MASTER_NOTES[typeInfo.type] || "このマスタを管理します。") +
+    " 表示順は画面の並び替え用です。管理IDは自動番号なので意味を持たせません。";
+
+  renderNewExtraFields();
+  await loadMasterItems();
+}
+
+function renderNewExtraFields() {
+  const area = document.getElementById("newExtraFields");
+  const columns = getExtraColumns();
+
+  if (!columns.length) {
+    area.innerHTML = "";
+    return;
+  }
+
+  area.innerHTML = columns.map(column => `
+    <div>
+      <label>${escapeHtml(getExtraColumnLabel(column))}</label>
+      <input
+        class="extra-input"
+        id="new_extra_${escapeHtml(column)}"
+        type="${getExtraInputType(column)}"
+        placeholder="${escapeHtml(getExtraColumnLabel(column))}"
+      >
+    </div>
+  `).join("");
+}
+
+async function loadMasterItems() {
+  const type = currentType();
+
+  if (!type) return;
+
+  const res = await fetch(`/api/masters/${encodeURIComponent(type)}`);
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  currentItems = data.items || data.rows || data.masters || [];
+  renderMasterList();
+  showResult(`${currentTypeInfo().label} を読み込みました。`);
+}
+
+function renderMasterList() {
+  const columns = getExtraColumns();
+
+  if (!currentItems.length) {
+    document.getElementById("masterList").textContent = "データがありません。";
+    return;
+  }
+
+  const extraHeaders = columns
+    .map(column => `<th>${escapeHtml(getExtraColumnLabel(column))}</th>`)
+    .join("");
+
+  let html = `
+    <table>
+      <tr>
+        <th>管理ID</th>
+        <th>名称</th>
+        ${extraHeaders}
+        <th>表示順</th>
+        <th>使用中</th>
+        <th>操作</th>
+      </tr>
+  `;
+
+  for (const item of currentItems) {
+    const inactiveClass = item.is_active ? "" : "inactive";
+
+    const extraCells = columns.map(column => `
+      <td>
+        <input
+          class="extra-input"
+          id="extra_${escapeHtml(column)}_${item.id}"
+          type="${getExtraInputType(column)}"
+          value="${escapeHtml(item[column] ?? "")}"
+        >
+      </td>
+    `).join("");
+
+    html += `
+      <tr class="${inactiveClass}">
+        <td class="id-cell">${item.id}</td>
+        <td>
+          <input class="name-input" id="name_${item.id}" value="${escapeHtml(item.name || "")}">
+        </td>
+        ${extraCells}
+        <td class="sort-cell">
+          <button class="move-button" onclick="moveMasterItem(${item.id}, -1)" title="上へ">↑</button>
+          <input class="sort-input" id="sort_${item.id}" type="number" value="${item.sort_order || 0}">
+          <button class="move-button" onclick="moveMasterItem(${item.id}, 1)" title="下へ">↓</button>
+        </td>
+        <td>
+          <input id="active_${item.id}" type="checkbox" ${item.is_active ? "checked" : ""}>
+        </td>
+        <td>
+          <button onclick="updateMasterItem(${item.id})">更新</button>
+          <button class="${item.is_active ? "danger" : "ok"}" onclick="toggleActive(${item.id}, ${item.is_active ? "false" : "true"})">
+            ${item.is_active ? "使用停止" : "使用再開"}
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+
+  html += "</table>";
+  document.getElementById("masterList").innerHTML = html;
+}
+
+function collectNewExtraPayload() {
+  const payload = {};
+
+  for (const column of getExtraColumns()) {
+    const el = document.getElementById(`new_extra_${column}`);
+    if (el) {
+      payload[column] = el.value;
+    }
+  }
+
+  return payload;
+}
+
+function collectRowExtraPayload(id) {
+  const payload = {};
+
+  for (const column of getExtraColumns()) {
+    const el = document.getElementById(`extra_${column}_${id}`);
+    if (el) {
+      payload[column] = el.value;
+    }
+  }
+
+  return payload;
+}
+
+function clearNewExtraFields() {
+  for (const column of getExtraColumns()) {
+    const el = document.getElementById(`new_extra_${column}`);
+    if (el) {
+      el.value = "";
+    }
+  }
+}
+
+async function addMasterItem() {
+  const type = currentType();
+
+  const payload = {
+    type,
+    name: document.getElementById("newName").value,
+    sort_order: document.getElementById("newSortOrder").value,
+    ...collectNewExtraPayload()
+  };
+
+  const res = await fetch(`/api/masters/${encodeURIComponent(type)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    showResult(data);
+    return;
+  }
+
+  document.getElementById("newName").value = "";
+  document.getElementById("newSortOrder").value = "0";
+  clearNewExtraFields();
+
+  showResult(data);
+  await loadMasterItems();
+}
+
+async function updateMasterItem(id) {
+  const type = currentType();
+
+  const payload = {
+    name: document.getElementById(`name_${id}`).value,
+    sort_order: document.getElementById(`sort_${id}`).value,
+    is_active: document.getElementById(`active_${id}`).checked,
+    ...collectRowExtraPayload(id)
+  };
+
+  const res = await fetch(`/api/masters/${encodeURIComponent(type)}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  showResult(data);
+
+  if (data.ok) {
+    await loadMasterItems();
+  }
+}
+
+async function moveMasterItem(id, direction) {
+  const index = currentItems.findIndex(item => Number(item.id) === Number(id));
+
+  if (index < 0) {
+    showResult("移動対象が見つかりません。");
+    return;
+  }
+
+  const nextIndex = index + direction;
+
+  if (nextIndex < 0 || nextIndex >= currentItems.length) {
+    showResult("これ以上移動できません。");
+    return;
+  }
+
+  const current = currentItems[index];
+  const target = currentItems[nextIndex];
+
+  const currentSort = Number(current.sort_order || 0);
+  const targetSort = Number(target.sort_order || 0);
+
+  const currentName = document.getElementById(`name_${current.id}`).value;
+  const targetName = document.getElementById(`name_${target.id}`).value;
+
+  const currentActive = document.getElementById(`active_${current.id}`).checked;
+  const targetActive = document.getElementById(`active_${target.id}`).checked;
+
+  const currentExtra = {};
+  const targetExtra = {};
+
+  for (const column of getExtraColumns()) {
+    const currentEl = document.getElementById(`extra_${column}_${current.id}`);
+    const targetEl = document.getElementById(`extra_${column}_${target.id}`);
+
+    if (currentEl) currentExtra[column] = currentEl.value;
+    if (targetEl) targetExtra[column] = targetEl.value;
+  }
+
+  const currentPayload = {
+    name: currentName,
+    sort_order: targetSort,
+    is_active: currentActive,
+    ...currentExtra
+  };
+
+  const targetPayload = {
+    name: targetName,
+    sort_order: currentSort,
+    is_active: targetActive,
+    ...targetExtra
+  };
+
+  const type = currentType();
+
+  const res1 = await fetch(`/api/masters/${encodeURIComponent(type)}/${current.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(currentPayload)
+  });
+
+  const data1 = await res1.json();
+
+  if (!data1.ok) {
+    showResult(data1);
+    return;
+  }
+
+  const res2 = await fetch(`/api/masters/${encodeURIComponent(type)}/${target.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(targetPayload)
+  });
+
+  const data2 = await res2.json();
+
+  if (!data2.ok) {
+    showResult(data2);
+    return;
+  }
+
+  showResult("表示順を入れ替えました。");
+  await loadMasterItems();
+}
+
+async function toggleActive(id, active) {
+  document.getElementById(`active_${id}`).checked = active;
+  await updateMasterItem(id);
+}
+
+document.addEventListener("DOMContentLoaded", loadMasterTypes);
+</script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+</body>
+</html>
+
+
+
+

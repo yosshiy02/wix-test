@@ -1,0 +1,41 @@
+﻿==============================
+支払書類 既存OCR DB取込 RETRY 結果
+==============================
+日時: 2026-07-07 16:23:33
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の処理]
+- 前回失敗した backfill 部分だけを再実行
+- 本体JS/HTMLは変更していない
+- saved フォルダ内の .meta.json から OCR本文を accounting.payment_document_ocr_imports へ取り込み
+- SQLの $1, $2... がPowerShellで崩れないように、JS生成方式を修正
+
+[backfill JS]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\backfill_payment_document_ocr_imports_RETRY_20260707_162332.js
+
+[backfill 結果]
+{
+  "ok": true,
+  "savedDir": "F:\\Dropbox\\HDDBTEST\\HDDB_PROJECT\\ORIGIN\\payment-documents\\saved",
+  "metaFiles": 0,
+  "imported": 0,
+  "skipped": 0,
+  "skipReasons": {},
+  "dbCount": 0
+}
+
+[反映状況チェック]
+route に /api/payment-documents/ocr-imports あり: True
+review html が /api/payment-documents/ocr-imports をロード: True
+
+[API確認]
+API確認は未実施またはサーバー再起動前: リモート サーバーがエラーを返しました: (404) 見つかりません
+
+[次の確認]
+- サーバーを再起動する
+- http://127.0.0.1:3000/api/payment-documents/ocr-imports を開く
+- ok:true / source:database / count が返ること
+- 支払書類 読取内容確認ページを再読込する
+- 左リストがDB保存済みOCRから表示されること

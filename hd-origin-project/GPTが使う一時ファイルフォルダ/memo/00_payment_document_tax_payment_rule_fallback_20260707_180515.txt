@@ -1,0 +1,29 @@
+﻿==============================
+支払書類AI 納付書ルール補正
+==============================
+日時: 2026-07-07 18:05:15
+PROJECT_ROOT: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+対象: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+before: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_tax_payment_rule_fallback_20260707_180515.js
+after : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_tax_payment_rule_fallback_20260707_180515.js
+
+[OK] 納付書ルール補正関数を追加
+[OK] createAiDraftFromOcrText 系の戻り値に補正を追加: 1 箇所
+[OK] 2段階AIの1回目分類結果に補正を追加: 1 箇所
+[OK] 2段階AIの2回目詳細結果に補正を追加: 1 箇所
+
+[反映確認]
+OK: 納付書ルール補正関数あり
+OK: AI結果へOCR本文ルール補正を適用しています
+
+[node --check]
+
+
+[画面確認]
+1. サーバー再起動
+2. 支払書類 読取内容確認ページを再読み込み
+3. 今回の納付書ダミーを選択
+4. AI解析
+5. 書類種別/書類区分が「納付書・納税通知書」になること
+6. 処理先が「税金・公的支払い」になること
+7. 税目=法人税、納付先=サンプル税務署、期限=2026-08-01、金額=80000 が入ること

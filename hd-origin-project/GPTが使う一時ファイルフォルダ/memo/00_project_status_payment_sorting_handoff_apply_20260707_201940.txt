@@ -1,0 +1,32 @@
+==============================
+スタート文書作成プログラム 支払書類仕分け引き継ぎ 反映結果
+==============================
+日時: 2026-07-07 20:19:40
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[反映]
+OK: web_receiver\src\projectStatus.js
+
+[追加内容]
+- スタート文書 PROJECT_STATUS_FOR_GPT.txt に「支払書類仕分けシステム 引き継ぎ」を出力
+- ページ名: 支払書類仕分けシステム
+- 解析構成: 共通1個 + 専門5個 = 合計6個
+- 既存レシート系は「支払済み証憑解析システム」として正式編入
+- 保険・契約・リース・公共料金・通信費は当初「請求・未払系」のサブ分類扱い
+
+[構文チェック]
+OK: projectStatus.js 構文チェック成功
+
+[確認方法]
+- 次回スタート時、PROJECT_STATUS_FOR_GPT.txt に以下が出ることを確認
+  支払書類仕分けシステム 引き継ぎ
+
+[注意]
+- DB / 画像 / 証憑 / .env / backup は触っていない
+- スタート文書作成プログラム projectStatus.js のみ変更
+
+[UNDO]
+戻す場合:
+powershell -ExecutionPolicy Bypass -File "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_project_status_payment_sorting_handoff_20260707_201940.ps1"

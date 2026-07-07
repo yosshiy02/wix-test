@@ -1,0 +1,54 @@
+﻿==============================
+支払書類 OCR本文のみ OpenAI AI候補作成 追加 結果
+==============================
+日時: 2026-07-07 16:41:38
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- 画像AIは使わない
+- DBの OCR本文 accounting.payment_document_ocr_imports.ocr_raw_text だけをOpenAIへ送る
+- POST /api/payment-documents/ai-draft/:id を追加
+- 右側の下書き欄へAI候補を反映する AI候補作成 ボタンを追加
+- APIレスポンスに image_used:false を明記
+- 原本画像ファイル、DB構造、OCR本文は変更していない
+- 下書き保存、本登録処理はまだ触っていない
+- route JS / HTML内JS は node --check 済み
+
+[OpenAI送信対象]
+- OCR本文のみ
+
+[OpenAIへ送信しないもの]
+- 原本画像
+- 画像URL
+- base64画像
+- PDFファイル
+
+[環境確認]
+このPowerShellセッション上では OPENAI_API_KEY は未検出。ただしNode起動側の.envで読めていればOK。
+使用モデル: process.env.OPENAI_MODEL または gpt-4.1-mini
+
+[変更したファイル]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_openai_ocr_draft_20260707_164138.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_openai_ocr_draft_20260707_164138.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_openai_ocr_draft_20260707_164138.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_openai_ocr_draft_20260707_164138.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_openai_ocr_draft_20260707_164138.txt
+
+[確認]
+- サーバーを再起動する
+- 支払書類 読取内容確認ページを開く
+- 左リストからOCRを選ぶ
+- AI候補作成ボタンを押す
+- 結果に image_used:false が出ること
+- 右側の下書き欄に候補が入ること
+- 画像はOpenAIへ送られていないこと

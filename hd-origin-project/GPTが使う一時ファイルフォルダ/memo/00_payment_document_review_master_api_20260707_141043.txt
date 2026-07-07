@@ -1,0 +1,37 @@
+﻿==============================
+支払書類 読取内容確認ページ マスタ読込元修正 結果
+==============================
+日時: 2026-07-07 14:10:43
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の修正]
+- payment-document-review.html の下書き側マスタ読込を修正
+- /api/expenses/masters 依存ではなく、/api/masters?type=... から各マスタを読むように上書き
+- 書類区分 / 処理先 / 会計区分 / 未払種別 / 入手元区分 など追加マスタを拾える形にした
+- selectの値はIDを主役にしつつ、内部コードでも候補選択できるようにした
+- マスタ未接続欄はdisabledにせず、進入禁止マークを出さない
+- 下書き保存、AI解析、本登録処理はまだ触っていない
+- DB構造、API、保存処理は触っていない
+- inline JSは node --check で構文確認済み
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_master_api_20260707_141043.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_master_api_20260707_141043.html
+
+[本体反映]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_master_api_20260707_141043.txt
+
+[確認]
+- サーバーを再起動する
+- 支払書類 読取内容確認ページを再読込する
+- 書類区分 / 処理先 / 会計区分 / 未払種別 などがマスタ候補として出ること
+- 進入禁止マークが出ないこと
+- 左のOCR済み書類選択、中央のOCR本文表示が従来通り動くこと
+- 下書き保存ボタンはまだ予定表示のままであること
