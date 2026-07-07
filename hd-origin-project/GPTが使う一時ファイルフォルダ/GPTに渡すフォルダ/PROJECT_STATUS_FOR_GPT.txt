@@ -42,7 +42,7 @@ HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
 - DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
 
 [生成情報]
-生成日時: 2026/7/6 23:47:00
+生成日時: 2026/7/7 10:30:43
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -139,6 +139,7 @@ hd-origin-project\
 │     ├─ 20260705_001_receipt_6tables.sql
 │     ├─ 20260705_002_receipt_is_settled.sql
 │     ├─ 20260706_001_payables_professional.sql
+│     ├─ 20260707_001_delivery_notes.sql
 │     └─ README_MIGRATIONS.txt
 ├─ GPTが使う一時ファイルフォルダ\
 │  ├─ after\
@@ -150,9 +151,13 @@ hd-origin-project\
 │  │  │     ├─ 20260703_001_baseline_current_schema.sql
 │  │  │     ├─ 20260705_002_receipt_is_settled.sql
 │  │  │     ├─ 20260706_001_payables_professional_after_20260706_202927.sql
+│  │  │     ├─ 20260707_001_delivery_notes.sql
 │  │  │     └─ README_MIGRATIONS.txt
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
+│  │  │  │  ├─ delivery-notes\
+│  │  │  │  │  ├─ delivery-note-edit.html
+│  │  │  │  │  └─ delivery-note-inbox.html
 │  │  │  │  ├─ masters\
 │  │  │  │  │  └─ master-management.html
 │  │  │  │  ├─ payables\
@@ -174,19 +179,31 @@ hd-origin-project\
 │  │  │  │  │  ├─ payable-list_after_restart_button_20260706_205843.html
 │  │  │  │  │  ├─ payable-list_after_smart_decimal_20260706_211204.html
 │  │  │  │  │  ├─ payable-list_after_split_css_20260706_205252.css
-│  │  │  │  │  └─ payable-list_after_split_css_20260706_205252.html
+│  │  │  │  │  ├─ payable-list_after_split_css_20260706_205252.html
+│  │  │  │  │  ├─ payable-list.css
+│  │  │  │  │  ├─ payable-list.html
+│  │  │  │  │  ├─ payment-document-inbox.css
+│  │  │  │  │  ├─ payment-document-inbox.html
+│  │  │  │  │  ├─ payment-document-review.css
+│  │  │  │  │  └─ payment-document-review.html
 │  │  │  │  ├─ receipts\
 │  │  │  │  │  ├─ receipt-ledger-print.html
 │  │  │  │  │  ├─ receipt-list.css
 │  │  │  │  │  ├─ receipt-list.html
 │  │  │  │  │  └─ receipt-saved-list.html
+│  │  │  │  ├─ receivables\
+│  │  │  │  │  └─ receivable-dashboard.html
 │  │  │  │  ├─ hd-origin-exit-guard_after_hide_backup_window_20260706_204442.js
 │  │  │  │  ├─ index_after_payables_button_20260706_202133.html
 │  │  │  │  ├─ index_after_payables_system_20260706_202927.html
+│  │  │  │  ├─ index.html
 │  │  │  │  └─ settings.html
 │  │  │  ├─ src\
 │  │  │  │  ├─ backups\
 │  │  │  │  │  └─ backup.service.js
+│  │  │  │  ├─ deliveryNotes\
+│  │  │  │  │  ├─ deliveryNotes.repository.js
+│  │  │  │  │  └─ deliveryNotes.routes.js
 │  │  │  │  ├─ masters\
 │  │  │  │  │  └─ master.repository.js
 │  │  │  │  ├─ migrations\
@@ -194,6 +211,8 @@ hd-origin-project\
 │  │  │  │  ├─ payables\
 │  │  │  │  │  ├─ payables.repository_after_20260706_202927.js
 │  │  │  │  │  └─ payables.routes_after_20260706_202927.js
+│  │  │  │  ├─ paymentDocuments\
+│  │  │  │  │  └─ paymentDocuments.routes.js
 │  │  │  │  ├─ receipts\
 │  │  │  │  │  ├─ receipts.ai.js
 │  │  │  │  │  ├─ receipts.repository.js
@@ -204,7 +223,22 @@ hd-origin-project\
 │  │  │  ├─ server_after_payables_system_20260706_202927.js
 │  │  │  ├─ server.js
 │  │  │  └─ start_hd_origin.bat
+│  │  ├─ delivery-note-inbox_after_20260707_002118.html
+│  │  ├─ delivery-note-inbox_after_image_rotate_20260707_002747.html
+│  │  ├─ delivery-note-inbox_after_image_zoom_20260707_003048.html
 │  │  ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt.after_receipt_db_handoff.txt
+│  │  ├─ payable-list_after_delivery_note_button_20260706_235835.html
+│  │  ├─ payable-list_after_delivery_note_header_button_20260707_001101.html
+│  │  ├─ payable-list_after_delivery_note_page_link_20260707_002118.css
+│  │  ├─ payable-list_after_delivery_note_page_link_20260707_002118.html
+│  │  ├─ payable-list_after_delivery_note_repair_20260707_000443.html
+│  │  ├─ payable-list_after_header_button_visible_20260707_001516.css
+│  │  ├─ payable-list_after_real_delivery_note_button_20260707_000910.html
+│  │  ├─ payable-list_after_remove_fake_delivery_note_buttons_20260707_002524.html
+│  │  ├─ payables.repository_after_delivery_note_button_20260706_235835.js
+│  │  ├─ payables.repository_after_delivery_note_header_button_20260707_001101.js
+│  │  ├─ payables.repository_after_delivery_note_repair_20260707_000443.js
+│  │  ├─ payables.repository_after_real_delivery_note_button_20260707_000910.js
 │  │  ├─ PROJECT_STATUS_FOR_GPT_after_payables_master_policy_20260706_215023_PROJECT_STATUS_FOR_GPT.txt
 │  │  ├─ PROJECT_STATUS_FOR_GPT.txt.after_receipt_db_handoff.txt
 │  │  ├─ PROJECT_TODO_FOR_GPT.txt.after_receipt_db_handoff.txt
@@ -239,6 +273,7 @@ hd-origin-project\
 │  │  ├─ apply_move_target_person_into_yellow_html_20260704_230724.ps1
 │  │  ├─ apply_payables_block_color_20260706_205052.ps1
 │  │  ├─ apply_payables_button_global_fix_20260706_210718.ps1
+│  │  ├─ apply_payables_delivery_note_button_20260706_235835.ps1
 │  │  ├─ apply_payables_font_large_20260706_212952.ps1
 │  │  ├─ apply_payables_input_money_format_20260706_212712.ps1
 │  │  ├─ apply_payables_left_small_font_20260706_213457.ps1
@@ -338,8 +373,24 @@ hd-origin-project\
 │  ├─ before\
 │  │  ├─ database\
 │  │  │  └─ migrations\
+│  │  ├─ storage\
+│  │  │  └─ payment-documents\
+│  │  │     └─ scan-inbox\
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_01_ダミー証憑_請求書_材料仕入.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_02_ダミー証憑_納付書_法人税.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_03_ダミー証憑_Web明細_電気料金.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_04_ダミー証憑_手書き領収書_上様.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_05_ダミー証憑_メール保存_通信費.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_06_ダミー証憑_カード利用明細.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_07_ダミー証憑_保険料通知書.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_08_ダミー証憑_リース契約書.png.meta.json
+│  │  │        ├─ DUMMY_EVIDENCE_20260707_0825_09_ダミー証憑_水道料金通知書.png.meta.json
+│  │  │        └─ DUMMY_EVIDENCE_20260707_0825_10_ダミー証憑_その他証憑_確認待ち.png.meta.json
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
+│  │  │  │  ├─ delivery-notes\
+│  │  │  │  │  ├─ delivery-note-edit.html
+│  │  │  │  │  └─ delivery-note-inbox.html
 │  │  │  │  ├─ masters\
 │  │  │  │  │  └─ master-management.html
 │  │  │  │  ├─ payables\
@@ -359,7 +410,12 @@ hd-origin-project\
 │  │  │  │  │  ├─ payable-list_before_money_only_20260706_212036.html
 │  │  │  │  │  ├─ payable-list_before_restart_button_20260706_205843.html
 │  │  │  │  │  ├─ payable-list_before_smart_decimal_20260706_211204.html
-│  │  │  │  │  └─ payable-list_before_split_css_20260706_205252.html
+│  │  │  │  │  ├─ payable-list_before_split_css_20260706_205252.html
+│  │  │  │  │  ├─ payable-list.css
+│  │  │  │  │  ├─ payable-list.html
+│  │  │  │  │  ├─ payment-document-inbox.css
+│  │  │  │  │  ├─ payment-document-inbox.html
+│  │  │  │  │  └─ payment-document-review.html
 │  │  │  │  ├─ receipts\
 │  │  │  │  │  ├─ receipt-ledger-print_before_add_single_button_left_v2.html
 │  │  │  │  │  ├─ receipt-ledger-print_before_add_single_button_left.html
@@ -485,10 +541,12 @@ hd-origin-project\
 │  │  │  │  ├─ hd-origin-exit-guard_before_hide_backup_window_20260706_204442.js
 │  │  │  │  ├─ index_before_payables_button_20260706_202133.html
 │  │  │  │  ├─ index_before_payables_system_20260706_202927.html
+│  │  │  │  ├─ index.html
 │  │  │  │  ├─ settings_before_backup_split_ui_v2.html
 │  │  │  │  ├─ settings_before_backup_split_ui_v3.html
 │  │  │  │  ├─ settings_before_backup_split_ui.html
-│  │  │  │  └─ settings_before_backup_visual_select.js.html
+│  │  │  │  ├─ settings_before_backup_visual_select.js.html
+│  │  │  │  └─ settings.html
 │  │  │  ├─ src\
 │  │  │  │  ├─ backups\
 │  │  │  │  │  ├─ backup.service_before_clone_save_safe.js
@@ -497,11 +555,15 @@ hd-origin-project\
 │  │  │  │  │  ├─ backup.service_before_migration_snapshot.js
 │  │  │  │  │  ├─ backup.service_before_migration_version.js
 │  │  │  │  │  └─ backup.service_before_split_schema_data.js
+│  │  │  │  ├─ deliveryNotes\
+│  │  │  │  │  └─ deliveryNotes.routes.js
 │  │  │  │  ├─ masters\
 │  │  │  │  │  └─ master.repository.js
 │  │  │  │  ├─ migrations\
 │  │  │  │  │  ├─ migration.service_before_bom_fix_v2.js
 │  │  │  │  │  └─ migration.service_before_bom_fix.js
+│  │  │  │  ├─ paymentDocuments\
+│  │  │  │  │  └─ paymentDocuments.routes.js
 │  │  │  │  ├─ receipts\
 │  │  │  │  │  ├─ receipts.ai_before_account_title_prompt_strong_20260705_092252.js
 │  │  │  │  │  ├─ receipts.ai_before_account_title_prompt_strong_v2_20260705_092352.js
@@ -578,8 +640,24 @@ hd-origin-project\
 │  │  │  │  └─ projectStatus.js
 │  │  │  ├─ server_before_payables_system_20260706_202927.js
 │  │  │  ├─ server_before_restart_button_20260705_110700.js
+│  │  │  ├─ server.js
 │  │  │  └─ start_hd_origin.bat
+│  │  ├─ delivery-note-inbox_before_20260707_002118.html
+│  │  ├─ delivery-note-inbox_before_image_rotate_20260707_002747.html
+│  │  ├─ delivery-note-inbox_before_image_zoom_20260707_003048.html
 │  │  ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt.before_receipt_db_handoff.txt
+│  │  ├─ payable-list_before_delivery_note_button_20260706_235835.html
+│  │  ├─ payable-list_before_delivery_note_header_button_20260707_001101.html
+│  │  ├─ payable-list_before_delivery_note_page_link_20260707_002118.css
+│  │  ├─ payable-list_before_delivery_note_page_link_20260707_002118.html
+│  │  ├─ payable-list_before_delivery_note_repair_20260707_000443.html
+│  │  ├─ payable-list_before_header_button_visible_20260707_001516.css
+│  │  ├─ payable-list_before_real_delivery_note_button_20260707_000910.html
+│  │  ├─ payable-list_before_remove_fake_delivery_note_buttons_20260707_002524.html
+│  │  ├─ payables.repository_before_delivery_note_button_20260706_235835.js
+│  │  ├─ payables.repository_before_delivery_note_header_button_20260707_001101.js
+│  │  ├─ payables.repository_before_delivery_note_repair_20260707_000443.js
+│  │  ├─ payables.repository_before_real_delivery_note_button_20260707_000910.js
 │  │  ├─ PROJECT_STATUS_FOR_GPT_before_payables_master_policy_20260706_215023_PROJECT_STATUS_FOR_GPT.txt
 │  │  ├─ PROJECT_STATUS_FOR_GPT.txt
 │  │  ├─ PROJECT_STATUS_FOR_GPT.txt.before_receipt_db_handoff.txt
@@ -598,28 +676,16 @@ hd-origin-project\
 │  │  └─ start_hd_origin_before_same_window_loop_fix.bat
 │  ├─ GPTに渡すフォルダ\
 │  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  ├─ receivables\
+│  │  │  │  │  └─ receivable-dashboard.html
+│  │  │  │  ├─ index.html
+│  │  │  │  └─ settings.html
 │  │  │  ├─ src\
-│  │  │  │  ├─ backups\
-│  │  │  │  │  ├─ backup.routes.js
-│  │  │  │  │  └─ backup.service.js
-│  │  │  │  ├─ migrations\
-│  │  │  │  │  └─ migration.service.js
-│  │  │  │  ├─ utils\
-│  │  │  │  │  ├─ command.js
-│  │  │  │  │  └─ time.js
-│  │  │  │  ├─ config.js
-│  │  │  │  ├─ db.bootstrap.js
-│  │  │  │  ├─ db.js
 │  │  │  │  └─ projectStatus.js
-│  │  │  ├─ package.json
-│  │  │  ├─ server.js
-│  │  │  └─ start_hd_origin.bat
-│  │  ├─ .env_path.txt
-│  │  ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
-│  │  ├─ HD_ORIGIN_PC_RULES.txt
+│  │  │  └─ server.js
 │  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
-│  │  ├─ PROJECT_STATUS_FOR_GPT.txt
-│  │  └─ PROJECT_TODO_FOR_GPT.txt
+│  │  └─ PROJECT_STATUS_FOR_GPT.txt
 │  ├─ memo\
 │  │  ├─ 00_apply_group_id_check.txt
 │  │  ├─ 00_backup_dir_dynamic_dropbox_fix.txt
@@ -659,6 +725,7 @@ hd-origin-project\
 │  │  ├─ 00_migration_receipt_6tables_履歴補正結果_v2.txt
 │  │  ├─ 00_migration_receipt_6tables_履歴補正結果.txt
 │  │  ├─ 00_migration_snapshot確認結果.txt
+│  │  ├─ 00_NG_after側_納品書ボタン_20260707_000254.txt
 │  │  ├─ 00_PROJECT_STATUS_FOR_GPT_請求書未払_区分マスタ化方針追記_20260706_215023.txt
 │  │  ├─ 00_projectStatus_20ファイルルール再修正用_収集結果.txt
 │  │  ├─ 00_projectStatus_20ファイルルール失敗後確認.txt
@@ -669,6 +736,7 @@ hd-origin-project\
 │  │  ├─ 00_projectStatus_作業ルール部分確認.txt
 │  │  ├─ 00_projectStatus_作業ルール文言修正結果.txt
 │  │  ├─ 00_projectStatus_次にやること追記結果.txt
+│  │  ├─ 00_projectStatus_納品書AI取引先別ルールTODO恒久追記結果.txt
 │  │  ├─ 00_receipt_ai_drafts_関係箇所棚卸し.txt
 │  │  ├─ 00_receipt_ai_drafts_関係関数抜き出し.txt
 │  │  ├─ 00_receipt_auto_draft_save_check_20260705_162744.js
@@ -738,10 +806,8 @@ hd-origin-project\
 │  │  ├─ 00_マスタ管理_表示順上下ボタン追加結果.txt
 │  │  ├─ 00_マスタ管理不具合修正用_収集結果.txt
 │  │  ├─ 00_まとめて保存_候補名payload修正_20260705_075806.txt
-│  │  ├─ 00_メイン画面_請求書未払管理ボタン追加_20260706_202133.txt
-│  │  ├─ 00_レシート_analyze新6テーブル切替結果.txt
-│  │  ├─ 00_レシート_is_settled_DB保存対応結果.txt
-│  │  └─ ... 237 items omitted
+│  │  ├─ 00_メインメニュー_入金管理ボタン正式追加結果.txt
+│  │  └─ ... 289 items omitted
 │  ├─ undo\
 │  │  ├─ used\
 │  │  │  ├─ undo_receipt_basic_info_html_rebuild_20260704_222712.ps1
@@ -763,10 +829,16 @@ hd-origin-project\
 │  │  ├─ undo_config_receipt_dropbox_root_regex_20260705_193237.ps1
 │  │  ├─ undo_db_backup_clone_save_safe.ps1
 │  │  ├─ undo_db_pg_date_string_full_20260705_203915.ps1
+│  │  ├─ undo_delivery_note_header_button_20260707_001101.ps1
+│  │  ├─ undo_delivery_note_image_rotate_20260707_002747.ps1
+│  │  ├─ undo_delivery_note_image_zoom_20260707_003048.ps1
+│  │  ├─ undo_delivery_note_page_foundation_20260707_002118.ps1
 │  │  ├─ undo_fix_bulk_candidate_names_20260705_075806.ps1
 │  │  ├─ undo_fix_old_master_display_call_20260705_075907.ps1
 │  │  ├─ undo_force_rebuild_yellow_target_inside_20260704_230956.ps1
+│  │  ├─ undo_header_button_visible_20260707_001516.ps1
 │  │  ├─ undo_hide_backup_window_20260706_204442.ps1
+│  │  ├─ undo_index_receivables_menu_button.ps1
 │  │  ├─ undo_line_block_title_color_v2_20260705_080417.ps1
 │  │  ├─ undo_line_count_badge_safe_20260705_081414.ps1
 │  │  ├─ undo_line_items_color_20260705_080031.ps1
@@ -786,6 +858,8 @@ hd-origin-project\
 │  │  ├─ undo_move_target_person_into_yellow_html_20260704_230724.ps1
 │  │  ├─ undo_payables_block_color_20260706_205052.ps1
 │  │  ├─ undo_payables_button_global_fix_20260706_210718.ps1
+│  │  ├─ undo_payables_delivery_note_button_20260706_235835.ps1
+│  │  ├─ undo_payables_delivery_note_repair_20260707_000443.ps1
 │  │  ├─ undo_payables_dummy_10_20260706_205524.ps1
 │  │  ├─ undo_payables_font_large_20260706_212952.ps1
 │  │  ├─ undo_payables_input_money_format_20260706_212712.ps1
@@ -799,8 +873,29 @@ hd-origin-project\
 │  │  ├─ undo_payables_restart_button_20260706_205843.ps1
 │  │  ├─ undo_payables_smart_decimal_20260706_211204.ps1
 │  │  ├─ undo_payables_split_css_20260706_205252.ps1
+│  │  ├─ undo_payment_document_bulk_ocr.ps1
+│  │  ├─ undo_payment_document_dummy_10.ps1
+│  │  ├─ undo_payment_document_dummy_evidence_10.ps1
+│  │  ├─ undo_payment_document_floating_result_log.ps1
+│  │  ├─ undo_payment_document_hide_file_detail_jst.ps1
+│  │  ├─ undo_payment_document_hide_inbox_note.ps1
+│  │  ├─ undo_payment_document_hide_left_debug_summary.ps1
+│  │  ├─ undo_payment_document_inbox_skeleton.ps1
+│  │  ├─ undo_payment_document_inbox_split_css.ps1
+│  │  ├─ undo_payment_document_inbox_unclassified_fix.ps1
+│  │  ├─ undo_payment_document_left_list_compact.ps1
+│  │  ├─ undo_payment_document_move_status_to_right.ps1
+│  │  ├─ undo_payment_document_ocr_only_screen.ps1
+│  │  ├─ undo_payment_document_preview_rotation_save.ps1
+│  │  ├─ undo_payment_document_receipt_like_layout.ps1
+│  │  ├─ undo_payment_document_review_naming.ps1
+│  │  ├─ undo_payment_document_review_page.ps1
+│  │  ├─ undo_payment_document_right_action_buttons.ps1
+│  │  ├─ undo_payment_document_right_preview_buttons.ps1
+│  │  ├─ undo_payment_document_status_box_inline.ps1
 │  │  ├─ undo_payment_method_master_select_20260705_083638.ps1
 │  │  ├─ undo_project_status_payables_master_policy_20260706_215023.ps1
+│  │  ├─ undo_projectStatus_delivery_note_vendor_rules_todo.ps1
 │  │  ├─ undo_projectStatus_file_count_rule_20.ps1
 │  │  ├─ undo_projectStatus_japanese_mojibake_rule_v2.ps1
 │  │  ├─ undo_projectStatus_japanese_mojibake_rule_v3.ps1
@@ -809,6 +904,7 @@ hd-origin-project\
 │  │  ├─ undo_projectStatus_next_receipt_save.ps1
 │  │  ├─ undo_projectStatus_作業ルール文言.ps1
 │  │  ├─ undo_purpose_master_34_items_disable.js
+│  │  ├─ undo_real_delivery_note_button_20260707_000910.ps1
 │  │  ├─ undo_receipt_ai_drafts_patch_to_new6_20260705_161340.ps1
 │  │  ├─ undo_receipt_ai_master_hints.ps1
 │  │  ├─ undo_receipt_analyze_new6_route.ps1
@@ -836,37 +932,7 @@ hd-origin-project\
 │  │  ├─ undo_receipt_ledger_print_page.ps1
 │  │  ├─ undo_receipt_line_count_window_fix_20260705_091544.ps1
 │  │  ├─ undo_receipt_list_account_title_display_and_label_remove.ps1
-│  │  ├─ undo_receipt_list_css_split_20260705_071714.ps1
-│  │  ├─ undo_receipt_list_custom_dialog.ps1
-│  │  ├─ undo_receipt_list_fix_missing_dining_functions.ps1
-│  │  ├─ undo_receipt_list_layout_repair.ps1
-│  │  ├─ undo_receipt_list_px_to_rem_only.ps1
-│  │  ├─ undo_receipt_list_screen_ocr_time_fallback.ps1
-│  │  ├─ undo_receipt_list_time_row_regex_insert.ps1
-│  │  ├─ undo_receipt_master_duplicate_guard_20260705_101153.ps1
-│  │  ├─ undo_receipt_master_duplicate_guard_v2_20260705_101601.ps1
-│  │  ├─ undo_receipt_master_register_screen_refresh_20260705_103221.ps1
-│  │  ├─ undo_receipt_new6_breakdowns_display_v2.ps1
-│  │  ├─ undo_receipt_new6_breakdowns_display.ps1
-│  │  ├─ undo_receipt_new6_confidence.ps1
-│  │  ├─ undo_receipt_new6_repository_functions.ps1
-│  │  ├─ undo_receipt_new6_tax_breakdowns_api.ps1
-│  │  ├─ undo_receipt_new6_tax_save_v2.ps1
-│  │  ├─ undo_receipt_post_save_20260705_164534.ps1
-│  │  ├─ undo_receipt_remove_layout_lines_20260704_201659.ps1
-│  │  ├─ undo_receipt_remove_settled_payload_20260705.ps1
-│  │  ├─ undo_receipt_repository_accounting_hotfix.ps1
-│  │  ├─ undo_receipt_repository_remove_wrong_expenses_override.ps1
-│  │  ├─ undo_receipt_saved_ledger_20260705_200613.ps1
-│  │  ├─ undo_receipt_saved_list_button_20260705_195701.ps1
-│  │  ├─ undo_receipt_saved_list_datetime_jst_20260705_204235.ps1
-│  │  ├─ undo_receipt_saved_list_detail_table_only_lines_20260705_204716.ps1
-│  │  ├─ undo_receipt_saved_list_evidence_info_exact_20260705_210515.ps1
-│  │  ├─ undo_receipt_saved_list_left_list_compact_status_20260705_212055.ps1
-│  │  ├─ undo_receipt_saved_list_left_title_print_button.ps1
-│  │  ├─ undo_receipt_saved_list_one_settled_status_20260705_203318.ps1
-│  │  ├─ undo_receipt_saved_list_remove_evidence_path_20260705_211443.ps1
-│  │  └─ ... 45 items omitted
+│  │  └─ ... 78 items omitted
 │  ├─ _check_payables_db_20260706_203158.js
 │  ├─ _check_payables_dummy_text_20260706_205644.js
 │  ├─ _create_payables_db_by_node_20260706_203710.js
@@ -953,8 +1019,36 @@ hd-origin-project\
 │     │  └─ .gitkeep
 │     └─ work\
 │        └─ .gitkeep
+├─ storage\
+│  └─ payment-documents\
+│     └─ scan-inbox\
+│        ├─ 20260707_090709_031_2026-07-07_09.06.36.png
+│        ├─ 20260707_090709_031_2026-07-07_09.06.36.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_01_ダミー証憑_請求書_材料仕入.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_01_ダミー証憑_請求書_材料仕入.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_02_ダミー証憑_納付書_法人税.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_02_ダミー証憑_納付書_法人税.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_03_ダミー証憑_Web明細_電気料金.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_03_ダミー証憑_Web明細_電気料金.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_04_ダミー証憑_手書き領収書_上様.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_04_ダミー証憑_手書き領収書_上様.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_05_ダミー証憑_メール保存_通信費.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_05_ダミー証憑_メール保存_通信費.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_06_ダミー証憑_カード利用明細.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_06_ダミー証憑_カード利用明細.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_07_ダミー証憑_保険料通知書.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_07_ダミー証憑_保険料通知書.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_08_ダミー証憑_リース契約書.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_08_ダミー証憑_リース契約書.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_09_ダミー証憑_水道料金通知書.png
+│        ├─ DUMMY_EVIDENCE_20260707_0825_09_ダミー証憑_水道料金通知書.png.meta.json
+│        ├─ DUMMY_EVIDENCE_20260707_0825_10_ダミー証憑_その他証憑_確認待ち.png
+│        └─ DUMMY_EVIDENCE_20260707_0825_10_ダミー証憑_その他証憑_確認待ち.png.meta.json
 ├─ web_receiver\
 │  ├─ public\
+│  │  ├─ delivery-notes\
+│  │  │  ├─ delivery-note-edit.html
+│  │  │  └─ delivery-note-inbox.html
 │  │  ├─ expenses\
 │  │  │  ├─ expense-input.html
 │  │  │  ├─ expense-input.html.bak_20260625_153320
@@ -977,7 +1071,11 @@ hd-origin-project\
 │  │  │  └─ master-management.html.bak_fix_20260626_203103
 │  │  ├─ payables\
 │  │  │  ├─ payable-list.css
-│  │  │  └─ payable-list.html
+│  │  │  ├─ payable-list.html
+│  │  │  ├─ payment-document-inbox.css
+│  │  │  ├─ payment-document-inbox.html
+│  │  │  ├─ payment-document-review.css
+│  │  │  └─ payment-document-review.html
 │  │  ├─ receipts\
 │  │  │  ├─ receipt-ledger-print.html
 │  │  │  ├─ receipt-list.css
@@ -1006,6 +1104,8 @@ hd-origin-project\
 │  │  │  ├─ receipt-list.html.before_visible_area_color_redo_20260704_203547.bak
 │  │  │  ├─ receipt-saved-list.html
 │  │  │  └─ receipt-scan-inbox.html
+│  │  ├─ receivables\
+│  │  │  └─ receivable-dashboard.html
 │  │  ├─ hd-origin-exit-guard.js
 │  │  ├─ index.html
 │  │  ├─ index.html.bak_20260625_151513
@@ -1018,6 +1118,9 @@ hd-origin-project\
 │  │  ├─ backups\
 │  │  │  ├─ backup.routes.js
 │  │  │  └─ backup.service.js
+│  │  ├─ deliveryNotes\
+│  │  │  ├─ deliveryNotes.repository.js
+│  │  │  └─ deliveryNotes.routes.js
 │  │  ├─ expenses\
 │  │  │  ├─ expenses.repository.js
 │  │  │  ├─ expenses.repository.js.bak_20260625_171847
@@ -1046,6 +1149,8 @@ hd-origin-project\
 │  │  ├─ payables\
 │  │  │  ├─ payables.repository.js
 │  │  │  └─ payables.routes.js
+│  │  ├─ paymentDocuments\
+│  │  │  └─ paymentDocuments.routes.js
 │  │  ├─ projectBackup\
 │  │  │  ├─ projectBackup.routes.js
 │  │  │  └─ projectBackup.service.js
@@ -1119,3 +1224,14 @@ hd-origin-project\
 ├─ restart_hd_origin.bat
 └─ run_env_initializer.bat
 -----------------------------------
+
+[次にやること: 納品書AI 取引先別ルール]
+HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707
+- 納品書AI解析は、共通ルールだけで確定しない。取引先別ルールを後から追加できる設計にする。
+- 納品書は取引先ごとに帳票のクセが強いため、明細の列位置、商品コード、備考、税額の読み方を取引先別に補正できるようにする。
+- 株式会社マルシンの例では、明細先頭の「0001」が全行共通で出るため、商品コードとして自動確定しない。
+- 全行共通のコードは item_code に確定入力せず、raw_code または memo に残して人間確認対象にする。
+- 「上二回」など加工・備考っぽい語は、商品名へ混ぜるか備考へ分けるかを取引先別ルールで判断する。
+- 明細解析では、数量 × 単価 = 金額 が一致する組み合わせを優先する。
+- 税額がOCRで読めない場合は、明細合計を税抜額候補として扱い、税込合計・消費税額は要確認にする。
+- 初期段階ではDB化を急がず、まずAIプロンプトまたはルールJSONで取引先別ルールを持てる形にする。

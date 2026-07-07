@@ -1,0 +1,37 @@
+﻿==============================
+projectStatus.js 納品書AI取引先別ルールTODO 恒久追記結果
+==============================
+日時: 2026-07-07 07:10:16
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[更新ファイル]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\projectStatus.js
+
+[今回の修正]
+- PROJECT_STATUS_FOR_GPT.txt へ直接追記するだけでなく、生成元 projectStatus.js 側へ追記
+- 次回起動でスタート文書が再生成されても、納品書AI取引先別ルールTODOが入るようにした
+- 同じTODOが既にある場合は重複させず差し替える
+- 現在の PROJECT_STATUS_FOR_GPT.txt にも即時反映
+
+[確認]
+projectStatus.js marker: True
+PROJECT_STATUS_FOR_GPT.txt marker: True
+JS構文チェック: OK
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\projectStatus.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\projectStatus.js
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_projectStatus_delivery_note_vendor_rules_todo.ps1
+
+[触っていないもの]
+DB
+API
+.env
+画像ファイル
+backupフォルダ

@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const readline = require("readline");
@@ -18,6 +18,12 @@ const { handleExpenseRoutes } = require("./src/expenses/expenses.routes");
 const { handlePayableRoutes } = require("./src/payables/payables.routes");
 /* PAYABLES_ROUTE_REQUIRE_20260706_END */
 const { handleReceiptRoutes } = require("./src/receipts/receipts.routes");
+/* PAYMENT_DOCUMENT_ROUTE_REQUIRE_20260707_START */
+const { handlePaymentDocumentRoutes } = require("./src/paymentDocuments/paymentDocuments.routes");
+/* PAYMENT_DOCUMENT_ROUTE_REQUIRE_20260707_END */
+/* DELIVERY_NOTE_ROUTE_REQUIRE_20260707_START */
+const { handleDeliveryNoteRoutes } = require("./src/deliveryNotes/deliveryNotes.routes");
+/* DELIVERY_NOTE_ROUTE_REQUIRE_20260707_END */
 const { handleMasterRoutes } = require("./src/masters/masters.routes");
 const { makeAppRoutes } = require("./src/app/app.routes");
 
@@ -233,9 +239,15 @@ const server = http.createServer(async (req, res) => {
       if (await handleBackupRoutes(req, res)) return;
       if (await handleProjectBackupRoutes(req, res)) return;
       if (await handleExpenseRoutes(req, res)) return;
+      /* PAYMENT_DOCUMENT_ROUTE_HANDLER_20260707_START */
+      if (await handlePaymentDocumentRoutes(req, res)) return;
+      /* PAYMENT_DOCUMENT_ROUTE_HANDLER_20260707_END */
       /* PAYABLES_ROUTE_HANDLER_20260706_START */
       if (await handlePayableRoutes(req, res)) return;
       /* PAYABLES_ROUTE_HANDLER_20260706_END */
+      /* DELIVERY_NOTE_ROUTE_HANDLER_20260707_START */
+      if (await handleDeliveryNoteRoutes(req, res)) return;
+      /* DELIVERY_NOTE_ROUTE_HANDLER_20260707_END */
       if (await handleReceiptRoutes(req, res)) return;
       if (await handleAppRoutes(req, res)) return;
 

@@ -1,0 +1,58 @@
+﻿==============================
+支払書類取込システム 骨格作成結果
+==============================
+日時: 2026-07-07 08:12:01
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- 請求書・未払管理ページに「支払書類取込」ボタンを追加
+- 支払書類取込ページを作成
+- レシート取込画面を参考に、上部操作・左一覧・右プレビュー構成にした
+- 請求書、納付書、通知書、Web明細、領収書、メール保存ファイル、カード利用明細、契約書、その他を同じ入口で扱う
+- PROJECT内 storage\\payment-documents\\scan-inbox にファイルを保存するAPIを追加
+- 一覧、プレビュー、削除、分類メモ保存、処理先予定、サーバー再起動ボタンを作成
+- DBテーブルは作っていない
+
+[変更・作成ファイル]
+変更: web_receiver\public\payables\payable-list.html
+変更: web_receiver\public\payables\payable-list.css
+変更: web_receiver\server.js
+作成: web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+作成: web_receiver\public\payables\payment-document-inbox.html
+
+[確認]
+payable button marker: True
+route require marker: True
+route handler marker: True
+inbox page exists: True
+route file exists: True
+JS構文チェック: OK
+
+[URL]
+http://localhost:3000/payables/payment-document-inbox.html
+
+[触っていないもの]
+DBテーブル
+.env
+backupフォルダ
+既存レシートDB
+既存納品書DB
+
+[注意]
+server.js を変更したため、サーバー再起動が必要です。
+取込ファイルの保存先は PROJECT_ROOT\\storage\\payment-documents\\scan-inbox です。
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_inbox_skeleton.ps1
+
+[確認手順]
+1. サーバー再起動
+2. 請求書・未払管理ページをCtrl+F5
+3. ヘッダーに「支払書類取込」ボタンが出るか確認
+4. 支払書類取込ページへ遷移
+5. PDFまたは画像を追加
+6. 左一覧に出るか確認
+7. 右側でプレビューできるか確認
+8. 書類区分・処理先を選び、分類メモ保存

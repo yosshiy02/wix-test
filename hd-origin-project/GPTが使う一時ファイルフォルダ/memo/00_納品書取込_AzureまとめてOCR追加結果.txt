@@ -1,0 +1,40 @@
+﻿==============================
+納品書取込 AzureまとめてOCR追加結果
+==============================
+日時: 2026-07-07 06:49:44
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- 納品書取込画面の取込済み納品書一覧にチェックボックスを追加
+- 全選択 / 全解除 / まとめてOCR ボタンを追加
+- Azure Document Intelligence prebuilt-read でOCRするAPIを追加
+- OCR結果を accounting.delivery_note_imports.ocr_raw_text に保存
+- OCR状態は updateImportOcrRawText 経由で OCR本文あり に更新
+- 画像プレビューは1画面FITと回転時自動FITを維持
+
+[追加API]
+POST /api/delivery-notes/imports/:id/ocr-azure
+POST /api/delivery-notes/imports/bulk-ocr
+
+[変更ファイル]
+web_receiver\src\deliveryNotes\deliveryNotes.routes.js
+web_receiver\public\delivery-notes\delivery-note-inbox.html
+
+[触っていないもの]
+DBテーブル
+.env
+画像ファイル
+backupフォルダ
+
+[JS構文チェック]
+OK: web_receiver\src\deliveryNotes\deliveryNotes.routes.js
+
+[確認手順]
+1. サーバー再起動
+2. http://localhost:3000/delivery-notes/delivery-note-inbox.html をCtrl+F5
+3. 取込済み納品書にチェック
+4. まとめてOCRを押す
+5. OCR成功後、一覧のOCR状態が OCR本文あり になるか確認
+6. 納品書編集ページでOCR本文が読めるか確認

@@ -1,0 +1,50 @@
+﻿==============================
+支払書類OCR取込 表示用回転角度保存 結果
+==============================
+日時: 2026-07-07 10:25:45
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- routeファイルの return router; 直前へAPIを追加
+- 原本画像は触らず、表示用の回転角度だけ保存
+- .meta.json に previewRotation / rotation を保存
+- 左90度 / 右90度 / 表示リセットで角度を保存
+- 書類を選び直しても保存済み角度で表示
+- HTML + route を修正
+- DBは触っていない
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[追加API]
+GET  /api/payment-documents/scan-inbox/preview-rotation/:fileName
+POST /api/payment-documents/scan-inbox/save-preview-rotation
+
+[確認]
+HTML normalize関数あり: True
+HTML 角度読込あり: True
+HTML 角度保存あり: True
+route 角度読込APIあり: True
+route 角度保存APIあり: True
+meta.previewRotation保存あり: True
+return router あり: False
+Node構文チェック: OK
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_preview_rotation_save.ps1
+
+[確認手順]
+1. サーバー再起動
+2. 支払書類OCR取込を Ctrl+F5
+3. 書類を選択
+4. 左90度 または 右90度 を押す
+5. 別の書類を選択
+6. 元の書類に戻る
+7. 回転角度が維持されていればOK
+
+[重要]
+原本画像ファイルは回転しない。
+保存するのは表示用角度だけ。

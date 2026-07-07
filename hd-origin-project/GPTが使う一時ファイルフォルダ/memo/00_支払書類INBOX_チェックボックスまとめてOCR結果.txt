@@ -1,0 +1,48 @@
+﻿==============================
+支払書類INBOX チェックボックス・まとめてOCR 結果
+==============================
+日時: 2026-07-07 08:44:53
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- 左一覧にチェックボックスを追加
+- 全選択 / 全解除 / まとめてOCR ボタンを追加
+- 選択件数表示を追加
+- 1件OCRボタンを追加
+- Azure Document Intelligence prebuilt-read でOCRするAPIを追加
+- OCR本文を各ファイルの .meta.json に保存
+- 左一覧に OCR待ち / OCR済 / OCR失敗 を表示
+- 右側にOCR本文欄を追加
+- DB本登録はまだしていない
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-inbox.css
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[確認]
+checkboxあり: True
+まとめてOCRボタンあり: True
+OCR endpointあり: True
+Azure prebuilt-readあり: True
+OCR本文欄あり: True
+OCR badge CSSあり: True
+JS構文チェック: OK
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_bulk_ocr.ps1
+
+[確認手順]
+1. server.jsではなくrouteファイル変更ですが、Node再読込のためサーバー再起動
+2. 支払書類INBOXを Ctrl+F5
+3. 左一覧にチェックボックスが出るか確認
+4. 全選択を押す
+5. まとめてOCRを押す
+6. OCR済み表示になるか確認
+7. 1件クリックして右側のOCR本文欄に文字が出るか確認
+
+[注意]
+Azure OCRキー/エンドポイントが.envに無い場合、OCRはエラーになります。
+DB本登録、未払・経費への送信は次段階です。

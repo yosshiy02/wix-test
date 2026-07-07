@@ -55,7 +55,7 @@ function normalizeStatus(value) {
 }
 function normalizeDocumentType(value) {
   const v = toText(value) || "invoice";
-  return ["invoice", "statement", "credit_note", "other"].includes(v) ? v : "invoice";
+  return ["invoice", "delivery_note", "statement", "credit_note", "other"].includes(v) ? v : "invoice";
 }
 function normalizePayableKind(value) {
   const v = toText(value) || "unpaid";
@@ -556,3 +556,7 @@ module.exports = {
   deletePayment,
   deletePayable
 };
+
+
+
+

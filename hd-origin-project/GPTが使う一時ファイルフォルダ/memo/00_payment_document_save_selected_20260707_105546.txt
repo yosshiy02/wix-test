@@ -1,0 +1,51 @@
+﻿==============================
+Payment document save selected applied
+==============================
+datetime: 2026-07-07 10:55:47
+
+project_root: G:\GITHUB\wix-test\hd-origin-project
+
+changed:
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-inbox.css
+
+what changed:
+- Added POST /api/payment-documents/scan-inbox/save-selected.
+- Added saveOneInboxItem.
+- Selected OCR-done files can be marked as saved.
+- Saved meta contains evidenceSaved=true and ocrSaved=true.
+- Added button: check selected save.
+- Added saved badge.
+
+before:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_save_selected_20260707_105546.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-inbox_before_save_selected_20260707_105546.html
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-inbox_before_save_selected_20260707_105546.css
+
+after:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_save_selected_20260707_105546.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-inbox_after_save_selected_20260707_105546.html
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-inbox_after_save_selected_20260707_105546.css
+
+apply:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_save_selected_20260707_105546.ps1
+
+undo:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_save_selected_20260707_105546.ps1
+
+checks:
+routes after: OK
+inbox after script: OK
+routes applied: OK
+inbox applied script: OK
+
+not changed:
+- No DB migration.
+- No original file deletion.
+- No .env change.
+- No backup folder change.
+
+need:
+- Restart server because route file changed.
+- Reload browser page.

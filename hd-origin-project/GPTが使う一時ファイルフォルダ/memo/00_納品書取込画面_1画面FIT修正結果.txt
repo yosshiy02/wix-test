@@ -1,0 +1,33 @@
+﻿==============================
+納品書取込画面 1画面FIT修正結果
+==============================
+日時: 2026-07-07 06:42:16
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- 納品書取込画面をディスプレイ1枚分想定に調整
+- 画像プレビューを全体FIT表示に変更
+- 回転時も自動でFITし直すように変更
+- 拡大縮小はFITを基準に倍率変更する方式へ変更
+- ボタン文言を「納品書編集ページへ」に変更
+- 編集ページのタイトルを「納品書編集」に変更
+
+[変更ファイル]
+web_receiver\public\delivery-notes\delivery-note-inbox.html
+web_receiver\public\delivery-notes\delivery-note-edit.html
+
+[触っていないもの]
+DB
+API
+server.js
+.env
+画像ファイル
+backupフォルダ
+
+[確認]
+http://localhost:3000/delivery-notes/delivery-note-inbox.html
+画像を選択または取込済みを選択し、全体が収まるか確認
+右90度・左90度を押して、回転後も全体が収まるか確認
+ボタン表示が「納品書編集ページへ」になっているか確認

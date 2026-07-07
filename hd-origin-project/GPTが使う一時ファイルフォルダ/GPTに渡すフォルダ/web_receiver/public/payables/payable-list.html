@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -12,7 +12,13 @@
   <div class="button-row">
     <button type="button" onclick="location.href='/'">メインへ</button>
     <button type="button" onclick="hdOriginPayablesReload()">再読み込み</button>
-      <!-- PAYABLES_RESTART_BUTTON_20260706_START -->
+    <!-- PAYABLES_PAYMENT_DOCUMENT_INBOX_BUTTON_20260707_START -->
+    <button type="button" class="header-payment-document-button" onclick="location.href='./payment-document-inbox.html'">支払書類取込</button>
+    <!-- PAYABLES_PAYMENT_DOCUMENT_INBOX_BUTTON_20260707_END -->
+    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_START -->
+    <button type="button" class="header-delivery-note-button" onclick="location.href='../delivery-notes/delivery-note-inbox.html'">納品書</button>
+    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_END -->
+<!-- PAYABLES_RESTART_BUTTON_20260706_START -->
 <button type="button" onclick="hdOriginPayablesRestart()">サーバー再起動</button>
 <!-- PAYABLES_RESTART_BUTTON_20260706_END -->
     </div>
@@ -67,7 +73,7 @@
         <button type="button" onclick="loadPayables()">検索</button>
         <button type="button" onclick="clearFilters()">条件クリア</button>
         <button type="button" class="primary" onclick="newPayable()">新規作成</button>
-      </div>
+</div>
     </div>
     <div class="card card-list"><h2>請求書・未払一覧</h2>
       <div id="list" class="list-wrap">読み込み中...</div>
@@ -95,6 +101,9 @@
           <label>書類区分</label>
           <select id="documentType">
             <option value="invoice">請求書</option>
+            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_START -->
+            <option value="delivery_note">納品書</option>
+            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_END -->
             <option value="statement">明細書</option>
             <option value="credit_note">値引・返品</option>
             <option value="other">その他</option>
@@ -415,7 +424,7 @@ function renderList() {
     return `
       <div class="list-item${active}" onclick="loadDetail(${esc(item.payable_id)})">
         <div class="list-main">
-          <span>${esc(item.payable_no)} / ${esc(item.vendor_name)}</span>
+          <span>${esc(item.payable_no)} / ${esc(documentTypeLabel(item.document_type))} / ${esc(item.vendor_name)}</span>
           <span class="status status-${esc(status)}">${esc(statusLabel(status))}</span>
         </div>
         <div class="list-sub list-sub-compact">
@@ -466,6 +475,18 @@ function newPayable() {
   renderList();
   showResult("新規入力です。");
 }
+/* PAYABLES_DELIVERY_NOTE_NEW_FUNCTION_20260706_START */
+function newDeliveryNote() {
+  newPayable();
+  document.getElementById("documentType").value = "delivery_note";
+  document.getElementById("payableKind").value = "accounts_payable";
+  document.getElementById("supplierDocumentNo").placeholder = "納品書番号";
+  document.getElementById("evidenceType").value = "納品書";
+  document.getElementById("sourceMemo").value = "納品書登録";
+  document.getElementById("summary").value = "納品書";
+  showResult("納品書の新規入力です。請求書が届いたら、同じ請求書・未払管理内で照合します。");
+}
+/* PAYABLES_DELIVERY_NOTE_NEW_FUNCTION_20260706_END */
 function addLine(data = {}) {
   const tbody = document.getElementById("lineBody");
   const tr = document.createElement("tr");
@@ -763,3 +784,6 @@ loadAll();
 <!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_END -->
 </body>
 </html>
+
+
+

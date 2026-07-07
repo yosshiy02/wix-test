@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { TextDecoder } = require("util");
@@ -291,8 +291,83 @@ module.exports = {
   writeProjectStatus
 };
 
+/* HD_ORIGIN_DELIVERY_NOTE_VENDOR_RULES_TODO_PATCH_20260707_START */
+const hdOriginDeliveryNoteVendorRulesTodoMarker = "HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707";
 
+function hdOriginBuildDeliveryNoteVendorRulesTodoBlock() {
+  return [
+    "",
+    "[次にやること: 納品書AI 取引先別ルール]",
+    "HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707",
+    "- 納品書AI解析は、共通ルールだけで確定しない。取引先別ルールを後から追加できる設計にする。",
+    "- 納品書は取引先ごとに帳票のクセが強いため、明細の列位置、商品コード、備考、税額の読み方を取引先別に補正できるようにする。",
+    "- 株式会社マルシンの例では、明細先頭の「0001」が全行共通で出るため、商品コードとして自動確定しない。",
+    "- 全行共通のコードは item_code に確定入力せず、raw_code または memo に残して人間確認対象にする。",
+    "- 「上二回」など加工・備考っぽい語は、商品名へ混ぜるか備考へ分けるかを取引先別ルールで判断する。",
+    "- 明細解析では、数量 × 単価 = 金額 が一致する組み合わせを優先する。",
+    "- 税額がOCRで読めない場合は、明細合計を税抜額候補として扱い、税込合計・消費税額は要確認にする。",
+    "- 初期段階ではDB化を急がず、まずAIプロンプトまたはルールJSONで取引先別ルールを持てる形にする。"
+  ].join("\n");
+}
 
+function hdOriginAppendDeliveryNoteVendorRulesTodoToText(text) {
+  const source = String(text || "");
+  const block = hdOriginBuildDeliveryNoteVendorRulesTodoBlock().trim();
 
+  if (!source.includes(hdOriginDeliveryNoteVendorRulesTodoMarker)) {
+    return source.trimEnd() + "\n\n" + block + "\n";
+  }
 
+  const pattern = /\n?\[次にやること: 納品書AI 取引先別ルール\]\nHD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707[\s\S]*?(?=\n\[[^\n]+\]|\s*$)/;
 
+  if (pattern.test(source)) {
+    return source.replace(pattern, "\n" + block);
+  }
+
+  return source.trimEnd() + "\n\n" + block + "\n";
+}
+
+function hdOriginAppendDeliveryNoteVendorRulesTodoToFile() {
+  const fsLocal = require("fs");
+  const pathLocal = require("path");
+  const projectRootLocal = pathLocal.resolve(__dirname, "..", "..");
+  const statusPathLocal = pathLocal.join(projectRootLocal, "PROJECT_STATUS_FOR_GPT.txt");
+
+  if (!fsLocal.existsSync(statusPathLocal)) {
+    return;
+  }
+
+  const current = fsLocal.readFileSync(statusPathLocal, "utf8");
+  const next = hdOriginAppendDeliveryNoteVendorRulesTodoToText(current);
+
+  if (next !== current) {
+    fsLocal.writeFileSync(statusPathLocal, next, "utf8");
+  }
+}
+
+const hdOriginOriginalWriteProjectStatus = module.exports.writeProjectStatus;
+
+if (typeof hdOriginOriginalWriteProjectStatus === "function") {
+  module.exports.writeProjectStatus = function hdOriginWriteProjectStatusWithDeliveryNoteTodo(...args) {
+    const result = hdOriginOriginalWriteProjectStatus.apply(this, args);
+
+    const afterWrite = () => {
+      try {
+        hdOriginAppendDeliveryNoteVendorRulesTodoToFile();
+      } catch (error) {
+        console.error("[HD_ORIGIN] delivery note vendor rules TODO append failed:", error && error.message ? error.message : error);
+      }
+    };
+
+    if (result && typeof result.then === "function") {
+      return result.then((value) => {
+        afterWrite();
+        return value;
+      });
+    }
+
+    afterWrite();
+    return result;
+  };
+}
+/* HD_ORIGIN_DELIVERY_NOTE_VENDOR_RULES_TODO_PATCH_20260707_END */

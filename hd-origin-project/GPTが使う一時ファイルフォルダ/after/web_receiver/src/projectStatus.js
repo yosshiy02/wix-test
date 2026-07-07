@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { TextDecoder } = require("util");
@@ -221,22 +221,27 @@ function writeProjectStatus() {
   lines.push("- 問題が出た場合は、undo の手順で before から本体へ戻す。");
   lines.push("- 収集対象の元ファイルは、確認段階では変更しない。コピーのみ行う。");
   lines.push("- .env、秘密情報、DB、画像、実バックアップ、backup フォルダは、ユーザーが明示しない限り収集・削除・移動・変更しない。");
+  lines.push("- レイアウト編集は、応急処置的に表示後JSでDOMを動かして直さない。");
+  lines.push("- appendChild / insertBefore / unwrapElement などで、画面表示後に項目を移動して帳尻を合わせる修正を増やさない。");
+  lines.push("- レイアウトを直す場合は、まず renderForm などの初期HTML生成部分を確認し、最初から正しいDOM構造で出るように根本から編集する。");
+  lines.push("- CSSだけで無理に位置を合わせない。特に width: calc(...), マイナスmargin, overflow:hidden, position, transform, margin-left:auto, justify-self で逃げない。");
+  lines.push("- レイアウト編集では、先にコード上のツリーを出す。画面画像だけで親子関係を断定しない。");
+  lines.push("- グループ単位をユーザーと確定してから編集する。勝手にグループを増やさない、細分化しない。");
+  lines.push("- 「解体」と言われたグループは、そのラッパーをツリーから外し、中身を親グループ直下へ上げた前提で考える。解体済みグループを後の説明で復活させない。");
+  lines.push("- 境界線確認は、確定したグループだけに付ける。余計な親枠・仮グループ・思いつきの線を追加しない。");
+  lines.push("- 既存の後付けレイアウトJSや過去のRECEIPT_系CSSブロックがある場合は、追加修正の前に「残す」「削る」「初期HTMLへ戻す」を一覧化する。");
+  lines.push("- ユーザーが「ツリー出して」「解体して」と言った場合は、コードを書かず、まずツリーだけを書く。");
+  lines.push("- PowerShellや修正コードは、ユーザーが明示的に「コードを書け」「PowerShellを出せ」「修正しろ」と言うまで出さない。");
+  lines.push("");  lines.push("");
+  lines.push("[スタート文書ルール]");
+  lines.push("HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706");
+  lines.push("- この PROJECT_STATUS_FOR_GPT.txt を、今後『スタート文書』と呼ぶ。");
+  lines.push("- PCは動的に変わる前提で扱う。");
+  lines.push("- PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。");
+  lines.push("- パスは必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。");
+  lines.push("- DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。");
   lines.push("");
-  lines.push("");
-  lines.push("[日本語文字化け・Node日本語パス注意]");
-  lines.push("- PowerShell経由で日本語入りの JavaScript / SQL / 一時スクリプトを作ると、環境によって文字コードがズレてDBマスタ名が文字化けすることがある。");
-  lines.push("- DBへ日本語マスタを投入・更新する場合、日本語文字列をPowerShell内へ直書きしない。");
-  lines.push("- 安全策として、JavaScript側では日本語を Unicodeエスケープで定義する。例: \\u4f1a\\u8b70 = 会議。");
-  lines.push("- 既にUTF-8で保存された外部ファイルをNodeで読み込む方法も可。ただし文字コード確認を必須にする。");
-  lines.push("- Set-ContentでJSを作る場合、日本語を含む内容は特に注意する。UnicodeエスケープだけのJSなら Encoding ASCII でも可。");
-  lines.push("- console.table の日本語出力は文字化けしやすい。確認結果は UTF-8 の txt に書き出して notepad で開く。");
-  lines.push("- Node / PowerShell のコンソール表示だけで判断しない。DB内の値まで壊れている場合があるため、必ずDB再確認する。");
-  lines.push("- Node一時スクリプトを「GPTが使う一時ファイルフォルダ」など日本語パス配下で実行し、__dirname から結果ファイルを書こうとすると、パス自体が文字化けして失敗することがある。");
-  lines.push("- NodeでDB修復・マスタ投入を行う場合は、web_receiver直下など英数字パスに一時JSを置き、結果ファイル名も英数字にする。");
-  lines.push("- DB更新後に結果ファイル保存で失敗しても、COMMIT後ならDB更新済みの場合がある。再実行前に必ずDB確認する。");
-  lines.push("- 今回、expenses.purposes の目的マスタ追加で日本語が文字化けした。v1修復は一意制約で失敗、v3は結果ファイル保存で失敗したが、DB確認では有効目的マスタが正常化済み。");
-  lines.push("- 現在の目的マスタは、10:会議、20:商談、30:出張先会議、40:出張、50:来客対応、60:取引先訪問、70:仕入先訪問、80:社内会議、90:社内打合せ、100:打合せ、以降350:私用まで正常。");
-  lines.push("- 以後の日本語マスタ投入では、同じ事故を繰り返さない。");
+
   lines.push("[生成情報]");
   lines.push(`生成日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`);
   lines.push(`PC名: ${os.hostname()}`);
@@ -286,7 +291,83 @@ module.exports = {
   writeProjectStatus
 };
 
+/* HD_ORIGIN_DELIVERY_NOTE_VENDOR_RULES_TODO_PATCH_20260707_START */
+const hdOriginDeliveryNoteVendorRulesTodoMarker = "HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707";
 
+function hdOriginBuildDeliveryNoteVendorRulesTodoBlock() {
+  return [
+    "",
+    "[次にやること: 納品書AI 取引先別ルール]",
+    "HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707",
+    "- 納品書AI解析は、共通ルールだけで確定しない。取引先別ルールを後から追加できる設計にする。",
+    "- 納品書は取引先ごとに帳票のクセが強いため、明細の列位置、商品コード、備考、税額の読み方を取引先別に補正できるようにする。",
+    "- 株式会社マルシンの例では、明細先頭の「0001」が全行共通で出るため、商品コードとして自動確定しない。",
+    "- 全行共通のコードは item_code に確定入力せず、raw_code または memo に残して人間確認対象にする。",
+    "- 「上二回」など加工・備考っぽい語は、商品名へ混ぜるか備考へ分けるかを取引先別ルールで判断する。",
+    "- 明細解析では、数量 × 単価 = 金額 が一致する組み合わせを優先する。",
+    "- 税額がOCRで読めない場合は、明細合計を税抜額候補として扱い、税込合計・消費税額は要確認にする。",
+    "- 初期段階ではDB化を急がず、まずAIプロンプトまたはルールJSONで取引先別ルールを持てる形にする。"
+  ].join("\n");
+}
 
+function hdOriginAppendDeliveryNoteVendorRulesTodoToText(text) {
+  const source = String(text || "");
+  const block = hdOriginBuildDeliveryNoteVendorRulesTodoBlock().trim();
 
+  if (!source.includes(hdOriginDeliveryNoteVendorRulesTodoMarker)) {
+    return source.trimEnd() + "\n\n" + block + "\n";
+  }
 
+  const pattern = /\n?\[次にやること: 納品書AI 取引先別ルール\]\nHD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707[\s\S]*?(?=\n\[[^\n]+\]|\s*$)/;
+
+  if (pattern.test(source)) {
+    return source.replace(pattern, "\n" + block);
+  }
+
+  return source.trimEnd() + "\n\n" + block + "\n";
+}
+
+function hdOriginAppendDeliveryNoteVendorRulesTodoToFile() {
+  const fsLocal = require("fs");
+  const pathLocal = require("path");
+  const projectRootLocal = pathLocal.resolve(__dirname, "..", "..");
+  const statusPathLocal = pathLocal.join(projectRootLocal, "PROJECT_STATUS_FOR_GPT.txt");
+
+  if (!fsLocal.existsSync(statusPathLocal)) {
+    return;
+  }
+
+  const current = fsLocal.readFileSync(statusPathLocal, "utf8");
+  const next = hdOriginAppendDeliveryNoteVendorRulesTodoToText(current);
+
+  if (next !== current) {
+    fsLocal.writeFileSync(statusPathLocal, next, "utf8");
+  }
+}
+
+const hdOriginOriginalWriteProjectStatus = module.exports.writeProjectStatus;
+
+if (typeof hdOriginOriginalWriteProjectStatus === "function") {
+  module.exports.writeProjectStatus = function hdOriginWriteProjectStatusWithDeliveryNoteTodo(...args) {
+    const result = hdOriginOriginalWriteProjectStatus.apply(this, args);
+
+    const afterWrite = () => {
+      try {
+        hdOriginAppendDeliveryNoteVendorRulesTodoToFile();
+      } catch (error) {
+        console.error("[HD_ORIGIN] delivery note vendor rules TODO append failed:", error && error.message ? error.message : error);
+      }
+    };
+
+    if (result && typeof result.then === "function") {
+      return result.then((value) => {
+        afterWrite();
+        return value;
+      });
+    }
+
+    afterWrite();
+    return result;
+  };
+}
+/* HD_ORIGIN_DELIVERY_NOTE_VENDOR_RULES_TODO_PATCH_20260707_END */

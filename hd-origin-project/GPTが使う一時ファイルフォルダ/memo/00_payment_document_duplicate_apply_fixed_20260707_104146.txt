@@ -1,0 +1,34 @@
+﻿==============================
+Payment document duplicate apply fixed
+==============================
+datetime: 2026-07-07 10:43:00
+
+project_root: G:\GITHUB\wix-test\hd-origin-project
+
+applied:
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+web_receiver\public\payables\payment-document-inbox.html
+
+used after:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_duplicate_20260707_104146.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-inbox_after_duplicate_20260707_104146.html
+
+undo source:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_duplicate_20260707_104146.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-inbox_before_duplicate_20260707_104146.html
+
+fixed apply:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_duplicate_fixed_20260707_104146.ps1
+
+fixed undo:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_duplicate_fixed_20260707_104146.ps1
+
+checks:
+routes after: OK
+inbox after script: OK
+routes applied: OK
+inbox applied script: OK
+
+note:
+The previous apply ps1 failed because Japanese text in Write-Host was mojibaked.
+This fixed version uses ASCII messages only.

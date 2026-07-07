@@ -1,0 +1,40 @@
+﻿==============================
+支払書類INBOX レシート取込風レイアウト結果
+==============================
+日時: 2026-07-07 08:37:58
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+支払書類INBOXをレシート取込画面風の3分割レイアウトへ変更
+左: INBOX一覧
+中央: 証憑プレビュー
+右: 仮分類フォーム
+上部操作ボタンはそのまま維持
+DB / API / server.js は触っていない
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-inbox.css
+
+[確認]
+list-panelあり: True
+work-panelあり: True
+action-rowあり: True
+CSSリンクあり: True
+CSS work-panelあり: True
+CSS grid-template-areasあり: True
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_receipt_like_layout.ps1
+
+[確認手順]
+1. 支払書類INBOXを Ctrl+F5
+2. 左にINBOX一覧があるか確認
+3. 中央に証憑画像が大きく出るか確認
+4. 右に書類区分・処理先・メモ欄が並ぶか確認
+5. ダミーを1件クリックして画像表示を確認
+
+[注意]
+HTML/CSSだけなのでサーバー再起動は不要です。

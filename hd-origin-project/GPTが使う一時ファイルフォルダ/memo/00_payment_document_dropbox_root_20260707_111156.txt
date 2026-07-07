@@ -1,0 +1,60 @@
+﻿==============================
+Payment document Dropbox root applied
+==============================
+datetime: 2026-07-07 11:12:03
+
+project_root: G:\GITHUB\wix-test\hd-origin-project
+
+payment_document_root:
+D:\DROPBOX\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\payment-documents
+
+folders:
+D:\DROPBOX\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\payment-documents\scan-inbox
+D:\DROPBOX\Dropbox\HDDBTEST\HDDB_PROJECT\ORIGIN\payment-documents\saved
+
+changed:
+web_receiver\src\config.js
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+what changed:
+- Added config.paymentDocumentRoot.
+- Default root is ORIGIN/payment-documents based on envPath.
+- scan-inbox now uses config.paymentDocumentRoot/scan-inbox.
+- save selected now moves evidence file and meta JSON to saved/YYYY-MM.
+- Original project storage is no longer the normal target.
+
+old local inbox copy:
+source: G:\GITHUB\wix-test\hd-origin-project\storage\payment-documents\scan-inbox
+copied_to_new_root: 22
+skipped_existing: 0
+old_local_files_deleted: no
+
+before:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\config_before_payment_document_root_20260707_111156.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_payment_document_root_20260707_111156.js
+
+after:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\config_after_payment_document_root_20260707_111156.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_payment_document_root_20260707_111156.js
+
+apply:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_dropbox_root_20260707_111156.ps1
+
+undo:
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_dropbox_root_20260707_111156.ps1
+
+checks:
+config after: OK
+routes after: OK
+config applied: OK
+routes applied: OK
+
+not changed:
+- No DB migration.
+- No .env change.
+- No backup folder change.
+- Old local project storage was not deleted.
+
+need:
+- Restart server because config.js and route file changed.
+- Reload browser page.

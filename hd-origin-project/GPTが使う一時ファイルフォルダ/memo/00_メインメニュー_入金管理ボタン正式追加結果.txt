@@ -1,0 +1,46 @@
+﻿==============================
+メインメニュー 入金管理ボタン正式追加結果
+==============================
+日時: 2026-07-07 07:59:05
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- メイン画面 index.html の .main-menu-grid 内に「入金管理」ボタンを追加
+- 請求書・未払管理ボタンの直後に追加
+- 前回追加したメニュー外の入金管理カードを撤去
+- 前回追加した右下固定ボタンを撤去
+- 終了後画面HTML文字列内に入り込んだ入金管理カードも撤去
+
+[変更ファイル]
+web_receiver\public\index.html
+
+[既存ページ確認]
+web_receiver\public\receivables\receivable-dashboard.html
+
+[確認]
+メインメニュー内ボタンあり: True
+古いメニュー外カード残り: False
+古い右下固定ボタン残り: False
+
+[URL]
+http://localhost:3000/
+http://localhost:3000/receivables/receivable-dashboard.html
+
+[触っていないもの]
+DB
+API
+server.js
+.env
+画像ファイル
+backupフォルダ
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_index_receivables_menu_button.ps1
+
+[確認手順]
+1. メイン画面を Ctrl + F5
+2. メインメニュー内に「入金管理」ボタンがあるか確認
+3. 右下固定ボタンが消えているか確認
+4. 入金管理ボタンで入金管理画面が開くか確認

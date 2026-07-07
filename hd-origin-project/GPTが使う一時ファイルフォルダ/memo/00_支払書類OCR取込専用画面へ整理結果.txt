@@ -1,0 +1,48 @@
+﻿==============================
+支払書類OCR取込専用画面へ整理 結果
+==============================
+日時: 2026-07-07 09:17:17
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- 画面名を 支払書類OCR取込 に変更
+- 書類区分、処理先、支払先、メール件名、メール送信元、仮メモを削除
+- 仮分類を保存、次工程へ送る予定を削除
+- 画面の役割をOCR取込だけに整理
+- 左一覧、チェックボックス、全選択、全解除、まとめてOCRを維持
+- 中央プレビュー、右側OCR操作、OCR本文表示を維持
+- AI解析・本登録は後工程扱い
+- HTML / CSS だけ修正
+- DB / API / server.js は触っていない
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-inbox.css
+
+[確認]
+画面名あり: True
+書類区分残りあり: False
+処理先残りあり: False
+saveMeta残りあり: False
+prepareNextStep残りあり: False
+まとめてOCRあり: True
+この1件をOCRあり: True
+OCR本文欄あり: True
+右パネルCSSあり: True
+プレビューCSSあり: True
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ocr_only_screen.ps1
+
+[確認手順]
+1. 支払書類OCR取込を Ctrl+F5
+2. 書類区分・処理先・仮分類ボタンが消えているか確認
+3. 左一覧のチェックボックスが残っているか確認
+4. 中央に証憑画像が出るか確認
+5. 右側に 左90度/右90度/表示リセット、この1件をOCR、選択ファイル削除、OCR本文だけがあるか確認
+
+[注意]
+HTML/CSSだけなのでサーバー再起動は不要です。
+OCR API未反映の場合のみ、以前追加したOCR API反映後にサーバー再起動が必要です。

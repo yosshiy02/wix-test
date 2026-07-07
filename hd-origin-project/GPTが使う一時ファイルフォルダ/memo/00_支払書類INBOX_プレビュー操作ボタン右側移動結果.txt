@@ -1,0 +1,29 @@
+﻿==============================
+支払書類INBOX プレビュー操作ボタン右側移動 結果
+==============================
+日時: 2026-07-07 09:03:01
+
+[今回の修正]
+- 中央上の「選択中のINBOX書類」行を非表示
+- 左90度 / 右90度 / 表示リセット を右側フォーム内へ移動
+- 中央プレビューの縦幅を広げた
+- HTML / CSS だけ修正
+- サーバー再起動不要
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-inbox.css
+
+[確認]
+右側プレビューボタンあり: True
+中央上ボタン残りあり: False
+中央タイトル非表示CSSあり: True
+右側プレビューボタンCSSあり: True
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_right_preview_buttons.ps1
+
+[確認手順]
+Ctrl+F5後、中央上の「選択中のINBOX書類」行が消えていればOKです。
+左90度 / 右90度 / 表示リセット が右側フォーム内に出ていればOKです。
+中央の証憑画像が縦に広がっていればOKです。

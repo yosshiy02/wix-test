@@ -1,0 +1,35 @@
+﻿==============================
+支払書類取込 ダミー10件 作成結果
+==============================
+日時: 2026-07-07 08:19:58
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[保存先]
+G:\GITHUB\wix-test\hd-origin-project\storage\payment-documents\scan-inbox
+
+[作成内容]
+- 支払書類取込の左一覧に出すためのダミーファイル10件を作成
+- 各ファイルに .meta.json を付けて、書類区分・処理先・入手元・発行元・メモを設定
+- DB/API/server は触っていない
+
+[作成ファイル]
+DUMMY_20260707_0815_01_ダミー_請求書_材料仕入.txt
+DUMMY_20260707_0815_02_ダミー_納付書_法人税.txt
+DUMMY_20260707_0815_03_ダミー_電気料金_Web明細.txt
+DUMMY_20260707_0815_04_ダミー_手書き領収書_上様.txt
+DUMMY_20260707_0815_05_ダミー_メール保存_通信費.eml
+DUMMY_20260707_0815_06_ダミー_カード利用明細.csv
+DUMMY_20260707_0815_07_ダミー_保険料通知書.txt
+DUMMY_20260707_0815_08_ダミー_リース契約書.txt
+DUMMY_20260707_0815_09_ダミー_水道料金_通知書.txt
+DUMMY_20260707_0815_10_ダミー_その他証憑_確認待ち.txt
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_dummy_10.ps1
+
+[確認]
+http://localhost:3000/payables/payment-document-inbox.html
+ページを開いて「再読込」を押してください。
+左一覧にダミー10件が出ればOKです。

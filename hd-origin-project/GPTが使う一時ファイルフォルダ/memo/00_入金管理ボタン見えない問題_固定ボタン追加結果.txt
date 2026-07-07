@@ -1,0 +1,35 @@
+﻿==============================
+入金管理ボタン見えない問題 固定ボタン追加結果
+==============================
+日時: 2026-07-07 07:22:52
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- メイン画面の実体HTMLを取り違えている可能性があるため、public直下のHTMLすべてに固定の入金管理ボタンを追加
+- 画面右下に黒い「入金管理」ボタンを表示
+- 入金管理ページが無い場合は作成
+
+[変更HTML]
+web_receiver\public\index.html
+web_receiver\public\settings.html
+
+[入金管理URL]
+http://localhost:3000/receivables/receivable-dashboard.html
+
+[確認手順]
+1. メイン画面を Ctrl + F5
+2. 画面右下に黒い「入金管理」ボタンが出るか確認
+3. 出ない場合でも、直接URLを開く
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receivables_float_button.ps1
+
+[触っていないもの]
+DB
+API
+server.js
+.env
+画像ファイル
+backupフォルダ

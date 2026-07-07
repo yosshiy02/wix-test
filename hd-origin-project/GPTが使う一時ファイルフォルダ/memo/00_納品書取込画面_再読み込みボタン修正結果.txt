@@ -1,0 +1,27 @@
+﻿==============================
+納品書取込画面 再読み込みボタン修正結果
+==============================
+日時: 2026-07-07 06:43:33
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[修正内容]
+- 再読み込みボタンを loadAll() 直呼びから reloadDeliveryNoteInbox(this) に変更
+- 再読み込み中の表示を追加
+- 成功時に「再読み込みしました。」を表示
+- 失敗時に結果欄へエラー内容を表示
+- 取込済み一覧と scan_inbox の片方で失敗しても、原因が見えるように変更
+
+[変更ファイル]
+web_receiver\public\delivery-notes\delivery-note-inbox.html
+
+[触っていないもの]
+DB
+API
+server.js
+.env
+画像ファイル
+
+[確認]
+ブラウザで Ctrl + F5 してから、納品書取込画面の再読み込みボタンを押してください。

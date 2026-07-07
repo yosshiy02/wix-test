@@ -1,0 +1,786 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>請求書・未払管理 - HD Origin Project</title>
+  <link rel="stylesheet" href="./payable-list.css">
+  
+</head>
+<body>
+<header>
+  <h1>請求書・未払管理</h1>
+  <div class="button-row">
+    <button type="button" onclick="location.href='/'">メインへ</button>
+    <button type="button" onclick="hdOriginPayablesReload()">再読み込み</button>
+    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_START -->
+    <button type="button" class="header-delivery-note-button" onclick="location.href='../delivery-notes/delivery-note-inbox.html'">納品書</button>
+    <!-- PAYABLES_DELIVERY_NOTE_PAGE_BUTTON_20260707_END -->
+<!-- PAYABLES_RESTART_BUTTON_20260706_START -->
+<button type="button" onclick="hdOriginPayablesRestart()">サーバー再起動</button>
+<!-- PAYABLES_RESTART_BUTTON_20260706_END -->
+    </div>
+</header>
+<main>
+  <section>
+    <div class="card card-summary"><h2>未払サマリー</h2>
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-label">未払残高</div>
+          <div class="summary-value" id="summaryOpenBalance">0</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">期限超過</div>
+          <div class="summary-value warn" id="summaryOverdue">0</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">7日以内</div>
+          <div class="summary-value" id="summaryDue7">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="card card-filter"><h2>検索</h2>
+      <div class="grid2">
+        <div>
+          <label>状態</label>
+          <select id="filterStatus">
+            <option value="">すべて</option>
+            <option value="draft">下書き</option>
+            <option value="confirmed">未払確定</option>
+            <option value="partially_paid">一部支払</option>
+            <option value="paid">支払済み</option>
+            <option value="void">無効</option>
+          </select>
+        </div>
+        <div>
+          <label>支払先</label>
+          <input id="filterVendor" placeholder="部分一致">
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <div>
+          <label>請求日 From</label>
+          <input id="filterFrom" type="date">
+        </div>
+        <div>
+          <label>請求日 To</label>
+          <input id="filterTo" type="date">
+        </div>
+      </div>
+      <div class="button-row" style="margin-top:10px;">
+        <button type="button" onclick="loadPayables()">検索</button>
+        <button type="button" onclick="clearFilters()">条件クリア</button>
+        <button type="button" class="primary" onclick="newPayable()">新規作成</button>
+</div>
+    </div>
+    <div class="card card-list"><h2>請求書・未払一覧</h2>
+      <div id="list" class="list-wrap">読み込み中...</div>
+    </div>
+  </section>
+  <section>
+    <div class="card card-basic"><h2>基本情報</h2>
+      <input id="payableId" type="hidden">
+      <div class="grid4">
+        <div>
+          <label>管理番号</label>
+          <input id="payableNo" readonly placeholder="保存時に自動採番">
+        </div>
+        <div>
+          <label>状態</label>
+          <select id="status">
+            <option value="draft">下書き</option>
+            <option value="confirmed">未払確定</option>
+            <option value="partially_paid">一部支払</option>
+            <option value="paid">支払済み</option>
+            <option value="void">無効</option>
+          </select>
+        </div>
+        <div>
+          <label>書類区分</label>
+          <select id="documentType">
+            <option value="invoice">請求書</option>
+            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_START -->
+            <option value="delivery_note">納品書</option>
+            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_END -->
+            <option value="statement">明細書</option>
+            <option value="credit_note">値引・返品</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div>
+          <label>会計区分</label>
+          <select id="payableKind">
+            <option value="accounts_payable">買掛金</option>
+            <option value="unpaid">未払金</option>
+            <option value="accrued_expense">未払費用</option>
+            <option value="card_payable">カード未払</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid4" style="margin-top:8px;">
+        <div>
+          <label>支払先</label>
+          <input id="vendorName" list="vendorList" placeholder="例：株式会社〇〇">
+          <datalist id="vendorList"></datalist>
+        </div>
+        <div>
+          <label>請求書番号</label>
+          <input id="invoiceNumber">
+        </div>
+        <div>
+          <label>先方書類番号</label>
+          <input id="supplierDocumentNo">
+        </div>
+        <div>
+          <label>通貨</label>
+          <input id="currencyCode" value="JPY">
+        </div>
+      </div>
+      <div class="grid4" style="margin-top:8px;">
+        <div>
+          <label>請求日</label>
+          <input id="documentDate" type="date">
+        </div>
+        <div>
+          <label>計上日</label>
+          <input id="postingDate" type="date">
+        </div>
+        <div>
+          <label>支払期限</label>
+          <input id="dueDate" type="date">
+        </div>
+        <div>
+          <label>支払予定日</label>
+          <input id="paymentPlanDate" type="date">
+        </div>
+      </div>
+      <div class="grid4" style="margin-top:8px;">
+        <div>
+          <label>対象者</label>
+          <select id="targetPersonId"></select>
+        </div>
+        <div>
+          <label>目的</label>
+          <select id="purposeId"></select>
+        </div>
+        <div>
+          <label>案件</label>
+          <select id="projectId"></select>
+        </div>
+        <div>
+          <label>部門</label>
+          <select id="departmentId"></select>
+        </div>
+      </div>
+      <div class="grid3" style="margin-top:8px;">
+        <div>
+          <label>証憑区分</label>
+          <input id="evidenceType" placeholder="例：PDF / 紙 / メール">
+        </div>
+        <div>
+          <label>証憑ファイル名</label>
+          <input id="evidenceFileName" placeholder="後でファイル連携">
+        </div>
+        <div>
+          <label>証憑保存メモ</label>
+          <input id="sourceMemo" placeholder="例：Dropbox / 紙保管">
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <label>概要</label>
+        <textarea id="summary" placeholder="例：7月分 材料仕入 / 外注加工費 / Wix利用料"></textarea>
+      </div>
+      <div style="margin-top:8px;">
+        <label>社内メモ</label>
+        <textarea id="memo"></textarea>
+      </div>
+    </div>
+    <div class="card card-lines"><h2>明細</h2>
+      <div class="line-table-wrap">
+        <table class="line-table">
+          <thead>
+            <tr>
+              <th style="width:120px;">勘定科目</th>
+              <th style="width:180px;">品目</th>
+              <th style="width:220px;">内容</th>
+              <th style="width:80px;">数量</th>
+              <th style="width:90px;">単価</th>
+              <th style="width:100px;">税抜</th>
+              <th style="width:80px;">税率</th>
+              <th style="width:100px;">消費税</th>
+              <th style="width:100px;">税込</th>
+              <th style="width:120px;">税区分</th>
+              <th style="width:140px;">メモ</th>
+              <th style="width:60px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="lineBody"></tbody>
+        </table>
+      </div>
+      <div class="button-row" style="margin-top:10px;">
+        <button type="button" onclick="addLine()">明細追加</button>
+        <button type="button" class="primary" onclick="savePayable()">保存</button>
+        <button type="button" onclick="newPayable()">クリア</button>
+        <button type="button" class="danger" onclick="deletePayable()">削除</button>
+      </div>
+      <p class="muted">金額は明細から自動集計します。買掛金・未払金そのものを直接いじらず、請求書の明細から未払残高を作る構造です。</p>
+    </div>
+    <div class="card card-payments"><h2>支払処理</h2>
+      <div class="grid4">
+        <div>
+          <label>支払日</label>
+          <input id="paymentDate" type="date">
+        </div>
+        <div>
+          <label>支払方法</label>
+          <select id="paymentMethodId"></select>
+        </div>
+        <div>
+          <label>支払額</label>
+          <input id="paymentAmount" class="money" type="text" inputmode="decimal">
+        </div>
+        <div>
+          <label>振込手数料</label>
+          <input id="bankFeeAmount" class="money" type="text" inputmode="decimal" value="0">
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <label>支払メモ</label>
+        <input id="paymentMemo">
+      </div>
+      <div class="button-row" style="margin-top:10px;">
+        <button type="button" onclick="addPayment()">支払登録</button>
+      </div>
+      <div class="payment-table-wrap" style="margin-top:10px;">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>支払日</th>
+              <th>支払額</th>
+              <th>手数料</th>
+              <th>メモ</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="paymentBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card card-result"><h2>結果</h2>
+      <div id="result">待機中</div>
+    </div>
+  </section>
+</main>
+<script>
+let masters = {};
+let currentItems = [];
+let selectedPayableId = null;
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+function money(value) {
+  if (value === null || value === undefined || value === "") {
+    return "0";
+  }
+  const original = String(value).trim();
+  if (original === "") {
+    return "0";
+  }
+  const raw = original.replace(/,/g, "");
+  const match = raw.match(/^(-?)(\d+)(?:\.(\d+))?$/);
+  if (!match) {
+    const n = Number(raw);
+    return Number.isFinite(n)
+      ? n.toLocaleString("ja-JP", { maximumFractionDigits: 20 })
+      : original;
+  }
+  const sign = match[1] || "";
+  const integerPart = match[2] || "0";
+  const decimalPart = match[3];
+  const integerText = Number(sign + integerPart).toLocaleString("ja-JP");
+  if (!decimalPart || /^0+$/.test(decimalPart)) {
+    return integerText;
+  }
+  return integerText + "." + decimalPart;
+}function num(value) {
+  const n = Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (error) {
+    throw new Error("JSON解析失敗: " + text.slice(0, 300));
+  }
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || ("HTTP " + res.status));
+  }
+  return data;
+}
+function todayIso() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function dateOnly(value) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+}
+function statusLabel(value) {
+  const map = {
+    draft: "下書き",
+    confirmed: "未払確定",
+    partially_paid: "一部支払",
+    paid: "支払済み",
+    void: "無効"
+  };
+  return map[value] || value || "";
+}
+function fillSelect(id, items, idKey, nameKey) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  let html = '<option value="">選択</option>';
+  for (const item of items || []) {
+    html += `<option value="${esc(item[idKey])}">${esc(item[nameKey])}</option>`;
+  }
+  select.innerHTML = html;
+}
+function accountOptions(selectedValue = "") {
+  let html = '<option value="">選択</option>';
+  for (const item of masters.account_titles || []) {
+    const selected = String(item.account_title_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${esc(item.account_title_id)}" ${selected}>${esc(item.account_name)}</option>`;
+  }
+  return html;
+}
+function taxOptions(selectedValue = "") {
+  let html = '<option value="">選択</option>';
+  for (const item of masters.tax_categories || []) {
+    const selected = String(item.tax_category_id) === String(selectedValue) ? "selected" : "";
+    html += `<option value="${esc(item.tax_category_id)}" ${selected}>${esc(item.tax_name)}</option>`;
+  }
+  return html;
+}
+async function loadMasters() {
+  const data = await fetchJson("/api/expenses/masters");
+  masters = data.masters || {};
+  fillSelect("targetPersonId", masters.target_people, "target_person_id", "target_person_name");
+  fillSelect("purposeId", masters.purposes, "purpose_id", "purpose_name");
+  fillSelect("projectId", masters.projects, "project_id", "project_name");
+  fillSelect("departmentId", masters.departments, "department_id", "department_name");
+  fillSelect("paymentMethodId", masters.payment_methods, "payment_method_id", "method_name");
+  const vendorList = document.getElementById("vendorList");
+  vendorList.innerHTML = "";
+  for (const item of masters.vendors || []) {
+    const opt = document.createElement("option");
+    opt.value = item.vendor_name || "";
+    vendorList.appendChild(opt);
+  }
+}
+async function loadPayables() {
+  const params = new URLSearchParams();
+  const status = document.getElementById("filterStatus").value;
+  const vendor = document.getElementById("filterVendor").value;
+  const from = document.getElementById("filterFrom").value;
+  const to = document.getElementById("filterTo").value;
+  if (status) params.set("status", status);
+  if (vendor) params.set("vendor", vendor);
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const data = await fetchJson("/api/payables?" + params.toString());
+  currentItems = data.items || [];
+  renderSummary(data.summary || {});
+  renderList();
+}
+function renderSummary(summary) {
+  document.getElementById("summaryOpenBalance").textContent = money(summary.open_balance);
+  document.getElementById("summaryOverdue").textContent = `${money(summary.overdue_balance)} / ${summary.overdue_count || 0}件`;
+  document.getElementById("summaryDue7").textContent = `${money(summary.due_7_balance)} / ${summary.due_7_count || 0}件`;
+}
+function renderList() {
+  const list = document.getElementById("list");
+  if (!currentItems.length) {
+    list.innerHTML = '<div class="list-item">データがありません。</div>';
+    return;
+  }
+  list.innerHTML = currentItems.map(item => {
+    const active = Number(item.payable_id) === Number(selectedPayableId) ? " active" : "";
+    const status = item.effective_status || item.status;
+    const overdue = item.is_overdue ? '<span class="warn">期限超過</span>' : '';
+    return `
+      <div class="list-item${active}" onclick="loadDetail(${esc(item.payable_id)})">
+        <div class="list-main">
+          <span>${esc(item.payable_no)} / ${esc(documentTypeLabel(item.document_type))} / ${esc(item.vendor_name)}</span>
+          <span class="status status-${esc(status)}">${esc(statusLabel(status))}</span>
+        </div>
+        <div class="list-sub list-sub-compact">
+          期限: ${esc(dateOnly(item.due_date))} ${overdue} / 残: ${money(item.calculated_balance_amount)} / 合計: ${money(item.calculated_total_amount)}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+function clearFilters() {
+  ["filterStatus", "filterVendor", "filterFrom", "filterTo"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  loadPayables().catch(error => showResult(error.message));
+}
+function newPayable() {
+  selectedPayableId = null;
+  document.getElementById("payableId").value = "";
+  document.getElementById("payableNo").value = "";
+  document.getElementById("status").value = "draft";
+  document.getElementById("documentType").value = "invoice";
+  document.getElementById("payableKind").value = "unpaid";
+  document.getElementById("vendorName").value = "";
+  document.getElementById("invoiceNumber").value = "";
+  document.getElementById("supplierDocumentNo").value = "";
+  document.getElementById("currencyCode").value = "JPY";
+  document.getElementById("documentDate").value = todayIso();
+  document.getElementById("postingDate").value = todayIso();
+  document.getElementById("dueDate").value = "";
+  document.getElementById("paymentPlanDate").value = "";
+  document.getElementById("targetPersonId").value = "";
+  document.getElementById("purposeId").value = "";
+  document.getElementById("projectId").value = "";
+  document.getElementById("departmentId").value = "";
+  document.getElementById("evidenceType").value = "";
+  document.getElementById("evidenceFileName").value = "";
+  document.getElementById("sourceMemo").value = "";
+  document.getElementById("summary").value = "";
+  document.getElementById("memo").value = "";
+  document.getElementById("lineBody").innerHTML = "";
+  document.getElementById("paymentBody").innerHTML = "";
+  document.getElementById("paymentDate").value = todayIso();
+  document.getElementById("paymentMethodId").value = "";
+  document.getElementById("paymentAmount").value = "";
+  document.getElementById("bankFeeAmount").value = "0";
+  document.getElementById("paymentMemo").value = "";
+  addLine();
+  renderList();
+  showResult("新規入力です。");
+}
+/* PAYABLES_DELIVERY_NOTE_NEW_FUNCTION_20260706_START */
+function newDeliveryNote() {
+  newPayable();
+  document.getElementById("documentType").value = "delivery_note";
+  document.getElementById("payableKind").value = "accounts_payable";
+  document.getElementById("supplierDocumentNo").placeholder = "納品書番号";
+  document.getElementById("evidenceType").value = "納品書";
+  document.getElementById("sourceMemo").value = "納品書登録";
+  document.getElementById("summary").value = "納品書";
+  showResult("納品書の新規入力です。請求書が届いたら、同じ請求書・未払管理内で照合します。");
+}
+/* PAYABLES_DELIVERY_NOTE_NEW_FUNCTION_20260706_END */
+function addLine(data = {}) {
+  const tbody = document.getElementById("lineBody");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><select class="lineAccount">${accountOptions(data.account_title_id || "")}</select></td>
+    <td><input class="lineItem" value="${esc(data.item_name || "")}"></td>
+    <td><input class="lineDescription" value="${esc(data.description || "")}"></td>
+    <td><input class="lineQty money" type="text" inputmode="decimal" value="${esc(money(data.quantity || 1))}" oninput="recalcLine(this)"></td>
+    <td><input class="lineUnit money" type="text" inputmode="decimal" value="${esc(money(data.unit_price || 0))}" oninput="recalcLine(this)"></td>
+    <td><input class="lineEx money" type="text" inputmode="decimal" value="${esc(money(data.amount_ex_tax || 0))}" oninput="recalcTaxFromEx(this)"></td>
+    <td><input class="lineRate money" type="text" inputmode="decimal" value="${esc(money(data.tax_rate ?? 10))}" oninput="recalcTaxFromEx(this)"></td>
+    <td><input class="lineTax money" type="text" inputmode="decimal" value="${esc(money(data.tax_amount || 0))}" oninput="recalcInTax(this)"></td>
+    <td><input class="lineIn money" type="text" inputmode="decimal" value="${esc(money(data.amount_in_tax || 0))}"></td>
+    <td><select class="lineTaxCategory">${taxOptions(data.tax_category_id || "")}</select></td>
+    <td><input class="lineMemo" value="${esc(data.memo || "")}"></td>
+    <td><button type="button" class="danger small" onclick="this.closest('tr').remove()">削除</button></td>
+  `;
+  tbody.appendChild(tr);
+  if (!data.amount_ex_tax && !data.amount_in_tax) {
+    recalcLine(tr.querySelector(".lineQty"));
+  }
+}
+function recalcLine(el) {
+  const tr = el.closest("tr");
+  const qty = num(tr.querySelector(".lineQty").value) || 1;
+  const unit = num(tr.querySelector(".lineUnit").value);
+  tr.querySelector(".lineEx").value = money(Math.round(qty * unit));
+  recalcTaxFromEx(tr.querySelector(".lineEx"));
+}
+function recalcTaxFromEx(el) {
+  const tr = el.closest("tr");
+  const ex = num(tr.querySelector(".lineEx").value);
+  const rate = num(tr.querySelector(".lineRate").value);
+  const tax = Math.floor(ex * rate / 100);
+  tr.querySelector(".lineTax").value = money(tax);
+  tr.querySelector(".lineIn").value = money(ex + tax);
+}
+function recalcInTax(el) {
+  const tr = el.closest("tr");
+  const ex = num(tr.querySelector(".lineEx").value);
+  const tax = num(tr.querySelector(".lineTax").value);
+  tr.querySelector(".lineIn").value = money(ex + tax);
+}
+function collectPayload() {
+  const lines = [];
+  document.querySelectorAll("#lineBody tr").forEach(tr => {
+    const amountExTax = num(tr.querySelector(".lineEx").value);
+    const taxAmount = num(tr.querySelector(".lineTax").value);
+    const amountInTax = num(tr.querySelector(".lineIn").value) || amountExTax + taxAmount;
+    if (amountExTax <= 0 && amountInTax <= 0 && !tr.querySelector(".lineDescription").value.trim()) {
+      return;
+    }
+    lines.push({
+      account_title_id: tr.querySelector(".lineAccount").value,
+      tax_category_id: tr.querySelector(".lineTaxCategory").value,
+      item_name: tr.querySelector(".lineItem").value,
+      description: tr.querySelector(".lineDescription").value,
+      quantity: tr.querySelector(".lineQty").value,
+      unit_price: tr.querySelector(".lineUnit").value,
+      amount_ex_tax: amountExTax,
+      tax_rate: tr.querySelector(".lineRate").value,
+      tax_amount: taxAmount,
+      amount_in_tax: amountInTax,
+      target_person_id: document.getElementById("targetPersonId").value,
+      purpose_id: document.getElementById("purposeId").value,
+      project_id: document.getElementById("projectId").value,
+      department_id: document.getElementById("departmentId").value,
+      memo: tr.querySelector(".lineMemo").value
+    });
+  });
+  return {
+    document: {
+      payable_id: document.getElementById("payableId").value,
+      payable_no: document.getElementById("payableNo").value,
+      status: document.getElementById("status").value,
+      document_type: document.getElementById("documentType").value,
+      payable_kind: document.getElementById("payableKind").value,
+      vendor_name: document.getElementById("vendorName").value,
+      invoice_number: document.getElementById("invoiceNumber").value,
+      supplier_document_no: document.getElementById("supplierDocumentNo").value,
+      currency_code: document.getElementById("currencyCode").value,
+      document_date: document.getElementById("documentDate").value,
+      posting_date: document.getElementById("postingDate").value,
+      due_date: document.getElementById("dueDate").value,
+      payment_plan_date: document.getElementById("paymentPlanDate").value,
+      target_person_id: document.getElementById("targetPersonId").value,
+      purpose_id: document.getElementById("purposeId").value,
+      project_id: document.getElementById("projectId").value,
+      department_id: document.getElementById("departmentId").value,
+      evidence_type: document.getElementById("evidenceType").value,
+      evidence_file_name: document.getElementById("evidenceFileName").value,
+      source_memo: document.getElementById("sourceMemo").value,
+      summary: document.getElementById("summary").value,
+      memo: document.getElementById("memo").value,
+      journal_status: "not_created"
+    },
+    lines
+  };
+}
+async function savePayable() {
+  const payload = collectPayload();
+  if (!payload.document.vendor_name.trim()) {
+    alert("支払先を入力してください。");
+    return;
+  }
+  if (!payload.lines.length) {
+    alert("明細を1行以上入力してください。");
+    return;
+  }
+  const id = payload.document.payable_id;
+  const url = id ? "/api/payables/" + encodeURIComponent(id) : "/api/payables";
+  const method = id ? "PUT" : "POST";
+  showResult("保存中...");
+  const data = await fetchJson(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  showResult(data);
+  selectedPayableId = data.result.payable_id;
+  await loadPayables();
+  await loadDetail(selectedPayableId);
+}
+async function loadDetail(id) {
+  selectedPayableId = id;
+  renderList();
+  const data = await fetchJson("/api/payables/" + encodeURIComponent(id));
+  const h = data.payable.header;
+  document.getElementById("payableId").value = h.payable_id || "";
+  document.getElementById("payableNo").value = h.payable_no || "";
+  document.getElementById("status").value = h.effective_status || h.status || "draft";
+  document.getElementById("documentType").value = h.document_type || "invoice";
+  document.getElementById("payableKind").value = h.payable_kind || "unpaid";
+  document.getElementById("vendorName").value = h.vendor_name || "";
+  document.getElementById("invoiceNumber").value = h.invoice_number || "";
+  document.getElementById("supplierDocumentNo").value = h.supplier_document_no || "";
+  document.getElementById("currencyCode").value = h.currency_code || "JPY";
+  document.getElementById("documentDate").value = dateOnly(h.document_date);
+  document.getElementById("postingDate").value = dateOnly(h.posting_date);
+  document.getElementById("dueDate").value = dateOnly(h.due_date);
+  document.getElementById("paymentPlanDate").value = dateOnly(h.payment_plan_date);
+  document.getElementById("targetPersonId").value = h.target_person_id || "";
+  document.getElementById("purposeId").value = h.purpose_id || "";
+  document.getElementById("projectId").value = h.project_id || "";
+  document.getElementById("departmentId").value = h.department_id || "";
+  document.getElementById("evidenceType").value = h.evidence_type || "";
+  document.getElementById("evidenceFileName").value = h.evidence_file_name || "";
+  document.getElementById("sourceMemo").value = h.source_memo || "";
+  document.getElementById("summary").value = h.summary || "";
+  document.getElementById("memo").value = h.memo || "";
+  const lineBody = document.getElementById("lineBody");
+  lineBody.innerHTML = "";
+  for (const line of data.payable.lines || []) {
+    addLine(line);
+  }
+  if (!(data.payable.lines || []).length) addLine();
+  renderPayments(data.payable.payments || []);
+  document.getElementById("paymentAmount").value = money(h.calculated_balance_amount || h.balance_amount || 0);
+  showResult(`読込完了: ${h.payable_no} / 残高 ${money(h.calculated_balance_amount)}`);
+}
+function renderPayments(payments) {
+  const tbody = document.getElementById("paymentBody");
+  if (!payments.length) {
+    tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = payments.map(p => `
+    <tr>
+      <td>${esc(dateOnly(p.payment_date))}</td>
+      <td class="money">${money(p.payment_amount)}</td>
+      <td class="money">${money(p.bank_fee_amount)}</td>
+      <td>${esc(p.memo || "")}</td>
+      <td><button type="button" class="danger small" onclick="deletePayment(${esc(p.payable_payment_id)})">削除</button></td>
+    </tr>
+  `).join("");
+}
+async function addPayment() {
+  const id = document.getElementById("payableId").value;
+  if (!id) {
+    alert("先に請求書・未払データを保存してください。");
+    return;
+  }
+  const payload = {
+    payment_date: document.getElementById("paymentDate").value || todayIso(),
+    payment_method_id: document.getElementById("paymentMethodId").value,
+    payment_amount: document.getElementById("paymentAmount").value,
+    bank_fee_amount: document.getElementById("bankFeeAmount").value,
+    memo: document.getElementById("paymentMemo").value
+  };
+  const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  showResult(data);
+  await loadPayables();
+  await loadDetail(id);
+}
+async function deletePayment(paymentId) {
+  const id = document.getElementById("payableId").value;
+  if (!id || !paymentId) return;
+  if (!confirm("この支払記録を削除しますか？")) return;
+  const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments/${encodeURIComponent(paymentId)}`, {
+    method: "DELETE"
+  });
+  showResult(data);
+  await loadPayables();
+  await loadDetail(id);
+}
+async function deletePayable() {
+  const id = document.getElementById("payableId").value;
+  if (!id) return;
+  if (!confirm("この請求書・未払データを削除しますか？\nDBから完全削除ではなく、無効扱いにします。")) {
+    return;
+  }
+  const data = await fetchJson("/api/payables/" + encodeURIComponent(id), {
+    method: "DELETE"
+  });
+  showResult(data);
+  selectedPayableId = null;
+  await loadPayables();
+  newPayable();
+}
+async function loadAll() {
+  try {
+    await loadMasters();
+    await loadPayables();
+    if (!selectedPayableId) {
+      newPayable();
+    }
+  } catch (error) {
+    showResult(error.message);
+  }
+}
+loadAll();
+</script>
+<script src="/hd-origin-exit-guard.js?v=20260706">    /* PAYABLES_RESTART_BUTTON_20260706_START */
+    async function restartHdOriginServer() {
+      if (!confirm("HD Origin Project サーバーを再起動しますか？\n未保存の作業がある場合は先に保存してください。")) {
+        return;
+      }
+      try {
+        const res = await fetch("/api/system/restart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({})
+        });
+        const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+        if (!res.ok || !data.ok) {
+          alert("サーバー再起動要求に失敗しました: " + (data.error || ""));
+          return;
+        }
+        alert("サーバー再起動を要求しました。黒い画面が閉じて新しく起動した後、ブラウザを再読み込みしてください。");
+      } catch (error) {
+        alert("サーバー再起動要求でエラーが発生しました: " + (error && error.message ? error.message : error));
+      }
+    }
+    /* PAYABLES_RESTART_BUTTON_20260706_END */
+</script>
+<!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_START -->
+<script>
+(function () {
+  "use strict";
+  window.hdOriginPayablesReload = function () {
+    window.location.reload();
+  };
+  window.hdOriginPayablesRestart = async function () {
+    if (!window.confirm("HD Origin Project サーバーを再起動しますか？\n未保存の作業がある場合は先に保存してください。")) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/system/restart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({})
+      });
+      const data = await res.json().catch(function () {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+      if (!res.ok || !data.ok) {
+        window.alert("サーバー再起動要求に失敗しました: " + (data.error || ""));
+        return;
+      }
+      window.alert("サーバー再起動を要求しました。黒い画面が再起動した後、ブラウザを再読み込みしてください。");
+    } catch (error) {
+      window.alert("サーバー再起動要求でエラーが発生しました: " + (error && error.message ? error.message : error));
+    }
+  };
+})();
+</script>
+<!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_END -->
+</body>
+</html>
+
+
+

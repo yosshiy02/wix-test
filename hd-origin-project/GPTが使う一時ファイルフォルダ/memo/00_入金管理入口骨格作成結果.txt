@@ -1,0 +1,42 @@
+﻿==============================
+入金管理 入口骨格 作成結果
+==============================
+日時: 2026-07-07 07:19:57
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[今回の修正]
+- メイン画面に「入金管理」ボタンを追加
+- 入金管理画面を新規作成
+- 入金入力、売掛消込候補、入金一覧、未消込、未入金、仕訳プレビューの骨格を作成
+- DB未接続の入口画面として作成
+
+[変更・作成]
+変更: web_receiver\public\index.html
+作成: web_receiver\public\receivables\receivable-dashboard.html
+
+[確認]
+main button marker: True
+receivable page exists: True
+
+[URL]
+http://localhost:3000/receivables/receivable-dashboard.html
+
+[触っていないもの]
+DB
+API
+server.js
+.env
+画像ファイル
+backupフォルダ
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_receivables_entry_skeleton.ps1
+
+[確認手順]
+1. メイン画面をCtrl+F5
+2. 入金管理ボタンが出るか確認
+3. 入金管理ボタンを押す
+4. 入金管理画面が開くか確認
+5. 入金額などを入れて「仕訳候補作成」を押す
