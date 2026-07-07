@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 
 function paymentDocumentPromptDir() {
@@ -191,3 +191,4 @@ module.exports = {
   appendPaymentDocumentExternalPrompt,
   selectPaymentDocumentPromptFiles
 };
+

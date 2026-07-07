@@ -623,12 +623,39 @@ async function ocrOneFile(fileName) {
       processStatus: rawText ? "ocr_done" : "ocr_empty"
     };
 
+    let dbSaved = null;
+
+    if (rawText) {
+      const statForDb = fs.statSync(filePath);
+      const fileHashForDb = current.sha256 || current.fileSha256 || current.contentHash || sha256File(filePath);
+
+      dbSaved = await upsertPaymentDocumentOcrImportWithTransaction({
+        ...next,
+        originalFileName: next.originalFileName || path.basename(filePath),
+        savedFileName: next.savedFileName || path.basename(filePath),
+        mimeType,
+        sizeBytes: next.sizeBytes || statForDb.size,
+        sha256: fileHashForDb,
+        fileSha256: fileHashForDb,
+        contentHash: fileHashForDb,
+        sourceType: next.sourceType || "scan_inbox"
+      }, path.basename(filePath));
+
+      next.sha256 = fileHashForDb;
+      next.fileSha256 = fileHashForDb;
+      next.contentHash = fileHashForDb;
+      next.dbSaved = !!dbSaved;
+      next.paymentDocumentOcrImportId = dbSaved && dbSaved.payment_document_ocr_import_id;
+    }
+
     writeJson(metaPath, next);
 
     return {
       ok: true,
       fileName,
       status: next.ocrStatus,
+      dbSaved: !!dbSaved,
+      paymentDocumentOcrImportId: dbSaved && dbSaved.payment_document_ocr_import_id,
       textLength: rawText.length,
       textPreview: rawText.slice(0, 180)
     };
@@ -866,88 +893,314 @@ async function upsertPaymentDocumentOcrImport(meta, fallbackFileName) {
   return result.rows[0] || null;
 }
 
+/* HD_ORIGIN_OCR_AUTO_DB_SAVE_MIN_V4_20260708_START */
+async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileName) {
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const ocrText = textOrEmpty(meta.ocrRawText || meta.ocr_raw_text || meta.ocrText);
+
+    if (!ocrText) {
+      await client.query("COMMIT");
+      return null;
+    }
+
+    const documentKey = documentKeyFromMeta(meta, fallbackFileName);
+    const originalFileName = textOrEmpty(meta.originalFileName || fallbackFileName);
+    const savedFileName = textOrEmpty(meta.savedFileName || fallbackFileName);
+    const sha256 = textOrEmpty(meta.sha256 || meta.fileSha256 || meta.contentHash);
+
+    const result = await client.query(`
+      INSERT INTO accounting.payment_document_ocr_imports (
+        document_key,
+        original_file_name,
+        saved_file_name,
+        mime_type,
+        size_bytes,
+        sha256,
+        document_type,
+        destination,
+        source_type,
+        vendor_name,
+        note,
+        email_subject,
+        email_from,
+        email_received_at,
+        ocr_status,
+        ocr_provider,
+        ocr_api_version,
+        ocr_at,
+        ocr_raw_text,
+        ocr_text_length,
+        ocr_error,
+        process_status,
+        save_status,
+        evidence_saved,
+        ocr_saved,
+        saved_relative_path,
+        saved_meta_relative_path,
+        saved_at,
+        saved_by_page
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+        $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+        $21,$22,$23,$24,$25,$26,$27,$28,$29
+      )
+      ON CONFLICT (document_key)
+      DO UPDATE SET
+        original_file_name = EXCLUDED.original_file_name,
+        saved_file_name = EXCLUDED.saved_file_name,
+        mime_type = EXCLUDED.mime_type,
+        size_bytes = EXCLUDED.size_bytes,
+        sha256 = EXCLUDED.sha256,
+        document_type = EXCLUDED.document_type,
+        destination = EXCLUDED.destination,
+        source_type = EXCLUDED.source_type,
+        vendor_name = EXCLUDED.vendor_name,
+        note = EXCLUDED.note,
+        email_subject = EXCLUDED.email_subject,
+        email_from = EXCLUDED.email_from,
+        email_received_at = EXCLUDED.email_received_at,
+        ocr_status = EXCLUDED.ocr_status,
+        ocr_provider = EXCLUDED.ocr_provider,
+        ocr_api_version = EXCLUDED.ocr_api_version,
+        ocr_at = EXCLUDED.ocr_at,
+        ocr_raw_text = EXCLUDED.ocr_raw_text,
+        ocr_text_length = EXCLUDED.ocr_text_length,
+        ocr_error = EXCLUDED.ocr_error,
+        process_status = EXCLUDED.process_status,
+        save_status = EXCLUDED.save_status,
+        evidence_saved = EXCLUDED.evidence_saved,
+        ocr_saved = EXCLUDED.ocr_saved,
+        saved_relative_path = EXCLUDED.saved_relative_path,
+        saved_meta_relative_path = EXCLUDED.saved_meta_relative_path,
+        saved_at = EXCLUDED.saved_at,
+        saved_by_page = EXCLUDED.saved_by_page,
+        updated_at = CURRENT_TIMESTAMP
+      RETURNING *
+    `, [
+      documentKey,
+      originalFileName,
+      savedFileName,
+      textOrEmpty(meta.mimeType),
+      Number(meta.sizeBytes || 0) || null,
+      sha256 || null,
+      textOrEmpty(meta.documentType),
+      textOrEmpty(meta.destination),
+      textOrEmpty(meta.sourceType),
+      textOrEmpty(meta.vendorName),
+      textOrEmpty(meta.note),
+      textOrEmpty(meta.emailSubject),
+      textOrEmpty(meta.emailFrom),
+      dateOrNull(meta.emailReceivedAt),
+      textOrEmpty(meta.ocrStatus || "ocr_done"),
+      textOrEmpty(meta.ocrProvider),
+      textOrEmpty(meta.ocrApiVersion),
+      dateOrNull(meta.ocrAt),
+      ocrText,
+      Number(meta.ocrTextLength || ocrText.length || 0) || null,
+      textOrEmpty(meta.ocrError),
+      textOrEmpty(meta.processStatus || "ocr_done"),
+      textOrEmpty(meta.saveStatus || meta.savedStatus),
+      !!meta.evidenceSaved,
+      !!meta.ocrSaved,
+      textOrEmpty(meta.savedRelativePath),
+      textOrEmpty(meta.savedMetaRelativePath),
+      dateOrNull(meta.savedAt),
+      textOrEmpty(meta.savedByPage)
+    ]);
+
+    await client.query("COMMIT");
+    return result.rows[0] || null;
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // 元エラーを優先
+    }
+
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+/* HD_ORIGIN_OCR_AUTO_DB_SAVE_MIN_V4_20260708_END */
+
 async function listPaymentDocumentOcrImportsFromDb() {
   const result = await db.query(`
     SELECT
-      payment_document_ocr_import_id,
-      original_file_name,
-      saved_file_name,
-      mime_type,
-      size_bytes,
-      sha256,
-      document_type,
-      destination,
-      source_type,
-      vendor_name,
-      note,
-      email_subject,
-      email_from,
-      email_received_at,
-      ocr_status,
-      ocr_provider,
-      ocr_api_version,
-      ocr_at,
-      ocr_raw_text,
-      ocr_text_length,
-      process_status,
-      save_status,
-      evidence_saved,
-      ocr_saved,
-      saved_relative_path,
-      saved_meta_relative_path,
-      saved_at,
-      saved_by_page,
-      draft_status,
-      created_at,
-      updated_at
-    FROM accounting.payment_document_ocr_imports
-    WHERE deleted_at IS NULL
-      AND COALESCE(ocr_raw_text, '') <> ''
+      o.payment_document_ocr_import_id,
+      o.original_file_name,
+      o.saved_file_name,
+      o.mime_type,
+      o.size_bytes,
+      o.sha256,
+      o.document_type,
+      o.destination,
+      o.source_type,
+      o.vendor_name,
+      o.note,
+      o.email_subject,
+      o.email_from,
+      o.email_received_at,
+      o.ocr_status,
+      o.ocr_provider,
+      o.ocr_api_version,
+      o.ocr_at,
+      o.ocr_raw_text,
+      o.ocr_text_length,
+      o.process_status,
+      o.save_status,
+      o.evidence_saved,
+      o.ocr_saved,
+      o.saved_relative_path,
+      o.saved_meta_relative_path,
+      o.saved_at,
+      o.saved_by_page,
+      o.draft_status,
+      o.latest_sorting_draft_id,
+      o.sorted_at,
+      o.created_at,
+      o.updated_at,
+
+      d.payment_document_sorting_draft_id AS current_sorting_draft_id,
+      d.draft_no AS current_sorting_draft_no,
+      d.draft_status AS current_sorting_draft_status,
+      d.human_check_status AS current_human_check_status,
+      d.document_type_code AS current_document_type_code,
+      d.document_type_label AS current_document_type_label,
+      d.payment_destination_code AS current_payment_destination_code,
+      d.payment_destination_label AS current_payment_destination_label,
+      d.accounting_category_code AS current_accounting_category_code,
+      d.accounting_category_label AS current_accounting_category_label,
+      d.payable_kind_code AS current_payable_kind_code,
+      d.payable_kind_label AS current_payable_kind_label,
+      d.specialist_route_code AS current_specialist_route_code,
+      d.specialist_route_label AS current_specialist_route_label,
+      d.payment_target_label AS current_payment_target_label,
+      d.payable_target_label AS current_payable_target_label,
+      d.expense_target_label AS current_expense_target_label,
+      d.tax_public_label AS current_tax_public_label,
+      d.public_utility_label AS current_public_utility_label,
+      d.contract_insurance_lease_label AS current_contract_insurance_lease_label,
+      d.ai_confidence AS current_ai_confidence,
+      d.ai_confidence_label AS current_ai_confidence_label,
+      d.ai_reason AS current_ai_reason,
+      d.review_reason AS current_review_reason,
+      d.needs_review AS current_needs_review,
+      d.ai_summary_json AS current_ai_summary_json,
+      d.sort_result_json AS current_sort_result_json,
+      d.visible_fields_json AS current_visible_fields_json,
+      d.warnings_json AS current_warnings_json,
+      d.display_rotation AS current_display_rotation,
+      d.memo AS current_sorting_memo,
+      d.created_at AS current_sorting_created_at,
+      d.updated_at AS current_sorting_updated_at
+    FROM accounting.payment_document_ocr_imports o
+    LEFT JOIN accounting.payment_document_sorting_drafts d
+      ON d.payment_document_sorting_draft_id = o.latest_sorting_draft_id
+     AND d.deleted_at IS NULL
+    WHERE o.deleted_at IS NULL
+      AND COALESCE(o.ocr_raw_text, '') <> ''
     ORDER BY
-      saved_at DESC NULLS LAST,
-      ocr_at DESC NULLS LAST,
-      payment_document_ocr_import_id DESC
+      o.sorted_at DESC NULLS LAST,
+      o.saved_at DESC NULLS LAST,
+      o.ocr_at DESC NULLS LAST,
+      o.payment_document_ocr_import_id DESC
     LIMIT 500
   `);
 
-  return result.rows.map(row => ({
-    source: "database",
-    paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
-    imageUrl: "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(String(row.payment_document_ocr_import_id)),
-    fileName: row.saved_file_name || row.original_file_name,
-    originalFileName: row.original_file_name || row.saved_file_name,
-    savedFileName: row.saved_file_name,
-    mimeType: row.mime_type,
-    sizeBytes: row.size_bytes,
-    sha256: row.sha256,
-    documentType: row.document_type,
-    destination: row.destination,
-    sourceType: row.source_type,
-    vendorName: row.vendor_name,
-    note: row.note,
-    emailSubject: row.email_subject,
-    emailFrom: row.email_from,
-    emailReceivedAt: row.email_received_at,
-    ocrStatus: row.ocr_status || "ocr_done",
-    ocrProvider: row.ocr_provider,
-    ocrApiVersion: row.ocr_api_version,
-    ocrAt: row.ocr_at,
-    ocrRawText: row.ocr_raw_text,
-    ocrTextPreview: String(row.ocr_raw_text || "").slice(0, 240),
-    ocrTextLength: row.ocr_text_length,
-    processStatus: row.process_status,
-    saveStatus: row.save_status,
-    savedStatus: row.save_status,
-    evidenceSaved: row.evidence_saved,
-    ocrSaved: row.ocr_saved,
-    savedRelativePath: row.saved_relative_path,
-    savedMetaRelativePath: row.saved_meta_relative_path,
-    savedAt: row.saved_at,
-    savedByPage: row.saved_by_page,
-    draftStatus: row.draft_status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  }));
+  return result.rows.map(row => {
+    const latestSortingDraft = row.current_sorting_draft_id
+      ? {
+          paymentDocumentSortingDraftId: row.current_sorting_draft_id,
+          paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+          draftNo: row.current_sorting_draft_no,
+          draftStatus: row.current_sorting_draft_status,
+          humanCheckStatus: row.current_human_check_status,
+
+          documentTypeCode: row.current_document_type_code,
+          documentTypeLabel: row.current_document_type_label,
+          paymentDestinationCode: row.current_payment_destination_code,
+          paymentDestinationLabel: row.current_payment_destination_label,
+          accountingCategoryCode: row.current_accounting_category_code,
+          accountingCategoryLabel: row.current_accounting_category_label,
+          payableKindCode: row.current_payable_kind_code,
+          payableKindLabel: row.current_payable_kind_label,
+          specialistRouteCode: row.current_specialist_route_code,
+          specialistRouteLabel: row.current_specialist_route_label,
+
+          paymentTargetLabel: row.current_payment_target_label,
+          payableTargetLabel: row.current_payable_target_label,
+          expenseTargetLabel: row.current_expense_target_label,
+          taxPublicLabel: row.current_tax_public_label,
+          publicUtilityLabel: row.current_public_utility_label,
+          contractInsuranceLeaseLabel: row.current_contract_insurance_lease_label,
+
+          aiConfidence: row.current_ai_confidence,
+          aiConfidenceLabel: row.current_ai_confidence_label,
+          aiReason: row.current_ai_reason,
+          reviewReason: row.current_review_reason,
+          needsReview: !!row.current_needs_review,
+
+          aiSummary: row.current_ai_summary_json || {},
+          sortResult: row.current_sort_result_json || {},
+          visibleFields: row.current_visible_fields_json || {},
+          warnings: row.current_warnings_json || [],
+
+          displayRotation: row.current_display_rotation,
+          memo: row.current_sorting_memo,
+          createdAt: row.current_sorting_created_at,
+          updatedAt: row.current_sorting_updated_at
+        }
+      : null;
+
+    return {
+      source: "database",
+      paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+      imageUrl: "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(String(row.payment_document_ocr_import_id)),
+      fileName: row.saved_file_name || row.original_file_name,
+      originalFileName: row.original_file_name || row.saved_file_name,
+      savedFileName: row.saved_file_name,
+      mimeType: row.mime_type,
+      sizeBytes: row.size_bytes,
+      sha256: row.sha256,
+      documentType: row.document_type,
+      destination: row.destination,
+      sourceType: row.source_type,
+      vendorName: row.vendor_name,
+      note: row.note,
+      emailSubject: row.email_subject,
+      emailFrom: row.email_from,
+      emailReceivedAt: row.email_received_at,
+      ocrStatus: row.ocr_status || "ocr_done",
+      ocrProvider: row.ocr_provider,
+      ocrApiVersion: row.ocr_api_version,
+      ocrAt: row.ocr_at,
+      ocrRawText: row.ocr_raw_text,
+      ocrTextPreview: String(row.ocr_raw_text || "").slice(0, 240),
+      ocrTextLength: row.ocr_text_length,
+      processStatus: row.process_status,
+      saveStatus: row.save_status,
+      savedStatus: row.save_status,
+      evidenceSaved: row.evidence_saved,
+      ocrSaved: row.ocr_saved,
+      savedRelativePath: row.saved_relative_path,
+      savedMetaRelativePath: row.saved_meta_relative_path,
+      savedAt: row.saved_at,
+      savedByPage: row.saved_by_page,
+
+      draftStatus: row.draft_status,
+      latestSortingDraftId: row.latest_sorting_draft_id,
+      sortedAt: row.sorted_at,
+      latestSortingDraft,
+
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  });
 }
 /* PAYMENT_DOCUMENT_DB_OCR_IMPORTS_20260707_END */
 /* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_20260707_START */
@@ -5313,6 +5566,270 @@ async function hdOriginGetPaymentDocumentSortingDraftByOcrImportId(id) {
 }
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
 async function handlePaymentDocumentRoutes(req, res) {
+  /* HD_ORIGIN_PAYMENT_DOCUMENT_REVIEW_ITEMS_DB_ONLY_20260708_START */
+  if (req.method === "GET" && String(req.url || "").split("?")[0] === "/api/payment-documents/review-items") {
+    try {
+      const result = await db.query(`
+        SELECT
+          o.payment_document_ocr_import_id,
+          o.original_file_name,
+          o.saved_file_name,
+          o.mime_type,
+          o.size_bytes,
+          o.sha256,
+          o.document_type,
+          o.destination,
+          o.source_type,
+          o.vendor_name,
+          o.note,
+          o.email_subject,
+          o.email_from,
+          o.email_received_at,
+          o.ocr_status,
+          o.ocr_provider,
+          o.ocr_api_version,
+          o.ocr_at,
+          o.ocr_raw_text,
+          o.ocr_text_length,
+          o.process_status,
+          o.save_status,
+          o.evidence_saved,
+          o.ocr_saved,
+          o.saved_relative_path,
+          o.saved_meta_relative_path,
+          o.saved_at,
+          o.saved_by_page,
+          o.draft_status,
+          o.latest_sorting_draft_id,
+          o.sorted_at,
+          o.created_at,
+          o.updated_at,
+
+          d.payment_document_sorting_draft_id AS d_id,
+          d.draft_no AS d_no,
+          d.draft_status AS d_status,
+          d.human_check_status AS d_human_check_status,
+
+          d.document_type_code AS d_document_type_code,
+          d.document_type_label AS d_document_type_label,
+          d.payment_destination_code AS d_payment_destination_code,
+          d.payment_destination_label AS d_payment_destination_label,
+          d.accounting_category_code AS d_accounting_category_code,
+          d.accounting_category_label AS d_accounting_category_label,
+          d.payable_kind_code AS d_payable_kind_code,
+          d.payable_kind_label AS d_payable_kind_label,
+          d.specialist_route_code AS d_specialist_route_code,
+          d.specialist_route_label AS d_specialist_route_label,
+
+          d.payment_target_label AS d_payment_target_label,
+          d.payable_target_label AS d_payable_target_label,
+          d.expense_target_label AS d_expense_target_label,
+          d.tax_public_label AS d_tax_public_label,
+          d.public_utility_label AS d_public_utility_label,
+          d.contract_insurance_lease_label AS d_contract_insurance_lease_label,
+
+          d.ai_confidence AS d_ai_confidence,
+          d.ai_confidence_label AS d_ai_confidence_label,
+          d.ai_reason AS d_ai_reason,
+          d.review_reason AS d_review_reason,
+          d.needs_review AS d_needs_review,
+          d.ai_summary_json AS d_ai_summary_json,
+          d.sort_result_json AS d_sort_result_json,
+          d.visible_fields_json AS d_visible_fields_json,
+          d.warnings_json AS d_warnings_json,
+          d.display_rotation AS d_display_rotation,
+          d.memo AS d_memo,
+          d.created_at AS d_created_at,
+          d.updated_at AS d_updated_at
+        FROM accounting.payment_document_ocr_imports o
+        LEFT JOIN accounting.payment_document_sorting_drafts d
+          ON d.payment_document_sorting_draft_id = o.latest_sorting_draft_id
+         AND d.deleted_at IS NULL
+        WHERE o.deleted_at IS NULL
+          AND COALESCE(o.ocr_raw_text, '') <> ''
+        ORDER BY
+          o.sorted_at DESC NULLS LAST,
+          o.saved_at DESC NULLS LAST,
+          o.ocr_at DESC NULLS LAST,
+          o.payment_document_ocr_import_id DESC
+        LIMIT 500
+      `);
+
+      const items = result.rows.map(row => {
+        const latestSortingDraft = row.d_id ? {
+          paymentDocumentSortingDraftId: row.d_id,
+          paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+          draftNo: row.d_no,
+          draftStatus: row.d_status,
+          humanCheckStatus: row.d_human_check_status,
+
+          documentTypeCode: row.d_document_type_code,
+          documentTypeLabel: row.d_document_type_label,
+          paymentDestinationCode: row.d_payment_destination_code,
+          paymentDestinationLabel: row.d_payment_destination_label,
+          accountingCategoryCode: row.d_accounting_category_code,
+          accountingCategoryLabel: row.d_accounting_category_label,
+          payableKindCode: row.d_payable_kind_code,
+          payableKindLabel: row.d_payable_kind_label,
+          specialistRouteCode: row.d_specialist_route_code,
+          specialistRouteLabel: row.d_specialist_route_label,
+
+          paymentTargetLabel: row.d_payment_target_label,
+          payableTargetLabel: row.d_payable_target_label,
+          expenseTargetLabel: row.d_expense_target_label,
+          taxPublicLabel: row.d_tax_public_label,
+          publicUtilityLabel: row.d_public_utility_label,
+          contractInsuranceLeaseLabel: row.d_contract_insurance_lease_label,
+
+          aiConfidence: row.d_ai_confidence,
+          aiConfidenceLabel: row.d_ai_confidence_label,
+          aiReason: row.d_ai_reason,
+          reviewReason: row.d_review_reason,
+          needsReview: !!row.d_needs_review,
+
+          aiSummary: row.d_ai_summary_json || {},
+          sortResult: row.d_sort_result_json || {},
+          visibleFields: row.d_visible_fields_json || {},
+          warnings: row.d_warnings_json || [],
+
+          displayRotation: row.d_display_rotation,
+          memo: row.d_memo,
+          createdAt: row.d_created_at,
+          updatedAt: row.d_updated_at
+        } : null;
+
+        const baseDraft = latestSortingDraft || {};
+        const baseSort = baseDraft.sortResult || {};
+
+        const aiDraft = latestSortingDraft ? Object.assign({}, baseSort, {
+          document_type_code: baseDraft.documentTypeCode || baseSort.document_type_code || "",
+          document_type_name: baseDraft.documentTypeLabel || baseSort.document_type_name || baseSort.document_type_label || "",
+          document_type_label: baseDraft.documentTypeLabel || baseSort.document_type_label || baseSort.document_type_name || "",
+
+          payment_destination_code: baseDraft.paymentDestinationCode || baseSort.payment_destination_code || "",
+          payment_destination_name: baseDraft.paymentDestinationLabel || baseSort.payment_destination_name || baseSort.payment_destination_label || "",
+          payment_destination_label: baseDraft.paymentDestinationLabel || baseSort.payment_destination_label || baseSort.payment_destination_name || "",
+
+          accounting_category_code: baseDraft.accountingCategoryCode || baseSort.accounting_category_code || "",
+          accounting_category_name: baseDraft.accountingCategoryLabel || baseSort.accounting_category_name || baseSort.accounting_category_label || "",
+          accounting_category_label: baseDraft.accountingCategoryLabel || baseSort.accounting_category_label || baseSort.accounting_category_name || "",
+
+          payable_kind_code: baseDraft.payableKindCode || baseSort.payable_kind_code || "",
+          payable_kind_name: baseDraft.payableKindLabel || baseSort.payable_kind_name || baseSort.payable_kind_label || "",
+          payable_kind_label: baseDraft.payableKindLabel || baseSort.payable_kind_label || baseSort.payable_kind_name || "",
+
+          specialist_route_code: baseDraft.specialistRouteCode || baseSort.specialist_route_code || "",
+          specialist_route_label: baseDraft.specialistRouteLabel || baseSort.specialist_route_label || "",
+
+          payment_target: baseDraft.paymentTargetLabel || baseSort.payment_target || "",
+          payable_target: baseDraft.payableTargetLabel || baseSort.payable_target || "",
+          expense_target: baseDraft.expenseTargetLabel || baseSort.expense_target || "",
+          tax_public: baseDraft.taxPublicLabel || baseSort.tax_public || "",
+          public_utility: baseDraft.publicUtilityLabel || baseSort.public_utility || "",
+          contract_insurance_lease: baseDraft.contractInsuranceLeaseLabel || baseSort.contract_insurance_lease || "",
+
+          ai_confidence: baseDraft.aiConfidence || baseDraft.aiConfidenceLabel || baseSort.ai_confidence || baseSort.confidence_label || "",
+          confidence_label: baseDraft.aiConfidenceLabel || baseDraft.aiConfidence || baseSort.confidence_label || "",
+          review_reason: baseDraft.reviewReason || baseDraft.aiReason || baseSort.review_reason || baseSort.reason || "",
+          reason: baseDraft.aiReason || baseDraft.reviewReason || baseSort.reason || baseSort.review_reason || "",
+          needs_review: !!(baseDraft.needsReview || baseSort.needs_review)
+        }) : null;
+
+        const visibleFieldLabels = latestSortingDraft ? [
+          "書類区分",
+          "処理先",
+          "会計区分",
+          "未払種別",
+          "専門ルート",
+          "支払対象",
+          "未払登録対象",
+          "経費登録対象",
+          "税金・公的支払",
+          "公共料金・通信費",
+          "契約・保険・リース",
+          "AI信頼度",
+          "AI判定理由"
+        ] : [];
+
+        return {
+          source: "database-review-items",
+          paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+          imageUrl: "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(String(row.payment_document_ocr_import_id)),
+
+          fileName: row.saved_file_name || row.original_file_name,
+          originalFileName: row.original_file_name || row.saved_file_name,
+          savedFileName: row.saved_file_name,
+          mimeType: row.mime_type,
+          sizeBytes: row.size_bytes,
+          sha256: row.sha256,
+
+          documentType: row.document_type,
+          destination: row.destination,
+          sourceType: row.source_type,
+          vendorName: row.vendor_name,
+          note: row.note,
+          emailSubject: row.email_subject,
+          emailFrom: row.email_from,
+          emailReceivedAt: row.email_received_at,
+
+          ocrStatus: row.ocr_status || "ocr_done",
+          ocrProvider: row.ocr_provider,
+          ocrApiVersion: row.ocr_api_version,
+          ocrAt: row.ocr_at,
+          ocrRawText: row.ocr_raw_text,
+          ocrTextPreview: String(row.ocr_raw_text || "").slice(0, 240),
+          ocrTextLength: row.ocr_text_length,
+
+          processStatus: row.process_status,
+          saveStatus: row.save_status,
+          savedStatus: row.save_status,
+          evidenceSaved: row.evidence_saved,
+          ocrSaved: row.ocr_saved,
+          savedRelativePath: row.saved_relative_path,
+          savedMetaRelativePath: row.saved_meta_relative_path,
+          savedAt: row.saved_at,
+          savedByPage: row.saved_by_page,
+
+          draftStatus: row.draft_status,
+          latestSortingDraftId: row.latest_sorting_draft_id,
+          sortedAt: row.sorted_at,
+          latestSortingDraft,
+
+          __savedSortingDraft: latestSortingDraft,
+          __sortingDraftSaved: !!latestSortingDraft,
+          __aiDraft: aiDraft,
+          __visibleFieldLabels: visibleFieldLabels,
+          __documentGroup: latestSortingDraft
+            ? (latestSortingDraft.specialistRouteCode || latestSortingDraft.paymentDestinationCode || latestSortingDraft.documentTypeCode || "")
+            : "",
+          __aiRawResult: latestSortingDraft ? {
+            ok: true,
+            source: "db_latest_sorting_draft",
+            draft: aiDraft,
+            visible_field_labels: visibleFieldLabels
+          } : null,
+
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+      });
+
+      sendJson(res, 200, {
+        ok: true,
+        source: "database-review-items",
+        items
+      });
+    } catch (err) {
+      sendJson(res, 500, {
+        ok: false,
+        source: "database-review-items",
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_PAYMENT_DOCUMENT_REVIEW_ITEMS_DB_ONLY_20260708_END */
   /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_ROUTE_20260707_START */
   if (req.method === "GET" && String(req.url || "").split("?")[0].startsWith("/api/payment-documents/sorting-drafts/by-ocr-import/")) {
     try {
@@ -5891,6 +6408,8 @@ async function handlePaymentDocumentRoutes(req, res) {
 module.exports = {
   handlePaymentDocumentRoutes
 };
+
+
 
 
 
