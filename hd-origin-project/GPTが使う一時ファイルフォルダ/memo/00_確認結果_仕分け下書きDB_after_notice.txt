@@ -1,0 +1,71 @@
+﻿==============================
+仕分け下書きDB 確認結果 after notice
+==============================
+日時: 2026-07-07 23:34:19
+
+[確認結果]
+ table_schema |           table_name            
+--------------+---------------------------------
+ accounting   | payment_document_sorting_drafts
+(1 行)
+
+ column_count 
+--------------
+           50
+(1 行)
+
+            column_name            |        data_type         
+-----------------------------------+--------------------------
+ payment_document_sorting_draft_id | bigint
+ payment_document_ocr_import_id    | bigint
+ draft_no                          | text
+ draft_version                     | integer
+ is_current                        | boolean
+ draft_status                      | text
+ human_check_status                | text
+ document_type_id                  | bigint
+ document_type_code                | text
+ document_type_label               | text
+ payment_destination_id            | bigint
+ payment_destination_code          | text
+ payment_destination_label         | text
+ accounting_category_id            | bigint
+ accounting_category_code          | text
+ accounting_category_label         | text
+ payable_kind_id                   | bigint
+ payable_kind_code                 | text
+ payable_kind_label                | text
+ specialist_route_code             | text
+ specialist_route_label            | text
+ payment_target_label              | text
+ payable_target_label              | text
+ expense_target_label              | text
+ tax_public_label                  | text
+ public_utility_label              | text
+ contract_insurance_lease_label    | text
+ ai_confidence                     | text
+ ai_confidence_label               | text
+ ai_reason                         | text
+ review_reason                     | text
+ needs_review                      | boolean
+ ai_summary_json                   | jsonb
+ sort_result_json                  | jsonb
+ visible_fields_json               | jsonb
+ human_corrections_json            | jsonb
+ warnings_json                     | jsonb
+ original_file_name                | text
+ saved_file_name                   | text
+ saved_relative_path               | text
+ sha256                            | text
+ ocr_text_length                   | integer
+ display_rotation                  | integer
+ memo                              | text
+ created_by_page                   | text
+ created_by                        | text
+ updated_by                        | text
+ created_at                        | timestamp with time zone
+ updated_at                        | timestamp with time zone
+ deleted_at                        | timestamp with time zone
+(50 行)
+
+

@@ -1,0 +1,28 @@
+﻿==============================
+支払書類 左リスト更新 + 右側既存フォーム復元 v2 結果
+==============================
+日時: 2026-07-08 01:00:44
+
+[修正内容]
+- loadItems後にDB保存済み下書きを読み込み、左リストの解析済み表示へ反映
+- selectSortingSummary後に保存済み下書きを取得し、既存の右側フォームIDへ反映
+- showResultへ詳細メモを出す処理はしない
+- document click全体への割り込みはしない
+- 仕分けAPI・保存API・DBは変更しない
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_saved_left_right_restore_v2_20260708_010044.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_saved_left_right_restore_v2_20260708_010044.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_saved_left_right_restore_v2_20260708_010044.ps1
+
+[確認]
+ブラウザで Ctrl+F5。
+左リストが解析済み表示になるか確認。
+左の詳細/行を選んで、右側の既存フォームへ 書類区分・処理先・AI理由 が入るか確認。

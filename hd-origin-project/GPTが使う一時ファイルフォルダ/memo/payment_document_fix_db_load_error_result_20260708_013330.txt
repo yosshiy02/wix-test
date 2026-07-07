@@ -1,0 +1,30 @@
+﻿==============================
+支払書類 DB読み込みエラー復旧 結果
+==============================
+日時: 2026-07-08 01:33:30
+
+[結果]
+変更あり
+
+[実施内容]
+- HTML側の attachDbLatestDraftToItem 孤立呼び出しを削除
+- loadItems を通常の items = allItems.filter(hasOcr); に戻した
+- AIルール・プロンプト・sorting.extra-rules.txt は触っていない
+- DBは触っていない
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_fix_db_load_error_20260708_013330.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_fix_db_load_error_20260708_013330.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_fix_db_load_error_20260708_013330.ps1
+
+[確認]
+1. サーバー再起動
+2. ブラウザで Ctrl + F5
+3. DB読み込みエラーが消えるか確認

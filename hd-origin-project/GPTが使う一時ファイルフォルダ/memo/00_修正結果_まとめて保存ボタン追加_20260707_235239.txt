@@ -1,0 +1,36 @@
+﻿==============================
+支払書類内容確認 まとめて保存ボタン追加 結果
+==============================
+日時: 2026-07-07 23:52:40
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[変更ファイル]
+web_receiver\public\payables\payment-document-review.html
+
+[ボタン挿入]
+True
+
+[JSブロック追加]
+True
+
+[内容]
+- まとめて仕分けボタンの隣に、まとめて保存ボタンを追加
+- まとめて仕分け時の /api/payment-documents/ai-sort/:id 結果をブラウザ内にキャッシュ
+- まとめて保存クリック時、キャッシュ済みAI仕分け結果を /api/payment-documents/sorting-drafts/save へ順番にPOST
+- 新規保存先: accounting.payment_document_sorting_drafts
+
+[注意]
+- まとめて保存前に、先にまとめて仕分けを実行する必要があります
+- AI仕分け結果キャッシュが無い書類は保存せず、失敗件数に入ります
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_bulk_save_button_20260707_235239.ps1
+
+[次の確認]
+1. ブラウザを再読み込み
+2. まとめて仕分けボタンの隣に「まとめて保存」が出るか確認
+3. まとめて仕分けを実行
+4. まとめて保存を押す
+5. 成功件数・失敗件数のアラートを確認

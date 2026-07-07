@@ -1,0 +1,26 @@
+﻿==============================
+OCR成功直後DB保存 最小パッチ v4 結果
+==============================
+日時: 2026-07-08 00:17:57
+
+[修正内容]
+- ocrOneFile 内のOCR成功後 writeJson 直前にDB保存処理を追加
+- accounting.payment_document_ocr_imports へOCR本文を即UPSERT
+- DB保存は BEGIN / COMMIT / ROLLBACK 付き
+- OCR本文が空の場合はDB保存しない
+- 返却値に dbSaved / paymentDocumentOcrImportId を追加
+
+[確認]
+Node --check: OK
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_ocr_db_min_v4_20260708_001757.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_ocr_db_min_v4_20260708_001757.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_ocr_db_min_v4_20260708_001757.ps1
+
+[本体反映]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js

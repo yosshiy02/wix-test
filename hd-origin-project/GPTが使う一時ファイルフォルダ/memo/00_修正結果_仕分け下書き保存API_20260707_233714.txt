@@ -1,0 +1,30 @@
+﻿==============================
+仕分け下書き保存API 追加結果
+==============================
+日時: 2026-07-07 23:37:14
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[追加API]
+POST /api/payment-documents/sorting-drafts/save
+
+[変更ファイル]
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[保存先DB]
+accounting.payment_document_sorting_drafts
+
+[OCR取込側更新]
+draft_status = draft_saved
+latest_sorting_draft_id = 保存した下書きID
+sorted_at = now()
+
+[JS構文チェック]
+OK
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_sorting_draft_api_20260707_233714.ps1
+
+[次]
+API単体テストで1件保存できるか確認します。

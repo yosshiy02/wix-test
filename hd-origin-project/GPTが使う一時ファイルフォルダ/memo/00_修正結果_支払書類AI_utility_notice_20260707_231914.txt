@@ -1,0 +1,34 @@
+﻿==============================
+支払書類仕分けAI 公共料金コード修正 結果
+==============================
+日時: 2026-07-07 23:19:16
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[修正内容]
+utility_bill -> utility_notice
+
+[狙い]
+- 水道料金通知書など公共料金の書類区分SELECTが空欄になる問題を修正
+- AI判定理由は正しいが、document_type_code がマスタ/画面側と合わない問題を補正
+
+[変更あり]
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+
+[変更なし]
+なし
+
+[見つからなかったファイル]
+なし
+
+[JS構文チェック]
+構文チェック対象なし
+
+[UNDO]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_utility_notice_20260707_231914.ps1
+
+[次の確認]
+水道料金通知書を再度AI解析して、AI判定サマリーの書類区分が「公共料金通知書」または該当マスタ表示になるか確認してください。

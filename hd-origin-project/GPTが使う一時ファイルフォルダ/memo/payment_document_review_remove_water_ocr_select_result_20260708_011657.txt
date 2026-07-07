@@ -1,0 +1,32 @@
+﻿==============================
+支払書類 水道OCR SELECT後追い補正 削除結果
+==============================
+日時: 2026-07-08 01:16:57
+
+[削除対象]
+HD_ORIGIN_PAYMENT_WATER_OCR_SELECT_20260707
+
+[削除数]
+1
+
+[方針]
+- 水道料金通知書の画面側後追いSELECT補正を削除
+- selectSortingSummary / renderSelectedOcrDetail / applySortingOnlyDraftToForm への広範囲ラップを撤去
+- 今後はAI判定、プロンプト、保存済み仕分け下書き、学習ルール側で育てる
+- 画面側で特定書類だけ強制上書きしない
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_remove_water_ocr_select_20260708_011657.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_remove_water_ocr_select_20260708_011657.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_remove_water_ocr_select_20260708_011657.ps1
+
+[確認]
+ブラウザで Ctrl+F5。
+左書類選択時に、右側表示が入れ替わり続けないことを確認。

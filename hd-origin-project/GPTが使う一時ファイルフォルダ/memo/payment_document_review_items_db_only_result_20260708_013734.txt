@@ -1,0 +1,33 @@
+﻿==============================
+支払書類仕分け画面 DB専用一覧化 結果
+==============================
+日時: 2026-07-08 01:37:35
+
+[重要]
+- 仕分け画面のloadItemsは一時ファイル/ocr-imports一覧を見ない
+- 新API /api/payment-documents/review-items を読む
+- review-items は accounting.payment_document_ocr_imports と latest_sorting_draft_id のDBだけを見る
+- AIルール・プロンプト・sorting.extra-rules.txt は触っていない
+
+[修正対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\paymentDocuments.routes_before_review_items_db_only_20260708_013734.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_review_items_db_only_20260708_013734.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes_after_review_items_db_only_20260708_013734.js
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_review_items_db_only_20260708_013734.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_review_items_db_only_20260708_013734.ps1
+
+[確認]
+1. サーバー再起動
+2. ブラウザで Ctrl + F5
+3. 支払書類仕分け画面を開く
+4. 左リストがDB保存済みOCR基準になること
+5. 一時ファイル側の未整理データが出ないこと
+6. 保存済み下書きがある書類は右側に項目表示されること

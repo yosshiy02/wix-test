@@ -1,0 +1,648 @@
+﻿支払書類仕分け 追加ルール
+
+このファイルは1回目仕分け専用です。
+詳細項目抽出は行わないこと。
+
+基本方針：
+1. 買掛と未払を混ぜない。
+2. 買掛は、商品仕入・材料仕入・資材仕入・外注加工など、営業仕入債務に限定する。
+3. 保険料、税金、公共料金、通信費、カード利用、リース料、契約料などは原則として買掛にしない。
+4. 支払済み領収書・レシートは、買掛や未払ではなく、支払済み証憑・経費系に寄せる。
+5. 納品書、注文書、発注書、見積書、検収書は原則として照合用。支払登録へ直行させない。
+6. カード会社の利用明細・請求明細はカード未払へ寄せる。
+7. 納付書、税務署、市税、府税、法人税、消費税、源泉所得税、固定資産税、社会保険料などは税金・公的支払へ寄せる。
+8. 保険、リース、契約は契約・保険・リース系へ寄せる。公共料金、通信費は公共料金・通信費系へ独立して寄せる。
+9. 判断材料が足りない場合、needs_review=true にする。
+10. AIは会計確定をしない。人間確認前の候補だけを作る。
+
+判定例：
+- 「請求書」かつ材料・資材・仕入・外注・加工が強い
+  → document_type_code=invoice
+  → payment_destination_code=accounts_payable
+  → specialist_route_code=invoice_payable
+
+- 「請求書」だが保険、通信費、公共料金、リース、契約料など
+  → payment_destination_code=unpaid
+  → specialist_route_code=contract_insurance_lease
+
+- 「領収書」「領収済」「支払済」
+  → document_type_code=receipt
+  → payment_destination_code=expense
+  → specialist_route_code=paid_evidence
+
+- 「納付書」「税目」「納付先」「税務署」「市税事務所」「合計納付額」
+  → document_type_code=tax_payment
+  → payment_destination_code=tax_public
+  → specialist_route_code=tax_public
+
+- 「カード明細」「クレジットカード」「ご利用明細」
+  → document_type_code=card_statement
+  → payment_destination_code=card_payable
+  → specialist_route_code=card_statement
+
+- 「納品書」「注文書」「発注書」「見積書」「検収書」
+  → payment_destination_code=evidence_only
+  → specialist_route_code=reference_check
+
+出力注意：
+- fields には詳細項目を入れない。
+- vendor_name、amount、date、invoice_number などは返さない。
+- review_reason は短く具体的にする。
+- confidence が low の場合は needs_review=true にする。
+
+HD_ORIGIN_SORTING_RULE_GROW_FIXED_ASSET_TAX_20260707_START
+育成ルール：固定資産税・都市計画税・納税通知書
+
+OCR本文に以下のような語句がある場合は、1回目仕分けでは税金・公的支払へ寄せる。
+
+主な根拠語句：
+- 固定資産税
+- 都市計画税
+- 納税通知書
+- 納付書
+- 市税事務所
+- 税務署
+- 税目
+- 年税額
+- 税額
+- 納期限
+- 期別
+- 第1期、第2期、第3期、第4期
+
+判定：
+- document_type_code = tax_payment
+- document_type_label = 納付書・納税通知書
+- payment_destination_code = tax_public
+- payment_destination_label = 税金・公的支払い
+- specialist_route_code = tax_public
+- specialist_route_label = 税金・公的支払解析
+- accounting_category_code = tax
+- payable_kind_code = tax_public
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+review_reason 例：
+固定資産税・都市計画税、納税通知書、市税事務所の記載があるため。
+
+注意：
+- 金額、期別、住所、通知番号などの詳細抽出はしない。
+- ここでは1回目仕分けだけ行う。
+HD_ORIGIN_SORTING_RULE_GROW_FIXED_ASSET_TAX_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_CARD_STATEMENT_20260707_START
+育成ルール：カード利用明細・カード会社明細・カード明細照合
+
+OCR本文に以下のような語句がある場合は、1回目仕分けではカード未払およびカード明細照合へ寄せる。
+
+主な根拠語句：
+- カード利用明細
+- カード会社明細
+- クレジットカード
+- ご利用明細
+- カード明細
+- CARD
+- カード会社
+- 名義
+- 利用日
+- 利用店名
+- カード明細は照合用
+- 購入先証憑と紐付ける
+- 処理先:カード明細照合へ
+
+判定：
+- document_type_code = card_statement
+- document_type_label = カード利用明細
+- payment_destination_code = card_payable
+- payment_destination_label = カード未払
+- specialist_route_code = card_statement
+- specialist_route_label = カード明細照合
+- payable_kind_code = card_payable
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 対象外またはカード未払候補
+- 経費登録対象 = 対象外
+- 税金・公的支払 = 対象外
+- 契約・保険・リース = 対象外
+
+重要：
+- カード明細に利用店名や金額があっても、ここでは経費明細を作らない。
+- 各利用行の勘定科目・税区分・経費登録は、購入先証憑との照合後に別工程で行う。
+- カード利用明細そのものを領収書・レシート扱いしない。
+- カード利用明細そのものを買掛にしない。
+- カード利用明細そのものを税金・公的支払にしない。
+
+review_reason 例：
+カード利用明細、カード会社明細等の記載があり、購入先証憑との照合対象であるため。
+HD_ORIGIN_SORTING_RULE_GROW_CARD_STATEMENT_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_MAIL_COMM_20260707_START
+育成ルール：メール保存証憑 + 通信費
+
+OCR本文に以下のような語句がある場合は、カード利用明細ではなく、メール保存証憑・通信費系として扱う。
+
+主な根拠語句：
+- メール保存証憑
+- メール保存ファイル
+- From
+- Subject
+- Received
+- MAIL
+- 原本メール保存
+- 通信費
+- 通信費のお知らせ
+- ご請求額
+- 対象月
+- 支払方法:クレジットカード
+- 処理先:経費へ
+
+重要：
+- 「支払方法:クレジットカード」は支払方法の情報であり、カード会社明細そのものではない。
+- その一文だけで card_statement / カード未払 / カード明細照合 にしない。
+- カード明細判定は、カード利用明細、カード会社明細、ご利用明細、利用日、利用店名、カード明細は照合用、購入先証憑と紐付ける等がある場合に限定する。
+
+判定：
+- document_type_code = mail_saved
+- document_type_label = メール保存証憑
+- payment_destination_code = expense
+- payment_destination_label = 経費
+- specialist_route_code = utility
+- specialist_route_label = 公共料金・通信費確認
+- accounting_category_code = normal
+- payable_kind_code = ""
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 対象外
+- 経費登録対象 = 候補
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+review_reason 例：
+メール保存証憑であり、通信費のお知らせ・ご請求額・支払方法の記載があるため。支払方法がクレジットカードでもカード明細そのものではない。
+HD_ORIGIN_SORTING_RULE_GROW_MAIL_COMM_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_RECEIPT_ATTENTION_20260707_START
+育成ルール：手書き領収書・上様・お品代・人間確認
+
+OCR本文に以下のような語句がある場合は、1回目仕分けでは領収書・経費管理へ寄せる。
+ただし、宛名・但し書き・インボイス番号の確認が必要な領収書として扱う。
+
+主な根拠語句：
+- 領収書
+- 領収
+- 手書き領収書
+- 上様
+- お品代
+- 但し
+- 但し書き
+- 宛名
+- インボイス番号
+- 人間確認
+- 処理先:経費へ
+
+判定：
+- document_type_code = receipt
+- document_type_label = 領収書
+- payment_destination_code = expense
+- payment_destination_label = 経費管理
+- specialist_route_code = paid_evidence
+- specialist_route_label = 支払済み証憑確認
+- accounting_category_code = normal
+- payable_kind_code = ""
+- confidence = medium
+- confidence_label = 中
+- needs_review = true
+
+登録対象の考え方：
+- 支払対象 = 支払済み証憑候補
+- 未払登録対象 = 対象外
+- 経費登録対象 = 候補
+- 税金・公的支払 = 対象外
+- 契約・保険・リース = 対象外
+
+重要：
+- 「上様」は宛名確認が必要。
+- 「お品代」は但し書き確認が必要。
+- 「インボイス番号は人間確認」とある場合は、信頼度を高にしない。
+- 経費管理へ送る方向は正しいが、要確認として人間確認へ回す。
+- 1回目仕分けでは金額、発行日、発行者、但し書き、インボイス番号などは抽出しない。
+
+review_reason 例：
+領収書だが、宛名が上様で但し書き・インボイス番号の人間確認が必要なため。
+HD_ORIGIN_SORTING_RULE_GROW_RECEIPT_ATTENTION_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_UTILITY_20260707_START
+育成ルール：電気料金・公共料金Web明細
+
+OCR本文に以下のような語句がある場合は、税金・公的支払いではなく、公共料金・通信費系として扱う。
+
+主な根拠語句：
+- 電気料金
+- ガス料金
+- 水道料金
+- 通信費
+- Web明細
+- WEB
+- 発行元
+- 電力
+- ガス
+- 水道
+- 契約名義
+- 対象月
+- 使用期間
+- 請求日
+- 請求合計
+- 消費税相当額
+- 処理先:経費へ
+
+重要：
+- 「公共料金」は「税金・公的支払い」ではない。
+- 電気料金、ガス料金、水道料金、通信費は、原則として税金公的ではなく経費管理へ寄せる。
+- 公共料金に消費税相当額が書いてあっても、それだけで税金・公的支払いにしない。
+- 税金・公的支払いにするのは、納付書、税目、税務署、市税、府税、固定資産税、法人税、消費税、源泉所得税、社会保険料などが明確な場合に限る。
+
+判定：
+- document_type_code = utility_notice
+- document_type_label = 公共料金通知書
+- payment_destination_code = expense
+- payment_destination_label = 経費管理
+- specialist_route_code = utility
+- specialist_route_label = 公共料金・通信費確認
+- accounting_category_code = public_utility
+- accounting_category_label = 公共料金
+- payable_kind_code = ""
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 対象外
+- 経費登録対象 = 候補
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+review_reason 例：
+電気料金のWeb明細であり、発行元・契約名義・対象月・請求合計の記載があるため。税金ではなく公共料金として扱う。
+HD_ORIGIN_SORTING_RULE_GROW_UTILITY_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_MATERIAL_INVOICE_20260707_START
+育成ルール：材料仕入請求書
+
+OCR本文に以下のような語句がある場合は、請求書・材料仕入・買掛候補として扱う。
+
+主な根拠語句：
+- 請求書
+- 発行元
+- 登録番号
+- 請求先
+- 請求日
+- 請求番号
+- 支払期限
+- 品名
+- 靴資材一式
+- 靴資材
+- 資材
+- 材料
+- 原材料
+- 仕入
+- 税抜金額
+- 消費税
+- 請求合計
+
+判定：
+- document_type_code = invoice
+- document_type_label = 請求書
+- payment_destination_code = accounts_payable
+- payment_destination_label = 買掛管理
+- specialist_route_code = accounts_payable
+- specialist_route_label = 買掛・仕入請求確認
+- accounting_category_code = normal
+- payable_kind_code = purchase_payable
+- payable_kind_label = 仕入買掛
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 候補
+- 経費登録対象 = 対象外
+- 税金・公的支払 = 対象外
+- 契約・保険・リース = 対象外
+
+重要：
+- 材料仕入の請求書を経費管理へ直行させない。
+- 材料仕入の請求書を公共料金Web明細にしない。
+- 「請求合計」だけで公共料金と判定しない。
+- 公共料金判定は、電気料金、ガス料金、水道料金、通信費、Web明細、対象月、使用期間などがある場合に限定する。
+- 1回目仕分けでは金額、税額、請求番号、支払期限などの詳細抽出はしない。
+
+review_reason 例：
+請求書であり、靴資材一式・支払期限・請求番号・請求合計の記載があるため、材料仕入の買掛候補と判断。
+HD_ORIGIN_SORTING_RULE_GROW_MATERIAL_INVOICE_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_INSURANCE_20260707_START
+育成ルール：保険料通知書・未払金候補
+
+OCR本文に以下のような語句がある場合は、保険料通知書・契約保険系・未払金候補として扱う。
+
+主な根拠語句：
+- 保険料通知書
+- 保険料
+- 保険
+- 発行元
+- 契約者
+- 契約番号
+- 通知日
+- 支払日
+- 支払方法
+- 口座振替
+- 処理先:未払
+- 処理先:未払・買掛へ
+
+判定：
+- document_type_code = insurance_notice
+- document_type_label = 保険料通知書
+- payment_destination_code = contract_insurance_lease
+- payment_destination_label = 契約・保険・リース
+- specialist_route_code = utility
+- specialist_route_label = 契約・保険・リース確認
+- accounting_category_code = insurance
+- accounting_category_label = 保険
+- payable_kind_code = unpaid
+- payable_kind_label = 未払金
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 候補
+- 経費登録対象 = 対象外
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+重要：
+- 保険料通知書は材料仕入の買掛ではない。
+- 保険料通知書は税金・公的支払ではない。
+- 支払日や口座振替がある場合は、未払金候補として扱う。
+- 「処理先:未払・買掛へ」とOCR本文にあっても、保険料通知書なら買掛ではなく未払金候補へ寄せる。
+- 社会保険料、厚生年金、健康保険料、労働保険料、年金事務所、納付書などがある場合は、税金・公的支払側の可能性があるため別判定する。
+
+review_reason 例：
+保険料通知書であり、契約番号・支払日・保険料・口座振替の記載があるため。買掛ではなく契約・保険系の未払金候補として扱う。
+HD_ORIGIN_SORTING_RULE_GROW_INSURANCE_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_LEASE_20260707_START
+育成ルール：リース契約書・未払金候補
+
+OCR本文に以下のような語句がある場合は、リース契約書・契約リース系・未払金候補として扱う。
+
+主な根拠語句：
+- リース契約書
+- リース契約
+- 契約書
+- 貸主
+- 借主
+- 契約日
+- 契約期間
+- 物件
+- 月額リース料
+- 支払日
+- 毎月末日
+- 処理先:未払
+- 処理先:未払・買掛へ
+
+判定：
+- document_type_code = lease_contract
+- document_type_label = リース契約書
+- payment_destination_code = contract_insurance_lease
+- payment_destination_label = 契約・保険・リース
+- specialist_route_code = utility
+- specialist_route_label = 契約・保険・リース確認
+- accounting_category_code = lease
+- accounting_category_label = リース
+- payable_kind_code = unpaid
+- payable_kind_label = 未払金
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 候補
+- 経費登録対象 = 対象外
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+重要：
+- リース契約書は材料仕入の買掛ではない。
+- リース契約書は税金・公的支払ではない。
+- 月額リース料や毎月の支払日がある場合は、未払金候補として扱う。
+- 「処理先:未払・買掛へ」とOCR本文にあっても、リース契約書なら買掛ではなく未払金候補へ寄せる。
+- 1回目仕分けでは、契約期間、金額、支払日、物件名などの詳細抽出はしない。
+
+review_reason 例：
+リース契約書であり、貸主・借主・契約期間・月額リース料・支払日の記載があるため。買掛ではなく契約・リース系の未払金候補として扱う。
+HD_ORIGIN_SORTING_RULE_GROW_LEASE_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_WATER_UTILITY_20260707_START
+育成ルール：水道料金通知書・公共料金通知書
+
+OCR本文に以下のような語句がある場合は、税金・公的支払いではなく、公共料金系として扱う。
+
+主な根拠語句：
+- 水道料金通知書
+- 水道料金
+- 水道局
+- 使用者
+- 対象期間
+- 通知日
+- 支払期限
+- 消費税相当額
+- 請求合計
+- 処理先:経費へ
+- 水道
+
+判定：
+- document_type_code = utility_notice
+- document_type_label = 公共料金通知書
+- payment_destination_code = expense
+- payment_destination_label = 経費管理
+- specialist_route_code = utility
+- specialist_route_label = 公共料金・通信費確認
+- accounting_category_code = public_utility
+- accounting_category_label = 公共料金
+- payable_kind_code = ""
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 対象外
+- 経費登録対象 = 候補
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+重要：
+- 水道料金は公共料金であり、税金・公的支払いではない。
+- 「公的料金通知」という語だけで tax_public にしない。
+- 納付書、税目、税務署、市税、府税、法人税、固定資産税などがある場合のみ税金・公的支払いを検討する。
+- 書類区分は空欄にせず、公共料金通知書へ寄せる。
+- 1回目仕分けでは、金額、対象期間、支払期限などの詳細抽出はしない。
+
+review_reason 例：
+水道料金通知書であり、水道局・対象期間・支払期限・請求合計の記載があるため。税金ではなく公共料金として扱う。
+HD_ORIGIN_SORTING_RULE_GROW_WATER_UTILITY_20260707_END
+
+
+HD_ORIGIN_SORTING_RULE_GROW_PUBLIC_UTILITY_INDEPENDENT_20260707_START
+育成ルール：公共料金・通信費の独立扱い
+
+公共料金・通信費は、契約・保険・リースに混ぜない。
+
+対象：
+- 電気料金
+- ガス料金
+- 水道料金
+- 水道料金通知書
+- 通信費
+- 電話料金
+- インターネット料金
+- クラウド利用料
+- Web明細
+- 公共料金通知書
+
+判定：
+- document_type_code = utility_notice
+- document_type_label = 公共料金通知書
+- payment_destination_code = expense
+- payment_destination_label = 経費管理
+- specialist_route_code = utility
+- specialist_route_label = 公共料金・通信費確認
+- accounting_category_code = public_utility
+- accounting_category_label = 公共料金
+- payable_kind_code = ""
+- confidence = high
+- confidence_label = 高
+- needs_review = false
+
+登録対象の考え方：
+- 支払対象 = 支払対象候補
+- 未払登録対象 = 対象外
+- 経費登録対象 = 候補
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 公共料金
+- 契約・保険・リース = 対象外
+
+重要：
+- 「公的料金通知」という語だけで tax_public にしない。
+- 消費税相当額があっても、公共料金は税金・公的支払ではない。
+- 公共料金を contract_insurance_lease に送らない。
+- 保険、リース、契約とは別系統として扱う。
+HD_ORIGIN_SORTING_RULE_GROW_PUBLIC_UTILITY_INDEPENDENT_20260707_END
+
+HD_ORIGIN_SORTING_RULE_GROW_OTHER_EVIDENCE_NEEDS_REVIEW_20260707_START
+育成ルール：その他証憑・未判定・確認待ち・保留
+
+OCR本文に以下のような語句がある場合は、書類区分を空欄にしない。
+不明だから空欄ではなく、その他証憑として明示し、人間確認へ送る。
+
+主な根拠語句：
+- その他証憑
+- その他 証 憑
+- 書類種別:未判定
+- 未判定
+- 確認待ち
+- 内容:確認待ち
+- AIだけで確定しない
+- 人間が確認する
+- 処理先:保留
+- 保留
+- 発行元:不明
+- 金額:不明
+
+判定：
+- document_type_code = other
+- document_type_label = その他証憑
+- payment_destination_code = needs_review
+- payment_destination_label = 要確認
+- specialist_route_code = needs_review
+- specialist_route_label = 人間確認
+- accounting_category_code = needs_review
+- accounting_category_label = 要確認
+- payable_kind_code = ""
+- confidence = low
+- confidence_label = 低
+- needs_review = true
+
+登録対象の考え方：
+- 支払対象 = 要確認
+- 未払登録対象 = 対象外
+- 経費登録対象 = 対象外
+- 税金・公的支払 = 対象外
+- 公共料金・通信費 = 対象外
+- 契約・保険・リース = 対象外
+
+review_reason 例：
+OCR本文にその他証憑、書類種別未判定、確認待ち、処理先保留の記載があるため。
+
+重要：
+- その他証憑・未判定・確認待ちは、書類区分を空欄にしない。
+- 無理に請求書、領収書、税金、公的支払、公共料金へ寄せない。
+- AIが確定できない場合でも「その他証憑」または「要確認」として明示する。
+- 詳細項目抽出はしない。
+HD_ORIGIN_SORTING_RULE_GROW_OTHER_EVIDENCE_NEEDS_REVIEW_20260707_END
+HD_ORIGIN_SORTING_RULE_PUBLIC_UTILITY_BOUNDARY_20260708_START
+重要ルール：公共料金判定の境界
+
+今回の学習内容：
+- リース契約書、保険料通知書、契約書、保険、リースは、公共料金にしない。
+- これらは「契約・保険・リース」系として扱う。
+- public_utility_label は「公共料金」ではなく「対象外」とする。
+- accounting_category_label も、本文に応じて「保険」「リース」「契約」等を優先する。
+- specialist_route_label は「契約・保険・リース確認」を優先する。
+
+公共料金にしてよいもの：
+- 水道料金通知書
+- 電気料金Web明細
+- ガス料金通知書
+- 通信費通知書
+- 電話料金、インターネット料金、プロバイダ料金など、ライフライン・通信費が明確なもの
+
+公共料金にしてはいけないもの：
+- リース契約書
+- 保険料通知書
+- 契約書
+- カード利用明細
+- 税金・納付書・納税通知書
+- 請求書・材料仕入・買掛系
+- 領収書・支払済み証憑
+
+判断基準：
+- 「料金」という文字だけで公共料金にしない。
+- 「月額」「支払日」「口座振替」があっても、保険・リース・契約なら公共料金ではない。
+- 公共料金は、水道・電気・ガス・通信費などの内容が本文から明確な場合だけ。
+- 迷う場合は公共料金へ寄せず、要確認または該当専門ルートへ送る。
+
+保存値の方針：
+- リース・保険・契約系の public_utility_label は「対象外」。
+- 水道・電気・ガス・通信費系の public_utility_label は「公共料金」。
+- HTML側の後追い補正ではなく、AI判定時点でこの境界を守る。
+HD_ORIGIN_SORTING_RULE_PUBLIC_UTILITY_BOUNDARY_20260708_END
+

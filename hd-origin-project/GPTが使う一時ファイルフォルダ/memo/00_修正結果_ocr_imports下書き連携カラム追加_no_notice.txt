@@ -1,0 +1,26 @@
+﻿==============================
+OCR取込テーブル 下書き連携カラム追加 no notice 結果
+==============================
+日時: 2026-07-07 23:47:05
+
+[対象]
+accounting.payment_document_ocr_imports
+
+[確認カラム]
+draft_status
+latest_sorting_draft_id
+sorted_at
+
+[psql exit code]
+0
+
+[psql output]
+DO
+       column_name       |        data_type         
+-------------------------+--------------------------
+ draft_status            | text
+ latest_sorting_draft_id | bigint
+ sorted_at               | timestamp with time zone
+(3 行)
+
+

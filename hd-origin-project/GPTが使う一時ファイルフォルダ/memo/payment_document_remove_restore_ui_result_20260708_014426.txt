@@ -1,0 +1,37 @@
+﻿==============================
+支払書類 後追い復元UI削除 + 公共料金誤フィールド補正 結果
+==============================
+日時: 2026-07-08 01:44:26
+
+[重要]
+- AIルール・プロンプト・sorting.extra-rules.txt は触っていません
+- HTMLの後追い復元UIを削除しました
+- DBに入ってしまった非公共料金の public_utility_label=公共料金 を 対象外 に補正しました
+
+[HTML変更]
+変更あり
+
+[対象HTML]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review_before_remove_restore_ui_20260708_014426.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review_after_remove_restore_ui_20260708_014426.html
+
+[SQL]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\payment_document_fix_public_utility_label_20260708_014426.sql
+
+[SQL結果]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\memo\payment_document_fix_public_utility_label_20260708_014426.txt
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_remove_restore_ui_20260708_014426.ps1
+
+[確認]
+1. サーバー再起動
+2. ブラウザで Ctrl + F5
+3. リース契約書・保険料通知書が公共料金へ寄らないこと
+4. 水道料金通知書・電気料金・通信費はAI/DB通り公共料金のままでよい
+5. てかてかが止まること
