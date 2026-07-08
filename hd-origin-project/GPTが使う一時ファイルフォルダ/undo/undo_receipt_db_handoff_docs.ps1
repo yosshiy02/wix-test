@@ -1,3 +1,0 @@
-﻿Copy-Item -LiteralPath "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT_WORKFLOW_HANDOFF_MEMO.txt.before_receipt_db_handoff.txt" -Destination "G:\GITHUB\wix-test\hd-origin-project\GPT_WORKFLOW_HANDOFF_MEMO.txt" -Force
-Copy-Item -LiteralPath "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\PROJECT_STATUS_FOR_GPT.txt.before_receipt_db_handoff.txt" -Destination "G:\GITHUB\wix-test\hd-origin-project\PROJECT_STATUS_FOR_GPT.txt" -Force
-Copy-Item -LiteralPath "G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\PROJECT_TODO_FOR_GPT.txt.before_receipt_db_handoff.txt" -Destination "G:\GITHUB\wix-test\hd-origin-project\PROJECT_TODO_FOR_GPT.txt" -Force

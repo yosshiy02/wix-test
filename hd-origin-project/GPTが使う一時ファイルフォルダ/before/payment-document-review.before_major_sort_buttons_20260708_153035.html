@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -14,16 +14,7 @@
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
-            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
-      <nav class="specialist-system-nav" aria-label="専門解析システム">
-        <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
-        <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
-        <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
-        <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
-        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-      </nav>
-      <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
+      <span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
     </header>
 
     <section class="panel list-panel">
@@ -36,19 +27,6 @@
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
 <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
-        <!-- HD_ORIGIN_PAYMENT_DOCUMENT_MAJOR_SORT_BUTTONS_20260708_START -->
-        <span class="sorting-major-divider">主要</span>
-        <button type="button" class="sorting-major-filter active" data-major-sort-filter="all" onclick="setPaymentDocumentMajorSortFilter('all')">全部</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="invoice" onclick="setPaymentDocumentMajorSortFilter('invoice')">買掛</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="unpaid" onclick="setPaymentDocumentMajorSortFilter('unpaid')">未払</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="expense" onclick="setPaymentDocumentMajorSortFilter('expense')">経費/支払済</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="utility" onclick="setPaymentDocumentMajorSortFilter('utility')">公共/通信</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="contract" onclick="setPaymentDocumentMajorSortFilter('contract')">契約/保険</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="tax" onclick="setPaymentDocumentMajorSortFilter('tax')">税金</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="card" onclick="setPaymentDocumentMajorSortFilter('card')">カード</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="reference" onclick="setPaymentDocumentMajorSortFilter('reference')">照合</button>
-        <button type="button" class="sorting-major-filter" data-major-sort-filter="review" onclick="setPaymentDocumentMajorSortFilter('review')">要確認</button>
-        <!-- HD_ORIGIN_PAYMENT_DOCUMENT_MAJOR_SORT_BUTTONS_20260708_END -->
       </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -5912,159 +5890,8 @@ function setDocumentPreview(item) {
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
 
-<script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_MAJOR_SORT_FILTER_20260708_START */
-(function () {
-  "use strict";
-
-  if (window.__hdOriginPaymentDocumentMajorSortFilterInstalled) {
-    return;
-  }
-
-  window.__hdOriginPaymentDocumentMajorSortFilterInstalled = true;
-  window.__paymentDocumentMajorSortFilter = window.__paymentDocumentMajorSortFilter || "all";
-
-  function textOf(card) {
-    return String(
-      (card && card.className ? card.className : "") + " " +
-      (card && card.textContent ? card.textContent : "")
-    ).toLowerCase();
-  }
-
-  function includesAny(text, words) {
-    return words.some(function (word) {
-      return text.indexOf(String(word || "").toLowerCase()) >= 0;
-    });
-  }
-
-  function majorKindOfCard(card) {
-    const text = textOf(card);
-
-    if (includesAny(text, ["visual-row-tax", "税金", "公的", "納付", "納税", "税務署", "市税", "府税", "固定資産税"])) {
-      return "tax";
-    }
-
-    if (includesAny(text, ["visual-row-card", "カード", "クレジット", "card_statement", "card_payable", "ご利用明細"])) {
-      return "card";
-    }
-
-    if (includesAny(text, ["公共料金", "通信", "電気", "水道", "ガス", "電話", "インターネット", "utility", "public_utility"])) {
-      return "utility";
-    }
-
-    if (includesAny(text, ["visual-row-contract", "契約", "保険", "リース", "contract", "insurance", "lease"])) {
-      return "contract";
-    }
-
-    if (includesAny(text, ["visual-row-reference", "照合", "納品", "注文", "発注", "見積", "検収", "reference", "evidence_only"])) {
-      return "reference";
-    }
-
-    if (includesAny(text, ["visual-row-invoice", "買掛", "仕入", "材料", "資材", "外注", "accounts_payable"])) {
-      return "invoice";
-    }
-
-    if (includesAny(text, ["visual-row-unpaid", "未払", "未払金", "未払費用", "unpaid", "accrued_expense"])) {
-      return "unpaid";
-    }
-
-    if (includesAny(text, ["visual-row-expense", "経費", "領収", "レシート", "支払済", "paid_evidence", "receipt", "expense"])) {
-      return "expense";
-    }
-
-    if (includesAny(text, ["visual-row-review", "要確認", "needs_review", "信頼度低", "低"])) {
-      return "review";
-    }
-
-    return "other";
-  }
-
-  function updateMajorButtons() {
-    const current = String(window.__paymentDocumentMajorSortFilter || "all");
-
-    document.querySelectorAll("[data-major-sort-filter]").forEach(function (button) {
-      const key = String(button.getAttribute("data-major-sort-filter") || "all");
-      button.classList.toggle("active", key === current);
-    });
-  }
-
-  function applyMajorFilter() {
-    const current = String(window.__paymentDocumentMajorSortFilter || "all");
-    const cards = Array.from(document.querySelectorAll(".sorting-item-card"));
-
-    cards.forEach(function (card) {
-      const kind = majorKindOfCard(card);
-      const show = current === "all" || kind === current;
-
-      card.hidden = !show;
-      card.setAttribute("data-major-sort-kind", kind);
-    });
-
-    updateMajorButtons();
-  }
-
-  window.applyPaymentDocumentMajorSortFilter = applyMajorFilter;
-
-  window.setPaymentDocumentMajorSortFilter = function (filter) {
-    window.__paymentDocumentMajorSortFilter = String(filter || "all");
-    applyMajorFilter();
-
-    if (typeof showResult === "function") {
-      const labelMap = {
-        all: "全部",
-        invoice: "買掛",
-        unpaid: "未払",
-        expense: "経費/支払済",
-        utility: "公共/通信",
-        contract: "契約/保険",
-        tax: "税金",
-        card: "カード",
-        reference: "照合",
-        review: "要確認"
-      };
-
-      showResult("主要仕分け表示: " + (labelMap[window.__paymentDocumentMajorSortFilter] || window.__paymentDocumentMajorSortFilter));
-    }
-  };
-
-  function patchRenderSortingList() {
-    if (window.__hdOriginPaymentDocumentMajorSortRenderPatched) {
-      return;
-    }
-
-    if (typeof window.renderSortingList !== "function") {
-      return;
-    }
-
-    const original = window.renderSortingList;
-
-    window.renderSortingList = function () {
-      const result = original.apply(this, arguments);
-      applyMajorFilter();
-      return result;
-    };
-
-    window.__hdOriginPaymentDocumentMajorSortRenderPatched = true;
-  }
-
-  patchRenderSortingList();
-
-  document.addEventListener("DOMContentLoaded", function () {
-    patchRenderSortingList();
-    applyMajorFilter();
-  });
-
-  setTimeout(function () {
-    patchRenderSortingList();
-    applyMajorFilter();
-  }, 300);
-})();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_MAJOR_SORT_FILTER_20260708_END */
-</script>
 </body>
 </html>
-
-
 
 
 
