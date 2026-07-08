@@ -1,0 +1,2522 @@
+﻿/* ---- extracted from receipt-list.html style block 1 ---- */
+body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      color: #222;
+    }
+
+    header {
+      height: 3rem;
+      box-sizing: border-box;
+      padding: 0.75rem 1rem;
+      background: #222;
+      color: #fff;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 18.75rem 1fr 32.5rem;
+      gap: 0.625rem;
+      padding: 0.625rem;
+      height: calc(100vh - 3rem);
+      box-sizing: border-box;
+    }
+
+    .panel {
+      background: #fff;
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .panel-title {
+      height: 2.625rem;
+      box-sizing: border-box;
+      padding: 0.5625rem 0.625rem;
+      border-bottom: 0.0625rem solid #ddd;
+      background: #fafafa;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scroll {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+    }
+
+    .list-item {
+      padding: 0.625rem;
+      border-bottom: 0.0625rem solid #eee;
+      cursor: pointer;
+    }
+
+    .list-item:hover {
+      background: #f0f4ff;
+    }
+
+    .list-item.active {
+      background: #e8f0ff;
+      border-left: 0.25rem solid #333;
+    }
+
+    .list-main {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .list-sub {
+      font-size: 0.75rem;
+      color: #666;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .image-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      background: #eee;
+      text-align: center;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .image-area img {
+      max-width: 100%;
+      border: 0.0625rem solid #ccc;
+      background: #fff;
+    }
+
+    .form-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .block {
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      margin-bottom: 0.625rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .block-title {
+      padding: 0.5rem 0.625rem;
+      background: #fafafa;
+      border-bottom: 0.0625rem solid #ddd;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .block-body {
+      padding: 0.625rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: #444;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.4375rem;
+      border: 0.0625rem solid #bbb;
+      border-radius: 0.3125rem;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 4rem;
+      resize: vertical;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .grid1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    button {
+      border: 0.0625rem solid #aaa;
+      background: #fff;
+      padding: 0.4375rem 0.625rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #f2f2f2;
+    }
+
+    button.primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+
+    button.primary:hover {
+      background: #444;
+    }
+
+    button.danger {
+      color: #b00020;
+      border-color: #d8a0aa;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.625rem;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    .warn {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    .ok {
+      color: #087a28;
+      font-weight: 700;
+    }
+
+    table.lines {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+
+    table.lines th,
+    table.lines td {
+      border: 0.0625rem solid #ddd;
+      padding: 0.3125rem;
+      vertical-align: top;
+    }
+
+    table.lines th {
+      background: #fafafa;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    table.lines input {
+      padding: 0.3125rem;
+      font-size: 0.8125rem;
+    }
+
+    .line-name {
+      min-width: 9.375rem;
+    }
+
+    .line-small {
+      width: 4.375rem;
+    }
+
+    .line-money {
+      width: 5.625rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #111;
+      color: #eee;
+      padding: 0.625rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      max-height: 11.25rem;
+      overflow: auto;
+    }
+  
+    /* RECEIPT_HEADER_IMPORT_NAV */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    .receipt-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .receipt-header-actions button {
+      background: #fff;
+      color: #111;
+      border: 0.0625rem solid #fff;
+      border-radius: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .receipt-header-actions button:hover {
+      background: #f1f1f1;
+    }
+  
+    /* RECEIPT_COMPACT_ACCOUNTING_LAYOUT */
+    body {
+      overflow: hidden;
+    }
+
+    .receipt-compact-layout {
+      display: grid !important;
+      grid-template-columns: 11.875rem minmax(42.5rem, 1fr) 20.625rem !important;
+      gap: 0.375rem !important;
+      height: calc(100vh - 3.625rem) !important;
+      padding: 0.375rem 0.5rem !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-compact-layout > * {
+      min-width: 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-list-panel {
+      order: 1 !important;
+    }
+
+    .receipt-candidate-panel {
+      order: 2 !important;
+    }
+
+    .receipt-image-panel {
+      order: 3 !important;
+    }
+
+    .receipt-list-panel .panel-title,
+    .receipt-candidate-panel .panel-title,
+    .receipt-image-panel .panel-title {
+      padding: 0.375rem 0.5rem !important;
+      font-size: 0.875rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .receipt-list-panel button,
+    .receipt-list-panel .item {
+      font-size: 0.75rem !important;
+      line-height: 1.25 !important;
+      padding: 0.375rem 0.4375rem !important;
+    }
+
+    .receipt-list-panel small,
+    .receipt-list-panel .meta,
+    .receipt-list-panel .sub {
+      font-size: 0.625rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .receipt-list-panel {
+      font-size: 0.75rem !important;
+    }
+
+    .receipt-candidate-panel {
+      font-size: 0.75rem !important;
+    }
+
+    .receipt-image-panel {
+      font-size: 0.75rem !important;
+    }
+
+    #formArea {
+      height: calc(100vh - 7rem) !important;
+      overflow: auto !important;
+      padding: 0.5rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea input,
+    #formArea select,
+    #formArea textarea {
+      font-size: 0.75rem !important;
+      padding: 0.25rem 0.375rem !important;
+      min-height: 1.625rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea textarea {
+      min-height: 3rem !important;
+      max-height: 4.75rem !important;
+    }
+
+    #formArea table {
+      width: 100% !important;
+      table-layout: fixed !important;
+      font-size: 0.75rem !important;
+    }
+
+    #formArea th,
+    #formArea td {
+      padding: 0.1875rem !important;
+      font-size: 0.75rem !important;
+      vertical-align: middle !important;
+    }
+
+    #formArea button {
+      font-size: 0.75rem !important;
+      padding: 0.3125rem 0.5rem !important;
+      min-height: 1.75rem !important;
+    }
+
+    #formArea .card,
+    #formArea .section,
+    #formArea fieldset {
+      margin-bottom: 0.5rem !important;
+      padding: 0.5rem !important;
+    }
+
+    #imageArea {
+      height: calc(100vh - 7rem) !important;
+      overflow: hidden !important;
+      padding: 0.375rem !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      justify-content: center !important;
+      background: #fff !important;
+    }
+
+    #imageArea img {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      cursor: zoom-in !important;
+    }
+
+    #receiptImageModal {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.78);
+      padding: 1.125rem;
+      box-sizing: border-box;
+    }
+
+    #receiptImageModal img {
+      max-width: 96vw;
+      max-height: 94vh;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 0.5rem;
+      cursor: zoom-out;
+    }
+
+    #receiptImageModal .modal-note {
+      position: fixed;
+      top: 0.625rem;
+      right: 1rem;
+      color: #fff;
+      font-size: 0.8125rem;
+      background: rgba(0,0,0,0.45);
+      padding: 0.375rem 0.625rem;
+      border-radius: 0.375rem;
+    }
+
+    @media (max-width: 81.25rem) {
+      .receipt-compact-layout {
+        grid-template-columns: 10.625rem minmax(35rem, 1fr) 17.5rem !important;
+      }
+    }
+/* RECEIPT_LEFT_LIST_ONE_LINE_AND_COMPACT_BASIC removed by editor card layout repair */
+/* RECEIPT_FIELD_LAYOUT removed by editor card layout repair */
+/* RECEIPT_CONFIRM_IMAGE_FIT removed by editor card layout repair */
+
+/* RECEIPT_BASIC_DIRECT_LAYOUT removed by editor card layout repair */
+/* RECEIPT_PAYMENT_MAX_WIDTH removed by editor card layout repair */
+/* RECEIPT_TAX_TREATMENT_LAYOUT removed by editor card layout repair */
+
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_STYLE_START */
+
+    .tax-total-with-button {
+      display: grid !important;
+      grid-template-columns: minmax(8em, 1fr) auto !important;
+      gap: 0.5rem !important;
+      align-items: center !important;
+      width: 100% !important;
+    }
+
+    #taxAmount {
+      width: 100% !important;
+      min-width: 8em !important;
+    }
+
+    #taxBreakdownButton {
+      white-space: nowrap !important;
+      height: 2.4rem !important;
+      padding: 0 0.8rem !important;
+    }
+
+    #formArea .grid-tax-row > div:has(#taxRate),
+    #formArea .grid-tax-row > div:has(#taxTreatmentName) {
+      display: none !important;
+    }
+
+    #formArea .grid-tax-row {
+      grid-template-columns: minmax(16em, 1fr) !important;
+    }
+
+    .tax-breakdown-modal.hidden {
+      display: none !important;
+    }
+
+    .tax-breakdown-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+    }
+
+    .tax-breakdown-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .tax-breakdown-dialog {
+      position: relative;
+      width: min(64rem, calc(100vw - 3rem));
+      max-height: calc(100dvh - 3rem);
+      background: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .tax-breakdown-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      padding: 1rem 1.25rem;
+      border-bottom: 0.0625rem solid #ddd;
+    }
+
+    .tax-breakdown-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .tax-breakdown-subtitle {
+      margin-top: 0.25rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .tax-breakdown-close {
+      font-size: 1.4rem;
+      line-height: 1;
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+
+    .tax-breakdown-body {
+      overflow: auto;
+      padding: 1rem 1.25rem;
+    }
+
+    .tax-breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tax-breakdown-table th,
+    .tax-breakdown-table td {
+      border-bottom: 0.0625rem solid #e5e5e5;
+      padding: 0.45rem;
+      vertical-align: middle;
+      text-align: left;
+    }
+
+    .tax-breakdown-table th {
+      font-size: 0.85rem;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .tax-breakdown-table select,
+    .tax-breakdown-table input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .tax-breakdown-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-top: 0.0625rem solid #ddd;
+    }
+
+    .tax-breakdown-total {
+      font-weight: 700;
+    }
+
+    .tax-breakdown-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .tax-breakdown-delete-button {
+      background: #b00020 !important;
+      color: #fff !important;
+      border-color: #b00020 !important;
+      white-space: nowrap !important;
+    }
+
+    .tax-breakdown-delete-button:hover {
+      background: #8a0019 !important;
+      border-color: #8a0019 !important;
+    }
+
+    /* RECEIPT_TAX_BREAKDOWN_MODAL_STYLE_END */
+/* RECEIPT_BASIC_TOP_FINAL_LAYOUT_20260702 removed by editor card layout repair */
+/* RECEIPT_LAYOUT_ONLY_FINAL_20260702 removed by editor card layout repair */
+/* RECEIPT_OVERLAP_FIX_20260702 removed by editor card layout repair */
+/* RECEIPT_TAX_BUTTON_OVERLAP_FIX_20260702 removed by editor card layout repair */
+
+
+    /* RECEIPT_LIST_CHECKBOX_20260702_START */
+
+    .receipt-list-with-check {
+      display: grid !important;
+      grid-template-columns: auto minmax(0, 1fr) !important;
+      column-gap: 0.45rem !important;
+      row-gap: 0.1rem !important;
+      align-items: start !important;
+    }
+
+    .receipt-list-with-check .receipt-ai-check {
+      grid-column: 1 !important;
+      grid-row: 1 / span 2 !important;
+      width: 1rem !important;
+      min-width: 1rem !important;
+      height: 1rem !important;
+      min-height: 1rem !important;
+      margin: 0.15rem 0 0 0 !important;
+      padding: 0 !important;
+      cursor: pointer !important;
+    }
+
+    .receipt-list-with-check .list-main {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .receipt-list-with-check .list-sub {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      min-width: 0 !important;
+    }
+
+    /* RECEIPT_LIST_CHECKBOX_20260702_END */
+
+
+    /* RECEIPT_MASTER_FIELDS_LAYOUT_20260703_START */
+
+    #formArea .receipt-master-select-row {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(10em, 1fr)) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      margin-top: 0.45rem !important;
+    }
+
+    #formArea .receipt-master-select-row > div {
+      min-width: 0 !important;
+    }
+
+    #formArea .receipt-master-select-row select,
+    #formArea .receipt-master-select-row input {
+      width: 100% !important;
+      height: 1.65rem !important;
+      min-height: 1.65rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_MASTER_FIELDS_LAYOUT_20260703_END */
+
+
+    /* RECEIPT_TEMP_MASTER_INPUT_LAYOUT_20260703_START */
+
+    #formArea .receipt-master-combo-row {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(13em, 1fr)) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      margin-top: 0.45rem !important;
+    }
+
+    #formArea .receipt-master-action-line {
+      display: grid !important;
+      grid-template-columns: minmax(8em, 1fr) auto auto !important;
+      gap: 0.25rem !important;
+      align-items: center !important;
+    }
+
+    #formArea .receipt-master-action-line select {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 1.65rem !important;
+    }
+
+    #formArea .receipt-master-action-line button {
+      white-space: nowrap !important;
+      padding: 0.25rem 0.4rem !important;
+      font-size: 0.72rem !important;
+      line-height: 1.1 !important;
+      min-height: 1.65rem !important;
+    }
+
+    #formArea .receipt-temp-master-input {
+      width: 100% !important;
+      margin-top: 0.25rem !important;
+      height: 1.65rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_TEMP_MASTER_INPUT_LAYOUT_20260703_END */
+
+
+    /* RECEIPT_VENDOR_OVERFLOW_FIX_20260703 removed by group layout cleanup */
+
+    /* RECEIPT_BASIC_BLOCK_MOVE_20260703 removed by group layout cleanup */
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FIX_20260703 removed by group layout cleanup */
+
+    /* RECEIPT_INVOICE_EVIDENCE_RIGHT_FORCE_FIX_2_20260703 removed by group layout cleanup */
+
+    /* RECEIPT_COPY_SYSTEM_STYLE_20260703_START */
+
+    .receipt-copy-system-panel {
+      border: 0.0625rem solid #d8c7c7 !important;
+      background: #fffafa !important;
+      border-radius: 0.45rem !important;
+      padding: 0.6rem !important;
+      margin-bottom: 0.75rem !important;
+      box-sizing: border-box !important;
+    }
+
+    .receipt-copy-system-title {
+      font-weight: 700 !important;
+      margin-bottom: 0.4rem !important;
+      color: #7a0015 !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 0.5rem !important;
+    }
+
+    .receipt-copy-system-buttons {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 0.35rem !important;
+      margin-bottom: 0.4rem !important;
+    }
+
+    .receipt-copy-system-buttons button {
+      padding: 0.3rem 0.55rem !important;
+      font-size: 0.78rem !important;
+      line-height: 1.2 !important;
+      cursor: pointer !important;
+    }
+
+    #receiptCopySystemText {
+      width: 100% !important;
+      min-height: 8rem !important;
+      max-height: 18rem !important;
+      resize: vertical !important;
+      box-sizing: border-box !important;
+      font-family: Consolas, "Yu Gothic", monospace !important;
+      font-size: 0.8rem !important;
+      line-height: 1.45 !important;
+      white-space: pre !important;
+      user-select: text !important;
+    }
+
+    .receipt-copy-system-note {
+      font-size: 0.72rem !important;
+      color: #666 !important;
+      margin-top: 0.25rem !important;
+    }
+
+    /* RECEIPT_COPY_SYSTEM_STYLE_20260703_END */
+/* RECEIPT_DINING_REVIEW_UI_START */
+.receipt-ai-review-note {
+  display: none !important;
+}
+
+.receipt-ai-needs-review {
+  background: #fff !important;
+  border-color: #bbb !important;
+}
+
+.receipt-ai-review-field {
+  min-width: 7rem !important;
+}
+/* RECEIPT_DINING_REVIEW_UI_END */
+    /* RECEIPT_CUSTOM_DIALOG_START */
+    .receipt-dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 1.125rem;
+      box-sizing: border-box;
+    }
+
+    .receipt-dialog-backdrop.open {
+      display: flex;
+    }
+
+    .receipt-dialog-window {
+      width: min(57.5rem, 96vw);
+      max-height: 92vh;
+      background: #fff;
+      border: 0.125rem solid #222;
+      border-radius: 0.625rem;
+      box-shadow: 0 1.125rem 3.75rem rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .receipt-dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.625rem;
+      padding: 0.625rem 0.75rem;
+      background: #222;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .receipt-dialog-head.warning {
+      background: #7a4d00;
+    }
+
+    .receipt-dialog-head.error {
+      background: #8a0018;
+    }
+
+    .receipt-dialog-body {
+      padding: 0.75rem;
+      overflow: auto;
+    }
+
+    .receipt-dialog-message {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      margin-bottom: 0.625rem;
+      font-weight: 700;
+    }
+
+    .receipt-dialog-detail-label {
+      font-size: 0.75rem;
+      color: #555;
+      margin: 0.5rem 0 0.25rem;
+      font-weight: 700;
+    }
+
+    .receipt-dialog-detail {
+      width: 100%;
+      min-height: 13.75rem;
+      max-height: 48vh;
+      resize: vertical;
+      box-sizing: border-box;
+      font-family: Consolas, monospace;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      padding: 0.5rem;
+      border: 0.0625rem solid #aaa;
+      border-radius: 0.375rem;
+      background: #fff;
+      color: #111;
+      white-space: pre;
+    }
+
+    .receipt-dialog-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      padding: 0.625rem 0.75rem;
+      border-top: 0.0625rem solid #ddd;
+      background: #fafafa;
+    }
+
+    .receipt-dialog-actions button {
+      min-width: 5.125rem;
+      font-weight: 800;
+    }
+
+    .receipt-dialog-actions .primary {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+    /* RECEIPT_CUSTOM_DIALOG_END */
+/* RECEIPT_TIME_AI_MINIMAL_FIX_20260704_START */
+
+/* 時刻・会議費候補を黄色にしない */
+.receipt-ai-review-note {
+  display: none !important;
+}
+
+.receipt-ai-needs-review {
+  background: #fff !important;
+  border-color: #bbb !important;
+}
+
+#receiptTimeText {
+  background: #fff !important;
+  border-color: #bbb !important;
+  color: #111 !important;
+  box-shadow: none !important;
+}
+
+/* RECEIPT_TIME_AI_MINIMAL_FIX_20260704_END */
+/* RECEIPT_TIME_ROW_REGEX_INSERT_20260704_START */
+
+#formArea .receipt-date-payment-row {
+  grid-template-columns: 18ch 9ch 26em !important;
+}
+
+#formArea #receiptTimeText {
+  width: 9ch !important;
+  min-width: 9ch !important;
+  max-width: 9ch !important;
+  height: 1.65rem !important;
+  min-height: 1.65rem !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  background: #fff !important;
+  border-color: #bbb !important;
+  color: #111 !important;
+  box-shadow: none !important;
+}
+
+/* RECEIPT_TIME_ROW_REGEX_INSERT_20260704_END */
+
+    /* RECEIPT_RIGHT_SPACE_HALF_20260704_START */
+
+    /*
+      現在の並び：
+      左：レシート選択
+      中：読み取り候補の編集
+      右：レシート表示スペース
+
+      修正内容：
+      - 右の画像表示スペースを前回拡張指定の約半分にする
+      - レシート画像そのものの width / max-width / height / object-fit は触らない
+      - %指定は使わない
+    */
+
+    main.receipt-compact-layout,
+    .receipt-compact-layout {
+      display: grid !important;
+      grid-template-columns:
+        clamp(9rem, 10vw, 12rem)
+        minmax(30rem, 1fr)
+        minmax(19rem, 0.85fr) !important;
+      gap: 0.5rem !important;
+      align-items: stretch !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-list-panel {
+      order: 1 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-candidate-panel {
+      order: 2 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .receipt-image-panel {
+      order: 3 !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    #imageArea {
+      overflow: auto !important;
+      box-sizing: border-box !important;
+    }
+
+    @media (max-width: 92rem) {
+      main.receipt-compact-layout,
+      .receipt-compact-layout {
+        grid-template-columns:
+          clamp(8rem, 10vw, 10rem)
+          minmax(26rem, 1fr)
+          minmax(15.5rem, 0.85fr) !important;
+      }
+    }
+
+    @media (max-width: 76rem) {
+      main.receipt-compact-layout,
+      .receipt-compact-layout {
+        grid-template-columns: 1fr !important;
+        overflow: auto !important;
+      }
+    }
+
+    /* RECEIPT_RIGHT_SPACE_HALF_20260704_END */
+
+    /* RECEIPT_VENDOR_OVERFLOW_STOP_20260704 removed by group layout cleanup */
+
+    /* RECEIPT_DATE_TIME_IN_VENDOR_CONTAINER_20260704 removed by group layout cleanup */
+
+    /* RECEIPT_DATE_TIME_FLAT_IN_VENDOR_20260704 removed by group layout cleanup */
+
+    /* RECEIPT_PAYMENT_AREA_CLEAN_FINAL_20260704_START */
+
+    /*
+      支払コンテナ周辺の整理版。
+      ここでは input / select / button の height / min-height / padding は触らない。
+      支払コンテナ本体、外枠、色、配置だけを制御する。
+    */
+
+    /* 支払方法・合計金額・消費税合計・内訳ボタンの専用コンテナ */
+    #formArea .receipt-payment-amount-container {
+      display: grid !important;
+      grid-template-columns: 14rem 10rem 9rem max-content !important;
+      gap: 0.5rem !important;
+      align-items: end !important;
+
+      width: calc(100% + 4rem) !important;
+      max-width: none !important;
+      min-width: 0 !important;
+
+      min-height: 5rem !important;
+      margin: 0.45rem -4rem 0.55rem 0 !important;
+      padding: 0.85rem 0.45rem !important;
+
+      border-radius: 0.55rem !important;
+
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    /* 支払コンテナ内の子要素は、箱だけ整える。入力欄の高さは触らない。 */
+    #formArea .receipt-payment-amount-container > div {
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-payment-amount-container #totalAmount,
+    #formArea .receipt-payment-amount-container #taxAmount {
+      text-align: right !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+
+    #formArea .receipt-payment-amount-container #taxBreakdownButton {
+      white-space: nowrap !important;
+      align-self: end !important;
+    }
+
+    /* 移動後に元の金額行が空なら消す */
+    #formArea .receipt-amount-direct-row:empty {
+      display: none !important;
+    }
+
+    /* 店名・支払先コンテナ */
+    #formArea .receipt-vendor-direct-stack {
+      border-radius: 0.55rem !important;
+      padding: 0.45rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* 取引日・時刻は店名コンテナ内。カード化しない */
+    #formArea .receipt-vendor-date-time-row {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0 !important;
+      margin: 0 0 0.35rem 0 !important;
+      box-shadow: none !important;
+    }
+
+    #formArea .receipt-vendor-date-time-row > div {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      box-sizing: border-box !important;
+    }
+
+    /* 対象者 */
+    #formArea .receipt-target-person-row {
+      border-radius: 0.55rem !important;
+      padding: 0.35rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* 目的・案件・部門 */
+    #formArea .receipt-master-combo-row {
+      border-radius: 0.55rem !important;
+      padding: 0.35rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* インボイス区分・証憑区分・証憑メモ */
+    #formArea .receipt-vendor-direct-stack .receipt-master-select-row {
+      border-radius: 0.55rem !important;
+      padding: 0.35rem !important;
+      box-sizing: border-box !important;
+    }
+
+    @media (max-width: 86rem) {
+      #formArea .receipt-payment-amount-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-right: 0 !important;
+      }
+    }
+
+    /* RECEIPT_PAYMENT_AREA_CLEAN_FINAL_20260704_END */
+/* RECEIPT_GROUP_BOUNDARY_COLOR_DEBUG removed by group layout cleanup */
+
+
+/* RECEIPT_CLEAN_GROUP_BOUNDARY_20260704 removed by basic group normalize */
+
+
+/* RECEIPT_BASIC_GROUP_NORMALIZE_20260704_START */
+
+/*
+  基本情報グループ整理。
+  解体済み：
+  - .receipt-basic-left-stack
+  - .receipt-master-select-row
+  - .receipt-vendor-date-time-row
+
+  残すグループ：
+  - .receipt-payment-amount-container = 支払金額グループ
+  - .receipt-target-person-row = 対象者グループ
+  - .receipt-master-combo-row = 目的・案件・部門グループ
+  - .receipt-vendor-direct-stack = 店名コンテナグループ
+*/
+
+#formArea .grid-basic-top-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 24em) !important;
+  grid-template-areas:
+    "payment vendor"
+    "target  vendor"
+    "combo   vendor" !important;
+  column-gap: 0.75rem !important;
+  row-gap: 0.5rem !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  outline-offset: 0.18rem !important;
+}
+
+#formArea .receipt-payment-amount-container {
+  grid-area: payment !important;
+  display: grid !important;
+  grid-template-columns: 14rem 10rem 9rem max-content !important;
+  gap: 0.5rem !important;
+  align-items: end !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 0 0.45rem 0 !important;
+  padding: 0.45rem !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  outline-offset: 0.14rem !important;
+}
+
+#formArea .receipt-target-person-row {
+  grid-area: target !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  outline-offset: 0.14rem !important;
+}
+
+#formArea .receipt-master-combo-row {
+  grid-area: combo !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  outline-offset: 0.14rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack {
+  grid-area: vendor !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.45rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0.35rem !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  outline-offset: 0.18rem !important;
+}
+
+#formArea .receipt-amount-direct-row:empty,
+#formArea .receipt-date-payment-row:empty {
+  display: none !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div,
+#formArea .receipt-payment-amount-container > div,
+#formArea .receipt-target-person-row > div,
+#formArea .receipt-master-combo-row > div {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#transactionDate) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#receiptTimeText) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#vendorName) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#vendorAddress) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#vendorPhone) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#invoiceNumber) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#invoiceTypeId) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#evidenceTypeId) {
+  outline-offset: 0.1rem !important;
+}
+
+#formArea .receipt-vendor-direct-stack > div:has(#evidenceMemo) {
+  outline-offset: 0.1rem !important;
+}
+
+/* RECEIPT_BASIC_GROUP_NORMALIZE_20260704_END */
+
+    /* RECEIPT_VISIBLE_AREA_COLOR_20260704_START */
+    /*
+      現状確認用。
+      色が見えるように、グループ本体と内側項目の背景を強めに塗る。
+      線は付けない。
+      HTML構造は触らない。
+    */
+
+    #formArea .grid-basic-top-row {
+      background-color: #d9d9d9 !important;
+      padding: 0.6rem !important;
+      border-radius: 0.5rem !important;
+      gap: 0.6rem !important;
+    }
+
+    #formArea .receipt-amount-direct-row {
+      background-color: #8fd0ff !important;
+      padding: 0.6rem !important;
+      border-radius: 0.5rem !important;
+      gap: 0.5rem !important;
+    }
+
+    #formArea .receipt-vendor-direct-stack {
+      background-color: #ffbf73 !important;
+      padding: 0.6rem !important;
+      border-radius: 0.5rem !important;
+      gap: 0.35rem !important;
+    }
+
+    #formArea .receipt-master-combo-row {
+      background-color: #9fe38f !important;
+      padding: 0.6rem !important;
+      border-radius: 0.5rem !important;
+      gap: 0.5rem !important;
+    }
+
+    #formArea .receipt-target-person-row {
+      background-color: #c8a6ff !important;
+      padding: 0.6rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    #formArea .receipt-payment-field,
+    #formArea .receipt-amount-direct-field {
+      background-color: #dff2ff !important;
+      padding: 0.35rem !important;
+      border-radius: 0.35rem !important;
+    }
+
+    #formArea .receipt-master-combo-field {
+      background-color: #e2ffd9 !important;
+      padding: 0.35rem !important;
+      border-radius: 0.35rem !important;
+    }
+
+    #formArea .receipt-master-action-line {
+      background-color: #f0ffe8 !important;
+      padding: 0.25rem !important;
+      border-radius: 0.35rem !important;
+    }
+
+    #formArea .invoice-note-wrap {
+      background-color: #ffe2b8 !important;
+      padding: 0.25rem !important;
+      border-radius: 0.35rem !important;
+    }
+
+    #formArea input,
+    #formArea select,
+    #formArea textarea {
+      background-color: #ffffff !important;
+    }
+
+    /* RECEIPT_VISIBLE_AREA_COLOR_20260704_END */
+
+    /* RECEIPT_AMOUNT_TAX_ROW_HTML_FIX_20260704_START */
+    /*
+      支払方法は上段。
+      合計金額・消費税合計・消費税内訳ボタンは .receipt-amount-tax-row 内で横並び。
+      ブルーエリア内に収める。
+    */
+
+    #formArea .receipt-amount-direct-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      row-gap: 0.45rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-payment-field {
+      width: 14rem !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-amount-tax-row {
+      display: grid !important;
+      grid-template-columns: 7.5rem 6.5rem 5.5rem !important;
+      gap: 0.4rem !important;
+      align-items: end !important;
+      justify-content: start !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-amount-total,
+    #formArea .receipt-amount-tax {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #totalAmount,
+    #formArea #taxAmount {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      text-align: right !important;
+      font-variant-numeric: tabular-nums !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #taxBreakdownButton {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      padding-left: 0.2rem !important;
+      padding-right: 0.2rem !important;
+      font-size: 0.68rem !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_AMOUNT_TAX_ROW_HTML_FIX_20260704_END */
+
+
+    /* RECEIPT_DATE_TIME_INLINE_HTML_20260704_START */
+    /*
+      HTML側で取引日・時刻を .receipt-date-time-inline-row にまとめる。
+      横並び表示用。
+    */
+
+    #formArea .receipt-date-time-inline-row {
+      display: grid !important;
+      grid-template-columns: 10rem 6rem !important;
+      gap: 0.5rem !important;
+      align-items: end !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-date-time-inline-row > div {
+      min-width: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #transactionDate {
+      width: 10rem !important;
+      max-width: 10rem !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #receiptTimeText {
+      width: 6rem !important;
+      max-width: 6rem !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_DATE_TIME_INLINE_HTML_20260704_END */
+
+
+
+    /* RECEIPT_VENDOR_NAME_2LINES_20260704_START */
+    /*
+      店名・支払先の枠を2行分確保する。
+      id は vendorName のまま。
+    */
+
+    #formArea #vendorName {
+      min-height: 3.2rem !important;
+      height: 3.2rem !important;
+      resize: vertical !important;
+      line-height: 1.35 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_VENDOR_NAME_2LINES_20260704_END */
+
+
+    /* RECEIPT_INVOICE_NOTE_RIGHT_WIDTH_20260704_START */
+    /*
+      インボイス番号ラベルの右横にレスポンスメッセージを置く。
+      幅調整のみ。HTML構造は触らない。
+    */
+
+    #formArea .receipt-invoice-label-row {
+      display: grid !important;
+      grid-template-columns: 8rem minmax(0, 1fr) !important;
+      gap: 0.5rem !important;
+      align-items: center !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .receipt-invoice-label-row label {
+      margin: 0 !important;
+      white-space: nowrap !important;
+    }
+
+    #formArea .receipt-invoice-label-row .invoice-note-wrap {
+      margin: 0 !important;
+      padding: 0 !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #invoiceNumber {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_INVOICE_NOTE_RIGHT_WIDTH_20260704_END */
+
+
+    /* RECEIPT_INVOICE_EVIDENCE_INLINE_20260704_START */
+    /*
+      インボイス区分・証憑区分を横並びにする。
+      HTML側では .receipt-invoice-evidence-row に包む。
+    */
+
+    #formArea .receipt-invoice-evidence-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      align-items: end !important;
+    }
+
+    #formArea .receipt-invoice-evidence-row > div {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea #invoiceTypeId,
+    #formArea #evidenceTypeId {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* RECEIPT_INVOICE_EVIDENCE_INLINE_20260704_END */
+    /* RECEIPT_CURRENT_AREA_COLOR_20260704_START */
+    /*
+      現状エリア確認用カラー。
+      HTML構造は触らない。
+      線は付けない。
+      内側を白で塗りつぶさない。
+    */
+
+    /* 支払・金額 */
+    #formArea .receipt-amount-direct-row {
+      background-color: #4db8ff !important;
+      padding: 0.8rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    /* 取引日・支払先・証憑 */
+    #formArea .receipt-vendor-direct-stack {
+      background-color: #ffdce8 !important;
+      padding: 0.8rem !important;
+      border-radius: 0.5rem !important;
+    }
+
+    /* 目的・案件・部門 */
+    #formArea .receipt-master-combo-row {
+      background-color: #62d45f !important;
+      padding: 0.8rem !important;
+      border-radius: 0.5rem !important;
+    }
+/* 入力欄だけ白 */
+    #formArea input,
+    #formArea select,
+    #formArea textarea {
+      background-color: #ffffff !important;
+    }
+
+    /* RECEIPT_CURRENT_AREA_COLOR_20260704_END */
+/* RECEIPT_GREEN_OUTSIDE_GRID_HTML_FIXED_20260704_START */
+    /*
+      HTML構造の確定:
+      - grid-basic-top-row 内: ブルーエリア / 黄色エリア / オレンジエリア
+      - grid-basic-top-row 外: 緑エリア
+      CSSだけで見た目移動しない。緑はHTML上で枠外。
+    */
+
+    #formArea .grid-basic-top-row {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24em) !important;
+      grid-template-areas:
+        "payment vendor"
+        "target  vendor" !important;
+      column-gap: 0.75rem !important;
+      row-gap: 0.5rem !important;
+      align-items: start !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow: visible !important;
+      box-sizing: border-box !important;
+    }
+
+    #formArea .grid-basic-top-row > .receipt-amount-direct-row {
+      grid-area: payment !important;
+    }
+
+    #formArea .grid-basic-top-row > .receipt-apply-group-block {
+      grid-area: target !important;
+    }
+
+    #formArea .grid-basic-top-row > .receipt-vendor-direct-stack {
+      grid-area: vendor !important;
+    }
+
+    #formArea .receipt-apply-group-block {
+      background-color: #fff8d7 !important;
+      border: 0.12rem solid #ead36b !important;
+      border-left: 0.45rem solid #c9a318 !important;
+      border-radius: 0.55rem !important;
+      padding: 0.55rem !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow: visible !important;
+    }
+
+    #formArea .receipt-apply-group-block > .block-title {
+      display: none !important;
+    }
+
+    #formArea .receipt-apply-group-block > .block-body {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+    }
+/* 緑エリアは grid-basic-top-row の外にある前提 */
+    #formArea .block-body > .receipt-master-combo-row {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 0.5rem !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      margin: 0.55rem 0 0 0 !important;
+      padding: 0.55rem !important;
+      background-color: #9fe38f !important;
+      border-radius: 0.55rem !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    /* grid-basic-top-row 内や黄色エリア内に緑が残っていたら見せない */
+    #formArea .grid-basic-top-row > .receipt-master-combo-row,
+    #formArea .receipt-apply-group-block .receipt-master-combo-row {
+      display: none !important;
+    }
+
+    #formArea .block-body > .receipt-master-combo-row input,
+    #formArea .block-body > .receipt-master-combo-row select,
+    #formArea .block-body > .receipt-master-combo-row textarea {
+      background-color: #ffffff !important;
+      box-sizing: border-box !important;
+    }
+#formArea #confidence {
+      text-align: right !important;
+    }
+
+    /* RECEIPT_GREEN_OUTSIDE_GRID_HTML_FIXED_20260704_END */
+
+    /* RECEIPT_YELLOW_INLINE_TOP_LEFT_TARGET_20260704_START */
+    /*
+      黄色エリアの配置はHTML内の style 属性で固定。
+      ここでは入力欄の最低限だけ整える。
+    */
+
+    #formArea .receipt-apply-group-block input,
+    #formArea .receipt-apply-group-block select,
+    #formArea .receipt-apply-group-block textarea {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      background: #ffffff !important;
+    }
+
+    #formArea .receipt-apply-group-block textarea {
+      min-height: 2.4rem !important;
+      max-height: 3.6rem !important;
+    }
+
+    #formArea .receipt-confidence-field #confidence {
+      text-align: right !important;
+    }
+
+    /* RECEIPT_YELLOW_INLINE_TOP_LEFT_TARGET_20260704_END */
+
+
+    /* RECEIPT_YELLOW_HEIGHT_EXPAND_20260704_START */
+    /*
+      黄色エリアの高さを広げる。
+      HTML構造は触らない。
+    */
+
+    #formArea .receipt-apply-group-block {
+      min-height: 12rem !important;
+      padding-top: 0.9rem !important;
+      padding-bottom: 0.9rem !important;
+    }
+
+    #formArea .receipt-apply-group-grid {
+      row-gap: 0.75rem !important;
+      min-height: 10.5rem !important;
+      align-content: start !important;
+    }
+
+    #formArea .receipt-apply-row-top,
+    #formArea .receipt-apply-row-account {
+      min-height: 2.5rem !important;
+    }
+
+    #formArea .receipt-apply-row-memo {
+      min-height: 4.2rem !important;
+    }
+
+    #formArea .receipt-apply-row-memo textarea,
+    #formArea .receipt-memo-field textarea,
+    #formArea #memo {
+      min-height: 4rem !important;
+      max-height: 6rem !important;
+    }
+
+    #formArea .receipt-target-person-row,
+    #formArea .receipt-summary-field,
+    #formArea .receipt-account-title-field,
+    #formArea .receipt-confidence-field {
+      min-height: 2.4rem !important;
+    }
+
+    /* RECEIPT_YELLOW_HEIGHT_EXPAND_20260704_END */
+
+/* RECEIPT_CONFIDENCE_FULL_WIDTH_20260705_START */
+/*
+  信頼度を、適用側の枠いっぱいに伸ばす。
+  HTML構造は触らない。
+  対象者・摘要・勘定科目候補の配置は触らない。
+*/
+
+#formArea .receipt-apply-group-block .receipt-confidence-field {
+  justify-self: stretch !important;
+  align-self: start !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#formArea .receipt-apply-group-block .receipt-confidence-field #confidence,
+#formArea .receipt-apply-group-block #confidence {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  text-align: right !important;
+}
+/* RECEIPT_CONFIDENCE_FULL_WIDTH_20260705_END */
+
+/* RECEIPT_MASTER_CANDIDATE_NAME_20260705_START */
+/*
+  目的・案件・部門の候補名入力欄。
+  AI候補、人間入力、保存対象、新規登録元として使う。
+*/
+
+#formArea .receipt-master-candidate-name {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin-top: 0.3rem !important;
+  box-sizing: border-box !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 0.0625rem solid #8fca7a !important;
+  border-radius: 0.35rem !important;
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.35rem !important;
+}
+
+#formArea .receipt-master-candidate-name::placeholder {
+  color: #777 !important;
+}
+/* RECEIPT_MASTER_CANDIDATE_NAME_20260705_END */
+
+/* RECEIPT_LINE_BLOCK_TITLE_COLOR_20260705_START */
+/*
+  明細ブロックのタイトル行だけ色付け。
+  対象は「明細」＋「明細追加」ボタンの行。
+*/
+
+#formArea .receipt-line-block-title {
+  background: #c7e3ff !important;
+  color: #102a43 !important;
+  border-bottom: 0.125rem solid #7fb6e8 !important;
+  font-weight: 800 !important;
+}
+
+#formArea .receipt-line-block-title button {
+  background: #ffffff !important;
+  border-color: #5d9fdc !important;
+  color: #102a43 !important;
+  font-weight: 800 !important;
+}
+/* RECEIPT_LINE_BLOCK_TITLE_COLOR_20260705_END */
+
+/* RECEIPT_LINE_ITEMS_MODAL_20260705_START */
+/*
+  明細内訳モーダル。
+  currentLineItems は既存のまま使い、保存処理・DBは触らない。
+*/
+
+#formArea .receipt-line-summary {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  background: #f3f9ff !important;
+  border: 0.0625rem solid #b7d8f5 !important;
+  border-radius: 0.45rem !important;
+  padding: 0.5rem !important;
+}
+
+.receipt-line-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.receipt-line-modal.open {
+  display: flex;
+}
+
+.receipt-line-modal-window {
+  width: min(92vw, 72rem);
+  max-height: 88vh;
+  background: #fff;
+  border-radius: 0.65rem;
+  box-shadow: 0 1rem 2.5rem rgba(0,0,0,0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.receipt-line-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: #c7e3ff;
+  border-bottom: 0.125rem solid #7fb6e8;
+  padding: 0.65rem 0.8rem;
+}
+
+.receipt-line-modal-title {
+  font-weight: 900;
+  color: #102a43;
+}
+
+.receipt-line-modal-actions {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 0.0625rem solid #d8e8f7;
+  background: #f6fbff;
+}
+
+.receipt-line-modal-body {
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.receipt-line-modal-table {
+  min-width: 48rem;
+}
+
+.receipt-line-modal-table input {
+  font-size: 0.8125rem !important;
+}
+/* RECEIPT_LINE_ITEMS_MODAL_20260705_END */
+
+/* RECEIPT_LINE_COUNT_BADGE_SAFE_20260705_START */
+/*
+  明細タイトル行に件数だけ表示。
+  明細本体はモーダル内で扱う。
+*/
+
+#formArea .receipt-line-count-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2.8rem !important;
+  margin-left: 0.4rem !important;
+  padding: 0.1rem 0.45rem !important;
+  border-radius: 999rem !important;
+  background: #ffffff !important;
+  border: 0.0625rem solid #5d9fdc !important;
+  color: #102a43 !important;
+  font-size: 0.75rem !important;
+  font-weight: 900 !important;
+}
+
+#formArea .receipt-line-items-area-hidden {
+  display: none !important;
+}
+/* RECEIPT_LINE_COUNT_BADGE_SAFE_20260705_END */
+
+/* RECEIPT_LINE_MODAL_TOP_20260705_START */
+/*
+  明細内訳モーダルを画面上寄りに表示。
+  モーダルの編集処理・保存処理は触らない。
+*/
+
+.receipt-line-modal.open {
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding-top: 3.5rem !important;
+}
+
+.receipt-line-modal-window {
+  max-height: calc(100vh - 5rem) !important;
+}
+/* RECEIPT_LINE_MODAL_TOP_20260705_END */
+
+/* RECEIPT_LINE_TAX_TREATMENT_SELECT_20260705_START */
+/*
+  明細内訳モーダルの税処理列。
+  AI候補・人間修正兼用。
+*/
+
+.receipt-line-modal-table .receipt-line-tax-treatment-head,
+.receipt-line-modal-table .receipt-line-tax-treatment-cell {
+  min-width: 7.5rem !important;
+  width: 7.5rem !important;
+}
+
+.receipt-line-modal-table .receipt-line-tax-treatment-select {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  font-size: 0.8125rem !important;
+}
+/* RECEIPT_LINE_TAX_TREATMENT_SELECT_20260705_END */
+
+/* RECEIPT_PAYMENT_METHOD_MASTER_SELECT_20260705_START */
+/*
+  支払方法をAI・人間兼用のマスタ選択にする。
+  表示は select、保存用名称は hidden #paymentMethodName に同期する。
+*/
+
+#formArea .receipt-payment-field #paymentMethodId,
+#formArea .receipt-payment-field .receipt-payment-method-select {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 1.65rem !important;
+  min-height: 1.65rem !important;
+  box-sizing: border-box !important;
+}
+/* RECEIPT_PAYMENT_METHOD_MASTER_SELECT_20260705_END */
+
+/* RECEIPT_ACCOUNT_TITLE_MASTER_SELECT_20260705_START */
+/*
+  勘定科目候補をAI・人間兼用のマスタ選択にする。
+  表示は select、保存用名称は hidden に同期する。
+*/
+
+#formArea .receipt-account-title-field #accountTitleId,
+#formArea .receipt-account-title-field .receipt-account-title-select {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 1.65rem !important;
+  min-height: 1.65rem !important;
+  box-sizing: border-box !important;
+}
+/* RECEIPT_ACCOUNT_TITLE_MASTER_SELECT_20260705_END */
+
+/* RECEIPT_MEMO_CLEAR_BUTTON_20260705_START */
+#formArea .receipt-memo-label-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.4rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+#formArea .receipt-memo-label-row label {
+  margin-bottom: 0 !important;
+}
+
+#formArea .receipt-memo-clear-button {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 1.25rem !important;
+  height: 1.25rem !important;
+  padding: 0 0.45rem !important;
+  font-size: 0.65rem !important;
+  line-height: 1 !important;
+  border-radius: 0.25rem !important;
+  white-space: nowrap !important;
+}
+/* RECEIPT_MEMO_CLEAR_BUTTON_20260705_END */
+
+/* RECEIPT_CONFIRM_REQUIRED_FILL_20260705_START */
+#formArea input.receipt-confirm-required-fill,
+#formArea textarea.receipt-confirm-required-fill,
+#formArea select.receipt-confirm-required-fill {
+  background: #ffe8e8 !important;
+  border: 0.1875rem solid #d95c5c !important;
+  box-shadow: 0 0 0 0.125rem rgba(217, 92, 92, 0.12) !important;
+}
+/* RECEIPT_CONFIRM_REQUIRED_FILL_20260705_END */
+
+
+
+
+/* RECEIPT_LINE_TAX_CATEGORY_SELECT_20260705_START */
+/*
+  明細内訳モーダルの税区分列。
+  AI候補・人間修正兼用。
+*/
+
+.receipt-line-modal-table .receipt-line-tax-category-head,
+.receipt-line-modal-table .receipt-line-tax-category-cell {
+  min-width: 7.5rem !important;
+  width: 7.5rem !important;
+}
+
+.receipt-line-modal-table .receipt-line-tax-category-select {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  font-size: 0.8125rem !important;
+}
+/* RECEIPT_LINE_TAX_CATEGORY_SELECT_20260705_END */
+/* HD_ORIGIN_RECEIPT_LIST_SPECIALIST_DESIGN_GPT2_START */
+
+/*
+  レシート読取確認ページを支払書類専門解析システム群の見た目へ寄せる。
+  機能変更禁止のため、JS / API / 保存処理には触らない。
+*/
+
+body.receipt-specialist-page {
+  margin: 0;
+  background: #f4f4f5;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow: hidden;
+}
+
+body.receipt-specialist-page .top {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(90deg, #dcfce7 0%, #ffffff 72%);
+  border: 0.0625rem solid #86efac;
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.65rem;
+  flex-wrap: wrap;
+  box-shadow: 0 0.0625rem 0.125rem rgba(0,0,0,0.06);
+  margin: 0.65rem 0.65rem 0 0.65rem;
+}
+
+body.receipt-specialist-page .top h1 {
+  font-size: 1.05rem;
+  margin: 0 0.4rem 0 0;
+  white-space: nowrap;
+  color: #166534;
+  font-weight: 900;
+}
+
+body.receipt-specialist-page .muted {
+  color: #4b5563;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+body.receipt-specialist-page .receipt-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+body.receipt-specialist-page button {
+  border: 0;
+  border-radius: 0.45rem;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.42rem 0.62rem;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.84rem;
+}
+
+body.receipt-specialist-page button:hover {
+  opacity: 0.92;
+}
+
+body.receipt-specialist-page button.warn {
+  background: #b45309;
+}
+
+body.receipt-specialist-page button.light {
+  background: #ffffff;
+  color: #111827;
+  border: 0.0625rem solid #d1d5db;
+}
+
+body.receipt-specialist-page .specialist-system-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-left: 0.25rem;
+  padding-left: 0.45rem;
+  border-left: 0.0625rem solid #d1d5db;
+}
+
+body.receipt-specialist-page .specialist-system-button {
+  border-radius: 999rem !important;
+  padding: 0.36rem 0.62rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+  border: 0.0625rem solid transparent !important;
+  box-shadow: none !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-invoice {
+  color: #1d4ed8 !important;
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-receipt {
+  color: #166534 !important;
+  background: #dcfce7 !important;
+  border-color: #86efac !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-receipt.active {
+  color: #ffffff !important;
+  background: #16a34a !important;
+  border-color: #15803d !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-tax {
+  color: #7c2d12 !important;
+  background: #ffedd5 !important;
+  border-color: #fb923c !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-contract {
+  color: #155e75 !important;
+  background: #cffafe !important;
+  border-color: #67e8f9 !important;
+}
+
+body.receipt-specialist-page .specialist-system-button.specialist-utility {
+  color: #92400e !important;
+  background: #fef3c7 !important;
+  border-color: #fbbf24 !important;
+}
+
+body.receipt-specialist-page .specialist-system-button:hover {
+  filter: brightness(0.96);
+  transform: translateY(-0.0625rem);
+}
+
+body.receipt-specialist-page main {
+  width: 100vw;
+  height: calc(100dvh - 4.9rem);
+  padding: 0.65rem;
+  display: grid;
+  grid-template-columns: 22rem minmax(0, 1fr) 28rem;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+body.receipt-specialist-page main > .panel {
+  background: #ffffff;
+  border: 0.0625rem solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.6rem;
+  min-height: 0;
+  box-shadow: 0 0.0625rem 0.125rem rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.receipt-specialist-page main > .panel:nth-child(1) {
+  grid-column: 1;
+}
+
+body.receipt-specialist-page main > .panel:nth-child(2) {
+  grid-column: 2;
+}
+
+body.receipt-specialist-page main > .panel:nth-child(3) {
+  grid-column: 3;
+}
+
+body.receipt-specialist-page .panel-title {
+  font-weight: 800;
+  min-height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+}
+
+body.receipt-specialist-page .scroll,
+body.receipt-specialist-page .image-area,
+body.receipt-specialist-page .form-area {
+  min-height: 0;
+  overflow: auto;
+}
+
+body.receipt-specialist-page .image-area,
+body.receipt-specialist-page .form-area {
+  flex: 1;
+}
+
+@media (max-width: 90rem) {
+  body.receipt-specialist-page {
+    overflow: auto;
+  }
+
+  body.receipt-specialist-page main {
+    height: auto;
+    min-height: calc(100dvh - 4.9rem);
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  body.receipt-specialist-page main > .panel:nth-child(1),
+  body.receipt-specialist-page main > .panel:nth-child(2),
+  body.receipt-specialist-page main > .panel:nth-child(3) {
+    grid-column: 1;
+  }
+
+  body.receipt-specialist-page .scroll {
+    max-height: 22rem;
+  }
+
+  body.receipt-specialist-page .image-area,
+  body.receipt-specialist-page .form-area {
+    min-height: 30rem;
+  }
+}
+
+/* HD_ORIGIN_RECEIPT_LIST_SPECIALIST_DESIGN_GPT2_END */
+
+/* HD_ORIGIN_RECEIPT_LEFT_COLUMN_VISIBLE_GPT2_START */
+
+/*
+  GPT2修正：
+  レシート読取確認ページの左カラムだけを表示復旧する。
+  機能・HTML・JS・API・保存処理は触らない。
+*/
+
+/* 左カラム本体。専門解析ページ風の見た目は残しつつ、一覧が隠れないようにする */
+body.receipt-specialist-page main > .panel:nth-child(1) {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+/* 左カラム内のタイトル・ボタン類は潰さない */
+body.receipt-specialist-page main > .panel:nth-child(1) > * {
+  flex-shrink: 0 !important;
+}
+
+/* 左カラム内の一覧・スクロール候補だけを伸縮対象にする */
+body.receipt-specialist-page main > .panel:nth-child(1) .scroll,
+body.receipt-specialist-page main > .panel:nth-child(1) .list,
+body.receipt-specialist-page main > .panel:nth-child(1) #list,
+body.receipt-specialist-page main > .panel:nth-child(1) #receiptList,
+body.receipt-specialist-page main > .panel:nth-child(1) [id*="list"],
+body.receipt-specialist-page main > .panel:nth-child(1) [class*="list"] {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* 左カラム内のカードや行が高さ0・透明・はみ出しで見えなくなるのを防ぐ */
+body.receipt-specialist-page main > .panel:nth-child(1) .receipt-row,
+body.receipt-specialist-page main > .panel:nth-child(1) .receipt-item,
+body.receipt-specialist-page main > .panel:nth-child(1) .item,
+body.receipt-specialist-page main > .panel:nth-child(1) .card,
+body.receipt-specialist-page main > .panel:nth-child(1) li {
+  min-height: 2.25rem !important;
+  height: auto !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 左カラムだけは横幅を専門解析ページ基準の 22rem に寄せる */
+body.receipt-specialist-page main {
+  grid-template-columns: 22rem minmax(0, 1fr) 28rem !important;
+}
+
+/* 画面) .card,
+body.receipt-specialist-page main > .panel:nth-child(1) li {
+  min-height: 2.25rem !important;
+  height: auto !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* 左カラムだけは横幅を専門解析ページ基準の 22rem に寄せる */
+body.receipt-specialist-page main {
+  grid-template-columns: 22rem minmax(0が狭い時も左カラムを消さない */
+@media (max-width: 90rem) {
+  body.receipt-specialist-page main > .panel:nth-child(1) {
+    min-height: 18rem !important;
+  }
+
+  body.receipt-specialist-page main > .panel:nth-child(1) .scroll,
+  body.receipt-specialist-page main > .panel:nth-child(1) .list,
+  body.receipt-specialist-page main > .panel:nth-child(1) #list,
+  body.receipt-specialist-page main > .panel:nth-child(1) #receiptList,
+  body.receipt-specialist-page main > .panel:nth-child(1) [id*="list"],
+  body.receipt-specialist-page main > .panel:nth-child(1) [class*="list"] {
+    max-height: none !important;
+    min-height: 12rem !important;
+  }
+}
+
+/* HD_ORIGIN_RECEIPT_LEFT_COLUMN_VISIBLE_GPT2_END */
+
+/* HD_ORIGIN_RECEIPT_SELECT_LAYOUT_STABLE_GPT2_START */
+
+/*
+  GPT2修正：
+  レシートを選択した後、画像・フォームの内容量で画面全体が崩れないようにする。
+  HTML / JS / API / 保存処理は触らない。
+*/
+
+/* ページ全体を縦固定。中身が増えてもbody全体を押し広げない */
+html,
+body.receipt-specialist-page {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+body.receipt-specialist-page {
+  height: 100dvh !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* ヘッダーは上に固定。選択後に押されない */
+body.receipt-specialist-page .top {
+  flex: 0 0 auto !important;
+}
+
+/* メイン3カラムは残り高さに固定。選択後の画像・フォームで外枠を押し広げない */
+body.receipt-specialist-page main {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: hidden !important;
+
+  display: grid !important;
+  grid-template-columns: 22rem minmax(0, 1fr) 28rem !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  align-items: stretch !important;
+}
+
+/* 3つのカラム外枠は高さ固定。中だけスクロール */
+body.receipt-specialist-page main > .panel {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* カラム直下のタイトル・ボタン類は潰さない */
+body.receipt-specialist-page main > .panel > * {
+  min-width: 0 !important;
+}
+
+body.receipt-specialist-page main > .panel > .panel-title,
+body.receipt-specialist-page main > .panel > .toolbar,
+body.receipt-specialist-page main > .panel > .actions,
+body.receipt-specialist-page main > .panel > .bulk-row,
+body.receipt-specialist-page main > .panel > .summary,
+body.receipt-specialist-page main > .panel > .selected-summary {
+  flex: 0 0 auto !important;
+}
+
+/* 左カラム：一覧だけスクロール */
+body.receipt-specialist-page main > .panel:nth-child(1) #list,
+body.receipt-specialist-page main > .panel:nth-child(1) .list,
+body.receipt-specialist-page main > .panel:nth-child(1) .scroll,
+body.receipt-specialist-page main > .panel:nth-child(1) .receipt-list,
+body.receipt-specialist-page main > .panel:nth-child(1) .receipt-list-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* 中央カラム：画像表示エリアだけスクロール・収める */
+body.receipt-specialist-page main > .panel:nth-child(2) #imageArea,
+body.receipt-specialist-page main > .panel:nth-child(2) .image-area,
+body.receipt-specialist-page main > .panel:nth-child(2) .preview,
+body.receipt-specialist-page main > .panel:nth-child(2) .receipt-image-area,
+body.receipt-specialist-page main > .panel:nth-child(2) .receipt-preview {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+/* 選択後に画像が原寸で暴れてカラムを壊さない */
+body.receipt-specialist-page main > .panel:nth-child(2) img,
+body.receipt-specialist-page main > .panel:nth-child(2) canvas,
+body.receipt-specialist-page main > .panel:nth-child(2) object,
+body.receipt-specialist-page main > .panel:nth-child(2) iframe {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+/* 右カラム：フォームだけスクロール */
+body.receipt-specialist-page main > .panel:nth-child(3) #formArea,
+body.receipt-specialist-page main > .panel:nth-child(3) .form-area,
+body.receipt-specialist-page main > .panel:nth-child(3) .draft-form-scroll,
+body.receipt-specialist-page main > .panel:nth-child(3) form,
+body.receipt-specialist-page main > .panel:nth-child(3) .receipt-form,
+body.receipt-specialist-page main > .panel:nth-child(3) .edit-form {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* 入力欄が横にはみ出して右カラムを押し広げない */
+body.receipt-specialist-page main > .panel:nth-child(3) input,
+body.receipt-specialist-page main > .panel:nth-child(3) select,
+body.receipt-specialist-page main > .panel:nth-child(3) textarea,
+body.receipt-specialist-page main > .panel:nth-child(3) table {
+  max-width: 100% !important;
+}
+
+/* 選択済み行の強調はしてよいが、行の高さで全体を壊さない */
+body.receipt-specialist-page main > .panel:nth-child(1) .active,
+body.receipt-specialist-page main > .panel:nth-child(1) .selected {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 画面が狭い時も、選択後に全部消えないよう最低高さを持たせる */
+@media (max-width: 90rem) {
+  body.receipt-specialist-page {
+    overflow: auto !important;
+  }
+
+  body.receipt-specialist-page main {
+    height: auto !important;
+    min-height: calc(100dvh - 6rem) !important;
+    overflow: visible !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto !important;
+  }
+
+  body.receipt-specialist-page main > .panel {
+    min-height: 20rem !important;
+    overflow: hidden !important;
+  }
+}
+
+/* HD_ORIGIN_RECEIPT_SELECT_LAYOUT_STABLE_GPT2_END */

@@ -1,0 +1,238 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>銀行業務 区分マスタ - HD Origin Project</title>
+  <link rel="stylesheet" href="/bank/bank.css">
+</head>
+<body>
+  <div class="bank-shell">
+<aside class="bank-sidebar">
+  <div class="bank-brand">
+    <div class="bank-brand-title">銀行業務</div>
+    <div class="bank-brand-sub">通帳・銀行明細・CSV・入出金照合</div>
+  </div>
+  <nav class="bank-nav">
+    <a href="/bank/bank-dashboard.html" data-page="dashboard"><span class="dot"></span>ダッシュボード</a>
+    <a href="/bank/bank-import.html" data-page="import"><span class="dot"></span>通帳・明細取込</a>
+    <a href="/bank/bank-transactions.html" data-page="transactions"><span class="dot"></span>入出金明細</a>
+    <a href="/bank/bank-reconcile.html" data-page="reconcile"><span class="dot"></span>照合・消込</a>
+    <a href="/bank/bank-evidence.html" data-page="evidence"><span class="dot"></span>銀行証憑保管</a>
+      
+  </nav>
+    <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_START -->
+  <a class="bank-sidebar-settings" href="/bank/bank-settings.html" data-page="settings">
+    <span class="bank-sidebar-settings-icon">⚙</span>
+    <span>設定</span>
+  </a>
+  <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_END -->
+  <div class="bank-side-note">
+    銀行明細は「お金が動いた事実」。請求書・領収書・公共料金・税金・売掛入金と照合して、支払済み・入金済みを確認します。
+  </div>
+</aside>
+    <main class="bank-main">
+      <div class="bank-topbar">
+        <div class="bank-title">
+          <h1>銀行業務 区分マスタ</h1>
+          <p>銀行業務で使う区分を管理します。ここは「設定」の中のマスタ管理画面です。</p>
+        </div>
+        <div class="bank-actions">
+          <button type="button" class="light" onclick="location.href='/bank/bank-settings.html'">設定へ戻る</button>
+          <button type="button" class="blue" onclick="alert('DB保存は次の段階で作成します。')">保存は未実装</button>
+        </div>
+      </div>
+
+      <section class="bank-master-summary">
+        <div class="bank-master-summary-card">
+          <span>入出金区分</span>
+          <strong>5</strong>
+        </div>
+        <div class="bank-master-summary-card">
+          <span>銀行取引区分</span>
+          <strong>12</strong>
+        </div>
+        <div class="bank-master-summary-card">
+          <span>照合状態区分</span>
+          <strong>5</strong>
+        </div>
+        <div class="bank-master-summary-card">
+          <span>銀行証憑区分</span>
+          <strong>6</strong>
+        </div>
+      </section>
+
+      <section class="bank-master-grid">
+        <aside class="bank-card">
+          <div class="bank-card-title">区分グループ</div>
+          <div class="bank-master-menu">
+            <button type="button" class="active" data-master-tab="cash-flow">入出金区分</button>
+            <button type="button" data-master-tab="transaction-kind">銀行取引区分</button>
+            <button type="button" data-master-tab="match-status">照合状態区分</button>
+            <button type="button" data-master-tab="evidence-kind">銀行証憑区分</button>
+          </div>
+          <p class="bank-master-note" style="margin-top:1rem;">
+            銀行業務専用の区分です。日常作業メニューではなく、設定内のマスタとして管理します。
+          </p>
+        </aside>
+
+        <div>
+          <section class="bank-card bank-master-section active" data-master-section="cash-flow">
+            <div class="bank-master-toolbar">
+              <div>
+                <div class="bank-card-title">入出金区分 <span class="bank-master-pill">銀行明細の大分類</span></div>
+                <div class="bank-master-note">銀行口座でお金が入ったのか、出たのか、口座間移動なのかを分けます。</div>
+              </div>
+              <button type="button" onclick="alert('行追加は次の段階で作成します。')">行追加</button>
+            </div>
+            <div class="bank-master-table-wrap">
+              <table class="bank-master-table">
+                <thead>
+                  <tr>
+                    <th>使用</th>
+                    <th>並び順</th>
+                    <th>プログラムコード</th>
+                    <th>表示名</th>
+                    <th>説明</th>
+                    <th>状態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" checked></td><td><input value="10"></td><td><input class="bank-master-code" value="deposit"></td><td><input value="入金"></td><td><input value="銀行口座にお金が入った明細"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="20"></td><td><input class="bank-master-code" value="withdrawal"></td><td><input value="出金"></td><td><input value="銀行口座からお金が出た明細"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="30"></td><td><input class="bank-master-code" value="transfer"></td><td><input value="口座間移動"></td><td><input value="自社口座間の資金移動"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="40"></td><td><input class="bank-master-code" value="fee"></td><td><input value="手数料"></td><td><input value="振込手数料など銀行手数料"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="50"></td><td><input class="bank-master-code" value="interest"></td><td><input value="利息"></td><td><input value="受取利息または支払利息"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bank-card bank-master-section" data-master-section="transaction-kind">
+            <div class="bank-master-toolbar">
+              <div>
+                <div class="bank-card-title">銀行取引区分 <span class="bank-master-pill">何のお金か</span></div>
+                <div class="bank-master-note">入出金の内容を、会計処理や照合先に寄せるための区分です。</div>
+              </div>
+              <button type="button" onclick="alert('行追加は次の段階で作成します。')">行追加</button>
+            </div>
+            <div class="bank-master-table-wrap">
+              <table class="bank-master-table">
+                <thead>
+                  <tr>
+                    <th>使用</th>
+                    <th>並び順</th>
+                    <th>プログラムコード</th>
+                    <th>表示名</th>
+                    <th>説明</th>
+                    <th>状態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" checked></td><td><input value="10"></td><td><input class="bank-master-code" value="sales_deposit"></td><td><input value="売上入金"></td><td><input value="売上・売掛金の入金"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="20"></td><td><input class="bank-master-code" value="payable_payment"></td><td><input value="未払支払"></td><td><input value="未払金・買掛金などの支払い"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="30"></td><td><input class="bank-master-code" value="expense_payment"></td><td><input value="経費支払"></td><td><input value="経費の支払い"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="40"></td><td><input class="bank-master-code" value="tax_payment"></td><td><input value="税金・公的支払"></td><td><input value="法人税、消費税、社会保険料など"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="50"></td><td><input class="bank-master-code" value="utility_payment"></td><td><input value="公共料金・通信費"></td><td><input value="電気、水道、ガス、通信費など"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="60"></td><td><input class="bank-master-code" value="card_withdrawal"></td><td><input value="カード引落"></td><td><input value="クレジットカード利用分の引落"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="70"></td><td><input class="bank-master-code" value="loan_repayment"></td><td><input value="借入返済"></td><td><input value="借入金の返済"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="80"></td><td><input class="bank-master-code" value="bank_fee"></td><td><input value="銀行手数料"></td><td><input value="振込手数料、口座手数料など"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="90"></td><td><input class="bank-master-code" value="refund"></td><td><input value="返金"></td><td><input value="返金、取消、戻入など"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="100"></td><td><input class="bank-master-code" value="owner_related"></td><td><input value="役員・代表者関連"></td><td><input value="役員貸付金、役員借入金など要確認の取引"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="110"></td><td><input class="bank-master-code" value="inter_account_transfer"></td><td><input value="口座間移動"></td><td><input value="自社口座同士の移動"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="120"></td><td><input class="bank-master-code" value="unknown"></td><td><input value="不明・要確認"></td><td><input value="内容が判断できない明細"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bank-card bank-master-section" data-master-section="match-status">
+            <div class="bank-master-toolbar">
+              <div>
+                <div class="bank-card-title">照合状態区分 <span class="bank-master-pill">処理状況</span></div>
+                <div class="bank-master-note">銀行明細が、他の証憑や未払・売掛とどこまで結びついているかを表す区分です。</div>
+              </div>
+              <button type="button" onclick="alert('行追加は次の段階で作成します。')">行追加</button>
+            </div>
+            <div class="bank-master-table-wrap">
+              <table class="bank-master-table">
+                <thead>
+                  <tr>
+                    <th>使用</th>
+                    <th>並び順</th>
+                    <th>プログラムコード</th>
+                    <th>表示名</th>
+                    <th>説明</th>
+                    <th>状態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" checked></td><td><input value="10"></td><td><input class="bank-master-code" value="unprocessed"></td><td><input value="未処理"></td><td><input value="まだ何の取引か確認していない明細"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="20"></td><td><input class="bank-master-code" value="candidate"></td><td><input value="照合候補"></td><td><input value="一致しそうな証憑や未払・売掛がある状態"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="30"></td><td><input class="bank-master-code" value="matched"></td><td><input value="照合済み"></td><td><input value="人間確認済みで対応関係が確定した状態"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="40"></td><td><input class="bank-master-code" value="needs_review"></td><td><input value="要確認"></td><td><input value="相手先や内容が不明で確認が必要な状態"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="50"></td><td><input class="bank-master-code" value="excluded"></td><td><input value="対象外"></td><td><input value="銀行照合処理の対象にしない明細"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bank-card bank-master-section" data-master-section="evidence-kind">
+            <div class="bank-master-toolbar">
+              <div>
+                <div class="bank-card-title">銀行証憑区分 <span class="bank-master-pill">原本の種類</span></div>
+                <div class="bank-master-note">通帳や銀行CSVなど、お金が動いた事実を示す資料の種類です。</div>
+              </div>
+              <button type="button" onclick="alert('行追加は次の段階で作成します。')">行追加</button>
+            </div>
+            <div class="bank-master-table-wrap">
+              <table class="bank-master-table">
+                <thead>
+                  <tr>
+                    <th>使用</th>
+                    <th>並び順</th>
+                    <th>プログラムコード</th>
+                    <th>表示名</th>
+                    <th>説明</th>
+                    <th>状態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" checked></td><td><input value="10"></td><td><input class="bank-master-code" value="passbook_image"></td><td><input value="通帳画像"></td><td><input value="通帳を撮影またはスキャンした画像"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="20"></td><td><input class="bank-master-code" value="passbook_pdf"></td><td><input value="通帳PDF"></td><td><input value="通帳や明細をPDF化したもの"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="30"></td><td><input class="bank-master-code" value="bank_csv"></td><td><input value="銀行CSV"></td><td><input value="ネットバンキングから出力したCSV"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="40"></td><td><input class="bank-master-code" value="bank_statement_pdf"></td><td><input value="銀行明細PDF"></td><td><input value="ネットバンキングの入出金明細PDF"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="50"></td><td><input class="bank-master-code" value="transfer_receipt"></td><td><input value="振込完了票"></td><td><input value="振込受付・振込完了を示す資料"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                  <tr><td><input type="checkbox" checked></td><td><input value="60"></td><td><input class="bank-master-code" value="balance_certificate"></td><td><input value="残高証明書"></td><td><input value="銀行残高を証明する資料"></td><td><select><option>有効</option><option>停止</option></select></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const activeSide = document.querySelector('[data-page="settings"]');
+    if (activeSide) activeSide.classList.add('active');
+
+    const tabButtons = Array.from(document.querySelectorAll('[data-master-tab]'));
+    const sections = Array.from(document.querySelectorAll('[data-master-section]'));
+
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const key = button.getAttribute('data-master-tab');
+
+        tabButtons.forEach((b) => b.classList.remove('active'));
+        sections.forEach((s) => s.classList.remove('active'));
+
+        button.classList.add('active');
+
+        const target = document.querySelector([data-master-section="\"]);
+        if (target) target.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

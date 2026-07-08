@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const config = require("../config");
@@ -1079,6 +1079,10 @@ async function listPaymentDocumentOcrImportsFromDb() {
       d.payable_kind_label AS current_payable_kind_label,
       d.specialist_route_code AS current_specialist_route_code,
       d.specialist_route_label AS current_specialist_route_label,
+      d.analysis_system_code AS current_analysis_system_code,
+      d.analysis_system_label AS current_analysis_system_label,
+      d.analysis_system_reason AS current_analysis_system_reason,
+      d.analysis_system_confidence AS current_analysis_system_confidence,
       d.payment_target_label AS current_payment_target_label,
       d.payable_target_label AS current_payable_target_label,
       d.expense_target_label AS current_expense_target_label,
@@ -1131,6 +1135,10 @@ async function listPaymentDocumentOcrImportsFromDb() {
           payableKindLabel: row.current_payable_kind_label,
           specialistRouteCode: row.current_specialist_route_code,
           specialistRouteLabel: row.current_specialist_route_label,
+          analysisSystemCode: row.current_analysis_system_code,
+          analysisSystemLabel: row.current_analysis_system_label,
+          analysisSystemReason: row.current_analysis_system_reason,
+          analysisSystemConfidence: row.current_analysis_system_confidence,
 
           paymentTargetLabel: row.current_payment_target_label,
           payableTargetLabel: row.current_payable_target_label,
@@ -4067,6 +4075,143 @@ function paymentDocumentDefaultExpenseTargetForSort(destinationCode, documentTyp
 }
 /* HD_ORIGIN_SORT_TARGET_AXIS_ROOT_FIX_20260708_END */
 
+/* HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_AXIS_20260708_START */
+function hdOriginPaymentDocumentAnalysisSystemText(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+function hdOriginPaymentDocumentAnalysisSystemConfidence(value) {
+  const text = hdOriginPaymentDocumentAnalysisSystemText(value);
+  if (!text) return "中";
+  if (text === "high" || text === "高") return "高";
+  if (text === "medium" || text === "中") return "中";
+  if (text === "low" || text === "低") return "低";
+  return text;
+}
+
+function hdOriginResolvePaymentDocumentAnalysisSystem(source = {}) {
+  const s = source && typeof source === "object" ? source : {};
+  const summary = s.ai_summary && typeof s.ai_summary === "object" ? s.ai_summary : {};
+
+  const labels = {
+    invoice_payable_analysis: "請求・買掛/未払解析システム",
+    utility_communication_analysis: "公共料金・通信費解析システム",
+    contract_insurance_lease_analysis: "契約・保険・リース解析システム",
+    tax_public_analysis: "税金・公的支払解析システム",
+    card_statement_analysis: "カード明細解析システム",
+    receipt_evidence_analysis: "レシート・領収書解析システム",
+    reference_check_analysis: "照合用解析システム",
+    needs_review: "要確認"
+  };
+
+  const explicitCode = hdOriginPaymentDocumentAnalysisSystemText(
+    s.analysis_system_code || s.analysisSystemCode || summary.analysis_system_code || ""
+  );
+
+  const explicitLabel = hdOriginPaymentDocumentAnalysisSystemText(
+    s.analysis_system_label || s.analysisSystemLabel || summary.analysis_system || summary.analysis_system_label || ""
+  );
+
+  const explicitReason = hdOriginPaymentDocumentAnalysisSystemText(
+    s.analysis_system_reason || s.analysisSystemReason || summary.analysis_system_reason || s.review_reason || s.reason || summary.reason || ""
+  );
+
+  const explicitConfidence = hdOriginPaymentDocumentAnalysisSystemConfidence(
+    s.analysis_system_confidence || s.analysisSystemConfidence || summary.analysis_system_confidence || s.confidence_label || s.ai_confidence || s.confidence || summary.confidence_label || ""
+  );
+
+  if (labels[explicitCode]) {
+    return {
+      code: explicitCode,
+      label: explicitLabel || labels[explicitCode],
+      reason: explicitReason || "AIが返した解析システムコードを採用。",
+      confidence: explicitConfidence
+    };
+  }
+
+  const haystack = [
+    s.specialist_route_code,
+    s.specialistRouteCode,
+    s.document_group,
+    s.document_type_code,
+    s.documentTypeCode,
+    s.payment_destination_code,
+    s.paymentDestinationCode,
+    s.accounting_category_code,
+    s.accountingCategoryCode,
+    summary.document_kind,
+    summary.destination,
+    summary.public_utility,
+    summary.contract_insurance_lease,
+    summary.tax_public,
+    summary.card_statement
+  ].map(hdOriginPaymentDocumentAnalysisSystemText).join(" ").toLowerCase();
+
+  function result(code, reason) {
+    return {
+      code,
+      label: labels[code] || "要確認",
+      reason: explicitReason || reason,
+      confidence: explicitConfidence
+    };
+  }
+
+  if (haystack.includes("utility") || haystack.includes("public_utility") || haystack.includes("communication") || haystack.includes("公共料金") || haystack.includes("通信費") || haystack.includes("水道") || haystack.includes("電気") || haystack.includes("ガス")) {
+    return result("utility_communication_analysis", "公共料金・通信費系の既存分類があるため。");
+  }
+
+  if (haystack.includes("contract_insurance_lease") || haystack.includes("insurance") || haystack.includes("lease") || haystack.includes("契約") || haystack.includes("保険") || haystack.includes("リース")) {
+    return result("contract_insurance_lease_analysis", "契約・保険・リース系の既存分類があるため。");
+  }
+
+  if (haystack.includes("tax_public") || haystack.includes("tax_payment") || haystack.includes("public_payment") || haystack.includes("税金") || haystack.includes("公的")) {
+    return result("tax_public_analysis", "税金・公的支払系の既存分類があるため。");
+  }
+
+  if (haystack.includes("card_statement") || haystack.includes("card_payable") || haystack.includes("カード")) {
+    return result("card_statement_analysis", "カード明細系の既存分類があるため。");
+  }
+
+  if (haystack.includes("paid_evidence") || haystack.includes("receipt") || haystack.includes("領収") || haystack.includes("レシート")) {
+    return result("receipt_evidence_analysis", "レシート・領収書系の既存分類があるため。");
+  }
+
+  if (haystack.includes("reference_check") || haystack.includes("evidence_only") || haystack.includes("delivery_note") || haystack.includes("order") || haystack.includes("quotation") || haystack.includes("納品") || haystack.includes("注文") || haystack.includes("発注") || haystack.includes("見積")) {
+    return result("reference_check_analysis", "照合用書類系の既存分類があるため。");
+  }
+
+  if (haystack.includes("invoice_payable") || haystack.includes("accounts_payable") || haystack.includes("unpaid") || haystack.includes("invoice") || haystack.includes("買掛") || haystack.includes("未払") || haystack.includes("請求")) {
+    return result("invoice_payable_analysis", "請求・買掛/未払系の既存分類があるため。");
+  }
+
+  if (haystack.includes("needs_review") || haystack.includes("other") || haystack.includes("要確認")) {
+    return result("needs_review", "既存分類が要確認またはその他のため。");
+  }
+
+  return result("needs_review", "解析システムを一意に判断できないため。");
+}
+
+function hdOriginAttachPaymentDocumentAnalysisSystemDraft(value) {
+  const draft = value && typeof value === "object" ? { ...value } : {};
+  const resolved = hdOriginResolvePaymentDocumentAnalysisSystem(draft);
+
+  draft.analysis_system_code = draft.analysis_system_code || resolved.code;
+  draft.analysis_system_label = draft.analysis_system_label || resolved.label;
+  draft.analysis_system_reason = draft.analysis_system_reason || resolved.reason;
+  draft.analysis_system_confidence = draft.analysis_system_confidence || resolved.confidence;
+
+  draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  draft.ai_summary.analysis_system_code = draft.ai_summary.analysis_system_code || draft.analysis_system_code;
+  draft.ai_summary.analysis_system = draft.ai_summary.analysis_system || draft.analysis_system_label;
+  draft.ai_summary.analysis_system_label = draft.ai_summary.analysis_system_label || draft.analysis_system_label;
+  draft.ai_summary.analysis_system_reason = draft.ai_summary.analysis_system_reason || draft.analysis_system_reason;
+  draft.ai_summary.analysis_system_confidence = draft.ai_summary.analysis_system_confidence || draft.analysis_system_confidence;
+
+  return draft;
+}
+/* HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_AXIS_20260708_END */
+
 function normalizePaymentDocumentSortCandidate(value) {
   const raw = value && typeof value === "object" ? value : {};
   const source = raw.sorting && typeof raw.sorting === "object" ? raw.sorting : raw;
@@ -4139,6 +4284,52 @@ function normalizePaymentDocumentSortCandidate(value) {
     ""
   );
 
+  const analysisSystem = hdOriginResolvePaymentDocumentAnalysisSystem({
+
+
+    analysis_system_code: source.analysis_system_code || source.analysisSystemCode,
+
+
+    analysis_system_label: source.analysis_system_label || source.analysisSystemLabel,
+
+
+    analysis_system_reason: source.analysis_system_reason || source.analysisSystemReason,
+
+
+    analysis_system_confidence: source.analysis_system_confidence || source.analysisSystemConfidence,
+
+
+    specialist_route_code: specialistRouteCode,
+
+
+    specialist_route_label: specialistRouteLabel,
+
+
+    document_type_code: documentTypeCode,
+
+
+    document_type_label: documentTypeLabel,
+
+
+    payment_destination_code: destinationCode,
+
+
+    payment_destination_label: destinationLabel,
+
+
+    confidence,
+
+
+    confidence_label: confidenceLabel,
+
+
+    review_reason: source.review_reason || source.reason || ""
+
+
+  });
+
+
+
   const accountingCategoryCode = paymentDocumentSortText(source.accounting_category_code || "");
   const payableKindCode = paymentDocumentSortText(source.payable_kind_code || "");
   const reviewReason = paymentDocumentSortText(source.review_reason || source.needs_review_reason || source.reason || "");
@@ -4159,6 +4350,10 @@ function normalizePaymentDocumentSortCandidate(value) {
     payment_destination_name: destinationLabel,
     specialist_route_code: specialistRouteCode,
     specialist_route_label: specialistRouteLabel,
+    analysis_system_code: analysisSystem.code,
+    analysis_system_label: analysisSystem.label,
+    analysis_system_reason: analysisSystem.reason,
+    analysis_system_confidence: analysisSystem.confidence,
     accounting_category_code: accountingCategoryCode,
     payable_kind_code: payableKindCode,
     source_type_code: specialistRouteCode,
@@ -4275,10 +4470,12 @@ async function createPaymentDocumentSortFromOcrText(ocrText) {
     )
   );
 
-  const draft = applyPaymentDocumentSortRuleFallbackFromOcr(
+  let draft = applyPaymentDocumentSortRuleFallbackFromOcr(
     ocrText,
     normalizePaymentDocumentSortCandidate(response.parsed)
   );
+
+  draft = hdOriginAttachPaymentDocumentAnalysisSystemDraft(draft);
 
   return {
     draft,
@@ -5380,6 +5577,11 @@ function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
     specialist_route_code: hdOriginSortingDraftText(body.specialistRouteCode || body.specialist_route_code || draft.specialist_route_code || root.document_group),
     specialist_route_label: hdOriginSortingDraftText(body.specialistRouteLabel || body.specialist_route_label || draft.specialist_route_label),
 
+    analysis_system_code: hdOriginSortingDraftText(body.analysisSystemCode || body.analysis_system_code || draft.analysis_system_code || root.analysis_system_code || aiSummary.analysis_system_code),
+    analysis_system_label: hdOriginSortingDraftText(body.analysisSystemLabel || body.analysis_system_label || draft.analysis_system_label || root.analysis_system_label || aiSummary.analysis_system_label || aiSummary.analysis_system),
+    analysis_system_reason: hdOriginSortingDraftText(body.analysisSystemReason || body.analysis_system_reason || draft.analysis_system_reason || root.analysis_system_reason || aiSummary.analysis_system_reason),
+    analysis_system_confidence: hdOriginSortingDraftText(body.analysisSystemConfidence || body.analysis_system_confidence || draft.analysis_system_confidence || root.analysis_system_confidence || aiSummary.analysis_system_confidence),
+
     payment_target_label: hdOriginSortingDraftText(body.paymentTargetLabel || body.payment_target_label || aiSummary.payment_target),
     payable_target_label: hdOriginSortingDraftText(body.payableTargetLabel || body.payable_target_label || aiSummary.payable_target),
     expense_target_label: hdOriginSortingDraftText(body.expenseTargetLabel || body.expense_target_label || aiSummary.expense_target),
@@ -5458,7 +5660,7 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
       UPDATE accounting.payment_document_sorting_drafts
       SET
         is_current = FALSE,
-        updated_by = $42
+        updated_by = $48
       WHERE payment_document_ocr_import_id = $1
         AND is_current = TRUE
         AND deleted_at IS NULL
@@ -5488,6 +5690,11 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
 
         specialist_route_code,
         specialist_route_label,
+
+        analysis_system_code,
+        analysis_system_label,
+        analysis_system_reason,
+        analysis_system_confidence,
 
         payment_target_label,
         payable_target_label,
@@ -5526,11 +5733,12 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
         $11,$12,$13,
         $14,$15,$16,
         $17,$18,
-        $19,$20,$21,$22,$23,$24,
-        $25,$26,$27,$28,$29,
-        $30::jsonb,$31::jsonb,$32::jsonb,$33::jsonb,$34::jsonb,
-        $35,$36,$37,$38,$39,
-        $40,$41,$42,$43,$44
+        $19,$20,$21,$22,
+        $23,$24,$25,$26,$27,$28,
+        $29,$30,$31,$32,$33,
+        $34::jsonb,$35::jsonb,$36::jsonb,$37::jsonb,$38::jsonb,
+        $39,$40,$41,$42,$43,
+        $44,$45,$46,$47,$48
       )
       RETURNING
         payment_document_sorting_draft_id,
@@ -5577,6 +5785,11 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
 
     payload.specialist_route_code,
     payload.specialist_route_label,
+
+    payload.analysis_system_code,
+    payload.analysis_system_label,
+    payload.analysis_system_reason,
+    payload.analysis_system_confidence,
 
     payload.payment_target_label,
     payload.payable_target_label,
@@ -5655,6 +5868,10 @@ async function hdOriginGetPaymentDocumentSortingDraftByOcrImportId(id) {
 
       d.specialist_route_code,
       d.specialist_route_label,
+      d.analysis_system_code,
+      d.analysis_system_label,
+      d.analysis_system_reason,
+      d.analysis_system_confidence,
 
       d.payment_target_label,
       d.payable_target_label,
@@ -5733,6 +5950,10 @@ async function hdOriginGetPaymentDocumentSortingDraftByOcrImportId(id) {
 
     specialistRouteCode: row.specialist_route_code,
     specialistRouteLabel: row.specialist_route_label,
+    analysisSystemCode: row.analysis_system_code,
+    analysisSystemLabel: row.analysis_system_label,
+    analysisSystemReason: row.analysis_system_reason,
+    analysisSystemConfidence: row.analysis_system_confidence,
 
     paymentTargetLabel: row.payment_target_label,
     payableTargetLabel: row.payable_target_label,
@@ -6139,7 +6360,11 @@ async function handlePaymentDocumentRoutes(req, res) {
         }
 
         let sortResult = hdOriginPolishPaymentDocumentSortResult(await createPaymentDocumentSortFromOcrText(ocrText), ocrText);
-        sortResult = hdOriginPolishPaymentDocumentCardSortResult(sortResult, ocrText);
+        
+        sortResult.draft = hdOriginAttachPaymentDocumentAnalysisSystemDraft(sortResult.draft || sortResult.sorting || sortResult.classification || {});
+        sortResult.classification = sortResult.draft;
+        sortResult.sorting = sortResult.draft;
+sortResult = hdOriginPolishPaymentDocumentCardSortResult(sortResult, ocrText);
         sortResult = hdOriginPolishPaymentDocumentMailCommSortResult(sortResult, ocrText);
         sortResult = hdOriginPolishPaymentDocumentReceiptAttentionSortResult(sortResult, ocrText);
         sortResult = hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText);
@@ -6614,7 +6839,6 @@ async function handlePaymentDocumentRoutes(req, res) {
 module.exports = {
   handlePaymentDocumentRoutes
 };
-
 
 
 

@@ -1,0 +1,1044 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>レシート台帳</title>
+  <link rel="stylesheet" href="./receipt-list.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      overflow: hidden;
+    }
+
+    header {
+      height: 3rem;
+      box-sizing: border-box;
+      padding: 0.75rem 1rem;
+      background: #222;
+      color: #fff;
+      font-size: 1.125rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .receipt-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .receipt-header-actions button {
+      background: #fff;
+      color: #111;
+      border: 0.0625rem solid #fff;
+      border-radius: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 18.75rem minmax(32rem, 1fr) 34rem;
+      gap: 0.625rem;
+      padding: 0.625rem;
+      height: calc(100vh - 3rem);
+      box-sizing: border-box;
+    }
+
+    .panel {
+      background: #fff;
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .panel-title {
+      height: 2.625rem;
+      box-sizing: border-box;
+      padding: 0.5625rem 0.625rem;
+      border-bottom: 0.0625rem solid #ddd;
+      background: #fafafa;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scroll {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+    }
+
+    .list-item {
+      padding: 0.625rem;
+      border-bottom: 0.0625rem solid #eee;
+      cursor: pointer;
+    }
+
+    .list-item:hover {
+      background: #f0f4ff;
+    }
+
+    .list-item.active {
+      background: #e8f0ff;
+      border-left: 0.25rem solid #333;
+    }
+
+    .list-main {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .list-sub {
+      font-size: 0.75rem;
+      color: #666;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .image-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      background: #eee;
+      text-align: center;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .image-area img {
+      max-width: 100%;
+      border: 0.0625rem solid #ccc;
+      background: #fff;
+    }
+
+    .detail-area {
+      height: calc(100% - 2.625rem);
+      overflow: auto;
+      padding: 0.625rem;
+      box-sizing: border-box;
+    }
+
+    .block {
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.5rem;
+      margin-bottom: 0.625rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .block-title {
+      padding: 0.5rem 0.625rem;
+      background: #fafafa;
+      border-bottom: 0.0625rem solid #ddd;
+      font-weight: 700;
+    }
+
+    .block-body {
+      padding: 0.625rem;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .field {
+      margin-bottom: 0.5rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 0.2rem;
+    }
+
+    .field div {
+      min-height: 1.5rem;
+      padding: 0.35rem 0.45rem;
+      border: 0.0625rem solid #ddd;
+      border-radius: 0.3125rem;
+      background: #fafafa;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    .ok {
+      color: #087a28;
+      font-weight: 700;
+    }
+
+    .warn {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    th, td {
+      border: 0.0625rem solid #ddd;
+      padding: 0.32rem;
+      vertical-align: top;
+    }
+
+    th {
+      background: #fafafa;
+      white-space: nowrap;
+    }
+      .evidence-info {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      font-size: 12px;
+    }
+
+    .evidence-info summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: #444;
+    }
+
+    .evidence-grid {
+      margin-top: 10px;
+    }
+
+    .evidence-info .field-value,
+    .evidence-info .field div {
+      word-break: break-all;
+      white-space: normal;
+    }
+    .list-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .settled-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      flex: 0 0 auto;
+    }
+
+    .settled-badge.is-settled {
+      background: #e6f4ea;
+      color: #137333;
+      border: 1px solid #b7dfc4;
+    }
+
+    .settled-badge.is-unsettled {
+      background: #fdecea;
+      color: #b3261e;
+      border: 1px solid #f3c0bc;
+    }    .saved-list-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .saved-filter-bar {
+      flex: 0 0 auto;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .saved-filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .saved-filter-row.one {
+      grid-template-columns: 1fr;
+    }
+
+    .saved-filter-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 2px;
+    }
+
+    .saved-filter-field input,
+    .saved-filter-field select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 5px 6px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .saved-filter-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .saved-filter-actions button {
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      background: #fff;
+      padding: 5px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .saved-list-panel #list.scroll {
+      height: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+
+    .list-person {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .receipt-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .receipt-title-button {
+      background: #fff;
+      color: #111;
+      border: 0.0625rem solid #fff;
+      border-radius: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+
+  
+/* HD_ORIGIN_RECEIPT_SAVED_SINGLE_PROFESSIONAL_GPT2_START */
+
+/*
+  GPT2：
+  単票形式レシート台帳をプロ風にする。
+  機能・JS・onclick・API・DB・保存処理は変更しない。
+  main の列幅、height、overflow は変更しない。
+*/
+
+body.receipt-saved-single-professional-page {
+  background:
+    radial-gradient(circle at top left, rgba(220,252,231,0.65), transparent 22rem),
+    linear-gradient(180deg, #f8fafc 0%, #f4f4f5 100%);
+  color: #111827;
+}
+
+/* ヘッダー */
+body.receipt-saved-single-professional-page header {
+  background: linear-gradient(90deg, #064e3b 0%, #047857 42%, #ffffff 100%);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(4,120,87,0.35);
+  box-shadow: 0 2px 10px rgba(15,23,42,0.16);
+}
+
+body.receipt-saved-single-professional-page .receipt-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+body.receipt-saved-single-professional-page .receipt-header-left > div {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+body.receipt-saved-single-professional-page .receipt-title-button {
+  background: rgba(255,255,255,0.92);
+  color: #065f46;
+  border: 1px solid rgba(255,255,255,0.95);
+  border-radius: 999rem;
+  padding: 0.42rem 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.12);
+}
+
+body.receipt-saved-single-professional-page .receipt-header-actions button {
+  background: rgba(255,255,255,0.92);
+  color: #111827;
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 999rem;
+  padding: 0.42rem 0.72rem;
+  font-weight: 850;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.10);
+}
+
+body.receipt-saved-single-professional-page .receipt-header-actions button:hover,
+body.receipt-saved-single-professional-page .receipt-title-button:hover {
+  background: #ffffff;
+}
+
+/* パネル */
+body.receipt-saved-single-professional-page .panel {
+  border: 1px solid #d1d5db;
+  border-radius: 0.85rem;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 6px 18px rgba(15,23,42,0.08);
+}
+
+body.receipt-saved-single-professional-page .panel-title {
+  background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 82%);
+  border-bottom: 1px solid #bbf7d0;
+  color: #065f46;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+body.receipt-saved-single-professional-page .panel-title button {
+  background: #ffffff;
+  color: #065f46;
+  border: 1px solid #bbf7d0;
+  border-radius: 999rem;
+  font-weight: 850;
+}
+
+/* 左フィルター */
+body.receipt-saved-single-professional-page .saved-filter-bar {
+  background: linear-gradient(180deg, #f9fafb 0%, #f0fdf4 100%);
+  border-bottom: 1px solid #d1fae5;
+}
+
+body.receipt-saved-single-professional-page .saved-filter-field label {
+  color: #374151;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page .saved-filter-field input,
+body.receipt-saved-single-professional-page .saved-filter-field select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  color: #111827;
+}
+
+body.receipt-saved-single-professional-page .saved-filter-field input:focus,
+body.receipt-saved-single-professional-page .saved-filter-field select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.14);
+}
+
+body.receipt-saved-single-professional-page .saved-filter-actions button {
+  background: #ffffff;
+  color: #065f46;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  font-weight: 900;
+}
+
+/* 一覧 */
+body.receipt-saved-single-professional-page .list-item {
+  margin: 0.35rem 0.45rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+}
+
+body.receipt-saved-single-professional-page .list-item:hover {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+body.receipt-saved-single-professional-page .list-item.active {
+  background: linear-gradient(90deg, #dcfce7 0%, #ffffff 100%);
+  border-left: 0.32rem solid #10b981;
+  border-color: #86efac;
+}
+
+body.receipt-saved-single-professional-page .list-line {
+  color: #111827;
+  font-weight: 800;
+}
+
+body.receipt-saved-single-professional-page .list-person {
+  color: #4b5563;
+  font-weight: 700;
+}
+
+body.receipt-saved-single-professional-page .settled-badge {
+  border-radius: 999rem;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page .settled-badge.is-settled {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+body.receipt-saved-single-professional-page .settled-badge.is-unsettled {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+/* 画像エリア */
+body.receipt-saved-single-professional-page .image-area {
+  background:
+    linear-gradient(45deg, #f3f4f6 25%, transparent 25%),
+    linear-gradient(-45deg, #f3f4f6 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f3f4f6 75%),
+    linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
+  background-color: #e5e7eb;
+  background-size: 1.25rem 1.25rem;
+  background-position: 0 0, 0 0.625rem, 0.625rem -0.625rem, -0.625rem 0;
+}
+
+body.receipt-saved-single-professional-page .image-area img {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.18);
+}
+
+/* 右詳細 */
+body.receipt-saved-single-professional-page .detail-area {
+  background: #ffffff;
+}
+
+body.receipt-saved-single-professional-page .block {
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+
+body.receipt-saved-single-professional-page .block-title {
+  background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 84%);
+  border-bottom: 1px solid #bbf7d0;
+  color: #065f46;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page .field label {
+  color: #374151;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page .field div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.45rem;
+  color: #111827;
+}
+
+body.receipt-saved-single-professional-page table {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+body.receipt-saved-single-professional-page th {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #bbf7d0;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page td {
+  border-color: #e5e7eb;
+}
+
+body.receipt-saved-single-professional-page .evidence-info {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  border-radius: 0.75rem;
+}
+
+body.receipt-saved-single-professional-page .evidence-info summary {
+  color: #065f46;
+  font-weight: 900;
+}
+
+body.receipt-saved-single-professional-page .ok {
+  color: #15803d;
+}
+
+body.receipt-saved-single-professional-page .warn {
+  color: #b45309;
+}
+
+/* HD_ORIGIN_RECEIPT_SAVED_SINGLE_PROFESSIONAL_GPT2_END */
+  </style>
+</head>
+<body class="receipt-saved-ledger-page receipt-saved-single-professional-page">
+  <header>
+    <div class="receipt-header-left"><div>レシート台帳</div><button type="button" class="receipt-title-button" onclick="location.href='/receipts/receipt-ledger-print.html'">帳票形式</button></div>
+    <div class="receipt-header-actions">
+      <button type="button" onclick="location.href='/receipts/receipt-list.html'">読取確認へ戻る</button>
+      <button type="button" onclick="loadSavedReceipts()">再読込</button>
+      <button type="button" onclick="restartHdOriginServer()">サーバー再起動</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel saved-list-panel">
+      <div class="saved-filter-bar">
+        <div class="saved-filter-row">
+          <div class="saved-filter-field">
+            <label for="filterDateFrom">開始日</label>
+            <input id="filterDateFrom" type="date" oninput="renderSavedList()">
+          </div>
+          <div class="saved-filter-field">
+            <label for="filterDateTo">終了日</label>
+            <input id="filterDateTo" type="date" oninput="renderSavedList()">
+          </div>
+        </div>
+
+        <div class="saved-filter-row">
+          <div class="saved-filter-field">
+            <label for="filterSettled">清算状態</label>
+            <select id="filterSettled" onchange="renderSavedList()">
+              <option value="">すべて</option>
+              <option value="unsettled">未精算</option>
+              <option value="settled">清算済み</option>
+            </select>
+          </div>
+          <div class="saved-filter-field">
+            <label for="filterSort">年月日</label>
+            <select id="filterSort" onchange="renderSavedList()">
+              <option value="date_desc">新しい順</option>
+              <option value="date_asc">古い順</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="saved-filter-row one">
+          <div class="saved-filter-field">
+            <label for="filterTargetPerson">対象者</label>
+            <select id="filterTargetPerson" onchange="renderSavedList()">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="saved-filter-row one">
+          <div class="saved-filter-field">
+            <label for="filterFree">フリー</label>
+            <input id="filterFree" type="text" placeholder="ID・日付・対象者" oninput="renderSavedList()">
+          </div>
+        </div>
+
+        <div class="saved-filter-actions">
+          <button type="button" onclick="clearSavedFilters()">クリア</button>
+          <button type="button" onclick="loadSavedReceipts()">再読込</button>
+        </div>
+      </div>
+
+      <div id="list" class="scroll">読込中...</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">保存データ</div>
+      <div id="detailArea" class="detail-area">左から選択してください。</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">証憑画像</div>
+      <div id="imageArea" class="image-area">左から選択してください。</div>
+    </section>
+  </main>
+
+  <script>
+    async function restartHdOriginServer() {
+      if (!confirm("HD Origin Project サーバーを再起動しますか？\n未保存の作業がある場合は先に保存してください。")) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/system/restart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({})
+        });
+
+        const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+        if (!res.ok || !data.ok) {
+          alert("サーバー再起動要求に失敗しました: " + (data.error || ""));
+          return;
+        }
+
+        alert("サーバー再起動を要求しました。黒い画面が閉じて新しく起動した後、ブラウザを再読み込みしてください。");
+      } catch (error) {
+        alert("サーバー再起動要求でエラーが発生しました: " + (error && error.message ? error.message : error));
+      }
+    }
+
+    let currentItems = [];
+    let selectedReceiptId = null;
+
+    
+    let savedTargetPeople = [];
+
+    async function loadSavedTargetPeople(force = false) {
+      if (savedTargetPeople.length && !force) {
+        return savedTargetPeople;
+      }
+
+      const res = await fetch("/api/receipts/master-options");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error("対象者マスター取得に失敗しました。");
+      }
+
+      savedTargetPeople = Array.isArray(data.targetPeople) ? data.targetPeople : [];
+      renderSavedTargetPersonOptions();
+      return savedTargetPeople;
+    }
+
+    function renderSavedTargetPersonOptions() {
+      const el = document.getElementById("filterTargetPerson");
+      if (!el) return;
+
+      const current = String(el.value || "");
+
+      el.innerHTML =
+        '<option value="">すべて</option>' +
+        savedTargetPeople.map((item) => {
+          const value = String(item.target_person_id || "");
+          const label = String(item.target_person_name || "");
+          const selected = value === current ? " selected" : "";
+          return '<option value="' + esc(value) + '"' + selected + '>' + esc(label) + '</option>';
+        }).join("");
+    }
+function esc(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function yen(value) {
+      if (value === null || value === undefined || value === "") return "";
+      const n = Number(value);
+      if (!Number.isFinite(n)) return esc(value);
+      return n.toLocaleString("ja-JP") + " 円";
+    }
+
+    function dateText(value) {
+      if (!value) return "";
+      return String(value).slice(0, 10);
+    }
+
+    function dateTimeTextJst(value) {
+      if (!value) return "";
+
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) {
+        return String(value);
+      }
+
+      const parts = new Intl.DateTimeFormat("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).formatToParts(d);
+
+      const map = {};
+      for (const part of parts) {
+        map[part.type] = part.value;
+      }
+
+      return map.year + "-" + map.month + "-" + map.day + " " + map.hour + ":" + map.minute + ":" + map.second;
+    }
+
+    function settledText(value) {
+      return value ? '<span class="ok">清算済み</span>' : '<span class="warn">未精算</span>';
+    }
+
+    function field(label, value) {
+      return '<div class="field"><label>' + esc(label) + '</label><div>' + (value || "") + '</div></div>';
+    }    function getSavedFilterValue(id) {
+      const el = document.getElementById(id);
+      return el ? String(el.value || "").trim() : "";
+    }
+
+    function clearSavedFilters() {
+      for (const id of ["filterDateFrom", "filterDateTo", "filterSettled", "filterTargetPerson", "filterFree"]) {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      }
+
+      const sort = document.getElementById("filterSort");
+      if (sort) sort.value = "date_desc";
+
+      renderSavedList();
+    }
+
+    function getFilteredSavedItems() {
+      const from = getSavedFilterValue("filterDateFrom");
+      const to = getSavedFilterValue("filterDateTo");
+      const settled = getSavedFilterValue("filterSettled");
+      const targetPersonId = getSavedFilterValue("filterTargetPerson");
+      const free = getSavedFilterValue("filterFree").toLowerCase();
+      const sort = getSavedFilterValue("filterSort") || "date_desc";
+
+      let items = Array.isArray(currentItems) ? [...currentItems] : [];
+
+      items = items.filter((item) => {
+        const date = dateText(item.transaction_date);
+        const person = String(item.target_person_name || "").toLowerCase();
+        const itemTargetPersonId = String(item.target_person_id || item.targetPersonId || "");
+        const text = [
+          item.receipt_id,
+          date,
+          item.is_settled ? "清算済み" : "未精算",
+          item.is_settled ? "settled" : "unsettled",
+          item.target_person_name || ""
+        ].join(" ").toLowerCase();
+
+        if (from && date < from) return false;
+        if (to && date > to) return false;
+        if (settled === "settled" && !item.is_settled) return false;
+        if (settled === "unsettled" && item.is_settled) return false;
+        if (targetPersonId && itemTargetPersonId !== targetPersonId) return false;
+        if (free && !text.includes(free)) return false;
+
+        return true;
+      });
+
+      items.sort((a, b) => {
+        const ad = dateText(a.transaction_date);
+        const bd = dateText(b.transaction_date);
+
+        if (sort === "date_asc") {
+          return ad.localeCompare(bd) || Number(a.receipt_id || 0) - Number(b.receipt_id || 0);
+        }
+
+        return bd.localeCompare(ad) || Number(b.receipt_id || 0) - Number(a.receipt_id || 0);
+      });
+
+      return items;
+    }
+
+    function renderSavedList() {
+      const list = document.getElementById("list");
+      const items = getFilteredSavedItems();
+
+      if (!items.length) {
+        list.innerHTML = '<div class="list-item">条件に合うレシートはありません。</div>';
+        return;
+      }
+
+      list.innerHTML = items.map((item) => {
+        const active = Number(item.receipt_id) === Number(selectedReceiptId) ? " active" : "";
+        return `
+          <div class="list-item${active}" onclick="loadSavedDetail(${esc(item.receipt_id)})">
+            <div class="list-line">
+              <span>ID:${esc(item.receipt_id)}</span>
+              <span>${esc(dateText(item.transaction_date))}</span>
+              <span class="settled-badge ${item.is_settled ? "is-settled" : "is-unsettled"}">${item.is_settled ? "清算済み" : "未精算"}</span>
+              <span class="list-person">/ ${esc(item.target_person_name || "")}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+
+    async function loadSavedReceipts() {
+      const list = document.getElementById("list");
+      list.innerHTML = "読込中...";
+
+      try {
+        await loadSavedTargetPeople();
+      } catch (error) {
+        list.innerHTML = '<div class="list-item warn">対象者マスター読込失敗: ' + esc(error && error.message ? error.message : error) + '</div>';
+        return;
+      }
+
+      const res = await fetch("/api/receipts/saved?limit=200");
+      const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+      if (!res.ok || !data.ok) {
+        list.innerHTML = '<div class="list-item warn">読込失敗: ' + esc(data.error || "") + '</div>';
+        return;
+      }
+
+      currentItems = data.items || [];
+
+      renderSavedList();
+    }
+
+    async function loadSavedDetail(id) {
+      selectedReceiptId = Number(id);
+      await loadSavedReceipts();
+
+      const imageArea = document.getElementById("imageArea");
+      const detailArea = document.getElementById("detailArea");
+
+      imageArea.innerHTML = "画像読込中...";
+      detailArea.innerHTML = "読込中...";
+
+      const res = await fetch("/api/receipts/saved/" + encodeURIComponent(id));
+      const data = await res.json().catch(() => ({ ok: false, error: "JSON読込失敗" }));
+
+      if (!res.ok || !data.ok) {
+        imageArea.innerHTML = "";
+        detailArea.innerHTML = '<div class="warn">読込失敗: ' + esc(data.error || "") + '</div>';
+        return;
+      }
+
+      renderSavedDetail(data.item);
+    }
+
+    function renderSavedDetail(item) {
+      const imageArea = document.getElementById("imageArea");
+      const detailArea = document.getElementById("detailArea");
+
+      const importId = item.receipt_import_id;
+      if (importId) {
+        imageArea.innerHTML = '<img src="/api/receipts/image/' + encodeURIComponent(importId) + '" alt="receipt">';
+      } else {
+        imageArea.innerHTML = '<div class="warn">画像元の取込IDがありません。</div>';
+      }
+
+      const details = Array.isArray(item.details) ? item.details : [];
+      const first = details[0] || {};
+
+      const basic = [
+        '<div class="block">',
+        '<div class="block-title">基本情報</div>',
+        '<div class="block-body">',
+        '<div class="grid2">',
+        field("保存ID", esc(item.receipt_id || "")),
+        field("保存日時", esc(dateTimeTextJst(item.saved_at))),
+        field("取引日", esc(dateText(first.transaction_date))),
+        field("時刻", esc(first.receipt_time_text || "")),
+        field("支払先", esc(first.vendor_name || "")),
+        field("支払方法", esc(first.payment_method_name || "")),
+        field("合計金額", esc(yen(first.total_amount))),
+        field("消費税", esc(yen(first.tax_total_amount))),
+        field("対象者", esc(first.target_person_name || "")),
+        field("精算状態", settledText(first.is_settled)),
+        field("勘定科目", esc(first.account_title_name || "")),
+        field("目的", esc(first.purpose_name || "")),
+        field("案件", esc(first.project_name || "")),
+        field("部門", esc(first.department_name || "")),
+        field("インボイス区分", esc(first.invoice_type_name || "")),
+        field("証憑区分", esc(first.evidence_type_name || "")),
+        '</div>',
+        field("摘要", esc(first.summary || "")),
+        field("メモ", esc(first.memo || "")),
+        field("証憑メモ", esc(first.evidence_memo || "")),
+        '</div>',
+        '</div>'
+      ].join("");
+
+      const detailTables = details.map((detail, index) => {
+        const breakdowns = Array.isArray(detail.breakdowns) ? detail.breakdowns : [];
+
+        const breakdownTable = breakdowns.length
+          ? [
+              '<table>',
+              '<thead><tr><th>品名</th><th>数量</th><th>単価</th><th>金額</th><th>税区分</th><th>税処理</th><th>メモ</th></tr></thead>',
+              '<tbody>',
+              breakdowns.map((row) => `
+                <tr>
+                  <td>${esc(row.item_name || "")}</td>
+                  <td>${esc(row.quantity || "")}</td>
+                  <td>${esc(yen(row.unit_price))}</td>
+                  <td>${esc(yen(row.amount))}</td>
+                  <td>${esc(row.tax_category_name || "")}</td>
+                  <td>${esc(row.tax_treatment_name || "")}</td>
+                  <td>${esc(row.note || "")}</td>
+                </tr>
+              `).join(""),
+              '</tbody></table>'
+            ].join("")
+          : '<div class="muted">明細内訳はありません。</div>';
+
+        return [
+          '<div class="block">',
+          '<div class="block-title">明細 ' + esc(index + 1) + '</div>',
+          '<div class="block-body">',
+          breakdownTable,
+          '</div>',
+          '</div>'
+        ].join("");
+      }).join("");
+
+      detailArea.innerHTML = basic + detailTables + evidenceInfoBlock(item);
+    }
+
+
+    function evidenceInfoBlock(item) {
+      const imagePath = item && item.local_image_path ? String(item.local_image_path) : "";
+      const savedFileName = imagePath ? imagePath.split(/[\\/]/).pop() : "";
+
+      return [
+        '<details class="evidence-info">',
+        '<summary>証憑管理情報</summary>',
+        '<div class="grid2 evidence-grid">',
+        field("保存ID", esc((item && (item.receipt_id || item.id)) || "")),
+        field("取込ID", esc((item && item.receipt_import_id) || "")),
+        field("元ファイル名", esc((item && item.original_file_name) || "")),
+        field("保存ファイル名", esc(savedFileName || (item && item.image_file_name) || "")),
+        field("保存場所", esc("Dropbox証憑")),
+        field("取込ステータス", esc((item && item.import_status) || "")),
+        '</div>',
+        '</details>'
+      ].join("");
+    }
+    loadSavedReceipts();
+  </script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+</body>
+</html>

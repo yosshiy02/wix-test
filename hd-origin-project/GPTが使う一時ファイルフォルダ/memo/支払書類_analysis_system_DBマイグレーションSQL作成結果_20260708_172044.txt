@@ -1,0 +1,36 @@
+﻿==============================
+支払書類仕分け analysis_system_* DBマイグレーションSQL作成結果
+==============================
+日時: 2026-07-08 17:20:44
+
+[今回の作業]
+- payment_document_sorting_drafts に analysis_system_* 列を追加するSQLを after に作成
+- 本体 database\migrations へはまだ反映していない
+- DB実行はしていない
+
+[after SQL]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
+
+[反映予定先]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_analysis_system_migration_file_20260708_172044.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_analysis_system_migration_file_20260708_172044.ps1
+
+[SQL確認]
+L3: -- 支払書類仕分け analysis_system_* 列追加
+L15: ALTER TABLE IF EXISTS accounting.payment_document_sorting_drafts
+L16: ADD COLUMN IF NOT EXISTS analysis_system_code VARCHAR(80),
+L17: ADD COLUMN IF NOT EXISTS analysis_system_label VARCHAR(160),
+L18: ADD COLUMN IF NOT EXISTS analysis_system_reason TEXT,
+L19: ADD COLUMN IF NOT EXISTS analysis_system_confidence VARCHAR(20);
+L21: COMMENT ON COLUMN accounting.payment_document_sorting_drafts.analysis_system_code
+L24: COMMENT ON COLUMN accounting.payment_document_sorting_drafts.analysis_system_label
+L27: COMMENT ON COLUMN accounting.payment_document_sorting_drafts.analysis_system_reason
+L30: COMMENT ON COLUMN accounting.payment_document_sorting_drafts.analysis_system_confidence
+
+[次]
+確認OKなら、ps1は使わず手動Copy-Itemで database\migrations へ反映する。DB実行はその次。

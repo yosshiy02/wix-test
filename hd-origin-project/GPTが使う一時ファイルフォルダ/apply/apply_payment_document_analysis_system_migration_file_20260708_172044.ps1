@@ -1,0 +1,3 @@
+$ErrorActionPreference = "Stop"
+Copy-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql' -Destination 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql' -Force
+Write-Host "OK: マイグレーションSQLファイルを database\migrations へ反映しました。DB実行はしていません。"

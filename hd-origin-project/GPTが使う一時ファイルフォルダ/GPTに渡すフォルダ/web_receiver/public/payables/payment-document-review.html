@@ -14,7 +14,16 @@
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
-      <span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+      <nav class="specialist-system-nav" aria-label="専門解析システム">
+        <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
+        <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
+        <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
+        <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
+        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
+      </nav>
+      <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+<span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
     </header>
 
     <section class="panel list-panel">
@@ -22,18 +31,19 @@
         <span>仕分け対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
-            <div class="sorting-bulk-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;">
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
 <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
-      </div>
+</div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
-        <span class="legend-chip legend-invoice">買掛/請求</span>
-        <span class="legend-chip legend-unpaid">未払</span>
-        <span class="legend-chip legend-expense">経費</span>
-        <span class="legend-chip legend-tax">税金/公的</span>
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+        <span class="legend-chip legend-tax">税金・公的支払</span>
+        <span class="legend-chip legend-contract">契約・保険・リース</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
         <span class="legend-chip legend-card">カード</span>
         <span class="legend-chip legend-reference">照合用</span>
         <span class="legend-chip legend-review">要確認</span>
@@ -75,6 +85,24 @@
               処理先
               <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_START -->
+            <label>
+              解析システムコード
+              <input class="draft-field" id="draftAnalysisSystemCode" placeholder="例：invoice_payable_analysis">
+            </label>
+            <label>
+              解析システム
+              <input class="draft-field" id="draftAnalysisSystemLabel" placeholder="例：請求・買掛/未払解析システム">
+            </label>
+            <label>
+              解析システム信頼度
+              <input class="draft-field" id="draftAnalysisSystemConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label class="span2">
+              解析システム判定理由
+              <textarea class="draft-field small-textarea" id="draftAnalysisSystemReason" placeholder="例：OCR本文上、請求書・支払期限・請求合計が確認できるため。"></textarea>
+            </label>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_END -->
             <label>
               支払対象
               <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
@@ -816,9 +844,11 @@
 
     const displayWidth = natural.width * scale;
     const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
 
-    target.style.width = displayWidth + "px";
-    target.style.height = displayHeight + "px";
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
     target.style.maxWidth = "none";
     target.style.maxHeight = "none";
     target.style.transform = "rotate(" + rotation + "deg)";
@@ -4744,7 +4774,12 @@ function setDocumentPreview(item) {
     count += window.hdOriginSetControlValueLoose("draftAiDocumentKind", d.document_type_code || d.document_type_label || d.document_type_name, d.document_type_label || d.document_type_name || s.document_kind);
     count += window.hdOriginSetControlValueLoose("draftAiDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
-    count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_target || d.payment_target || "");
+    
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemLabel", d.analysis_system_label || s.analysis_system || s.analysis_system_label || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
+count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_target || d.payment_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiUnpaidFlag", s.payable_target || d.payable_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiExpenseFlag", s.expense_target || d.expense_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiTaxPublicFlag", s.tax_public || d.tax_public || "");
@@ -5096,7 +5131,12 @@ function setDocumentPreview(item) {
         public_utility: controlValue("draftAiPublicUtilityFlag"),
         contract_insurance_lease: controlValue("draftAiContractFlag"),
         confidence: controlValue("draftAiConfidence"),
-        reason: controlValue("draftAiReason")
+        reason: controlValue("draftAiReason"),
+        analysis_system_code: controlValue("draftAnalysisSystemCode"),
+        analysis_system: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+        analysis_system_confidence: controlValue("draftAnalysisSystemConfidence")
       },
 
       sortResult: {
@@ -5106,6 +5146,10 @@ function setDocumentPreview(item) {
         payment_destination_label: destinationLabel,
         accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
         accounting_category_label: accountingCategoryLabel,
+        analysis_system_code: controlValue("draftAnalysisSystemCode"),
+        analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+        analysis_system_confidence: controlValue("draftAnalysisSystemConfidence"),
         needs_review:
           controlLabel("draftAiDestination").includes("要確認") ||
           controlLabel("draftAccountingCategory").includes("要確認") ||
@@ -5889,9 +5933,16 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
-
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 

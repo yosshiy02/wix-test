@@ -244,3 +244,105 @@ HD_ORIGIN_SORTING_SYSTEM_GROW_OTHER_EVIDENCE_NEEDS_REVIEW_20260707_START
 - review_reason には「OCR本文にその他証憑、書類種別未判定、確認待ち、処理先保留の記載があるため」程度の短い理由を入れてください。
 - 無理に請求書・領収書・税金・公共料金・契約系へ寄せないでください。
 HD_ORIGIN_SORTING_SYSTEM_GROW_OTHER_EVIDENCE_NEEDS_REVIEW_20260707_END
+
+HD_ORIGIN_ANALYSIS_SYSTEM_AXIS_20260708_START
+【最重要：解析システム分け】
+
+1回目AI仕分けは、会計仕訳確定ではありません。
+1回目AI仕分けは、帳面化でもありません。
+1回目AI仕分けの本命は「どの専門解析システムへ送るか」の判定です。
+
+既存の specialist_route_code / specialist_route_label は旧ルート互換として残します。
+ただし、専門解析システムへ送る本命ルートとして、必ず以下も返してください。
+
+analysis_system_code
+analysis_system_label
+analysis_system_reason
+analysis_system_confidence
+
+返すJSONには、既存の specialist_route_code / specialist_route_label を残したまま、同じ階層に以下を追加してください。
+
+"analysis_system_code": "",
+"analysis_system_label": "",
+"analysis_system_reason": "",
+"analysis_system_confidence": ""
+
+ai_summary がある場合は、ai_summary 側にも人間確認用として以下を入れてください。
+
+"analysis_system_code": "",
+"analysis_system": "",
+"analysis_system_reason": "",
+"analysis_system_confidence": ""
+
+使える analysis_system_code は以下のみです。
+
+invoice_payable_analysis
+→ 請求・買掛/未払解析システム
+
+utility_communication_analysis
+→ 公共料金・通信費解析システム
+
+contract_insurance_lease_analysis
+→ 契約・保険・リース解析システム
+
+tax_public_analysis
+→ 税金・公的支払解析システム
+
+card_statement_analysis
+→ カード明細解析システム
+
+receipt_evidence_analysis
+→ レシート・領収書解析システム
+
+reference_check_analysis
+→ 照合用解析システム
+
+needs_review
+→ 要確認
+
+判定対応：
+
+請求書、材料仕入請求書、外注請求書、買掛、未払
+→ analysis_system_code = invoice_payable_analysis
+→ analysis_system_label = 請求・買掛/未払解析システム
+
+電気料金、水道料金、ガス料金、通信費、電話料金、インターネット料金、公共料金通知書、Web明細
+→ analysis_system_code = utility_communication_analysis
+→ analysis_system_label = 公共料金・通信費解析システム
+
+保険料通知書、保険契約、リース契約、契約料、家賃、賃貸契約
+→ analysis_system_code = contract_insurance_lease_analysis
+→ analysis_system_label = 契約・保険・リース解析システム
+
+納付書、納税通知書、税務署、市税、府税、法人税、固定資産税、都市計画税、社会保険料、労働保険
+→ analysis_system_code = tax_public_analysis
+→ analysis_system_label = 税金・公的支払解析システム
+
+クレジットカード明細、カード利用明細、ご利用明細、Square、PayPay、Stripe等の決済明細
+→ analysis_system_code = card_statement_analysis
+→ analysis_system_label = カード明細解析システム
+
+領収書、レシート、領収済、支払済み証憑
+→ analysis_system_code = receipt_evidence_analysis
+→ analysis_system_label = レシート・領収書解析システム
+
+納品書、注文書、発注書、見積書、検収書、照合用書類
+→ analysis_system_code = reference_check_analysis
+→ analysis_system_label = 照合用解析システム
+
+判断不能、その他証憑、確認待ち、根拠不足
+→ analysis_system_code = needs_review
+→ analysis_system_label = 要確認
+
+analysis_system_reason には、OCR本文上の根拠を短く書いてください。
+analysis_system_confidence は「高」「中」「低」の日本語で返してください。
+
+注意：
+- 既存分類と analysis_system_* を混ぜないでください。
+- payment_destination_code は会計・処理先寄り分類です。
+- specialist_route_code は旧ルート互換です。
+- analysis_system_code は専門解析システムへ送るための本命分類です。
+- fields には詳細項目を入れないでください。
+- 1回目AIは会計確定しません。
+- 1回目AIは帳面化しません。
+HD_ORIGIN_ANALYSIS_SYSTEM_AXIS_20260708_END

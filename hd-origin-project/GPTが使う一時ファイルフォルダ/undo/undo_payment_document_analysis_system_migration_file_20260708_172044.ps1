@@ -1,0 +1,3 @@
+$ErrorActionPreference = "Stop"
+if (Test-Path -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql') { Remove-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql' -Force }
+Write-Host "OK: マイグレーションSQLファイルを削除しました。DBには触っていません。"

@@ -708,3 +708,78 @@ AI学習ルール：保険料通知書・リース契約書を公共料金にし
 - OCR本文に「リース契約書」「契約期間」「月額リース料」「支払日」がある場合、公共料金へ寄せない。
 - 迷う場合も public_utility_label は公共料金にせず、対象外または空欄寄りにする。
 HD_ORIGIN_AI_LEARNING_INSURANCE_LEASE_NOT_PUBLIC_UTILITY_20260708_END
+
+HD_ORIGIN_ANALYSIS_SYSTEM_AXIS_EXTRA_20260708_START
+支払書類仕分け 解析システム分け追加ルール
+
+このファイルは1回目仕分け専用です。
+詳細項目抽出は行いません。
+
+既存分類：
+- document_type_code
+- payment_destination_code
+- specialist_route_code
+- accounting_category_code
+などは、会計・処理先・旧互換・画面色分け用として残します。
+
+新しい本命ルート：
+- analysis_system_code
+- analysis_system_label
+- analysis_system_reason
+- analysis_system_confidence
+
+重要：
+1回目AIの目的は、会計分類の確定ではありません。
+1回目AIの目的は、どの専門解析システムへ送るかを決めることです。
+
+対応例：
+
+specialist_route_code = invoice_payable
+または accounts_payable / unpaid / invoice が強い
+→ analysis_system_code = invoice_payable_analysis
+→ analysis_system_label = 請求・買掛/未払解析システム
+
+specialist_route_code = utility
+または document_type_code = utility_notice
+または 電気料金・水道料金・ガス料金・通信費・公共料金が強い
+→ analysis_system_code = utility_communication_analysis
+→ analysis_system_label = 公共料金・通信費解析システム
+
+specialist_route_code = contract_insurance_lease
+または 保険・契約・リースが強い
+→ analysis_system_code = contract_insurance_lease_analysis
+→ analysis_system_label = 契約・保険・リース解析システム
+
+specialist_route_code = tax_public
+または 納付書・納税通知書・税務署・市税・府税・社会保険料が強い
+→ analysis_system_code = tax_public_analysis
+→ analysis_system_label = 税金・公的支払解析システム
+
+specialist_route_code = card_statement
+または カード明細・クレジットカード利用明細・決済明細が強い
+→ analysis_system_code = card_statement_analysis
+→ analysis_system_label = カード明細解析システム
+
+specialist_route_code = paid_evidence
+または 領収書・レシート・支払済み証憑が強い
+→ analysis_system_code = receipt_evidence_analysis
+→ analysis_system_label = レシート・領収書解析システム
+
+specialist_route_code = reference_check
+または 納品書・注文書・発注書・見積書・検収書が強い
+→ analysis_system_code = reference_check_analysis
+→ analysis_system_label = 照合用解析システム
+
+specialist_route_code = needs_review
+または 判断不能・根拠不足
+→ analysis_system_code = needs_review
+→ analysis_system_label = 要確認
+
+注意：
+- analysis_system_code は必ず上記候補のどれかにする。
+- 旧 specialist_route_code を消さない。
+- 既存の会計・処理先分類と analysis_system_* は別軸。
+- 1回目AIは詳細抽出しない。
+- 2回目で専門解析システムが深掘りする。
+- ユーザー確認・修正・承認後に初めて会計仕訳・帳面になる。
+HD_ORIGIN_ANALYSIS_SYSTEM_AXIS_EXTRA_20260708_END

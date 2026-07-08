@@ -1,0 +1,218 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>HD Origin Project</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+main {
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 24px;
+      max-width: 900px;
+    }
+
+    button {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 20px;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    button:hover {
+      background: #eee;
+    }
+
+    .danger {
+      border-color: #b00020;
+      color: #b00020;
+    }
+
+    .note {
+      color: #666;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+
+    #result {
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 60px;
+      margin-top: 16px;
+    }
+  
+    .main-menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .main-menu-grid button {
+      width: 100%;
+      min-height: 54px;
+      font-size: 17px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HD Origin Project</h1>
+
+  </header>
+
+  <main>
+    <div class="card" id="mainMenuCard">
+      <h2>メインメニュー</h2>
+
+      <div class="main-menu-grid">
+        <button type="button" onclick="location.href='/expenses/expense-input.html'">経費入力</button>
+        <button type="button" onclick="location.href='/expenses/expense-list.html'">経費一覧</button>
+        <!-- PAYABLES_MAIN_MENU_BUTTON_20260706_START -->
+        <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理</button>
+        <!-- PAYABLES_MAIN_MENU_BUTTON_20260706_END -->
+        <!-- HD_ORIGIN_RECEIVABLES_MENU_BUTTON_20260707_START -->
+        <button type="button" onclick="location.href='/receivables/receivable-dashboard.html'">入金管理</button>
+        <!-- HD_ORIGIN_RECEIVABLES_MENU_BUTTON_20260707_END -->
+        <button type="button" onclick="location.href='/masters/master-management.html'">マスタ管理</button>
+        <button type="button" onclick="openSettings()">設定</button>
+        <button type="button" onclick="exitApp()">終了</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>メイン画面</h2>
+      <p>ここはHD Origin Projectのメイン画面です。</p>
+      <p class="note">
+        設定ボタンから、バックアップ・リストア画面を開きます。<br>
+        終了ボタンでは、終了前にバックアップするか確認します。
+      </p>
+
+      <div id="result">待機中</div>
+    </div>
+<!-- HD_ORIGIN_BANK_ENTRY_BUTTON_20260708_START -->
+<section class="hd-origin-bank-entry" style="margin:16px 0;padding:16px;border:1px solid #d1d5db;border-radius:12px;background:#ffffff;">
+  <h2 style="margin:0 0 8px;font-size:18px;">銀行業務</h2>
+  <p style="margin:0 0 12px;color:#6b7280;font-size:14px;">
+    通帳読取、銀行明細取込、入出金確認、未払・売掛との照合を行う入口です。
+  </p>
+  <button type="button" onclick="location.href='/bank/bank-dashboard.html'" style="padding:10px 16px;border:0;border-radius:8px;background:#111827;color:#ffffff;font-weight:700;cursor:pointer;">
+    銀行業務へ
+  </button>
+</section>
+<!-- HD_ORIGIN_BANK_ENTRY_BUTTON_20260708_END -->
+</main>
+
+<script>
+function openSettings() {
+  const width = 760;
+  const height = 600;
+  const left = window.screenX + 80;
+  const top = window.screenY + 80;
+
+  window.open(
+    "/settings.html",
+    "hd_origin_settings",
+    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+}
+
+function showResult(message) {
+  document.getElementById("result").textContent =
+    typeof message === "string" ? message : JSON.stringify(message, null, 2);
+}
+
+async function exitApp() {
+  const closeOk = confirm("HD Origin Projectを終了しますか？");
+
+  if (!closeOk) {
+    showResult("終了をキャンセルしました。");
+    return;
+  }
+
+  const backupOk = confirm("終了前にバックアップを作成しますか？");
+
+  showResult(
+    backupOk
+      ? "バックアップ作成後に終了します。少し待ってください。"
+      : "バックアップせずに終了します。"
+  );
+
+  try {
+    const res = await fetch("/api/app/exit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ backup: backupOk })
+    });
+
+    const data = await res.json();
+    showResult(data);
+
+    setTimeout(() => {
+      window.close();
+
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <main style="font-family: system-ui, sans-serif; padding: 32px;">
+            <h1>HD Origin Projectを終了しました</h1>
+            <p>この画面は閉じて大丈夫です。</p>
+<!-- HD_ORIGIN_BANK_ENTRY_BUTTON_20260708_START -->
+<section class="hd-origin-bank-entry" style="margin:16px 0;padding:16px;border:1px solid #d1d5db;border-radius:12px;background:#ffffff;">
+  <h2 style="margin:0 0 8px;font-size:18px;">銀行業務</h2>
+  <p style="margin:0 0 12px;color:#6b7280;font-size:14px;">
+    通帳読取、銀行明細取込、入出金確認、未払・売掛との照合を行う入口です。
+  </p>
+  <button type="button" onclick="location.href='/bank/bank-dashboard.html'" style="padding:10px 16px;border:0;border-radius:8px;background:#111827;color:#ffffff;font-weight:700;cursor:pointer;">
+    銀行業務へ
+  </button>
+</section>
+<!-- HD_ORIGIN_BANK_ENTRY_BUTTON_20260708_END -->
+</main>
+        `;
+      }, 500);
+    }, 800);
+  } catch (err) {
+    showResult("終了処理を送信しました。サーバーが停止した可能性があります。");
+  }
+}
+</script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

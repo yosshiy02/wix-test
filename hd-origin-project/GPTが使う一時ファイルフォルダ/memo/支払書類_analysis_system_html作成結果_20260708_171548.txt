@@ -1,0 +1,50 @@
+﻿==============================
+支払書類仕分け analysis_system_* HTML追加結果
+==============================
+日時: 2026-07-08 17:15:48
+
+[本体対象]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-review.html.before_analysis_system_html_20260708_171548
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_analysis_system_html_20260708_171548.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_analysis_system_html_20260708_171548.ps1
+
+[after 確認 draftAnalysisSystem]
+L91: <input class="draft-field" id="draftAnalysisSystemCode" placeholder="例：invoice_payable_analysis">
+L95: <input class="draft-field" id="draftAnalysisSystemLabel" placeholder="例：請求・買掛/未払解析システム">
+L99: <input class="draft-field" id="draftAnalysisSystemConfidence" placeholder="例：高 / 中 / 低">
+L103: <textarea class="draft-field small-textarea" id="draftAnalysisSystemReason" placeholder="例：OCR本文上、請求書・支払期限・請求合計が確認できるため。"></textarea>
+L4778: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
+L4779: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemLabel", d.analysis_system_label || s.analysis_system || s.analysis_system_label || "");
+L4780: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
+L4781: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
+L5135: analysis_system_code: controlValue("draftAnalysisSystemCode"),
+L5136: analysis_system: controlValue("draftAnalysisSystemLabel"),
+L5137: analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+L5138: analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+L5139: analysis_system_confidence: controlValue("draftAnalysisSystemConfidence")
+
+[after 確認 analysis_system]
+L88: <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_START -->
+L105: <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_END -->
+L4778: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
+L4779: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemLabel", d.analysis_system_label || s.analysis_system || s.analysis_system_label || "");
+L4780: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
+L4781: count += window.hdOriginSetControlValueLoose("draftAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
+L5135: analysis_system_code: controlValue("draftAnalysisSystemCode"),
+L5136: analysis_system: controlValue("draftAnalysisSystemLabel"),
+L5137: analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+L5138: analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+L5139: analysis_system_confidence: controlValue("draftAnalysisSystemConfidence")
+
+[次]
+確認OKなら、ps1は使わず手動Copy-Itemで after を本体へコピーする。

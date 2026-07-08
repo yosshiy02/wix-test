@@ -1,0 +1,127 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>照合・消込 - HD Origin Project</title>
+  <link rel="stylesheet" href="/bank/bank.css">
+</head>
+<body>
+  <div class="bank-shell">
+<aside class="bank-sidebar">
+  <div class="bank-brand">
+    <div class="bank-brand-title">銀行業務</div>
+    <div class="bank-brand-sub">通帳・銀行明細・CSV・入出金照合</div>
+  </div>
+  <nav class="bank-nav">
+    <a href="/bank/bank-dashboard.html" data-page="dashboard"><span class="dot"></span>ダッシュボード</a>
+    <a href="/bank/bank-import.html" data-page="import"><span class="dot"></span>通帳・明細取込</a>
+    <a href="/bank/bank-transactions.html" data-page="transactions"><span class="dot"></span>入出金明細</a>
+    <a href="/bank/bank-reconcile.html" data-page="reconcile"><span class="dot"></span>照合・消込</a>
+    <a href="/bank/bank-evidence.html" data-page="evidence"><span class="dot"></span>銀行証憑保管</a>
+      
+  </nav>
+    <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_START -->
+  <a class="bank-sidebar-settings" href="/bank/bank-settings.html" data-page="settings">
+    <span class="bank-sidebar-settings-icon">⚙</span>
+    <span>設定</span>
+  </a>
+  <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_END -->
+  <div class="bank-side-note">
+    銀行明細は「お金が動いた事実」。請求書・領収書・公共料金・税金・売掛入金と照合して、支払済み・入金済みを確認します。
+  </div>
+</aside>
+    <main class="bank-main">
+      <div class="bank-topbar">
+        <div class="bank-title">
+          <h1>照合・消込</h1>
+          <p>銀行明細と、未払・売掛・経費・税金・公共料金を照合する画面です。</p>
+        </div>
+        <div class="bank-actions">
+          <button type="button" class="light" onclick="location.href='/bank/bank-transactions.html'">入出金明細へ</button>
+          <button type="button" class="blue">照合して保存</button>
+        </div>
+      </div>
+
+      <section class="bank-detail-layout">
+        <div class="bank-card">
+          <div class="bank-card-title">銀行明細</div>
+          <div class="bank-table-wrap">
+            <table class="bank-table">
+              <thead>
+                <tr>
+                  <th>取引日</th>
+                  <th>摘要</th>
+                  <th>入金</th>
+                  <th>出金</th>
+                  <th>状態</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2026/07/02</td>
+                  <td>サンプル電力</td>
+                  <td></td>
+                  <td class="bank-amount-out">23,456</td>
+                  <td><span class="bank-status review">要確認</span></td>
+                </tr>
+                <tr>
+                  <td>2026/07/01</td>
+                  <td>サンプル売上入金</td>
+                  <td class="bank-amount-in">80,000</td>
+                  <td></td>
+                  <td><span class="bank-status pending">候補</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bank-section">
+            <div class="bank-section-title">照合候補</div>
+            <div class="bank-grid cols-2">
+              <div class="bank-match-card">
+                <strong>公共料金通知書</strong>
+                <span>電気料金 23,456円</span>
+                <span>一致度：高</span>
+              </div>
+              <div class="bank-match-card">
+                <strong>売掛入金候補</strong>
+                <span>EC売上入金 80,000円</span>
+                <span>一致度：中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="bank-card">
+          <div class="bank-card-title">処理内容</div>
+          <div class="bank-form">
+            <label>
+              処理区分
+              <select>
+                <option>未払を支払済みにする</option>
+                <option>経費として確定</option>
+                <option>売掛入金として消込</option>
+                <option>税金・公的支払として処理</option>
+                <option>要確認にする</option>
+              </select>
+            </label>
+            <label>
+              照合メモ
+              <textarea placeholder="例：電気料金通知書と銀行引落が一致"></textarea>
+            </label>
+            <button type="button" class="blue">照合して保存</button>
+            <button type="button" class="light">要確認にする</button>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <script>
+    document.querySelector('[data-page="reconcile"]').classList.add('active');
+  </script>
+</body>
+</html>
+
+
+

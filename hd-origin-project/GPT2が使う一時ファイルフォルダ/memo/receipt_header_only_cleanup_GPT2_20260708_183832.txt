@@ -1,0 +1,45 @@
+﻿==============================
+レシート画面 ヘッダー整理 GPT2
+==============================
+日時: 2026-07-08 18:38:32
+
+[結果]
+OK: ヘッダーだけ整えました。
+
+[対象]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.html
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\receipts\receipt-list.css
+
+[変更内容]
+- ヘッダーを3段構成に整理
+  1. タイトル + レシート操作ボタン
+  2. 専門解析システムナビ
+  3. 説明文
+- レシート・領収書ボタンを active 表示
+- レシート遷移先は /receipts/receipt-list.html
+- まとめてAI / まとめて保存 / 台帳 / 取込 / 再起動の onclick と id は維持
+
+[機能保持チェック]
+OK: scriptタグ数 変更なし (8)
+OK: function数 変更なし (129)
+OK: bulkAnalyzeCheckedReceipts 残存
+OK: bulkSaveCheckedReceipts 残存
+OK: restartHdOriginServer 残存
+OK: bulkAiButton / bulkSaveButton 残存
+
+[触っていないもの]
+- main
+- panel
+- grid
+- height
+- overflow
+- JavaScript本体
+- API
+- DB
+- 保存処理
+- 画像
+- .env
+- backupフォルダ
+
+[UNDO]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_receipt_header_only_cleanup_GPT2_20260708_183832.ps1

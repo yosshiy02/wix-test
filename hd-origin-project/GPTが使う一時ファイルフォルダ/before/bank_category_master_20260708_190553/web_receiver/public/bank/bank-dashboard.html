@@ -1,0 +1,153 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>銀行業務 - HD Origin Project</title>
+  <link rel="stylesheet" href="/bank/bank.css">
+</head>
+<body>
+  <div class="bank-shell">
+<aside class="bank-sidebar">
+  <div class="bank-brand">
+    <div class="bank-brand-title">銀行業務</div>
+    <div class="bank-brand-sub">通帳・銀行明細・CSV・入出金照合</div>
+  </div>
+  <nav class="bank-nav">
+    <a href="/bank/bank-dashboard.html" data-page="dashboard"><span class="dot"></span>ダッシュボード</a>
+    <a href="/bank/bank-import.html" data-page="import"><span class="dot"></span>通帳・明細取込</a>
+    <a href="/bank/bank-transactions.html" data-page="transactions"><span class="dot"></span>入出金明細</a>
+    <a href="/bank/bank-reconcile.html" data-page="reconcile"><span class="dot"></span>照合・消込</a>
+    <a href="/bank/bank-evidence.html" data-page="evidence"><span class="dot"></span>銀行証憑保管</a>
+  </nav>
+    <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_START -->
+  <a class="bank-sidebar-settings" href="/bank/bank-settings.html" data-page="settings">
+    <span class="bank-sidebar-settings-icon">⚙</span>
+    <span>設定</span>
+  </a>
+  <!-- HD_ORIGIN_BANK_SETTINGS_LINK_20260708_END -->
+  <div class="bank-side-note">
+    銀行明細は「お金が動いた事実」。請求書・領収書・公共料金・税金・売掛入金と照合して、支払済み・入金済みを確認します。
+  </div>
+</aside>
+    <main class="bank-main">
+      <div class="bank-topbar">
+        <div class="bank-title">
+          <h1>銀行業務・通帳明細システム</h1>
+          <p>通帳画像、銀行CSV、振込明細、引落明細を取り込み、未払・売掛・経費と照合します。</p>
+        </div>
+        <div class="bank-actions">
+          <button type="button" class="light" onclick="location.href='/'">メインへ戻る</button>
+          <button type="button" class="light" onclick="location.href='/payables/payment-document-review.html'">支払書類仕分けへ</button>
+          <button type="button" class="blue" onclick="location.href='/bank/bank-import.html'">通帳・明細を取り込む</button>
+        </div>
+      </div>
+
+      <section class="bank-grid cols-4">
+        <div class="bank-card">
+          <div class="bank-card-title">未処理明細 <small>仮</small></div>
+          <div class="bank-metric">0</div>
+          <div class="bank-metric-label">取込後に件数表示</div>
+        </div>
+        <div class="bank-card">
+          <div class="bank-card-title">要確認 <small>仮</small></div>
+          <div class="bank-metric">0</div>
+          <div class="bank-metric-label">摘要・金額確認待ち</div>
+        </div>
+        <div class="bank-card">
+          <div class="bank-card-title">未払照合候補 <small>仮</small></div>
+          <div class="bank-metric">0</div>
+          <div class="bank-metric-label">支払書類との候補</div>
+        </div>
+        <div class="bank-card">
+          <div class="bank-card-title">売掛入金候補 <small>仮</small></div>
+          <div class="bank-metric">0</div>
+          <div class="bank-metric-label">入金消込候補</div>
+        </div>
+      </section>
+
+      <section class="bank-section bank-grid cols-2">
+        <a class="bank-card bank-feature" href="/bank/bank-import.html">
+          <div>
+            <h2>通帳・銀行明細取込</h2>
+            <p>通帳画像、PDF、銀行CSV、振込明細、引落通知を取り込む入口です。</p>
+            <div class="bank-chip-row">
+              <span class="bank-chip">画像</span>
+              <span class="bank-chip">PDF</span>
+              <span class="bank-chip">CSV</span>
+            </div>
+          </div>
+          <strong>取込へ進む →</strong>
+        </a>
+
+        <a class="bank-card bank-feature" href="/bank/bank-transactions.html">
+          <div>
+            <h2>入出金明細一覧</h2>
+            <p>取込済みの銀行明細を、日付・摘要・入金・出金・残高で確認します。</p>
+            <div class="bank-chip-row">
+              <span class="bank-chip green">入金</span>
+              <span class="bank-chip red">出金</span>
+              <span class="bank-chip orange">要確認</span>
+            </div>
+          </div>
+          <strong>一覧を見る →</strong>
+        </a>
+
+        <a class="bank-card bank-feature" href="/bank/bank-reconcile.html">
+          <div>
+            <h2>照合・消込</h2>
+            <p>銀行明細と、未払・公共料金・税金・売掛入金を照合します。</p>
+            <div class="bank-chip-row">
+              <span class="bank-chip">未払</span>
+              <span class="bank-chip">売掛</span>
+              <span class="bank-chip">経費</span>
+            </div>
+          </div>
+          <strong>照合へ進む →</strong>
+        </a>
+
+        <a class="bank-card bank-feature" href="/bank/bank-evidence.html">
+          <div>
+            <h2>銀行証憑保管</h2>
+            <p>通帳画像、銀行CSV、振込票、残高証明書などの原本を保管・確認します。</p>
+            <div class="bank-chip-row">
+              <span class="bank-chip">原本</span>
+              <span class="bank-chip">通帳</span>
+              <span class="bank-chip">明細</span>
+            </div>
+          </div>
+          <strong>保管を見る →</strong>
+        </a>
+      </section>
+
+      <section class="bank-section bank-card">
+        <div class="bank-card-title">最近の銀行業務 <small>仮表示</small></div>
+        <div class="bank-table-wrap">
+          <table class="bank-table">
+            <thead>
+              <tr>
+                <th>日時</th>
+                <th>種類</th>
+                <th>内容</th>
+                <th>状態</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>未取込</td>
+                <td>通帳・銀行明細</td>
+                <td>これから取込機能を作成します</td>
+                <td><span class="bank-status pending">準備中</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    document.querySelector('[data-page="dashboard"]').classList.add('active');
+  </script>
+</body>
+</html>
+

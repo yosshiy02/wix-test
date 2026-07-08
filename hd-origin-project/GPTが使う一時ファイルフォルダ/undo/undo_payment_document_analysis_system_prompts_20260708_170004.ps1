@@ -1,0 +1,5 @@
+$ErrorActionPreference = "Stop"
+Write-Host "analysis_system_* プロンプト反映をUNDOします。"
+Copy-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\prompts\sorting.system.txt.before_analysis_system_prompt_20260708_170004' -Destination 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.system.txt' -Force
+Copy-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt.before_analysis_system_prompt_20260708_170004' -Destination 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt' -Force
+Write-Host "OK: UNDO完了"

@@ -1,0 +1,3 @@
+$ErrorActionPreference = "Stop"
+Copy-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-review.html' -Destination 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html' -Force
+Write-Host "OK: 本体 payment-document-review.html へ analysis_system_* HTML を反映しました。"

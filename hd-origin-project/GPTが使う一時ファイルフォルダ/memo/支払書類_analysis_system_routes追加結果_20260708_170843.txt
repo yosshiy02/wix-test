@@ -1,0 +1,65 @@
+﻿==============================
+支払書類仕分け analysis_system_* routes追加結果
+==============================
+日時: 2026-07-08 17:08:43
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[今回の作業]
+- paymentDocuments.routes.js の after に analysis_system_* 補完処理を追加
+- 本体反映はしていない
+- DB実行はしていない
+- HTMLは触っていない
+
+[対象]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes.js.before_analysis_system_routes_20260708_170843
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_payment_document_analysis_system_routes_20260708_170843.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_payment_document_analysis_system_routes_20260708_170843.ps1
+
+[after analysis_system 確認]
+L4070: /* HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_AXIS_20260708_START */
+L4092: s.analysis_system_code ||
+L4094: summary.analysis_system_code ||
+L4110: s.analysis_system_label ||
+L4112: summary.analysis_system ||
+L4113: summary.analysis_system_label ||
+L4118: s.analysis_system_reason ||
+L4120: summary.analysis_system_reason ||
+L4128: s.analysis_system_confidence ||
+L4130: summary.analysis_system_confidence ||
+L4213: draft.analysis_system_code = draft.analysis_system_code || resolved.code;
+L4214: draft.analysis_system_label = draft.analysis_system_label || resolved.label;
+L4215: draft.analysis_system_reason = draft.analysis_system_reason || resolved.reason;
+L4216: draft.analysis_system_confidence = draft.analysis_system_confidence || resolved.confidence;
+L4219: draft.ai_summary.analysis_system_code = draft.ai_summary.analysis_system_code || draft.analysis_system_code;
+L4220: draft.ai_summary.analysis_system = draft.ai_summary.analysis_system || draft.analysis_system_label;
+L4221: draft.ai_summary.analysis_system_label = draft.ai_summary.analysis_system_label || draft.analysis_system_label;
+L4222: draft.ai_summary.analysis_system_reason = draft.ai_summary.analysis_system_reason || draft.analysis_system_reason;
+L4223: draft.ai_summary.analysis_system_confidence = draft.ai_summary.analysis_system_confidence || draft.analysis_system_confidence;
+L4227: /* HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_AXIS_20260708_END */
+L4304: analysis_system_code: source.analysis_system_code || source.analysisSystemCode,
+L4307: analysis_system_label: source.analysis_system_label || source.analysisSystemLabel,
+L4310: analysis_system_reason: source.analysis_system_reason || source.analysisSystemReason,
+L4313: analysis_system_confidence: source.analysis_system_confidence || source.analysisSystemConfidence,
+L4320: analysis_system_code: analysisSystem.code,
+L4321: analysis_system_label: analysisSystem.label,
+L4322: analysis_system_reason: analysisSystem.reason,
+L4323: analysis_system_confidence: analysisSystem.confidence,
+
+[Node --check after routes]
+ExitCode: 0
+
+
+[次]
+ExitCode 0 なら、手動Copy-Itemで本体へ反映する。ps1実行ポリシーがあるため apply.ps1 直接実行は不要。

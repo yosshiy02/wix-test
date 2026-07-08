@@ -42,7 +42,7 @@ HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
 - DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
 
 [生成情報]
-生成日時: 2026/7/8 15:20:54
+生成日時: 2026/7/8 18:00:51
 PC名: 2FLABO
 OS: win32 10.0.19045 x64
 Node.js: v20.16.0
@@ -145,9 +145,129 @@ hd-origin-project\
 │     ├─ 20260707_004_meaningful_master_codes_cleanup.sql
 │     ├─ 20260707_005_payment_document_ocr_imports.sql
 │     ├─ 20260707_006_payment_document_sorting_drafts.sql
+│     ├─ 20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
 │     └─ README_MIGRATIONS.txt
-├─ GPTが使う一時ファイルフォルダ\
-│  ├─ 支払書類仕分け_必要ファイル\
+├─ GPT2が使う一時ファイルフォルダ\
+│  ├─ after\
+│  │  ├─ database\
+│  │  │  └─ migrations\
+│  │  │     └─ 20260708_001_payment_document_analysis_system_axis.sql
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
+│  │  │  │     ├─ payment-document-review.html
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.after_fancy_header_20260708_174529.css
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.after_header_fill_20260708_174153.css
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.after_nav_right_sorting_button_retry_20260708_175958.html
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.after_pastel_header_20260708_175024.css
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.css
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_add_back_sorting_button_20260708_172734.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_fancy_header_20260708_174529.css
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_header_fill_20260708_174153.css
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_nav_right_sorting_button_20260708_175653.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_nav_right_sorting_button_retry_20260708_175958.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.after_pastel_header_20260708_175024.css
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.css
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.html
+│  │  │  │     ├─ payment-document-specialist-tax-public.after_fancy_header_20260708_174529.css
+│  │  │  │     ├─ payment-document-specialist-tax-public.after_header_fill_20260708_174153.css
+│  │  │  │     ├─ payment-document-specialist-tax-public.after_nav_right_sorting_button_retry_20260708_175958.html
+│  │  │  │     ├─ payment-document-specialist-tax-public.after_pastel_header_20260708_175024.css
+│  │  │  │     ├─ payment-document-specialist-tax-public.css
+│  │  │  │     ├─ payment-document-specialist-tax-public.html
+│  │  │  │     ├─ payment-document-specialist-utility-communication.after_fancy_header_20260708_174529.css
+│  │  │  │     ├─ payment-document-specialist-utility-communication.after_header_fill_20260708_174153.css
+│  │  │  │     ├─ payment-document-specialist-utility-communication.after_nav_right_sorting_button_retry_20260708_175958.html
+│  │  │  │     ├─ payment-document-specialist-utility-communication.after_pastel_header_20260708_175024.css
+│  │  │  │     ├─ payment-document-specialist-utility-communication.css
+│  │  │  │     └─ payment-document-specialist-utility-communication.html
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ sorting.extra-rules.txt
+│  │  │        │  └─ sorting.system.txt
+│  │  │        └─ paymentDocuments.routes.js
+│  │  ├─ payment-document-review.after_left_dynamic_height_20260708_165246.css
+│  │  ├─ payment-document-review.after_left_dynamic_height_20260708_165246.html
+│  │  ├─ payment-document-review.after_major_sort_buttons_20260708_153035.css
+│  │  ├─ payment-document-review.after_major_sort_buttons_20260708_153035.html
+│  │  ├─ payment-document-review.after_px_relative_20260708_164953.css
+│  │  ├─ payment-document-review.after_px_relative_20260708_164953.html
+│  │  ├─ payment-document-review.after_specialist_header_buttons_20260708_153908.css
+│  │  ├─ payment-document-review.after_specialist_header_buttons_20260708_153908.html
+│  │  ├─ payment-document-specialist-invoice-payable.after_GPT2_20260708_171659.css
+│  │  └─ payment-document-specialist-invoice-payable.after_GPT2_20260708_171659.html
+│  ├─ apply\
+│  │  ├─ apply_payment_document_analysis_system_prompts_20260708_170004.ps1
+│  │  ├─ apply_payment_document_specialist_contract_insurance_lease_GPT2_20260708_173507.ps1
+│  │  ├─ apply_payment_document_specialist_invoice_payable_GPT2_20260708_172159.ps1
+│  │  ├─ apply_payment_document_specialist_tax_public_GPT2_20260708_173154.ps1
+│  │  └─ apply_payment_document_specialist_utility_communication_GPT2_20260708_173823.ps1
+│  ├─ before\
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
+│  │  │  │     ├─ payment-document-review.html.before_analysis_system_20260708_164751
+│  │  │  │     ├─ payment-document-review.html.before_analysis_system_20260708_165114
+│  │  │  │     └─ payment-document-review.html.before_analysis_system_20260708_165450
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_164751
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_165114
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_165450
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_prompt_20260708_170004
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_164751
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_165114
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_165450
+│  │  │        │  └─ sorting.system.txt.before_analysis_system_prompt_20260708_170004
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_20260708_164751
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_20260708_165114
+│  │  │        └─ paymentDocuments.routes.js.before_analysis_system_20260708_165450
+│  │  ├─ payment-document-review.before_left_dynamic_height_20260708_165246.css
+│  │  ├─ payment-document-review.before_left_dynamic_height_20260708_165246.html
+│  │  ├─ payment-document-review.before_major_buttons_20260708_152832.css
+│  │  ├─ payment-document-review.before_major_buttons_20260708_152832.html
+│  │  ├─ payment-document-review.before_major_sort_buttons_20260708_153035.css
+│  │  ├─ payment-document-review.before_major_sort_buttons_20260708_153035.html
+│  │  ├─ payment-document-review.before_px_relative_20260708_164953.css
+│  │  ├─ payment-document-review.before_px_relative_20260708_164953.html
+│  │  ├─ payment-document-review.before_specialist_header_buttons_20260708_153908.css
+│  │  ├─ payment-document-review.before_specialist_header_buttons_20260708_153908.html
+│  │  ├─ payment-document-review.source_for_contract_insurance_lease_specialist_GPT2_20260708_173507.css
+│  │  ├─ payment-document-review.source_for_contract_insurance_lease_specialist_GPT2_20260708_173507.html
+│  │  ├─ payment-document-review.source_for_invoice_specialist_20260708_165915.css
+│  │  ├─ payment-document-review.source_for_invoice_specialist_20260708_165915.html
+│  │  ├─ payment-document-review.source_for_invoice_specialist_GPT2_20260708_171659.css
+│  │  ├─ payment-document-review.source_for_invoice_specialist_GPT2_20260708_171659.html
+│  │  ├─ payment-document-review.source_for_invoice_specialist_GPT2_20260708_172159.css
+│  │  ├─ payment-document-review.source_for_invoice_specialist_GPT2_20260708_172159.html
+│  │  ├─ payment-document-review.source_for_tax_public_specialist_GPT2_20260708_173154.css
+│  │  ├─ payment-document-review.source_for_tax_public_specialist_GPT2_20260708_173154.html
+│  │  ├─ payment-document-review.source_for_utility_communication_specialist_GPT2_20260708_173823.css
+│  │  ├─ payment-document-review.source_for_utility_communication_specialist_GPT2_20260708_173823.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.before_fancy_header_20260708_174529.css
+│  │  ├─ payment-document-specialist-contract-insurance-lease.before_header_fill_20260708_174153.css
+│  │  ├─ payment-document-specialist-contract-insurance-lease.before_nav_right_sorting_button_retry_20260708_175958.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.before_pastel_header_20260708_175024.css
+│  │  ├─ payment-document-specialist-invoice-payable.before_add_back_sorting_button_20260708_172734.html
+│  │  ├─ payment-document-specialist-invoice-payable.before_fancy_header_20260708_174529.css
+│  │  ├─ payment-document-specialist-invoice-payable.before_GPT2_20260708_171659.css
+│  │  ├─ payment-document-specialist-invoice-payable.before_GPT2_20260708_171659.html
+│  │  ├─ payment-document-specialist-invoice-payable.before_header_fill_20260708_174153.css
+│  │  ├─ payment-document-specialist-invoice-payable.before_nav_right_sorting_button_20260708_175653.html
+│  │  ├─ payment-document-specialist-invoice-payable.before_nav_right_sorting_button_retry_20260708_175958.html
+│  │  ├─ payment-document-specialist-invoice-payable.before_pastel_header_20260708_175024.css
+│  │  ├─ payment-document-specialist-tax-public.before_fancy_header_20260708_174529.css
+│  │  ├─ payment-document-specialist-tax-public.before_header_fill_20260708_174153.css
+│  │  ├─ payment-document-specialist-tax-public.before_nav_right_sorting_button_retry_20260708_175958.html
+│  │  ├─ payment-document-specialist-tax-public.before_pastel_header_20260708_175024.css
+│  │  ├─ payment-document-specialist-utility-communication.before_fancy_header_20260708_174529.css
+│  │  ├─ payment-document-specialist-utility-communication.before_header_fill_20260708_174153.css
+│  │  ├─ payment-document-specialist-utility-communication.before_nav_right_sorting_button_retry_20260708_175958.html
+│  │  └─ payment-document-specialist-utility-communication.before_pastel_header_20260708_175024.css
+│  ├─ GPTに渡すフォルダ\
 │  │  ├─ database\
 │  │  │  └─ migrations\
 │  │  │     ├─ 20260706_001_payables_professional.sql
@@ -156,38 +276,217 @@ hd-origin-project\
 │  │  │     └─ 20260707_006_payment_document_sorting_drafts.sql
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
-│  │  │  │  ├─ masters\
-│  │  │  │  │  └─ master-management.js
 │  │  │  │  └─ payables\
-│  │  │  │     ├─ payable-list.css
-│  │  │  │     ├─ payable-list.html
+│  │  │  │     ├─ payment-document-inbox.css
+│  │  │  │     ├─ payment-document-inbox.html
+│  │  │  │     ├─ payment-document-review.css
+│  │  │  │     ├─ payment-document-review.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.css
+│  │  │  │     └─ payment-document-specialist-invoice-payable.html
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ business-rules.txt
+│  │  │        │  ├─ classification.extra-rules.txt
+│  │  │        │  ├─ classification.system.txt
+│  │  │        │  ├─ common-rules.txt
+│  │  │        │  ├─ detail.extra-rules.txt
+│  │  │        │  ├─ detail.system.txt
+│  │  │        │  ├─ sorting.extra-rules.txt
+│  │  │        │  └─ sorting.system.txt
+│  │  │        ├─ paymentDocuments.aiPromptLoader.js
+│  │  │        └─ paymentDocuments.routes.js
+│  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
+│  │  └─ PROJECT_STATUS_FOR_GPT.txt
+│  ├─ memo\
+│  │  ├─ 誤追加_major系_退避_20260708_154159\
+│  │  ├─ 00_収集結果.txt
+│  │  ├─ add_back_sorting_button_invoice_specialist_20260708_172734.txt
+│  │  ├─ payment_document_major_sort_buttons_20260708_153035.txt
+│  │  ├─ payment_document_review_left_dynamic_height_20260708_165246.txt
+│  │  ├─ payment_document_review_px_relative_20260708_164953.txt
+│  │  ├─ payment_document_specialist_contract_insurance_lease_DIRECT_APPLY_20260708_173507.txt
+│  │  ├─ payment_document_specialist_header_buttons_20260708_153908.txt
+│  │  ├─ payment_document_specialist_invoice_payable_DIRECT_APPLY_20260708_172442.txt
+│  │  ├─ payment_document_specialist_invoice_payable_GPT2_20260708_171659.txt
+│  │  ├─ payment_document_specialist_invoice_payable_GPT2_20260708_172159.txt
+│  │  ├─ payment_document_specialist_tax_public_DIRECT_APPLY_20260708_173154.txt
+│  │  ├─ payment_document_specialist_utility_communication_DIRECT_APPLY_20260708_173823.txt
+│  │  ├─ specialist_fancy_header_20260708_174529.txt
+│  │  ├─ specialist_header_fill_color_20260708_174153.txt
+│  │  ├─ specialist_nav_right_sorting_button_retry_20260708_175958.txt
+│  │  ├─ specialist_pastel_header_20260708_175024.txt
+│  │  ├─ 最新現物_analysis_system確認_20260708_165745.txt
+│  │  ├─ 支払書類_analysis_system_prompt追加結果_20260708_170004.txt
+│  │  ├─ 支払書類仕分け_改良用_収集結果_20260708_164026.txt
+│  │  └─ 支払書類仕分け_最低限収集結果.txt
+│  └─ undo\
+│     ├─ undo_add_back_sorting_button_invoice_specialist_20260708_172734.ps1
+│     ├─ undo_payment_document_analysis_system_prompts_20260708_170004.ps1
+│     ├─ undo_payment_document_major_sort_buttons_20260708_153035.ps1
+│     ├─ undo_payment_document_review_left_dynamic_height_20260708_165246.ps1
+│     ├─ undo_payment_document_review_px_relative_20260708_164953.ps1
+│     ├─ undo_payment_document_specialist_contract_insurance_lease_DIRECT_20260708_173507.ps1
+│     ├─ undo_payment_document_specialist_header_buttons_20260708_153908.ps1
+│     ├─ undo_payment_document_specialist_invoice_payable_DIRECT_20260708_172442.ps1
+│     ├─ undo_payment_document_specialist_invoice_payable_GPT2_20260708_171659.ps1
+│     ├─ undo_payment_document_specialist_invoice_payable_GPT2_20260708_172159.ps1
+│     ├─ undo_payment_document_specialist_tax_public_DIRECT_20260708_173154.ps1
+│     ├─ undo_payment_document_specialist_utility_communication_DIRECT_20260708_173823.ps1
+│     ├─ undo_specialist_fancy_header_20260708_174529.ps1
+│     ├─ undo_specialist_header_fill_color_20260708_174153.ps1
+│     ├─ undo_specialist_nav_right_sorting_button_retry_20260708_175958.ps1
+│     └─ undo_specialist_pastel_header_20260708_175024.ps1
+├─ GPTが使う一時ファイルフォルダ\
+│  ├─ after\
+│  │  ├─ database\
+│  │  │  └─ migrations\
+│  │  │     ├─ 20260708_001_payment_document_analysis_system_axis.sql
+│  │  │     └─ 20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
+│  │  ├─ GPT2が使う一時ファイルフォルダ\
+│  │  │  └─ after\
+│  │  │     └─ web_receiver\
+│  │  │        └─ src\
+│  │  │           └─ paymentDocuments\
+│  │  │              ...
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
+│  │  │  │     └─ payment-document-review.html
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ sorting.extra-rules.txt
+│  │  │        │  └─ sorting.system.txt
+│  │  │        └─ paymentDocuments.routes.js
+│  │  ├─ payment-document-review.after_left_dynamic_height_20260708_165246.css
+│  │  ├─ payment-document-review.after_left_dynamic_height_20260708_165246.html
+│  │  ├─ payment-document-review.after_major_sort_buttons_20260708_153035.css
+│  │  ├─ payment-document-review.after_major_sort_buttons_20260708_153035.html
+│  │  ├─ payment-document-review.after_px_relative_20260708_164953.css
+│  │  ├─ payment-document-review.after_px_relative_20260708_164953.html
+│  │  ├─ payment-document-review.after_specialist_header_buttons_20260708_153908.css
+│  │  ├─ payment-document-review.after_specialist_header_buttons_20260708_153908.html
+│  │  ├─ payment-document-specialist-invoice-payable.after_20260708_170410.css
+│  │  └─ payment-document-specialist-invoice-payable.after_20260708_170410.html
+│  ├─ apply\
+│  │  ├─ apply_payment_document_analysis_system_html_20260708_171548.ps1
+│  │  ├─ apply_payment_document_analysis_system_migration_file_20260708_172044.ps1
+│  │  ├─ apply_payment_document_analysis_system_prompts_20260708_170004.ps1
+│  │  ├─ apply_payment_document_analysis_system_routes_20260708_170843.ps1
+│  │  └─ apply_payment_document_analysis_system_routes_REAL_20260708_171043.ps1
+│  ├─ before\
+│  │  ├─ GPT2が使う一時ファイルフォルダ\
+│  │  │  └─ after\
+│  │  │     └─ web_receiver\
+│  │  │        └─ src\
+│  │  │           └─ paymentDocuments\
+│  │  │              ...
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
+│  │  │  │     ├─ payment-document-review.html.before_analysis_system_20260708_164751
+│  │  │  │     ├─ payment-document-review.html.before_analysis_system_20260708_165114
+│  │  │  │     ├─ payment-document-review.html.before_analysis_system_20260708_165450
+│  │  │  │     └─ payment-document-review.html.before_analysis_system_html_20260708_171548
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_164751
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_165114
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_20260708_165450
+│  │  │        │  ├─ sorting.extra-rules.txt.before_analysis_system_prompt_20260708_170004
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_164751
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_165114
+│  │  │        │  ├─ sorting.system.txt.before_analysis_system_20260708_165450
+│  │  │        │  └─ sorting.system.txt.before_analysis_system_prompt_20260708_170004
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_20260708_164751
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_20260708_165114
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_20260708_165450
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_routes_REAL_20260708_171043
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_save_sql_20260708_174544
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_save_sql_node_20260708085725
+│  │  │        ├─ paymentDocuments.routes.js.before_analysis_system_selfref_fix_20260708_173641
+│  │  │        └─ paymentDocuments.routes.js.before_analysis_system_selfref_linefix_20260708_173850
+│  │  ├─ payment-document-review.before_left_dynamic_height_20260708_165246.css
+│  │  ├─ payment-document-review.before_left_dynamic_height_20260708_165246.html
+│  │  ├─ payment-document-review.before_major_buttons_20260708_152832.css
+│  │  ├─ payment-document-review.before_major_buttons_20260708_152832.html
+│  │  ├─ payment-document-review.before_major_sort_buttons_20260708_153035.css
+│  │  ├─ payment-document-review.before_major_sort_buttons_20260708_153035.html
+│  │  ├─ payment-document-review.before_px_relative_20260708_164953.css
+│  │  ├─ payment-document-review.before_px_relative_20260708_164953.html
+│  │  ├─ payment-document-review.before_specialist_header_buttons_20260708_153908.css
+│  │  ├─ payment-document-review.before_specialist_header_buttons_20260708_153908.html
+│  │  ├─ payment-document-review.source_for_invoice_specialist_20260708_165915.css
+│  │  ├─ payment-document-review.source_for_invoice_specialist_20260708_165915.html
+│  │  ├─ payment-document-review.source_for_invoice_specialist_20260708_170410.css
+│  │  └─ payment-document-review.source_for_invoice_specialist_20260708_170410.html
+│  ├─ GPTに渡すフォルダ\
+│  │  ├─ database\
+│  │  │  └─ migrations\
+│  │  │     ├─ 20260706_001_payables_professional.sql
+│  │  │     ├─ 20260707_002_payment_document_division_masters.sql
+│  │  │     ├─ 20260707_005_payment_document_ocr_imports.sql
+│  │  │     └─ 20260707_006_payment_document_sorting_drafts.sql
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
 │  │  │  │     ├─ payment-document-inbox.css
 │  │  │  │     ├─ payment-document-inbox.html
 │  │  │  │     ├─ payment-document-review.css
 │  │  │  │     └─ payment-document-review.html
-│  │  │  ├─ src\
-│  │  │  │  ├─ deliveryNotes\
-│  │  │  │  │  └─ deliveryNotes.repository.js
-│  │  │  │  ├─ expenses\
-│  │  │  │  │  └─ expenses.repository.js
-│  │  │  │  ├─ masters\
-│  │  │  │  │  └─ master.repository.js
-│  │  │  │  ├─ migrations\
-│  │  │  │  │  └─ migration.service.js
-│  │  │  │  ├─ payables\
-│  │  │  │  │  └─ payables.repository.js
-│  │  │  │  ├─ paymentDocuments\
-│  │  │  │  │  ├─ paymentDocuments.aiPromptLoader.js
-│  │  │  │  │  └─ paymentDocuments.routes.js
-│  │  │  │  ├─ config.js
-│  │  │  │  ├─ db.bootstrap.js
-│  │  │  │  ├─ db.js
-│  │  │  │  └─ projectStatus.js
-│  │  │  ├─ package.json
-│  │  │  └─ server.js
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        ├─ prompts\
+│  │  │        │  ├─ business-rules.txt
+│  │  │        │  ├─ classification.extra-rules.txt
+│  │  │        │  ├─ classification.system.txt
+│  │  │        │  ├─ common-rules.txt
+│  │  │        │  ├─ detail.extra-rules.txt
+│  │  │        │  ├─ detail.system.txt
+│  │  │        │  ├─ sorting.extra-rules.txt
+│  │  │        │  └─ sorting.system.txt
+│  │  │        ├─ paymentDocuments.aiPromptLoader.js
+│  │  │        └─ paymentDocuments.routes.js
 │  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
 │  │  └─ PROJECT_STATUS_FOR_GPT.txt
-│  └─ 00_収集結果.txt
+│  ├─ memo\
+│  │  ├─ 誤追加_major系_退避_20260708_154159\
+│  │  ├─ 00_収集結果.txt
+│  │  ├─ make_analysis_system_save_sql_after.js
+│  │  ├─ payment_document_major_sort_buttons_20260708_153035.txt
+│  │  ├─ payment_document_review_left_dynamic_height_20260708_165246.txt
+│  │  ├─ payment_document_review_px_relative_20260708_164953.txt
+│  │  ├─ payment_document_specialist_header_buttons_20260708_153908.txt
+│  │  ├─ payment_document_specialist_invoice_payable_20260708_170410.txt
+│  │  ├─ routes_analysis_system_selfref行単位補正結果_20260708_173850.txt
+│  │  ├─ routes_analysis_system_selfref補正結果_20260708_173641.txt
+│  │  ├─ routes_analysis_system保存SQL_Node作成結果_20260708085725.txt
+│  │  ├─ run_analysis_system_migration_20260708.js
+│  │  ├─ 最新現物_analysis_system確認_20260708_165745.txt
+│  │  ├─ 支払書類_analysis_system_DBマイグレーションSQL作成結果_20260708_172044.txt
+│  │  ├─ 支払書類_analysis_system_html_after_sortResult補正_20260708_171727.txt
+│  │  ├─ 支払書類_analysis_system_html作成結果_20260708_171548.txt
+│  │  ├─ 支払書類_analysis_system_prompt追加結果_20260708_170004.txt
+│  │  ├─ 支払書類_analysis_system_routes_REAL作成結果_20260708_171043.txt
+│  │  ├─ 支払書類_analysis_system_routes追加結果_20260708_170843.txt
+│  │  ├─ 支払書類仕分け_改良用_収集結果_20260708_164026.txt
+│  │  ├─ 支払書類仕分け_最低限収集結果.txt
+│  │  ├─ 第2弾前_routes構文確認_20260708_170501.txt
+│  │  ├─ 第6弾_payment_document_sorting_drafts_PARAMS確認_20260708_174212.txt
+│  │  └─ 第6弾前_payment_document_sorting_drafts_SQL現物確認_20260708_173250.txt
+│  └─ undo\
+│     ├─ undo_payment_document_analysis_system_html_20260708_171548.ps1
+│     ├─ undo_payment_document_analysis_system_migration_file_20260708_172044.ps1
+│     ├─ undo_payment_document_analysis_system_prompts_20260708_170004.ps1
+│     ├─ undo_payment_document_analysis_system_routes_20260708_170843.ps1
+│     ├─ undo_payment_document_analysis_system_routes_REAL_20260708_171043.ps1
+│     ├─ undo_payment_document_major_sort_buttons_20260708_153035.ps1
+│     ├─ undo_payment_document_review_left_dynamic_height_20260708_165246.ps1
+│     ├─ undo_payment_document_review_px_relative_20260708_164953.ps1
+│     ├─ undo_payment_document_specialist_header_buttons_20260708_153908.ps1
+│     └─ undo_payment_document_specialist_invoice_payable_20260708_170410.ps1
 ├─ ORIGIN会計ソフト\
 │  ├─ レシートページ\
 │  │  ├─ _old_20260627_082025\
@@ -311,7 +610,15 @@ hd-origin-project\
 │  │  │  ├─ payment-document-inbox.css
 │  │  │  ├─ payment-document-inbox.html
 │  │  │  ├─ payment-document-review.css
-│  │  │  └─ payment-document-review.html
+│  │  │  ├─ payment-document-review.html
+│  │  │  ├─ payment-document-specialist-contract-insurance-lease.css
+│  │  │  ├─ payment-document-specialist-contract-insurance-lease.html
+│  │  │  ├─ payment-document-specialist-invoice-payable.css
+│  │  │  ├─ payment-document-specialist-invoice-payable.html
+│  │  │  ├─ payment-document-specialist-tax-public.css
+│  │  │  ├─ payment-document-specialist-tax-public.html
+│  │  │  ├─ payment-document-specialist-utility-communication.css
+│  │  │  └─ payment-document-specialist-utility-communication.html
 │  │  ├─ receipts\
 │  │  │  ├─ receipt-ledger-print.html
 │  │  │  ├─ receipt-list.css
