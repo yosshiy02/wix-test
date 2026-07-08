@@ -1,3 +1,0 @@
-$ErrorActionPreference = "Stop"
-Copy-Item -LiteralPath 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\paymentDocuments.routes.js' -Destination 'C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js' -Force
-Write-Host "OK: 本体 paymentDocuments.routes.js へ analysis_system_* routes を反映しました。"

@@ -1,0 +1,56 @@
+==============================
+GPT2 契約・保険・リース専門下書き 直接API保存 再テスト
+==============================
+日時: 2026-07-08T12:56:41.225Z
+
+[保存前件数]
+count: 0
+
+[対象OCR]
+payment_document_ocr_import_id: 8
+latest_sorting_draft_id: 32
+file: ダミー証憑_保険料通知書.png
+label: 保険
+
+[POST]
+http://127.0.0.1:3000/api/payment-documents/contract-insurance-lease-drafts/save
+
+[APIレスポンス]
+status: 200
+{
+  "ok": true,
+  "contractInsuranceLeaseDraftId": "1",
+  "paymentDocumentOcrImportId": "8",
+  "paymentDocumentSortingDraftId": "32",
+  "draftNo": "CILD-8-20260708215641",
+  "isCurrent": true,
+  "draftStatus": "specialist_draft_saved",
+  "createdAt": "2026-07-08T12:56:41.671Z"
+}
+
+[保存後件数]
+count: 1
+
+[最新5件]
+----------------------------------------
+専門下書きID: 1
+OCR取込ID: 8
+仕分け下書きID: 32
+draft_no: CILD-8-20260708215641
+is_current: true
+draft_status: specialist_draft_saved
+契約・保険・リース: insurance / 保険
+保険種類: other / その他
+リース物件: 
+リース物件区分:  / 
+契約種別: insurance_contract / 保険契約
+契約ステータス: active / 有効
+支払状態: unpaid / 未払
+支払周期: monthly / 毎月
+会社負担可否: company / 会社負担
+未払登録: register / 登録する
+買掛登録: not_register / 登録しない
+created_at: Wed Jul 08 2026 21:56:41 GMT+0900 (日本標準時)
+
+[判定]
+OK: 直接API保存成功。次は画面のまとめて保存で専門下書きまで保存されるか確認。

@@ -1,0 +1,3 @@
+$ErrorActionPreference = "Stop"
+Copy-Item -LiteralPath "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_paymentDocuments.routes.before.js" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js" -Force
+Write-Host "OK: paymentDocuments.routes.js をJSONB修正前に戻しました。"

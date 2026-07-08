@@ -1,0 +1,434 @@
+﻿==============================
+GPT00 税金・公的支払い側 DB確認結果
+==============================
+日時: 2026/07/08 20:31:40
+
+[注意]
+- GPT00側のみ使用
+- GPT2側は未使用
+- DBはSELECTのみ
+- INSERT / UPDATE / DELETE / ALTER / DROP は未実行
+- DB_PASSWORDは出力していません
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[接続先]
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=hd_origin_project
+DB_USER=postgres
+DB_PASSWORD=********
+
+[psql]
+C:\Program Files\PostgreSQL\17\bin\psql.exe
+
+==============================
+psql 出力
+==============================
+
+Pager usage is off.
+Null display is "[NULL]".
+==============================
+GPT00 税金・公的支払い側 DB確認
+==============================
+
+[DB接続確認]
+ current_database  | current_user |                            postgres_version                             
+-------------------+--------------+-------------------------------------------------------------------------
+ hd_origin_project | postgres     | PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit
+(1 row)
+
+
+[payment_document / payable 系テーブル一覧]
+ table_schema |           table_name            
+--------------+---------------------------------
+ accounting   | payable_documents
+ accounting   | payable_lines
+ accounting   | payable_payments
+ accounting   | payable_status_history
+ accounting   | payment_document_ocr_imports
+ accounting   | payment_document_sorting_drafts
+ accounting   | receipt_tax_breakdowns
+ expenses     | payable_kinds
+ expenses     | payment_destinations
+ expenses     | payment_methods
+ expenses     | payment_source_types
+ expenses     | tax_categories
+ expenses     | tax_treatments
+(13 rows)
+
+
+[主要テーブルの列一覧]
+ table_schema |           table_name            | ordinal_position |            column_name            |        data_type         |  udt_name   | is_nullable |                                         column_default                                          
+--------------+---------------------------------+------------------+-----------------------------------+--------------------------+-------------+-------------+-------------------------------------------------------------------------------------------------
+ accounting   | payment_document_ocr_imports    |                1 | payment_document_ocr_import_id    | bigint                   | int8        | NO          | nextval('accounting.payment_document_ocr_imports_payment_document_ocr_import_id_seq'::regclass)
+ accounting   | payment_document_ocr_imports    |                2 | document_key                      | text                     | text        | NO          | [NULL]
+ accounting   | payment_document_ocr_imports    |                3 | original_file_name                | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |                4 | saved_file_name                   | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |                5 | mime_type                         | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |                6 | size_bytes                        | bigint                   | int8        | NO          | 0
+ accounting   | payment_document_ocr_imports    |                7 | sha256                            | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |                8 | document_type                     | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |                9 | destination                       | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               10 | source_type                       | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               11 | vendor_name                       | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               12 | note                              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               13 | email_subject                     | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               14 | email_from                        | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               15 | email_received_at                 | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               16 | ocr_status                        | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               17 | ocr_provider                      | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               18 | ocr_api_version                   | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               19 | ocr_at                            | timestamp with time zone | timestamptz | YES         | [NULL]
+ accounting   | payment_document_ocr_imports    |               20 | ocr_raw_text                      | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               21 | ocr_text_length                   | integer                  | int4        | NO          | 0
+ accounting   | payment_document_ocr_imports    |               22 | ocr_error                         | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               23 | process_status                    | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               24 | save_status                       | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               25 | evidence_saved                    | boolean                  | bool        | NO          | false
+ accounting   | payment_document_ocr_imports    |               26 | ocr_saved                         | boolean                  | bool        | NO          | false
+ accounting   | payment_document_ocr_imports    |               27 | saved_relative_path               | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               28 | saved_meta_relative_path          | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               29 | saved_at                          | timestamp with time zone | timestamptz | YES         | [NULL]
+ accounting   | payment_document_ocr_imports    |               30 | saved_by_page                     | text                     | text        | NO          | ''::text
+ accounting   | payment_document_ocr_imports    |               31 | draft_status                      | text                     | text        | NO          | 'not_started'::text
+ accounting   | payment_document_ocr_imports    |               32 | created_at                        | timestamp with time zone | timestamptz | NO          | now()
+ accounting   | payment_document_ocr_imports    |               33 | updated_at                        | timestamp with time zone | timestamptz | NO          | now()
+ accounting   | payment_document_ocr_imports    |               34 | deleted_at                        | timestamp with time zone | timestamptz | YES         | [NULL]
+ accounting   | payment_document_ocr_imports    |               35 | latest_sorting_draft_id           | bigint                   | int8        | YES         | [NULL]
+ accounting   | payment_document_ocr_imports    |               36 | sorted_at                         | timestamp with time zone | timestamptz | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |                1 | payment_document_sorting_draft_id | bigint                   | int8        | NO          | nextval('accounting.payment_document_sorting_draf_payment_document_sorting_draf_seq'::regclass)
+ accounting   | payment_document_sorting_drafts |                2 | payment_document_ocr_import_id    | bigint                   | int8        | NO          | [NULL]
+ accounting   | payment_document_sorting_drafts |                3 | draft_no                          | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |                4 | draft_version                     | integer                  | int4        | NO          | 1
+ accounting   | payment_document_sorting_drafts |                5 | is_current                        | boolean                  | bool        | NO          | true
+ accounting   | payment_document_sorting_drafts |                6 | draft_status                      | text                     | text        | NO          | 'draft'::text
+ accounting   | payment_document_sorting_drafts |                7 | human_check_status                | text                     | text        | NO          | 'unchecked'::text
+ accounting   | payment_document_sorting_drafts |                8 | document_type_id                  | bigint                   | int8        | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |                9 | document_type_code                | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               10 | document_type_label               | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               11 | payment_destination_id            | bigint                   | int8        | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               12 | payment_destination_code          | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               13 | payment_destination_label         | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               14 | accounting_category_id            | bigint                   | int8        | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               15 | accounting_category_code          | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               16 | accounting_category_label         | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               17 | payable_kind_id                   | bigint                   | int8        | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               18 | payable_kind_code                 | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               19 | payable_kind_label                | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               20 | specialist_route_code             | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               21 | specialist_route_label            | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               22 | payment_target_label              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               23 | payable_target_label              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               24 | expense_target_label              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               25 | tax_public_label                  | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               26 | public_utility_label              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               27 | contract_insurance_lease_label    | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               28 | ai_confidence                     | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               29 | ai_confidence_label               | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               30 | ai_reason                         | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               31 | review_reason                     | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               32 | needs_review                      | boolean                  | bool        | NO          | false
+ accounting   | payment_document_sorting_drafts |               33 | ai_summary_json                   | jsonb                    | jsonb       | NO          | '{}'::jsonb
+ accounting   | payment_document_sorting_drafts |               34 | sort_result_json                  | jsonb                    | jsonb       | NO          | '{}'::jsonb
+ accounting   | payment_document_sorting_drafts |               35 | visible_fields_json               | jsonb                    | jsonb       | NO          | '{}'::jsonb
+ accounting   | payment_document_sorting_drafts |               36 | human_corrections_json            | jsonb                    | jsonb       | NO          | '{}'::jsonb
+ accounting   | payment_document_sorting_drafts |               37 | warnings_json                     | jsonb                    | jsonb       | NO          | '[]'::jsonb
+ accounting   | payment_document_sorting_drafts |               38 | original_file_name                | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               39 | saved_file_name                   | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               40 | saved_relative_path               | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               41 | sha256                            | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               42 | ocr_text_length                   | integer                  | int4        | NO          | 0
+ accounting   | payment_document_sorting_drafts |               43 | display_rotation                  | integer                  | int4        | NO          | 0
+ accounting   | payment_document_sorting_drafts |               44 | memo                              | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               45 | created_by_page                   | text                     | text        | NO          | 'payment-document-review'::text
+ accounting   | payment_document_sorting_drafts |               46 | created_by                        | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               47 | updated_by                        | text                     | text        | NO          | ''::text
+ accounting   | payment_document_sorting_drafts |               48 | created_at                        | timestamp with time zone | timestamptz | NO          | now()
+ accounting   | payment_document_sorting_drafts |               49 | updated_at                        | timestamp with time zone | timestamptz | NO          | now()
+ accounting   | payment_document_sorting_drafts |               50 | deleted_at                        | timestamp with time zone | timestamptz | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               51 | analysis_system_code              | character varying        | varchar     | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               52 | analysis_system_label             | character varying        | varchar     | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               53 | analysis_system_reason            | text                     | text        | YES         | [NULL]
+ accounting   | payment_document_sorting_drafts |               54 | analysis_system_confidence        | character varying        | varchar     | YES         | [NULL]
+(90 rows)
+
+
+[税金・公的支払いに関係しそうな列]
+ table_schema |           table_name            | ordinal_position |               column_name                |        data_type         | is_nullable 
+--------------+---------------------------------+------------------+------------------------------------------+--------------------------+-------------
+ accounting   | delivery_note_details           |               10 | amount                                   | numeric                  | YES
+ accounting   | delivery_note_details           |               11 | tax_category_id                          | integer                  | YES
+ accounting   | delivery_note_draft_details     |                1 | delivery_note_draft_detail_id            | bigint                   | NO
+ accounting   | delivery_note_draft_details     |                2 | delivery_note_draft_id                   | bigint                   | NO
+ accounting   | delivery_note_draft_details     |               10 | amount                                   | numeric                  | YES
+ accounting   | delivery_note_draft_details     |               11 | tax_category_id                          | integer                  | YES
+ accounting   | delivery_note_drafts            |                1 | delivery_note_draft_id                   | bigint                   | NO
+ accounting   | delivery_note_drafts            |                3 | draft_status                             | text                     | NO
+ accounting   | delivery_note_drafts            |                5 | vendor_name                              | text                     | YES
+ accounting   | delivery_note_drafts            |                8 | subtotal_amount                          | numeric                  | YES
+ accounting   | delivery_note_drafts            |                9 | tax_amount                               | numeric                  | YES
+ accounting   | delivery_note_drafts            |               10 | total_amount                             | numeric                  | YES
+ accounting   | delivery_note_drafts            |               13 | ocr_raw_text                             | text                     | YES
+ accounting   | delivery_note_drafts            |               14 | ai_json                                  | jsonb                    | YES
+ accounting   | delivery_note_imports           |               10 | ocr_status                               | text                     | NO
+ accounting   | delivery_note_imports           |               11 | ocr_provider                             | text                     | YES
+ accounting   | delivery_note_imports           |               12 | ocr_raw_text                             | text                     | YES
+ accounting   | delivery_note_imports           |               14 | ai_json                                  | jsonb                    | YES
+ accounting   | delivery_notes                  |                3 | delivery_note_draft_id                   | bigint                   | YES
+ accounting   | delivery_notes                  |                6 | vendor_name                              | text                     | YES
+ accounting   | delivery_notes                  |                9 | subtotal_amount                          | numeric                  | YES
+ accounting   | delivery_notes                  |               10 | tax_amount                               | numeric                  | YES
+ accounting   | delivery_notes                  |               11 | total_amount                             | numeric                  | YES
+ accounting   | delivery_notes                  |               14 | ocr_raw_text                             | text                     | YES
+ accounting   | delivery_notes                  |               15 | ai_json                                  | jsonb                    | YES
+ accounting   | payable_documents               |                1 | payable_id                               | bigint                   | NO
+ accounting   | payable_documents               |                2 | payable_no                               | text                     | NO
+ accounting   | payable_documents               |                3 | document_type                            | text                     | NO
+ accounting   | payable_documents               |                4 | payable_kind                             | text                     | NO
+ accounting   | payable_documents               |                6 | vendor_id                                | bigint                   | YES
+ accounting   | payable_documents               |                7 | vendor_name                              | text                     | NO
+ accounting   | payable_documents               |                9 | supplier_document_no                     | text                     | NO
+ accounting   | payable_documents               |               10 | document_date                            | date                     | YES
+ accounting   | payable_documents               |               12 | due_date                                 | date                     | YES
+ accounting   | payable_documents               |               13 | payment_plan_date                        | date                     | YES
+ accounting   | payable_documents               |               15 | subtotal_amount                          | numeric                  | NO
+ accounting   | payable_documents               |               16 | tax_amount                               | numeric                  | NO
+ accounting   | payable_documents               |               17 | withholding_tax_amount                   | numeric                  | NO
+ accounting   | payable_documents               |               18 | total_amount                             | numeric                  | NO
+ accounting   | payable_documents               |               19 | paid_amount                              | numeric                  | NO
+ accounting   | payable_documents               |               20 | balance_amount                           | numeric                  | NO
+ accounting   | payable_documents               |               21 | account_payable_title_id                 | bigint                   | YES
+ accounting   | payable_documents               |               22 | payment_method_id                        | bigint                   | YES
+ accounting   | payable_lines                   |                1 | payable_line_id                          | bigint                   | NO
+ accounting   | payable_lines                   |                2 | payable_id                               | bigint                   | NO
+ accounting   | payable_lines                   |                5 | tax_category_id                          | bigint                   | YES
+ accounting   | payable_lines                   |               10 | amount_ex_tax                            | numeric                  | NO
+ accounting   | payable_lines                   |               11 | tax_rate                                 | numeric                  | NO
+ accounting   | payable_lines                   |               12 | tax_amount                               | numeric                  | NO
+ accounting   | payable_lines                   |               13 | amount_in_tax                            | numeric                  | NO
+ accounting   | payable_payments                |                1 | payable_payment_id                       | bigint                   | NO
+ accounting   | payable_payments                |                2 | payable_id                               | bigint                   | NO
+ accounting   | payable_payments                |                3 | payment_date                             | date                     | NO
+ accounting   | payable_payments                |                4 | payment_method_id                        | bigint                   | YES
+ accounting   | payable_payments                |                5 | payment_amount                           | numeric                  | NO
+ accounting   | payable_payments                |                6 | bank_fee_amount                          | numeric                  | NO
+ accounting   | payable_payments                |                7 | withholding_tax_amount                   | numeric                  | NO
+ accounting   | payable_status_history          |                1 | payable_status_history_id                | bigint                   | NO
+ accounting   | payable_status_history          |                2 | payable_id                               | bigint                   | NO
+ accounting   | payment_document_ocr_imports    |                1 | payment_document_ocr_import_id           | bigint                   | NO
+ accounting   | payment_document_ocr_imports    |                2 | document_key                             | text                     | NO
+ accounting   | payment_document_ocr_imports    |                8 | document_type                            | text                     | NO
+ accounting   | payment_document_ocr_imports    |               11 | vendor_name                              | text                     | NO
+ accounting   | payment_document_ocr_imports    |               16 | ocr_status                               | text                     | NO
+ accounting   | payment_document_ocr_imports    |               17 | ocr_provider                             | text                     | NO
+ accounting   | payment_document_ocr_imports    |               18 | ocr_api_version                          | text                     | NO
+ accounting   | payment_document_ocr_imports    |               19 | ocr_at                                   | timestamp with time zone | YES
+ accounting   | payment_document_ocr_imports    |               20 | ocr_raw_text                             | text                     | NO
+ accounting   | payment_document_ocr_imports    |               21 | ocr_text_length                          | integer                  | NO
+ accounting   | payment_document_ocr_imports    |               22 | ocr_error                                | text                     | NO
+ accounting   | payment_document_ocr_imports    |               26 | ocr_saved                                | boolean                  | NO
+ accounting   | payment_document_ocr_imports    |               31 | draft_status                             | text                     | NO
+ accounting   | payment_document_ocr_imports    |               35 | latest_sorting_draft_id                  | bigint                   | YES
+ accounting   | payment_document_sorting_drafts |                1 | payment_document_sorting_draft_id        | bigint                   | NO
+ accounting   | payment_document_sorting_drafts |                2 | payment_document_ocr_import_id           | bigint                   | NO
+ accounting   | payment_document_sorting_drafts |                3 | draft_no                                 | text                     | NO
+ accounting   | payment_document_sorting_drafts |                4 | draft_version                            | integer                  | NO
+ accounting   | payment_document_sorting_drafts |                6 | draft_status                             | text                     | NO
+ accounting   | payment_document_sorting_drafts |                8 | document_type_id                         | bigint                   | YES
+ accounting   | payment_document_sorting_drafts |                9 | document_type_code                       | text                     | NO
+ accounting   | payment_document_sorting_drafts |               10 | document_type_label                      | text                     | NO
+ accounting   | payment_document_sorting_drafts |               11 | payment_destination_id                   | bigint                   | YES
+ accounting   | payment_document_sorting_drafts |               12 | payment_destination_code                 | text                     | NO
+ accounting   | payment_document_sorting_drafts |               13 | payment_destination_label                | text                     | NO
+ accounting   | payment_document_sorting_drafts |               17 | payable_kind_id                          | bigint                   | YES
+ accounting   | payment_document_sorting_drafts |               18 | payable_kind_code                        | text                     | NO
+ accounting   | payment_document_sorting_drafts |               19 | payable_kind_label                       | text                     | NO
+ accounting   | payment_document_sorting_drafts |               20 | specialist_route_code                    | text                     | NO
+ accounting   | payment_document_sorting_drafts |               21 | specialist_route_label                   | text                     | NO
+ accounting   | payment_document_sorting_drafts |               22 | payment_target_label                     | text                     | NO
+ accounting   | payment_document_sorting_drafts |               23 | payable_target_label                     | text                     | NO
+ accounting   | payment_document_sorting_drafts |               25 | tax_public_label                         | text                     | NO
+ accounting   | payment_document_sorting_drafts |               26 | public_utility_label                     | text                     | NO
+ accounting   | payment_document_sorting_drafts |               33 | ai_summary_json                          | jsonb                    | NO
+ accounting   | payment_document_sorting_drafts |               34 | sort_result_json                         | jsonb                    | NO
+ accounting   | payment_document_sorting_drafts |               35 | visible_fields_json                      | jsonb                    | NO
+ accounting   | payment_document_sorting_drafts |               36 | human_corrections_json                   | jsonb                    | NO
+ accounting   | payment_document_sorting_drafts |               37 | warnings_json                            | jsonb                    | NO
+ accounting   | payment_document_sorting_drafts |               42 | ocr_text_length                          | integer                  | NO
+ accounting   | payment_document_sorting_drafts |               51 | analysis_system_code                     | character varying        | YES
+ accounting   | payment_document_sorting_drafts |               52 | analysis_system_label                    | character varying        | YES
+ accounting   | payment_document_sorting_drafts |               53 | analysis_system_reason                   | text                     | YES
+ accounting   | payment_document_sorting_drafts |               54 | analysis_system_confidence               | character varying        | YES
+ accounting   | receipt_ai_drafts               |                4 | vendor_name                              | text                     | YES
+ accounting   | receipt_ai_drafts               |                5 | total_amount                             | integer                  | YES
+ accounting   | receipt_ai_drafts               |                6 | tax_amount                               | integer                  | YES
+ accounting   | receipt_ai_drafts               |                7 | tax_rate                                 | text                     | YES
+ accounting   | receipt_ai_drafts               |                8 | payment_method_name                      | text                     | YES
+ accounting   | receipt_ai_drafts               |               16 | ai_raw_json                              | jsonb                    | YES
+ accounting   | receipt_ai_drafts               |               21 | tax_treatment_name                       | text                     | YES
+ accounting   | receipt_ai_drafts               |               22 | payment_method_id                        | bigint                   | YES
+ accounting   | receipt_ai_drafts               |               33 | vendor_address                           | text                     | YES
+ accounting   | receipt_ai_drafts               |               34 | vendor_phone                             | text                     | YES
+ accounting   | receipt_detail_breakdowns       |                4 | source_draft_receipt_detail_breakdown_id | bigint                   | YES
+ accounting   | receipt_detail_breakdowns       |                8 | amount                                   | numeric                  | YES
+ accounting   | receipt_detail_breakdowns       |                9 | tax_category_id                          | bigint                   | YES
+ accounting   | receipt_detail_breakdowns       |               10 | tax_treatment_id                         | bigint                   | YES
+ accounting   | receipt_details                 |                3 | source_draft_receipt_detail_id           | bigint                   | YES
+ accounting   | receipt_details                 |                6 | vendor_name                              | text                     | YES
+ accounting   | receipt_details                 |                7 | vendor_address                           | text                     | YES
+ accounting   | receipt_details                 |                8 | vendor_phone                             | text                     | YES
+ accounting   | receipt_details                 |                9 | payment_method_id                        | bigint                   | YES
+ accounting   | receipt_details                 |               10 | total_amount                             | numeric                  | YES
+ accounting   | receipt_details                 |               11 | tax_total_amount                         | numeric                  | YES
+ accounting   | receipt_details                 |               23 | ocr_raw_text                             | text                     | YES
+ accounting   | receipt_draft_detail_breakdowns |                1 | draft_receipt_detail_breakdown_id        | bigint                   | NO
+ accounting   | receipt_draft_detail_breakdowns |                2 | draft_receipt_id                         | bigint                   | NO
+ accounting   | receipt_draft_detail_breakdowns |                3 | draft_receipt_detail_id                  | bigint                   | NO
+ accounting   | receipt_draft_detail_breakdowns |                7 | amount                                   | numeric                  | YES
+ accounting   | receipt_draft_detail_breakdowns |                8 | tax_category_id                          | bigint                   | YES
+ accounting   | receipt_draft_detail_breakdowns |                9 | tax_treatment_id                         | bigint                   | YES
+ accounting   | receipt_draft_details           |                1 | draft_receipt_detail_id                  | bigint                   | NO
+ accounting   | receipt_draft_details           |                2 | draft_receipt_id                         | bigint                   | NO
+ accounting   | receipt_draft_details           |                6 | vendor_name                              | text                     | YES
+ accounting   | receipt_draft_details           |                7 | vendor_address                           | text                     | YES
+ accounting   | receipt_draft_details           |                8 | vendor_phone                             | text                     | YES
+ accounting   | receipt_draft_details           |                9 | payment_method_id                        | bigint                   | YES
+ accounting   | receipt_draft_details           |               10 | total_amount                             | numeric                  | YES
+ accounting   | receipt_draft_details           |               11 | tax_total_amount                         | numeric                  | YES
+ accounting   | receipt_draft_details           |               23 | ocr_raw_text                             | text                     | YES
+ accounting   | receipt_drafts                  |                1 | draft_receipt_id                         | bigint                   | NO
+ accounting   | receipt_drafts                  |                7 | draft_status                             | text                     | NO
+ accounting   | receipt_imports                 |               13 | ocr_provider                             | text                     | YES
+ accounting   | receipt_imports                 |               14 | ocr_raw_text                             | text                     | YES
+ accounting   | receipt_imports                 |               15 | ocr_line_count                           | integer                  | YES
+ accounting   | receipt_imports                 |               16 | ocr_word_count                           | integer                  | YES
+ accounting   | receipt_tax_breakdowns          |                2 | receipt_ai_draft_id                      | bigint                   | NO
+ accounting   | receipt_tax_breakdowns          |                3 | tax_category_id                          | bigint                   | YES
+ accounting   | receipt_tax_breakdowns          |                4 | tax_category_name                        | text                     | NO
+ accounting   | receipt_tax_breakdowns          |                5 | tax_rate                                 | numeric                  | NO
+ accounting   | receipt_tax_breakdowns          |                6 | tax_treatment_id                         | bigint                   | YES
+ accounting   | receipt_tax_breakdowns          |                7 | tax_treatment_name                       | text                     | NO
+ accounting   | receipt_tax_breakdowns          |                8 | target_amount                            | numeric                  | YES
+ accounting   | receipt_tax_breakdowns          |                9 | tax_amount                               | numeric                  | YES
+ accounting   | receipts                        |                2 | source_draft_receipt_id                  | bigint                   | YES
+ accounting   | v_payable_documents             |                1 | payable_id                               | bigint                   | YES
+ accounting   | v_payable_documents             |                2 | payable_no                               | text                     | YES
+ accounting   | v_payable_documents             |                3 | document_type                            | text                     | YES
+ accounting   | v_payable_documents             |                4 | payable_kind                             | text                     | YES
+ accounting   | v_payable_documents             |                6 | vendor_id                                | bigint                   | YES
+ accounting   | v_payable_documents             |                7 | vendor_name                              | text                     | YES
+ accounting   | v_payable_documents             |                9 | supplier_document_no                     | text                     | YES
+ accounting   | v_payable_documents             |               10 | document_date                            | date                     | YES
+ accounting   | v_payable_documents             |               12 | due_date                                 | date                     | YES
+ accounting   | v_payable_documents             |               13 | payment_plan_date                        | date                     | YES
+ accounting   | v_payable_documents             |               15 | subtotal_amount                          | numeric                  | YES
+ accounting   | v_payable_documents             |               16 | tax_amount                               | numeric                  | YES
+ accounting   | v_payable_documents             |               17 | withholding_tax_amount                   | numeric                  | YES
+ accounting   | v_payable_documents             |               18 | total_amount                             | numeric                  | YES
+ accounting   | v_payable_documents             |               19 | paid_amount                              | numeric                  | YES
+ accounting   | v_payable_documents             |               20 | balance_amount                           | numeric                  | YES
+ accounting   | v_payable_documents             |               21 | account_payable_title_id                 | bigint                   | YES
+ accounting   | v_payable_documents             |               22 | payment_method_id                        | bigint                   | YES
+ accounting   | v_payable_documents             |               41 | payment_count                            | bigint                   | YES
+ accounting   | v_payable_documents             |               42 | calculated_subtotal_amount               | numeric                  | YES
+ accounting   | v_payable_documents             |               43 | calculated_tax_amount                    | numeric                  | YES
+ accounting   | v_payable_documents             |               44 | calculated_total_amount                  | numeric                  | YES
+ accounting   | v_payable_documents             |               45 | calculated_paid_amount                   | numeric                  | YES
+ accounting   | v_payable_documents             |               46 | calculated_balance_amount                | numeric                  | YES
+ accounting   | v_payable_documents             |               48 | is_overdue                               | boolean                  | YES
+ expenses     | document_types                  |                1 | document_type_id                         | integer                  | NO
+ expenses     | document_types                  |                2 | document_type_code                       | character varying        | YES
+ expenses     | document_types                  |                3 | document_type_name                       | character varying        | NO
+ expenses     | expense_details                 |                7 | amount                                   | numeric                  | NO
+ expenses     | expense_details                 |                8 | tax_category_id                          | bigint                   | YES
+ expenses     | expense_details                 |                9 | tax_category_name                        | text                     | YES
+ expenses     | expense_details                 |               10 | tax_rate                                 | numeric                  | NO
+ expenses     | expense_details                 |               13 | tax_treatment_id                         | bigint                   | YES
+ expenses     | expense_details                 |               14 | tax_treatment_name                       | text                     | YES
+ expenses     | expense_headers                 |                3 | vendor_id                                | bigint                   | YES
+ expenses     | expense_headers                 |                4 | vendor_name                              | text                     | YES
+ expenses     | expense_headers                 |                5 | payment_method_id                        | bigint                   | YES
+ expenses     | expense_headers                 |                6 | payment_method_name                      | text                     | YES
+ expenses     | expense_headers                 |                7 | total_amount                             | numeric                  | NO
+ expenses     | payable_kinds                   |                1 | payable_kind_id                          | integer                  | NO
+ expenses     | payable_kinds                   |                2 | payable_kind_code                        | character varying        | YES
+ expenses     | payable_kinds                   |                3 | payable_kind_name                        | character varying        | NO
+ expenses     | payment_destinations            |                1 | payment_destination_id                   | integer                  | NO
+ expenses     | payment_destinations            |                2 | payment_destination_code                 | character varying        | YES
+ expenses     | payment_destinations            |                3 | payment_destination_name                 | character varying        | NO
+ expenses     | payment_methods                 |                1 | payment_method_id                        | bigint                   | NO
+ expenses     | payment_methods                 |                7 | payment_method_code                      | character varying        | YES
+ expenses     | payment_source_types            |                1 | payment_source_type_id                   | integer                  | NO
+ expenses     | payment_source_types            |                2 | payment_source_type_code                 | character varying        | YES
+ expenses     | payment_source_types            |                3 | payment_source_type_name                 | character varying        | NO
+ expenses     | receipt_ai_drafts               |                1 | receipt_ai_draft_id                      | bigint                   | NO
+ expenses     | receipt_ai_drafts               |                5 | draft_status                             | text                     | NO
+ expenses     | receipt_ai_drafts               |                6 | raw_json                                 | jsonb                    | YES
+ expenses     | receipt_ai_drafts               |                8 | suggested_vendor_name                    | text                     | YES
+ expenses     | receipt_ai_drafts               |                9 | suggested_total_amount                   | numeric                  | YES
+ expenses     | receipt_ai_drafts               |               10 | suggested_tax_amount                     | numeric                  | YES
+ expenses     | receipt_ai_drafts               |               12 | suggested_payment_method_name            | text                     | YES
+ expenses     | receipt_imports                 |                7 | vendor_name                              | text                     | YES
+ expenses     | receipt_imports                 |                8 | total_amount                             | numeric                  | NO
+ expenses     | receipt_imports                 |                9 | tax_amount                               | numeric                  | YES
+ expenses     | receipt_imports                 |               11 | payment_method_id                        | bigint                   | YES
+ expenses     | receipt_imports                 |               12 | payment_method_name                      | text                     | YES
+ expenses     | receipt_imports                 |               24 | ocr_provider                             | text                     | YES
+ expenses     | receipt_imports                 |               25 | ocr_status                               | text                     | YES
+ expenses     | receipt_imports                 |               26 | ocr_raw_text                             | text                     | YES
+ expenses     | tax_categories                  |                1 | tax_category_id                          | bigint                   | NO
+ expenses     | tax_categories                  |                2 | tax_name                                 | text                     | NO
+ expenses     | tax_categories                  |                3 | tax_rate                                 | numeric                  | NO
+ expenses     | tax_categories                  |                7 | tax_category_code                        | character varying        | YES
+ expenses     | tax_treatments                  |                1 | tax_treatment_id                         | bigint                   | NO
+ expenses     | tax_treatments                  |                4 | is_tax_included                          | boolean                  | YES
+ expenses     | vendors                         |                1 | vendor_id                                | bigint                   | NO
+ expenses     | vendors                         |                2 | vendor_name                              | text                     | NO
+ public       | received_items                  |                4 | amount                                   | numeric                  | YES
+(229 rows)
+
+
+[analysis_system 系列の有無]
+ table_schema |           table_name            |        column_name         |     data_type     | is_nullable 
+--------------+---------------------------------+----------------------------+-------------------+-------------
+ accounting   | payment_document_sorting_drafts | analysis_system_code       | character varying | YES
+ accounting   | payment_document_sorting_drafts | analysis_system_confidence | character varying | YES
+ accounting   | payment_document_sorting_drafts | analysis_system_label      | character varying | YES
+ accounting   | payment_document_sorting_drafts | analysis_system_reason     | text              | YES
+(4 rows)
+
+
+[JSON/JSONB列の有無]
+ table_schema |           table_name            | ordinal_position |      column_name       | data_type | is_nullable 
+--------------+---------------------------------+------------------+------------------------+-----------+-------------
+ accounting   | delivery_note_drafts            |               14 | ai_json                | jsonb     | YES
+ accounting   | delivery_note_imports           |               14 | ai_json                | jsonb     | YES
+ accounting   | delivery_notes                  |               15 | ai_json                | jsonb     | YES
+ accounting   | payment_document_sorting_drafts |               33 | ai_summary_json        | jsonb     | NO
+ accounting   | payment_document_sorting_drafts |               34 | sort_result_json       | jsonb     | NO
+ accounting   | payment_document_sorting_drafts |               35 | visible_fields_json    | jsonb     | NO
+ accounting   | payment_document_sorting_drafts |               36 | human_corrections_json | jsonb     | NO
+ accounting   | payment_document_sorting_drafts |               37 | warnings_json          | jsonb     | NO
+ accounting   | receipt_ai_drafts               |               16 | ai_raw_json            | jsonb     | YES
+ accounting   | receipt_ai_drafts               |               20 | line_items             | jsonb     | NO
+ expenses     | receipt_ai_drafts               |                6 | raw_json               | jsonb     | YES
+ public       | received_items                  |                8 | payload                | jsonb     | NO
+(12 rows)
+
+
+[支払書類仕分け下書き 件数]
+ table_schema |           table_name            | row_count 
+--------------+---------------------------------+-----------
+ accounting   | payment_document_ocr_imports    | 11
+ accounting   | payment_document_sorting_drafts | 35
+(2 rows)
+
+
+[実行済みマイグレーションらしきテーブル]
+ table_schema |    table_name     
+--------------+-------------------
+ system       | schema_migrations
+(1 row)
+

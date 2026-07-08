@@ -1,0 +1,195 @@
+﻿==============================
+GPT00 NG箇所抜き出し
+==============================
+日時: 2026/07/08 21:19:06
+
+[HTML対象]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-tax-public.html
+
+---- HTML NG候補 ----
+
+[検索] dataset\.aiUnmatched
+---- hit line 1225 ----
+ 1221:     }
+ 1222: 
+ 1223:     control.classList.remove("ai-master-unmatched");
+ 1224:     delete control.dataset.aiMasterUnmatched;
+ 1225:     delete control.dataset.aiUnmatchedValue;
+ 1226:     control.removeAttribute("title");
+ 1227: 
+ 1228:     Array.from(control.options || []).forEach(option => {
+ 1229:       if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+---- hit line 1242 ----
+ 1238:     }
+ 1239: 
+ 1240:     control.value = "";
+ 1241:     control.dataset.aiMasterUnmatched = "1";
+ 1242:     control.dataset.aiUnmatchedValue = text || "";
+ 1243:     control.classList.add("ai-master-unmatched");
+ 1244:     control.title = text
+ 1245:       ? "AI候補がマスタに一致しません: " + text
+ 1246:       : "AI候補がマスタに一致しません";
+---- hit line 1891 ----
+ 1887: 
+ 1888:     control.value = "";
+ 1889:     control.classList.add("ai-master-unmatched");
+ 1890:     control.dataset.aiMasterUnmatched = "1";
+ 1891:     control.dataset.aiUnmatchedValue = String(text || "");
+ 1892:     control.title = text
+ 1893:       ? "AI候補がマスタ候補に一致しません: " + text
+ 1894:       : "AI候補がマスタ候補に一致しません";
+ 1895:   }
+---- hit line 1902 ----
+ 1898:     if (!control) return;
+ 1899: 
+ 1900:     control.classList.remove("ai-master-unmatched");
+ 1901:     delete control.dataset.aiMasterUnmatched;
+ 1902:     delete control.dataset.aiUnmatchedValue;
+ 1903:     control.removeAttribute("title");
+ 1904:   }
+ 1905: 
+ 1906:   function aiSetSelectByMasterCode(control, label, value) {
+---- hit line 2054 ----
+ 2050:     });
+ 2051: 
+ 2052:     select.classList.remove("ai-master-unmatched");
+ 2053:     delete select.dataset.aiMasterUnmatched;
+ 2054:     delete select.dataset.aiUnmatchedValue;
+ 2055:     select.removeAttribute("title");
+ 2056: 
+ 2057:     if (!raw) {
+ 2058:       select.value = "";
+---- hit line 2092 ----
+ 2088: 
+ 2089:     select.value = "";
+ 2090:     select.classList.add("ai-master-unmatched");
+ 2091:     select.dataset.aiMasterUnmatched = "1";
+ 2092:     select.dataset.aiUnmatchedValue = raw;
+ 2093:     select.title = "AI候補がマスタに一致しません: " + raw;
+ 2094:     return true;
+ 2095:   }
+ 2096: /* PAYMENT_DOCUMENT_AI_SELECT_MASTER_APPLY_FIX_20260707_END */
+
+[検索] AI候補・マスタ未一致
+該当なし
+
+[検索] appendChild\(option\)
+---- hit line 3759 ----
+ 3755:       const option = document.createElement("option");
+ 3756:       option.value = "";
+ 3757:       option.textContent = label + "マスタ未接続または未登録";
+ 3758:       option.disabled = false;
+ 3759:       select.appendChild(option);
+ 3760:       select.classList.add("master-missing");
+ 3761:       select.disabled = false;
+ 3762:       scheduleDocumentPreviewFit();
+ 3763:       return;
+---- hit line 3782 ----
+ 3778:       const option = document.createElement("option");
+ 3779:       option.value = value;
+ 3780:       option.dataset.name = name;
+ 3781:       option.textContent = labelText;
+ 3782:       select.appendChild(option);
+ 3783:     }
+ 3784: 
+ 3785:     if (previousValue) {
+ 3786:       setDraftMasterSelectValue(select, previousValue);
+---- hit line 3971 ----
+ 3967:       const option = document.createElement("option");
+ 3968:       option.value = "";
+ 3969:       option.textContent = label + "マスタ未接続または未登録";
+ 3970:       option.disabled = false;
+ 3971:       select.appendChild(option);
+ 3972: 
+ 3973:       select.classList.add("master-missing");
+ 3974:       select.disabled = false;
+ 3975:       scheduleDocumentPreviewFit();
+---- hit line 4001 ----
+ 3997:         option.dataset.code = code;
+ 3998:       }
+ 3999: 
+ 4000:       option.textContent = labelText;
+ 4001:       select.appendChild(option);
+ 4002:     }
+ 4003: 
+ 4004:     if (previousValue) {
+ 4005:       setDraftMasterSelectValue(select, previousValue);
+---- hit line 4113 ----
+ 4109:         select.classList.add("master-empty");
+ 4110:       }
+ 4111: 
+ 4112:       option.disabled = false;
+ 4113:       select.appendChild(option);
+ 4114:       select.value = "";
+ 4115:       scheduleDocumentPreviewFit();
+ 4116:       return;
+ 4117:     }
+---- hit line 4138 ----
+ 4134:         option.dataset.code = code;
+ 4135:       }
+ 4136: 
+ 4137:       option.textContent = labelText;
+ 4138:       select.appendChild(option);
+ 4139:     }
+ 4140: 
+ 4141:     if (previousValue) {
+ 4142:       setDraftMasterSelectValue(select, previousValue);
+
+[CSS対象]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-tax-public.css
+
+---- CSS NG候補 ----
+
+[検索] value=
+該当なし
+
+[検索] selected
+---- hit line 963 ----
+  959:   background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+  960: }
+  961: 
+  962: .sorting-bulk-row .sorting-bulk-analyze,
+  963: .sorting-bulk-row button[onclick="runSelectedAiDrafts()"] {
+  964:   border: none;
+  965:   color: #ffffff;
+  966:   font-weight: 800;
+  967:   letter-spacing: 0.04em;
+---- hit line 975 ----
+  971:   box-shadow: 0 0.5rem 1.125rem rgba(37, 99, 235, 0.28);
+  972: }
+  973: 
+  974: .sorting-bulk-row .sorting-bulk-analyze:hover,
+  975: .sorting-bulk-row button[onclick="runSelectedAiDrafts()"]:hover {
+  976:   transform: translateY(-0.0625rem);
+  977:   box-shadow: 0 0.75rem 1.5rem rgba(124, 58, 237, 0.30);
+  978: }
+  979: 
+---- hit line 1036 ----
+ 1032:   margin-bottom: 0.375rem;
+ 1033: }
+ 1034: 
+ 1035: .list-panel .summary,
+ 1036: .list-panel .selected-summary {
+ 1037:   font-size: 0.6875rem;
+ 1038:   line-height: 1.25;
+ 1039:   margin: 0.25rem 0;
+ 1040: }
+---- hit line 1057 ----
+ 1053:   min-height: 0;
+ 1054: }
+ 1055: 
+ 1056: .list-panel .sorting-bulk-row .sorting-bulk-analyze,
+ 1057: .list-panel .sorting-bulk-row button[onclick="runSelectedAiDrafts()"] {
+ 1058:   font-size: 0.6875rem;
+ 1059:   padding: 0.375rem 0.6875rem;
+ 1060:   border-radius: 62.4375rem;
+ 1061:   box-shadow: 0 0.3125rem 0.75rem rgba(37, 99, 235, 0.22);
+
+[検索] option
+該当なし
+
+[判断基準]
+- dataset.aiUnmatched または AI候補・マスタ未一致 が残っていたら削除対象
+- appendChild(option) だけなら、通常のマスタselect読込処理の可能性あり
+- CSSの option / selected は見た目用なら問題なし
+- CSSが値を変えることは基本できないため、CSSのNGはほぼ要確認扱い

@@ -1,0 +1,379 @@
+==============================
+GPT2 DB確認 マスタ存在確認
+==============================
+日時: 2026-07-08T11:53:54.853Z
+
+[確認方針]
+- 読み取り専用
+- DB変更なし
+- 契約・保険・リース設計で必要なマスタが既存にあるか確認
+
+[接続先]
+database_name=hd_origin_project / current_schema=public
+
+[全テーブル]
+table_schema=accounting / table_name=delivery_note_details
+table_schema=accounting / table_name=delivery_note_draft_details
+table_schema=accounting / table_name=delivery_note_drafts
+table_schema=accounting / table_name=delivery_note_imports
+table_schema=accounting / table_name=delivery_notes
+table_schema=accounting / table_name=payable_documents
+table_schema=accounting / table_name=payable_lines
+table_schema=accounting / table_name=payable_payments
+table_schema=accounting / table_name=payable_status_history
+table_schema=accounting / table_name=payment_document_contract_insurance_lease_drafts
+table_schema=accounting / table_name=payment_document_ocr_imports
+table_schema=accounting / table_name=payment_document_sorting_drafts
+table_schema=accounting / table_name=receipt_ai_drafts
+table_schema=accounting / table_name=receipt_detail_breakdowns
+table_schema=accounting / table_name=receipt_details
+table_schema=accounting / table_name=receipt_draft_detail_breakdowns
+table_schema=accounting / table_name=receipt_draft_details
+table_schema=accounting / table_name=receipt_drafts
+table_schema=accounting / table_name=receipt_imports
+table_schema=accounting / table_name=receipt_tax_breakdowns
+table_schema=accounting / table_name=receipts
+table_schema=expenses / table_name=account_titles
+table_schema=expenses / table_name=accounting_categories
+table_schema=expenses / table_name=departments
+table_schema=expenses / table_name=document_types
+table_schema=expenses / table_name=evidence_types
+table_schema=expenses / table_name=expense_details
+table_schema=expenses / table_name=expense_headers
+table_schema=expenses / table_name=invoice_types
+table_schema=expenses / table_name=payable_kinds
+table_schema=expenses / table_name=payment_destinations
+table_schema=expenses / table_name=payment_methods
+table_schema=expenses / table_name=payment_source_types
+table_schema=expenses / table_name=projects
+table_schema=expenses / table_name=purposes
+table_schema=expenses / table_name=receipt_ai_drafts
+table_schema=expenses / table_name=receipt_files
+table_schema=expenses / table_name=receipt_imports
+table_schema=expenses / table_name=target_people
+table_schema=expenses / table_name=tax_categories
+table_schema=expenses / table_name=tax_treatments
+table_schema=expenses / table_name=vendors
+table_schema=public / table_name=received_items
+table_schema=system / table_name=schema_migrations
+
+[マスタ候補テーブル]
+table_schema=accounting / table_name=delivery_note_details / reason=columns
+table_schema=accounting / table_name=delivery_note_draft_details / reason=columns
+table_schema=accounting / table_name=payable_documents / reason=columns
+table_schema=accounting / table_name=payable_status_history / reason=table_name
+table_schema=accounting / table_name=payment_document_contract_insurance_lease_drafts / reason=table_name+columns
+table_schema=accounting / table_name=payment_document_sorting_drafts / reason=columns
+table_schema=accounting / table_name=receipt_tax_breakdowns / reason=columns
+table_schema=expenses / table_name=account_titles / reason=table_name+columns
+table_schema=expenses / table_name=accounting_categories / reason=columns
+table_schema=expenses / table_name=departments / reason=table_name+columns
+table_schema=expenses / table_name=document_types / reason=table_name+columns
+table_schema=expenses / table_name=evidence_types / reason=table_name+columns
+table_schema=expenses / table_name=invoice_types / reason=table_name+columns
+table_schema=expenses / table_name=payable_kinds / reason=table_name+columns
+table_schema=expenses / table_name=payment_destinations / reason=table_name+columns
+table_schema=expenses / table_name=payment_methods / reason=table_name+columns
+table_schema=expenses / table_name=payment_source_types / reason=columns
+table_schema=expenses / table_name=projects / reason=table_name+columns
+table_schema=expenses / table_name=purposes / reason=table_name+columns
+table_schema=expenses / table_name=target_people / reason=table_name+columns
+table_schema=expenses / table_name=tax_categories / reason=columns
+table_schema=expenses / table_name=tax_treatments / reason=columns
+table_schema=expenses / table_name=vendors / reason=table_name+columns
+
+[設計上ほしいマスタ名]
+- document_types
+- evidence_types
+- payment_destinations
+- accounting_categories
+- payable_kinds
+- vendors
+- account_titles
+- tax_categories
+- invoice_types
+- payment_methods
+- target_people
+- purposes
+- projects
+- departments
+- contract_insurance_lease_kinds
+- insurance_types
+- lease_item_categories
+- contract_types
+- contract_statuses
+- payment_statuses
+- payment_cycles
+- company_burden_types
+- personal_mix_flags
+- payable_registration_types
+- accounts_payable_registration_types
+- auto_renewal_types
+- ownership_transfer_types
+- early_cancellation_types
+
+[テーブル名として存在するか]
+document_types: あり exact -> expenses.document_types
+evidence_types: あり exact -> expenses.evidence_types
+payment_destinations: あり exact -> expenses.payment_destinations
+accounting_categories: あり exact -> expenses.accounting_categories
+payable_kinds: あり exact -> expenses.payable_kinds
+vendors: あり exact -> expenses.vendors
+account_titles: あり exact -> expenses.account_titles
+tax_categories: あり exact -> expenses.tax_categories
+invoice_types: あり exact -> expenses.invoice_types
+payment_methods: あり exact -> expenses.payment_methods
+target_people: あり exact -> expenses.target_people
+purposes: あり exact -> expenses.purposes
+projects: あり exact -> expenses.projects
+departments: あり exact -> expenses.departments
+contract_insurance_lease_kinds: テーブル名では見当たらない
+insurance_types: テーブル名では見当たらない
+lease_item_categories: テーブル名では見当たらない
+contract_types: テーブル名では見当たらない
+contract_statuses: テーブル名では見当たらない
+payment_statuses: テーブル名では見当たらない
+payment_cycles: テーブル名では見当たらない
+company_burden_types: テーブル名では見当たらない
+personal_mix_flags: テーブル名では見当たらない
+payable_registration_types: テーブル名では見当たらない
+accounts_payable_registration_types: テーブル名では見当たらない
+auto_renewal_types: テーブル名では見当たらない
+ownership_transfer_types: テーブル名では見当たらない
+early_cancellation_types: テーブル名では見当たらない
+
+[汎用マスタらしいテーブル]
+なし
+
+[マスタ候補テーブル サンプル]
+
+--- accounting.delivery_note_details ---
+columns: description, created_at, updated_at
+なし
+
+--- accounting.delivery_note_draft_details ---
+columns: description, created_at, updated_at
+なし
+
+--- accounting.payable_documents ---
+columns: created_at, updated_at, deleted_at
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / updated_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時) / deleted_at=[NULL]
+
+--- accounting.payable_status_history ---
+columns: created_at
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+created_at=Mon Jul 06 2026 20:55:28 GMT+0900 (日本標準時)
+
+--- accounting.payment_document_contract_insurance_lease_drafts ---
+columns: created_at, updated_at, deleted_at
+なし
+
+--- accounting.payment_document_sorting_drafts ---
+columns: created_at, updated_at, deleted_at
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 00:21:04 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 18:16:13 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 18:16:13 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 01:56:25 GMT+0900 (日本標準時) / deleted_at=[NULL]
+created_at=Wed Jul 08 2026 02:02:14 GMT+0900 (日本標準時) / updated_at=Wed Jul 08 2026 02:02:14 GMT+0900 (日本標準時) / deleted_at=[NULL]
+
+--- accounting.receipt_tax_breakdowns ---
+columns: sort_order, created_at, updated_at
+なし
+
+--- expenses.account_titles ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=1 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=2 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=3 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=4 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=5 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=7 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=11 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=13 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=14 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=15 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=16 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=17 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=18 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=19 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=21 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=23 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=24 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=25 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=26 / created_at=Sat Jul 04 2026 10:41:24 GMT+0900 (日本標準時)
+
+--- expenses.accounting_categories ---
+columns: sort_order, is_active, created_at, updated_at
+sort_order=10 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=20 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=30 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=40 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=50 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=60 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=70 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=80 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=999 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+
+--- expenses.departments ---
+columns: is_active, sort_order, created_at
+なし
+
+--- expenses.document_types ---
+columns: sort_order, is_active, created_at, updated_at
+sort_order=40 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=50 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=60 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=70 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=80 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=90 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=100 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=999 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=10 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=20 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=30 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+
+--- expenses.evidence_types ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=10 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+is_active=true / sort_order=30 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+is_active=true / sort_order=90 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+
+--- expenses.invoice_types ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=10 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+is_active=true / sort_order=90 / created_at=Fri Jul 03 2026 08:36:06 GMT+0900 (日本標準時)
+
+--- expenses.payable_kinds ---
+columns: sort_order, is_active, created_at, updated_at
+sort_order=10 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=20 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=30 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=40 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=999 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+
+--- expenses.payment_destinations ---
+columns: sort_order, is_active, created_at, updated_at
+sort_order=10 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=20 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=30 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=40 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=50 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=60 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=900 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=999 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+
+--- expenses.payment_methods ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=10 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=30 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=40 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=50 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+
+--- expenses.payment_source_types ---
+columns: sort_order, is_active, created_at, updated_at
+sort_order=1 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=2 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=3 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=4 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=5 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+sort_order=6 / is_active=true / created_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時) / updated_at=Tue Jul 07 2026 12:31:35 GMT+0900 (日本標準時)
+
+--- expenses.projects ---
+columns: is_active, sort_order, created_at
+なし
+
+--- expenses.purposes ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=0 / created_at=Sun Jul 05 2026 10:22:35 GMT+0900 (日本標準時)
+is_active=false / sort_order=50 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=10 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=30 / created_at=Sat Jul 04 2026 14:38:33 GMT+0900 (日本標準時)
+is_active=true / sort_order=40 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=50 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=60 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=70 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=80 / created_at=Sat Jul 04 2026 14:38:33 GMT+0900 (日本標準時)
+is_active=true / sort_order=90 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=100 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=110 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=120 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=130 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=140 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=150 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=160 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=170 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+is_active=true / sort_order=180 / created_at=Sat Jul 04 2026 14:36:03 GMT+0900 (日本標準時)
+
+--- expenses.target_people ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=1 / created_at=Sat Jul 04 2026 09:06:30 GMT+0900 (日本標準時)
+is_active=true / sort_order=2 / created_at=Sat Jul 04 2026 09:06:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=3 / created_at=Sat Jul 04 2026 09:07:24 GMT+0900 (日本標準時)
+is_active=true / sort_order=4 / created_at=Sat Jul 04 2026 09:18:14 GMT+0900 (日本標準時)
+
+--- expenses.tax_categories ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=10 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=30 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=40 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+is_active=true / sort_order=50 / created_at=Sat Jun 27 2026 21:23:48 GMT+0900 (日本標準時)
+
+--- expenses.tax_treatments ---
+columns: is_active, sort_order, created_at
+is_active=true / sort_order=10 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=20 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=30 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=40 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=50 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=60 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+is_active=true / sort_order=90 / created_at=Fri Jul 03 2026 07:21:51 GMT+0900 (日本標準時)
+
+--- expenses.vendors ---
+columns: is_active, sort_order, created_at
+なし
+
+[判定メモ]
+- 既存マスタにあるものはそれを使う
+- 見当たらないものだけ追加マスタ候補にする
+- 汎用マスタ方式なら master_type 別件数を見る
+- 個別テーブル方式なら該当テーブルの有無を見る

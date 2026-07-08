@@ -1,0 +1,32 @@
+==============================
+GPT2 契約・保険・リース専門下書き 直接API保存テスト
+==============================
+日時: 2026-07-08T12:51:29.936Z
+
+[保存前件数]
+count: 0
+
+[対象OCR]
+payment_document_ocr_import_id: 8
+latest_sorting_draft_id: 32
+file: ダミー証憑_保険料通知書.png
+label: 保険
+
+[POST]
+http://127.0.0.1:3000/api/payment-documents/contract-insurance-lease-drafts/save
+
+[APIレスポンス]
+status: 500
+{
+  "ok": false,
+  "error": "invalid input syntax for type json"
+}
+
+[保存後件数]
+count: 0
+
+[最新5件]
+なし
+
+[判定]
+NG: 直接APIでも保存件数が増えていません。API/routes側を次に直します。
