@@ -1,0 +1,54 @@
+﻿==============================
+GPT2 契約・保険・リース stage3専門プロンプト 精度向上
+==============================
+日時: 2026/07/09 20:47:56
+
+[実施内容]
+- HTML / JS / API は触っていない
+- 後追い判定禁止を明記
+- 1回目・2回目AIを再実行しない前提を明記
+- 契約・保険・リースの種別判定ルールを強化
+- 支払対象・未払登録対象の判断条件を強化
+- OCR本文にない値を作らないルールを強化
+- visible_field_labels はAIが必要項目だけ返す方針を強化
+- GPT2側 before / after / apply / undo / memo 作成
+- .ps1は実行せず、この貼り付け内で直接反映
+
+[対象プロンプト]
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\system.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\fields.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\rules.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\examples.txt
+
+[before]
+EXISTS|web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\system.txt|C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_system.txt
+EXISTS|web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\fields.txt|C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_fields.txt
+EXISTS|web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\rules.txt|C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_rules.txt
+EXISTS|web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\examples.txt|C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_examples.txt
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\system.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\fields.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\rules.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\examples.txt
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\GPT2_contract_insurance_lease_prompt_precision_20260709_204756.undo.ps1
+
+[確認結果]
+OK: web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\system.txt
+NG: web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\fields.txt
+OK: web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\rules.txt
+NG: web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\examples.txt
+
+結果: 契約・保険・リース専門AIプロンプトを、後追い判定禁止・OCR本文根拠・専門解析専用の方針で更新しました。
+
+[次の確認]
+1. サーバー再起動
+2. 契約・保険・リース専門画面を Ctrl + F5
+3. 専門解析を1件実行
+4. AI結果が契約/保険/リースの根拠、期間、金額、支払状態、warningsを正しく返すか確認
+5. HTML/JS側で後追い補正していないことを維持

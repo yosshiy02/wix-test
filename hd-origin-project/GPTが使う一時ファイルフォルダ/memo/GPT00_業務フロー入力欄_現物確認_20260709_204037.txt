@@ -1,0 +1,74 @@
+﻿==============================
+GPT00 業務フロー入力欄 現物確認
+==============================
+日時: 2026/07/09 20:40:37
+
+[確認ファイル]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\business-flow-settings.html
+
+[存在確認]
+OK  : AI業務フロー入力
+OK  : businessFlowAiInput
+OK  : AIで業務フロー化
+OK  : /api/payment-documents/business-flow-ai/analyze
+
+[開くべきURL]
+http://localhost:3000/business-flow-settings.html
+
+[注意]
+メイン画面の業務フロー設定ボタンが別URLを開いている場合、入力欄は見えません。
+まず上のURLを直接開いてください。
+
+[HTML内の該当付近]
+b;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <h1>業務フロー設定</h1>
+      <div class="muted">会社の総務ルール・支払ルール・AI判断前提を整理します。</div>
+    </div>
+
+    <div class="layout">
+      <aside class="side">
+        <div class="side-title">目次</div>
+        <nav class="nav">
+          <a href="#flow-ai-free-input">AI業務フロー入力</a>
+          <a href="#flow-overview">全体フロー</a>
+          <a href="#flow-tax-public">毎月10日 税金・公的支払</a>
+          <a href="#flow-payment-documents">支払書類</a>
+          <a href="#flow-receipts">レシート</a>
+          <a href="#flow-payables">請求・未払</a>
+          <a href="#flow-ledgers">帳面・台帳確認</a>
+          <a href="#flow-ai">総務AIに見せる前提</a>
+          <a href="#flow-notes">会社ルール・注意点</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="toolbar">
+          <button type="button" onclick="saveFlow()">保存</button>
+          <button type="button" class="light" onclick="loadFlow()">再読込</button>
+          <button type="button" class="warn" onclick="resetDefaultFlow()">初期文に戻す</button>
+          <button type="button" class="light" onclick="copyAllFlowText()">全文コピー</button>
+          <span class="muted">画面入力はブラウザ内保存。AI解析結果はプロンプトファイルへ保存します。</span>
+          <span id="saveStatus"></span>
+        </div>
+
+        <div class="note">
+          ここは会社の総務フローを整理する場所です。雑な言葉で書いても、AIが業務ルール候補へ整理します。ただし、AIだけで支払承認・会計確定・台帳確定はしません。
+        </div>
+
+        <section id="flow-ai-free-input" class="section">
+          <div class="section-title">AI業務フロー入力</div>
+          <div class="section-body">
+            <div class="note">
+              ここに、会社の支払ルール・定期支払・書類なし支払・銀行引落・証憑後追いなどを自由に書い

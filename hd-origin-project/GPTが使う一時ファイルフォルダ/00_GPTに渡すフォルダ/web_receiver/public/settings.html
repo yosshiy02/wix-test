@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>HD Origin Project - 設定</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+    header {
+      background: #333;
+      color: white;
+      padding: 16px 22px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    main {
+      padding: 22px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    button, select {
+      font-size: 16px;
+      padding: 12px;
+    }
+    button {
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background: #fff;
+    }
+    button:hover {
+      background: #eee;
+    }
+    .danger {
+      border-color: #b00020;
+      color: #b00020;
+    }
+    .note {
+      color: #666;
+      line-height: 1.7;
+    }
+    #result,
+    #projectBackupResult {
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 80px;
+      margin-top: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      word-break: break-all;
+    }
+    th {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>設定</h1>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>データ丸ごとバックアップ／リストア</h2>
+      <p class="note">
+        対象：PostgreSQL の hd_origin_project データベース丸ごと<br>
+        保存先：backup フォルダ<br>
+        形式：full .backup / 構造 .schema.sql / データ .data.backup<br>
+        復元対象：full .backup のみ
+      </p>
+
+      <div class="button-row">
+        <button type="button" onclick="createBackup()">現状バックアップ</button>
+        <button type="button" onclick="loadBackups()">バックアップ一覧更新</button>
+      </div>
+
+      <h3>リストア対象</h3>
+      <select id="backupSelect" style="width: 100%;"></select>
+
+      <div class="button-row">
+        <button type="button" class="danger" onclick="restoreBackup()">選択したバックアップからリストア</button>
+      </div>
+
+      <div id="result">待機中</div>
+    </div>
+
+    <div class="card">
+      <h2>バックアップ一覧</h2>
+      <div id="backupList">読み込み中...</div>
+    </div>
+
+    <div class="card">
+      <h2>プログラム本体バックアップ</h2>
+      <p class="note">
+        対象：hd-origin-project のプログラム本体<br>
+        含む：HTML / JavaScript / server.js / database / docs など<br>
+        除外：.env / .git / node_modules / backup / 一時ファイル / GPT用一時フォルダ<br>
+        保存先：backup/project フォルダ
+      </p>
+
+      <div class="button-row">
+        <button type="button" onclick="createProjectBackup()">プログラム本体バックアップ</button>
+        <button type="button" onclick="loadProjectBackups()">プログラムバックアップ一覧更新</button>
+      </div>
+
+      <div id="projectBackupResult">待機中</div>
+      <div id="projectBackupList">読み込み中...</div>
+    </div>
+  </main>
+
+<script>
+function showResult(data) {
+  document.getElementById("result").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function showProjectResult(data) {
+  document.getElementById("projectBackupResult").textContent =
+    typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unit = 0;
+
+  while (size >= 1024 && unit < units.length - 1) {
+    size = size / 1024;
+    unit++;
+  }
+
+  return `${size.toFixed(1)} ${units[unit]}`;
+}
+
+function formatJst(value) {
+  if (!value) return "";
+
+  const d = new Date(value);
+
+  return new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(d);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+function artifactStatus(artifact) {
+  return artifact ? "あり" : "なし";
+}
+
+function artifactName(artifact) {
+  return artifact && artifact.file_name ? artifact.file_name : "";
+}
+
+function artifactSize(artifact) {
+  return artifact && artifact.size_bytes ? formatBytes(artifact.size_bytes) : "";
+}
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+
+  let data;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (err) {
+    data = {
+      ok: false,
+      error: "JSONとして読めませんでした。",
+      raw: text
+    };
+  }
+
+  if (!res.ok && data.ok !== false) {
+    data.ok = false;
+    data.error = data.error || `HTTP ${res.status}`;
+  }
+
+  return data;
+}
+
+async function createBackup() {
+  showResult("バックアップ作成中です。少し待ってください。");
+
+  try {
+    const data = await fetchJson("/api/backup/create", {
+      method: "POST"
+    });
+
+    showResult(data);
+    await loadBackups();
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
+  }
+}
+
+async function loadBackups() {
+  const select = document.getElementById("backupSelect");
+
+  try {
+    const data = await fetchJson("/api/backup/list");
+
+    if (!data.ok) {
+      showResult(data);
+      document.getElementById("backupList").textContent =
+        "バックアップ一覧を読み込めませんでした。";
+      return;
+    }
+
+    select.innerHTML = "";
+
+    if (!data.backups.length) {
+      document.getElementById("backupList").textContent =
+        "バックアップはまだありません。";
+
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "バックアップなし";
+      select.appendChild(opt);
+      return;
+    }
+
+    let html = "<table><tr><th>区分</th><th>選択</th><th>復元</th><th>丸ごと .backup</th><th>構造 .schema.sql</th><th>データ .data.backup</th><th>サイズ</th><th>更新日時</th></tr>";
+
+    for (const backup of data.backups) {
+      const label =
+        backup.is_latest_normal
+          ? "【最新版】" + backup.file_name
+          : backup.is_safety_backup
+            ? "【リストア前保険】" + backup.file_name
+            : backup.file_name;
+
+      const opt = document.createElement("option");
+      opt.value = backup.file_name;
+      opt.textContent = label;
+      select.appendChild(opt);
+
+      const typeLabel =
+        backup.is_latest_normal
+          ? "最新版"
+          : backup.is_safety_backup
+            ? "リストア前保険"
+            : "通常";
+
+      html += `
+        <tr>
+          <td>${escapeHtml(typeLabel)}</td>
+          <td>
+            <button type="button" onclick="selectBackupForRestore('${escapeHtml(backup.file_name)}')">
+              このバックアップを選択
+            </button>
+          </td>
+          <td>${escapeHtml("可")}</td>
+          <td>
+            <strong>${escapeHtml(label)}</strong><br>
+            <span class="note">丸ごと復旧用</span>
+          </td>
+          <td>
+            ${escapeHtml(artifactStatus(backup.schema_backup))}<br>
+            <span class="note">${escapeHtml(artifactName(backup.schema_backup))}</span><br>
+            <span class="note">${escapeHtml(artifactSize(backup.schema_backup))}</span>
+          </td>
+          <td>
+            ${escapeHtml(artifactStatus(backup.data_backup))}<br>
+            <span class="note">${escapeHtml(artifactName(backup.data_backup))}</span><br>
+            <span class="note">${escapeHtml(artifactSize(backup.data_backup))}</span>
+          </td>
+          <td>${escapeHtml(formatBytes(backup.size_bytes))}</td>
+          <td>${escapeHtml(formatJst(backup.updated_at))}</td>
+        </tr>
+      `;
+    }
+
+    html += "</table>";
+    document.getElementById("backupList").innerHTML = html;
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
+
+    document.getElementById("backupList").textContent =
+      "バックアップ一覧を読み込めませんでした。";
+  }
+}
+
+
+function selectBackupForRestore(fileName) {
+  const select = document.getElementById("backupSelect");
+  const result = document.getElementById("result");
+
+  if (!select) {
+    alert("リストア対象の選択欄が見つかりません。");
+    return;
+  }
+
+  select.value = fileName;
+
+  if (select.value !== fileName) {
+    alert("選択欄に対象バックアップが見つかりませんでした。");
+    return;
+  }
+
+  result.textContent =
+    "リストア対象に選択しました。\n\n" +
+    fileName +
+    "\n\n内容を確認してから「選択したバックアップからリストア」を押してください。";
+}
+async function restoreBackup() {
+  const fileName = document.getElementById("backupSelect").value;
+
+  if (!fileName) {
+    alert("リストアするバックアップを選んでください。");
+    return;
+  }
+
+  const ok1 = confirm(
+    "リストアします。\n\n現在のデータは選択したバックアップの内容に戻ります。\n実行前に安全用バックアップも自動作成します。\n\n続けますか？"
+  );
+
+  if (!ok1) {
+    showResult("リストアをキャンセルしました。");
+    return;
+  }
+
+  const ok2 = confirm(
+    "最終確認です。\n\nリストア対象:\n" + fileName + "\n\n本当に実行しますか？"
+  );
+
+  if (!ok2) {
+    showResult("リストアをキャンセルしました。");
+    return;
+  }
+
+  showResult("リストア中です。少し待ってください。");
+
+  try {
+    const data = await fetchJson("/api/backup/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_name: fileName })
+    });
+
+    showResult(data);
+    await loadBackups();
+  } catch (err) {
+    showResult({
+      ok: false,
+      error: err.message
+    });
+  }
+}
+
+async function createProjectBackup() {
+  showProjectResult("プログラム本体バックアップ作成中です。少し待ってください。");
+
+  try {
+    const data = await fetchJson("/api/project-backup/create", {
+      method: "POST"
+    });
+
+    showProjectResult(data);
+    await loadProjectBackups();
+  } catch (err) {
+    showProjectResult({
+      ok: false,
+      error: err.message
+    });
+  }
+}
+
+async function loadProjectBackups() {
+  try {
+    const data = await fetchJson("/api/project-backup/list");
+
+    if (!data.ok) {
+      showProjectResult(data);
+      document.getElementById("projectBackupList").textContent =
+        "プログラム本体バックアップ一覧を読み込めませんでした。";
+      return;
+    }
+
+    if (!data.backups.length) {
+      document.getElementById("projectBackupList").textContent =
+        "プログラム本体バックアップはまだありません。";
+      return;
+    }
+
+    let html = "<table><tr><th>ファイル名</th><th>サイズ</th><th>更新日時</th></tr>";
+
+    for (const backup of data.backups) {
+      html += `
+        <tr>
+          <td>${escapeHtml(backup.file_name)}</td>
+          <td>${escapeHtml(formatBytes(backup.size_bytes))}</td>
+          <td>${escapeHtml(formatJst(backup.updated_at))}</td>
+        </tr>
+      `;
+    }
+
+    html += "</table>";
+    document.getElementById("projectBackupList").innerHTML = html;
+  } catch (err) {
+    showProjectResult({
+      ok: false,
+      error: err.message
+    });
+
+    document.getElementById("projectBackupList").textContent =
+      "プログラム本体バックアップ一覧を読み込めませんでした。";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadBackups();
+  await loadProjectBackups();
+});
+</script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+<!-- HD_ORIGIN_RECEIVABLES_FLOAT_BUTTON_20260707_START -->
+<div id="hd-origin-receivables-float-button" style="position:fixed; right:18px; bottom:18px; z-index:99999;">
+  <button type="button" onclick="location.href='/receivables/receivable-dashboard.html'" style="font-weight:900; padding:12px 18px; border-radius:999px; border:1px solid #111827; background:#111827; color:#fff; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.25);">
+    入金管理
+  </button>
+</div>
+<!-- HD_ORIGIN_RECEIVABLES_FLOAT_BUTTON_20260707_END -->
+</body>
+</html>
+
+

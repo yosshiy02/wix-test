@@ -1,0 +1,83 @@
+﻿==============================
+GPT2 paymentDocuments.routes.js 起動不能 復旧
+==============================
+日時: 2026/07/09 21:34:15
+
+[エラー原因]
+paymentDocuments.routes.js の 6582行付近で SyntaxError
+
+[壊れた現物退避]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\pd_routes_broken_20260709_213414.js
+
+[Git候補]
+SKIP: Git HEAD候補作成エラー: fatal: path 'hd-origin-project/web_receiver/src/paymentDocuments/paymentDocuments.routes.js' exists, but not 'web_receiver/src/paymentDocuments/paymentDocuments.routes.js'
+
+[復旧状態]
+OK: 正常候補から routes.js を復元しました: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_paymentDocuments.routes.after.js
+
+[最終 node --check]
+OK: paymentDocuments.routes.js 構文OK
+
+[候補チェック結果]
+----
+OK: True
+更新日時: 07/08/2026 21:53:49
+候補: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_paymentDocuments.routes.after.js
+----
+OK: True
+更新日時: 07/08/2026 21:46:41
+候補: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\GPT2_契約保険リース専門下書き保存API接続_20260708_214641_paymentDocuments.routes.after.js
+----
+OK: True
+更新日時: 07/08/2026 21:46:41
+候補: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_paymentDocuments.routes.before.js
+----
+OK: True
+更新日時: 07/08/2026 17:57:25
+候補: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_契約保険リース専門下書き保存API接続_20260708_214641_paymentDocuments.routes.before.js
+----
+OK: True
+更新日時: 07/09/2026 20:31:44
+候補: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\GPT2に渡すフォルダ\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[6582行前後]
+  6567: 
+  6568: async function hdOriginAnalyzeBusinessFlowWithOpenAi(sourceText) {
+  6569:   const cleanText = hdOriginBusinessFlowCleanText(sourceText, 20000);
+  6570: 
+  6571:   const systemMessage = [
+  6572:     "あなたはHD Origin Projectの総務AI設定補助です。",
+  6573:     "ユーザーが自由に書いた業務メモを、会社の業務フロー・支払ルール・証憑確認ルールとして精査してください。",
+  6574:     "会計仕訳や支払承認を最終確定してはいけません。",
+  6575:     "書類なし支払、定期支払、銀行引落、証憑後追い、公共料金、家賃、税金、公的支払、請求未払、レシート、カード明細などに振り分けてください。",
+  6576:     "必ずJSONのみを返してください。"
+  6577:   ].join("\n");
+  6578: 
+  6579:   const prompt = [
+  6580:     "以下の自由入力メモを解析し、JSONで返してください。",
+  6581:     "",
+  6582:     "
+  6583: 【重要：支払・証憑情報が無くても対象外にしてはいけない情報】
+  6584: 次の内容は、支払明細や証憑情報が無くても、業務フロー設定の対象として扱う。
+  6585: - 会社名
+  6586: - 関係会社
+  6587: - 複数会社
+  6588: - 会社区分
+  6589: - 会社ごとの役割
+  6590: - 人間がアナログで行っていた業務
+  6591: - AI化したい業務
+  6592: - システム化したい確認、分類、追跡、期限管理
+  6593: - 総務AIに見せる前提
+  6594: - プロンプトを育てるための方針
+  6595: - 次に作るべき画面、DB、警告機能の材料
+  6596: 
+  6597: 会社名や関係会社だけが入力された場合でも、「業務ルール適用対象外」と返してはいけない。
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\pd_routes_recover_20260709_213414.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\pd_routes_recover_20260709_213414.undo.ps1
+
+[次]
+サーバーを再起動してください。

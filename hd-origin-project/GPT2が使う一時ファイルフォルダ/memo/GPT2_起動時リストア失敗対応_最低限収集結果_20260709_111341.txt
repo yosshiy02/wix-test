@@ -1,0 +1,24 @@
+﻿==============================
+GPT2 起動時リストア失敗対応 最低限収集結果
+==============================
+日時: 2026/07/09 11:13:41
+
+[原因]
+- pg_restore --clean が依存関係でDROP失敗
+- payment_document_contract_insurance_lease_drafts が既存親テーブルに依存
+- duplicate key も発生
+- 既存DBへ上書きリストアでは危険
+
+[収集できたファイル]
+- web_receiver\server.js
+- web_receiver\src\backups\backup.service.js
+
+[見つからなかったファイル]
+- なし
+
+[方針]
+- GPT2側だけ使用
+- DB本体はこの収集では触らない
+- backup.service.js の restoreBackup を安全型に直す
+- 既存DBへ --clean 復元ではなく、DB丸ごと作り直し方式にする
+- server.js 側の長すぎるエラー表示も短くする

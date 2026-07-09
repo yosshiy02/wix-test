@@ -1,0 +1,7 @@
+# GPT00_business_flow_ai_free_input_20260709_203645 undo
+$ErrorActionPreference = "Stop"
+Copy-Item -Path "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.business-flow-settings.html" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\business-flow-settings.html" -Force
+Copy-Item -Path "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.paymentDocuments.routes.js" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js" -Force
+Copy-Item -Path "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.paymentDocuments.aiPromptLoader.js" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.aiPromptLoader.js" -Force
+Copy-Item -Path "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.company-business-flow-rules.txt" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\prompts\common\company-business-flow-rules.txt" -Force
+Write-Host "UNDO完了: 業務フローAI入力欄修正を戻しました。"

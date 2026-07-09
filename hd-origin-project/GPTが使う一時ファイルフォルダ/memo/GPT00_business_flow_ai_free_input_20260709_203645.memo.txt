@@ -1,0 +1,60 @@
+==============================
+GPT00 業務フロー設定 AI自由入力欄 一発反映メモ
+==============================
+日時: 2026/07/09 20:36:45
+
+[前提]
+- GPT00作業
+- GPT2側は不使用
+- WGPT競合防止のため GPT2が使う一時ファイルフォルダには触れていない
+- before / after / apply / undo / memo 作成済み
+
+[反映内容]
+1. business-flow-settings.html
+   - AI業務フロー入力欄を追加
+   - AIで業務フロー化ボタンを追加
+   - AI解析結果表示欄を追加
+   - 既存ページが無い場合でも新規作成
+
+2. paymentDocuments.routes.js
+   - POST /api/payment-documents/business-flow-ai/analyze を追加
+   - 自由入力文をOpenAIでJSON整理
+   - common/company-business-flow-rules.txt に総務AI用ルールとして保存
+   - general-affairs-ai-notes.md / general-affairs-ai-changelog.md へ追記
+
+3. paymentDocuments.aiPromptLoader.js
+   - common/company-business-flow-rules.txt を総務AI共通プロンプトとして追加読込
+
+4. 初期ファイル
+   - web_receiver/src/paymentDocuments/prompts/common/company-business-flow-rules.txt を作成
+
+[before]
+HTML  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.business-flow-settings.html
+routes: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.paymentDocuments.routes.js
+loader: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.paymentDocuments.aiPromptLoader.js
+rules : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_business_flow_ai_free_input_20260709_203645.before.company-business-flow-rules.txt
+
+[after]
+HTML  : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_business_flow_ai_free_input_20260709_203645.after.business-flow-settings.html
+routes: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_business_flow_ai_free_input_20260709_203645.after.paymentDocuments.routes.js
+loader: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_business_flow_ai_free_input_20260709_203645.after.paymentDocuments.aiPromptLoader.js
+rules : C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_business_flow_ai_free_input_20260709_203645.after.company-business-flow-rules.txt
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT00_business_flow_ai_free_input_20260709_203645.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT00_business_flow_ai_free_input_20260709_203645.undo.ps1
+
+[確認]
+node --check paymentDocuments.routes.js OK
+node --check paymentDocuments.aiPromptLoader.js OK
+
+[画面操作]
+業務フロー設定ページを開き、
+AI業務フロー入力欄に例文を入れて、
+「AIで業務フロー化」を押す。
+
+例:
+水道料金は毎月25日前後に銀行から自動引落される。書類がない場合もある。
+家賃は毎月末に支払う。請求書がない場合は証憑後追い確認にする。

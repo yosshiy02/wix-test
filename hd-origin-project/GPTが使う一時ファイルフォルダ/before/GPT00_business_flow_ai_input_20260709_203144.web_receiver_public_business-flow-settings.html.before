@@ -1,0 +1,576 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>業務フロー設定 - HD Origin Project</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 30%),
+        radial-gradient(circle at top right, rgba(234, 88, 12, 0.12), transparent 28%),
+        linear-gradient(135deg, #f8fafc 0%, #eef2f7 55%, #e2e8f0 100%);
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    .page {
+      width: min(96rem, calc(100vw - 1.5rem));
+      margin: 0 auto;
+      padding: 0.8rem;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 64, 175, 0.94));
+      color: #ffffff;
+      border-radius: 1rem;
+      padding: 0.8rem 0.9rem;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.14);
+      margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: 1.18rem;
+      margin: 0 0.5rem 0 0;
+      white-space: nowrap;
+    }
+
+    h1::before {
+      content: "FLOW";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.5rem;
+      padding: 0.18rem 0.44rem;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.18);
+      color: #bbf7d0;
+      border: 1px solid rgba(187, 247, 208, 0.28);
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      vertical-align: middle;
+    }
+
+    .muted {
+      color: #64748b;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .top .muted {
+      color: rgba(255,255,255,0.74);
+    }
+
+    button {
+      border: 0;
+      border-radius: 0.55rem;
+      background: linear-gradient(135deg, #111827, #334155);
+      color: #ffffff;
+      font-weight: 850;
+      padding: 0.48rem 0.72rem;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 0.82rem;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    button:hover {
+      filter: brightness(1.04);
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #2563eb, #0891b2);
+    }
+
+    button.warn {
+      background: linear-gradient(135deg, #ea580c, #f59e0b);
+    }
+
+    button.light {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 18rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+    }
+
+    .side,
+    .main {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(255,255,255,0.82);
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      padding: 0.75rem;
+    }
+
+    .side {
+      position: sticky;
+      top: 0.75rem;
+    }
+
+    .side-title {
+      font-weight: 900;
+      margin-bottom: 0.55rem;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .nav a {
+      display: block;
+      color: #0f172a;
+      text-decoration: none;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.55rem;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .nav a:hover {
+      background: #eef6ff;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .section {
+      border: 1px solid #e2e8f0;
+      border-radius: 0.85rem;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      background: #ffffff;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.42rem;
+      padding: 0.58rem 0.68rem;
+      background: linear-gradient(135deg, #f8fafc, #eef2ff);
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 950;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+    }
+
+    .section-body {
+      padding: 0.65rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 8rem;
+      resize: vertical;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.65rem;
+      padding: 0.65rem;
+      font: inherit;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #111827;
+      background: #ffffff;
+    }
+
+    .small-textarea {
+      min-height: 5.5rem;
+    }
+
+    .status {
+      min-height: 1.4rem;
+      color: #166534;
+      font-size: 0.82rem;
+      font-weight: 850;
+      margin-left: auto;
+    }
+
+    .note {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      border-radius: 0.7rem;
+      padding: 0.6rem 0.7rem;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 70rem) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <h1>業務フロー設定</h1>
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="secondary" onclick="location.href='/payables/payment-document-review.html'">支払書類仕分けへ</button>
+      <button type="button" class="light" onclick="copyAllFlowText()">全文コピー</button>
+      <span id="saveStatus" class="status"></span>
+      <span class="muted">会社の総務・支払・帳面確認の流れをまとめる画面です。</span>
+    </header>
+
+    <div class="layout">
+      <aside class="side">
+        <div class="side-title">目次</div>
+        <nav class="nav">
+          <a href="#flow-overview">全体フロー</a>
+          <a href="#flow-tax-public">毎月10日 税金・公的支払</a>
+          <a href="#flow-payment-documents">支払書類</a>
+          <a href="#flow-receipts">レシート</a>
+          <a href="#flow-payables">請求・未払</a>
+          <a href="#flow-ledgers">帳面・台帳確認</a>
+          <a href="#flow-ai">総務AIに見せる前提</a>
+          <a href="#flow-notes">会社ルール・注意点</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="toolbar">
+          <button type="button" onclick="saveFlow()">保存</button>
+          <button type="button" class="light" onclick="loadFlow()">再読込</button>
+          <button type="button" class="warn" onclick="resetDefaultFlow()">初期文に戻す</button>
+          <span class="muted">今はブラウザ内保存です。DB保存ではありません。</span>
+        </div>
+
+        <div class="note">
+          ここは会社の総務フローを整理する場所です。まずは運用メモとして使い、後で必要になったらDB保存・総務AI参照・マスタ化へ進めます。
+        </div>
+
+        <section id="flow-overview" class="section">
+          <div class="section-title">全体フロー</div>
+          <div class="section-body">
+            <textarea data-flow-key="overview"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-tax-public" class="section">
+          <div class="section-title">毎月10日 税金・公的支払</div>
+          <div class="section-body">
+            <textarea data-flow-key="taxPublic"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-payment-documents" class="section">
+          <div class="section-title">支払書類</div>
+          <div class="section-body">
+            <textarea data-flow-key="paymentDocuments"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-receipts" class="section">
+          <div class="section-title">レシート</div>
+          <div class="section-body">
+            <textarea data-flow-key="receipts"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-payables" class="section">
+          <div class="section-title">請求・未払</div>
+          <div class="section-body">
+            <textarea data-flow-key="payables"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-ledgers" class="section">
+          <div class="section-title">帳面・台帳確認</div>
+          <div class="section-body">
+            <textarea data-flow-key="ledgers"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-ai" class="section">
+          <div class="section-title">総務AIに見せる前提</div>
+          <div class="section-body">
+            <textarea data-flow-key="ai"></textarea>
+          </div>
+        </section>
+
+        <section id="flow-notes" class="section">
+          <div class="section-title">会社ルール・注意点</div>
+          <div class="section-body">
+            <textarea class="small-textarea" data-flow-key="notes"></textarea>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "hd_origin_business_flow_settings_v1";
+
+    const defaultFlow = {
+      overview:
+`【会社総務 全体フロー】
+1. 紙・PDF・画像・メールなどの会社書類を集める
+2. 支払書類・レシート・請求書・納品書などに分ける
+3. 必要に応じてOCRする
+4. AIで候補を作る
+5. 人間が確認・修正する
+6. 台帳・帳面・支払予定へ反映する
+7. 会計処理候補へ進める
+8. 最終確定は人間確認後に行う`,
+
+      taxPublic:
+`【毎月10日 税金・公的支払】
+毎月10日当日は、源泉所得税・市民税などの税金／公的支払を行う。
+
+基本運用:
+1. 10日までに納付書・支払書類・預り金関係を確認する
+2. 預り金の帳面で、源泉所得税などの預り金を確認する
+3. 必要に応じて会計士へ確認する
+4. 納付書などの紙を持って銀行等へ行く
+5. 支払・振込を行う
+6. 支払済み証憑を保管する
+7. 台帳・帳面へ反映する
+
+注意:
+・税金・公的支払は通常の請求書や公共料金と混ぜない
+・源泉所得税などは預り金帳面と照合する
+・10日当日に慌てないよう、事前確認を完了させる`,
+
+      paymentDocuments:
+`【支払書類フロー】
+1. 支払書類OCR取込へ入れる
+2. OCR本文を作る
+3. 支払書類仕分けシステムで1回目仕分けを行う
+4. 書類ごとに専門解析システムへ送る
+5. 専門解析結果を確認する
+6. 人間が修正・承認する
+7. 台帳・未払・支払予定・会計候補へ進める
+
+専門解析の基本:
+・請求・未払系
+・支払済み証憑系
+・税金・公的支払系
+・契約・保険・リース系
+・公共料金・通信費系`,
+
+      receipts:
+`【レシートフロー】
+1. レシート取込へ画像を入れる
+2. 読取確認ページでAI候補を作る
+3. 対象者・目的・案件・部門・支払方法・税区分などを確認する
+4. 明細内訳を確認する
+5. 必要に応じて修正する
+6. 本保存する
+7. レシート台帳へ入る
+8. 本保存済みは読取確認リストから外す
+
+注意:
+・レシートは明細ごとの税判断を重視する
+・本保存済みと下書きを混ぜない
+・Dropbox側の証憑保存を正とする`,
+
+      payables:
+`【請求・未払フロー】
+1. 請求書・請求明細・支払依頼書を取り込む
+2. 支払先・請求日・支払期限・金額・税区分を確認する
+3. 明細行を確認する
+4. 未払登録対象かどうか確認する
+5. 支払予定へ反映する
+6. 支払後は支払済み証憑と照合する
+7. 必要に応じて会計候補へ進める
+
+注意:
+・請求系は明細が重要
+・ヘッダー情報だけで判断しない
+・支払済みか未払かを混同しない`,
+
+      ledgers:
+`【帳面・台帳確認】
+確認対象:
+・預り金帳面
+・レシート台帳
+・請求・未払台帳
+・支払予定
+・税金・公的支払記録
+・支払済み証憑
+・証憑保存場所
+
+基本:
+1. AI候補をそのまま確定しない
+2. 人間が確認する
+3. 帳面と証憑を照合する
+4. 支払済み／未払／預り金／税金を分ける
+5. 修正履歴を残す`,
+
+      ai:
+`【総務AIに見せる前提】
+総務AIは、会社の日常総務業務を横断して確認するAI。
+
+対象:
+・納品書
+・請求書
+・買掛支払
+・預り金納付
+・税金公的支払
+・紙書類
+・支払予定
+・台帳確認
+・証憑保存
+・帳面確認
+
+AIの役割:
+・書類の整理
+・不足確認
+・支払期限確認
+・台帳との照合
+・人間が確認すべき点の提示
+
+禁止:
+・AIだけで会計確定しない
+・AIだけで支払確定しない
+・後付けで項目を勝手に固定しない`,
+
+      notes:
+`【会社ルール・注意点】
+・最終判断は人間が行う
+・税金、公的支払、預り金は通常経費と分ける
+・紙の納付書があるものは紙の現物確認を重視する
+・支払書類は証憑保存と台帳反映までをセットで見る
+・会計士確認が必要なものは無理に確定しない`
+    };
+
+    function readSavedFlow() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { ...defaultFlow };
+        return { ...defaultFlow, ...JSON.parse(raw) };
+      } catch {
+        return { ...defaultFlow };
+      }
+    }
+
+    function setStatus(text) {
+      const el = document.getElementById("saveStatus");
+      if (!el) return;
+      el.textContent = text || "";
+      if (text) {
+        setTimeout(() => {
+          if (el.textContent === text) el.textContent = "";
+        }, 2500);
+      }
+    }
+
+    function loadFlow() {
+      const data = readSavedFlow();
+      document.querySelectorAll("[data-flow-key]").forEach(el => {
+        const key = el.getAttribute("data-flow-key");
+        el.value = data[key] || "";
+      });
+      setStatus("読込しました。");
+    }
+
+    function collectFlow() {
+      const data = {};
+      document.querySelectorAll("[data-flow-key]").forEach(el => {
+        const key = el.getAttribute("data-flow-key");
+        data[key] = el.value || "";
+      });
+      return data;
+    }
+
+    function saveFlow() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFlow()));
+      setStatus("保存しました。");
+    }
+
+    function resetDefaultFlow() {
+      const ok = confirm("初期文に戻しますか？\n現在の入力内容は上書きされます。");
+      if (!ok) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultFlow));
+      loadFlow();
+      setStatus("初期文に戻しました。");
+    }
+
+    function copyAllFlowText() {
+      const data = collectFlow();
+      const text = [
+        "==============================",
+        "HD Origin 業務フロー設定",
+        "==============================",
+        "",
+        "【全体フロー】",
+        data.overview || "",
+        "",
+        "【毎月10日 税金・公的支払】",
+        data.taxPublic || "",
+        "",
+        "【支払書類】",
+        data.paymentDocuments || "",
+        "",
+        "【レシート】",
+        data.receipts || "",
+        "",
+        "【請求・未払】",
+        data.payables || "",
+        "",
+        "【帳面・台帳確認】",
+        data.ledgers || "",
+        "",
+        "【総務AIに見せる前提】",
+        data.ai || "",
+        "",
+        "【会社ルール・注意点】",
+        data.notes || ""
+      ].join("\n");
+
+      navigator.clipboard.writeText(text).then(() => {
+        setStatus("全文コピーしました。");
+      }).catch(() => {
+        alert(text);
+      });
+    }
+
+    document.querySelectorAll("[data-flow-key]").forEach(el => {
+      el.addEventListener("change", saveFlow);
+      el.addEventListener("blur", saveFlow);
+    });
+
+    loadFlow();
+  </script>
+</body>
+</html>

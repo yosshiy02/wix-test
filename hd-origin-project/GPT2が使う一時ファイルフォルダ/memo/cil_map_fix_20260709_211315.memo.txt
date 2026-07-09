@@ -1,0 +1,47 @@
+﻿==============================
+GPT2 契約・保険・リース AI信頼度/AI判定理由 マッピング修正 retry
+==============================
+日時: 2026/07/09 21:13:15
+
+[今回の修正]
+- 3行まとめて一致ではなく、AI信頼度 / AI判定理由 の1行ずつを補強
+- AIが既に出している analysis_system_confidence / analysis_system_reason を拾う
+- ai_summary.confidence_label / ai_summary.reason を拾う
+- fields['AI信頼度'] / fields['AI判定理由'] を拾う
+- 要確認は触っていない
+- 後追い判定は追加していない
+- 分類・支払対象・未払対象をHTML側で判定し直していない
+
+[修正状態]
+OK: pushField側の AI信頼度 / AI判定理由 を1行ずつ補強
+OK: form側の AI信頼度 / AI判定理由 を補強
+OK: node --check 構文OK
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\cil_map_before_20260709_211315.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-specialist-contract-insurance-lease.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\cil_map_fix_20260709_211315.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\cil_map_fix_20260709_211315.undo.ps1
+
+[確認結果]
+OK: pushField marker
+OK: analysis_system_confidence fallback
+OK: analysis_system_reason fallback
+OK: ai_summary confidence fallback
+OK: fields AI信頼度 fallback
+OK: fields AI判定理由 fallback
+
+結果: OK。AI信頼度 / AI判定理由 のマッピングだけを補強しました。
+
+[次の確認]
+1. サーバー再起動
+2. 契約・保険・リース専門画面を Ctrl + F5
+3. 同じ2件で全件表示メモを出す
+4. 現在のAI解析結果の AI信頼度 / AI判定理由 が空欄でなくなるか確認
+5. 要確認が勝手に入っていないことを確認

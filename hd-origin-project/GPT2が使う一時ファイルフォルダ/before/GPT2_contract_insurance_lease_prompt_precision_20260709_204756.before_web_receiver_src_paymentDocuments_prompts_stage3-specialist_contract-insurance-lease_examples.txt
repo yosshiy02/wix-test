@@ -1,0 +1,57 @@
+﻿例: リース契約書
+
+{
+  "draft": {
+    "analysis_system_code": "contract_insurance_lease_analysis",
+    "analysis_system_label": "契約・保険・リース解析システム",
+    "analysis_system_reason": "OCR本文にリース契約、契約番号、リース物件、月額リース料、契約期間があるため。",
+    "analysis_system_confidence": "高",
+    "document_group": "contract_insurance_lease",
+    "specialist_route_code": "contract_insurance_lease",
+    "specialist_route_label": "契約・保険・リース解析",
+    "document_type_code": "lease_contract",
+    "document_type_label": "リース契約書",
+    "payment_destination_code": "contract_insurance_lease",
+    "payment_destination_label": "契約・保険・リース",
+    "accounting_category_code": "",
+    "accounting_category_label": "",
+    "payable_kind_code": "",
+    "payable_kind_label": "",
+    "ai_summary": {
+      "contract_insurance_lease": "リース",
+      "payment_target": "要確認",
+      "payable_target": "要確認",
+      "expense_target": "候補",
+      "tax_public": "対象外",
+      "confidence_label": "高",
+      "reason": "契約書として読めるが、今回の請求書かどうかは人間確認。"
+    },
+    "fields": {
+      "契約・保険・リース": "リース",
+      "書類区分": "リース契約書",
+      "リース会社": "〇〇リース株式会社",
+      "契約番号": "L-2026-001",
+      "リース物件": "複合機",
+      "月額リース料": "18,000",
+      "契約開始日": "2026-07-01",
+      "契約終了日": "2031-06-30",
+      "AI信頼度": "高",
+      "AI判定理由": "OCR本文にリース契約、契約番号、月額リース料があるため。"
+    }
+  },
+  "visible_field_labels": [
+    "契約・保険・リース",
+    "書類区分",
+    "リース会社",
+    "契約番号",
+    "リース物件",
+    "月額リース料",
+    "契約開始日",
+    "契約終了日",
+    "AI信頼度",
+    "AI判定理由"
+  ],
+  "warnings": [
+    "契約書のみの場合、今回の支払対象かどうかは人間確認してください。"
+  ]
+}

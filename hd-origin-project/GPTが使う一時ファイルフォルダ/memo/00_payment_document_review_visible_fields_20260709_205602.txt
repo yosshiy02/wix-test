@@ -1,0 +1,950 @@
+==============================
+支払書類内容確認 表示中項目メモ
+==============================
+日時: 2026-07-09T11:56:02.615Z
+
+[選択中OCR]
+selectedIndex: -1
+selectedOcrImportId: ALL
+originalFileName: 全件表示: 2件
+savedFileName: 
+mimeType: 
+ocrStatus: 全件
+
+[AI反映]
+aiAppliedCount: 2
+aiMissingControls: なし
+
+[表示中項目]
+項目数: 107
+
+---- 001 ダミー証憑_保険料通知書.png / 基本 ----
+
+1. No
+  id: no
+  値: 1
+
+2. OCR取込ID
+  id: payment_document_ocr_import_id
+  値: 8
+
+3. ファイル名
+  id: original_file_name
+  値: ダミー証憑_保険料通知書.png
+
+4. AI解析状態
+  id: ai_status
+  値: 解析結果あり
+
+---- 001 ダミー証憑_保険料通知書.png / 現在のAI解析結果 ----
+
+5. 書類区分
+  id: document_type
+  値: 保険料通知書
+
+6. 処理先
+  id: payment_destination
+  値: 契約・保険・リース
+
+7. 専門ルート
+  id: specialist_route
+  値: 契約・保険・リース解析
+
+8. 会計候補
+  id: accounting_category
+  値: 保険
+
+9. 未払種別
+  id: payable_kind
+  値: 未払金
+
+10. 支払対象
+  id: payment_target
+  値: [空欄]
+
+11. 未払登録対象
+  id: payable_target
+  値: [空欄]
+
+12. 経費登録対象
+  id: expense_target
+  値: [空欄]
+
+13. 税金・公的支払
+  id: tax_public
+  値: [空欄]
+
+14. 公共料金・通信費
+  id: public_utility
+  値: [空欄]
+
+15. 契約・保険・リース
+  id: contract_insurance_lease
+  値: [空欄]
+
+16. AI信頼度
+  id: confidence
+  値: [空欄]
+
+17. 要確認
+  id: needs_review
+  値: [空欄]
+
+18. AI判定理由
+  id: review_reason
+  値: [空欄]
+
+---- 001 ダミー証憑_保険料通知書.png / AI生データ ----
+
+19. 表示対象ラベル
+  id: visible_field_labels
+  値: 書類区分, 書類名, 発行元, 契約者, 通知日, 契約番号, 支払日, 保険料, 支払方法, 処理先, 契約・保険・リース, AI信頼度, AI判定理由
+
+20. AIステップ
+  id: ai_steps
+  値: [
+  {
+    "name": "specialist",
+    "usage": {
+      "prompt_tokens": 8686,
+      "completion_tokens": 623,
+      "total_tokens": 9309,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]
+
+---- 001 ダミー証憑_保険料通知書.png / AI生データ / draft ----
+
+21. analysis_system_code
+  id: analysis_system_code
+  値: contract_insurance_lease_analysis
+
+22. analysis_system_label
+  id: analysis_system_label
+  値: 契約・保険・リース解析システム
+
+23. analysis_system_reason
+  id: analysis_system_reason
+  値: OCR本文に「保険料通知書」「保険料」「契約番号」「支払日」「支払方法」が記載されており、保険料通知書として高い信頼度で判定可能。
+
+24. analysis_system_confidence
+  id: analysis_system_confidence
+  値: 高
+
+25. document_group
+  id: document_group
+  値: contract_insurance_lease
+
+26. specialist_route_code
+  id: specialist_route_code
+  値: contract_insurance_lease
+
+27. specialist_route_label
+  id: specialist_route_label
+  値: 契約・保険・リース解析
+
+28. document_type_code
+  id: document_type_code
+  値: insurance_notice
+
+29. document_type_label
+  id: document_type_label
+  値: 保険料通知書
+
+30. payment_destination_code
+  id: payment_destination_code
+  値: contract_insurance_lease
+
+31. payment_destination_label
+  id: payment_destination_label
+  値: 契約・保険・リース
+
+32. accounting_category_code
+  id: accounting_category_code
+  値: insurance
+
+33. accounting_category_label
+  id: accounting_category_label
+  値: 保険
+
+34. payable_kind_code
+  id: payable_kind_code
+  値: unpaid
+
+35. payable_kind_label
+  id: payable_kind_label
+  値: 未払金
+
+36. fields
+  id: fields
+  値: {
+  "書類区分": "insurance_notice",
+  "書類名": "保険料通知書",
+  "発行元": "サンプル保険",
+  "契約者": "株式会社HDオリジンスタイル",
+  "通知日": "2026-07-07",
+  "契約番号": "INS-DUMMY-007",
+  "支払日": "2026-07-25",
+  "保険料": "18900",
+  "支払方法": "口座振替",
+  "処理先": "未払· 買掛へ",
+  "契約・保険・リース": "保険",
+  "AI信頼度": "高",
+  "AI判定理由": "保険料通知書であり、保険料、契約番号、支払日、支払方法が明記されているため。"
+}
+
+37. visible_field_labels
+  id: visible_field_labels
+  値: [
+  "書類区分",
+  "書類名",
+  "発行元",
+  "契約者",
+  "通知日",
+  "契約番号",
+  "支払日",
+  "保険料",
+  "支払方法",
+  "処理先",
+  "契約・保険・リース",
+  "AI信頼度",
+  "AI判定理由"
+]
+
+38. warnings
+  id: warnings
+  値: [
+  "処理先に「未払· 買掛へ」とあるが、保険料は買掛登録しないため、買掛登録の有無は人間確認してください。",
+  "本書類は開発テスト用のダミー証憑であり、実在の取引ではありません。"
+]
+
+---- 001 ダミー証憑_保険料通知書.png / AI生データ / rawResult ----
+
+39. ok
+  id: ok
+  値: true
+
+40. source
+  id: source
+  値: openai_ocr_text_only
+
+41. image_used
+  id: image_used
+  値: false
+
+42. paymentDocumentOcrImportId
+  id: paymentDocumentOcrImportId
+  値: 8
+
+43. originalFileName
+  id: originalFileName
+  値: ダミー証憑_保険料通知書.png
+
+44. ocrTextLength
+  id: ocrTextLength
+  値: 187
+
+45. ai_steps
+  id: ai_steps
+  値: [
+  {
+    "name": "specialist",
+    "usage": {
+      "prompt_tokens": 8686,
+      "completion_tokens": 623,
+      "total_tokens": 9309,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]
+
+46. display_mode
+  id: display_mode
+  値: ai_decides_visible_fields
+
+47. document_group
+  id: document_group
+  値: contract_insurance_lease
+
+48. visible_field_labels
+  id: visible_field_labels
+  値: [
+  "書類区分",
+  "書類名",
+  "発行元",
+  "契約者",
+  "通知日",
+  "契約番号",
+  "支払日",
+  "保険料",
+  "支払方法",
+  "処理先",
+  "契約・保険・リース",
+  "AI信頼度",
+  "AI判定理由"
+]
+
+49. prompt_rule_files
+  id: prompt_rule_files
+  値: {
+  "specialist": [
+    "stage3-specialist/common/system.txt",
+    "stage3-specialist/common/output-schema.txt",
+    "stage3-specialist/common/human-confirm-rules.txt",
+    "stage3-specialist/contract-insurance-lease/system.txt",
+    "stage3-specialist/contract-insurance-lease/fields.txt",
+    "stage3-specialist/contract-insurance-lease/rules.txt",
+    "stage3-specialist/contract-insurance-lease/examples.txt"
+  ]
+}
+
+50. classification
+  id: classification
+  値: {}
+
+51. specialist
+  id: specialist
+  値: {
+  "draft": {
+    "analysis_system_code": "contract_insurance_lease_analysis",
+    "analysis_system_label": "契約・保険・リース解析システム",
+    "analysis_system_reason": "OCR本文に「保険料通知書」「保険料」「契約番号」「支払日」「支払方法」が記載されており、保険料通知書として高い信頼度で判定可能。",
+    "analysis_system_confidence": "高",
+    "document_group": "contract_insurance_lease",
+    "specialist_route_code": "contract_insurance_lease",
+    "specialist_route_label": "契約・保険・リース解析",
+    "document_type_code": "insurance_notice",
+    "document_type_label": "保険料通知書",
+    "payment_destination_code": "contract_insurance_lease",
+    "payment_destination_label": "契約・保険・リース",
+    "accounting_category_code": "insurance",
+    "accounting_category_label": "保険",
+    "payable_kind_code": "unpaid",
+    "payable_kind_label": "未払金",
+    "fields": {
+      "書類区分": "insurance_notice",
+      "書類名": "保険料通知書",
+      "発行元": "サンプル保険",
+      "契約者": "株式会社HDオリジンスタイル",
+      "通知日": "2026-07-07",
+      "契約番号": "INS-DUMMY-007",
+      "支払日": "2026-07-25",
+      "保険料": "18900",
+      "支払方法": "口座振替",
+      "処理先": "未払· 買掛へ",
+      "契約・保険・リース": "保険",
+      "AI信頼度": "高",
+      "AI判定理由": "保険料通知書であり、保険料、契約番号、支払日、支払方法が明記されているため。"
+    }
+  },
+  "visible_field_labels": [
+    "書類区分",
+    "書類名",
+    "発行元",
+    "契約者",
+    "通知日",
+    "契約番号",
+    "支払日",
+    "保険料",
+    "支払方法",
+    "処理先",
+    "契約・保険・リース",
+    "AI信頼度",
+    "AI判定理由"
+  ],
+  "warnings": [
+    "処理先に「未払· 買掛へ」とあるが、保険料は買掛登録しないため、買掛登録の有無は人間確認してください。",
+    "本書類は開発テスト用のダミー証憑であり、実在の取引ではありません。"
+  ]
+}
+
+52. draft
+  id: draft
+  値: {
+  "analysis_system_code": "contract_insurance_lease_analysis",
+  "analysis_system_label": "契約・保険・リース解析システム",
+  "analysis_system_reason": "OCR本文に「保険料通知書」「保険料」「契約番号」「支払日」「支払方法」が記載されており、保険料通知書として高い信頼度で判定可能。",
+  "analysis_system_confidence": "高",
+  "document_group": "contract_insurance_lease",
+  "specialist_route_code": "contract_insurance_lease",
+  "specialist_route_label": "契約・保険・リース解析",
+  "document_type_code": "insurance_notice",
+  "document_type_label": "保険料通知書",
+  "payment_destination_code": "contract_insurance_lease",
+  "payment_destination_label": "契約・保険・リース",
+  "accounting_category_code": "insurance",
+  "accounting_category_label": "保険",
+  "payable_kind_code": "unpaid",
+  "payable_kind_label": "未払金",
+  "fields": {
+    "書類区分": "insurance_notice",
+    "書類名": "保険料通知書",
+    "発行元": "サンプル保険",
+    "契約者": "株式会社HDオリジンスタイル",
+    "通知日": "2026-07-07",
+    "契約番号": "INS-DUMMY-007",
+    "支払日": "2026-07-25",
+    "保険料": "18900",
+    "支払方法": "口座振替",
+    "処理先": "未払· 買掛へ",
+    "契約・保険・リース": "保険",
+    "AI信頼度": "高",
+    "AI判定理由": "保険料通知書であり、保険料、契約番号、支払日、支払方法が明記されているため。"
+  },
+  "visible_field_labels": [
+    "書類区分",
+    "書類名",
+    "発行元",
+    "契約者",
+    "通知日",
+    "契約番号",
+    "支払日",
+    "保険料",
+    "支払方法",
+    "処理先",
+    "契約・保険・リース",
+    "AI信頼度",
+    "AI判定理由"
+  ],
+  "warnings": [
+    "処理先に「未払· 買掛へ」とあるが、保険料は買掛登録しないため、買掛登録の有無は人間確認してください。",
+    "本書類は開発テスト用のダミー証憑であり、実在の取引ではありません。"
+  ]
+}
+
+---- 001 ダミー証憑_保険料通知書.png / OCR本文 ----
+
+53. OCR本文
+  id: ocr_raw_text
+  値: 保険料通知書
+HD Origin Project 支払書類取込テスト用
+通知書
+発行元:サンプル保険
+契約者:株式会社HDオリジンスタイル
+通知日:2026年7月7日
+契約番号:INS-DUMMY-007
+支払日:2026年7月25日
+保険料:18,900円 支払方法:口座振替
+処理先:未払· 買掛へ
+通知
+※これは開発テスト用のダミー証憑です。実在の取引ではありません。
+
+---- 002 ダミー証憑_リース契約書.png / 基本 ----
+
+54. No
+  id: no
+  値: 2
+
+55. OCR取込ID
+  id: payment_document_ocr_import_id
+  値: 9
+
+56. ファイル名
+  id: original_file_name
+  値: ダミー証憑_リース契約書.png
+
+57. AI解析状態
+  id: ai_status
+  値: 解析結果あり
+
+---- 002 ダミー証憑_リース契約書.png / 現在のAI解析結果 ----
+
+58. 書類区分
+  id: document_type
+  値: リース契約書
+
+59. 処理先
+  id: payment_destination
+  値: 契約・保険・リース
+
+60. 専門ルート
+  id: specialist_route
+  値: 契約・保険・リース解析
+
+61. 会計候補
+  id: accounting_category
+  値: リース
+
+62. 未払種別
+  id: payable_kind
+  値: [空欄]
+
+63. 支払対象
+  id: payment_target
+  値: 要確認
+
+64. 未払登録対象
+  id: payable_target
+  値: 要確認
+
+65. 経費登録対象
+  id: expense_target
+  値: 候補
+
+66. 税金・公的支払
+  id: tax_public
+  値: 対象外
+
+67. 公共料金・通信費
+  id: public_utility
+  値: [空欄]
+
+68. 契約・保険・リース
+  id: contract_insurance_lease
+  値: リース
+
+69. AI信頼度
+  id: confidence
+  値: [空欄]
+
+70. 要確認
+  id: needs_review
+  値: [空欄]
+
+71. AI判定理由
+  id: review_reason
+  値: [空欄]
+
+---- 002 ダミー証憑_リース契約書.png / AI生データ ----
+
+72. 表示対象ラベル
+  id: visible_field_labels
+  値: 契約・保険・リース, 書類区分, リース会社, 契約者, 契約開始日, 契約終了日, リース物件, 月額リース料, 処理先, AI信頼度, AI判定理由
+
+73. AIステップ
+  id: ai_steps
+  値: [
+  {
+    "name": "specialist",
+    "usage": {
+      "prompt_tokens": 8701,
+      "completion_tokens": 820,
+      "total_tokens": 9521,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]
+
+---- 002 ダミー証憑_リース契約書.png / AI生データ / draft ----
+
+74. analysis_system_code
+  id: analysis_system_code
+  値: contract_insurance_lease_analysis
+
+75. analysis_system_label
+  id: analysis_system_label
+  値: 契約・保険・リース解析システム
+
+76. analysis_system_reason
+  id: analysis_system_reason
+  値: OCR本文に「リース契約書」「貸主」「借主」「契約期間」「月額リース料」が明記されているため、リース契約書と判断。
+
+77. analysis_system_confidence
+  id: analysis_system_confidence
+  値: 高
+
+78. document_group
+  id: document_group
+  値: contract_insurance_lease
+
+79. specialist_route_code
+  id: specialist_route_code
+  値: contract_insurance_lease
+
+80. specialist_route_label
+  id: specialist_route_label
+  値: 契約・保険・リース解析
+
+81. document_type_code
+  id: document_type_code
+  値: lease_contract
+
+82. document_type_label
+  id: document_type_label
+  値: リース契約書
+
+83. payment_destination_code
+  id: payment_destination_code
+  値: contract_insurance_lease
+
+84. payment_destination_label
+  id: payment_destination_label
+  値: 契約・保険・リース
+
+85. accounting_category_code
+  id: accounting_category_code
+  値: lease
+
+86. accounting_category_label
+  id: accounting_category_label
+  値: リース
+
+87. payable_kind_code
+  id: payable_kind_code
+  値: [空欄]
+
+88. payable_kind_label
+  id: payable_kind_label
+  値: [空欄]
+
+89. ai_summary
+  id: ai_summary
+  値: {
+  "contract_insurance_lease": "リース",
+  "payment_target": "要確認",
+  "payable_target": "要確認",
+  "expense_target": "候補",
+  "tax_public": "対象外",
+  "confidence_label": "高",
+  "reason": "リース契約書として明確に認識できるが、今回の支払対象かどうかは本文に明記がなく人間確認が必要。"
+}
+
+90. fields
+  id: fields
+  値: {
+  "契約・保険・リース": "リース",
+  "書類区分": "lease_contract",
+  "リース会社": "サンプルリース株式会社",
+  "契約者": "株式会社HDオリジンスタイル",
+  "契約開始日": "2026-07-01",
+  "契約終了日": "2029-06-30",
+  "リース物件": "業務用機器一式",
+  "月額リース料": "33000",
+  "処理先": "accounts_payable",
+  "AI信頼度": "高",
+  "AI判定理由": "リース契約書、貸主・借主、契約期間、月額リース料がOCR本文に明記されているため。"
+}
+
+91. visible_field_labels
+  id: visible_field_labels
+  値: [
+  "契約・保険・リース",
+  "書類区分",
+  "リース会社",
+  "契約者",
+  "契約開始日",
+  "契約終了日",
+  "リース物件",
+  "月額リース料",
+  "処理先",
+  "AI信頼度",
+  "AI判定理由"
+]
+
+92. warnings
+  id: warnings
+  値: [
+  "本文に今回の支払対象かどうかの明確な記載がないため、支払対象および未払登録対象かは人間確認が必要です。",
+  "本文に契約番号の記載がないため、契約番号は不明です。",
+  "本文に支払状態の記載がないため、支払済みか未払かは不明です。",
+  "本文に会計科目の記載がないため、勘定科目は人間確認してください。",
+  "本文に税区分の記載がないため、税区分は不明です。",
+  "本文に所有権移転や中途解約の記載がないため、これらの条件は不明です。",
+  "本文に処理先として「未払・買掛へ」とあるが、リース料のため買掛登録は要確認です。"
+]
+
+---- 002 ダミー証憑_リース契約書.png / AI生データ / rawResult ----
+
+93. ok
+  id: ok
+  値: true
+
+94. source
+  id: source
+  値: openai_ocr_text_only
+
+95. image_used
+  id: image_used
+  値: false
+
+96. paymentDocumentOcrImportId
+  id: paymentDocumentOcrImportId
+  値: 9
+
+97. originalFileName
+  id: originalFileName
+  値: ダミー証憑_リース契約書.png
+
+98. ocrTextLength
+  id: ocrTextLength
+  値: 197
+
+99. ai_steps
+  id: ai_steps
+  値: [
+  {
+    "name": "specialist",
+    "usage": {
+      "prompt_tokens": 8701,
+      "completion_tokens": 820,
+      "total_tokens": 9521,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]
+
+100. display_mode
+  id: display_mode
+  値: ai_decides_visible_fields
+
+101. document_group
+  id: document_group
+  値: contract_insurance_lease
+
+102. visible_field_labels
+  id: visible_field_labels
+  値: [
+  "契約・保険・リース",
+  "書類区分",
+  "リース会社",
+  "契約者",
+  "契約開始日",
+  "契約終了日",
+  "リース物件",
+  "月額リース料",
+  "処理先",
+  "AI信頼度",
+  "AI判定理由"
+]
+
+103. prompt_rule_files
+  id: prompt_rule_files
+  値: {
+  "specialist": [
+    "stage3-specialist/common/system.txt",
+    "stage3-specialist/common/output-schema.txt",
+    "stage3-specialist/common/human-confirm-rules.txt",
+    "stage3-specialist/contract-insurance-lease/system.txt",
+    "stage3-specialist/contract-insurance-lease/fields.txt",
+    "stage3-specialist/contract-insurance-lease/rules.txt",
+    "stage3-specialist/contract-insurance-lease/examples.txt"
+  ]
+}
+
+104. classification
+  id: classification
+  値: {}
+
+105. specialist
+  id: specialist
+  値: {
+  "draft": {
+    "analysis_system_code": "contract_insurance_lease_analysis",
+    "analysis_system_label": "契約・保険・リース解析システム",
+    "analysis_system_reason": "OCR本文に「リース契約書」「貸主」「借主」「契約期間」「月額リース料」が明記されているため、リース契約書と判断。",
+    "analysis_system_confidence": "高",
+    "document_group": "contract_insurance_lease",
+    "specialist_route_code": "contract_insurance_lease",
+    "specialist_route_label": "契約・保険・リース解析",
+    "document_type_code": "lease_contract",
+    "document_type_label": "リース契約書",
+    "payment_destination_code": "contract_insurance_lease",
+    "payment_destination_label": "契約・保険・リース",
+    "accounting_category_code": "lease",
+    "accounting_category_label": "リース",
+    "payable_kind_code": "",
+    "payable_kind_label": "",
+    "ai_summary": {
+      "contract_insurance_lease": "リース",
+      "payment_target": "要確認",
+      "payable_target": "要確認",
+      "expense_target": "候補",
+      "tax_public": "対象外",
+      "confidence_label": "高",
+      "reason": "リース契約書として明確に認識できるが、今回の支払対象かどうかは本文に明記がなく人間確認が必要。"
+    },
+    "fields": {
+      "契約・保険・リース": "リース",
+      "書類区分": "lease_contract",
+      "リース会社": "サンプルリース株式会社",
+      "契約者": "株式会社HDオリジンスタイル",
+      "契約開始日": "2026-07-01",
+      "契約終了日": "2029-06-30",
+      "リース物件": "業務用機器一式",
+      "月額リース料": "33000",
+      "処理先": "accounts_payable",
+      "AI信頼度": "高",
+      "AI判定理由": "リース契約書、貸主・借主、契約期間、月額リース料がOCR本文に明記されているため。"
+    }
+  },
+  "visible_field_labels": [
+    "契約・保険・リース",
+    "書類区分",
+    "リース会社",
+    "契約者",
+    "契約開始日",
+    "契約終了日",
+    "リース物件",
+    "月額リース料",
+    "処理先",
+    "AI信頼度",
+    "AI判定理由"
+  ],
+  "warnings": [
+    "本文に今回の支払対象かどうかの明確な記載がないため、支払対象および未払登録対象かは人間確認が必要です。",
+    "本文に契約番号の記載がないため、契約番号は不明です。",
+    "本文に支払状態の記載がないため、支払済みか未払かは不明です。",
+    "本文に会計科目の記載がないため、勘定科目は人間確認してください。",
+    "本文に税区分の記載がないため、税区分は不明です。",
+    "本文に所有権移転や中途解約の記載がないため、これらの条件は不明です。",
+    "本文に処理先として「未払・買掛へ」とあるが、リース料のため買掛登録は要確認です。"
+  ]
+}
+
+106. draft
+  id: draft
+  値: {
+  "analysis_system_code": "contract_insurance_lease_analysis",
+  "analysis_system_label": "契約・保険・リース解析システム",
+  "analysis_system_reason": "OCR本文に「リース契約書」「貸主」「借主」「契約期間」「月額リース料」が明記されているため、リース契約書と判断。",
+  "analysis_system_confidence": "高",
+  "document_group": "contract_insurance_lease",
+  "specialist_route_code": "contract_insurance_lease",
+  "specialist_route_label": "契約・保険・リース解析",
+  "document_type_code": "lease_contract",
+  "document_type_label": "リース契約書",
+  "payment_destination_code": "contract_insurance_lease",
+  "payment_destination_label": "契約・保険・リース",
+  "accounting_category_code": "lease",
+  "accounting_category_label": "リース",
+  "payable_kind_code": "",
+  "payable_kind_label": "",
+  "ai_summary": {
+    "contract_insurance_lease": "リース",
+    "payment_target": "要確認",
+    "payable_target": "要確認",
+    "expense_target": "候補",
+    "tax_public": "対象外",
+    "confidence_label": "高",
+    "reason": "リース契約書として明確に認識できるが、今回の支払対象かどうかは本文に明記がなく人間確認が必要。"
+  },
+  "fields": {
+    "契約・保険・リース": "リース",
+    "書類区分": "lease_contract",
+    "リース会社": "サンプルリース株式会社",
+    "契約者": "株式会社HDオリジンスタイル",
+    "契約開始日": "2026-07-01",
+    "契約終了日": "2029-06-30",
+    "リース物件": "業務用機器一式",
+    "月額リース料": "33000",
+    "処理先": "accounts_payable",
+    "AI信頼度": "高",
+    "AI判定理由": "リース契約書、貸主・借主、契約期間、月額リース料がOCR本文に明記されているため。"
+  },
+  "visible_field_labels": [
+    "契約・保険・リース",
+    "書類区分",
+    "リース会社",
+    "契約者",
+    "契約開始日",
+    "契約終了日",
+    "リース物件",
+    "月額リース料",
+    "処理先",
+    "AI信頼度",
+    "AI判定理由"
+  ],
+  "warnings": [
+    "本文に今回の支払対象かどうかの明確な記載がないため、支払対象および未払登録対象かは人間確認が必要です。",
+    "本文に契約番号の記載がないため、契約番号は不明です。",
+    "本文に支払状態の記載がないため、支払済みか未払かは不明です。",
+    "本文に会計科目の記載がないため、勘定科目は人間確認してください。",
+    "本文に税区分の記載がないため、税区分は不明です。",
+    "本文に所有権移転や中途解約の記載がないため、これらの条件は不明です。",
+    "本文に処理先として「未払・買掛へ」とあるが、リース料のため買掛登録は要確認です。"
+  ]
+}
+
+---- 002 ダミー証憑_リース契約書.png / OCR本文 ----
+
+107. OCR本文
+  id: ocr_raw_text
+  値: リース契約 書
+HD Origin Project 支払書類取込テスト用
+■契約書
+貸主:サンプルリース株式会社
+借主:株式会社HDオリジンスタイル
+契約日:2026年7月1日 契約期間:2026年7月1日~2029年6月30日
+物件:業務用機器一式
+月額リース料:33,000円 支払日:毎月末日
+処理先:未払· 買掛へ
+契約
+※これは開発テスト用のダミー証憑です。実在の取引ではありません。
+
+[OCR本文]
+==============================
+001 ダミー証憑_保険料通知書.png
+OCR取込ID: 8
+AI解析状態: 解析結果あり
+==============================
+保険料通知書
+HD Origin Project 支払書類取込テスト用
+通知書
+発行元:サンプル保険
+契約者:株式会社HDオリジンスタイル
+通知日:2026年7月7日
+契約番号:INS-DUMMY-007
+支払日:2026年7月25日
+保険料:18,900円 支払方法:口座振替
+処理先:未払· 買掛へ
+通知
+※これは開発テスト用のダミー証憑です。実在の取引ではありません。
+
+==============================
+002 ダミー証憑_リース契約書.png
+OCR取込ID: 9
+AI解析状態: 解析結果あり
+==============================
+リース契約 書
+HD Origin Project 支払書類取込テスト用
+■契約書
+貸主:サンプルリース株式会社
+借主:株式会社HDオリジンスタイル
+契約日:2026年7月1日 契約期間:2026年7月1日~2029年6月30日
+物件:業務用機器一式
+月額リース料:33,000円 支払日:毎月末日
+処理先:未払· 買掛へ
+契約
+※これは開発テスト用のダミー証憑です。実在の取引ではありません。
+
+[注意]
+- 画面右側の確認・下書き欄に表示されている項目を空欄込みで出したものです。
+- DB保存・下書き保存・本登録はしていません。
+- OCR本文も末尾に含めています。

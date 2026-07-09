@@ -1,0 +1,50 @@
+﻿==============================
+GPT2 契約・保険・リース専門プロンプト 復旧＋ai_summary/code補強
+==============================
+日時: 2026/07/09 21:01:42
+
+[今回の復旧理由]
+- 前回貼り付け途中で before 保存に失敗
+- その後の貼り付けが崩れ、examples.txt が壊れた可能性がある
+- before名を短くして、rules.txt / examples.txt を安全に作り直した
+
+[実施内容]
+- rules.txt を ai_summary必須・fields英語コード禁止・OCR記載処理先分離ルールで作り直し
+- examples.txt を保険料通知書・リース契約書の正しい例で作り直し
+- HTML / JS / API は触っていない
+- 後追い判定は追加していない
+- .ps1は実行せず、この貼り付け内で直接反映
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\cil_rules_before_20260709_210142.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\cil_examples_before_20260709_210142.txt
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\rules.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\web_receiver\src\paymentDocuments\prompts\stage3-specialist\contract-insurance-lease\examples.txt
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\cil_ai_summary_code_fix_20260709_210142.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\cil_ai_summary_code_fix_20260709_210142.undo.ps1
+
+[確認結果]
+OK: rules ai_summary必須
+OK: rules fields英語コード禁止
+OK: rules OCR記載処理先
+OK: examples 保険 書類区分日本語
+OK: examples リース 書類区分日本語
+OK: examples 契約・保険・リース表記
+OK: examples ai_summaryあり
+OK: examples OCR記載処理先あり
+OK: examples 壊れた契約保険リース表記なし
+
+結果: OK。rules.txt / examples.txt を復旧し、ai_summary必須、fields英語コード禁止、OCR記載処理先分離を反映しました。
+
+[次の確認]
+1. サーバー再起動
+2. 同じ保険料通知書とリース契約書で専門解析を再実行
+3. 保険側に ai_summary が出て、支払対象・未払登録対象が空欄でなくなるか確認
+4. fields の書類区分が insurance_notice / lease_contract ではなく日本語になるか確認
+5. 処理先が accounts_payable ではなく、OCR記載処理先として分離されるか確認

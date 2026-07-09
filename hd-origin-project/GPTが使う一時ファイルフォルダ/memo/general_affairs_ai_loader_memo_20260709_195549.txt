@@ -1,0 +1,54 @@
+﻿==============================
+総務AI プロジェクト側AI組み込みメモ
+==============================
+日時: 2026-07-09 19:55:50
+
+[目的]
+総務AIプロンプト common/general-affairs-ai.txt を、paymentDocuments.aiPromptLoader.js 経由でプロジェクト側AIに読ませる。
+
+[正しい収集先]
+GPTが使う一時ファイルフォルダ\00_GPTに渡すフォルダ
+
+[反映対象]
+web_receiver\src\paymentDocuments\paymentDocuments.aiPromptLoader.js
+
+[追加プロンプト]
+web_receiver\src\paymentDocuments\prompts\common\general-affairs-ai.txt
+web_receiver\src\paymentDocuments\prompts\common\general-affairs-ai-notes.md
+web_receiver\src\paymentDocuments\prompts\common\general-affairs-ai-changelog.md
+
+[読む対象]
+- stage1 / classification / sorting
+- stage3 specialist: invoice-payable
+- stage3 specialist: tax-public
+
+[読ませない対象]
+- receipt-evidence
+- card-statement
+- contract-insurance-lease
+- utility-communication
+
+[変更しないもの]
+- business-flow-settings.html
+- DB
+- API
+- HTML
+- GPT2側作業物
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\paymentDocuments.aiPromptLoader.before_general_affairs_20260709_195549.js
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\paymentDocuments.aiPromptLoader.after_general_affairs_20260709_195549.js
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\general-affairs-ai.txt.after_20260709_195549.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\general-affairs-ai-notes.md.after_20260709_195549.md
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\general-affairs-ai-changelog.md.after_20260709_195549.md
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\apply_general_affairs_ai_loader_20260709_195549.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\undo_general_affairs_ai_loader_20260709_195549.ps1
+
+[00_GPTに渡すフォルダ]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\00_GPTに渡すフォルダ
