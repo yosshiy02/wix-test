@@ -1,0 +1,40 @@
+﻿==============================
+GPT00 後付け解析システム補完撤去
+==============================
+日時: 2026/07/09 10:12:26
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[方針]
+- analysis_system_* はAIが返した値、または人間が修正した値だけを扱う
+- API側で document_type_code / payment_destination_code / OCR本文等から後付け推測しない
+- 空欄なら空欄のまま保存する
+- ただしAIプロンプト内の候補一覧は、AIに選ばせるための指示なので残す
+
+[撤去内容]
+- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_AXIS_20260708 の後付けresolverブロックを撤去
+- normalizePaymentDocumentSortCandidate の hdOriginResolvePaymentDocumentAnalysisSystem 呼び出しを撤去
+- AI仕分け後の hdOriginAttachPaymentDocumentAnalysisSystemDraft 呼び出しを撤去
+- AI仕分け後の hdOriginPolishPaymentDocument*SortResult 呼び出しを撤去
+- applyPaymentDocumentSortRuleFallbackFromOcr 呼び出しがあれば撤去
+
+[撤去したpolish呼び出し数]
+7
+
+[撤去したfallback呼び出し数]
+0
+
+[構文チェック]
+
+[残存NG関数名チェック]
+OK: hdOriginResolvePaymentDocumentAnalysisSystem / hdOriginAttachPaymentDocumentAnalysisSystemDraft は残っていません。
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_routes_後付け解析システム補完撤去_20260709_101225.before.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_routes_後付け解析システム補完撤去_20260709_101225.after.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT00_routes_後付け解析システム補完撤去_20260709_101225.undo.ps1

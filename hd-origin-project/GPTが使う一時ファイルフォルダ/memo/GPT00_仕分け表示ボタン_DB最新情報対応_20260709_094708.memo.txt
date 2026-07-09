@@ -1,0 +1,27 @@
+﻿==============================
+GPT00 仕分け画面 表示ボタン DB最新情報対応
+==============================
+日時: 2026/07/09 09:47:08
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[修正内容]
+- 表示ボタン: 表示中の画面項目 + DB最新仕分け下書きをmemo出力
+- 全件表示ボタン: /api/payment-documents/review-items でDBから全件を再取得してmemo出力
+- 単件DB読込: /api/payment-documents/sorting-drafts/by-ocr-import/:id
+- 既存の表示/全件表示ボタンは残し、クリック時の処理だけDB最新情報対応へ差し替え
+- AI再解析はしない
+- DB保存もしない。表示用memo出力だけ
+
+[確認]
+DB最新表示マーカーあり: True
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_仕分け表示ボタン_DB最新情報対応_20260709_094708.before.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_仕分け表示ボタン_DB最新情報対応_20260709_094708.after.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT00_仕分け表示ボタン_DB最新情報対応_20260709_094708.undo.ps1

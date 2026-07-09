@@ -1,0 +1,28 @@
+﻿==============================
+GPT 税金・公的支払 専門プロンプト育成
+==============================
+日時: 2026/07/09 07:13:21
+
+[方針]
+- GPT側だけ使用
+- GPT2側は未使用
+- HTML/JS/APIで後付け補正しない
+- AIプロンプトだけ育成
+
+[今回の育成]
+- analysis_system_confidence は 高/中/低 に統一
+- high / unpaid など英語コードだけを人間表示に出さない
+- *_code と *_label を必ず分ける
+- payable_kind_code を返すなら payable_kind_label も返す
+- 納付先と宛名・納税者・住所を混ぜない
+- 固定資産税通知書の住所+氏名+様を納付先にしない
+- ダミー証憑文言は warnings に入れる
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_税金公的支払_専門プロンプト育成_表示揺れ納付先修正_20260709_071321_apply.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_税金公的支払_専門プロンプト育成_表示揺れ納付先修正_20260709_071321_undo.ps1
+
+[本体反映]
+まだ未反映。反映する場合は apply を実行。

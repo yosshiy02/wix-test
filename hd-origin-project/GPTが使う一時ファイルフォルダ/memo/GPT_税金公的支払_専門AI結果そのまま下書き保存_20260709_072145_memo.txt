@@ -1,0 +1,32 @@
+﻿==============================
+GPT 税金・公的支払 専門AI結果そのまま下書き保存
+==============================
+日時: 2026/07/09 07:21:45
+
+[方針]
+- GPT側だけ使用
+- GPT2側は未使用
+- HTML/JSでAI値を補正しない
+- 専門AIが返した draft / fields / visible_field_labels / warnings を保存payloadへ渡す
+
+[修正]
+- まとめ保存キャッシュを /api/payment-documents/ai-specialist/:id にも対応
+- まとめ保存payloadに analysis_system_* を追加
+- 単体下書き保存時、直近AI専門解析キャッシュがある場合はAI結果をそのままpayloadへ入れる
+- visibleFields はAIの draft.fields を優先
+- warnings はAIの warnings を優先
+- visible_field_labels は sortResult とpayloadへ残す
+
+[未変更]
+- routes.js は未変更
+- DB構造は未変更
+- GPT2側は未使用
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\web_receiver\public\payables\payment-document-specialist-tax-public.html
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\web_receiver\public\payables\payment-document-specialist-tax-public.html
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_税金公的支払_専門AI結果そのまま下書き保存_20260709_072145_apply.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_税金公的支払_専門AI結果そのまま下書き保存_20260709_072145_undo.ps1
+
+[本体反映]
+まだ未反映。反映する場合は apply を実行。

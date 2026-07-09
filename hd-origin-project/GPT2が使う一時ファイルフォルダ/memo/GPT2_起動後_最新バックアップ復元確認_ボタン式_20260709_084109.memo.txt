@@ -1,0 +1,36 @@
+﻿==============================
+GPT2 起動後 最新バックアップ復元確認 ボタン式 修正メモ
+==============================
+日時: 2026/07/09 08:41:09
+
+[修正対象]
+web_receiver\server.js
+
+[修正内容]
+- 文字入力式 RESTORE / RESTORE_NOW を廃止
+- 本体起動後に Windows の はい/いいえ 確認画面を表示
+- 1回目: 最新のバックアップをリストアしますか？
+- 2回目: 本当にリストアしますか？
+- 2回とも「はい」の場合だけ restoreBackup() を実行
+- それ以外は何もせず、そのまま使用
+- リストア完了/失敗も確認画面で表示
+
+[触っていないもの]
+- GPT側フォルダ
+- DB本体
+- .env
+- バックアップ本体
+- backupフォルダ
+- 画像
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_起動後_最新バックアップ復元確認_ボタン式_20260709_084109.before.server.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\GPT2_起動後_最新バックアップ復元確認_ボタン式_20260709_084109.after.server.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\GPT2_起動後_最新バックアップ復元確認_ボタン式_20260709_084109.undo.ps1
+
+[確認]
+- node --check OK

@@ -1,0 +1,53 @@
+﻿返すJSON形式:
+
+{
+  "draft": {
+    "analysis_system_code": "",
+    "analysis_system_label": "",
+    "analysis_system_reason": "",
+    "analysis_system_confidence": "",
+    "document_group": "",
+    "specialist_route_code": "",
+    "specialist_route_label": "",
+    "document_type_code": "",
+    "document_type_label": "",
+    "payment_destination_code": "",
+    "payment_destination_label": "",
+    "accounting_category_code": "",
+    "accounting_category_label": "",
+    "payable_kind_code": "",
+    "payable_kind_label": "",
+    "ai_summary": {},
+    "fields": {}
+  },
+  "visible_field_labels": [],
+  "warnings": []
+}
+
+注意:
+- 表示したい項目名を visible_field_labels に入れる。
+- fields にはOCR本文から読めた事実だけ入れる。
+- OCR本文にない値は作らない。
+- 判断が必要な内容は warnings または review_reason に書く。
+
+HD_ORIGIN_SPECIALIST_OUTPUT_SCHEMA_LABEL_RULE_20260709_START
+
+表示値ルール:
+- *_code はプログラムコード。
+- *_label は人間表示用の日本語。
+- 人間向けの表示値には、英語コードだけを出さない。
+- 信頼度は「高」「中」「低」のいずれかで返す。
+- high / medium / low は返さない。
+- payable_kind_code を返す場合は payable_kind_label も返す。
+- payment_destination_code を返す場合は payment_destination_label も返す。
+- document_type_code を返す場合は document_type_label も返す。
+- accounting_category_code を返す場合は accounting_category_label も返す。
+
+後付け禁止:
+- HTML・JS・API側は項目や値を補正しない。
+- 表示対象は visible_field_labels を正とする。
+- fields には OCR本文から読めた事実だけを入れる。
+- OCR本文にない値は作らない。
+
+HD_ORIGIN_SPECIALIST_OUTPUT_SCHEMA_LABEL_RULE_20260709_END
+

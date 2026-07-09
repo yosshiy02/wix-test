@@ -1,0 +1,31 @@
+﻿==============================
+GPT 税金・公的支払 下書きDB analysis_system列追加
+==============================
+日時: 2026/07/09 07:28:13
+
+[問題]
+- payment_document_sorting_drafts に analysis_system_* 4列が存在しない
+- 保存API側は analysis_system_* をINSERTする構造
+- このままだと専門AI結果の下書き保存時にDB列不足で失敗する可能性が高い
+
+[修正]
+- database/migrations に analysis_system_* 4列追加SQLを作成
+- 追加列:
+  - analysis_system_code
+  - analysis_system_label
+  - analysis_system_reason
+  - analysis_system_confidence
+
+[方針]
+- GPT側だけ使用
+- GPT2側は未使用
+- AI値の後付け補正ではない
+- 専門AI結果を保存するためのDBの器を追加する
+
+[作成]
+migration: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\database\migrations\20260709_001_payment_document_sorting_drafts_analysis_system_columns.sql
+apply    : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_税金公的支払_下書きDB_analysis_system列追加_20260709_072813_apply.ps1
+undo     : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_税金公的支払_下書きDB_analysis_system列追加_20260709_072813_undo.ps1
+
+[本体反映]
+まだ未反映。反映する場合は apply を実行。

@@ -1,0 +1,84 @@
+﻿税金・公的支払で候補になる項目例:
+- 解析システム
+- 解析システム名
+- 解析システム判定理由
+- 解析システム信頼度
+- 書類区分
+- 証憑区分
+- 処理先
+- 会計区分
+- 未払種別
+- 支払対象
+- 未払・支払予定登録対象
+- 経費登録対象
+- 買掛登録対象
+- 税金・公的支払
+- 勘定科目
+- 税区分
+- 支払方法
+- 書類名
+- 発行元
+- 納付先
+- 収納機関
+- 宛名
+- 会社名
+- 個人名
+- 納付番号
+- 通知書番号
+- 管理番号
+- 年度
+- 期別
+- 税目
+- 対象期間
+- 納期限
+- 支払予定日
+- 納付額
+- 延滞金
+- 合計納付額
+- 要確認
+- AI判定理由
+
+注意:
+上記は候補例です。全部返す必要はありません。
+OCR本文から必要と判断した項目だけ visible_field_labels に入れてください。
+
+HD_ORIGIN_TAX_PUBLIC_FIELDS_GROW_LABEL_PAYEE_20260709_START
+
+税金・公的支払で、AIが必要と判断した場合に返す項目候補を追加する。
+ただし、全部返す必要はない。visible_field_labels はAIが必要項目だけ選ぶ。
+
+表示揺れ防止:
+- 解析システム信頼度
+- 書類区分
+- 処理先
+- 会計区分
+- 未払種別
+- 専門ルート
+
+code/labelセット:
+- document_type_code
+- document_type_label
+- payment_destination_code
+- payment_destination_label
+- accounting_category_code
+- accounting_category_label
+- payable_kind_code
+- payable_kind_label
+- specialist_route_code
+- specialist_route_label
+
+納付先分離:
+- 発行者
+- 発行元
+- 納付先
+- 収納機関
+- 問い合わせ先
+- 問い合わせ先住所
+- 問い合わせ先電話
+- 宛名
+- 納税者
+- 納付者
+- 住所
+
+HD_ORIGIN_TAX_PUBLIC_FIELDS_GROW_LABEL_PAYEE_20260709_END
+

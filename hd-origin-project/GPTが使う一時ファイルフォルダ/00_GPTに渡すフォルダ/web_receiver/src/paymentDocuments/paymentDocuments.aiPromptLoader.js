@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 
 function paymentDocumentPromptDir() {
@@ -6,15 +6,24 @@ function paymentDocumentPromptDir() {
 }
 
 function safePromptFileName(fileName) {
-  const name = String(fileName || "").trim();
+  const raw = String(fileName || "").trim();
 
-  if (!name) return "";
-  if (name.includes("/") || name.includes("\\") || name.includes("\0")) return "";
-  if (name.includes("..")) return "";
-  if (!/^[A-Za-z0-9_.-]+$/.test(name)) return "";
-  if (!name.endsWith(".txt")) return "";
+  if (!raw) return "";
+  if (raw.includes("\0")) return "";
+  if (raw.includes("..")) return "";
 
-  return name;
+  const normalized = raw.replace(/\\/g, "/");
+  const parts = normalized.split("/").filter(Boolean);
+
+  if (parts.length < 1) return "";
+
+  for (const part of parts) {
+    if (!/^[A-Za-z0-9_.-]+$/.test(part)) return "";
+  }
+
+  if (!parts[parts.length - 1].endsWith(".txt")) return "";
+
+  return parts.join(path.sep);
 }
 
 function loadPaymentDocumentPromptText(fileName, fallbackText = "") {
@@ -24,14 +33,22 @@ function loadPaymentDocumentPromptText(fileName, fallbackText = "") {
     return String(fallbackText || "");
   }
 
-  const filePath = path.join(paymentDocumentPromptDir(), safeName);
+  const root = paymentDocumentPromptDir();
+  const filePath = path.join(root, safeName);
 
   try {
-    if (!fs.existsSync(filePath)) {
+    const resolvedRoot = path.resolve(root);
+    const resolvedFile = path.resolve(filePath);
+
+    if (!resolvedFile.startsWith(resolvedRoot + path.sep) && resolvedFile !== resolvedRoot) {
       return String(fallbackText || "");
     }
 
-    const text = fs.readFileSync(filePath, "utf8");
+    if (!fs.existsSync(resolvedFile)) {
+      return String(fallbackText || "");
+    }
+
+    const text = fs.readFileSync(resolvedFile, "utf8");
 
     if (!String(text || "").trim()) {
       return String(fallbackText || "");
@@ -49,6 +66,7 @@ function normalizeForPromptRule(value) {
     .replace(/[・･·]/g, "")
     .replace(/[：:]/g, "")
     .replace(/[／\/]/g, "")
+    .replace(/[_\-.]+/g, "")
     .replace(/[（）()]/g, "")
     .toLowerCase();
 }
@@ -59,206 +77,135 @@ function includesAny(text, words) {
   return words.some(word => s.includes(normalizeForPromptRule(word)));
 }
 
-function includesAll(text, words) {
-  const s = normalizeForPromptRule(text);
-
-  return words.every(word => s.includes(normalizeForPromptRule(word)));
-}
-
 function pushUnique(list, name) {
   if (!name) return;
   if (!list.includes(name)) list.push(name);
 }
 
+function promptFilesStage1() {
+  return [
+    "stage1-classification/system.txt",
+    "stage1-classification/extra-rules.txt"
+  ];
+}
+
+function promptFilesStage2() {
+  return [
+    "stage2-common-draft/system.txt",
+    "stage2-common-draft/common-fields.txt",
+    "stage2-common-draft/save-rules.txt"
+  ];
+}
+
+function specialistCodeFromContext(context = {}) {
+  const draft = context.draft && typeof context.draft === "object" ? context.draft : {};
+  const raw = [
+    context.analysis_system_code,
+    context.specialist_route_code,
+    context.group,
+    draft.analysis_system_code,
+    draft.specialist_route_code,
+    draft.document_group,
+    draft.payment_destination_code,
+    draft.document_type_code
+  ].join(" ");
+
+  const text = normalizeForPromptRule(raw);
+
+  if (text.includes("taxpublic") || text.includes("taxpayment") || text.includes("税金") || text.includes("公的支払")) {
+    return "tax-public";
+  }
+
+  if (text.includes("invoicepayable") || text.includes("accountspayable") || text.includes("invoice") || text.includes("請求") || text.includes("買掛") || text.includes("未払")) {
+    return "invoice-payable";
+  }
+
+  if (text.includes("receiptevidence") || text.includes("paidevidence") || text.includes("receipt") || text.includes("領収") || text.includes("レシート")) {
+    return "receipt-evidence";
+  }
+
+  if (text.includes("cardstatement") || text.includes("card") || text.includes("カード")) {
+    return "card-statement";
+  }
+
+  if (text.includes("contractinsurancelease") || text.includes("contract") || text.includes("insurance") || text.includes("lease") || text.includes("契約") || text.includes("保険") || text.includes("リース")) {
+    return "contract-insurance-lease";
+  }
+
+  if (text.includes("utilitycommunication") || text.includes("utility") || text.includes("communication") || text.includes("公共料金") || text.includes("通信")) {
+    return "utility-communication";
+  }
+
+  return "";
+}
+
+function promptFilesStage3(context = {}) {
+  const files = [
+    "stage3-specialist/common/system.txt",
+    "stage3-specialist/common/output-schema.txt",
+    "stage3-specialist/common/human-confirm-rules.txt"
+  ];
+
+  const specialist = specialistCodeFromContext(context);
+
+  if (specialist) {
+    pushUnique(files, "stage3-specialist/" + specialist + "/system.txt");
+    pushUnique(files, "stage3-specialist/" + specialist + "/fields.txt");
+    pushUnique(files, "stage3-specialist/" + specialist + "/rules.txt");
+    pushUnique(files, "stage3-specialist/" + specialist + "/examples.txt");
+  }
+
+  return files;
+}
+
 function selectPaymentDocumentPromptFiles(context = {}) {
   const phase = String(context.phase || "").trim().toLowerCase();
-  const ocrText = String(context.ocrText || "");
-  const draft = context.draft && typeof context.draft === "object" ? context.draft : {};
-  const group = String(context.group || "");
-
-  const routeText = [
-    draft.specialist_route_code,
-    group
-  ].join(" ");
-
-  const codeText = [
-    draft.document_type_code,
-    draft.payment_destination_code,
-    draft.accounting_category_code,
-    draft.payable_kind_code,
-    draft.source_type_code,
-    draft.specialist_route_code,
-    group
-  ].join(" ");
 
   /*
-    1回目 classification / sorting は分類専用。
-    詳細抽出ルールは読ませない。
+    1回目AI:
+    共通仕分け。専門システムを決めるだけ。
   */
-  if (phase === "classification" || phase === "sorting") {
-    return [
-      "common-rules.txt",
-      "sorting.extra-rules.txt"
-    ];
+  if (
+    phase === "stage1" ||
+    phase === "classification" ||
+    phase === "sorting"
+  ) {
+    return promptFilesStage1();
   }
 
   /*
-    2回目 detail は route 優先。
-    1回目で選んだ specialist_route_code を前提に、専門ルールだけ読む。
-    OCR本文の「請求合計」などで別系統を混ぜない。
+    2回目AI:
+    共通下書きDB化。ここでは専門解析をしない。
+    旧 phase=detail 呼び出しは、3段階設計では stage2 として扱う。
   */
-  if (phase === "detail") {
-    const files = [];
-
-    if (includesAny(routeText, ["invoice_payable"])) {
-      pushUnique(files, "rules-invoice.txt");
-      return files;
-    }
-
-    if (includesAny(routeText, ["tax_public"])) {
-      pushUnique(files, "rules-tax.txt");
-      return files;
-    }
-
-    if (includesAny(routeText, ["card_statement"])) {
-      pushUnique(files, "rules-card.txt");
-      return files;
-    }
-
-    if (includesAny(routeText, ["mail_saved"])) {
-      pushUnique(files, "rules-mail-saved.txt");
-
-      if (includesAny(codeText + " " + ocrText, ["utility", "public_utility", "communication", "電気料金", "ガス料金", "水道料金", "通信費", "電話料金", "インターネット料金"])) {
-        pushUnique(files, "rules-utility.txt");
-      }
-
-      return files.slice(0, 2);
-    }
-
-    if (includesAny(routeText, ["utility_notice", "public_utility", "communication"])) {
-      pushUnique(files, "rules-utility.txt");
-      return files;
-    }
-
-    if (includesAny(routeText, ["contract_insurance_lease"])) {
-      const isInsurance =
-        includesAny(codeText, ["insurance_notice", "insurance"]) ||
-        includesAny(ocrText, ["保険料通知書", "保険料", "保険契約", "契約番号:ins"]);
-
-      const isLease =
-        includesAny(codeText, ["lease_contract", "lease"]) ||
-        includesAny(ocrText, ["リース料", "リース契約", "リース物件"]);
-
-      if (isInsurance) pushUnique(files, "rules-insurance.txt");
-      if (isLease) pushUnique(files, "rules-lease.txt");
-
-      if (files.length === 0) {
-        pushUnique(files, "rules-insurance.txt");
-        pushUnique(files, "rules-lease.txt");
-      }
-
-      return files.slice(0, 2);
-    }
-
-    if (includesAny(routeText, ["paid_evidence"])) {
-      pushUnique(files, "rules-receipt.txt");
-      return files;
-    }
-
-    /*
-      route が空・未対応の場合だけ、旧来のOCR補助判定を使う。
-      ここは互換性のための逃げ道。
-    */
-    if (includesAny(codeText, ["invoice", "accounts_payable"]) || includesAny(ocrText, ["請求書", "請求番号", "invoice"])) {
-      pushUnique(files, "rules-invoice.txt");
-    }
-
-    if (includesAny(codeText, ["tax_payment", "public_payment"]) || includesAny(ocrText, ["納付書", "納税通知書", "税務署", "市税事務所", "合計納付額"])) {
-      pushUnique(files, "rules-tax.txt");
-    }
-
-    if (includesAny(codeText, ["card_statement", "card_payable"]) || includesAny(ocrText, ["カード明細", "クレジットカード", "カード会社", "ご利用明細"])) {
-      pushUnique(files, "rules-card.txt");
-    }
-
-    if (includesAny(codeText, ["mail_saved"]) || includesAny(ocrText, ["メール保存ファイル", "from", "subject", "received"])) {
-      pushUnique(files, "rules-mail-saved.txt");
-    }
-
-    if (includesAny(codeText, ["utility_notice", "public_utility", "communication"]) || includesAny(ocrText, ["電気料金", "ガス料金", "水道料金", "通信費", "電話料金", "インターネット料金"])) {
-      pushUnique(files, "rules-utility.txt");
-    }
-
-    if (includesAny(codeText, ["insurance_notice", "insurance"]) || includesAny(ocrText, ["保険料通知書", "保険料", "保険契約", "契約番号:ins"])) {
-      pushUnique(files, "rules-insurance.txt");
-    }
-
-    if (includesAny(codeText, ["lease_contract", "lease"]) || includesAny(ocrText, ["リース料", "リース契約", "リース物件"])) {
-      pushUnique(files, "rules-lease.txt");
-    }
-
-    if (includesAny(codeText, ["receipt"]) || includesAny(ocrText, ["領収書", "領収済", "受領印", "支払済"])) {
-      pushUnique(files, "rules-receipt.txt");
-    }
-
-    return files.slice(0, 3);
+  if (
+    phase === "stage2" ||
+    phase === "common_draft" ||
+    phase === "common-draft" ||
+    phase === "detail"
+  ) {
+    return promptFilesStage2();
   }
 
   /*
-    phase 未指定の既存呼び出しは旧挙動を維持。
+    3回目AI:
+    専門解析。analysis_system_code / specialist_route_code に応じて
+    専門プロンプトだけ読む。
   */
-  const files = ["common-rules.txt"];
-
-  const strongInvoice =
-    includesAny(ocrText, ["請求書", "請求番号", "請求合計", "invoice"]) ||
-    includesAll(ocrText, ["請求日", "支払期限"]) ||
-    includesAll(ocrText, ["品名", "数量", "税抜金額", "消費税", "請求合計"]);
-
-  const strongTax =
-    includesAny(ocrText, ["納付書", "納税通知書", "税務署", "市税事務所", "合計納付額"]) ||
-    includesAll(ocrText, ["税目", "納付期限"]) ||
-    includesAll(ocrText, ["税目", "納付先"]);
-
-  const insurance =
-    includesAny(ocrText, ["保険料通知書", "保険料", "保険契約", "契約番号:ins"]) ||
-    includesAny(codeText, ["insurance_notice", "insurance"]);
-
-  const mailSaved =
-    includesAny(ocrText, ["メール保存ファイル", "from", "subject", "received"]) ||
-    includesAny(codeText, ["mail_saved"]);
-
-  const card =
-    includesAny(ocrText, ["カード明細", "クレジットカード", "カード会社", "ご利用明細"]) ||
-    includesAny(codeText, ["card_statement", "card_payable"]);
-
-  const utility =
-    includesAny(ocrText, ["電気料金", "ガス料金", "水道料金", "通信費", "電話料金", "インターネット料金"]) ||
-    includesAny(codeText, ["utility_notice", "public_utility"]);
-
-  const lease =
-    includesAny(ocrText, ["リース料", "リース契約", "リース物件"]) ||
-    includesAny(codeText, ["lease_contract", "lease"]);
-
-  const receipt =
-    includesAny(ocrText, ["領収書", "領収済", "受領印", "支払済"]) ||
-    includesAny(codeText, ["receipt"]);
-
-  if (strongInvoice || includesAny(codeText, ["invoice", "accounts_payable"])) {
-    pushUnique(files, "rules-invoice.txt");
+  if (
+    phase === "stage3" ||
+    phase === "specialist" ||
+    phase === "specialist_analysis" ||
+    phase === "specialist-analysis"
+  ) {
+    return promptFilesStage3(context);
   }
 
-  if (insurance) pushUnique(files, "rules-insurance.txt");
-  if (mailSaved) pushUnique(files, "rules-mail-saved.txt");
-  if (card) pushUnique(files, "rules-card.txt");
-  if (utility) pushUnique(files, "rules-utility.txt");
-  if (lease) pushUnique(files, "rules-lease.txt");
-  if (receipt) pushUnique(files, "rules-receipt.txt");
-
-  if (strongTax && (!strongInvoice || includesAny(ocrText, ["納付書", "納税通知書", "税務署", "市税事務所", "合計納付額"]))) {
-    pushUnique(files, "rules-tax.txt");
-  }
-
-  return files.slice(0, 3);
+  /*
+    phase未指定は安全側で1回目扱い。
+    旧互換のため、全専門ルールを混ぜない。
+  */
+  return promptFilesStage1();
 }
 
 function appendPaymentDocumentExternalPrompt(basePrompt, fileNames) {
@@ -287,3 +234,4 @@ module.exports = {
   appendPaymentDocumentExternalPrompt,
   selectPaymentDocumentPromptFiles
 };
+

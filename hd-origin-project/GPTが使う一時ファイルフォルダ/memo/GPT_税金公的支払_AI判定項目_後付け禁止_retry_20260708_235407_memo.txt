@@ -1,0 +1,26 @@
+﻿==============================
+GPT 税金・公的支払 AI判定項目 後付け禁止 retry 修正メモ
+==============================
+日時: 2026/07/08 23:54:08
+
+[方針]
+- GPT側だけ使用
+- GPT2側は未使用
+- 1回目仕分けの applyPaymentDocumentSortRuleFallbackFromOcr 後付け補正呼び出しを停止
+- 税金専門画面は /api/payment-documents/ai-specialist/:id を呼ぶ
+- 税金専門画面の一覧はAI判定コードだけで絞る
+- OCR本文の語句で税金っぽいと後付け判定しない
+- 表示項目はAIの visible_field_labels を正とする
+- stage3-specialist/tax-public プロンプトを追加
+
+[作成]
+before: G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before
+after : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after
+apply : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_税金公的支払_AI判定項目_後付け禁止_retry_20260708_235407_apply.ps1
+undo  : G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_税金公的支払_AI判定項目_後付け禁止_retry_20260708_235407_undo.ps1
+
+[本体反映]
+まだ未反映。反映する場合は apply を実行。
+
+[構文確認]
+routes.js after node --check OK

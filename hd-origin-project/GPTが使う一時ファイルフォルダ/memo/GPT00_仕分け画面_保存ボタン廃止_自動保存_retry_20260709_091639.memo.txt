@@ -1,0 +1,28 @@
+﻿==============================
+GPT00 仕分け画面 保存ボタン廃止・自動保存 retry 修正結果
+==============================
+日時: 2026/07/09 09:16:39
+
+[対象]
+G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+
+[修正内容]
+- 完全一致置換をやめ、後付けスクリプトで自動保存化
+- まとめて保存 / 下書き保存 ボタンを画面から削除
+- ボタンが後から生成されても MutationObserver で削除
+- AI仕分け解析後に /api/payment-documents/sorting-drafts/save へ自動保存
+- 人間が draft-field / master-select を変更したら 0.7秒後に自動保存
+- 保存ボタンは廃止。自動保存のみ
+
+[確認]
+自動保存マーカーあり: True
+bulkSaveSortingDraftButton 明示ボタンなし: True
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT00_仕分け画面_保存ボタン廃止_自動保存_retry_20260709_091639.before.html
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT00_仕分け画面_保存ボタン廃止_自動保存_retry_20260709_091639.after.html
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT00_仕分け画面_保存ボタン廃止_自動保存_retry_20260709_091639.undo.ps1

@@ -1,0 +1,37 @@
+﻿==============================
+GPT00 ファイル仕分け仕様 最低限収集結果
+==============================
+日時: 2026/07/09 08:20:56
+
+[PROJECT_ROOT]
+G:\GITHUB\wix-test\hd-origin-project
+
+[コピー先]
+G:\GITHUB\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\00_GPTに渡すフォルダ
+
+[方針]
+- GPT00側のみ使用
+- GPT2側は未使用
+- GPTに渡すフォルダのみクリーン
+- before / after / apply / undo / memo は削除しない
+- .env / DB / 画像 / backup / 実バックアップは収集しない
+- ファイル仕分け仕様検討に必要な入口だけ収集
+
+[コピー成功: 14 件]
+web_receiver\public\payables\payment-document-inbox.html
+web_receiver\public\payables\payment-document-review.html
+web_receiver\public\payables\payment-document-review.css
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+web_receiver\src\paymentDocuments\paymentDocuments.aiPromptLoader.js
+web_receiver\src\paymentDocuments\prompts\business-rules.txt
+web_receiver\src\paymentDocuments\prompts\common-rules.txt
+web_receiver\src\paymentDocuments\prompts\classification.system.txt
+web_receiver\src\paymentDocuments\prompts\classification.extra-rules.txt
+web_receiver\src\paymentDocuments\prompts\sorting.system.txt
+web_receiver\src\paymentDocuments\prompts\sorting.extra-rules.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\common\system.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\common\output-schema.txt
+web_receiver\src\paymentDocuments\prompts\stage3-specialist\common\human-confirm-rules.txt
+
+[見つからなかったファイル: 0 件]
+なし

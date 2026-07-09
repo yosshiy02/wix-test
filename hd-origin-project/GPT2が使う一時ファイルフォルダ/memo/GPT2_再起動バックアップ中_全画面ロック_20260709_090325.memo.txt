@@ -1,0 +1,35 @@
+﻿==============================
+GPT2 再起動バックアップ中 全画面ロック 修正メモ
+==============================
+日時: 2026/07/09 09:03:25
+
+[修正対象]
+web_receiver\public\hd-origin-exit-guard.js
+
+[修正内容]
+- /api/system/restart または /api/system/restart-with-backup を叩いた瞬間に全画面ロック
+- バックアップ中はクリック、送信、キー操作、タッチ操作をブロック
+- バックアップ完了レスポンスを受け取ったら「バックアップが完了しました」画面を表示
+- 成功時は再起動へ進むためロック解除しない
+- 失敗時はエラー画面を表示し、閉じるボタンで解除
+- fetch と XMLHttpRequest の両方に対応
+
+[触っていないもの]
+- GPT側フォルダ
+- DB本体
+- .env
+- バックアップ本体
+- backupフォルダ
+- server.js
+
+[before]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_再起動バックアップ中_全画面ロック_20260709_090325.before.hd-origin-exit-guard.js
+
+[after]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\GPT2_再起動バックアップ中_全画面ロック_20260709_090325.after.hd-origin-exit-guard.js
+
+[undo]
+G:\GITHUB\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\GPT2_再起動バックアップ中_全画面ロック_20260709_090325.undo.ps1
+
+[確認]
+- node --check OK
