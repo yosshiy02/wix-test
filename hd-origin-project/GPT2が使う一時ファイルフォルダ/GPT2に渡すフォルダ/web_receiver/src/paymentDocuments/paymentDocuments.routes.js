@@ -6736,6 +6736,145 @@ function hdOriginSaveBusinessFlowRules(sourceText, analysis) {
     bytes: Buffer.byteLength(text, "utf8")
   };
 }
+
+function hdOriginBusinessFlowGetOpenAiApiKey() {
+  return (
+    process.env.OPENAI_API_KEY ||
+    process.env.HD_ORIGIN_OPENAI_API_KEY ||
+    process.env.OPENAI_KEY ||
+    ""
+  );
+}
+
+function hdOriginBusinessFlowGetOpenAiModel() {
+  return process.env.OPENAI_MODEL || process.env.HD_ORIGIN_OPENAI_MODEL || "gpt-4.1-mini";
+}
+/* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_20260709_START */
+function hdOriginReadTextFileSafe(filePath, maxLength) {
+  try {
+    if (!filePath || !fs.existsSync(filePath)) return "";
+    return String(fs.readFileSync(filePath, "utf8") || "").slice(0, maxLength || 20000);
+  } catch {
+    return "";
+  }
+}
+
+async function hdOriginSuggestBusinessFlowImprovements(payload) {
+  const apiKey = hdOriginBusinessFlowGetOpenAiApiKey();
+
+  if (!apiKey) {
+    const err = new Error("OPENAI_API_KEY が未設定です。");
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const flow = payload && payload.flow && typeof payload.flow === "object" ? payload.flow : {};
+  const currentAiResult = hdOriginBusinessFlowCleanText(payload && payload.currentAiResult, 12000);
+
+  const companyRules = hdOriginReadTextFileSafe(hdOriginBusinessFlowRulesFilePath(), 20000);
+  const generalAffairs = hdOriginReadTextFileSafe(path.join(hdOriginBusinessFlowPromptCommonDir(), "general-affairs-ai.txt"), 20000);
+  const notes = hdOriginReadTextFileSafe(path.join(hdOriginBusinessFlowPromptCommonDir(), "general-affairs-ai-notes.md"), 20000);
+
+  const systemMessage = [
+    "あなたはHD Origin Projectの業務設計アドバイザーです。",
+    "役割は、育ってきた総務AIプロンプトと業務フロー設定を読み、足りないもの・危ない抜け・作るとよい機能・変えた方がよい点を提案することです。",
+    "単なる要約ではなく、実務で事故を減らすための改善提案をしてください。",
+    "会計仕訳や支払承認をAIだけで最終確定する提案は禁止です。",
+    "必ずJSONのみを返してください。"
+  ].join("\n");
+
+  const prompt = [
+    "以下はHD Origin Projectの現在の業務フロー設定、AI解析結果、育成済み総務AIプロンプトです。",
+    "この内容を見て、今後作るべきもの・変えた方がいいもの・不足しているものを提案してください。",
+    "",
+    "【返却JSON形式】",
+    "{",
+    "  \"summary\": \"全体所見\",",
+    "  \"missing_items\": [",
+    "    {\"title\":\"足りないもの\", \"reason\":\"理由\", \"risk\":\"放置リスク\", \"suggestion\":\"提案\"}",
+    "  ],",
+    "  \"improvements\": [",
+    "    {\"title\":\"改善対象\", \"current_issue\":\"現状の問題\", \"change_to\":\"変更案\", \"reason\":\"理由\"}",
+    "  ],",
+    "  \"new_feature_ideas\": [",
+    "    {\"title\":\"作るとよい画面や機能\", \"purpose\":\"目的\", \"fields\":[\"必要項目\"], \"priority\":\"高/中/低\"}",
+    "  ],",
+    "  \"prompt_growth_ideas\": [",
+    "    {\"title\":\"プロンプト追記候補\", \"add_rule\":\"追記案\", \"reason\":\"理由\"}",
+    "  ],",
+    "  \"human_check_required\": [\"人間確認を強めるべき場所\"],",
+    "  \"priority_order\": [\"次にやる順番\"]",
+    "}",
+    "",
+    "【判断観点】",
+    "- 書類がある業務だけでなく、書類なし支払、銀行引落、定期支払、証憑後追いを考慮する。",
+    "- AIに任せる部分と、人間確認が必須の部分を分ける。",
+    "- DB、台帳、画面、ボタン、一覧、警告、プロンプト追記のどれが必要か考える。",
+    "- 社長が雑に書いた言葉がプロンプトとして育っていく前提で、次の育成候補を提案する。",
+    "",
+    "【画面入力 flow】",
+    JSON.stringify(flow, null, 2),
+    "",
+    "【現在画面に出ているAI解析結果】",
+    currentAiResult,
+    "",
+    "【company-business-flow-rules.txt】",
+    companyRules,
+    "",
+    "【general-affairs-ai.txt】",
+    generalAffairs,
+    "",
+    "【general-affairs-ai-notes.md】",
+    notes
+  ].join("\n");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: hdOriginBusinessFlowGetOpenAiModel(),
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" }
+    })
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      data && data.error && data.error.message
+        ? data.error.message
+        : "OpenAI API エラー: HTTP " + response.status;
+    const err = new Error(message);
+    err.statusCode = response.status || 500;
+    throw err;
+  }
+
+  const content =
+    data &&
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+      ? data.choices[0].message.content
+      : "";
+
+  try {
+    return JSON.parse(content);
+  } catch {
+    const err = new Error("AI改善提案結果をJSONとして読めませんでした。");
+    err.statusCode = 500;
+    throw err;
+  }
+}
+/* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_20260709_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_END */
 
 async function handlePaymentDocumentRoutes(req, res) {
@@ -6771,7 +6910,28 @@ async function handlePaymentDocumentRoutes(req, res) {
 
     return true;
   }
-  /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_HANDLER_END */
+    /* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_HANDLER_20260709_START */
+  if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/business-flow-ai/suggest") {
+    try {
+      const body = await readBody(req);
+      const suggestions = await hdOriginSuggestBusinessFlowImprovements(body);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "業務フロー改善提案を作成しました。",
+        suggestions
+      });
+    } catch (err) {
+      sendJson(res, err.statusCode || 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_HANDLER_20260709_END */
+/* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_HANDLER_END */
   /* HD_ORIGIN_PAYMENT_DOCUMENT_REVIEW_ITEMS_DB_ONLY_20260708_START */
   if (req.method === "GET" && String(req.url || "").split("?")[0] === "/api/payment-documents/review-items") {
     try {

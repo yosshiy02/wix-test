@@ -42,7 +42,7 @@ HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
 - DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
 
 [生成情報]
-生成日時: 2026/7/9 21:43:02
+生成日時: 2026/7/10 17:19:29
 PC名: 2FLABO
 OS: win32 10.0.19045 x64
 Node.js: v20.16.0
@@ -278,23 +278,24 @@ hd-origin-project\
 │  ├─ GPT2に渡すフォルダ\
 │  │  ├─ database\
 │  │  │  └─ migrations\
-│  │  │     ├─ 20260708_005_contract_insurance_lease_drafts.sql
-│  │  │     └─ 20260708_006_contract_insurance_lease_missing_masters.sql
+│  │  │     ├─ 20260707_006_payment_document_sorting_drafts.sql
+│  │  │     └─ 20260709_001_payment_document_sorting_drafts_analysis_system_columns.sql
 │  │  └─ web_receiver\
 │  │     ├─ public\
 │  │     │  └─ payables\
+│  │     │     ├─ payment-document-inbox.css
 │  │     │     ├─ payment-document-inbox.html
-│  │     │     ├─ payment-document-specialist-contract-insurance-lease.css
-│  │     │     └─ payment-document-specialist-contract-insurance-lease.html
-│  │     └─ src\
-│  │        ├─ expenses\
-│  │        │  └─ expenses.repository.js
-│  │        └─ paymentDocuments\
-│  │           ├─ prompts\
-│  │           │  └─ stage3-specialist\
-│  │           │     ...
-│  │           ├─ paymentDocuments.aiPromptLoader.js
-│  │           └─ paymentDocuments.routes.js
+│  │     │     ├─ payment-document-review.css
+│  │     │     ├─ payment-document-review.html
+│  │     │     ├─ payment-document-specialist-contract-insurance-lease.html
+│  │     │     ├─ payment-document-specialist-invoice-payable.html
+│  │     │     ├─ payment-document-specialist-tax-public.html
+│  │     │     └─ payment-document-specialist-utility-communication.html
+│  │     ├─ src\
+│  │     │  └─ paymentDocuments\
+│  │     │     ├─ paymentDocuments.aiPromptLoader.js
+│  │     │     └─ paymentDocuments.routes.js
+│  │     └─ server.js
 │  ├─ memo\
 │  │  ├─ cil_ai_summary_code_fix_20260709_210142.memo.txt
 │  │  ├─ cil_bulk_save_db_check_20260709_213004.js
@@ -373,6 +374,7 @@ hd-origin-project\
 │  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090110.memo.txt
 │  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090325.memo.txt
 │  │  ├─ GPT2_再起動後_現在ページリロード_20260709_091747.memo.txt
+│  │  ├─ GPT2_仕分けシステム保存後動作_最低限収集結果_20260710_163330.txt
 │  │  ├─ GPT2_専門下書き保存API_最小確認_20260708_213818.txt
 │  │  ├─ GPT2_不足マスタSQL_エラー位置診断_20260708_210758.js
 │  │  ├─ GPT2_不足マスタSQL_エラー位置診断_結果_20260708_210758.txt
@@ -424,19 +426,27 @@ hd-origin-project\
 │  ├─ 00_GPTに渡すフォルダ\
 │  │  └─ web_receiver\
 │  │     ├─ public\
+│  │     │  ├─ masters\
+│  │     │  │  └─ master-management.js
+│  │     │  ├─ payables\
+│  │     │  │  ├─ payable-list.html
+│  │     │  │  ├─ payment-document-specialist-tax-public.html
+│  │     │  │  └─ payment-document-specialist-utility-communication.html
+│  │     │  ├─ receipts\
+│  │     │  │  ├─ receipt-list.html
+│  │     │  │  └─ receipt-saved-list.html
 │  │     │  ├─ settings\
 │  │     │  │  └─ business-flow-settings.html
-│  │     │  ├─ index.html
-│  │     │  └─ settings.html
+│  │     │  ├─ business-flow-settings.html
+│  │     │  └─ hd-origin-exit-guard.js
 │  │     ├─ src\
-│  │     │  ├─ paymentDocuments\
-│  │     │  │  ├─ prompts\
-│  │     │  │  │  └─ common\
-│  │     │  │  │     ...
-│  │     │  │  ├─ paymentDocuments.aiPromptLoader.js
-│  │     │  │  └─ paymentDocuments.routes.js
+│  │     │  ├─ backups\
+│  │     │  │  ├─ backup.routes.js
+│  │     │  │  └─ backup.service.js
 │  │     │  └─ config.js
-│  │     └─ server.js
+│  │     ├─ package.json
+│  │     ├─ server.js
+│  │     └─ start_hd_origin.bat
 │  ├─ after\
 │  │  ├─ database\
 │  │  │  └─ migrations\
@@ -503,6 +513,9 @@ hd-origin-project\
 │  │  ├─ general-affairs-ai-notes.md.after_20260709_195549.md
 │  │  ├─ general-affairs-ai.txt.after_20260709_193826.txt
 │  │  ├─ general-affairs-ai.txt.after_20260709_195549.txt
+│  │  ├─ GPT_restart_button_gitup_20260710_170142.after.server.js
+│  │  ├─ GPT_restart_button_gitup_japanese_path_fix_20260710_170836.after.server.js
+│  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.after.server.js
 │  │  ├─ GPT00_business_flow_ai_auto_fill_sections_20260709_210258.after.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_ai_auto_fill_sections_20260709_210258.after.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_ai_free_input_20260709_203645.after.business-flow-settings.html
@@ -515,10 +528,17 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_public_business-flow-settings.html.after
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_src_paymentDocuments_paymentDocuments.aiPromptLoader.js.after
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_src_paymentDocuments_paymentDocuments.routes.js.after
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.after.web_receiver_public_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.after.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.after.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.after.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.after.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.after.web_receiver_public_settings_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.after.company-business-flow-rules.txt
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.after.general-affairs-ai-changelog.md
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.after.general-affairs-ai-notes.md
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.after.web_receiver_public_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.after.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.after.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.after.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_openai_key_func_fix_20260709_210054.after.paymentDocuments.routes.js
@@ -551,6 +571,9 @@ hd-origin-project\
 │  ├─ apply\
 │  │  ├─ apply_general_affairs_ai_loader_20260709_195549.ps1
 │  │  ├─ APPLY_GPT00_税金公的支払_固定表示項目設計_20260708_205753.ps1
+│  │  ├─ GPT_restart_button_gitup_20260710_170142.apply.ps1
+│  │  ├─ GPT_restart_button_gitup_final_20260710_171015.apply.ps1
+│  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.apply.ps1
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ_保存表現修正版_20260709_080520_apply.ps1
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ追記_20260709_074701_apply.ps1
 │  │  ├─ GPT_税金公的支払_AI判定項目_後付け禁止_retry_20260708_235407_apply.ps1
@@ -595,6 +618,10 @@ hd-origin-project\
 │  │  │     │  ├─ paymentDocuments.aiPromptLoader.js
 │  │  │     │  └─ paymentDocuments.routes.js
 │  │  │     └─ projectStatus.js
+│  │  ├─ GPT_restart_button_gitup_20260710_165132.before.server.js
+│  │  ├─ GPT_restart_button_gitup_20260710_170142.before.server.js
+│  │  ├─ GPT_restart_button_gitup_final_20260710_171015.before.server.js
+│  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.before.server.js
 │  │  ├─ GPT00_business_flow_ai_auto_fill_sections_20260709_210258.before.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_ai_auto_fill_sections_20260709_210258.before.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_ai_free_input_20260709_203645.before.business-flow-settings.html
@@ -607,10 +634,17 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_public_business-flow-settings.html.before
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_src_paymentDocuments_paymentDocuments.aiPromptLoader.js.before
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.web_receiver_src_paymentDocuments_paymentDocuments.routes.js.before
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.before.web_receiver_public_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.before.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.before.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.before.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.before.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.before.web_receiver_public_settings_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.before.company-business-flow-rules.txt
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.before.general-affairs-ai-changelog.md
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.before.general-affairs-ai-notes.md
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.before.web_receiver_public_business-flow-settings.html
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.before.web_receiver_public_settings_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_company_context_not_out_of_scope_20260709_212806.before.paymentDocuments.routes.js
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.before.web_receiver_public_business-flow-settings.html
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.before.web_receiver_public_settings_business-flow-settings.html
@@ -668,6 +702,9 @@ hd-origin-project\
 │  │  ├─ general_affairs_ai_3files_memo_20260709_193826.txt
 │  │  ├─ general_affairs_ai_loader_memo_20260709_195549.txt
 │  │  ├─ general_affairs_ai_prompt_memo_20260709_193316.txt
+│  │  ├─ GPT_restart_button_gitup_final_20260710_171015.memo.txt
+│  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.memo.txt
+│  │  ├─ GPT_サーバー再起動機能_最低限収集結果_20260710_163553.txt
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ_保存表現修正版_20260709_080520_memo.txt
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ追記_20260709_074701_memo.txt
 │  │  ├─ GPT_税金公的支払_AI判定項目_後付け禁止_retry_20260708_235407_memo.txt
@@ -685,8 +722,10 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_ai_free_input_20260709_203645.memo.txt
 │  │  ├─ GPT00_business_flow_ai_improvement_suggest_20260709_205435.memo.txt
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.memo.txt
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.memo.txt
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.memo.txt
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.memo.txt
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.memo.txt
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.memo.txt
 │  │  ├─ GPT00_business_flow_openai_key_func_fix_20260709_210054.memo.txt
 │  │  ├─ GPT00_business_flow_remove_extra_buttons_20260709_204825.memo.txt
@@ -727,6 +766,9 @@ hd-origin-project\
 │  │  │  └─ paymentDocuments.aiPromptLoader.js
 │  │  └─ 00_隔離結果.txt
 │  ├─ undo\
+│  │  ├─ GPT_restart_button_gitup_20260710_170142.undo.ps1
+│  │  ├─ GPT_restart_button_gitup_final_20260710_171015.undo.ps1
+│  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.undo.ps1
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ_保存表現修正版_20260709_080520_undo.ps1
 │  │  ├─ GPT_スタート文書_専門解析共通設計メモ追記_20260709_074701_undo.ps1
 │  │  ├─ GPT_税金公的支払_AI判定項目_後付け禁止_retry_20260708_235407_undo.ps1
@@ -738,8 +780,10 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_ai_free_input_20260709_203645.undo.ps1
 │  │  ├─ GPT00_business_flow_ai_improvement_suggest_20260709_205435.undo.ps1
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.undo.ps1
+│  │  ├─ GPT00_business_flow_ai_update_not_accumulate_20260709_215818.undo.ps1
 │  │  ├─ GPT00_business_flow_back_button_20260709_204703.undo.ps1
 │  │  ├─ GPT00_business_flow_clear_ai_input_after_apply_20260709_211101.undo.ps1
+│  │  ├─ GPT00_business_flow_company_ai_policy_safe_20260709_215052.undo.ps1
 │  │  ├─ GPT00_business_flow_company_section_20260709_212353.undo.ps1
 │  │  ├─ GPT00_business_flow_openai_key_func_fix_20260709_210054.undo.ps1
 │  │  ├─ GPT00_business_flow_remove_extra_buttons_20260709_204825.undo.ps1

@@ -3,14 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>契約・保険・リース専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
+  <title>税金・公的支払専門解析システム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-specialist-tax-public.css">
 </head>
-<body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
-<!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+<!-- GPT00_NO_AI_INTERFERENCE_RULE_20260708
+この画面では、HTMLや後付けJSでAI候補を勝手に上書きしない。
+AI候補と人間のマスタ選択を混ぜない。
+selectにAI候補optionを勝手に追加して確定扱いしない。
+AI結果の正は routes/API/DB の結果であり、HTMLは表示枠だけを担当する。
+-->
+<body class="specialist-tax-public-page" data-specialist-route-code="tax_public">
+<!-- HD_ORIGIN_SPECIALIST_TAX_PUBLIC_FIXED_FIELDS_GPT00_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>契約・保険・リース専門解析システム</h1>
+      <h1>税金・公的支払専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
@@ -25,12 +31,12 @@
         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで契約・保険・リースへ送った書類を、契約・保険・リースとして専門解析する画面です。</span>
+<span class="muted">1回目仕分けで税金・公的支払へ送った書類を、税金・公的支払として専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>契約・保険・リース 対象書類</span>
+        <span>税金・公的支払 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
@@ -71,401 +77,102 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>契約・保険・リース 解析確認</span>
+        <span>税金・公的支払 解析確認</span>
         <button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
       </div>
 
             <div class="draft-form-scroll">
-        <section class="draft-section">
-          <div class="draft-section-title">契約・保険・リース 解析サマリー</div>
+        <!-- GPT00_TAX_PUBLIC_FIXED_FIELDS_20260708_START -->
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">AI判定・会計連携</div>
           <div class="form-grid">
+            <label>
+              解析システム
+              <input class="draft-field" id="draftAnalysisSystemCode" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+            </label>
+            <label>
+              解析システム名
+              <input class="draft-field" id="draftAnalysisSystemLabel" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+            </label>
+            <label class="span2">
+              解析システム判定理由
+              <textarea class="draft-field small-textarea" id="draftAnalysisSystemReason" placeholder="例：納付書、税目、納付先、納期限、合計納付額が確認できるため。"></textarea>
+            </label>
+            <label>
+              解析システム信頼度
+              <input class="draft-field" id="draftAnalysisSystemConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label>
+              専門ルート
+              <input class="draft-field" id="draftSpecialistRoute" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+            </label>
+
             <label>
               書類区分
               <select class="draft-field master-select" id="draftAiDocumentKind" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              証憑区分
+              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               処理先
               <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              支払対象
-              <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
-            </label>
-            <label>
-              未払登録対象
-              <input class="draft-field" id="draftAiUnpaidFlag" placeholder="例：登録する / しない / 要確認">
-            </label>
-            <label>
-              経費登録対象
-              <input class="draft-field" id="draftAiExpenseFlag" placeholder="例：経費 / 立替 / 対象外">
-            </label>
-            <label>
-              税金・公的支払
-              <input class="draft-field" id="draftAiTaxPublicFlag" placeholder="例：税金 / 社保 / 公共料金 / 対象外">
-            </label>
-            <label>
-              契約・保険・リース
-              <select class="draft-field master-select" id="draftAiContractFlag" data-master-type="contract_insurance_lease_kinds" data-master-label="契約・保険・リース" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              AI信頼度
-              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
-            </label>
-            <label class="span2">
-              AI判定理由
-              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：OCR本文内に請求金額、支払期限、振込先があるため請求書と判断。"></textarea>
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">基本情報</div>
-          <div class="form-grid">
-                        <label>
-              証憑区分
-              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              書類名
-              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
-            </label>
-            <label>
-              発行元
-              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
-            </label>
-            <label>
-              支払先
-              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
-            </label>
-            <label>
-              宛名
-              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
-            </label>
-            <label>
-              会社名
-              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
-            </label>
-            <label>
-              個人名
-              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
-            </label>
-            <label>
-              部署名
-              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
-            </label>
-            <label>
-              担当者名
-              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
-            </label>
-            <label class="span2">
-              住所
-              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
-            </label>
-            <label>
-              電話番号
-              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
-            </label>
-            <label>
-              メール
-              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
-            </label>
-            <label class="span2">
-              Webサイト
-              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">番号・識別情報</div>
-          <div class="form-grid">
-            <label>
-              請求書番号
-              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
-            </label>
-            <label>
-              領収書番号
-              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
-            </label>
-            <label>
-              納付番号
-              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
-            </label>
-            <label>
-              通知書番号
-              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
-            </label>
-            <label>
-              管理番号
-              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
-            </label>
-            <label>
-              お客様番号
-              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              契約番号
-              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
-            </label>
-            <label>
-              会員番号
-              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
-            </label>
-            <label>
-              注文番号
-              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
-            </label>
-            <label>
-              取引番号
-              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
-            </label>
-            <label>
-              登録番号
-              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
-            </label>
-            <label>
-              法人番号
-              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
-            </label>
-            <label>
-              カード番号下4桁
-              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">日付・期限</div>
-          <div class="form-grid">
-            <label>
-              書類日付
-              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              発行日
-              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              請求日
-              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              取引日・利用日
-              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              納品日
-              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              締日
-              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
-            </label>
-            <label>
-              支払期限・納期限
-              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
-            </label>
-            <label>
-              支払予定日
-              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
-            </label>
-            <label>
-              引落日
-              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
-            </label>
-            <label>
-              決済日
-              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
-            </label>
-            <label>
-              対象開始日
-              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
-            </label>
-            <label>
-              対象終了日
-              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
-            </label>
-            <label>
-              契約開始日
-              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
-            </label>
-            <label>
-              契約終了日
-              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
-            </label>
-            <label>
-              更新日
-              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">金額・税</div>
-          <div class="form-grid">
-            <label>
-              請求・支払金額
-              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              合計金額
-              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              税込金額
-              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
-            </label>
-            <label>
-              税抜金額
-              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
-            </label>
-            <label>
-              消費税額
-              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
-            </label>
-            <label>
-              10%対象金額
-              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
-            </label>
-            <label>
-              10%消費税
-              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
-            </label>
-            <label>
-              8%対象金額
-              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
-            </label>
-            <label>
-              8%消費税
-              <input class="draft-field" id="draftTax8" placeholder="例：800">
-            </label>
-            <label>
-              非課税・不課税
-              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
-            </label>
-            <label>
-              源泉徴収額
-              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
-            </label>
-            <label>
-              手数料
-              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
-            </label>
-            <label>
-              延滞金
-              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
-            </label>
-            <label>
-              値引・割引
-              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
-            </label>
-            <label>
-              前回残高
-              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
-            </label>
-            <label>
-              今回利用額
-              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              入金額
-              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
-            </label>
-            <label>
-              未払残高
-              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">支払情報</div>
-          <div class="form-grid">
-            <label>
-              支払方法
-              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払状態
-              <select class="draft-field master-select" id="draftPaymentStatus" data-master-type="payment_statuses" data-master-label="支払状態" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              振込先銀行
-              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
-            </label>
-            <label>
-              銀行コード
-              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
-            </label>
-            <label>
-              支店名
-              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
-            </label>
-            <label>
-              支店コード
-              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
-            </label>
-            <label>
-              口座種別
-              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
-            </label>
-            <label>
-              口座番号
-              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
-            </label>
-            <label class="span2">
-              口座名義
-              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
-            </label>
-            <label>
-              引落銀行
-              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
-            </label>
-            <label>
-              カード会社
-              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
-            </label>
-            <label>
-              カード名
-              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
-            </label>
-            <label>
-              決済サービス
-              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
-            </label>
-            <label>
-              コンビニ支払番号
-              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
-            </label>
-            <label>
-              バーコード番号
-              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
-            </label>
-            <label>
-              QR決済情報
-              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">会計・管理</div>
-          <div class="form-grid">
-            <label>
               会計区分
               <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               未払種別
               <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              支払先マスタ候補
-              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+              支払対象
+              <select class="draft-field" id="draftAiPayableFlag">
+                <option value="">選択</option>
+                <option value="支払対象">支払対象</option>
+                <option value="対象外">対象外</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              未払・支払予定登録対象
+              <select class="draft-field" id="draftAiUnpaidFlag">
+                <option value="">選択</option>
+                <option value="登録する">登録する</option>
+                <option value="候補">候補</option>
+                <option value="対象外">対象外</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              経費登録対象
+              <select class="draft-field" id="draftAiExpenseFlag">
+                <option value="">選択</option>
+                <option value="対象外">対象外</option>
+                <option value="候補">候補</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              買掛登録対象
+              <select class="draft-field" id="draftAccountsPayableFlag">
+                <option value="">選択</option>
+                <option value="false">対象外</option>
+                <option value="true">登録する</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              税金・公的支払
+              <select class="draft-field" id="draftAiTaxPublicFlag">
+                <option value="">選択</option>
+                <option value="税金・公的支払い">税金・公的支払い</option>
+                <option value="公的支払">公的支払</option>
+                <option value="対象外">対象外</option>
+                <option value="要確認">要確認</option>
+              </select>
             </label>
             <label>
               勘定科目
@@ -476,56 +183,375 @@
               <select class="draft-field master-select" id="draftTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              インボイス区分
-              <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
+              支払方法
+              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              支払方法マスタ
-              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+              AI信頼度
+              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label class="span2">
+              AI判定理由
+              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：納付書、税目、納付先、納期限、合計納付額が明確にあるため税金・公的支払と判断。"></textarea>
+            </label>
+            <label class="span2">
+              要確認
+              <textarea class="draft-field small-textarea" id="draftWarnings" placeholder="例：個人宛のため会社負担可否を確認。納期限がOCR上あいまい。"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">書類・発行元</div>
+          <div class="form-grid">
+            <label>
+              書類名
+              <input class="draft-field" id="draftDocumentTitle" placeholder="例：固定資産税・都市計画税納税通知書">
+            </label>
+            <label>
+              発行元
+              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
+            </label>
+            <label>
+              納付先
+              <input class="draft-field" id="draftVendorName" placeholder="例：大阪市 / 税務署 / 年金事務所">
+            </label>
+            <label>
+              支払先マスタ候補
+              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              収納機関
+              <input class="draft-field" id="draftStorageAgency" placeholder="例：金融機関 / 自治体 / 収納代行">
+            </label>
+            <label>
+              問い合わせ先部署
+              <input class="draft-field" id="draftInquiryDepartment" placeholder="例：家屋担当 / 収納管理グループ">
+            </label>
+            <label>
+              電話番号
+              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
+            </label>
+            <label>
+              Webサイト・案内URL
+              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">納付者・対象者</div>
+          <div class="form-grid">
+            <label>
+              宛名
+              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康 様">
+            </label>
+            <label>
+              会社名
+              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
+            </label>
+            <label>
+              個人名
+              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
+            </label>
+            <label class="span2">
+              住所
+              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
             </label>
             <label>
               対象者
               <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              目的
-              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
+              部門
+              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               案件
               <select class="draft-field master-select" id="draftProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
-              部門
-              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label class="span2">
-              摘要
-              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
+              目的
+              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               会社負担可否
-              <select class="draft-field master-select" id="draftCompanyBurden" data-master-type="company_burden_types" data-master-label="会社負担可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field" id="draftCompanyBurden">
+                <option value="">選択</option>
+                <option value="会社負担">会社負担</option>
+                <option value="個人負担">個人負担</option>
+                <option value="要確認">要確認</option>
+              </select>
             </label>
             <label>
               個人負担混在
-              <select class="draft-field master-select" id="draftMixedPersonalFlag" data-master-type="personal_mix_flags" data-master-label="個人負担混在" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field" id="draftMixedPersonalFlag">
+                <option value="">選択</option>
+                <option value="なし">なし</option>
+                <option value="あり">あり</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">税目・年度・期別</div>
+          <div class="form-grid">
+            <label>
+              税目・公的支払種別
+              <input class="draft-field" id="draftTaxItem" placeholder="例：法人税 / 固定資産税 / 社会保険料">
             </label>
             <label>
-              立替
-              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
+              税務署・公的機関
+              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所 / 年金事務所">
             </label>
             <label>
-              精算
-              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
+              年度
+              <input class="draft-field" id="draftFiscalYear" placeholder="例：令和8年度 / 2026年度">
             </label>
             <label>
-              未払登録
-              <select class="draft-field master-select" id="draftPayableRegistrationFlag" data-master-type="payable_registration_types" data-master-label="未払登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              対象年度
+              <input class="draft-field" id="draftTargetFiscalYear" placeholder="例：2026年度">
             </label>
             <label>
-              買掛登録
-              <select class="draft-field master-select" id="draftAccountsPayableFlag" data-master-type="accounts_payable_registration_types" data-master-label="買掛登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              期別
+              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
+            </label>
+            <label>
+              第何期
+              <input class="draft-field" id="draftTaxTermNo" placeholder="例：1">
+            </label>
+            <label>
+              対象期間開始
+              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-04-01">
+            </label>
+            <label>
+              対象期間終了
+              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2027-03-31">
+            </label>
+            <label>
+              課税対象
+              <input class="draft-field" id="draftTaxTarget" placeholder="例：土地・家屋 / 法人所得 / 給与">
+            </label>
+            <label>
+              課税区分
+              <input class="draft-field" id="draftTaxAssessmentCategory" placeholder="例：普通徴収 / 特別徴収 / 申告納付">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">番号・識別情報</div>
+          <div class="form-grid">
+            <label>
+              納付番号
+              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
+            </label>
+            <label>
+              通知書番号
+              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知書番号">
+            </label>
+            <label>
+              整理番号
+              <input class="draft-field" id="draftReferenceNo" placeholder="例：整理番号">
+            </label>
+            <label>
+              管理番号
+              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
+            </label>
+            <label>
+              収納番号
+              <input class="draft-field" id="draftStorageNo" placeholder="例：収納番号">
+            </label>
+            <label>
+              確認番号
+              <input class="draft-field" id="draftConfirmationNo" placeholder="例：確認番号">
+            </label>
+            <label>
+              法人番号
+              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
+            </label>
+            <label>
+              登録番号
+              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">日付・期限</div>
+          <div class="form-grid">
+            <label>
+              書類日付
+              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-04-01">
+            </label>
+            <label>
+              発行日
+              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-04-01">
+            </label>
+            <label>
+              納期限
+              <input class="draft-field" id="draftDueDate" placeholder="例：2026-04-30">
+            </label>
+            <label>
+              支払予定日
+              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-04-25">
+            </label>
+            <label>
+              口座振替日
+              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-04-30">
+            </label>
+            <label>
+              和暦補正メモ
+              <input class="draft-field" id="draftJapaneseEraMemo" placeholder="例：令和8年は2026年。OCR日付要確認。">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">金額</div>
+          <div class="form-grid">
+            <label>
+              納付額
+              <input class="draft-field" id="draftAmount" placeholder="例：26,800">
+            </label>
+            <label>
+              合計納付額
+              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              税額
+              <input class="draft-field" id="draftTaxAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              本税
+              <input class="draft-field" id="draftMainTaxAmount" placeholder="例：80,000">
+            </label>
+            <label>
+              附帯税
+              <input class="draft-field" id="draftAdditionalTaxAmount" placeholder="例：0">
+            </label>
+            <label>
+              延滞金
+              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
+            </label>
+            <label>
+              加算金
+              <input class="draft-field" id="draftSurchargeAmount" placeholder="例：0">
+            </label>
+            <label>
+              手数料
+              <input class="draft-field" id="draftFeeAmount" placeholder="例：0">
+            </label>
+            <label>
+              前回残高
+              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
+            </label>
+            <label>
+              今回納付額
+              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              未払残高
+              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
+            </label>
+            <label>
+              非課税・不課税
+              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 / 不課税 / 対象外">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">納付方法・支払情報</div>
+          <div class="form-grid">
+            <label>
+              支払方法
+              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              支払状態
+              <select class="draft-field" id="draftPaymentStatus">
+                <option value="">選択</option>
+                <option value="未払">未払</option>
+                <option value="支払済">支払済</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              納付方法
+              <input class="draft-field" id="draftTaxPaymentMethod" placeholder="例：納付書 / 口座振替 / eLTAX / ペイジー">
+            </label>
+            <label>
+              口座振替有無
+              <select class="draft-field" id="draftAutoDebitFlag">
+                <option value="">選択</option>
+                <option value="あり">あり</option>
+                <option value="なし">なし</option>
+                <option value="要確認">要確認</option>
+              </select>
+            </label>
+            <label>
+              引落銀行
+              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
+            </label>
+            <label>
+              振込先銀行
+              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
+            </label>
+            <label>
+              支店名
+              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
+            </label>
+            <label>
+              口座種別
+              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
+            </label>
+            <label>
+              口座番号
+              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
+            </label>
+            <label>
+              口座名義
+              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
+            </label>
+            <label>
+              コンビニ納付可否
+              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：可 / 不可 / 支払番号">
+            </label>
+            <label>
+              QR納付可否
+              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：可 / 不可 / QR情報">
+            </label>
+            <label class="span2">
+              eLTAX・ペイジー等
+              <input class="draft-field" id="draftOnlinePaymentInfo" placeholder="例：eLTAX / ペイジー / ダイレクト納付">
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">期別明細・内訳</div>
+          <div class="tax-public-lines-note">
+            固定資産税・住民税など、複数期がある書類はここに期別・納期限・税額を残します。現時点ではJSONB保存、将来は税金専用明細テーブル候補です。
+          </div>
+          <div class="form-grid">
+            <label class="span2">
+              期別明細・内訳
+              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="例：
+第1期 / 納期限 2026-04-30 / 税額 26,800 / 支払予定登録する
+第2期 / 納期限 2026-07-31 / 税額 24,000 / 支払予定登録しない"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="draft-section tax-public-fixed-section">
+          <div class="draft-section-title">メモ・要確認</div>
+          <div class="form-grid">
+            <label class="span2">
+              摘要
+              <textarea class="draft-field small-textarea" id="draftSummary" placeholder="例：令和8年度 固定資産税・都市計画税 第1期"></textarea>
             </label>
             <label class="span2">
               社内メモ
@@ -534,121 +560,7 @@
           </div>
         </section>
 
-        <section class="draft-section">
-          <div class="draft-section-title">明細</div>
-          <div class="form-grid">
-            <label class="span2">
-              明細候補
-              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">書類別追加情報</div>
-          <div class="form-grid">
-            <label>
-              税目
-              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
-            </label>
-            <label>
-              納付先
-              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
-            </label>
-            <label>
-              年度
-              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
-            </label>
-            <label>
-              期別
-              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
-            </label>
-            <label>
-              公共料金お客様番号
-              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              使用期間
-              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
-            </label>
-            <label>
-              使用量
-              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
-            </label>
-            <label>
-              保険種類
-              <select class="draft-field master-select" id="draftInsuranceType" data-master-type="insurance_types" data-master-label="保険種類" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              リース物件
-              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
-            </label>
-            <label>
-              リース物件区分
-              <select class="draft-field master-select" id="draftLeaseItemCategory" data-master-type="lease_item_categories" data-master-label="リース物件区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払回数
-              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
-            </label>
-            <label>
-              支払周期
-              <select class="draft-field master-select" id="draftPaymentCycle" data-master-type="payment_cycles" data-master-label="支払周期" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              契約種別
-              <select class="draft-field master-select" id="draftContractType" data-master-type="contract_types" data-master-label="契約種別" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              契約ステータス
-              <select class="draft-field master-select" id="draftContractStatus" data-master-type="contract_statuses" data-master-label="契約ステータス" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              自動更新有無
-              <select class="draft-field master-select" id="draftAutoRenewal" data-master-type="auto_renewal_types" data-master-label="自動更新有無" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              所有権移転区分
-              <select class="draft-field master-select" id="draftOwnershipTransfer" data-master-type="ownership_transfer_types" data-master-label="所有権移転区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              中途解約可否
-              <select class="draft-field master-select" id="draftEarlyCancellation" data-master-type="early_cancellation_types" data-master-label="中途解約可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              メール件名
-              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
-            </label>
-            <label>
-              メール送信者
-              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
-            </label>
-            <label>
-              メール受信日時
-              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
-            </label>
-            <label>
-              添付ファイル名
-              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
-            </label>
-            <label>
-              ダウンロード日
-              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section">
-          <div class="draft-section-title">要確認</div>
-          <div class="form-grid">
-            <label class="span2">
-              要確認メモ
-              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
-            </label>
-          </div>
-        </section>
-
-                <details class="compact-evidence-details" id="compactEvidenceInfo">
+        <details class="compact-evidence-details" id="compactEvidenceInfo">
           <summary>証憑情報（必要最低限）</summary>
           <div class="compact-evidence-grid">
             <div>
@@ -669,6 +581,7 @@
             </div>
           </div>
         </details>
+        <!-- GPT00_TAX_PUBLIC_FIXED_FIELDS_20260708_END -->
 </div>
 <div class="button-row action-button-row">
         <button type="button" class="action-btn action-ai" onclick="runAiDraftFromSelectedOcr()">単品専門解析</button>
@@ -1146,7 +1059,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // 契約・保険・リース 解析サマリー
+    // 税金・公的支払 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1263,15 +1176,8 @@ function setDocumentPreview(item) {
     if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
     if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
-    if (setById("draftLeaseItemName", fields["リース物件"])) appliedCount++;
+    if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
-    if (setById("draftLeaseItemCategory", fields["リース物件区分"])) appliedCount++;
-    if (setById("draftPaymentCycle", fields["支払周期"])) appliedCount++;
-    if (setById("draftContractType", fields["契約種別"])) appliedCount++;
-    if (setById("draftContractStatus", fields["契約ステータス"])) appliedCount++;
-    if (setById("draftAutoRenewal", fields["自動更新有無"])) appliedCount++;
-    if (setById("draftOwnershipTransfer", fields["所有権移転区分"])) appliedCount++;
-    if (setById("draftEarlyCancellation", fields["中途解約可否"])) appliedCount++;
     if (setById("draftMailSubject", fields["メール件名"])) appliedCount++;
     if (setById("draftMailFrom", fields["メール送信者"])) appliedCount++;
     if (setById("draftMailReceivedAt", fields["メール受信日時"])) appliedCount++;
@@ -1314,9 +1220,6 @@ function setDocumentPreview(item) {
       return;
     }
 
-    control.classList.remove("ai-master-unmatched");
-    delete control.dataset.aiMasterUnmatched;
-    delete control.dataset.aiUnmatchedValue;
     control.removeAttribute("title");
 
     Array.from(control.options || []).forEach(option => {
@@ -1330,15 +1233,11 @@ function setDocumentPreview(item) {
     if (!control || !control.classList) {
       return;
     }
-
-    control.value = "";
-    control.dataset.aiMasterUnmatched = "1";
-    control.dataset.aiUnmatchedValue = text || "";
-    control.classList.add("ai-master-unmatched");
-    control.title = text
-      ? "AI候補がマスタに一致しません: " + text
-      : "AI候補がマスタに一致しません";
-  }
+    /* GPT00_NO_SELECT_INTERFERENCE_20260708
+       AI候補がマスタ未一致でも、HTML/JS側でselect値を空にしたり印を付けたりしない。
+       AI候補はAI結果側に残し、人間のマスタ選択欄とは混ぜない。
+    */
+}
   function aiDebugValue(label, value) {
     if (value === null || value === undefined || value === "") {
       return "";
@@ -1538,7 +1437,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // 契約・保険・リース 解析サマリー
+    // 税金・公的支払 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
@@ -1546,30 +1445,9 @@ function setDocumentPreview(item) {
     put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_START
-    // 後追い判定ではなく、AIが既に出した値を右側フォームへ写すだけ。
-    const hdCilFormDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
-    const hdCilFormSummaryForReason = (typeof summary !== "undefined" && summary && typeof summary === "object") ? summary : {};
-    const hdCilFormFieldsForReason = (typeof fields !== "undefined" && fields && typeof fields === "object") ? fields : {};
+    put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
+    put("draftAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
 
-    put("draftAiConfidence", "AI信頼度",
-      hdCilFormDraftForReason.analysis_system_confidence ||
-      hdCilFormSummaryForReason.confidence_label ||
-      hdCilFormFieldsForReason["AI信頼度"] ||
-      hdCilFormDraftForReason.ai_confidence_label ||
-      hdCilFormDraftForReason.confidence_label ||
-      hdCilFormDraftForReason.ai_confidence ||
-      hdCilFormDraftForReason.confidence
-    );
-    put("draftAiReason", "AI判定理由",
-      hdCilFormDraftForReason.analysis_system_reason ||
-      hdCilFormSummaryForReason.reason ||
-      hdCilFormFieldsForReason["AI判定理由"] ||
-      hdCilFormDraftForReason.review_reason ||
-      hdCilFormDraftForReason.ai_reason ||
-      hdCilFormDraftForReason.reason
-    );
-    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_END
     // 基本情報
     put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
     put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
@@ -1691,13 +1569,6 @@ function setDocumentPreview(item) {
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
-    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
-    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
-    put("draftContractType", "契約種別", fields["契約種別"]);
-    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
-    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
-    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
-    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2006,22 +1877,15 @@ function setDocumentPreview(item) {
 
   function aiSelectMarkUnmatched(control, text) {
     if (!control) return;
-
-    control.value = "";
-    control.classList.add("ai-master-unmatched");
-    control.dataset.aiMasterUnmatched = "1";
-    control.dataset.aiUnmatchedValue = String(text || "");
-    control.title = text
-      ? "AI候補がマスタ候補に一致しません: " + text
-      : "AI候補がマスタ候補に一致しません";
-  }
+    /* GPT00_NO_SELECT_INTERFERENCE_20260708
+       AI候補がマスタ未一致でも、HTML/JS側でselect値を空にしたり印を付けたりしない。
+       AI候補はAI結果側に残し、人間のマスタ選択欄とは混ぜない。
+    */
+}
 
   function aiSelectClearUnmatched(control) {
     if (!control) return;
 
-    control.classList.remove("ai-master-unmatched");
-    delete control.dataset.aiMasterUnmatched;
-    delete control.dataset.aiUnmatchedValue;
     control.removeAttribute("title");
   }
 
@@ -2171,9 +2035,6 @@ function setDocumentPreview(item) {
       }
     });
 
-    select.classList.remove("ai-master-unmatched");
-    delete select.dataset.aiMasterUnmatched;
-    delete select.dataset.aiUnmatchedValue;
     select.removeAttribute("title");
 
     if (!raw) {
@@ -2207,14 +2068,12 @@ function setDocumentPreview(item) {
         return true;
       }
     }
-
-    select.value = "";
-    select.classList.add("ai-master-unmatched");
-    select.dataset.aiMasterUnmatched = "1";
-    select.dataset.aiUnmatchedValue = raw;
-    select.title = "AI候補がマスタに一致しません: " + raw;
-    return true;
-  }
+    /* GPT00_NO_SELECT_INTERFERENCE_20260708
+       AI候補がマスタ未一致でも、HTML/JS側でselect値を空にしたり印を付けたりしない。
+       AI候補はAI結果側に残し、人間のマスタ選択欄とは混ぜない。
+    */
+    return false;
+}
 /* PAYMENT_DOCUMENT_AI_SELECT_MASTER_APPLY_FIX_20260707_END */
     function aiHardDebugSetControl(control, label, value) {
     if (!control) {
@@ -2383,13 +2242,6 @@ function setDocumentPreview(item) {
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
-    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
-    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
-    put("draftContractType", "契約種別", fields["契約種別"]);
-    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
-    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
-    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
-    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2484,7 +2336,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("契約・保険・リース 解析サマリー")) {
+      if (titleText === normalizeLabelText("税金・公的支払 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2514,18 +2366,6 @@ function setDocumentPreview(item) {
     });
   }
 /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
-  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_START */
-  function contractInsuranceLeaseSpecialistRequestBody() {
-    return {
-      phase: "specialist",
-      specialist_route_code: "contract_insurance_lease",
-      specialist_route_label: "契約・保険・リース解析",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysis_system_label: "契約・保険・リース解析システム",
-      group: "contract_insurance_lease"
-    };
-  }
-  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_END */
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -2534,7 +2374,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("契約・保険・リースの専門解析を実行しています。画像は送信しません。");
+    showResult("税金・公的支払の専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2554,7 +2394,7 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "契約・保険・リースの専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "税金・公的支払の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
@@ -2768,10 +2608,8 @@ function setDocumentPreview(item) {
     const list = document.getElementById("list");
 
     if (!list) return;
-
-    if (typeof window.renderSortingList === "function" && window.renderSortingList !== renderSortingList) {
-      return window.renderSortingList();
-    }
+      renderSortingList();
+      updateSelectedSortingSummary();
 
     updateSelectedSortingSummary();
   }
@@ -2796,7 +2634,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\n契約・保険・リースの専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n税金・公的支払の専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -2805,8 +2643,6 @@ function setDocumentPreview(item) {
         headers: {
           "Content-Type": "application/json"
         }
-      ,
-        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
@@ -3289,7 +3125,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、契約・保険・リースの専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、税金・公的支払の専門解析をしています。");
     }
 
     try {
@@ -3298,8 +3134,6 @@ function setDocumentPreview(item) {
         headers: {
           "Content-Type": "application/json"
         }
-      ,
-        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
@@ -3412,8 +3246,8 @@ function setDocumentPreview(item) {
     );
   };
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_START */
-  window.hdOriginContractInsuranceLeaseSpecialistFilter = function(allItems) {
+/* HD_ORIGIN_SPECIALIST_TAX_PUBLIC_FILTER_GPT2_AFTER_20260708_START */
+  window.hdOriginTaxPublicSpecialistFilter = function(allItems) {
     function norm(value) {
       return String(value || "")
         .replace(/\s+/g, "")
@@ -3489,7 +3323,7 @@ function setDocumentPreview(item) {
 
         aiSummary.document_kind,
         aiSummary.destination,
-        aiSummary.contract_insurance_lease_flag,
+        aiSummary.tax_public_flag,
         aiSummary.payable_target,
         aiSummary.payment_target,
         aiSummary.reason
@@ -3504,8 +3338,10 @@ function setDocumentPreview(item) {
       }
 
       if (
-        text.includes("contract_insurance_lease") ||
-        text.includes("contractinsurancelease")
+        text.includes("tax_public") ||
+        text.includes("taxpublic") ||
+        text.includes("tax_payment") ||
+        text.includes("taxpayment")
       ) {
         return true;
       }
@@ -3514,25 +3350,23 @@ function setDocumentPreview(item) {
         text.includes("invoice_payable") ||
         text.includes("accountspayable") ||
         text.includes("accounts_payable") ||
-        text.includes("tax_public") ||
-        text.includes("taxpublic") ||
-        text.includes("tax_payment") ||
-        text.includes("taxpayment") ||
         text.includes("card_statement") ||
         text.includes("paid_evidence") ||
+        text.includes("contract_insurance_lease") ||
         text.includes("utility_notice") ||
         text.includes("public_utility") ||
         text.includes("communication") ||
         text.includes("reference_check") ||
         text.includes("cardpayable") ||
         text.includes("receipt") ||
+        text.includes("insurance") ||
+        text.includes("lease") ||
         text.includes("請求未払") ||
         text.includes("買掛") ||
-        text.includes("税金") ||
-        text.includes("公的") ||
-        text.includes("納付") ||
         text.includes("領収") ||
         text.includes("レシート") ||
+        text.includes("保険") ||
+        text.includes("リース") ||
         text.includes("公共料金") ||
         text.includes("通信費") ||
         text.includes("照合用");
@@ -3542,31 +3376,82 @@ function setDocumentPreview(item) {
       }
 
       return (
-        text.includes("契約") ||
-        text.includes("契約書") ||
-        text.includes("契約番号") ||
-        text.includes("契約期間") ||
-        text.includes("契約開始") ||
-        text.includes("契約終了") ||
-        text.includes("更新日") ||
-        text.includes("満期") ||
-        text.includes("保険") ||
-        text.includes("保険料") ||
-        text.includes("保険証券") ||
-        text.includes("証券番号") ||
-        text.includes("保険期間") ||
-        text.includes("リース") ||
-        text.includes("リース料") ||
-        text.includes("リース契約") ||
-        text.includes("賃貸借") ||
-        text.includes("借上") ||
-        text.includes("lease") ||
-        text.includes("insurance") ||
-        text.includes("contract")
+        text.includes("税金") ||
+        text.includes("公的支払") ||
+        text.includes("納付書") ||
+        text.includes("納税通知書") ||
+        text.includes("納税") ||
+        text.includes("税務署") ||
+        text.includes("市税") ||
+        text.includes("府税") ||
+        text.includes("県税") ||
+        text.includes("都税") ||
+        text.includes("法人税") ||
+        text.includes("源泉所得税") ||
+        text.includes("固定資産税") ||
+        text.includes("都市計画税") ||
+        text.includes("社会保険料") ||
+        text.includes("労働保険") ||
+        text.includes("年金事務所")
       );
     });
   };
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_END */
+/* HD_ORIGIN_SPECIALIST_TAX_PUBLIC_FILTER_GPT2_AFTER_20260708_END */
+/* GPT00_TAX_PUBLIC_AI_ONLY_FILTER_20260708_START
+   税金・公的支払ページの対象一覧はAI判定済みコードだけを見る。
+   OCR本文の語句で「税金っぽい」と後付け判定しない。
+*/
+  window.filterSpecialistItems = function(allItems) {
+    function firstObject() {
+      for (var i = 0; i < arguments.length; i++) {
+        var item = arguments[i];
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          return item;
+        }
+      }
+      return {};
+    }
+
+    function norm(value) {
+      return String(value || "").replace(/\s+/g, "").toLowerCase();
+    }
+
+    return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
+      var draft = firstObject(
+        item && item.__aiDraft,
+        item && item.aiDraft,
+        item && item.ai_draft,
+        item && item.sortingDraft,
+        item && item.sorting_draft,
+        item && item.latestSortingDraft,
+        item && item.latest_sorting_draft,
+        item && item.draft
+      );
+
+      var aiSummary = firstObject(draft.ai_summary, draft.aiSummary);
+
+      var text = [
+        draft.specialist_route_code,
+        draft.specialistRouteCode,
+        draft.analysis_system_code,
+        draft.analysisSystemCode,
+        draft.payment_destination_code,
+        draft.paymentDestinationCode,
+        draft.document_group,
+        draft.documentGroup,
+        aiSummary.analysis_system_code,
+        aiSummary.specialist_route_code
+      ].map(norm).join(" ");
+
+      return (
+        text.includes("tax_public") ||
+        text.includes("taxpublic") ||
+        text.includes("tax_payment") ||
+        text.includes("taxpayment")
+      );
+    });
+  };
+/* GPT00_TAX_PUBLIC_AI_ONLY_FILTER_20260708_END */
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -3589,13 +3474,13 @@ function setDocumentPreview(item) {
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginContractInsuranceLeaseSpecialistFilter(allItems);
+      items = window.hdOriginTaxPublicSpecialistFilter(allItems);
 
       summary.textContent =
-        "契約・保険・リース専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "税金・公的支払専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">契約・保険・リースの対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">税金・公的支払の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -5369,40 +5254,113 @@ function setDocumentPreview(item) {
           controlValue("draftAiConfidence").includes("低")
       }
     };
+    /* GPT00_TAX_PUBLIC_SINGLE_SAVE_AI_RAW_DRAFT_20260709_START
+       税金・公的支払専門AIの結果を保存へ渡すだけ。
+       HTML/JSで項目・値を補正しない。
+       AIが返した draft / fields / visible_field_labels / warnings を正として保存する。
+    */
+    function hdOriginTaxPublicSaveFirstObject() {
+      for (var i = 0; i < arguments.length; i++) {
+        var item = arguments[i];
 
-    return payload;
-  }
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          return item;
+        }
+      }
 
-  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved) {
-    const payload = {
-      paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
-      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      draft: sortingPayload,
-      sortResult: sortingPayload.sortResult || {},
-      ai_summary: sortingPayload.ai_summary || {},
-      fields: sortingPayload.visibleFields || {},
-      visibleFields: sortingPayload.visibleFields || {},
-      warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
-      memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
-    };
-
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
       return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
     }
 
-    return json;
+    function hdOriginTaxPublicSaveArray(value) {
+      return Array.isArray(value) ? value : [];
+    }
+
+    var hdOriginTaxPublicCached = (window.hdOriginSortingDraftBulkCache || {})[String(payload.paymentDocumentOcrImportId || "")];
+    var hdOriginTaxPublicResult = hdOriginTaxPublicCached && hdOriginTaxPublicCached.result && typeof hdOriginTaxPublicCached.result === "object"
+      ? hdOriginTaxPublicCached.result
+      : {};
+
+    var hdOriginTaxPublicSpecialist = hdOriginTaxPublicSaveFirstObject(hdOriginTaxPublicResult.specialist);
+    var hdOriginTaxPublicDraft = hdOriginTaxPublicSaveFirstObject(
+      hdOriginTaxPublicResult.draft,
+      hdOriginTaxPublicSpecialist.draft,
+      hdOriginTaxPublicResult.sorting,
+      hdOriginTaxPublicResult.classification
+    );
+
+    var hdOriginTaxPublicLabels = hdOriginTaxPublicSaveArray(
+      hdOriginTaxPublicResult.visible_field_labels ||
+      hdOriginTaxPublicResult.visibleFieldLabels ||
+      hdOriginTaxPublicSpecialist.visible_field_labels ||
+      hdOriginTaxPublicSpecialist.visibleFieldLabels ||
+      hdOriginTaxPublicDraft.visible_field_labels ||
+      hdOriginTaxPublicDraft.visibleFieldLabels
+    );
+
+    var hdOriginTaxPublicWarnings = hdOriginTaxPublicSaveArray(
+      hdOriginTaxPublicResult.warnings ||
+      hdOriginTaxPublicSpecialist.warnings ||
+      hdOriginTaxPublicDraft.warnings
+    );
+
+    if (Object.keys(hdOriginTaxPublicDraft).length) {
+      payload.draft = hdOriginTaxPublicDraft;
+      payload.aiDraft = hdOriginTaxPublicDraft;
+
+      payload.sortResult = Object.assign({}, hdOriginTaxPublicDraft, {
+        visible_field_labels: hdOriginTaxPublicLabels,
+        warnings: hdOriginTaxPublicWarnings
+      });
+
+      payload.visibleFields = hdOriginTaxPublicSaveFirstObject(
+        hdOriginTaxPublicResult.visibleFields,
+        hdOriginTaxPublicResult.visible_fields,
+        hdOriginTaxPublicDraft.fields,
+        hdOriginTaxPublicResult.fields,
+        payload.visibleFields
+      );
+
+      payload.visibleFieldLabels = hdOriginTaxPublicLabels;
+      payload.visible_field_labels = hdOriginTaxPublicLabels;
+      payload.warnings = hdOriginTaxPublicWarnings;
+
+      payload.ai_summary = hdOriginTaxPublicSaveFirstObject(
+        hdOriginTaxPublicDraft.ai_summary,
+        hdOriginTaxPublicResult.ai_summary,
+        payload.ai_summary
+      );
+
+      payload.document_type_code = hdOriginTaxPublicDraft.document_type_code || payload.document_type_code;
+      payload.document_type_label = hdOriginTaxPublicDraft.document_type_label || payload.document_type_label;
+
+      payload.payment_destination_code = hdOriginTaxPublicDraft.payment_destination_code || payload.payment_destination_code;
+      payload.payment_destination_label = hdOriginTaxPublicDraft.payment_destination_label || payload.payment_destination_label;
+
+      payload.accounting_category_code = hdOriginTaxPublicDraft.accounting_category_code || payload.accounting_category_code;
+      payload.accounting_category_label = hdOriginTaxPublicDraft.accounting_category_label || payload.accounting_category_label;
+
+      payload.payable_kind_code = hdOriginTaxPublicDraft.payable_kind_code || payload.payable_kind_code;
+      payload.payable_kind_label = hdOriginTaxPublicDraft.payable_kind_label || payload.payable_kind_label;
+
+      payload.specialist_route_code = hdOriginTaxPublicDraft.specialist_route_code || payload.specialist_route_code;
+      payload.specialist_route_label = hdOriginTaxPublicDraft.specialist_route_label || payload.specialist_route_label;
+
+      payload.analysis_system_code = hdOriginTaxPublicDraft.analysis_system_code || payload.analysis_system_code;
+      payload.analysis_system_label = hdOriginTaxPublicDraft.analysis_system_label || payload.analysis_system_label;
+      payload.analysis_system_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.analysis_system_reason;
+      payload.analysis_system_confidence = hdOriginTaxPublicDraft.analysis_system_confidence || payload.analysis_system_confidence;
+
+      payload.ai_confidence_label = hdOriginTaxPublicDraft.analysis_system_confidence || payload.ai_confidence_label;
+      payload.ai_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.ai_reason;
+      payload.review_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.review_reason;
+
+      payload.createdByPage = "payment-document-specialist-tax-public";
+      payload.created_by_page = "payment-document-specialist-tax-public";
+      payload.memo = "税金・公的支払専門AI結果から下書き保存";
+    }
+    /* GPT00_TAX_PUBLIC_SINGLE_SAVE_AI_RAW_DRAFT_20260709_END */
+
+    return payload;
   }
 
   async function saveSortingDraftFromReviewPage() {
@@ -5421,20 +5379,10 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
+      throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
-    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json);
-
-    return {
-      ...json,
-      contractInsuranceLeaseDraftId:
-        specialistJson.contractInsuranceLeaseDraftId ||
-        specialistJson.paymentDocumentContractInsuranceLeaseDraftId ||
-        specialistJson.contract_insurance_lease_draft_id ||
-        "",
-      contractInsuranceLeaseDraft: specialistJson
-    };
+    return json;
   }
 
   function looksLikeDraftSaveButton(el) {
@@ -5482,7 +5430,7 @@ function setDocumentPreview(item) {
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け下書きID: " + (result.paymentDocumentSortingDraftId || "") + "\n専門下書きID: " + (result.contractInsuranceLeaseDraftId || ""));
+      alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -5649,6 +5597,13 @@ function setDocumentPreview(item) {
       specialist_route_code: textValue(draft.specialist_route_code || root.specialist_route_code || root.document_group),
       specialist_route_label: textValue(draft.specialist_route_label || root.specialist_route_label),
 
+      /* GPT00_TAX_PUBLIC_BULK_SAVE_ANALYSIS_SYSTEM_20260709_START */
+      analysis_system_code: textValue(draft.analysis_system_code || root.analysis_system_code),
+      analysis_system_label: textValue(draft.analysis_system_label || root.analysis_system_label),
+      analysis_system_reason: textValue(draft.analysis_system_reason || root.analysis_system_reason),
+      analysis_system_confidence: textValue(draft.analysis_system_confidence || root.analysis_system_confidence),
+      /* GPT00_TAX_PUBLIC_BULK_SAVE_ANALYSIS_SYSTEM_20260709_END */
+
       payment_target_label: textValue(aiSummary.payment_target),
       payable_target_label: textValue(aiSummary.payable_target),
       expense_target_label: textValue(aiSummary.expense_target),
@@ -5686,85 +5641,12 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
+      throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
     return json;
   }
 
-    // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_START
-  // 後追い判定ではなく、保存APIの返却ID表記ゆれを吸収するだけ。
-  function hdOriginCilSavedSortingDraftId(saved) {
-    if (!saved || typeof saved !== "object") return "";
-
-    return saved.paymentDocumentSortingDraftId ||
-      saved.payment_document_sorting_draft_id ||
-      saved.sortingDraftId ||
-      saved.sorting_draft_id ||
-      saved.draftId ||
-      saved.draft_id ||
-      saved.id ||
-      "";
-  }
-
-  function hdOriginCilSaveErrorMessage(prefix, res, json, payload) {
-    const status = res && res.status ? "HTTP " + res.status : "";
-    const error = json && json.error ? json.error : "";
-    const id = payload && (
-      payload.paymentDocumentOcrImportId ||
-      payload.payment_document_ocr_import_id ||
-      payload.ocrImportId ||
-      payload.id ||
-      ""
-    );
-
-    return [
-      prefix || "保存に失敗しました。",
-      status,
-      id ? "OCR取込ID=" + id : "",
-      error
-    ].filter(Boolean).join(" / ");
-  }
-  // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_END
-function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sortingSaved) {
-    const result = firstObject(cached);
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result);
-    const draft = firstObject(result.draft, root.draft, root.sorting, root.classification, root);
-    const fields = firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields, sortingPayload.visibleFields, sortingPayload.visible_fields, sortingPayload.fields);
-    const aiSummary = firstObject(draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary, sortingPayload.ai_summary);
-
-    return {
-      paymentDocumentOcrImportId: Number(id),
-      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      draft,
-      sortResult: root,
-      ai_summary: aiSummary,
-      fields,
-      visibleFields: fields,
-      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
-      memo: "契約・保険・リース専門画面のまとめて保存から専門下書き保存"
-    };
-  }
-
-  async function postContractInsuranceLeaseDraft(payload) {
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
-    }
-
-    return json;
-  }
   async function bulkSaveSortingDrafts() {
     let ids = getSelectedOcrIds();
 
@@ -5793,13 +5675,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
       try {
         const payload = buildPayloadFromCachedResult(id, cached);
         const saved = await postSortingDraft(payload);
-        const specialistPayload = buildContractInsuranceLeaseDraftPayload(id, cached, payload, saved);
-        const specialistSaved = await postContractInsuranceLeaseDraft(specialistPayload);
 
         ok.push({
           id,
-          sortingDraftId: saved.paymentDocumentSortingDraftId || "",
-          specialistDraftId: specialistSaved.contractInsuranceLeaseDraftId || ""
+          draftId: saved.paymentDocumentSortingDraftId || ""
         });
       } catch (err) {
         ng.push({
@@ -6033,43 +5912,9 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
     pushField(fields, section, "公共料金・通信費", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
-    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_START
-    // 後追い判定ではなく、AIが既に出した値を固定欄へ写すだけ。
-    const hdCilDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
-    const hdCilRawForReason = (typeof raw !== "undefined" && raw && typeof raw === "object") ? raw : {};
-    const hdCilSummaryForReason = (hdCilDraftForReason.ai_summary && typeof hdCilDraftForReason.ai_summary === "object") ? hdCilDraftForReason.ai_summary : {};
-    const hdCilDraftFieldsForReason = (hdCilDraftForReason.fields && typeof hdCilDraftForReason.fields === "object") ? hdCilDraftForReason.fields : {};
-
-    const hdCilConfidenceValue =
-      hdCilDraftForReason.analysis_system_confidence ||
-      hdCilDraftForReason.confidence_label ||
-      hdCilDraftForReason.ai_confidence_label ||
-      hdCilDraftForReason.ai_confidence ||
-      hdCilDraftForReason.confidence ||
-      hdCilSummaryForReason.confidence_label ||
-      hdCilDraftFieldsForReason["AI信頼度"] ||
-      hdCilRawForReason.analysis_system_confidence ||
-      hdCilRawForReason.confidence_label ||
-      hdCilRawForReason.confidence ||
-      "";
-
-    const hdCilReasonValue =
-      hdCilDraftForReason.analysis_system_reason ||
-      hdCilDraftForReason.review_reason ||
-      hdCilDraftForReason.ai_reason ||
-      hdCilDraftForReason.reason ||
-      hdCilSummaryForReason.reason ||
-      hdCilDraftFieldsForReason["AI判定理由"] ||
-      hdCilRawForReason.analysis_system_reason ||
-      hdCilRawForReason.review_reason ||
-      hdCilRawForReason.ai_reason ||
-      hdCilRawForReason.reason ||
-      "";
-
-    pushField(fields, section, "AI信頼度", "confidence", hdCilConfidenceValue);
+    pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
-    pushField(fields, section, "AI判定理由", "review_reason", hdCilReasonValue);
-    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_END
+    pushField(fields, section, "AI判定理由", "review_reason", draft.review_reason || draft.ai_reason || draft.reason || raw.review_reason || raw.ai_reason || raw.reason || "");
   }
 
   function pushObject(fields, section, obj) {
@@ -6298,158 +6143,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 })();
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
-<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_START -->
-<script>
-(function () {
-  const EXTRA_MASTER_CONFIG = {
-    contract_insurance_lease_kinds: {
-      id: "contract_insurance_lease_kind_id",
-      code: "contract_insurance_lease_kind_code",
-      name: "contract_insurance_lease_kind_name"
-    },
-    insurance_types: {
-      id: "insurance_type_id",
-      code: "insurance_type_code",
-      name: "insurance_type_name"
-    },
-    lease_item_categories: {
-      id: "lease_item_category_id",
-      code: "lease_item_category_code",
-      name: "lease_item_category_name"
-    },
-    contract_types: {
-      id: "contract_type_id",
-      code: "contract_type_code",
-      name: "contract_type_name"
-    },
-    contract_statuses: {
-      id: "contract_status_id",
-      code: "contract_status_code",
-      name: "contract_status_name"
-    },
-    payment_statuses: {
-      id: "payment_status_id",
-      code: "payment_status_code",
-      name: "payment_status_name"
-    },
-    payment_cycles: {
-      id: "payment_cycle_id",
-      code: "payment_cycle_code",
-      name: "payment_cycle_name"
-    },
-    company_burden_types: {
-      id: "company_burden_type_id",
-      code: "company_burden_type_code",
-      name: "company_burden_type_name"
-    },
-    personal_mix_flags: {
-      id: "personal_mix_flag_id",
-      code: "personal_mix_flag_code",
-      name: "personal_mix_flag_name"
-    },
-    payable_registration_types: {
-      id: "payable_registration_type_id",
-      code: "payable_registration_type_code",
-      name: "payable_registration_type_name"
-    },
-    accounts_payable_registration_types: {
-      id: "accounts_payable_registration_type_id",
-      code: "accounts_payable_registration_type_code",
-      name: "accounts_payable_registration_type_name"
-    },
-    auto_renewal_types: {
-      id: "auto_renewal_type_id",
-      code: "auto_renewal_type_code",
-      name: "auto_renewal_type_name"
-    },
-    ownership_transfer_types: {
-      id: "ownership_transfer_type_id",
-      code: "ownership_transfer_type_code",
-      name: "ownership_transfer_type_name"
-    },
-    early_cancellation_types: {
-      id: "early_cancellation_type_id",
-      code: "early_cancellation_type_code",
-      name: "early_cancellation_type_name"
-    }
-  };
-
-  function normalize(value) {
-    return String(value || "").trim();
-  }
-
-  function populateOne(select, masters) {
-    const key = select.getAttribute("data-master-type");
-    const config = EXTRA_MASTER_CONFIG[key];
-
-    if (!config) return;
-
-    const rows = Array.isArray(masters[key]) ? masters[key] : [];
-    const current = normalize(select.value);
-
-    select.innerHTML = "";
-
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "選択してください";
-    select.appendChild(empty);
-
-    rows.forEach(row => {
-      const code = normalize(row[config.code]);
-      const name = normalize(row[config.name]);
-      const id = normalize(row[config.id]);
-
-      const option = document.createElement("option");
-      option.value = code || name || id;
-      option.textContent = name || code || id;
-      option.dataset.masterId = id;
-      option.dataset.masterCode = code;
-      option.dataset.masterName = name;
-      select.appendChild(option);
-    });
-
-    if (current) {
-      const matched = Array.from(select.options).find(option => {
-        return normalize(option.value) === current ||
-          normalize(option.textContent) === current ||
-          normalize(option.dataset.masterCode) === current ||
-          normalize(option.dataset.masterName) === current ||
-          normalize(option.dataset.masterId) === current;
-      });
-
-      if (matched) {
-        select.value = matched.value;
-      }
-    }
-  }
-
-  async function loadExtraMasters() {
-    const targets = Array.from(document.querySelectorAll('select[data-gpt2-extra-master="1"][data-master-type]'));
-
-    if (!targets.length) return;
-
-    try {
-      const res = await fetch("/api/expenses/masters", { cache: "no-store" });
-      const masters = await res.json();
-
-      targets.forEach(select => populateOne(select, masters || {}));
-    } catch (error) {
-      console.error("[GPT2] 契約・保険・リース追加マスタ読込エラー", error);
-    }
-  }
-
-  window.hdOriginLoadContractInsuranceLeaseExtraMasters = loadExtraMasters;
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadExtraMasters);
-  } else {
-    loadExtraMasters();
-  }
-})();
-</script>
-<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_END -->
 </body>
 </html>
+
+
 
 
 

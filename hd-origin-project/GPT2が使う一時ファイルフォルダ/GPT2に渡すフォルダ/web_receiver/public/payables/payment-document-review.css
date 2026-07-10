@@ -1861,119 +1861,115 @@ input.sorting-check[type="checkbox"] {
 }
 /* HD_ORIGIN_PAYMENT_SORTING_MAJOR_LEGEND_COLOR_20260708_END */
 
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708_START */
-/* 契約・保険・リース専門解析ページ。仕分けページを基本に、契約・保険・リースだけを専門解析する。 */
+/* HD_ORIGIN_PAYMENT_SORTING_LEFT_DYNAMIC_HEIGHT_20260708_START */
+/* 左側一覧：ステータス・チップ・詳細欄の増減で高さが崩れないよう、固定気味の1行表示を解除して自動伸縮にする。 */
 
-.specialist-contract-insurance-lease-page .top {
-  border-color: #ddd6fe;
-  background: #f5f3ff;
+.list-panel,
+.list-panel .list {
+  min-height: 0 !important;
 }
 
-.specialist-contract-insurance-lease-page h1 {
-  color: #6d28d9;
+.list-panel .list {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-items: stretch !important;
 }
 
-.specialist-contract-insurance-lease-page .list-panel {
-  border-color: #ddd6fe;
-}
-
-.specialist-contract-insurance-lease-page .draft-panel {
-  border-color: #c4b5fd;
-}
-
-.specialist-contract-insurance-lease-page .draft-panel .panel-title,
-.specialist-contract-insurance-lease-page .draft-section-title {
-  color: #6d28d9;
-}
-
-.specialist-contract-insurance-lease-page .sorting-bulk-analyze,
-.specialist-contract-insurance-lease-page .sorting-single-analyze,
-.specialist-contract-insurance-lease-page .action-ai {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-  color: #ffffff !important;
-}
-
-.specialist-contract-insurance-lease-page .sorting-item-card,
-.specialist-contract-insurance-lease-page .item,
-.specialist-contract-insurance-lease-page .sorting-item-main {
-  background: #ffffff !important;
+.sorting-item-card {
+  display: block !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
   overflow: visible !important;
+  background: #ffffff !important;
 }
 
-.specialist-contract-insurance-lease-page .sorting-item-card.active,
-.specialist-contract-insurance-lease-page .sorting-item-card.expanded {
-  background: #f5f3ff !important;
-  border-color: #c4b5fd !important;
+.sorting-item-card.active,
+.sorting-item-card.expanded {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
-.specialist-contract-insurance-lease-page .sorting-summary-main .name,
-.specialist-contract-insurance-lease-page .name {
+.sorting-accordion-head {
+  height: auto !important;
+  min-height: 0 !important;
+  align-items: start !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+}
+
+.sorting-summary-button,
+.sorting-item-main {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-align: left !important;
+}
+
+.sorting-summary-main {
+  min-width: 0 !important;
+  align-items: start !important;
+}
+
+.sorting-summary-main .name {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
+  line-height: 1.25 !important;
 }
 
-.specialist-contract-insurance-lease-page .sorting-summary-chips,
-.specialist-contract-insurance-lease-page .sorting-visual-line {
+.sorting-summary-chips,
+.sorting-visual-line {
+  min-width: 0 !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
   flex-wrap: wrap !important;
+  align-items: flex-start !important;
   overflow: visible !important;
 }
 
-.specialist-contract-insurance-lease-page .visual-chip,
-.specialist-contract-insurance-lease-page .legend-chip {
+.visual-chip,
+.legend-chip {
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
   white-space: normal !important;
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
 }
 
-.specialist-contract-insurance-lease-page .sorting-accordion-detail,
-.specialist-contract-insurance-lease-page .sorting-accordion-detail.open {
+.sorting-accordion-detail,
+.sorting-accordion-detail.open {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
   overflow: visible !important;
 }
 
-.specialist-contract-insurance-lease-page .legend-invoice,
-.specialist-contract-insurance-lease-page .legend-expense,
-.specialist-contract-insurance-lease-page .legend-tax,
-.specialist-contract-insurance-lease-page .legend-utility,
-.specialist-contract-insurance-lease-page .legend-card,
-.specialist-contract-insurance-lease-page .legend-reference {
-  opacity: 0.38;
-}
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708_END */
-
-/* HD_ORIGIN_SPECIALIST_PASTEL_HEADER_20260708_START */
-/* 専門解析ページ：ボタン色は触らず、ヘッダーだけテーマカラーのパステルにする */
-
-.specialist-contract-insurance-lease-page .top {
-  background:
-    linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%) !important;
-  border-color: #ddd6fe !important;
-  box-shadow: 0 0.75rem 1.75rem rgba(15, 23, 42, 0.08) !important;
+.sorting-accordion-detail.open {
+  display: block !important;
 }
 
-.specialist-contract-insurance-lease-page .top h1 {
-  color: #6d28d9 !important;
-  letter-spacing: 0.02em !important;
+.sorting-detail-grid,
+.sorting-detail-grid > div {
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
-.specialist-contract-insurance-lease-page .top .muted {
-  color: rgba(15, 23, 42, 0.72) !important;
+.detail-value {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
-
-.specialist-contract-insurance-lease-page .top::before,
-.specialist-contract-insurance-lease-page .top::after {
-  content: none !important;
-}
-/* HD_ORIGIN_SPECIALIST_PASTEL_HEADER_20260708_END */
+/* HD_ORIGIN_PAYMENT_SORTING_LEFT_DYNAMIC_HEIGHT_20260708_END */
 

@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>契約・保険・リース専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
+  <title>支払書類仕分けシステム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-review.css">
 </head>
-<body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
-<!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+<body>
   <div class="wrap">
     <header class="top">
-      <h1>契約・保険・リース専門解析システム</h1>
+      <h1>支払書類仕分けシステム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
@@ -22,22 +21,21 @@
         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-        <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで契約・保険・リースへ送った書類を、契約・保険・リースとして専門解析する画面です。</span>
+<span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>契約・保険・リース 対象書類</span>
+        <span>仕分け対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
-        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
-<button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -71,13 +69,13 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>契約・保険・リース 解析確認</span>
+        <span>AI候補・仕分け確認</span>
         <button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
       </div>
 
             <div class="draft-form-scroll">
         <section class="draft-section">
-          <div class="draft-section-title">契約・保険・リース 解析サマリー</div>
+          <div class="draft-section-title">AI判定サマリー</div>
           <div class="form-grid">
             <label>
               書類区分
@@ -87,6 +85,24 @@
               処理先
               <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_START -->
+            <label>
+              解析システムコード
+              <input class="draft-field" id="draftAnalysisSystemCode" placeholder="例：invoice_payable_analysis">
+            </label>
+            <label>
+              解析システム
+              <input class="draft-field" id="draftAnalysisSystemLabel" placeholder="例：請求・買掛/未払解析システム">
+            </label>
+            <label>
+              解析システム信頼度
+              <input class="draft-field" id="draftAnalysisSystemConfidence" placeholder="例：高 / 中 / 低">
+            </label>
+            <label class="span2">
+              解析システム判定理由
+              <textarea class="draft-field small-textarea" id="draftAnalysisSystemReason" placeholder="例：OCR本文上、請求書・支払期限・請求合計が確認できるため。"></textarea>
+            </label>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_ANALYSIS_SYSTEM_HTML_20260708_END -->
             <label>
               支払対象
               <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
@@ -105,7 +121,7 @@
             </label>
             <label>
               契約・保険・リース
-              <select class="draft-field master-select" id="draftAiContractFlag" data-master-type="contract_insurance_lease_kinds" data-master-label="契約・保険・リース" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
             </label>
             <label>
               AI信頼度
@@ -387,7 +403,7 @@
             </label>
             <label>
               支払状態
-              <select class="draft-field master-select" id="draftPaymentStatus" data-master-type="payment_statuses" data-master-label="支払状態" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
             </label>
             <label>
               振込先銀行
@@ -505,11 +521,11 @@
             </label>
             <label>
               会社負担可否
-              <select class="draft-field master-select" id="draftCompanyBurden" data-master-type="company_burden_types" data-master-label="会社負担可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
             </label>
             <label>
               個人負担混在
-              <select class="draft-field master-select" id="draftMixedPersonalFlag" data-master-type="personal_mix_flags" data-master-label="個人負担混在" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
             </label>
             <label>
               立替
@@ -521,11 +537,11 @@
             </label>
             <label>
               未払登録
-              <select class="draft-field master-select" id="draftPayableRegistrationFlag" data-master-type="payable_registration_types" data-master-label="未払登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
             </label>
             <label>
               買掛登録
-              <select class="draft-field master-select" id="draftAccountsPayableFlag" data-master-type="accounts_payable_registration_types" data-master-label="買掛登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
             </label>
             <label class="span2">
               社内メモ
@@ -577,43 +593,15 @@
             </label>
             <label>
               保険種類
-              <select class="draft-field master-select" id="draftInsuranceType" data-master-type="insurance_types" data-master-label="保険種類" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
             </label>
             <label>
               リース物件
               <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
             </label>
             <label>
-              リース物件区分
-              <select class="draft-field master-select" id="draftLeaseItemCategory" data-master-type="lease_item_categories" data-master-label="リース物件区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
               支払回数
               <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
-            </label>
-            <label>
-              支払周期
-              <select class="draft-field master-select" id="draftPaymentCycle" data-master-type="payment_cycles" data-master-label="支払周期" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              契約種別
-              <select class="draft-field master-select" id="draftContractType" data-master-type="contract_types" data-master-label="契約種別" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              契約ステータス
-              <select class="draft-field master-select" id="draftContractStatus" data-master-type="contract_statuses" data-master-label="契約ステータス" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              自動更新有無
-              <select class="draft-field master-select" id="draftAutoRenewal" data-master-type="auto_renewal_types" data-master-label="自動更新有無" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              所有権移転区分
-              <select class="draft-field master-select" id="draftOwnershipTransfer" data-master-type="ownership_transfer_types" data-master-label="所有権移転区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              中途解約可否
-              <select class="draft-field master-select" id="draftEarlyCancellation" data-master-type="early_cancellation_types" data-master-label="中途解約可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               メール件名
@@ -671,7 +659,7 @@
         </details>
 </div>
 <div class="button-row action-button-row">
-        <button type="button" class="action-btn action-ai" onclick="runAiDraftFromSelectedOcr()">単品専門解析</button>
+        <button type="button" class="action-btn action-ai" onclick="runAiDraftFromSelectedOcr()">単品仕分け</button>
       </div>
 
       <details class="ocr-details">
@@ -1146,7 +1134,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // 契約・保険・リース 解析サマリー
+    // AI判定サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1263,15 +1251,8 @@ function setDocumentPreview(item) {
     if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
     if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
-    if (setById("draftLeaseItemName", fields["リース物件"])) appliedCount++;
+    if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
-    if (setById("draftLeaseItemCategory", fields["リース物件区分"])) appliedCount++;
-    if (setById("draftPaymentCycle", fields["支払周期"])) appliedCount++;
-    if (setById("draftContractType", fields["契約種別"])) appliedCount++;
-    if (setById("draftContractStatus", fields["契約ステータス"])) appliedCount++;
-    if (setById("draftAutoRenewal", fields["自動更新有無"])) appliedCount++;
-    if (setById("draftOwnershipTransfer", fields["所有権移転区分"])) appliedCount++;
-    if (setById("draftEarlyCancellation", fields["中途解約可否"])) appliedCount++;
     if (setById("draftMailSubject", fields["メール件名"])) appliedCount++;
     if (setById("draftMailFrom", fields["メール送信者"])) appliedCount++;
     if (setById("draftMailReceivedAt", fields["メール受信日時"])) appliedCount++;
@@ -1538,7 +1519,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // 契約・保険・リース 解析サマリー
+    // AI判定サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
@@ -1546,30 +1527,9 @@ function setDocumentPreview(item) {
     put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_START
-    // 後追い判定ではなく、AIが既に出した値を右側フォームへ写すだけ。
-    const hdCilFormDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
-    const hdCilFormSummaryForReason = (typeof summary !== "undefined" && summary && typeof summary === "object") ? summary : {};
-    const hdCilFormFieldsForReason = (typeof fields !== "undefined" && fields && typeof fields === "object") ? fields : {};
+    put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
+    put("draftAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
 
-    put("draftAiConfidence", "AI信頼度",
-      hdCilFormDraftForReason.analysis_system_confidence ||
-      hdCilFormSummaryForReason.confidence_label ||
-      hdCilFormFieldsForReason["AI信頼度"] ||
-      hdCilFormDraftForReason.ai_confidence_label ||
-      hdCilFormDraftForReason.confidence_label ||
-      hdCilFormDraftForReason.ai_confidence ||
-      hdCilFormDraftForReason.confidence
-    );
-    put("draftAiReason", "AI判定理由",
-      hdCilFormDraftForReason.analysis_system_reason ||
-      hdCilFormSummaryForReason.reason ||
-      hdCilFormFieldsForReason["AI判定理由"] ||
-      hdCilFormDraftForReason.review_reason ||
-      hdCilFormDraftForReason.ai_reason ||
-      hdCilFormDraftForReason.reason
-    );
-    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_END
     // 基本情報
     put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
     put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
@@ -1691,13 +1651,6 @@ function setDocumentPreview(item) {
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
-    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
-    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
-    put("draftContractType", "契約種別", fields["契約種別"]);
-    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
-    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
-    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
-    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2383,13 +2336,6 @@ function setDocumentPreview(item) {
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
-    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
-    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
-    put("draftContractType", "契約種別", fields["契約種別"]);
-    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
-    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
-    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
-    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2484,7 +2430,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("契約・保険・リース 解析サマリー")) {
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2514,18 +2460,6 @@ function setDocumentPreview(item) {
     });
   }
 /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
-  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_START */
-  function contractInsuranceLeaseSpecialistRequestBody() {
-    return {
-      phase: "specialist",
-      specialist_route_code: "contract_insurance_lease",
-      specialist_route_label: "契約・保険・リース解析",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysis_system_label: "契約・保険・リース解析システム",
-      group: "contract_insurance_lease"
-    };
-  }
-  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_END */
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -2534,10 +2468,10 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("契約・保険・リースの専門解析を実行しています。画像は送信しません。");
+    showResult("1回目仕分けのみ実行しています。詳細項目抽出は行いません。画像は送信しません。");
 
     try {
-      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
+      const res = await fetch("/api/payment-documents/ai-sort/" + encodeURIComponent(String(id)), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2554,7 +2488,7 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "契約・保険・リースの専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "1回目仕分けが完了しました。詳細項目抽出は行っていません。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
@@ -2768,10 +2702,8 @@ function setDocumentPreview(item) {
     const list = document.getElementById("list");
 
     if (!list) return;
-
-    if (typeof window.renderSortingList === "function" && window.renderSortingList !== renderSortingList) {
-      return window.renderSortingList();
-    }
+      renderSortingList();
+      updateSelectedSortingSummary();
 
     updateSelectedSortingSummary();
   }
@@ -2796,23 +2728,21 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\n契約・保険・リースの専門解析を実行しています。画像は送信しません。");
+      showResult("単品仕分け中: " + name + "\n1回目仕分けのみ実行しています。詳細項目抽出は行いません。画像は送信しません。");
     }
 
     try {
-      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
+      const res = await fetch("/api/payment-documents/ai-sort/" + encodeURIComponent(id), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         }
-      ,
-        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
 
       if (!data.ok) {
-        const error = data.error || data.message || "専門解析失敗";
+        const error = data.error || data.message || "AI仕分け失敗";
         showResult({ ok: false, name, error, data });
         return { ok: false, name, error };
       }
@@ -2831,7 +2761,7 @@ function setDocumentPreview(item) {
       if (!options.silent) {
         showResult({
           ok: true,
-          message: "単品専門解析が完了しました。画像はOpenAIへ送信していません。",
+          message: "単品仕分けが完了しました。画像はOpenAIへ送信していません。",
           fileName: name,
           document_group: item.__documentGroup,
           visible_field_labels: item.__visibleFieldLabels,
@@ -2857,7 +2787,7 @@ function setDocumentPreview(item) {
     const indexes = selectedSortingIndexes();
 
     if (!indexes.length) {
-      showResult("まとめて専門解析する書類にチェックを入れてください。");
+      showResult("まとめて仕分けする書類にチェックを入れてください。");
       return;
     }
 
@@ -2870,7 +2800,7 @@ function setDocumentPreview(item) {
       const item = items[index];
       const name = item ? (item.originalFileName || item.fileName || ("No." + (index + 1))) : ("No." + (index + 1));
 
-      showResult("まとめて専門解析中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
 
       const result = await runAiDraftForItemIndex(index, { silent: true });
 
@@ -2887,7 +2817,7 @@ function setDocumentPreview(item) {
 
     showResult({
       ok: failed === 0,
-      message: "まとめて専門解析が完了しました。最後に解析した書類を画面へ表示しています。",
+      message: "まとめて仕分けが完了しました。最後に解析した書類を画面へ表示しています。",
       total: indexes.length,
       success,
       failed,
@@ -3249,7 +3179,7 @@ function setDocumentPreview(item) {
               <div><span class="detail-label">要確認理由</span><span class="detail-value">${reasonText}</span></div>
             </div>
             <div class="sorting-detail-actions">
-              <button type="button" class="sorting-single-analyze" onclick="runAiDraftForItemIndex(${index})">単品専門解析</button>
+              <button type="button" class="sorting-single-analyze" onclick="runAiDraftForItemIndex(${index})">単品仕分け</button>
             </div>
           </div>
         </div>
@@ -3289,23 +3219,21 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、契約・保険・リースの専門解析をしています。");
+      showResult("単品仕分け中: " + name + "\nOCR本文だけで1回目仕分けをしています。詳細項目は抽出しません。");
     }
 
     try {
-      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
+      const res = await fetch("/api/payment-documents/ai-sort/" + encodeURIComponent(id), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         }
-      ,
-        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
 
       if (!data.ok) {
-        const error = data.error || data.message || "専門解析失敗";
+        const error = data.error || data.message || "AI仕分け失敗";
         showResult({ ok: false, name, error, data });
         return { ok: false, name, error };
       }
@@ -3327,7 +3255,7 @@ function setDocumentPreview(item) {
 
       if (!options.silent) {
         showResult(
-          "単品専門解析が完了しました。\n" +
+          "単品仕分けが完了しました。\n" +
           "種類: " + visual.kindLabel + "\n" +
           "行き先: " + visual.destinationLabel + "\n" +
           (visual.accountingLabel ? "会計候補: " + visual.accountingLabel + "\n" : "") +
@@ -3356,7 +3284,7 @@ function setDocumentPreview(item) {
     const indexes = window.selectedSortingIndexes();
 
     if (!indexes.length) {
-      showResult("まとめて専門解析する書類にチェックを入れてください。");
+      showResult("まとめて仕分けする書類にチェックを入れてください。");
       return;
     }
 
@@ -3370,7 +3298,7 @@ function setDocumentPreview(item) {
       const item = items[index] || {};
       const name = item.originalFileName || item.fileName || ("No." + (index + 1));
 
-      showResult("まとめて専門解析中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
 
       const result = await window.runAiDraftForItemIndex(index, { silent: true });
 
@@ -3402,7 +3330,7 @@ function setDocumentPreview(item) {
       .join("\n");
 
     showResult(
-      "まとめて専門解析が完了しました。\n" +
+      "まとめて仕分けが完了しました。\n" +
       "対象: " + indexes.length + "件\n" +
       "成功: " + success + "件\n" +
       "失敗: " + failed + "件\n" +
@@ -3412,161 +3340,6 @@ function setDocumentPreview(item) {
     );
   };
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_START */
-  window.hdOriginContractInsuranceLeaseSpecialistFilter = function(allItems) {
-    function norm(value) {
-      return String(value || "")
-        .replace(/\s+/g, "")
-        .replace(/　+/g, "")
-        .replace(/[・･·]/g, "")
-        .replace(/[：:]/g, "")
-        .replace(/[／\/]/g, "")
-        .toLowerCase();
-    }
-
-    function collectText(item) {
-      const draft = item && item.__aiDraft && typeof item.__aiDraft === "object" ? item.__aiDraft : {};
-      const latest = item && item.latestSortingDraft && typeof item.latestSortingDraft === "object" ? item.latestSortingDraft : {};
-      const saved = item && item.__savedSortingDraft && typeof item.__savedSortingDraft === "object" ? item.__savedSortingDraft : {};
-      const aiSummary = draft && draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
-
-      return [
-        item && item.__documentGroup,
-
-        latest.specialistRouteCode,
-        latest.specialist_route_code,
-        latest.paymentDestinationCode,
-        latest.payment_destination_code,
-        latest.documentTypeCode,
-        latest.document_type_code,
-        latest.accountingCategoryCode,
-        latest.accounting_category_code,
-        latest.payableKindCode,
-        latest.payable_kind_code,
-
-        saved.specialistRouteCode,
-        saved.specialist_route_code,
-        saved.paymentDestinationCode,
-        saved.payment_destination_code,
-        saved.documentTypeCode,
-        saved.document_type_code,
-        saved.accountingCategoryCode,
-        saved.accounting_category_code,
-        saved.payableKindCode,
-        saved.payable_kind_code,
-
-        draft.specialist_route_code,
-        draft.specialistRouteCode,
-        draft.payment_destination_code,
-        draft.paymentDestinationCode,
-        draft.document_type_code,
-        draft.documentTypeCode,
-        draft.accounting_category_code,
-        draft.accountingCategoryCode,
-        draft.payable_kind_code,
-        draft.payableKindCode,
-
-        latest.specialistRouteLabel,
-        latest.specialist_route_label,
-        latest.paymentDestinationLabel,
-        latest.payment_destination_label,
-        latest.documentTypeLabel,
-        latest.document_type_label,
-
-        saved.specialistRouteLabel,
-        saved.specialist_route_label,
-        saved.paymentDestinationLabel,
-        saved.payment_destination_label,
-        saved.documentTypeLabel,
-        saved.document_type_label,
-
-        draft.specialist_route_label,
-        draft.specialistRouteLabel,
-        draft.payment_destination_label,
-        draft.paymentDestinationLabel,
-        draft.document_type_label,
-        draft.documentTypeLabel,
-
-        aiSummary.document_kind,
-        aiSummary.destination,
-        aiSummary.contract_insurance_lease_flag,
-        aiSummary.payable_target,
-        aiSummary.payment_target,
-        aiSummary.reason
-      ].map(norm).join(" ");
-    }
-
-    return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
-      const text = collectText(item);
-
-      if (!text) {
-        return false;
-      }
-
-      if (
-        text.includes("contract_insurance_lease") ||
-        text.includes("contractinsurancelease")
-      ) {
-        return true;
-      }
-
-      const isOtherSpecialist =
-        text.includes("invoice_payable") ||
-        text.includes("accountspayable") ||
-        text.includes("accounts_payable") ||
-        text.includes("tax_public") ||
-        text.includes("taxpublic") ||
-        text.includes("tax_payment") ||
-        text.includes("taxpayment") ||
-        text.includes("card_statement") ||
-        text.includes("paid_evidence") ||
-        text.includes("utility_notice") ||
-        text.includes("public_utility") ||
-        text.includes("communication") ||
-        text.includes("reference_check") ||
-        text.includes("cardpayable") ||
-        text.includes("receipt") ||
-        text.includes("請求未払") ||
-        text.includes("買掛") ||
-        text.includes("税金") ||
-        text.includes("公的") ||
-        text.includes("納付") ||
-        text.includes("領収") ||
-        text.includes("レシート") ||
-        text.includes("公共料金") ||
-        text.includes("通信費") ||
-        text.includes("照合用");
-
-      if (isOtherSpecialist) {
-        return false;
-      }
-
-      return (
-        text.includes("契約") ||
-        text.includes("契約書") ||
-        text.includes("契約番号") ||
-        text.includes("契約期間") ||
-        text.includes("契約開始") ||
-        text.includes("契約終了") ||
-        text.includes("更新日") ||
-        text.includes("満期") ||
-        text.includes("保険") ||
-        text.includes("保険料") ||
-        text.includes("保険証券") ||
-        text.includes("証券番号") ||
-        text.includes("保険期間") ||
-        text.includes("リース") ||
-        text.includes("リース料") ||
-        text.includes("リース契約") ||
-        text.includes("賃貸借") ||
-        text.includes("借上") ||
-        text.includes("lease") ||
-        text.includes("insurance") ||
-        text.includes("contract")
-      );
-    });
-  };
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_END */
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -3589,13 +3362,13 @@ function setDocumentPreview(item) {
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginContractInsuranceLeaseSpecialistFilter(allItems);
+      items = allItems;
 
       summary.textContent =
-        "契約・保険・リース専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "DB保存済みOCR: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">契約・保険・リースの対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">DB保存済みOCRがありません。OCR取込画面でOCR後、保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -3725,7 +3498,7 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
-    // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
+    // DB専用review-itemsの保存済み下書きがあれば、単品仕分けと同じ項目表示へ戻す
     if (item && item.__aiDraft) {
       if (typeof applySortingOnlyDraftToForm === "function") {
         applySortingOnlyDraftToForm(item.__aiDraft);
@@ -4768,7 +4541,7 @@ function setDocumentPreview(item) {
 
   window.hdPaymentAnalyzeStep = function (current, total, fileName) {
     window.hdPaymentSetAnalyzeBusy(true, {
-      title: "まとめて専門解析中です",
+      title: "まとめて仕分け中です",
       sub: "チェックした書類を順番に仕分けています。",
       current: current,
       total: total,
@@ -4781,7 +4554,7 @@ function setDocumentPreview(item) {
 
     if (!text) return;
 
-    if (text.includes("まとめて解析中") || text.includes("まとめて専門解析中")) {
+    if (text.includes("まとめて解析中") || text.includes("まとめて仕分け中")) {
       const match = text.match(/(\d+)\s*\/\s*(\d+)/);
       const lines = text.split(/\r?\n/);
       const fileName = lines.length ? lines[lines.length - 1] : "";
@@ -4789,7 +4562,7 @@ function setDocumentPreview(item) {
       window.__hdOriginPaymentBulkBusyRunning = true;
 
       window.hdPaymentSetAnalyzeBusy(true, {
-        title: "まとめて専門解析中です",
+        title: "まとめて仕分け中です",
         sub: "選択した書類を1件ずつAI仕分けしています。",
         current: match ? Number(match[1]) : 0,
         total: match ? Number(match[2]) : 0,
@@ -4801,7 +4574,7 @@ function setDocumentPreview(item) {
 
     if (
       text.includes("単品解析中") ||
-      text.includes("単品専門解析中") ||
+      text.includes("単品仕分け中") ||
       text.includes("AIで書類分類") ||
       text.includes("必要項目だけ抽出")
     ) {
@@ -4810,7 +4583,7 @@ function setDocumentPreview(item) {
       }
 
       window.hdPaymentSetAnalyzeBusy(true, {
-        title: "単品専門解析中です",
+        title: "単品仕分け中です",
         sub: "OCR本文から種類・行き先を判定しています。",
         detail: "AI応答待ちです。画面を閉じずにお待ちください。"
       });
@@ -4820,16 +4593,16 @@ function setDocumentPreview(item) {
 
     if (
       text.includes("まとめて解析が完了") ||
-      text.includes("まとめて専門解析が完了") ||
+      text.includes("まとめて仕分けが完了") ||
       text.includes("解析が完了") ||
       text.includes("仕分けが完了") ||
       text.includes("AI解析失敗") ||
-      text.includes("専門解析失敗") ||
+      text.includes("AI仕分け失敗") ||
       text.includes("解析する書類が見つかりません") ||
       text.includes("仕分けする書類が見つかりません") ||
       text.includes("エラー")
     ) {
-      if (text.includes("まとめて解析が完了") || text.includes("まとめて専門解析が完了")) {
+      if (text.includes("まとめて解析が完了") || text.includes("まとめて仕分けが完了")) {
         window.__hdOriginPaymentBulkBusyRunning = false;
       }
 
@@ -4880,13 +4653,13 @@ function setDocumentPreview(item) {
         window.__hdOriginPaymentBulkBusyRunning = true;
 
         window.hdPaymentSetAnalyzeBusy(true, {
-          title: "まとめて専門解析中です",
+          title: "まとめて仕分け中です",
           sub: "選択した書類を順番に仕分けています。",
           detail: "動いています。画面を閉じずにお待ちください。"
         });
       } else if (!window.__hdOriginPaymentBulkBusyRunning) {
         window.hdPaymentSetAnalyzeBusy(true, {
-          title: "単品専門解析中です",
+          title: "単品仕分け中です",
           sub: "AIが仕分け候補を作成しています。",
           detail: "動いています。画面を閉じずにお待ちください。"
         });
@@ -5001,7 +4774,12 @@ function setDocumentPreview(item) {
     count += window.hdOriginSetControlValueLoose("draftAiDocumentKind", d.document_type_code || d.document_type_label || d.document_type_name, d.document_type_label || d.document_type_name || s.document_kind);
     count += window.hdOriginSetControlValueLoose("draftAiDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
-    count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_target || d.payment_target || "");
+    
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemLabel", d.analysis_system_label || s.analysis_system || s.analysis_system_label || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
+count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_target || d.payment_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiUnpaidFlag", s.payable_target || d.payable_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiExpenseFlag", s.expense_target || d.expense_target || "");
     count += window.hdOriginSetControlValueLoose("draftAiTaxPublicFlag", s.tax_public || d.tax_public || "");
@@ -5158,7 +4936,57 @@ function setDocumentPreview(item) {
   }
 
   function findSelectedOcrImportId() {
-    const directNames = [
+    /* HD_ORIGIN_SORTING_DRAFT_SELECTED_OCR_ID_FIX_GPT00_20260709_START */
+    const functionNames = [
+      "selectedOcrImportId",
+      "getSelectedOcrImportId",
+      "currentOcrImportId",
+      "getCurrentOcrImportId"
+    ];
+
+    for (const name of functionNames) {
+      if (typeof window[name] !== "function") continue;
+
+      try {
+        const n = Number(window[name]());
+
+        if (Number.isInteger(n) && n > 0) {
+          return n;
+        }
+      } catch (error) {}
+    }
+
+    try {
+      if (typeof window.selectedItem === "function") {
+        const item = window.selectedItem();
+
+        if (item && typeof item === "object") {
+          const n = Number(
+            item.paymentDocumentOcrImportId ||
+            item.payment_document_ocr_import_id ||
+            item.ocrImportId ||
+            item.ocr_import_id ||
+            item.id
+          );
+
+          if (Number.isInteger(n) && n > 0) {
+            return n;
+          }
+        }
+      }
+    } catch (error) {}
+
+    try {
+      if (typeof window.ocrImportIdOf === "function" && typeof window.selectedItem === "function") {
+        const n = Number(window.ocrImportIdOf(window.selectedItem()));
+
+        if (Number.isInteger(n) && n > 0) {
+          return n;
+        }
+      }
+    } catch (error) {}
+    /* HD_ORIGIN_SORTING_DRAFT_SELECTED_OCR_ID_FIX_GPT00_20260709_END */
+const directNames = [
       "selectedOcrImportId",
       "currentOcrImportId",
       "paymentDocumentOcrImportId"
@@ -5353,7 +5181,12 @@ function setDocumentPreview(item) {
         public_utility: controlValue("draftAiPublicUtilityFlag"),
         contract_insurance_lease: controlValue("draftAiContractFlag"),
         confidence: controlValue("draftAiConfidence"),
-        reason: controlValue("draftAiReason")
+        reason: controlValue("draftAiReason"),
+        analysis_system_code: controlValue("draftAnalysisSystemCode"),
+        analysis_system: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+        analysis_system_confidence: controlValue("draftAnalysisSystemConfidence")
       },
 
       sortResult: {
@@ -5363,6 +5196,10 @@ function setDocumentPreview(item) {
         payment_destination_label: destinationLabel,
         accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
         accounting_category_label: accountingCategoryLabel,
+        analysis_system_code: controlValue("draftAnalysisSystemCode"),
+        analysis_system_label: controlValue("draftAnalysisSystemLabel"),
+        analysis_system_reason: controlValue("draftAnalysisSystemReason"),
+        analysis_system_confidence: controlValue("draftAnalysisSystemConfidence"),
         needs_review:
           controlLabel("draftAiDestination").includes("要確認") ||
           controlLabel("draftAccountingCategory").includes("要確認") ||
@@ -5371,38 +5208,6 @@ function setDocumentPreview(item) {
     };
 
     return payload;
-  }
-
-  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved) {
-    const payload = {
-      paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
-      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      draft: sortingPayload,
-      sortResult: sortingPayload.sortResult || {},
-      ai_summary: sortingPayload.ai_summary || {},
-      fields: sortingPayload.visibleFields || {},
-      visibleFields: sortingPayload.visibleFields || {},
-      warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
-      memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
-    };
-
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
-    }
-
-    return json;
   }
 
   async function saveSortingDraftFromReviewPage() {
@@ -5421,20 +5226,10 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
+      throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
-    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json);
-
-    return {
-      ...json,
-      contractInsuranceLeaseDraftId:
-        specialistJson.contractInsuranceLeaseDraftId ||
-        specialistJson.paymentDocumentContractInsuranceLeaseDraftId ||
-        specialistJson.contract_insurance_lease_draft_id ||
-        "",
-      contractInsuranceLeaseDraft: specialistJson
-    };
+    return json;
   }
 
   function looksLikeDraftSaveButton(el) {
@@ -5482,7 +5277,7 @@ function setDocumentPreview(item) {
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け下書きID: " + (result.paymentDocumentSortingDraftId || "") + "\n専門下書きID: " + (result.contractInsuranceLeaseDraftId || ""));
+      alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -5540,7 +5335,7 @@ function setDocumentPreview(item) {
 
   function aiSortIdFromUrl(url) {
     const path = String(url || "").split("?")[0];
-    const match = path.match(/\/api\/payment-documents\/(?:ai-sort|ai-specialist)\/([0-9]+)/);
+    const match = path.match(/\/api\/payment-documents\/ai-sort\/([0-9]+)/);
 
     if (!match) return 0;
 
@@ -5686,85 +5481,12 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
+      throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
     return json;
   }
 
-    // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_START
-  // 後追い判定ではなく、保存APIの返却ID表記ゆれを吸収するだけ。
-  function hdOriginCilSavedSortingDraftId(saved) {
-    if (!saved || typeof saved !== "object") return "";
-
-    return saved.paymentDocumentSortingDraftId ||
-      saved.payment_document_sorting_draft_id ||
-      saved.sortingDraftId ||
-      saved.sorting_draft_id ||
-      saved.draftId ||
-      saved.draft_id ||
-      saved.id ||
-      "";
-  }
-
-  function hdOriginCilSaveErrorMessage(prefix, res, json, payload) {
-    const status = res && res.status ? "HTTP " + res.status : "";
-    const error = json && json.error ? json.error : "";
-    const id = payload && (
-      payload.paymentDocumentOcrImportId ||
-      payload.payment_document_ocr_import_id ||
-      payload.ocrImportId ||
-      payload.id ||
-      ""
-    );
-
-    return [
-      prefix || "保存に失敗しました。",
-      status,
-      id ? "OCR取込ID=" + id : "",
-      error
-    ].filter(Boolean).join(" / ");
-  }
-  // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_END
-function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sortingSaved) {
-    const result = firstObject(cached);
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result);
-    const draft = firstObject(result.draft, root.draft, root.sorting, root.classification, root);
-    const fields = firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields, sortingPayload.visibleFields, sortingPayload.visible_fields, sortingPayload.fields);
-    const aiSummary = firstObject(draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary, sortingPayload.ai_summary);
-
-    return {
-      paymentDocumentOcrImportId: Number(id),
-      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      draft,
-      sortResult: root,
-      ai_summary: aiSummary,
-      fields,
-      visibleFields: fields,
-      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
-      memo: "契約・保険・リース専門画面のまとめて保存から専門下書き保存"
-    };
-  }
-
-  async function postContractInsuranceLeaseDraft(payload) {
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
-    }
-
-    return json;
-  }
   async function bulkSaveSortingDrafts() {
     let ids = getSelectedOcrIds();
 
@@ -5773,7 +5495,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     }
 
     if (ids.length === 0) {
-      throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+      throw new Error("まとめて保存する対象が見つかりません。先にまとめて仕分けを実行してください。");
     }
 
     const ok = [];
@@ -5793,13 +5515,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
       try {
         const payload = buildPayloadFromCachedResult(id, cached);
         const saved = await postSortingDraft(payload);
-        const specialistPayload = buildContractInsuranceLeaseDraftPayload(id, cached, payload, saved);
-        const specialistSaved = await postContractInsuranceLeaseDraft(specialistPayload);
 
         ok.push({
           id,
-          sortingDraftId: saved.paymentDocumentSortingDraftId || "",
-          specialistDraftId: specialistSaved.contractInsuranceLeaseDraftId || ""
+          draftId: saved.paymentDocumentSortingDraftId || ""
         });
       } catch (err) {
         ng.push({
@@ -5820,7 +5539,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
     const sortButton = buttons.find(function (button) {
       const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
-      return text.includes("まとめて専門解析");
+      return text.includes("まとめて仕分け");
     });
 
     if (!sortButton || !sortButton.parentNode) {
@@ -5893,6 +5612,263 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 <script>
 </script>
 
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+    var title = document.querySelector(".draft-panel .panel-title");
+
+    if (title) {
+      title.appendChild(box);
+    } else {
+      document.body.appendChild(box);
+    }
+
+    return box;
+  }
+
+  function setStatus(message, isError) {
+    var box = statusBox();
+
+    box.textContent = message;
+    box.style.color = isError ? "#991b1b" : "#166534";
+  }
+
+  function selectedIdExists() {
+    try {
+      if (typeof selectedOcrImportId === "function" && selectedOcrImportId()) return true;
+    } catch (error) {}
+
+    try {
+      if (typeof findSelectedOcrImportId === "function" && findSelectedOcrImportId()) return true;
+    } catch (error) {}
+
+    try {
+      if (typeof selectedItem === "function") {
+        var item = selectedItem();
+
+        if (
+          item &&
+          (
+            item.paymentDocumentOcrImportId ||
+            item.payment_document_ocr_import_id ||
+            item.ocrImportId ||
+            item.ocr_import_id
+          )
+        ) {
+          return true;
+        }
+      }
+    } catch (error) {}
+
+    return false;
+  }
+
+  function saveFunctionReady() {
+    return typeof window.hdOriginSaveSortingDraftFromReviewPage === "function";
+  }
+
+  async function runAutoSave(reason) {
+    if (suppressAutoSave) {
+      return { ok: false, skipped: true, reason: "suppressed" };
+    }
+
+    if (!selectedIdExists()) {
+      return { ok: false, skipped: true, reason: "no_selected_ocr" };
+    }
+
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (!button) return false;
+
+    if (button.id === "bulkSaveSortingDraftButton") return true;
+    if (button.classList && button.classList.contains("hd-origin-bulk-save-sorting-draft")) return true;
+
+    var t = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+
+    if (!t) return false;
+
+    return t.includes("まとめて保存") || t.includes("下書き保存");
+  }
+
+  function removeSaveButtons() {
+    Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a")).forEach(function (button) {
+      if (isSaveButton(button)) {
+        button.remove();
+      }
+    });
+  }
+
+  document.addEventListener("input", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("change", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("click", function (event) {
+    var button = event.target && event.target.closest
+      ? event.target.closest("button, input[type='button'], input[type='submit'], a")
+      : null;
+
+    if (!isSaveButton(button)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    removeSaveButtons();
+    setStatus("保存ボタンは廃止済みです。自動保存します。", false);
+  }, true);
+
+  function wrapAnalyzer(name) {
+    var original = window[name];
+
+    if (typeof original !== "function" || original.__hdOriginAutoSaveGpt00FixedWrapped) {
+      return;
+    }
+
+    var wrapped = async function () {
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+    wrapAnalyzer("runAiDraftForItemIndex");
+  }
+
+  removeSaveButtons();
+  installAnalyzerWraps();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      removeSaveButtons();
+      installAnalyzerWraps();
+    });
+  }
+
+  var observer = new MutationObserver(function () {
+    removeSaveButtons();
+    installAnalyzerWraps();
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  window.hdOriginRunSortingDraftAutoSave = runAutoSave;
+  window.hdOriginScheduleSortingDraftAutoSave = scheduleAutoSave;
+})();
+</script>
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
 <script>
 (function () {
@@ -6033,43 +6009,9 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
     pushField(fields, section, "公共料金・通信費", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
-    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_START
-    // 後追い判定ではなく、AIが既に出した値を固定欄へ写すだけ。
-    const hdCilDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
-    const hdCilRawForReason = (typeof raw !== "undefined" && raw && typeof raw === "object") ? raw : {};
-    const hdCilSummaryForReason = (hdCilDraftForReason.ai_summary && typeof hdCilDraftForReason.ai_summary === "object") ? hdCilDraftForReason.ai_summary : {};
-    const hdCilDraftFieldsForReason = (hdCilDraftForReason.fields && typeof hdCilDraftForReason.fields === "object") ? hdCilDraftForReason.fields : {};
-
-    const hdCilConfidenceValue =
-      hdCilDraftForReason.analysis_system_confidence ||
-      hdCilDraftForReason.confidence_label ||
-      hdCilDraftForReason.ai_confidence_label ||
-      hdCilDraftForReason.ai_confidence ||
-      hdCilDraftForReason.confidence ||
-      hdCilSummaryForReason.confidence_label ||
-      hdCilDraftFieldsForReason["AI信頼度"] ||
-      hdCilRawForReason.analysis_system_confidence ||
-      hdCilRawForReason.confidence_label ||
-      hdCilRawForReason.confidence ||
-      "";
-
-    const hdCilReasonValue =
-      hdCilDraftForReason.analysis_system_reason ||
-      hdCilDraftForReason.review_reason ||
-      hdCilDraftForReason.ai_reason ||
-      hdCilDraftForReason.reason ||
-      hdCilSummaryForReason.reason ||
-      hdCilDraftFieldsForReason["AI判定理由"] ||
-      hdCilRawForReason.analysis_system_reason ||
-      hdCilRawForReason.review_reason ||
-      hdCilRawForReason.ai_reason ||
-      hdCilRawForReason.reason ||
-      "";
-
-    pushField(fields, section, "AI信頼度", "confidence", hdCilConfidenceValue);
+    pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
-    pushField(fields, section, "AI判定理由", "review_reason", hdCilReasonValue);
-    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_END
+    pushField(fields, section, "AI判定理由", "review_reason", draft.review_reason || draft.ai_reason || draft.reason || raw.review_reason || raw.ai_reason || raw.reason || "");
   }
 
   function pushObject(fields, section, obj) {
@@ -6298,158 +6240,555 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 })();
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
-<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_START -->
+<!-- HD_ORIGIN_VISIBLE_MEMO_DB_LATEST_GPT00_20260709_START -->
 <script>
 (function () {
-  const EXTRA_MASTER_CONFIG = {
-    contract_insurance_lease_kinds: {
-      id: "contract_insurance_lease_kind_id",
-      code: "contract_insurance_lease_kind_code",
-      name: "contract_insurance_lease_kind_name"
-    },
-    insurance_types: {
-      id: "insurance_type_id",
-      code: "insurance_type_code",
-      name: "insurance_type_name"
-    },
-    lease_item_categories: {
-      id: "lease_item_category_id",
-      code: "lease_item_category_code",
-      name: "lease_item_category_name"
-    },
-    contract_types: {
-      id: "contract_type_id",
-      code: "contract_type_code",
-      name: "contract_type_name"
-    },
-    contract_statuses: {
-      id: "contract_status_id",
-      code: "contract_status_code",
-      name: "contract_status_name"
-    },
-    payment_statuses: {
-      id: "payment_status_id",
-      code: "payment_status_code",
-      name: "payment_status_name"
-    },
-    payment_cycles: {
-      id: "payment_cycle_id",
-      code: "payment_cycle_code",
-      name: "payment_cycle_name"
-    },
-    company_burden_types: {
-      id: "company_burden_type_id",
-      code: "company_burden_type_code",
-      name: "company_burden_type_name"
-    },
-    personal_mix_flags: {
-      id: "personal_mix_flag_id",
-      code: "personal_mix_flag_code",
-      name: "personal_mix_flag_name"
-    },
-    payable_registration_types: {
-      id: "payable_registration_type_id",
-      code: "payable_registration_type_code",
-      name: "payable_registration_type_name"
-    },
-    accounts_payable_registration_types: {
-      id: "accounts_payable_registration_type_id",
-      code: "accounts_payable_registration_type_code",
-      name: "accounts_payable_registration_type_name"
-    },
-    auto_renewal_types: {
-      id: "auto_renewal_type_id",
-      code: "auto_renewal_type_code",
-      name: "auto_renewal_type_name"
-    },
-    ownership_transfer_types: {
-      id: "ownership_transfer_type_id",
-      code: "ownership_transfer_type_code",
-      name: "ownership_transfer_type_name"
-    },
-    early_cancellation_types: {
-      id: "early_cancellation_type_id",
-      code: "early_cancellation_type_code",
-      name: "early_cancellation_type_name"
-    }
-  };
+  "use strict";
 
-  function normalize(value) {
-    return String(value || "").trim();
+  if (window.__hdOriginVisibleMemoDbLatestGpt00Installed) return;
+  window.__hdOriginVisibleMemoDbLatestGpt00Installed = true;
+
+  function textValue(value) {
+    return String(value === null || value === undefined ? "" : value).trim();
   }
 
-  function populateOne(select, masters) {
-    const key = select.getAttribute("data-master-type");
-    const config = EXTRA_MASTER_CONFIG[key];
+  function showResultLocal(value) {
+    if (typeof window.showResultSafe === "function") {
+      window.showResultSafe(value);
+      return;
+    }
 
-    if (!config) return;
+    if (typeof window.showResult === "function") {
+      window.showResult(value);
+      return;
+    }
 
-    const rows = Array.isArray(masters[key]) ? masters[key] : [];
-    const current = normalize(select.value);
+    console.log(value);
+  }
 
-    select.innerHTML = "";
+  function jsonText(value) {
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value === "string") return value;
 
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "選択してください";
-    select.appendChild(empty);
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch (error) {
+      return String(value);
+    }
+  }
 
-    rows.forEach(row => {
-      const code = normalize(row[config.code]);
-      const name = normalize(row[config.name]);
-      const id = normalize(row[config.id]);
-
-      const option = document.createElement("option");
-      option.value = code || name || id;
-      option.textContent = name || code || id;
-      option.dataset.masterId = id;
-      option.dataset.masterCode = code;
-      option.dataset.masterName = name;
-      select.appendChild(option);
+  async function fetchJson(url) {
+    var res = await fetch(url, {
+      method: "GET",
+      headers: { "Accept": "application/json" }
     });
 
-    if (current) {
-      const matched = Array.from(select.options).find(option => {
-        return normalize(option.value) === current ||
-          normalize(option.textContent) === current ||
-          normalize(option.dataset.masterCode) === current ||
-          normalize(option.dataset.masterName) === current ||
-          normalize(option.dataset.masterId) === current;
+    var text = await res.text();
+    var data = {};
+
+    try {
+      data = JSON.parse(text || "{}");
+    } catch (error) {
+      throw new Error("API応答がJSONではありません: " + text.slice(0, 300));
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || data.message || ("HTTP " + res.status));
+    }
+
+    return data;
+  }
+
+  function getSelectedIndexSafe() {
+    try {
+      if (typeof selectedIndex === "number") return selectedIndex;
+    } catch (error) {}
+
+    return -1;
+  }
+
+  function getItemsSafe() {
+    try {
+      if (typeof items !== "undefined" && Array.isArray(items)) return items;
+    } catch (error) {}
+
+    return [];
+  }
+
+  function getSelectedItemSafe() {
+    var list = getItemsSafe();
+    var index = getSelectedIndexSafe();
+
+    if (index >= 0 && list[index]) return list[index];
+
+    return null;
+  }
+
+  function itemId(item) {
+    if (!item) return "";
+
+    return textValue(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.ocr_import_id ||
+      item.id
+    );
+  }
+
+  function getSelectedOcrImportIdSafe() {
+    try {
+      if (typeof selectedOcrImportId === "function") {
+        var fromFn = textValue(selectedOcrImportId());
+        if (fromFn) return fromFn;
+      }
+    } catch (error) {}
+
+    return itemId(getSelectedItemSafe());
+  }
+
+  function itemName(item) {
+    if (!item) return "";
+
+    return textValue(
+      item.originalFileName ||
+      item.original_file_name ||
+      item.savedFileName ||
+      item.saved_file_name ||
+      item.fileName ||
+      item.file_name ||
+      ""
+    );
+  }
+
+  function itemOcrText(item) {
+    if (!item) return "";
+
+    return String(
+      item.ocrRawText ||
+      item.ocr_raw_text ||
+      item.ocrText ||
+      item.ocr_text ||
+      ""
+    );
+  }
+
+  function optionText(control) {
+    if (!control) return "";
+
+    if (control.tagName === "SELECT") {
+      var opt = control.options && control.selectedIndex >= 0
+        ? control.options[control.selectedIndex]
+        : null;
+
+      return opt ? textValue(opt.textContent || opt.innerText || opt.value) : "";
+    }
+
+    return textValue(control.value);
+  }
+
+  function controlLabel(control) {
+    if (!control) return "";
+
+    var label = control.closest("label");
+
+    if (label) {
+      var clone = label.cloneNode(true);
+
+      clone.querySelectorAll("input, select, textarea, button").forEach(function (el) {
+        el.remove();
       });
 
-      if (matched) {
-        select.value = matched.value;
+      var text = textValue(clone.textContent);
+
+      if (text) return text;
+    }
+
+    return textValue(
+      control.getAttribute("aria-label") ||
+      control.getAttribute("placeholder") ||
+      control.id ||
+      control.name ||
+      ""
+    );
+  }
+
+  function isVisibleControl(control) {
+    if (!control) return false;
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+    return true;
+  }
+
+  function sectionForControl(control) {
+    var section = control.closest(".draft-section");
+
+    if (!section) return "画面表示中項目";
+
+    var title = section.querySelector(".draft-section-title");
+
+    return textValue(title ? title.textContent : "") || "画面表示中項目";
+  }
+
+  function collectScreenVisibleFields() {
+    var fields = [];
+
+    Array.from(document.querySelectorAll(".draft-field, .master-select")).forEach(function (control) {
+      if (!isVisibleControl(control)) return;
+
+      fields.push({
+        no: fields.length + 1,
+        source: "screen_visible",
+        section: sectionForControl(control),
+        label: controlLabel(control),
+        id: control.id || "",
+        tagName: control.tagName || "",
+        type: control.type || "",
+        value: textValue(control.value),
+        displayText: optionText(control),
+        placeholder: control.getAttribute("placeholder") || "",
+        masterType: control.dataset ? (control.dataset.masterType || "") : "",
+        masterLabel: control.dataset ? (control.dataset.masterLabel || "") : ""
+      });
+    });
+
+    return fields;
+  }
+
+  function pushField(fields, section, label, id, value, source) {
+    fields.push({
+      no: fields.length + 1,
+      source: source || "database_latest_sorting_draft",
+      section: section,
+      label: label,
+      id: id || "",
+      tagName: "",
+      type: "",
+      value: value === null || value === undefined ? "" : String(value),
+      displayText: value === null || value === undefined ? "" : String(value),
+      placeholder: "",
+      masterType: "",
+      masterLabel: ""
+    });
+  }
+
+  function dbDraftOf(item, fetchedDraft) {
+    return fetchedDraft ||
+      (item && item.latestSortingDraft) ||
+      (item && item.__savedSortingDraft) ||
+      null;
+  }
+
+  function addDbDraftFields(fields, item, draft, prefix) {
+    var name = itemName(item);
+    var id = itemId(item);
+    var base = prefix || "DB最新仕分け下書き";
+
+    if (!draft) {
+      pushField(fields, base, "DB保存状態", "db_found", "DB最新仕分け下書きなし", "database_latest_sorting_draft");
+      return;
+    }
+
+    pushField(fields, base, "OCR取込ID", "paymentDocumentOcrImportId", id || draft.paymentDocumentOcrImportId || "", "database_latest_sorting_draft");
+    pushField(fields, base, "ファイル名", "originalFileName", name, "database_latest_sorting_draft");
+    pushField(fields, base, "下書きID", "paymentDocumentSortingDraftId", draft.paymentDocumentSortingDraftId || draft.payment_document_sorting_draft_id || "", "database_latest_sorting_draft");
+    pushField(fields, base, "下書き番号", "draftNo", draft.draftNo || draft.draft_no || "", "database_latest_sorting_draft");
+    pushField(fields, base, "下書き状態", "draftStatus", draft.draftStatus || draft.draft_status || "", "database_latest_sorting_draft");
+    pushField(fields, base, "人間確認状態", "humanCheckStatus", draft.humanCheckStatus || draft.human_check_status || "", "database_latest_sorting_draft");
+
+    pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "処理先", "paymentDestinationLabel", draft.paymentDestinationLabel || draft.payment_destination_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "会計区分", "accountingCategoryLabel", draft.accountingCategoryLabel || draft.accounting_category_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "未払種別", "payableKindLabel", draft.payableKindLabel || draft.payable_kind_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "専門ルート", "specialistRouteLabel", draft.specialistRouteLabel || draft.specialist_route_label || "", "database_latest_sorting_draft");
+
+    pushField(fields, base + " / 解析システム", "解析システムコード", "analysisSystemCode", draft.analysisSystemCode || draft.analysis_system_code || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム", "analysisSystemLabel", draft.analysisSystemLabel || draft.analysis_system_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム信頼度", "analysisSystemConfidence", draft.analysisSystemConfidence || draft.analysis_system_confidence || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム判定理由", "analysisSystemReason", draft.analysisSystemReason || draft.analysis_system_reason || "", "database_latest_sorting_draft");
+
+    pushField(fields, base + " / 登録対象", "支払対象", "paymentTargetLabel", draft.paymentTargetLabel || draft.payment_target_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 登録対象", "未払登録対象", "payableTargetLabel", draft.payableTargetLabel || draft.payable_target_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 登録対象", "経費登録対象", "expenseTargetLabel", draft.expenseTargetLabel || draft.expense_target_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 登録対象", "税金・公的支払", "taxPublicLabel", draft.taxPublicLabel || draft.tax_public_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 登録対象", "公共料金・通信費", "publicUtilityLabel", draft.publicUtilityLabel || draft.public_utility_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 登録対象", "契約・保険・リース", "contractInsuranceLeaseLabel", draft.contractInsuranceLeaseLabel || draft.contract_insurance_lease_label || "", "database_latest_sorting_draft");
+
+    pushField(fields, base + " / AI判断", "AI信頼度", "aiConfidenceLabel", draft.aiConfidenceLabel || draft.ai_confidence_label || draft.aiConfidence || draft.ai_confidence || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI判断", "AI判定理由", "aiReason", draft.aiReason || draft.ai_reason || draft.reviewReason || draft.review_reason || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI判断", "要確認", "needsReview", draft.needsReview || draft.needs_review ? "true" : "false", "database_latest_sorting_draft");
+
+    pushField(fields, base + " / 保存JSON", "aiSummary", "aiSummary", jsonText(draft.aiSummary || draft.ai_summary || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "sortResult", "sortResult", jsonText(draft.sortResult || draft.sort_result || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "visibleFields", "visibleFields", jsonText(draft.visibleFields || draft.visible_fields || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "warnings", "warnings", jsonText(draft.warnings || []), "database_latest_sorting_draft");
+
+    pushField(fields, base, "作成日時", "createdAt", draft.createdAt || draft.created_at || "", "database_latest_sorting_draft");
+    pushField(fields, base, "更新日時", "updatedAt", draft.updatedAt || draft.updated_at || "", "database_latest_sorting_draft");
+  }
+
+  async function postMemo(payload) {
+    var res = await fetch("/api/payment-documents/review-visible-fields-memo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+
+    var text = await res.text();
+    var data = {};
+
+    try {
+      data = JSON.parse(text || "{}");
+    } catch (error) {
+      throw new Error("API応答がJSONではありません: " + text.slice(0, 300));
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || data.message || ("HTTP " + res.status));
+    }
+
+    return data;
+  }
+
+  async function exportVisibleWithDbLatest() {
+    var button = document.getElementById("visibleFieldsMemoButton") || document.querySelector(".mini-memo-button");
+    var oldText = button ? button.textContent : "";
+    var item = getSelectedItemSafe();
+    var id = getSelectedOcrImportIdSafe();
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "DB表示中";
+    }
+
+    try {
+      if (!id) {
+        throw new Error("左リストから書類を選択してください。");
+      }
+
+      showResultLocal({
+        ok: true,
+        message: "表示中の項目とDB最新下書きをmemoへ出します。",
+        selectedOcrImportId: id
+      });
+
+      var latest = await fetchJson("/api/payment-documents/sorting-drafts/by-ocr-import/" + encodeURIComponent(String(id)));
+      var dbDraft = dbDraftOf(item, latest.draft);
+
+      var screenFields = collectScreenVisibleFields();
+      var fields = [];
+
+      screenFields.forEach(function (field) {
+        fields.push(field);
+      });
+
+      addDbDraftFields(fields, item, dbDraft, "DB最新仕分け下書き");
+
+      var ocr = itemOcrText(item);
+
+      var payload = {
+        pageTitle: document.title || "",
+        pagePath: location.pathname,
+        displayMode: "visible_plus_db_latest",
+        selectedIndex: getSelectedIndexSafe(),
+        selectedOcrImportId: id,
+        selectedItem: item ? {
+          paymentDocumentOcrImportId: id,
+          originalFileName: itemName(item),
+          savedFileName: item.savedFileName || item.saved_file_name || item.fileName || "",
+          mimeType: item.mimeType || item.mime_type || "",
+          ocrStatus: item.ocrStatus || item.ocr_status || "",
+          savedAt: item.savedAt || item.saved_at || "",
+          updatedAt: item.updatedAt || item.updated_at || ""
+        } : null,
+        ocrRawText: ocr,
+        ocrTextLength: ocr.length,
+        dbLatestSortingDraftFound: !!dbDraft,
+        screenVisibleFieldCount: screenFields.length,
+        fields: fields
+      };
+
+      var data = await postMemo(payload);
+
+      showResultLocal({
+        ok: true,
+        message: "表示中の項目 + DB最新下書きをmemoへ出しました。",
+        count: data.count,
+        memoPath: data.memoPath,
+        openedNotepad: data.openedNotepad
+      });
+    } catch (error) {
+      showResultLocal({
+        ok: false,
+        error: error.message || String(error)
+      });
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = oldText || "表示";
       }
     }
   }
 
-  async function loadExtraMasters() {
-    const targets = Array.from(document.querySelectorAll('select[data-gpt2-extra-master="1"][data-master-type]'));
+  async function exportAllWithDbLatest() {
+    var button = document.getElementById("visibleAllFieldsMemoButton");
+    var oldText = button ? button.textContent : "";
 
-    if (!targets.length) return;
+    if (button) {
+      button.disabled = true;
+      button.textContent = "DB全件表示中";
+    }
 
     try {
-      const res = await fetch("/api/expenses/masters", { cache: "no-store" });
-      const masters = await res.json();
+      showResultLocal({
+        ok: true,
+        message: "DBから全件の最新仕分け下書きを読み直してmemoへ出します。"
+      });
 
-      targets.forEach(select => populateOne(select, masters || {}));
+      var data = await fetchJson("/api/payment-documents/review-items");
+      var list = Array.isArray(data.items) ? data.items : [];
+
+      if (!list.length) {
+        throw new Error("全件表示するDB保存済みOCRがありません。");
+      }
+
+      var fields = [];
+      var allOcrParts = [];
+      var dbDraftCount = 0;
+      var ocrCount = 0;
+
+      list.forEach(function (item, index) {
+        var no = index + 1;
+        var id = itemId(item);
+        var name = itemName(item) || ("ID " + id);
+        var draft = dbDraftOf(item, null);
+        var ocr = itemOcrText(item);
+
+        if (draft) dbDraftCount++;
+        if (ocr) ocrCount++;
+
+        var section = "全件DB最新仕分け下書き / " + no + " / " + name;
+
+        addDbDraftFields(fields, item, draft, section);
+
+        allOcrParts.push(
+          "==============================\n" +
+          no + " " + name + "\n" +
+          "OCR取込ID: " + id + "\n" +
+          "DB最新下書き: " + (draft ? "あり" : "なし") + "\n" +
+          "==============================\n" +
+          (ocr || "[OCR本文なし]")
+        );
+      });
+
+      var allOcrText = allOcrParts.join("\n\n");
+
+      var payload = {
+        pageTitle: document.title || "",
+        pagePath: location.pathname,
+        displayMode: "all_db_latest",
+        selectedIndex: -1,
+        selectedOcrImportId: "ALL_DB_LATEST",
+        selectedItem: {
+          paymentDocumentOcrImportId: "ALL_DB_LATEST",
+          originalFileName: "DB全件表示: " + list.length + "件",
+          savedFileName: "",
+          mimeType: "",
+          ocrStatus: "全件",
+          savedAt: "",
+          updatedAt: ""
+        },
+        ocrRawText: allOcrText,
+        ocrTextLength: allOcrText.length,
+        allItemCount: list.length,
+        allDbLatestSortingDraftCount: dbDraftCount,
+        allOcrCount: ocrCount,
+        fields: fields
+      };
+
+      var memo = await postMemo(payload);
+
+      showResultLocal({
+        ok: true,
+        message: "DB全件最新下書きをmemoへ出しました。",
+        itemCount: list.length,
+        dbDraftCount: dbDraftCount,
+        ocrCount: ocrCount,
+        fieldCount: fields.length,
+        memoPath: memo.memoPath,
+        openedNotepad: memo.openedNotepad
+      });
     } catch (error) {
-      console.error("[GPT2] 契約・保険・リース追加マスタ読込エラー", error);
+      showResultLocal({
+        ok: false,
+        error: error.message || String(error)
+      });
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = oldText || "全件表示";
+      }
     }
   }
 
-  window.hdOriginLoadContractInsuranceLeaseExtraMasters = loadExtraMasters;
+  function isVisibleButton(button) {
+    if (!button) return false;
+    if (button.id === "visibleFieldsMemoButton") return true;
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadExtraMasters);
-  } else {
-    loadExtraMasters();
+    return String(button.textContent || "").trim() === "表示";
   }
+
+  function isAllButton(button) {
+    if (!button) return false;
+    if (button.id === "visibleAllFieldsMemoButton") return true;
+
+    return String(button.textContent || "").trim() === "全件表示";
+  }
+
+  document.addEventListener("click", function (event) {
+    var button = event.target && event.target.closest
+      ? event.target.closest("button, input[type='button'], input[type='submit'], a")
+      : null;
+
+    if (isVisibleButton(button)) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      exportVisibleWithDbLatest();
+      return;
+    }
+
+    if (isAllButton(button)) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      exportAllWithDbLatest();
+      return;
+    }
+  }, true);
+
+  window.exportVisibleFieldsMemoVisibleOnlyWithDbLatest = exportVisibleWithDbLatest;
+  window.exportAllItemsMemoWithDbLatest = exportAllWithDbLatest;
 })();
 </script>
-<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_END -->
+<!-- HD_ORIGIN_VISIBLE_MEMO_DB_LATEST_GPT00_20260709_END -->
+
 </body>
 </html>
+
 
 
 
