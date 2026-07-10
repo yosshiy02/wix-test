@@ -1,4 +1,4 @@
-﻿const { sendJson } = require("../response");
+const { sendJson } = require("../response");
 const repo = require("./payables.repository");
 function readJson(req) {
   return new Promise((resolve, reject) => {
@@ -53,7 +53,19 @@ async function handlePayableRoutes(req, res) {
         to: url.searchParams.get("to") || "",
         dueFrom: url.searchParams.get("dueFrom") || "",
         dueTo: url.searchParams.get("dueTo") || "",
-        overdue: url.searchParams.get("overdue") || ""
+        overdue: url.searchParams.get("overdue") || "",
+        company:
+          url.searchParams.get("company") || "",
+        evidenceStatus:
+          url.searchParams.get("evidenceStatus") || "",
+        reviewStatus:
+          url.searchParams.get("reviewStatus") || "",
+        professionalReviewStatus:
+          url.searchParams.get(
+            "professionalReviewStatus"
+          ) || "",
+        evidenceOverdue:
+          url.searchParams.get("evidenceOverdue") || ""
       });
       const summary = await repo.getDashboard();
       sendJson(res, 200, { ok: true, items, summary });

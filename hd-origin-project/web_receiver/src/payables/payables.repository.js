@@ -1,4 +1,4 @@
-﻿const db = require("../db");
+const db = require("../db");
 function getPool() {
   if (db && db.pool && typeof db.pool.connect === "function") return db.pool;
   if (db && typeof db.connect === "function" && typeof db.query === "function") return db;
@@ -61,7 +61,68 @@ function normalizePayableKind(value) {
   const v = toText(value) || "unpaid";
   return ["accounts_payable", "unpaid", "accrued_expense", "card_payable", "other"].includes(v) ? v : "unpaid";
 }
-async function nextPayableNo(q) {
+/* PAYABLE_CONTROL_FIELDS_20260710_START */
+function normalizeEvidenceStatus(value) {
+  const v = toText(value) || "pending";
+
+  return [
+    "not_required",
+    "received",
+    "missing",
+    "pending",
+    "mismatch"
+  ].includes(v) ? v : "pending";
+}
+
+function normalizeReviewStatus(value) {
+  const v = toText(value) || "unreviewed";
+
+  return [
+    "unreviewed",
+    "needs_review",
+    "confirmed",
+    "rejected"
+  ].includes(v) ? v : "unreviewed";
+}
+
+function normalizeWarningLevel(value) {
+  const v = toText(value) || "none";
+
+  return [
+    "none",
+    "info",
+    "warning",
+    "critical"
+  ].includes(v) ? v : "none";
+}
+
+function normalizeProfessionalReviewStatus(
+  value,
+  required
+) {
+  const fallback =
+    required ? "pending" : "not_required";
+
+  const v = toText(value) || fallback;
+
+  return [
+    "not_required",
+    "pending",
+    "requested",
+    "confirmed",
+    "recheck_required"
+  ].includes(v) ? v : fallback;
+}
+
+function toBoolean(value) {
+  return (
+    value === true ||
+    value === 1 ||
+    value === "1" ||
+    String(value || "").toLowerCase() === "true"
+  );
+}
+/* PAYABLE_CONTROL_FIELDS_20260710_END */async function nextPayableNo(q) {
   const result = await q.query(`
     SELECT
       'PY-' ||
@@ -166,7 +227,47 @@ async function listPayables(filters = {}) {
   if (filters.overdue === "1" || filters.overdue === "true") {
     where.push("is_overdue = true");
   }
-  const sql = `
+  if (filters.company) {
+    where.push(
+      "(company_code ILIKE " +
+      add("%" + filters.company + "%") +
+      " OR company_name ILIKE " +
+      add("%" + filters.company + "%") +
+      ")"
+    );
+  }
+
+  if (filters.evidenceStatus) {
+    where.push(
+      "evidence_status = " +
+      add(filters.evidenceStatus)
+    );
+  }
+
+  if (filters.reviewStatus) {
+    where.push(
+      "review_status = " +
+      add(filters.reviewStatus)
+    );
+  }
+
+  if (filters.professionalReviewStatus) {
+    where.push(
+      "professional_review_status = " +
+      add(filters.professionalReviewStatus)
+    );
+  }
+
+  if (
+    filters.evidenceOverdue === "1" ||
+    filters.evidenceOverdue === "true"
+  ) {
+    where.push(`
+      evidence_due_date IS NOT NULL
+      AND evidence_due_date < CURRENT_DATE
+      AND evidence_status IN ('missing','pending')
+    `);
+  }  const sql = `
     SELECT *
     FROM accounting.v_payable_documents
     ${where.length ? "WHERE " + where.join(" AND ") : ""}
@@ -182,25 +283,94 @@ async function listPayables(filters = {}) {
 async function getDashboard() {
   const result = await baseQuery(`
     SELECT
-      COUNT(*) FILTER (WHERE effective_status IN ('draft','confirmed','partially_paid'))::INTEGER AS open_count,
-      COALESCE(SUM(calculated_balance_amount) FILTER (WHERE effective_status IN ('draft','confirmed','partially_paid')), 0)::NUMERIC(14,2) AS open_balance,
-      COUNT(*) FILTER (WHERE is_overdue)::INTEGER AS overdue_count,
-      COALESCE(SUM(calculated_balance_amount) FILTER (WHERE is_overdue), 0)::NUMERIC(14,2) AS overdue_balance,
+      COUNT(*) FILTER (
+        WHERE effective_status IN (
+          'draft',
+          'confirmed',
+          'partially_paid'
+        )
+      )::INTEGER AS open_count,
+
+      COALESCE(
+        SUM(calculated_balance_amount) FILTER (
+          WHERE effective_status IN (
+            'draft',
+            'confirmed',
+            'partially_paid'
+          )
+        ),
+        0
+      )::NUMERIC(14,2) AS open_balance,
+
+      COUNT(*) FILTER (
+        WHERE is_overdue
+      )::INTEGER AS overdue_count,
+
+      COALESCE(
+        SUM(calculated_balance_amount) FILTER (
+          WHERE is_overdue
+        ),
+        0
+      )::NUMERIC(14,2) AS overdue_balance,
+
       COUNT(*) FILTER (
         WHERE due_date >= CURRENT_DATE
           AND due_date <= CURRENT_DATE + INTERVAL '7 days'
-          AND effective_status IN ('draft','confirmed','partially_paid')
+          AND effective_status IN (
+            'draft',
+            'confirmed',
+            'partially_paid'
+          )
       )::INTEGER AS due_7_count,
-      COALESCE(SUM(calculated_balance_amount) FILTER (
-        WHERE due_date >= CURRENT_DATE
-          AND due_date <= CURRENT_DATE + INTERVAL '7 days'
-          AND effective_status IN ('draft','confirmed','partially_paid')
-      ), 0)::NUMERIC(14,2) AS due_7_balance
+
+      COALESCE(
+        SUM(calculated_balance_amount) FILTER (
+          WHERE due_date >= CURRENT_DATE
+            AND due_date <= CURRENT_DATE + INTERVAL '7 days'
+            AND effective_status IN (
+              'draft',
+              'confirmed',
+              'partially_paid'
+            )
+        ),
+        0
+      )::NUMERIC(14,2) AS due_7_balance,
+
+      COUNT(*) FILTER (
+        WHERE evidence_status IN (
+          'missing',
+          'pending',
+          'mismatch'
+        )
+      )::INTEGER AS evidence_attention_count,
+
+      COUNT(*) FILTER (
+        WHERE evidence_due_date IS NOT NULL
+          AND evidence_due_date < CURRENT_DATE
+          AND evidence_status IN (
+            'missing',
+            'pending'
+          )
+      )::INTEGER AS evidence_overdue_count,
+
+      COUNT(*) FILTER (
+        WHERE review_status = 'needs_review'
+      )::INTEGER AS needs_review_count,
+
+      COUNT(*) FILTER (
+        WHERE professional_review_required = true
+          AND professional_review_status IN (
+            'pending',
+            'requested',
+            'recheck_required'
+          )
+      )::INTEGER AS professional_review_pending_count
+
     FROM accounting.v_payable_documents
   `);
+
   return result.rows[0] || {};
-}
-async function getPayable(payableId) {
+}async function getPayable(payableId) {
   const headerResult = await baseQuery(`
     SELECT *
     FROM accounting.v_payable_documents
@@ -456,6 +626,59 @@ async function savePayable(payload = {}) {
       ]);
       lineNo++;
     }
+    const professionalReviewRequired =
+      toBoolean(
+        document.professional_review_required
+      );
+
+    await q.query(`
+      UPDATE accounting.payable_documents
+      SET
+        company_code = $2,
+        company_name = $3,
+        evidence_status = $4,
+        evidence_due_date = $5,
+        evidence_received_date = $6,
+        review_status = $7,
+        review_reason = $8,
+        warning_level = $9,
+        professional_review_required = $10,
+        professional_review_status = $11,
+        professional_reviewer = $12,
+        professional_reviewed_at = $13,
+        professional_review_result = $14,
+        updated_at = now()
+      WHERE payable_id =     
+    `, [
+      id,
+      toText(document.company_code),
+      toText(document.company_name),
+      normalizeEvidenceStatus(
+        document.evidence_status
+      ),
+      toDate(document.evidence_due_date),
+      toDate(document.evidence_received_date),
+      normalizeReviewStatus(
+        document.review_status
+      ),
+      toText(document.review_reason),
+      normalizeWarningLevel(
+        document.warning_level
+      ),
+      professionalReviewRequired,
+      normalizeProfessionalReviewStatus(
+        document.professional_review_status,
+        professionalReviewRequired
+      ),
+      toText(document.professional_reviewer),
+      document.professional_reviewed_at
+        ? document.professional_reviewed_at
+        : null,
+      toText(
+        document.professional_review_result
+      )
+    ]);
+
     const totals = await recalcPayable(q, id);
     return {
       payable_id: id,

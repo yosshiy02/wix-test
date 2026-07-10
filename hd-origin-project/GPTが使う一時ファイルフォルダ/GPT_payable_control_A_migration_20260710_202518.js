@@ -21,24 +21,26 @@ const path = require("path");
 
   await pool.query(sql);
 
-  const result = await pool.query(
-    SELECT
-      company_code,
-      company_name,
-      evidence_status,
-      evidence_due_date,
-      evidence_received_date,
-      review_status,
-      review_reason,
-      warning_level,
-      professional_review_required,
-      professional_review_status,
-      professional_reviewer,
-      professional_reviewed_at,
-      professional_review_result
-    FROM accounting.payable_documents
-    LIMIT 0
-  );
+  const checkSql = [
+    "SELECT",
+    "  company_code,",
+    "  company_name,",
+    "  evidence_status,",
+    "  evidence_due_date,",
+    "  evidence_received_date,",
+    "  review_status,",
+    "  review_reason,",
+    "  warning_level,",
+    "  professional_review_required,",
+    "  professional_review_status,",
+    "  professional_reviewer,",
+    "  professional_reviewed_at,",
+    "  professional_review_result",
+    "FROM accounting.payable_documents",
+    "LIMIT 0"
+  ].join("\n");
+
+  const result = await pool.query(checkSql);
 
   console.log(
     "Migration OK:",

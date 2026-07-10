@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -13,6 +13,7 @@ selectにAI候補optionを勝手に追加して確定扱いしない。
 AI結果の正は routes/API/DB の結果であり、HTMLは表示枠だけを担当する。
 -->
 <body class="specialist-tax-public-page" data-specialist-route-code="tax_public">
+<!-- HD_ORIGIN_GPT2_TAX_PUBLIC_SPECIALIST_COMMON_SAVE_API_20260710 : tax-public save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_TAX_PUBLIC_FIXED_FIELDS_GPT00_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
@@ -5366,7 +5367,7 @@ function setDocumentPreview(item) {
   async function saveSortingDraftFromReviewPage() {
     const payload = collectSortingDraftPayload();
 
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5628,7 +5629,7 @@ function setDocumentPreview(item) {
   }
 
   async function postSortingDraft(payload) {
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"

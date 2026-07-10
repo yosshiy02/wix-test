@@ -311,3 +311,55 @@ header .button-row .header-payment-document-button:hover {
   border-color: #eeeeee;
 }
 /* PAYABLES_PAYMENT_DOCUMENT_HEADER_LINK_VISIBLE_20260707_END */
+
+
+/* PAYABLE_CONTROL_UI_CSS_20260710_START */
+.payable-control-section {
+  margin-top: 12px;
+  padding: 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.payable-control-section h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.payable-alert {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.payable-alert.info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.payable-alert.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.payable-alert.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 1200px) {
+  .payable-control-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payable-control-section .grid4,
+  .payable-control-section .grid3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* PAYABLE_CONTROL_UI_CSS_20260710_END */
