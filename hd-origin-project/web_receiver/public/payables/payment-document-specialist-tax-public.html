@@ -3151,7 +3151,7 @@ function setDocumentPreview(item) {
 
       if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
         try {
-          await window.hdOriginSpecialistAutoSaveNow("analysis");
+          await window.hdOriginSpecialistAutoSaveNow("analysis", { ocrImportId: id, item: item, analysisResult: data });
         } catch (saveError) {
           const saveMessage =
             saveError && saveError.message
@@ -6185,21 +6185,94 @@ function setDocumentPreview(item) {
   let initialFormReady = false;
   let lastSavedAt = "";
   let lastSaveError = "";
+  let activeOcrImportId = 0;
+  let queuedSaveReason = "";
+  let queuedSaveContext = null;
 
   function saveFunction() {
     return window.hdOriginSaveSortingDraftFromReviewPage;
   }
 
-  function selectedOcrId() {
+  function itemOcrImportId(item) {
+    if (!item) {
+      return 0;
+    }
+
+    try {
+      if (typeof window.ocrImportIdOf === "function") {
+        const windowId = Number(window.ocrImportIdOf(item)) || 0;
+
+        if (windowId) {
+          return windowId;
+        }
+      }
+    } catch (error) {
+      console.warn("window.ocrImportIdOf failed:", error);
+    }
+
+    try {
+      if (typeof ocrImportIdOf === "function") {
+        const localId = Number(ocrImportIdOf(item)) || 0;
+
+        if (localId) {
+          return localId;
+        }
+      }
+    } catch (error) {
+      console.warn("local ocrImportIdOf failed:", error);
+    }
+
+    return Number(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.ocr_import_id ||
+      item.id ||
+      0
+    ) || 0;
+  }
+
+  function selectedOcrId(context) {
+    const contextId = Number(
+      context && (
+        context.ocrImportId ||
+        context.paymentDocumentOcrImportId ||
+        context.payment_document_ocr_import_id ||
+        context.id
+      )
+    ) || 0;
+
+    if (contextId) {
+      activeOcrImportId = contextId;
+      return contextId;
+    }
+
+    const contextItemId = itemOcrImportId(
+      context && context.item
+    );
+
+    if (contextItemId) {
+      activeOcrImportId = contextItemId;
+      return contextItemId;
+    }
+
+    if (activeOcrImportId) {
+      return activeOcrImportId;
+    }
+
     try {
       if (
         typeof selectedIndex === "number" &&
         selectedIndex >= 0 &&
         Array.isArray(items) &&
-        items[selectedIndex] &&
-        typeof window.ocrImportIdOf === "function"
+        items[selectedIndex]
       ) {
-        return Number(window.ocrImportIdOf(items[selectedIndex])) || 0;
+        const selectedId = itemOcrImportId(items[selectedIndex]);
+
+        if (selectedId) {
+          activeOcrImportId = selectedId;
+          return selectedId;
+        }
       }
     } catch (error) {
       console.warn("HD Origin auto-save selected ID lookup failed:", error);
@@ -6211,10 +6284,15 @@ function setDocumentPreview(item) {
     );
 
     if (checked) {
-      return Number(
+      const checkedId = Number(
         checked.dataset.paymentDocumentOcrImportId ||
         checked.dataset.ocrImportId
       ) || 0;
+
+      if (checkedId) {
+        activeOcrImportId = checkedId;
+        return checkedId;
+      }
     }
 
     return 0;
@@ -6246,7 +6324,7 @@ function setDocumentPreview(item) {
     el.style.color = isError ? "#a00" : "#185c28";
   }
 
-  async function executeSave(reason) {
+  async function executeSave(reason, context) {
     const fn = saveFunction();
 
     if (typeof fn !== "function") {
@@ -6259,6 +6337,8 @@ function setDocumentPreview(item) {
 
     if (saveRunning) {
       saveAgain = true;
+      queuedSaveReason = reason || "human-edit";
+      queuedSaveContext = context || null;
       return null;
     }
 
@@ -6273,7 +6353,18 @@ function setDocumentPreview(item) {
     );
 
     try {
-      const result = await fn();
+      window.__hdOriginSpecialistActiveOcrImportId = resolvedOcrImportId;
+      window.__hdOriginSpecialistActiveItem =
+        context && context.item ? context.item : null;
+
+      const result = await fn({
+        ocrImportId: resolvedOcrImportId,
+        item: context && context.item ? context.item : null,
+        analysisResult:
+          context && context.analysisResult
+            ? context.analysisResult
+            : null
+      });
 
       lastSavedAt = new Date().toISOString();
       lastSaveError = "";
@@ -6315,20 +6406,26 @@ function setDocumentPreview(item) {
       if (saveAgain) {
         saveAgain = false;
 
+        const nextReason = queuedSaveReason || "human-edit";
+        const nextContext = queuedSaveContext;
+
+        queuedSaveReason = "";
+        queuedSaveContext = null;
+
         window.setTimeout(function () {
-          executeSave("human-edit").catch(function () {});
+          executeSave(nextReason, nextContext).catch(function () {});
         }, 100);
       }
     }
   }
 
-  window.hdOriginSpecialistAutoSaveNow = function (reason) {
+  window.hdOriginSpecialistAutoSaveNow = function (reason, context) {
     if (saveTimer) {
       window.clearTimeout(saveTimer);
       saveTimer = 0;
     }
 
-    return executeSave(reason || "manual");
+    return executeSave(reason || "manual", context || null);
   };
 
   function scheduleHumanSave() {
@@ -6345,7 +6442,7 @@ function setDocumentPreview(item) {
     saveTimer = window.setTimeout(function () {
       saveTimer = 0;
 
-      executeSave("human-edit").catch(function () {});
+      executeSave("human-edit", { ocrImportId: activeOcrImportId }).catch(function () {});
     }, 1000);
   }
 
@@ -6413,7 +6510,7 @@ function setDocumentPreview(item) {
       pending: !!saveTimer,
       lastSavedAt,
       lastSaveError,
-      selectedOcrId: selectedOcrId()
+      selectedOcrId: selectedOcrId(null)
     };
   };
 
