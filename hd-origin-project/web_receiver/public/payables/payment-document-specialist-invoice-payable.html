@@ -3227,6 +3227,30 @@ function setDocumentPreview(item) {
 
       if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
 
+      if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
+        try {
+          await window.hdOriginSpecialistAutoSaveNow("analysis");
+        } catch (saveError) {
+          const saveMessage =
+            saveError && saveError.message
+              ? saveError.message
+              : String(saveError);
+
+          showResult(
+            "専門解析には成功しましたが、DB自動保存に失敗しました。\n" +
+            saveMessage
+          );
+
+          return {
+            ok: false,
+            analysisOk: true,
+            saveOk: false,
+            name,
+            error: saveMessage
+          };
+        }
+      }
+
       if (typeof showVisibleFieldsOnly === "function") {
         showVisibleFieldsOnly(item.__visibleFieldLabels || []);
       }
@@ -6039,6 +6063,259 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
+<!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSpecialistFullAutoSaveInstalled) {
+    return;
+  }
+
+  window.__hdOriginSpecialistFullAutoSaveInstalled = true;
+
+  let saveTimer = 0;
+  let saveRunning = false;
+  let saveAgain = false;
+  let initialFormReady = false;
+  let lastSavedAt = "";
+  let lastSaveError = "";
+
+  function saveFunction() {
+    return window.hdOriginSaveSortingDraftFromReviewPage;
+  }
+
+  function selectedOcrId() {
+    try {
+      if (
+        typeof selectedIndex === "number" &&
+        selectedIndex >= 0 &&
+        Array.isArray(items) &&
+        items[selectedIndex] &&
+        typeof window.ocrImportIdOf === "function"
+      ) {
+        return Number(window.ocrImportIdOf(items[selectedIndex])) || 0;
+      }
+    } catch (error) {
+      console.warn("HD Origin auto-save selected ID lookup failed:", error);
+    }
+
+    const checked = document.querySelector(
+      "input[type='checkbox']:checked[data-payment-document-ocr-import-id]," +
+      "input[type='checkbox']:checked[data-ocr-import-id]"
+    );
+
+    if (checked) {
+      return Number(
+        checked.dataset.paymentDocumentOcrImportId ||
+        checked.dataset.ocrImportId
+      ) || 0;
+    }
+
+    return 0;
+  }
+
+  function statusText(text, isError) {
+    let el = document.getElementById("hdOriginSpecialistAutoSaveStatus");
+
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "hdOriginSpecialistAutoSaveStatus";
+      el.setAttribute("role", "status");
+      el.style.position = "fixed";
+      el.style.right = "16px";
+      el.style.bottom = "16px";
+      el.style.zIndex = "99999";
+      el.style.padding = "8px 12px";
+      el.style.borderRadius = "6px";
+      el.style.fontSize = "13px";
+      el.style.boxShadow = "0 2px 10px rgba(0,0,0,.18)";
+      document.body.appendChild(el);
+    }
+
+    el.textContent = text || "";
+    el.style.background = isError ? "#fff0f0" : "#f3fff4";
+    el.style.border = isError
+      ? "1px solid #d33"
+      : "1px solid #32964b";
+    el.style.color = isError ? "#a00" : "#185c28";
+  }
+
+  async function executeSave(reason) {
+    const fn = saveFunction();
+
+    if (typeof fn !== "function") {
+      throw new Error("専門解析保存関数がまだ準備されていません。");
+    }
+
+    if (!selectedOcrId()) {
+      throw new Error("保存対象のOCR取込IDを確認できません。");
+    }
+
+    if (saveRunning) {
+      saveAgain = true;
+      return null;
+    }
+
+    saveRunning = true;
+    saveAgain = false;
+
+    statusText(
+      reason === "analysis"
+        ? "専門解析結果をDBへ保存中..."
+        : "変更内容をDBへ自動保存中...",
+      false
+    );
+
+    try {
+      const result = await fn();
+
+      lastSavedAt = new Date().toISOString();
+      lastSaveError = "";
+
+      statusText(
+        reason === "analysis"
+          ? "専門解析結果をDBへ保存しました"
+          : "変更内容を自動保存しました",
+        false
+      );
+
+      console.log("HD Origin specialist auto-save succeeded:", {
+        reason,
+        result,
+        savedAt: lastSavedAt
+      });
+
+      return result;
+    } catch (error) {
+      lastSaveError =
+        error && error.message
+          ? error.message
+          : String(error);
+
+      statusText(
+        "DB自動保存失敗: " + lastSaveError,
+        true
+      );
+
+      console.error("HD Origin specialist auto-save failed:", {
+        reason,
+        error
+      });
+
+      throw error;
+    } finally {
+      saveRunning = false;
+
+      if (saveAgain) {
+        saveAgain = false;
+
+        window.setTimeout(function () {
+          executeSave("human-edit").catch(function () {});
+        }, 100);
+      }
+    }
+  }
+
+  window.hdOriginSpecialistAutoSaveNow = function (reason) {
+    if (saveTimer) {
+      window.clearTimeout(saveTimer);
+      saveTimer = 0;
+    }
+
+    return executeSave(reason || "manual");
+  };
+
+  function scheduleHumanSave() {
+    if (!initialFormReady) {
+      return;
+    }
+
+    if (saveTimer) {
+      window.clearTimeout(saveTimer);
+    }
+
+    statusText("変更を検知しました。自動保存待ち...", false);
+
+    saveTimer = window.setTimeout(function () {
+      saveTimer = 0;
+
+      executeSave("human-edit").catch(function () {});
+    }, 1000);
+  }
+
+  function isEditableDraftField(target) {
+    if (!target || !target.matches) {
+      return false;
+    }
+
+    if (!target.matches(
+      ".draft-field, .master-select, " +
+      ".draft-panel input, .draft-panel select, .draft-panel textarea"
+    )) {
+      return false;
+    }
+
+    if (
+      target.disabled ||
+      target.readOnly ||
+      target.type === "button" ||
+      target.type === "submit"
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  document.addEventListener("input", function (event) {
+    if (!event.isTrusted) {
+      return;
+    }
+
+    if (isEditableDraftField(event.target)) {
+      scheduleHumanSave();
+    }
+  }, true);
+
+  document.addEventListener("change", function (event) {
+    if (!event.isTrusted) {
+      return;
+    }
+
+    if (isEditableDraftField(event.target)) {
+      scheduleHumanSave();
+    }
+  }, true);
+
+  window.addEventListener("beforeunload", function (event) {
+    if (!saveTimer && !saveRunning) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = "";
+  });
+
+  window.setTimeout(function () {
+    initialFormReady = true;
+  }, 1500);
+
+  window.hdOriginSpecialistAutoSaveState = function () {
+    return {
+      saveRunning,
+      saveAgain,
+      pending: !!saveTimer,
+      lastSavedAt,
+      lastSaveError,
+      selectedOcrId: selectedOcrId()
+    };
+  };
+
+  console.log("HD Origin specialist full auto-save installed.");
+})();
+</script>
+<!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
 </body>
 </html>
 
