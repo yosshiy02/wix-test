@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
 </head>
 <body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
+<!-- HD_ORIGIN_GPT2_CIL_SPECIALIST_COMMON_SAVE_API_20260710 : contract-insurance-lease save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
@@ -5386,7 +5387,7 @@ function setDocumentPreview(item) {
       memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
     };
 
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5429,6 +5430,9 @@ function setDocumentPreview(item) {
     return {
       ...json,
       contractInsuranceLeaseDraftId:
+        specialistJson.specialistAnalysisId ||
+        specialistJson.specialist_analysis_id ||
+        specialistJson.latestSpecialistAnalysisId ||
         specialistJson.contractInsuranceLeaseDraftId ||
         specialistJson.paymentDocumentContractInsuranceLeaseDraftId ||
         specialistJson.contract_insurance_lease_draft_id ||
@@ -5747,7 +5751,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   }
 
   async function postContractInsuranceLeaseDraft(payload) {
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
