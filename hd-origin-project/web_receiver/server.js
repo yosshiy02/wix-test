@@ -81,6 +81,314 @@ function hdOriginExitLater(code) {
     process.exit(code);
   }, 500);
 }
+/* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_START */
+function hdOriginRestartGitRun(args, cwd) {
+  const { execFileSync } = require("child_process");
+
+  try {
+    return execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch (err) {
+    const stdout = err && err.stdout
+      ? String(err.stdout).trim()
+      : "";
+
+    const stderr = err && err.stderr
+      ? String(err.stderr).trim()
+      : "";
+
+    const message = [
+      `git ${args.join(" ")} に失敗しました。`,
+      stderr,
+      stdout
+    ].filter(Boolean).join("\n");
+
+    const wrapped = new Error(message);
+    wrapped.stdout = stdout;
+    wrapped.stderr = stderr;
+    wrapped.exitCode =
+      err && typeof err.status === "number"
+        ? err.status
+        : undefined;
+
+    throw wrapped;
+  }
+}
+
+function hdOriginRestartGitNormalizePath(value) {
+  return String(value || "")
+    .replace(/\\/g, "/")
+    .replace(/^\.\/+/, "")
+    .trim();
+}
+
+function hdOriginRestartGitExcluded(filePath) {
+  const value =
+    hdOriginRestartGitNormalizePath(filePath).toLowerCase();
+
+  if (!value) {
+    return true;
+  }
+
+  const excludedFolders = [
+    "gptが使う一時ファイルフォルダ/",
+    "gpt2が使う一時ファイルフォルダ/",
+    "node_modules/",
+    "backup/",
+    "uploads/"
+  ];
+
+  if (
+    excludedFolders.some(folder =>
+      value.startsWith(folder) ||
+      value.includes("/" + folder)
+    )
+  ) {
+    return true;
+  }
+
+  const fileName = value.split("/").pop() || "";
+
+  if (
+    fileName === ".env" ||
+    fileName.startsWith(".env.") ||
+    fileName === "hd_origin_restart_in_progress.json"
+  ) {
+    return true;
+  }
+
+  const excludedExtensions = [
+    ".backup",
+    ".data.backup",
+    ".schema.sql",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+    ".bmp",
+    ".tif",
+    ".tiff",
+    ".pdf"
+  ];
+
+  return excludedExtensions.some(extension =>
+    value.endsWith(extension)
+  );
+}
+
+function hdOriginRestartGitChangedPaths(repoRoot) {
+  const statusOutput = hdOriginRestartGitRun(
+    [
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all"
+    ],
+    repoRoot
+  );
+
+  const results = [];
+
+  for (
+    const rawLine of String(statusOutput || "").split(/\r?\n/)
+  ) {
+    if (!rawLine || rawLine.length < 4) {
+      continue;
+    }
+
+    let filePath = rawLine.slice(3).trim();
+
+    if (filePath.includes(" -> ")) {
+      filePath = filePath.split(" -> ").pop().trim();
+    }
+
+    if (
+      filePath.startsWith('"') &&
+      filePath.endsWith('"')
+    ) {
+      filePath = filePath.slice(1, -1);
+    }
+
+    filePath =
+      hdOriginRestartGitNormalizePath(filePath);
+
+    if (
+      filePath &&
+      !hdOriginRestartGitExcluded(filePath) &&
+      !results.includes(filePath)
+    ) {
+      results.push(filePath);
+    }
+  }
+
+  return results;
+}
+
+function hdOriginRestartFindGitRoot(startPath) {
+  let currentPath = path.resolve(startPath);
+
+  while (currentPath) {
+    const gitMarker = path.join(currentPath, ".git");
+
+    if (fs.existsSync(gitMarker)) {
+      return currentPath;
+    }
+
+    const parentPath = path.dirname(currentPath);
+
+    if (!parentPath || parentPath === currentPath) {
+      break;
+    }
+
+    currentPath = parentPath;
+  }
+
+  return "";
+}
+async function hdOriginRunRestartButtonGitUp() {
+  /*
+    server.jsはweb_receiver直下。
+    Gitルートはgit rev-parseで動的に確認する。
+  */
+  const projectRoot =
+    config.projectRoot ||
+    path.resolve(__dirname, "..");
+
+  const repoRoot =
+    hdOriginRestartFindGitRoot(projectRoot);
+
+  if (!repoRoot) {
+    throw new Error(
+      "プロジェクトから上方向にGitリポジトリを確認できません。"
+    );
+  }
+
+  /*
+    既に別作業がステージされている場合は、
+    混在コミットを防ぐため再起動を止める。
+  */
+  const existingStaged = hdOriginRestartGitRun(
+    ["diff", "--cached", "--name-only"],
+    repoRoot
+  ).trim();
+
+  if (existingStaged) {
+    throw new Error(
+      [
+        "既にステージ済みの変更があります。",
+        "別作業との混在コミットを防ぐため、再起動を中止しました。",
+        "",
+        existingStaged
+      ].join("\n")
+    );
+  }
+
+  /*
+    GitUpの確認工程。
+  */
+  const branch = hdOriginRestartGitRun(
+    ["branch", "--show-current"],
+    repoRoot
+  ).trim();
+
+  const statusBefore = hdOriginRestartGitRun(
+    ["status", "--short", "--branch"],
+    repoRoot
+  ).trim();
+
+  const diffBefore = hdOriginRestartGitRun(
+    ["diff", "--stat"],
+    repoRoot
+  ).trim();
+
+  const targetPaths =
+    hdOriginRestartGitChangedPaths(repoRoot);
+
+  if (targetPaths.length === 0) {
+    return {
+      ok: true,
+      committed: false,
+      repo_root: repoRoot,
+      branch,
+      target_paths: [],
+      status_before: statusBefore,
+      diff_before: diffBefore,
+      message:
+        "GitUp確認完了。コミット対象の変更はありません。"
+    };
+  }
+
+  /*
+    対象ファイルだけを1件ずつステージする。
+  */
+  for (const targetPath of targetPaths) {
+    hdOriginRestartGitRun(
+      ["add", "--", targetPath],
+      repoRoot
+    );
+  }
+
+  const stagedPaths = hdOriginRestartGitRun(
+    ["diff", "--cached", "--name-only"],
+    repoRoot
+  ).trim();
+
+  if (!stagedPaths) {
+    throw new Error(
+      "GitUp対象をgit addしましたが、ステージ済み変更を確認できません。"
+    );
+  }
+
+  const commitMessage =
+    "HD Origin GitUp before server restart " +
+    new Date().toISOString();
+
+  hdOriginRestartGitRun(
+    ["commit", "-m", commitMessage],
+    repoRoot
+  );
+
+  const commitHash = hdOriginRestartGitRun(
+    ["rev-parse", "--short", "HEAD"],
+    repoRoot
+  ).trim();
+
+  /*
+    GitUp後も対象変更が残っていたら、
+    DBバックアップ・再起動へ進ませない。
+  */
+  const remainingPaths =
+    hdOriginRestartGitChangedPaths(repoRoot);
+
+  if (remainingPaths.length > 0) {
+    throw new Error(
+      [
+        "GitUp後もコミット対象の変更が残っています。",
+        "DBバックアップと再起動は中止しました。",
+        "",
+        remainingPaths.join("\n")
+      ].join("\n")
+    );
+  }
+
+  return {
+    ok: true,
+    committed: true,
+    repo_root: repoRoot,
+    branch,
+    commit_hash: commitHash,
+    commit_message: commitMessage,
+    target_paths: targetPaths,
+    status_before: statusBefore,
+    diff_before: diffBefore
+  };
+}
+/* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_END */
+
 async function hdOriginRunBackupThenExit(res, reason, exitCode) {
   if (hdOriginSystemExitInProgress) {
     sendJson(res, 409, {
@@ -89,24 +397,83 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
     });
     return;
   }
+
   hdOriginSystemExitInProgress = true;
+
+  let gitup = null;
+
   try {
-    const backup = await hdOriginCreateExitBackup(reason);
-        if (String(reason || "").toLowerCase() === "restart") {
+    /*
+      GitUpを実行するのは再起動ボタン経由だけ。
+      通常スタート、起動時処理、shutdownでは実行しない。
+    */
+    if (
+      String(reason || "").toLowerCase() === "restart"
+    ) {
+      console.log(
+        "[RESTART_GITUP] GitUp開始"
+      );
+
+      try {
+        gitup =
+          await hdOriginRunRestartButtonGitUp();
+
+        console.log(
+          "[RESTART_GITUP] GitUp完了:",
+          gitup.commit_hash || "変更なし"
+        );
+      } catch (gitErr) {
+        hdOriginSystemExitInProgress = false;
+
+        console.error(
+          "[RESTART_GITUP] GitUp失敗。再起動中止:",
+          gitErr.message
+        );
+
+        sendJson(res, 500, {
+          ok: false,
+          stage: "gitup",
+          error:
+            "GitUpに失敗したため、サーバー再起動を中止しました。",
+          detail: gitErr.message,
+          stderr: gitErr.stderr || undefined
+        });
+
+        return;
+      }
+    }
+
+    /*
+      GitUpが正常終了した後でだけ、
+      既存のDBバックアップ処理へ進む。
+    */
+    const backup =
+      await hdOriginCreateExitBackup(reason);
+
+    if (
+      String(reason || "").toLowerCase() === "restart"
+    ) {
       hdOriginWriteRestartMarker("restart");
     }
-sendJson(res, 200, {
+
+    sendJson(res, 200, {
       ok: true,
-      message: "終了または再起動前のDBバックアップを作成しました。",
+      message:
+        "GitUp完了後、終了または再起動前のDBバックアップを作成しました。",
       action: reason,
+      gitup,
       backup
     });
+
     hdOriginExitLater(exitCode);
   } catch (err) {
     hdOriginSystemExitInProgress = false;
+
     sendJson(res, 500, {
       ok: false,
-      error: "終了または再起動前バックアップに失敗しました。",
+      stage: "backup",
+      error:
+        "終了または再起動前バックアップに失敗しました。",
       detail: err.message,
       stderr: err.stderr || undefined
     });
