@@ -1,0 +1,490 @@
+==============================
+Restart GitUp mojibake repair result
+==============================
+
+Date:
+2026/07/10 17:13:36
+
+[Target]
+Restart-button API only
+
+[Normal startup]
+Not changed
+
+[Operation order]
+GitUp
+DB backup
+Restart marker
+process.exit(100)
+Existing restart process
+
+[Repair]
+Removed mojibake from the inserted GitUp implementation
+Changed Git path output to NUL-separated paths
+Added core.quotepath=false
+Excluded GPT temporary folders using an ASCII regular expression
+
+[Previous commit containing mojibake]
+46da42d
+
+[Repair commit]
+5a728cf
+
+[File]
+hd-origin-project/web_receiver/server.js
+
+[Before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT_restart_gitup_mojibake_fix_20260710_171327.before.server.js
+
+[After]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT_restart_gitup_mojibake_fix_20260710_171327.after.server.js
+
+[Apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_restart_gitup_mojibake_fix_20260710_171327.apply.ps1
+
+[Undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_restart_gitup_mojibake_fix_20260710_171327.undo.ps1
+
+[Status before repair]
+ M hd-origin-project/web_receiver/server.js
+
+[Diff before repair]
+diff --git a/hd-origin-project/web_receiver/server.js b/hd-origin-project/web_receiver/server.js
+index b2db8fd..f21b763 100644
+--- a/hd-origin-project/web_receiver/server.js
++++ b/hd-origin-project/web_receiver/server.js
+@@ -101,13 +101,13 @@ function hdOriginRestartGitRun(args, cwd) {
+       ? String(err.stderr).trim()
+       : "";
+ 
+-    const message = [
+-      `git ${args.join(" ")} 縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲Ａ,
++    const detail = [
++      `git ${args.join(" ")} failed.`,
+       stderr,
+       stdout
+     ].filter(Boolean).join("\n");
+ 
+-    const wrapped = new Error(message);
++    const wrapped = new Error(detail);
+     wrapped.stdout = stdout;
+     wrapped.stderr = stderr;
+     wrapped.exitCode =
+@@ -119,33 +119,71 @@ function hdOriginRestartGitRun(args, cwd) {
+   }
+ }
+ 
+-function hdOriginRestartGitNormalizePath(value) {
++function hdOriginRestartFindGitRoot(startPath) {
++  let currentPath = path.resolve(startPath);
++
++  while (currentPath) {
++    const gitMarker = path.join(currentPath, ".git");
++
++    if (fs.existsSync(gitMarker)) {
++      return currentPath;
++    }
++
++    const parentPath = path.dirname(currentPath);
++
++    if (!parentPath || parentPath === currentPath) {
++      break;
++    }
++
++    currentPath = parentPath;
++  }
++
++  return "";
++}
++
++function hdOriginRestartNormalizeGitPath(value) {
+   return String(value || "")
+     .replace(/\\/g, "/")
+     .replace(/^\.\/+/, "")
+     .trim();
+ }
+ 
+-function hdOriginRestartGitExcluded(filePath) {
++function hdOriginRestartPathIsExcluded(filePath) {
+   const value =
+-    hdOriginRestartGitNormalizePath(filePath).toLowerCase();
++    hdOriginRestartNormalizeGitPath(filePath).toLowerCase();
+ 
+   if (!value) {
+     return true;
+   }
+ 
+-  const excludedFolders = [
+-    "gpt縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝/",
+-    "gpt2縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝/",
+-    "node_modules/",
+-    "backup/",
+-    "uploads/"
++  /*
++    Exclude GPT temporary work folders without placing Japanese
++    folder names inside this source file.
++
++    Examples:
++      GPT.../before/
++      GPT.../after/
++      GPT.../apply/
++      GPT.../undo/
++      GPT.../memo/
++      GPT.../00_.../
++  */
++  const gptTempPattern =
++    /(^|\/)gpt2?[^\/]*\/(before|after|apply|undo|memo|00_[^\/]*)(\/|$)/i;
++
++  if (gptTempPattern.test(value)) {
++    return true;
++  }
++
++  const excludedFolderPatterns = [
++    /(^|\/)node_modules(\/|$)/i,
++    /(^|\/)backup(\/|$)/i,
++    /(^|\/)uploads?(\/|$)/i
+   ];
+ 
+   if (
+-    excludedFolders.some(folder =>
+-      value.startsWith(folder) ||
+-      value.includes("/" + folder)
++    excludedFolderPatterns.some(pattern =>
++      pattern.test(value)
+     )
+   ) {
+     return true;
+@@ -181,79 +219,50 @@ function hdOriginRestartGitExcluded(filePath) {
+   );
+ }
+ 
+-function hdOriginRestartGitChangedPaths(repoRoot) {
+-  const statusOutput = hdOriginRestartGitRun(
++function hdOriginRestartSplitNullPaths(output) {
++  return String(output || "")
++    .split("\0")
++    .map(hdOriginRestartNormalizeGitPath)
++    .filter(Boolean);
++}
++
++function hdOriginRestartChangedPaths(repoRoot) {
++  const trackedOutput = hdOriginRestartGitRun(
+     [
+-      "status",
+-      "--porcelain=v1",
+-      "--untracked-files=all"
++      "-c",
++      "core.quotepath=false",
++      "diff",
++      "--name-only",
++      "-z",
++      "--diff-filter=ACDMRTUXB"
+     ],
+     repoRoot
+   );
+ 
+-  const results = [];
+-
+-  for (
+-    const rawLine of String(statusOutput || "").split(/\r?\n/)
+-  ) {
+-    if (!rawLine || rawLine.length < 4) {
+-      continue;
+-    }
+-
+-    let filePath = rawLine.slice(3).trim();
+-
+-    if (filePath.includes(" -> ")) {
+-      filePath = filePath.split(" -> ").pop().trim();
+-    }
+-
+-    if (
+-      filePath.startsWith('"') &&
+-      filePath.endsWith('"')
+-    ) {
+-      filePath = filePath.slice(1, -1);
+-    }
+-
+-    filePath =
+-      hdOriginRestartGitNormalizePath(filePath);
++  const untrackedOutput = hdOriginRestartGitRun(
++    [
++      "-c",
++      "core.quotepath=false",
++      "ls-files",
++      "--others",
++      "--exclude-standard",
++      "-z"
++    ],
++    repoRoot
++  );
+ 
+-    if (
+-      filePath &&
+-      !hdOriginRestartGitExcluded(filePath) &&
+-      !results.includes(filePath)
+-    ) {
+-      results.push(filePath);
+-    }
+-  }
++  const paths = [
++    ...hdOriginRestartSplitNullPaths(trackedOutput),
++    ...hdOriginRestartSplitNullPaths(untrackedOutput)
++  ];
+ 
+-  return results;
++  return [...new Set(paths)]
++    .filter(filePath =>
++      !hdOriginRestartPathIsExcluded(filePath)
++    );
+ }
+ 
+-function hdOriginRestartFindGitRoot(startPath) {
+-  let currentPath = path.resolve(startPath);
+-
+-  while (currentPath) {
+-    const gitMarker = path.join(currentPath, ".git");
+-
+-    if (fs.existsSync(gitMarker)) {
+-      return currentPath;
+-    }
+-
+-    const parentPath = path.dirname(currentPath);
+-
+-    if (!parentPath || parentPath === currentPath) {
+-      break;
+-    }
+-
+-    currentPath = parentPath;
+-  }
+-
+-  return "";
+-}
+ async function hdOriginRunRestartButtonGitUp() {
+-  /*
+-    server.js縺ｯweb_receiver逶ｴ荳九・-    Git繝ｫ繝ｼ繝医・git rev-parse縺ｧ蜍慕噪縺ｫ遒ｺ隱阪☆繧九・-  */
+   const projectRoot =
+     config.projectRoot ||
+     path.resolve(__dirname, "..");
+@@ -263,50 +272,64 @@ async function hdOriginRunRestartButtonGitUp() {
+ 
+   if (!repoRoot) {
+     throw new Error(
+-      "繝励Ο繧ｸ繧ｧ繧ｯ繝医°繧我ｸ頑婿蜷代↓Git繝ｪ繝昴ず繝医Μ繧堤｢ｺ隱阪〒縺阪∪縺帙ｓ縲・
++      "Git repository root was not found."
+     );
+   }
+ 
+-  /*
+-    譌｢縺ｫ蛻･菴懈･ｭ縺後せ繝・・繧ｸ縺輔ｌ縺ｦ縺・ｋ蝣ｴ蜷医・縲・-    豺ｷ蝨ｨ繧ｳ繝溘ャ繝医ｒ髦ｲ縺舌◆繧∝・襍ｷ蜍輔ｒ豁｢繧√ｋ縲・-  */
+   const existingStaged = hdOriginRestartGitRun(
+-    ["diff", "--cached", "--name-only"],
++    [
++      "-c",
++      "core.quotepath=false",
++      "diff",
++      "--cached",
++      "--name-only",
++      "-z"
++    ],
+     repoRoot
+-  ).trim();
++  );
+ 
+-  if (existingStaged) {
++  const existingStagedPaths =
++    hdOriginRestartSplitNullPaths(existingStaged);
++
++  if (existingStagedPaths.length > 0) {
+     throw new Error(
+       [
+-        "譌｢縺ｫ繧ｹ繝・・繧ｸ貂医∩縺ｮ螟画峩縺後≠繧翫∪縺吶・,
+-        "蛻･菴懈･ｭ縺ｨ縺ｮ豺ｷ蝨ｨ繧ｳ繝溘ャ繝医ｒ髦ｲ縺舌◆繧√∝・襍ｷ蜍輔ｒ荳ｭ豁｢縺励∪縺励◆縲・,
++        "Staged changes already exist.",
++        "Restart was stopped to prevent a mixed commit.",
+         "",
+-        existingStaged
++        existingStagedPaths.join("\n")
+       ].join("\n")
+     );
+   }
+ 
+-  /*
+-    GitUp縺ｮ遒ｺ隱榊ｷ･遞九・-  */
+   const branch = hdOriginRestartGitRun(
+     ["branch", "--show-current"],
+     repoRoot
+   ).trim();
+ 
+   const statusBefore = hdOriginRestartGitRun(
+-    ["status", "--short", "--branch"],
++    [
++      "-c",
++      "core.quotepath=false",
++      "status",
++      "--short",
++      "--branch"
++    ],
+     repoRoot
+   ).trim();
+ 
+   const diffBefore = hdOriginRestartGitRun(
+-    ["diff", "--stat"],
++    [
++      "-c",
++      "core.quotepath=false",
++      "diff",
++      "--stat"
++    ],
+     repoRoot
+   ).trim();
+ 
+   const targetPaths =
+-    hdOriginRestartGitChangedPaths(repoRoot);
++    hdOriginRestartChangedPaths(repoRoot);
+ 
+   if (targetPaths.length === 0) {
+     return {
+@@ -317,14 +340,10 @@ async function hdOriginRunRestartButtonGitUp() {
+       target_paths: [],
+       status_before: statusBefore,
+       diff_before: diffBefore,
+-      message:
+-        "GitUp遒ｺ隱榊ｮ御ｺ・ゅさ繝溘ャ繝亥ｯｾ雎｡縺ｮ螟画峩縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・
++      message: "GitUp completed. No commit was required."
+     };
+   }
+ 
+-  /*
+-    蟇ｾ雎｡繝輔ぃ繧､繝ｫ縺縺代ｒ1莉ｶ縺壹▽繧ｹ繝・・繧ｸ縺吶ｋ縲・-  */
+   for (const targetPath of targetPaths) {
+     hdOriginRestartGitRun(
+       ["add", "--", targetPath],
+@@ -332,14 +351,24 @@ async function hdOriginRunRestartButtonGitUp() {
+     );
+   }
+ 
+-  const stagedPaths = hdOriginRestartGitRun(
+-    ["diff", "--cached", "--name-only"],
++  const stagedAfterAdd = hdOriginRestartGitRun(
++    [
++      "-c",
++      "core.quotepath=false",
++      "diff",
++      "--cached",
++      "--name-only",
++      "-z"
++    ],
+     repoRoot
+-  ).trim();
++  );
+ 
+-  if (!stagedPaths) {
++  const stagedAfterAddPaths =
++    hdOriginRestartSplitNullPaths(stagedAfterAdd);
++
++  if (stagedAfterAddPaths.length === 0) {
+     throw new Error(
+-      "GitUp蟇ｾ雎｡繧暖it add縺励∪縺励◆縺後√せ繝・・繧ｸ貂医∩螟画峩繧堤｢ｺ隱阪〒縺阪∪縺帙ｓ縲・
++      "No staged files were found after git add."
+     );
+   }
+ 
+@@ -357,18 +386,14 @@ async function hdOriginRunRestartButtonGitUp() {
+     repoRoot
+   ).trim();
+ 
+-  /*
+-    GitUp蠕後ｂ蟇ｾ雎｡螟画峩縺梧ｮ九▲縺ｦ縺・◆繧峨・-    DB繝舌ャ繧ｯ繧｢繝・・繝ｻ蜀崎ｵｷ蜍輔∈騾ｲ縺ｾ縺帙↑縺・・-  */
+   const remainingPaths =
+-    hdOriginRestartGitChangedPaths(repoRoot);
++    hdOriginRestartChangedPaths(repoRoot);
+ 
+   if (remainingPaths.length > 0) {
+     throw new Error(
+       [
+-        "GitUp蠕後ｂ繧ｳ繝溘ャ繝亥ｯｾ雎｡縺ｮ螟画峩縺梧ｮ九▲縺ｦ縺・∪縺吶・,
+-        "DB繝舌ャ繧ｯ繧｢繝・・縺ｨ蜀崎ｵｷ蜍輔・荳ｭ豁｢縺励∪縺励◆縲・,
++        "GitUp finished but eligible changes remain.",
++        "DB backup and restart were stopped.",
+         "",
+         remainingPaths.join("\n")
+       ].join("\n")
+@@ -393,7 +418,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+   if (hdOriginSystemExitInProgress) {
+     sendJson(res, 409, {
+       ok: false,
+-      error: "邨ゆｺ・∪縺溘・蜀崎ｵｷ蜍募・逅・′譌｢縺ｫ螳溯｡御ｸｭ縺ｧ縺吶・
++      error: "A shutdown or restart operation is already running."
+     });
+     return;
+   }
+@@ -404,29 +429,27 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+ 
+   try {
+     /*
+-      GitUp繧貞ｮ溯｡後☆繧九・縺ｯ蜀崎ｵｷ蜍輔・繧ｿ繝ｳ邨檎罰縺縺代・-      騾壼ｸｸ繧ｹ繧ｿ繝ｼ繝医∬ｵｷ蜍墓凾蜃ｦ逅・《hutdown縺ｧ縺ｯ螳溯｡後＠縺ｪ縺・・+      GitUp runs only for the restart-button API.
++      It does not run during normal startup or shutdown.
+     */
+     if (
+       String(reason || "").toLowerCase() === "restart"
+     ) {
+-      console.log(
+-        "[RESTART_GITUP] GitUp髢句ｧ・
+-      );
++      console.log("[RESTART_GITUP] started");
+ 
+       try {
+         gitup =
+           await hdOriginRunRestartButtonGitUp();
+ 
+         console.log(
+-          "[RESTART_GITUP] GitUp螳御ｺ・",
+-          gitup.commit_hash || "螟画峩縺ｪ縺・
++          "[RESTART_GITUP] completed:",
++          gitup.commit_hash || "no changes"
+         );
+       } catch (gitErr) {
+         hdOriginSystemExitInProgress = false;
+ 
+         console.error(
+-          "[RESTART_GITUP] GitUp螟ｱ謨励ょ・襍ｷ蜍穂ｸｭ豁｢:",
++          "[RESTART_GITUP] failed; restart cancelled:",
+           gitErr.message
+         );
+ 
+@@ -434,7 +457,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+           ok: false,
+           stage: "gitup",
+           error:
+-            "GitUp縺ｫ螟ｱ謨励＠縺溘◆繧√√し繝ｼ繝舌・蜀崎ｵｷ蜍輔ｒ荳ｭ豁｢縺励∪縺励◆縲・,
++            "GitUp failed. The server restart was cancelled.",
+           detail: gitErr.message,
+           stderr: gitErr.stderr || undefined
+         });
+@@ -444,8 +467,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+     }
+ 
+     /*
+-      GitUp縺梧ｭ｣蟶ｸ邨ゆｺ・＠縺溷ｾ後〒縺縺代・-      譌｢蟄倥・DB繝舌ャ繧ｯ繧｢繝・・蜃ｦ逅・∈騾ｲ繧縲・+      The existing DB backup begins only after GitUp succeeds.
+     */
+     const backup =
+       await hdOriginCreateExitBackup(reason);
+@@ -459,7 +481,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+     sendJson(res, 200, {
+       ok: true,
+       message:
+-        "GitUp螳御ｺ・ｾ後∫ｵゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕縺ｮDB繝舌ャ繧ｯ繧｢繝・・繧剃ｽ懈・縺励∪縺励◆縲・,
++        "GitUp and the pre-restart DB backup completed.",
+       action: reason,
+       gitup,
+       backup
+@@ -473,7 +495,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+       ok: false,
+       stage: "backup",
+       error:
+-        "邨ゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕繝舌ャ繧ｯ繧｢繝・・縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲・,
++        "The pre-shutdown or pre-restart DB backup failed.",
+       detail: err.message,
+       stderr: err.stderr || undefined
+     });

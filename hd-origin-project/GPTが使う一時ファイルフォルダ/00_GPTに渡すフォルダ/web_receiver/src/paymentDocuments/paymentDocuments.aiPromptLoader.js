@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 
 function paymentDocumentPromptDir() {
@@ -85,7 +85,8 @@ function pushUnique(list, name) {
 
 function promptFilesGeneralAffairs() {
   return [
-    "common/general-affairs-ai.txt"
+    "common/general-affairs-ai.txt",
+    "common/company-business-flow-rules.txt"
   ];
 }
 function promptFilesStage1() {

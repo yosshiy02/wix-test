@@ -1,0 +1,457 @@
+==============================
+再起動ボタン専用 GitUp追加 最終結果
+==============================
+
+日時:
+2026/07/10 17:10:22
+
+[対象]
+サーバー再起動ボタンのみ
+
+[対象外]
+通常スタート
+起動時処理
+start_hd_origin.batへのGitUp追加
+シャットダウン
+
+[処理順]
+GitUp
+↓
+既存DBバックアップ
+↓
+再起動マーカー
+↓
+process.exit(100)
+↓
+既存の再起動処理
+
+[GitUp失敗時]
+DBバックアップなし
+再起動マーカーなし
+process.exitなし
+再起動なし
+
+[PROJECT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+
+[GIT_ROOT]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test
+
+[修正ファイル]
+hd-origin-project/web_receiver/server.js
+
+[使用したafter]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT_restart_button_gitup_japanese_path_fix_20260710_170836.after.server.js
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT_restart_button_gitup_final_20260710_171015.before.server.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_restart_button_gitup_final_20260710_171015.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_restart_button_gitup_final_20260710_171015.undo.ps1
+
+[コミット]
+46da42d
+
+[反映前status]
+ M hd-origin-project/web_receiver/server.js
+
+[反映前diff]
+diff --git a/hd-origin-project/web_receiver/server.js b/hd-origin-project/web_receiver/server.js
+index 99d4113..b2db8fd 100644
+--- a/hd-origin-project/web_receiver/server.js
++++ b/hd-origin-project/web_receiver/server.js
+@@ -81,6 +81,314 @@ function hdOriginExitLater(code) {
+     process.exit(code);
+   }, 500);
+ }
++/* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_START */
++function hdOriginRestartGitRun(args, cwd) {
++  const { execFileSync } = require("child_process");
++
++  try {
++    return execFileSync("git", args, {
++      cwd,
++      encoding: "utf8",
++      windowsHide: true,
++      stdio: ["ignore", "pipe", "pipe"]
++    });
++  } catch (err) {
++    const stdout = err && err.stdout
++      ? String(err.stdout).trim()
++      : "";
++
++    const stderr = err && err.stderr
++      ? String(err.stderr).trim()
++      : "";
++
++    const message = [
++      `git ${args.join(" ")} 縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲Ａ,
++      stderr,
++      stdout
++    ].filter(Boolean).join("\n");
++
++    const wrapped = new Error(message);
++    wrapped.stdout = stdout;
++    wrapped.stderr = stderr;
++    wrapped.exitCode =
++      err && typeof err.status === "number"
++        ? err.status
++        : undefined;
++
++    throw wrapped;
++  }
++}
++
++function hdOriginRestartGitNormalizePath(value) {
++  return String(value || "")
++    .replace(/\\/g, "/")
++    .replace(/^\.\/+/, "")
++    .trim();
++}
++
++function hdOriginRestartGitExcluded(filePath) {
++  const value =
++    hdOriginRestartGitNormalizePath(filePath).toLowerCase();
++
++  if (!value) {
++    return true;
++  }
++
++  const excludedFolders = [
++    "gpt縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝/",
++    "gpt2縺御ｽｿ縺・ｸ譎ゅヵ繧｡繧､繝ｫ繝輔か繝ｫ繝/",
++    "node_modules/",
++    "backup/",
++    "uploads/"
++  ];
++
++  if (
++    excludedFolders.some(folder =>
++      value.startsWith(folder) ||
++      value.includes("/" + folder)
++    )
++  ) {
++    return true;
++  }
++
++  const fileName = value.split("/").pop() || "";
++
++  if (
++    fileName === ".env" ||
++    fileName.startsWith(".env.") ||
++    fileName === "hd_origin_restart_in_progress.json"
++  ) {
++    return true;
++  }
++
++  const excludedExtensions = [
++    ".backup",
++    ".data.backup",
++    ".schema.sql",
++    ".png",
++    ".jpg",
++    ".jpeg",
++    ".webp",
++    ".gif",
++    ".bmp",
++    ".tif",
++    ".tiff",
++    ".pdf"
++  ];
++
++  return excludedExtensions.some(extension =>
++    value.endsWith(extension)
++  );
++}
++
++function hdOriginRestartGitChangedPaths(repoRoot) {
++  const statusOutput = hdOriginRestartGitRun(
++    [
++      "status",
++      "--porcelain=v1",
++      "--untracked-files=all"
++    ],
++    repoRoot
++  );
++
++  const results = [];
++
++  for (
++    const rawLine of String(statusOutput || "").split(/\r?\n/)
++  ) {
++    if (!rawLine || rawLine.length < 4) {
++      continue;
++    }
++
++    let filePath = rawLine.slice(3).trim();
++
++    if (filePath.includes(" -> ")) {
++      filePath = filePath.split(" -> ").pop().trim();
++    }
++
++    if (
++      filePath.startsWith('"') &&
++      filePath.endsWith('"')
++    ) {
++      filePath = filePath.slice(1, -1);
++    }
++
++    filePath =
++      hdOriginRestartGitNormalizePath(filePath);
++
++    if (
++      filePath &&
++      !hdOriginRestartGitExcluded(filePath) &&
++      !results.includes(filePath)
++    ) {
++      results.push(filePath);
++    }
++  }
++
++  return results;
++}
++
++function hdOriginRestartFindGitRoot(startPath) {
++  let currentPath = path.resolve(startPath);
++
++  while (currentPath) {
++    const gitMarker = path.join(currentPath, ".git");
++
++    if (fs.existsSync(gitMarker)) {
++      return currentPath;
++    }
++
++    const parentPath = path.dirname(currentPath);
++
++    if (!parentPath || parentPath === currentPath) {
++      break;
++    }
++
++    currentPath = parentPath;
++  }
++
++  return "";
++}
++async function hdOriginRunRestartButtonGitUp() {
++  /*
++    server.js縺ｯweb_receiver逶ｴ荳九・+    Git繝ｫ繝ｼ繝医・git rev-parse縺ｧ蜍慕噪縺ｫ遒ｺ隱阪☆繧九・+  */
++  const projectRoot =
++    config.projectRoot ||
++    path.resolve(__dirname, "..");
++
++  const repoRoot =
++    hdOriginRestartFindGitRoot(projectRoot);
++
++  if (!repoRoot) {
++    throw new Error(
++      "繝励Ο繧ｸ繧ｧ繧ｯ繝医°繧我ｸ頑婿蜷代↓Git繝ｪ繝昴ず繝医Μ繧堤｢ｺ隱阪〒縺阪∪縺帙ｓ縲・
++    );
++  }
++
++  /*
++    譌｢縺ｫ蛻･菴懈･ｭ縺後せ繝・・繧ｸ縺輔ｌ縺ｦ縺・ｋ蝣ｴ蜷医・縲・+    豺ｷ蝨ｨ繧ｳ繝溘ャ繝医ｒ髦ｲ縺舌◆繧∝・襍ｷ蜍輔ｒ豁｢繧√ｋ縲・+  */
++  const existingStaged = hdOriginRestartGitRun(
++    ["diff", "--cached", "--name-only"],
++    repoRoot
++  ).trim();
++
++  if (existingStaged) {
++    throw new Error(
++      [
++        "譌｢縺ｫ繧ｹ繝・・繧ｸ貂医∩縺ｮ螟画峩縺後≠繧翫∪縺吶・,
++        "蛻･菴懈･ｭ縺ｨ縺ｮ豺ｷ蝨ｨ繧ｳ繝溘ャ繝医ｒ髦ｲ縺舌◆繧√∝・襍ｷ蜍輔ｒ荳ｭ豁｢縺励∪縺励◆縲・,
++        "",
++        existingStaged
++      ].join("\n")
++    );
++  }
++
++  /*
++    GitUp縺ｮ遒ｺ隱榊ｷ･遞九・+  */
++  const branch = hdOriginRestartGitRun(
++    ["branch", "--show-current"],
++    repoRoot
++  ).trim();
++
++  const statusBefore = hdOriginRestartGitRun(
++    ["status", "--short", "--branch"],
++    repoRoot
++  ).trim();
++
++  const diffBefore = hdOriginRestartGitRun(
++    ["diff", "--stat"],
++    repoRoot
++  ).trim();
++
++  const targetPaths =
++    hdOriginRestartGitChangedPaths(repoRoot);
++
++  if (targetPaths.length === 0) {
++    return {
++      ok: true,
++      committed: false,
++      repo_root: repoRoot,
++      branch,
++      target_paths: [],
++      status_before: statusBefore,
++      diff_before: diffBefore,
++      message:
++        "GitUp遒ｺ隱榊ｮ御ｺ・ゅさ繝溘ャ繝亥ｯｾ雎｡縺ｮ螟画峩縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・
++    };
++  }
++
++  /*
++    蟇ｾ雎｡繝輔ぃ繧､繝ｫ縺縺代ｒ1莉ｶ縺壹▽繧ｹ繝・・繧ｸ縺吶ｋ縲・+  */
++  for (const targetPath of targetPaths) {
++    hdOriginRestartGitRun(
++      ["add", "--", targetPath],
++      repoRoot
++    );
++  }
++
++  const stagedPaths = hdOriginRestartGitRun(
++    ["diff", "--cached", "--name-only"],
++    repoRoot
++  ).trim();
++
++  if (!stagedPaths) {
++    throw new Error(
++      "GitUp蟇ｾ雎｡繧暖it add縺励∪縺励◆縺後√せ繝・・繧ｸ貂医∩螟画峩繧堤｢ｺ隱阪〒縺阪∪縺帙ｓ縲・
++    );
++  }
++
++  const commitMessage =
++    "HD Origin GitUp before server restart " +
++    new Date().toISOString();
++
++  hdOriginRestartGitRun(
++    ["commit", "-m", commitMessage],
++    repoRoot
++  );
++
++  const commitHash = hdOriginRestartGitRun(
++    ["rev-parse", "--short", "HEAD"],
++    repoRoot
++  ).trim();
++
++  /*
++    GitUp蠕後ｂ蟇ｾ雎｡螟画峩縺梧ｮ九▲縺ｦ縺・◆繧峨・+    DB繝舌ャ繧ｯ繧｢繝・・繝ｻ蜀崎ｵｷ蜍輔∈騾ｲ縺ｾ縺帙↑縺・・+  */
++  const remainingPaths =
++    hdOriginRestartGitChangedPaths(repoRoot);
++
++  if (remainingPaths.length > 0) {
++    throw new Error(
++      [
++        "GitUp蠕後ｂ繧ｳ繝溘ャ繝亥ｯｾ雎｡縺ｮ螟画峩縺梧ｮ九▲縺ｦ縺・∪縺吶・,
++        "DB繝舌ャ繧ｯ繧｢繝・・縺ｨ蜀崎ｵｷ蜍輔・荳ｭ豁｢縺励∪縺励◆縲・,
++        "",
++        remainingPaths.join("\n")
++      ].join("\n")
++    );
++  }
++
++  return {
++    ok: true,
++    committed: true,
++    repo_root: repoRoot,
++    branch,
++    commit_hash: commitHash,
++    commit_message: commitMessage,
++    target_paths: targetPaths,
++    status_before: statusBefore,
++    diff_before: diffBefore
++  };
++}
++/* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_END */
++
+ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+   if (hdOriginSystemExitInProgress) {
+     sendJson(res, 409, {
+@@ -89,24 +397,83 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
+     });
+     return;
+   }
++
+   hdOriginSystemExitInProgress = true;
++
++  let gitup = null;
++
+   try {
+-    const backup = await hdOriginCreateExitBackup(reason);
+-        if (String(reason || "").toLowerCase() === "restart") {
++    /*
++      GitUp繧貞ｮ溯｡後☆繧九・縺ｯ蜀崎ｵｷ蜍輔・繧ｿ繝ｳ邨檎罰縺縺代・+      騾壼ｸｸ繧ｹ繧ｿ繝ｼ繝医∬ｵｷ蜍墓凾蜃ｦ逅・《hutdown縺ｧ縺ｯ螳溯｡後＠縺ｪ縺・・+    */
++    if (
++      String(reason || "").toLowerCase() === "restart"
++    ) {
++      console.log(
++        "[RESTART_GITUP] GitUp髢句ｧ・
++      );
++
++      try {
++        gitup =
++          await hdOriginRunRestartButtonGitUp();
++
++        console.log(
++          "[RESTART_GITUP] GitUp螳御ｺ・",
++          gitup.commit_hash || "螟画峩縺ｪ縺・
++        );
++      } catch (gitErr) {
++        hdOriginSystemExitInProgress = false;
++
++        console.error(
++          "[RESTART_GITUP] GitUp螟ｱ謨励ょ・襍ｷ蜍穂ｸｭ豁｢:",
++          gitErr.message
++        );
++
++        sendJson(res, 500, {
++          ok: false,
++          stage: "gitup",
++          error:
++            "GitUp縺ｫ螟ｱ謨励＠縺溘◆繧√√し繝ｼ繝舌・蜀崎ｵｷ蜍輔ｒ荳ｭ豁｢縺励∪縺励◆縲・,
++          detail: gitErr.message,
++          stderr: gitErr.stderr || undefined
++        });
++
++        return;
++      }
++    }
++
++    /*
++      GitUp縺梧ｭ｣蟶ｸ邨ゆｺ・＠縺溷ｾ後〒縺縺代・+      譌｢蟄倥・DB繝舌ャ繧ｯ繧｢繝・・蜃ｦ逅・∈騾ｲ繧縲・+    */
++    const backup =
++      await hdOriginCreateExitBackup(reason);
++
++    if (
++      String(reason || "").toLowerCase() === "restart"
++    ) {
+       hdOriginWriteRestartMarker("restart");
+     }
+-sendJson(res, 200, {
++
++    sendJson(res, 200, {
+       ok: true,
+-      message: "邨ゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕縺ｮDB繝舌ャ繧ｯ繧｢繝・・繧剃ｽ懈・縺励∪縺励◆縲・,
++      message:
++        "GitUp螳御ｺ・ｾ後∫ｵゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕縺ｮDB繝舌ャ繧ｯ繧｢繝・・繧剃ｽ懈・縺励∪縺励◆縲・,
+       action: reason,
++      gitup,
+       backup
+     });
++
+     hdOriginExitLater(exitCode);
+   } catch (err) {
+     hdOriginSystemExitInProgress = false;
++
+     sendJson(res, 500, {
+       ok: false,
+-      error: "邨ゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕繝舌ャ繧ｯ繧｢繝・・縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲・,
++      stage: "backup",
++      error:
++        "邨ゆｺ・∪縺溘・蜀崎ｵｷ蜍募燕繝舌ャ繧ｯ繧｢繝・・縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲・,
+       detail: err.message,
+       stderr: err.stderr || undefined
+     });

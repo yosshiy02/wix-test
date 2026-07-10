@@ -1,0 +1,47 @@
+==========================================
+GPT2 専門保存API 土台自動作成 修正準備
+==========================================
+
+日時:
+2026/07/10 21:16:08
+
+[対象]
+web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[確認済みDB状態]
+- payment_document_ocr_imports: 11行
+- payment_document_sorting_drafts: 42行
+- payment_document_specialist_analysis_results: 0行
+- payment_document_ocr_imports.latest_sorting_draft_id は存在
+- payment_document_sorting_drafts の実列を確認してINSERTを作成
+
+[修正内容]
+- sorting_draft_id指定時は既存土台を確認
+- OCR ID指定時はOCRの latest_sorting_draft_id を優先確認
+- latestが無効なら current sorting draft を確認
+- どちらも無ければ payment_document_sorting_drafts を自動作成
+- 自動作成したsorting_draft_idをOCR親の latest_sorting_draft_idへ戻す
+- 専門解析結果保存後は従来どおり latest_specialist_analysis_id を更新
+- APIレスポンスへ sortingDraftAutoCreated を追加
+
+[未実施]
+- 本体へのapply
+- GitUp
+- サーバー再起動
+- ブラウザ動作確認
+- specialist_analysis_statusの文字化けDEFAULT修正
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\paymentDocuments.routes.before_specialist_parent_auto_20260710_211608.js
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\paymentDocuments.routes.after_specialist_parent_auto_20260710_211608.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\apply_specialist_parent_auto_20260710_211608.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_specialist_parent_auto_20260710_211608.ps1
+
+[構文確認]
+node --check 成功

@@ -1,0 +1,33 @@
+==========================================
+GPT2 専門自動保存 OCR ID引継ぎ修正
+==========================================
+
+日時:
+2026/07/10 21:40:43
+
+[原因]
+専門解析処理ではOCR IDを取得できていたが、
+追加した自動保存処理が window.ocrImportIdOf だけを使って
+OCR IDを取り直していた。
+
+画面によって ocrImportIdOf はwindow公開されていないため、
+自動保存側だけOCR ID取得に失敗した。
+
+[修正]
+- 専門解析時に取得済みのidを自動保存へ直接渡す
+- activeOcrImportIdとして保持
+- 人間修正後も同じOCR IDで自動保存
+- window関数、ローカル関数、item実列からもIDを補完
+- 保存処理重複時もOCR IDとcontextを保持
+
+[対象]
+web_receiver\public\payables\payment-document-specialist-contract-insurance-lease.html
+web_receiver\public\payables\payment-document-specialist-tax-public.html
+web_receiver\public\payables\payment-document-specialist-utility-communication.html
+web_receiver\public\payables\payment-document-specialist-invoice-payable.html
+
+[未実施]
+- GitUp
+- サーバー再起動
+- ブラウザ確認
+- DB確認

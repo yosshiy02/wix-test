@@ -1,0 +1,50 @@
+﻿==============================
+GPT2 支払書類 共通解析→専門解析リンク DB土台追加 文字コード修正版
+==============================
+日時: 2026-07-10 20:09:55
+
+[結果]
+DB土台追加完了
+
+[原因]
+前回はSQLファイルがBOM付きUTF-8として保存され、psql側がSJIS扱いしたため失敗。
+今回はBOMなしUTF-8で保存し、PGCLIENTENCODING=UTF8を指定。
+
+[追加]
+payment_document_sorting_drafts:
+- latest_specialist_analysis_id
+- specialist_analysis_status
+- specialist_analyzed_at
+- specialist_saved_at
+- specialist_error_text
+
+新規:
+- payment_document_specialist_analysis_results
+
+[設計]
+1回目・2回目解析後:
+- payment_document_sorting_drafts に必ず土台レコードがある
+
+専門解析前:
+- latest_specialist_analysis_id は NULL
+- specialist_analysis_status は 未解析
+
+専門解析後:
+- payment_document_specialist_analysis_results に専門解析結果を作る
+- payment_document_sorting_drafts.latest_specialist_analysis_id を更新する
+
+[Migration]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\database\migrations\20260710_002_payment_document_specialist_link.sql
+
+[UNDO]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_specialist_link_db_20260710_200955.ps1
+
+[確認結果]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\memo\check_specialist_link_db_20260710_200955.txt
+
+[未実施]
+- HTML変更なし
+- routes変更なし
+- AIプロンプト変更なし
+- Git操作なし
+- サーバー再起動なし

@@ -1,0 +1,61 @@
+﻿==============================
+GPT2 支払書類 専門解析保存API 追加
+==============================
+日時: 2026-07-10 20:16:57
+
+[実施内容]
+- paymentDocuments.routes.js に専門解析保存APIを追加
+- 追加API:
+  POST /api/payment-documents/specialist-analysis-results/save
+
+[保存の流れ]
+1. payment_document_sorting_draft_id または payment_document_ocr_import_id を受け取る
+2. 1回目・2回目解析結果 payment_document_sorting_drafts を取得
+3. analysis_system_code を取得
+4. 既存の同じ共通解析ID・同じ専門コードの is_current を false にする
+5. payment_document_specialist_analysis_results に専門解析結果を INSERT
+6. 作成された specialist_analysis_id を取得
+7. payment_document_sorting_drafts.latest_specialist_analysis_id を更新
+8. payment_document_sorting_drafts.specialist_analysis_status を 保存済み に更新
+
+[設計]
+1回目・2回目解析後:
+- payment_document_sorting_drafts に土台レコードがある
+
+専門解析前:
+- latest_specialist_analysis_id は NULL
+- specialist_analysis_status は 未解析
+
+専門解析後:
+- payment_document_specialist_analysis_results に専門解析結果を作る
+- payment_document_sorting_drafts.latest_specialist_analysis_id に専門解析IDを戻す
+
+[変更ファイル]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\paymentDocuments.routes.before_specialist_save_api_20260710_201656.js
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\paymentDocuments.routes.after_specialist_save_api_20260710_201656.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\apply\apply_specialist_save_api_20260710_201656.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_specialist_save_api_20260710_201656.ps1
+
+[node check]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\memo\node_check_specialist_save_api_20260710_201656.txt
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\memo\node_check_after_apply_specialist_save_api_20260710_201656.txt
+
+[未実施]
+- HTML変更なし
+- AIプロンプト変更なし
+- DB変更なし
+- Git操作なし
+- サーバー再起動なし
+
+[次工程]
+- 専門画面の保存処理から、このAPIを呼ぶ
+- まずは単独保存、その後まとめて保存

@@ -1,0 +1,1779 @@
+﻿==========================================
+専門4画面 analysis_system_code 現物確認
+==========================================
+
+
+##########################################
+payment-document-specialist-contract-insurance-lease.html
+##########################################
+
+------------------------------------------
+行 1 ～ 55
+------------------------------------------
+     1: <!doctype html>
+     2: <html lang="ja">
+     3: <head>
+     4:   <meta charset="utf-8">
+     5:   <meta name="viewport" content="width=device-width,initial-scale=1">
+     6:   <title>契約・保険・リース専門解析システム - HD Origin Project</title>
+     7:   <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
+     8: </head>
+     9: <body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
+    10: <!-- HD_ORIGIN_GPT2_CIL_SPECIALIST_COMMON_SAVE_API_20260710 : contract-insurance-lease save endpoint connected to specialist-analysis-results/save -->
+    11: <!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+    12:   <div class="wrap">
+    13:     <header class="top">
+    14:       <h1>契約・保険・リース専門解析システム</h1>
+    15:       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+    16:       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+    17:       <button type="button" onclick="location.href='/'">メインページ</button>
+    18:       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+    19:             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+    20:       <nav class="specialist-system-nav" aria-label="専門解析システム">
+    21:         <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
+    22:         <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
+    23:         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
+    24:         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
+    25:         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
+    26:         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
+    27:       </nav>
+    28:       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+    29: <span class="muted">1回目仕分けで契約・保険・リースへ送った書類を、契約・保険・リースとして専門解析する画面です。</span>
+    30:     </header>
+    31: 
+    32:     <section class="panel list-panel">
+    33:       <div class="panel-title">
+    34:         <span>契約・保険・リース 対象書類</span>
+    35:         <button type="button" class="light" onclick="loadItems()">更新</button>
+    36:       </div>
+    37:             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+    38:         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+    39:         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+    40:         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+    41: <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+    42: </div>
+    43:       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+    44:       <div id="sortingColorLegend" class="sorting-color-legend">
+    45:         <span class="legend-chip legend-invoice">請求・未払系</span>
+    46:         <span class="legend-chip legend-expense">レシート・領収書</span>
+    47:         <span class="legend-chip legend-tax">税金・公的支払</span>
+    48:         <span class="legend-chip legend-contract">契約・保険・リース</span>
+    49:         <span class="legend-chip legend-utility">公共料金・通信費</span>
+    50:         <span class="legend-chip legend-card">カード</span>
+    51:         <span class="legend-chip legend-reference">照合用</span>
+    52:         <span class="legend-chip legend-review">要確認</span>
+    53:       </div>
+    54: 
+    55: <div id="summary" class="summary">読込中...</div>
+
+------------------------------------------
+行 2504 ～ 2569
+------------------------------------------
+  2504:           sectionHasVisibleField = true;
+  2505:         } else {
+  2506:           label.classList.add("ai-field-hidden");
+  2507:         }
+  2508:       });
+  2509: 
+  2510:       if (sectionHasVisibleField) {
+  2511:         section.classList.remove("ai-section-hidden");
+  2512:       } else {
+  2513:         section.classList.add("ai-section-hidden");
+  2514:       }
+  2515:     });
+  2516:   }
+  2517: /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  2518:   /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_START */
+  2519:   function contractInsuranceLeaseSpecialistRequestBody() {
+  2520:     return {
+  2521:       phase: "specialist",
+  2522:       specialist_route_code: "contract_insurance_lease",
+  2523:       specialist_route_label: "契約・保険・リース解析",
+  2524:       analysis_system_code: "contract_insurance_lease_analysis",
+  2525:       analysis_system_label: "契約・保険・リース解析システム",
+  2526:       group: "contract_insurance_lease"
+  2527:     };
+  2528:   }
+  2529:   /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_END */
+  2530:   async function runAiDraftFromSelectedOcr() {
+  2531:     const id = selectedOcrImportId();
+  2532: 
+  2533:     if (!id) {
+  2534:       showResult("左リストからDB保存済みOCRを選択してください。");
+  2535:       return;
+  2536:     }
+  2537: 
+  2538:     showResult("契約・保険・リースの専門解析を実行しています。画像は送信しません。");
+  2539: 
+  2540:     try {
+  2541:       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
+  2542:         method: "POST",
+  2543:         headers: {
+  2544:           "Content-Type": "application/json"
+  2545:         }
+  2546:       });
+  2547: 
+  2548:       const data = await res.json();
+  2549: 
+  2550:       if (!data.ok) {
+  2551:         showResult(data);
+  2552:         return;
+  2553:       }
+  2554:       const appliedCount = applyAiDraftToFormHardDebug(data.draft);
+  2555:       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
+  2556:       showResult({
+  2557:         ok: true,
+  2558:         message: "契約・保険・リースの専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+  2559:         image_used: data.image_used,
+  2560:         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+  2561:         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
+  2562:         ai_steps: data.ai_steps || [],
+  2563:         draft: data.draft
+  2564:       });
+  2565:     } catch (error) {
+  2566:       showResult({
+  2567:         ok: false,
+  2568:         error: error.message || String(error)
+  2569:       });
+
+------------------------------------------
+行 5277 ～ 5342
+------------------------------------------
+  5277:       window.currentDisplayRotation,
+  5278:       window.imageRotation,
+  5279:       window.previewRotation
+  5280:     ];
+  5281: 
+  5282:     for (const value of candidates) {
+  5283:       const n = Number(value);
+  5284:       if ([0, 90, 180, 270].includes(n)) return n;
+  5285:     }
+  5286: 
+  5287:     const el = document.querySelector("[data-display-rotation]");
+  5288: 
+  5289:     if (el) {
+  5290:       const n = Number(el.dataset.displayRotation);
+  5291:       if ([0, 90, 180, 270].includes(n)) return n;
+  5292:     }
+  5293: 
+  5294:     return 0;
+  5295:   }
+  5296: 
+  5297:   function collectSortingDraftPayload(context) {
+  5298:     const ocrId =
+  5299:       Number(
+  5300:         context && (
+  5301:           context.ocrImportId ||
+  5302:           context.paymentDocumentOcrImportId ||
+  5303:           context.payment_document_ocr_import_id ||
+  5304:           context.id
+  5305:         )
+  5306:       ) ||
+  5307:       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5308:       findSelectedOcrImportId();
+  5309: 
+  5310:     if (!ocrId) {
+  5311:       throw new Error("選択中OCR IDが取得できません。");
+  5312:     }
+  5313: 
+  5314:     const documentTypeLabel = controlLabel("draftAiDocumentKind");
+  5315:     const destinationLabel = controlLabel("draftAiDestination");
+  5316:     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
+  5317: 
+  5318:     const payload = {
+  5319:       paymentDocumentOcrImportId: ocrId,
+  5320: 
+  5321:       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
+  5322:       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5323:       document_type_label: documentTypeLabel,
+  5324: 
+  5325:       payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
+  5326:       payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
+  5327:       payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+  5328: 
+  5329:       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
+  5330:       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5331:       accounting_category_label: accountingCategoryLabel,
+  5332: 
+  5333:       payment_target_label: controlValue("draftAiPayableFlag"),
+  5334:       payable_target_label: controlValue("draftAiUnpaidFlag"),
+  5335:       expense_target_label: controlValue("draftAiExpenseFlag"),
+  5336:       tax_public_label: controlValue("draftAiTaxPublicFlag"),
+  5337:       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5338:       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5339: 
+  5340:       ai_confidence_label: controlValue("draftAiConfidence"),
+  5341:       ai_reason: controlValue("draftAiReason"),
+  5342:       review_reason: controlValue("draftAiReason"),
+
+------------------------------------------
+行 5404 ～ 5535
+------------------------------------------
+  5404:           controlValue("draftAiConfidence").includes("低")
+  5405:       }
+  5406:     };
+  5407: 
+  5408:     return payload;
+  5409:   }
+  5410: 
+  5411:   async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved) {
+  5412:     const payload = {
+  5413:       paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
+  5414:       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+  5415:       draft: sortingPayload,
+  5416:       sortResult: sortingPayload.sortResult || {},
+  5417:       ai_summary: sortingPayload.ai_summary || {},
+  5418:       fields: sortingPayload.visibleFields || {},
+  5419:       visibleFields: sortingPayload.visibleFields || {},
+  5420:       warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
+  5421:       memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
+  5422:     };
+  5423: 
+  5424:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5425:       method: "POST",
+  5426:       headers: {
+  5427:         "Content-Type": "application/json; charset=utf-8"
+  5428:       },
+  5429:       body: JSON.stringify(payload)
+  5430:     });
+  5431: 
+  5432:     const json = await res.json().catch(function () {
+  5433:       return {};
+  5434:     });
+  5435: 
+  5436:     if (!res.ok || !json.ok) {
+  5437:       throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
+  5438:     }
+  5439: 
+  5440:     return json;
+  5441:   }
+  5442: 
+  5443:   async function saveSortingDraftFromReviewPage(context) {
+  5444:     const payload = collectSortingDraftPayload(context);
+  5445: 
+  5446:     const analysisResult =
+  5447:       context && context.analysisResult && typeof context.analysisResult === "object"
+  5448:         ? context.analysisResult
+  5449:         : context && context.item && context.item.__aiRawResult
+  5450:           ? context.item.__aiRawResult
+  5451:           : {};
+  5452: 
+  5453:     const analysisDraft =
+  5454:       analysisResult.draft && typeof analysisResult.draft === "object"
+  5455:         ? analysisResult.draft
+  5456:         : context && context.item && context.item.__aiDraft
+  5457:           ? context.item.__aiDraft
+  5458:           : {};
+  5459: 
+  5460:     const analysisRoot =
+  5461:       analysisResult.sortResult ||
+  5462:       analysisResult.sort_result ||
+  5463:       analysisResult.result ||
+  5464:       analysisDraft.sortResult ||
+  5465:       analysisDraft.sort_result ||
+  5466:       analysisDraft;
+  5467: 
+  5468:     const analysisSummary =
+  5469:       analysisResult.ai_summary ||
+  5470:       analysisResult.aiSummary ||
+  5471:       analysisDraft.ai_summary ||
+  5472:       analysisDraft.aiSummary ||
+  5473:       analysisRoot.ai_summary ||
+  5474:       analysisRoot.aiSummary ||
+  5475:       {};
+  5476: 
+  5477:     payload.analysis_system_code =
+  5478:       payload.analysis_system_code ||
+  5479:       payload.analysisSystemCode ||
+  5480:       analysisDraft.analysis_system_code ||
+  5481:       analysisDraft.analysisSystemCode ||
+  5482:       analysisRoot.analysis_system_code ||
+  5483:       analysisRoot.analysisSystemCode ||
+  5484:       analysisSummary.analysis_system_code ||
+  5485:       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5486:       "";
+  5487: 
+  5488:     if (payload.analysis_system_code) {
+  5489:       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+  5490:         payload.analysis_system_code;
+  5491:     }
+  5492: 
+  5493:     payload.analysis_system_label =
+  5494:       payload.analysis_system_label ||
+  5495:       payload.analysisSystemLabel ||
+  5496:       analysisDraft.analysis_system_label ||
+  5497:       analysisDraft.analysisSystemLabel ||
+  5498:       analysisRoot.analysis_system_label ||
+  5499:       analysisRoot.analysisSystemLabel ||
+  5500:       analysisSummary.analysis_system_label ||
+  5501:       analysisSummary.analysis_system ||
+  5502:       "";
+  5503: 
+  5504:     payload.analysis_system_reason =
+  5505:       payload.analysis_system_reason ||
+  5506:       payload.analysisSystemReason ||
+  5507:       analysisDraft.analysis_system_reason ||
+  5508:       analysisDraft.analysisSystemReason ||
+  5509:       analysisRoot.analysis_system_reason ||
+  5510:       analysisRoot.analysisSystemReason ||
+  5511:       analysisSummary.analysis_system_reason ||
+  5512:       "";
+  5513: 
+  5514:     payload.analysis_system_confidence =
+  5515:       payload.analysis_system_confidence ||
+  5516:       payload.analysisSystemConfidence ||
+  5517:       analysisDraft.analysis_system_confidence ||
+  5518:       analysisDraft.analysisSystemConfidence ||
+  5519:       analysisRoot.analysis_system_confidence ||
+  5520:       analysisRoot.analysisSystemConfidence ||
+  5521:       analysisSummary.analysis_system_confidence ||
+  5522:       "";
+  5523: 
+  5524:     payload.specialist_route_code =
+  5525:       payload.specialist_route_code ||
+  5526:       payload.specialistRouteCode ||
+  5527:       analysisDraft.specialist_route_code ||
+  5528:       analysisRoot.specialist_route_code ||
+  5529:       analysisResult.document_group ||
+  5530:       analysisDraft.document_group ||
+  5531:       "";
+  5532: 
+  5533:     payload.specialist_route_label =
+  5534:       payload.specialist_route_label ||
+  5535:       payload.specialistRouteLabel ||
+
+------------------------------------------
+行 5862 ～ 5927
+------------------------------------------
+  5862:     const result = firstObject(cached);
+  5863:     const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result);
+  5864:     const draft = firstObject(result.draft, root.draft, root.sorting, root.classification, root);
+  5865:     const fields = firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields, sortingPayload.visibleFields, sortingPayload.visible_fields, sortingPayload.fields);
+  5866:     const aiSummary = firstObject(draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary, sortingPayload.ai_summary);
+  5867: 
+  5868:     return {
+  5869:       paymentDocumentOcrImportId: Number(id),
+  5870:       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+  5871:       draft,
+  5872:       sortResult: root,
+  5873:       ai_summary: aiSummary,
+  5874:       fields,
+  5875:       visibleFields: fields,
+  5876:       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+  5877:       memo: "契約・保険・リース専門画面のまとめて保存から専門下書き保存"
+  5878:     };
+  5879:   }
+  5880: 
+  5881:   async function postContractInsuranceLeaseDraft(payload) {
+  5882:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5883:       method: "POST",
+  5884:       headers: {
+  5885:         "Content-Type": "application/json; charset=utf-8"
+  5886:       },
+  5887:       body: JSON.stringify(payload)
+  5888:     });
+  5889: 
+  5890:     const json = await res.json().catch(function () {
+  5891:       return {};
+  5892:     });
+  5893: 
+  5894:     if (!res.ok || !json.ok) {
+  5895:       throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
+  5896:     }
+  5897: 
+  5898:     return json;
+  5899:   }
+  5900:   async function bulkSaveSortingDrafts() {
+  5901:     let ids = getSelectedOcrIds();
+  5902: 
+  5903:     if (ids.length === 0) {
+  5904:       ids = getIdsFromCache();
+  5905:     }
+  5906: 
+  5907:     if (ids.length === 0) {
+  5908:       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5909:     }
+  5910: 
+  5911:     const ok = [];
+  5912:     const ng = [];
+  5913: 
+  5914:     for (const id of ids) {
+  5915:       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5916: 
+  5917:       if (!cached) {
+  5918:         ng.push({
+  5919:           id,
+  5920:           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5921:         });
+  5922:         continue;
+  5923:       }
+  5924: 
+  5925:       try {
+  5926:         const payload = buildPayloadFromCachedResult(id, cached);
+  5927:         const saved = await postSortingDraft(payload);
+
+
+##########################################
+payment-document-specialist-tax-public.html
+##########################################
+
+------------------------------------------
+行 1 ～ 61
+------------------------------------------
+     1: <!doctype html>
+     2: <html lang="ja">
+     3: <head>
+     4:   <meta charset="utf-8">
+     5:   <meta name="viewport" content="width=device-width,initial-scale=1">
+     6:   <title>税金・公的支払専門解析システム - HD Origin Project</title>
+     7:   <link rel="stylesheet" href="./payment-document-specialist-tax-public.css">
+     8: </head>
+     9: <!-- GPT00_NO_AI_INTERFERENCE_RULE_20260708
+    10: この画面では、HTMLや後付けJSでAI候補を勝手に上書きしない。
+    11: AI候補と人間のマスタ選択を混ぜない。
+    12: selectにAI候補optionを勝手に追加して確定扱いしない。
+    13: AI結果の正は routes/API/DB の結果であり、HTMLは表示枠だけを担当する。
+    14: -->
+    15: <body class="specialist-tax-public-page" data-specialist-route-code="tax_public">
+    16: <!-- HD_ORIGIN_GPT2_TAX_PUBLIC_SPECIALIST_COMMON_SAVE_API_20260710 : tax-public save endpoint connected to specialist-analysis-results/save -->
+    17: <!-- HD_ORIGIN_SPECIALIST_TAX_PUBLIC_FIXED_FIELDS_GPT00_AFTER_20260708 -->
+    18:   <div class="wrap">
+    19:     <header class="top">
+    20:       <h1>税金・公的支払専門解析システム</h1>
+    21:       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+    22:       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+    23:       <button type="button" onclick="location.href='/'">メインページ</button>
+    24:       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+    25:             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+    26:       <nav class="specialist-system-nav" aria-label="専門解析システム">
+    27:         <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
+    28:         <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
+    29:         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
+    30:         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
+    31:         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
+    32:         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
+    33:       </nav>
+    34:       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+    35: <span class="muted">1回目仕分けで税金・公的支払へ送った書類を、税金・公的支払として専門解析する画面です。</span>
+    36:     </header>
+    37: 
+    38:     <section class="panel list-panel">
+    39:       <div class="panel-title">
+    40:         <span>税金・公的支払 対象書類</span>
+    41:         <button type="button" class="light" onclick="loadItems()">更新</button>
+    42:       </div>
+    43:             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+    44:         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+    45:         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+    46:         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+    47: <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+    48: </div>
+    49:       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+    50:       <div id="sortingColorLegend" class="sorting-color-legend">
+    51:         <span class="legend-chip legend-invoice">請求・未払系</span>
+    52:         <span class="legend-chip legend-expense">レシート・領収書</span>
+    53:         <span class="legend-chip legend-tax">税金・公的支払</span>
+    54:         <span class="legend-chip legend-contract">契約・保険・リース</span>
+    55:         <span class="legend-chip legend-utility">公共料金・通信費</span>
+    56:         <span class="legend-chip legend-card">カード</span>
+    57:         <span class="legend-chip legend-reference">照合用</span>
+    58:         <span class="legend-chip legend-review">要確認</span>
+    59:       </div>
+    60: 
+    61: <div id="summary" class="summary">読込中...</div>
+
+------------------------------------------
+行 72 ～ 137
+------------------------------------------
+    72:         </div>
+    73:       </div>
+    74:       <div id="documentPreview" class="document-preview">
+    75:         左からDB保存済みOCRを選択してください。
+    76:       </div>
+    77:     </section>
+    78: 
+    79:     <section class="panel draft-panel">
+    80:       <div class="panel-title">
+    81:         <span>税金・公的支払 解析確認</span>
+    82:         <button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
+    83:       </div>
+    84: 
+    85:             <div class="draft-form-scroll">
+    86:         <!-- GPT00_TAX_PUBLIC_FIXED_FIELDS_20260708_START -->
+    87:         <section class="draft-section tax-public-fixed-section">
+    88:           <div class="draft-section-title">AI判定・会計連携</div>
+    89:           <div class="form-grid">
+    90:             <label>
+    91:               解析システム
+    92:               <input class="draft-field" id="draftAnalysisSystemCode" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+    93:             </label>
+    94:             <label>
+    95:               解析システム名
+    96:               <input class="draft-field" id="draftAnalysisSystemLabel" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+    97:             </label>
+    98:             <label class="span2">
+    99:               解析システム判定理由
+   100:               <textarea class="draft-field small-textarea" id="draftAnalysisSystemReason" placeholder="例：納付書、税目、納付先、納期限、合計納付額が確認できるため。"></textarea>
+   101:             </label>
+   102:             <label>
+   103:               解析システム信頼度
+   104:               <input class="draft-field" id="draftAnalysisSystemConfidence" placeholder="例：高 / 中 / 低">
+   105:             </label>
+   106:             <label>
+   107:               専門ルート
+   108:               <input class="draft-field" id="draftSpecialistRoute" placeholder="AI候補表示用。HTML側では固定しない。" readonly>
+   109:             </label>
+   110: 
+   111:             <label>
+   112:               書類区分
+   113:               <select class="draft-field master-select" id="draftAiDocumentKind" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
+   114:             </label>
+   115:             <label>
+   116:               証憑区分
+   117:               <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
+   118:             </label>
+   119:             <label>
+   120:               処理先
+   121:               <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+   122:             </label>
+   123:             <label>
+   124:               会計区分
+   125:               <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
+   126:             </label>
+   127:             <label>
+   128:               未払種別
+   129:               <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
+   130:             </label>
+   131:             <label>
+   132:               支払対象
+   133:               <select class="draft-field" id="draftAiPayableFlag">
+   134:                 <option value="">選択</option>
+   135:                 <option value="支払対象">支払対象</option>
+   136:                 <option value="対象外">対象外</option>
+   137:                 <option value="要確認">要確認</option>
+
+------------------------------------------
+行 3441 ～ 3512
+------------------------------------------
+  3441:       return String(value || "").replace(/\s+/g, "").toLowerCase();
+  3442:     }
+  3443: 
+  3444:     return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
+  3445:       var draft = firstObject(
+  3446:         item && item.__aiDraft,
+  3447:         item && item.aiDraft,
+  3448:         item && item.ai_draft,
+  3449:         item && item.sortingDraft,
+  3450:         item && item.sorting_draft,
+  3451:         item && item.latestSortingDraft,
+  3452:         item && item.latest_sorting_draft,
+  3453:         item && item.draft
+  3454:       );
+  3455: 
+  3456:       var aiSummary = firstObject(draft.ai_summary, draft.aiSummary);
+  3457: 
+  3458:       var text = [
+  3459:         draft.specialist_route_code,
+  3460:         draft.specialistRouteCode,
+  3461:         draft.analysis_system_code,
+  3462:         draft.analysisSystemCode,
+  3463:         draft.payment_destination_code,
+  3464:         draft.paymentDestinationCode,
+  3465:         draft.document_group,
+  3466:         draft.documentGroup,
+  3467:         aiSummary.analysis_system_code,
+  3468:         aiSummary.specialist_route_code
+  3469:       ].map(norm).join(" ");
+  3470: 
+  3471:       return (
+  3472:         text.includes("tax_public") ||
+  3473:         text.includes("taxpublic") ||
+  3474:         text.includes("tax_payment") ||
+  3475:         text.includes("taxpayment")
+  3476:       );
+  3477:     });
+  3478:   };
+  3479: /* GPT00_TAX_PUBLIC_AI_ONLY_FILTER_20260708_END */
+  3480:   async function loadItems() {
+  3481:     const summary = document.getElementById("summary");
+  3482:     const list = document.getElementById("list");
+  3483: 
+  3484:     summary.textContent = "読込中...";
+  3485:     list.innerHTML = "";
+  3486:     selectedIndex = -1;
+  3487: 
+  3488:     document.getElementById("ocrText").value = "";
+  3489:     setBottomOcrText("");
+  3490:     clearDraftFields();
+  3491:     setInitialAiOnlyView();
+  3492: 
+  3493:     try {
+  3494:       const res = await fetch("/api/payment-documents/review-items");
+  3495:       const data = await res.json();
+  3496: 
+  3497:       if (!data.ok) {
+  3498:         throw new Error(data.error || "読込失敗");
+  3499:       }
+  3500: 
+  3501:       const allItems = data.items || [];
+  3502:       items = window.hdOriginTaxPublicSpecialistFilter(allItems);
+  3503: 
+  3504:       summary.textContent =
+  3505:         "税金・公的支払専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+  3506: 
+  3507:       if (!items.length) {
+  3508:         list.innerHTML = '<div class="empty">税金・公的支払の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+  3509:         scheduleDocumentPreviewFit();
+  3510:       return;
+  3511:       }
+  3512: 
+
+------------------------------------------
+行 5162 ～ 5227
+------------------------------------------
+  5162:       window.currentDisplayRotation,
+  5163:       window.imageRotation,
+  5164:       window.previewRotation
+  5165:     ];
+  5166: 
+  5167:     for (const value of candidates) {
+  5168:       const n = Number(value);
+  5169:       if ([0, 90, 180, 270].includes(n)) return n;
+  5170:     }
+  5171: 
+  5172:     const el = document.querySelector("[data-display-rotation]");
+  5173: 
+  5174:     if (el) {
+  5175:       const n = Number(el.dataset.displayRotation);
+  5176:       if ([0, 90, 180, 270].includes(n)) return n;
+  5177:     }
+  5178: 
+  5179:     return 0;
+  5180:   }
+  5181: 
+  5182:   function collectSortingDraftPayload(context) {
+  5183:     const ocrId =
+  5184:       Number(
+  5185:         context && (
+  5186:           context.ocrImportId ||
+  5187:           context.paymentDocumentOcrImportId ||
+  5188:           context.payment_document_ocr_import_id ||
+  5189:           context.id
+  5190:         )
+  5191:       ) ||
+  5192:       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5193:       findSelectedOcrImportId();
+  5194: 
+  5195:     if (!ocrId) {
+  5196:       throw new Error("選択中OCR IDが取得できません。");
+  5197:     }
+  5198: 
+  5199:     const documentTypeLabel = controlLabel("draftAiDocumentKind");
+  5200:     const destinationLabel = controlLabel("draftAiDestination");
+  5201:     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
+  5202: 
+  5203:     const payload = {
+  5204:       paymentDocumentOcrImportId: ocrId,
+  5205: 
+  5206:       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
+  5207:       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5208:       document_type_label: documentTypeLabel,
+  5209: 
+  5210:       payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
+  5211:       payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
+  5212:       payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+  5213: 
+  5214:       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
+  5215:       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5216:       accounting_category_label: accountingCategoryLabel,
+  5217: 
+  5218:       payment_target_label: controlValue("draftAiPayableFlag"),
+  5219:       payable_target_label: controlValue("draftAiUnpaidFlag"),
+  5220:       expense_target_label: controlValue("draftAiExpenseFlag"),
+  5221:       tax_public_label: controlValue("draftAiTaxPublicFlag"),
+  5222:       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5223:       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5224: 
+  5225:       ai_confidence_label: controlValue("draftAiConfidence"),
+  5226:       ai_reason: controlValue("draftAiReason"),
+  5227:       review_reason: controlValue("draftAiReason"),
+
+------------------------------------------
+行 5363 ～ 5537
+------------------------------------------
+  5363:         hdOriginTaxPublicDraft.ai_summary,
+  5364:         hdOriginTaxPublicResult.ai_summary,
+  5365:         payload.ai_summary
+  5366:       );
+  5367: 
+  5368:       payload.document_type_code = hdOriginTaxPublicDraft.document_type_code || payload.document_type_code;
+  5369:       payload.document_type_label = hdOriginTaxPublicDraft.document_type_label || payload.document_type_label;
+  5370: 
+  5371:       payload.payment_destination_code = hdOriginTaxPublicDraft.payment_destination_code || payload.payment_destination_code;
+  5372:       payload.payment_destination_label = hdOriginTaxPublicDraft.payment_destination_label || payload.payment_destination_label;
+  5373: 
+  5374:       payload.accounting_category_code = hdOriginTaxPublicDraft.accounting_category_code || payload.accounting_category_code;
+  5375:       payload.accounting_category_label = hdOriginTaxPublicDraft.accounting_category_label || payload.accounting_category_label;
+  5376: 
+  5377:       payload.payable_kind_code = hdOriginTaxPublicDraft.payable_kind_code || payload.payable_kind_code;
+  5378:       payload.payable_kind_label = hdOriginTaxPublicDraft.payable_kind_label || payload.payable_kind_label;
+  5379: 
+  5380:       payload.specialist_route_code = hdOriginTaxPublicDraft.specialist_route_code || payload.specialist_route_code;
+  5381:       payload.specialist_route_label = hdOriginTaxPublicDraft.specialist_route_label || payload.specialist_route_label;
+  5382: 
+  5383:       payload.analysis_system_code = hdOriginTaxPublicDraft.analysis_system_code || payload.analysis_system_code;
+  5384:       payload.analysis_system_label = hdOriginTaxPublicDraft.analysis_system_label || payload.analysis_system_label;
+  5385:       payload.analysis_system_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.analysis_system_reason;
+  5386:       payload.analysis_system_confidence = hdOriginTaxPublicDraft.analysis_system_confidence || payload.analysis_system_confidence;
+  5387: 
+  5388:       payload.ai_confidence_label = hdOriginTaxPublicDraft.analysis_system_confidence || payload.ai_confidence_label;
+  5389:       payload.ai_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.ai_reason;
+  5390:       payload.review_reason = hdOriginTaxPublicDraft.analysis_system_reason || payload.review_reason;
+  5391: 
+  5392:       payload.createdByPage = "payment-document-specialist-tax-public";
+  5393:       payload.created_by_page = "payment-document-specialist-tax-public";
+  5394:       payload.memo = "税金・公的支払専門AI結果から下書き保存";
+  5395:     }
+  5396:     /* GPT00_TAX_PUBLIC_SINGLE_SAVE_AI_RAW_DRAFT_20260709_END */
+  5397: 
+  5398:     return payload;
+  5399:   }
+  5400: 
+  5401:   async function saveSortingDraftFromReviewPage(context) {
+  5402:     const payload = collectSortingDraftPayload(context);
+  5403: 
+  5404:     const analysisResult =
+  5405:       context && context.analysisResult && typeof context.analysisResult === "object"
+  5406:         ? context.analysisResult
+  5407:         : context && context.item && context.item.__aiRawResult
+  5408:           ? context.item.__aiRawResult
+  5409:           : {};
+  5410: 
+  5411:     const analysisDraft =
+  5412:       analysisResult.draft && typeof analysisResult.draft === "object"
+  5413:         ? analysisResult.draft
+  5414:         : context && context.item && context.item.__aiDraft
+  5415:           ? context.item.__aiDraft
+  5416:           : {};
+  5417: 
+  5418:     const analysisRoot =
+  5419:       analysisResult.sortResult ||
+  5420:       analysisResult.sort_result ||
+  5421:       analysisResult.result ||
+  5422:       analysisDraft.sortResult ||
+  5423:       analysisDraft.sort_result ||
+  5424:       analysisDraft;
+  5425: 
+  5426:     const analysisSummary =
+  5427:       analysisResult.ai_summary ||
+  5428:       analysisResult.aiSummary ||
+  5429:       analysisDraft.ai_summary ||
+  5430:       analysisDraft.aiSummary ||
+  5431:       analysisRoot.ai_summary ||
+  5432:       analysisRoot.aiSummary ||
+  5433:       {};
+  5434: 
+  5435:     payload.analysis_system_code =
+  5436:       payload.analysis_system_code ||
+  5437:       payload.analysisSystemCode ||
+  5438:       analysisDraft.analysis_system_code ||
+  5439:       analysisDraft.analysisSystemCode ||
+  5440:       analysisRoot.analysis_system_code ||
+  5441:       analysisRoot.analysisSystemCode ||
+  5442:       analysisSummary.analysis_system_code ||
+  5443:       "";
+  5444: 
+  5445:     payload.analysis_system_label =
+  5446:       payload.analysis_system_label ||
+  5447:       payload.analysisSystemLabel ||
+  5448:       analysisDraft.analysis_system_label ||
+  5449:       analysisDraft.analysisSystemLabel ||
+  5450:       analysisRoot.analysis_system_label ||
+  5451:       analysisRoot.analysisSystemLabel ||
+  5452:       analysisSummary.analysis_system_label ||
+  5453:       analysisSummary.analysis_system ||
+  5454:       "";
+  5455: 
+  5456:     payload.analysis_system_reason =
+  5457:       payload.analysis_system_reason ||
+  5458:       payload.analysisSystemReason ||
+  5459:       analysisDraft.analysis_system_reason ||
+  5460:       analysisDraft.analysisSystemReason ||
+  5461:       analysisRoot.analysis_system_reason ||
+  5462:       analysisRoot.analysisSystemReason ||
+  5463:       analysisSummary.analysis_system_reason ||
+  5464:       "";
+  5465: 
+  5466:     payload.analysis_system_confidence =
+  5467:       payload.analysis_system_confidence ||
+  5468:       payload.analysisSystemConfidence ||
+  5469:       analysisDraft.analysis_system_confidence ||
+  5470:       analysisDraft.analysisSystemConfidence ||
+  5471:       analysisRoot.analysis_system_confidence ||
+  5472:       analysisRoot.analysisSystemConfidence ||
+  5473:       analysisSummary.analysis_system_confidence ||
+  5474:       "";
+  5475: 
+  5476:     payload.specialist_route_code =
+  5477:       payload.specialist_route_code ||
+  5478:       payload.specialistRouteCode ||
+  5479:       analysisDraft.specialist_route_code ||
+  5480:       analysisRoot.specialist_route_code ||
+  5481:       analysisResult.document_group ||
+  5482:       analysisDraft.document_group ||
+  5483:       "";
+  5484: 
+  5485:     payload.specialist_route_label =
+  5486:       payload.specialist_route_label ||
+  5487:       payload.specialistRouteLabel ||
+  5488:       analysisDraft.specialist_route_label ||
+  5489:       analysisRoot.specialist_route_label ||
+  5490:       "";
+  5491: 
+  5492:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5493:       method: "POST",
+  5494:       headers: {
+  5495:         "Content-Type": "application/json; charset=utf-8"
+  5496:       },
+  5497:       body: JSON.stringify(payload)
+  5498:     });
+  5499: 
+  5500:     const json = await res.json().catch(function () {
+  5501:       return {};
+  5502:     });
+  5503: 
+  5504:     if (!res.ok || !json.ok) {
+  5505:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5506:     }
+  5507: 
+  5508:     return json;
+  5509:   }
+  5510: 
+  5511:   function looksLikeDraftSaveButton(el) {
+  5512:     if (!el) return false;
+  5513: 
+  5514:     const button = el.closest("button, input[type='button'], input[type='submit'], a");
+  5515: 
+  5516:     if (!button) return false;
+  5517: 
+  5518:     const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+  5519: 
+  5520:     if (!text) return false;
+  5521: 
+  5522:     return text.includes("下書き保存") || text.includes("下書き");
+  5523:   }
+  5524: 
+  5525:   document.addEventListener("click", async function (event) {
+  5526:     const button = event.target.closest("button, input[type='button'], input[type='submit'], a");
+  5527: 
+  5528:     if (!looksLikeDraftSaveButton(button)) {
+  5529:       return;
+  5530:     }
+  5531: 
+  5532:     event.preventDefault();
+  5533:     event.stopPropagation();
+  5534: 
+  5535:     if (button.dataset.hdOriginSortingDraftSaving === "1") {
+  5536:       return;
+  5537:     }
+
+------------------------------------------
+行 5704 ～ 5799
+------------------------------------------
+  5704: 
+  5705:     return {
+  5706:       paymentDocumentOcrImportId: id,
+  5707: 
+  5708:       document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
+  5709:       document_type_label: textValue(draft.document_type_label || root.document_type_label || aiSummary.document_kind_label),
+  5710: 
+  5711:       payment_destination_code: textValue(draft.payment_destination_code || root.payment_destination_code || aiSummary.destination),
+  5712:       payment_destination_label: textValue(draft.payment_destination_label || root.payment_destination_label || aiSummary.destination_label),
+  5713: 
+  5714:       accounting_category_code: textValue(draft.accounting_category_code || root.accounting_category_code),
+  5715:       accounting_category_label: textValue(draft.accounting_category_label || root.accounting_category_label),
+  5716: 
+  5717:       payable_kind_code: textValue(draft.payable_kind_code || root.payable_kind_code),
+  5718:       payable_kind_label: textValue(draft.payable_kind_label || root.payable_kind_label),
+  5719: 
+  5720:       specialist_route_code: textValue(draft.specialist_route_code || root.specialist_route_code || root.document_group),
+  5721:       specialist_route_label: textValue(draft.specialist_route_label || root.specialist_route_label),
+  5722: 
+  5723:       /* GPT00_TAX_PUBLIC_BULK_SAVE_ANALYSIS_SYSTEM_20260709_START */
+  5724:       analysis_system_code: textValue(draft.analysis_system_code || root.analysis_system_code),
+  5725:       analysis_system_label: textValue(draft.analysis_system_label || root.analysis_system_label),
+  5726:       analysis_system_reason: textValue(draft.analysis_system_reason || root.analysis_system_reason),
+  5727:       analysis_system_confidence: textValue(draft.analysis_system_confidence || root.analysis_system_confidence),
+  5728:       /* GPT00_TAX_PUBLIC_BULK_SAVE_ANALYSIS_SYSTEM_20260709_END */
+  5729: 
+  5730:       payment_target_label: textValue(aiSummary.payment_target),
+  5731:       payable_target_label: textValue(aiSummary.payable_target),
+  5732:       expense_target_label: textValue(aiSummary.expense_target),
+  5733:       tax_public_label: textValue(aiSummary.tax_public),
+  5734:       public_utility_label: textValue(aiSummary.public_utility),
+  5735:       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5736: 
+  5737:       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5738:       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5739:       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5740:       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5741:       needs_review: !!(draft.needs_review || root.needs_review),
+  5742: 
+  5743:       ai_summary: aiSummary,
+  5744:       sortResult: root,
+  5745:       visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+  5746:       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+  5747: 
+  5748:       display_rotation: 0,
+  5749:       memo: "まとめて保存ボタンから仕分け下書き保存"
+  5750:     };
+  5751:   }
+  5752: 
+  5753:   async function postSortingDraft(payload) {
+  5754:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5755:       method: "POST",
+  5756:       headers: {
+  5757:         "Content-Type": "application/json; charset=utf-8"
+  5758:       },
+  5759:       body: JSON.stringify(payload)
+  5760:     });
+  5761: 
+  5762:     const json = await res.json().catch(function () {
+  5763:       return {};
+  5764:     });
+  5765: 
+  5766:     if (!res.ok || !json.ok) {
+  5767:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5768:     }
+  5769: 
+  5770:     return json;
+  5771:   }
+  5772: 
+  5773:   async function bulkSaveSortingDrafts() {
+  5774:     let ids = getSelectedOcrIds();
+  5775: 
+  5776:     if (ids.length === 0) {
+  5777:       ids = getIdsFromCache();
+  5778:     }
+  5779: 
+  5780:     if (ids.length === 0) {
+  5781:       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5782:     }
+  5783: 
+  5784:     const ok = [];
+  5785:     const ng = [];
+  5786: 
+  5787:     for (const id of ids) {
+  5788:       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5789: 
+  5790:       if (!cached) {
+  5791:         ng.push({
+  5792:           id,
+  5793:           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5794:         });
+  5795:         continue;
+  5796:       }
+  5797: 
+  5798:       try {
+  5799:         const payload = buildPayloadFromCachedResult(id, cached);
+
+
+##########################################
+payment-document-specialist-utility-communication.html
+##########################################
+
+------------------------------------------
+行 1 ～ 55
+------------------------------------------
+     1: <!doctype html>
+     2: <html lang="ja">
+     3: <head>
+     4:   <meta charset="utf-8">
+     5:   <meta name="viewport" content="width=device-width,initial-scale=1">
+     6:   <title>公共料金・通信費専門解析システム - HD Origin Project</title>
+     7:   <link rel="stylesheet" href="./payment-document-specialist-utility-communication.css">
+     8: </head>
+     9: <body class="specialist-utility-communication-page" data-specialist-route-code="utility_communication">
+    10: <!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
+    11: <!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+    12:   <div class="wrap">
+    13:     <header class="top">
+    14:       <h1>公共料金・通信費専門解析システム</h1>
+    15:       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+    16:       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+    17:       <button type="button" onclick="location.href='/'">メインページ</button>
+    18:       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+    19:             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+    20:       <nav class="specialist-system-nav" aria-label="専門解析システム">
+    21:         <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
+    22:         <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
+    23:         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
+    24:         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
+    25:         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
+    26:         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
+    27:       </nav>
+    28:       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+    29: <span class="muted">1回目仕分けで公共料金・通信費へ送った書類を、公共料金・通信費として専門解析する画面です。</span>
+    30:     </header>
+    31: 
+    32:     <section class="panel list-panel">
+    33:       <div class="panel-title">
+    34:         <span>公共料金・通信費 対象書類</span>
+    35:         <button type="button" class="light" onclick="loadItems()">更新</button>
+    36:       </div>
+    37:             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+    38:         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+    39:         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+    40:         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+    41: <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+    42: </div>
+    43:       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+    44:       <div id="sortingColorLegend" class="sorting-color-legend">
+    45:         <span class="legend-chip legend-invoice">請求・未払系</span>
+    46:         <span class="legend-chip legend-expense">レシート・領収書</span>
+    47:         <span class="legend-chip legend-tax">税金・公的支払</span>
+    48:         <span class="legend-chip legend-contract">契約・保険・リース</span>
+    49:         <span class="legend-chip legend-utility">公共料金・通信費</span>
+    50:         <span class="legend-chip legend-card">カード</span>
+    51:         <span class="legend-chip legend-reference">照合用</span>
+    52:         <span class="legend-chip legend-review">要確認</span>
+    53:       </div>
+    54: 
+    55: <div id="summary" class="summary">読込中...</div>
+
+------------------------------------------
+行 5202 ～ 5267
+------------------------------------------
+  5202:       window.currentDisplayRotation,
+  5203:       window.imageRotation,
+  5204:       window.previewRotation
+  5205:     ];
+  5206: 
+  5207:     for (const value of candidates) {
+  5208:       const n = Number(value);
+  5209:       if ([0, 90, 180, 270].includes(n)) return n;
+  5210:     }
+  5211: 
+  5212:     const el = document.querySelector("[data-display-rotation]");
+  5213: 
+  5214:     if (el) {
+  5215:       const n = Number(el.dataset.displayRotation);
+  5216:       if ([0, 90, 180, 270].includes(n)) return n;
+  5217:     }
+  5218: 
+  5219:     return 0;
+  5220:   }
+  5221: 
+  5222:   function collectSortingDraftPayload(context) {
+  5223:     const ocrId =
+  5224:       Number(
+  5225:         context && (
+  5226:           context.ocrImportId ||
+  5227:           context.paymentDocumentOcrImportId ||
+  5228:           context.payment_document_ocr_import_id ||
+  5229:           context.id
+  5230:         )
+  5231:       ) ||
+  5232:       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5233:       findSelectedOcrImportId();
+  5234: 
+  5235:     if (!ocrId) {
+  5236:       throw new Error("選択中OCR IDが取得できません。");
+  5237:     }
+  5238: 
+  5239:     const documentTypeLabel = controlLabel("draftAiDocumentKind");
+  5240:     const destinationLabel = controlLabel("draftAiDestination");
+  5241:     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
+  5242: 
+  5243:     const payload = {
+  5244:       paymentDocumentOcrImportId: ocrId,
+  5245: 
+  5246:       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
+  5247:       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5248:       document_type_label: documentTypeLabel,
+  5249: 
+  5250:       payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
+  5251:       payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
+  5252:       payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+  5253: 
+  5254:       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
+  5255:       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5256:       accounting_category_label: accountingCategoryLabel,
+  5257: 
+  5258:       payment_target_label: controlValue("draftAiPayableFlag"),
+  5259:       payable_target_label: controlValue("draftAiUnpaidFlag"),
+  5260:       expense_target_label: controlValue("draftAiExpenseFlag"),
+  5261:       tax_public_label: controlValue("draftAiTaxPublicFlag"),
+  5262:       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5263:       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5264: 
+  5265:       ai_confidence_label: controlValue("draftAiConfidence"),
+  5266:       ai_reason: controlValue("draftAiReason"),
+  5267:       review_reason: controlValue("draftAiReason"),
+
+------------------------------------------
+行 5316 ～ 5472
+------------------------------------------
+  5316:         reason: controlValue("draftAiReason")
+  5317:       },
+  5318: 
+  5319:       sortResult: {
+  5320:         document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5321:         document_type_label: documentTypeLabel,
+  5322:         payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
+  5323:         payment_destination_label: destinationLabel,
+  5324:         accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5325:         accounting_category_label: accountingCategoryLabel,
+  5326:         needs_review:
+  5327:           controlLabel("draftAiDestination").includes("要確認") ||
+  5328:           controlLabel("draftAccountingCategory").includes("要確認") ||
+  5329:           controlValue("draftAiConfidence").includes("低")
+  5330:       }
+  5331:     };
+  5332: 
+  5333:     return payload;
+  5334:   }
+  5335: 
+  5336:   async function saveSortingDraftFromReviewPage(context) {
+  5337:     const payload = collectSortingDraftPayload(context);
+  5338: 
+  5339:     const analysisResult =
+  5340:       context && context.analysisResult && typeof context.analysisResult === "object"
+  5341:         ? context.analysisResult
+  5342:         : context && context.item && context.item.__aiRawResult
+  5343:           ? context.item.__aiRawResult
+  5344:           : {};
+  5345: 
+  5346:     const analysisDraft =
+  5347:       analysisResult.draft && typeof analysisResult.draft === "object"
+  5348:         ? analysisResult.draft
+  5349:         : context && context.item && context.item.__aiDraft
+  5350:           ? context.item.__aiDraft
+  5351:           : {};
+  5352: 
+  5353:     const analysisRoot =
+  5354:       analysisResult.sortResult ||
+  5355:       analysisResult.sort_result ||
+  5356:       analysisResult.result ||
+  5357:       analysisDraft.sortResult ||
+  5358:       analysisDraft.sort_result ||
+  5359:       analysisDraft;
+  5360: 
+  5361:     const analysisSummary =
+  5362:       analysisResult.ai_summary ||
+  5363:       analysisResult.aiSummary ||
+  5364:       analysisDraft.ai_summary ||
+  5365:       analysisDraft.aiSummary ||
+  5366:       analysisRoot.ai_summary ||
+  5367:       analysisRoot.aiSummary ||
+  5368:       {};
+  5369: 
+  5370:     payload.analysis_system_code =
+  5371:       payload.analysis_system_code ||
+  5372:       payload.analysisSystemCode ||
+  5373:       analysisDraft.analysis_system_code ||
+  5374:       analysisDraft.analysisSystemCode ||
+  5375:       analysisRoot.analysis_system_code ||
+  5376:       analysisRoot.analysisSystemCode ||
+  5377:       analysisSummary.analysis_system_code ||
+  5378:       "";
+  5379: 
+  5380:     payload.analysis_system_label =
+  5381:       payload.analysis_system_label ||
+  5382:       payload.analysisSystemLabel ||
+  5383:       analysisDraft.analysis_system_label ||
+  5384:       analysisDraft.analysisSystemLabel ||
+  5385:       analysisRoot.analysis_system_label ||
+  5386:       analysisRoot.analysisSystemLabel ||
+  5387:       analysisSummary.analysis_system_label ||
+  5388:       analysisSummary.analysis_system ||
+  5389:       "";
+  5390: 
+  5391:     payload.analysis_system_reason =
+  5392:       payload.analysis_system_reason ||
+  5393:       payload.analysisSystemReason ||
+  5394:       analysisDraft.analysis_system_reason ||
+  5395:       analysisDraft.analysisSystemReason ||
+  5396:       analysisRoot.analysis_system_reason ||
+  5397:       analysisRoot.analysisSystemReason ||
+  5398:       analysisSummary.analysis_system_reason ||
+  5399:       "";
+  5400: 
+  5401:     payload.analysis_system_confidence =
+  5402:       payload.analysis_system_confidence ||
+  5403:       payload.analysisSystemConfidence ||
+  5404:       analysisDraft.analysis_system_confidence ||
+  5405:       analysisDraft.analysisSystemConfidence ||
+  5406:       analysisRoot.analysis_system_confidence ||
+  5407:       analysisRoot.analysisSystemConfidence ||
+  5408:       analysisSummary.analysis_system_confidence ||
+  5409:       "";
+  5410: 
+  5411:     payload.specialist_route_code =
+  5412:       payload.specialist_route_code ||
+  5413:       payload.specialistRouteCode ||
+  5414:       analysisDraft.specialist_route_code ||
+  5415:       analysisRoot.specialist_route_code ||
+  5416:       analysisResult.document_group ||
+  5417:       analysisDraft.document_group ||
+  5418:       "";
+  5419: 
+  5420:     payload.specialist_route_label =
+  5421:       payload.specialist_route_label ||
+  5422:       payload.specialistRouteLabel ||
+  5423:       analysisDraft.specialist_route_label ||
+  5424:       analysisRoot.specialist_route_label ||
+  5425:       "";
+  5426: 
+  5427:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5428:       method: "POST",
+  5429:       headers: {
+  5430:         "Content-Type": "application/json; charset=utf-8"
+  5431:       },
+  5432:       body: JSON.stringify(payload)
+  5433:     });
+  5434: 
+  5435:     const json = await res.json().catch(function () {
+  5436:       return {};
+  5437:     });
+  5438: 
+  5439:     if (!res.ok || !json.ok) {
+  5440:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5441:     }
+  5442: 
+  5443:     return json;
+  5444:   }
+  5445: 
+  5446:   function looksLikeDraftSaveButton(el) {
+  5447:     if (!el) return false;
+  5448: 
+  5449:     const button = el.closest("button, input[type='button'], input[type='submit'], a");
+  5450: 
+  5451:     if (!button) return false;
+  5452: 
+  5453:     const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+  5454: 
+  5455:     if (!text) return false;
+  5456: 
+  5457:     return text.includes("下書き保存") || text.includes("下書き");
+  5458:   }
+  5459: 
+  5460:   document.addEventListener("click", async function (event) {
+  5461:     const button = event.target.closest("button, input[type='button'], input[type='submit'], a");
+  5462: 
+  5463:     if (!looksLikeDraftSaveButton(button)) {
+  5464:       return;
+  5465:     }
+  5466: 
+  5467:     event.preventDefault();
+  5468:     event.stopPropagation();
+  5469: 
+  5470:     if (button.dataset.hdOriginSortingDraftSaving === "1") {
+  5471:       return;
+  5472:     }
+
+------------------------------------------
+行 5662 ～ 5727
+------------------------------------------
+  5662:       public_utility_label: textValue(aiSummary.public_utility),
+  5663:       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5664: 
+  5665:       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5666:       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5667:       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5668:       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5669:       needs_review: !!(draft.needs_review || root.needs_review),
+  5670: 
+  5671:       ai_summary: aiSummary,
+  5672:       sortResult: root,
+  5673:       visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+  5674:       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+  5675: 
+  5676:       display_rotation: 0,
+  5677:       memo: "まとめて保存ボタンから仕分け下書き保存"
+  5678:     };
+  5679:   }
+  5680: 
+  5681:   async function postSortingDraft(payload) {
+  5682:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5683:       method: "POST",
+  5684:       headers: {
+  5685:         "Content-Type": "application/json; charset=utf-8"
+  5686:       },
+  5687:       body: JSON.stringify(payload)
+  5688:     });
+  5689: 
+  5690:     const json = await res.json().catch(function () {
+  5691:       return {};
+  5692:     });
+  5693: 
+  5694:     if (!res.ok || !json.ok) {
+  5695:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5696:     }
+  5697: 
+  5698:     return json;
+  5699:   }
+  5700: 
+  5701:   async function bulkSaveSortingDrafts() {
+  5702:     let ids = getSelectedOcrIds();
+  5703: 
+  5704:     if (ids.length === 0) {
+  5705:       ids = getIdsFromCache();
+  5706:     }
+  5707: 
+  5708:     if (ids.length === 0) {
+  5709:       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5710:     }
+  5711: 
+  5712:     const ok = [];
+  5713:     const ng = [];
+  5714: 
+  5715:     for (const id of ids) {
+  5716:       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5717: 
+  5718:       if (!cached) {
+  5719:         ng.push({
+  5720:           id,
+  5721:           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5722:         });
+  5723:         continue;
+  5724:       }
+  5725: 
+  5726:       try {
+  5727:         const payload = buildPayloadFromCachedResult(id, cached);
+
+
+##########################################
+payment-document-specialist-invoice-payable.html
+##########################################
+
+------------------------------------------
+行 1 ～ 55
+------------------------------------------
+     1: <!doctype html>
+     2: <html lang="ja">
+     3: <head>
+     4:   <meta charset="utf-8">
+     5:   <meta name="viewport" content="width=device-width,initial-scale=1">
+     6:   <title>請求・未払系専門解析システム - HD Origin Project</title>
+     7:   <link rel="stylesheet" href="./payment-document-specialist-invoice-payable.css">
+     8: </head>
+     9: <body class="specialist-invoice-payable-page" data-specialist-route-code="invoice_payable">
+    10: <!-- HD_ORIGIN_GPT2_INVOICE_PAYABLE_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
+    11: <!-- HD_ORIGIN_SPECIALIST_INVOICE_PAYABLE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+    12:   <div class="wrap">
+    13:     <header class="top">
+    14:       <h1>請求・未払系専門解析システム</h1>
+    15:       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+    16:       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+    17:       <button type="button" onclick="location.href='/'">メインページ</button>
+    18:       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+    19:             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+    20:       <nav class="specialist-system-nav" aria-label="専門解析システム">
+    21:         <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
+    22:         <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
+    23:         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
+    24:         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
+    25:         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
+    26:         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
+    27:       </nav>
+    28:       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+    29: <span class="muted">1回目仕分けで請求・未払系へ送った書類を、請求・未払系として専門解析する画面です。</span>
+    30:     </header>
+    31: 
+    32:     <section class="panel list-panel">
+    33:       <div class="panel-title">
+    34:         <span>請求・未払系 対象書類</span>
+    35:         <button type="button" class="light" onclick="loadItems()">更新</button>
+    36:       </div>
+    37:             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+    38:         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+    39:         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+    40:         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+    41: <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+    42: </div>
+    43:       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+    44:       <div id="sortingColorLegend" class="sorting-color-legend">
+    45:         <span class="legend-chip legend-invoice">請求・未払系</span>
+    46:         <span class="legend-chip legend-expense">レシート・領収書</span>
+    47:         <span class="legend-chip legend-tax">税金・公的支払</span>
+    48:         <span class="legend-chip legend-contract">契約・保険・リース</span>
+    49:         <span class="legend-chip legend-utility">公共料金・通信費</span>
+    50:         <span class="legend-chip legend-card">カード</span>
+    51:         <span class="legend-chip legend-reference">照合用</span>
+    52:         <span class="legend-chip legend-review">要確認</span>
+    53:       </div>
+    54: 
+    55: <div id="summary" class="summary">読込中...</div>
+
+------------------------------------------
+行 5178 ～ 5243
+------------------------------------------
+  5178:       window.currentDisplayRotation,
+  5179:       window.imageRotation,
+  5180:       window.previewRotation
+  5181:     ];
+  5182: 
+  5183:     for (const value of candidates) {
+  5184:       const n = Number(value);
+  5185:       if ([0, 90, 180, 270].includes(n)) return n;
+  5186:     }
+  5187: 
+  5188:     const el = document.querySelector("[data-display-rotation]");
+  5189: 
+  5190:     if (el) {
+  5191:       const n = Number(el.dataset.displayRotation);
+  5192:       if ([0, 90, 180, 270].includes(n)) return n;
+  5193:     }
+  5194: 
+  5195:     return 0;
+  5196:   }
+  5197: 
+  5198:   function collectSortingDraftPayload(context) {
+  5199:     const ocrId =
+  5200:       Number(
+  5201:         context && (
+  5202:           context.ocrImportId ||
+  5203:           context.paymentDocumentOcrImportId ||
+  5204:           context.payment_document_ocr_import_id ||
+  5205:           context.id
+  5206:         )
+  5207:       ) ||
+  5208:       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5209:       findSelectedOcrImportId();
+  5210: 
+  5211:     if (!ocrId) {
+  5212:       throw new Error("選択中OCR IDが取得できません。");
+  5213:     }
+  5214: 
+  5215:     const documentTypeLabel = controlLabel("draftAiDocumentKind");
+  5216:     const destinationLabel = controlLabel("draftAiDestination");
+  5217:     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
+  5218: 
+  5219:     const payload = {
+  5220:       paymentDocumentOcrImportId: ocrId,
+  5221: 
+  5222:       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
+  5223:       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5224:       document_type_label: documentTypeLabel,
+  5225: 
+  5226:       payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
+  5227:       payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
+  5228:       payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+  5229: 
+  5230:       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
+  5231:       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5232:       accounting_category_label: accountingCategoryLabel,
+  5233: 
+  5234:       payment_target_label: controlValue("draftAiPayableFlag"),
+  5235:       payable_target_label: controlValue("draftAiUnpaidFlag"),
+  5236:       expense_target_label: controlValue("draftAiExpenseFlag"),
+  5237:       tax_public_label: controlValue("draftAiTaxPublicFlag"),
+  5238:       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5239:       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5240: 
+  5241:       ai_confidence_label: controlValue("draftAiConfidence"),
+  5242:       ai_reason: controlValue("draftAiReason"),
+  5243:       review_reason: controlValue("draftAiReason"),
+
+------------------------------------------
+行 5292 ～ 5448
+------------------------------------------
+  5292:         reason: controlValue("draftAiReason")
+  5293:       },
+  5294: 
+  5295:       sortResult: {
+  5296:         document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5297:         document_type_label: documentTypeLabel,
+  5298:         payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
+  5299:         payment_destination_label: destinationLabel,
+  5300:         accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5301:         accounting_category_label: accountingCategoryLabel,
+  5302:         needs_review:
+  5303:           controlLabel("draftAiDestination").includes("要確認") ||
+  5304:           controlLabel("draftAccountingCategory").includes("要確認") ||
+  5305:           controlValue("draftAiConfidence").includes("低")
+  5306:       }
+  5307:     };
+  5308: 
+  5309:     return payload;
+  5310:   }
+  5311: 
+  5312:   async function saveSortingDraftFromReviewPage(context) {
+  5313:     const payload = collectSortingDraftPayload(context);
+  5314: 
+  5315:     const analysisResult =
+  5316:       context && context.analysisResult && typeof context.analysisResult === "object"
+  5317:         ? context.analysisResult
+  5318:         : context && context.item && context.item.__aiRawResult
+  5319:           ? context.item.__aiRawResult
+  5320:           : {};
+  5321: 
+  5322:     const analysisDraft =
+  5323:       analysisResult.draft && typeof analysisResult.draft === "object"
+  5324:         ? analysisResult.draft
+  5325:         : context && context.item && context.item.__aiDraft
+  5326:           ? context.item.__aiDraft
+  5327:           : {};
+  5328: 
+  5329:     const analysisRoot =
+  5330:       analysisResult.sortResult ||
+  5331:       analysisResult.sort_result ||
+  5332:       analysisResult.result ||
+  5333:       analysisDraft.sortResult ||
+  5334:       analysisDraft.sort_result ||
+  5335:       analysisDraft;
+  5336: 
+  5337:     const analysisSummary =
+  5338:       analysisResult.ai_summary ||
+  5339:       analysisResult.aiSummary ||
+  5340:       analysisDraft.ai_summary ||
+  5341:       analysisDraft.aiSummary ||
+  5342:       analysisRoot.ai_summary ||
+  5343:       analysisRoot.aiSummary ||
+  5344:       {};
+  5345: 
+  5346:     payload.analysis_system_code =
+  5347:       payload.analysis_system_code ||
+  5348:       payload.analysisSystemCode ||
+  5349:       analysisDraft.analysis_system_code ||
+  5350:       analysisDraft.analysisSystemCode ||
+  5351:       analysisRoot.analysis_system_code ||
+  5352:       analysisRoot.analysisSystemCode ||
+  5353:       analysisSummary.analysis_system_code ||
+  5354:       "";
+  5355: 
+  5356:     payload.analysis_system_label =
+  5357:       payload.analysis_system_label ||
+  5358:       payload.analysisSystemLabel ||
+  5359:       analysisDraft.analysis_system_label ||
+  5360:       analysisDraft.analysisSystemLabel ||
+  5361:       analysisRoot.analysis_system_label ||
+  5362:       analysisRoot.analysisSystemLabel ||
+  5363:       analysisSummary.analysis_system_label ||
+  5364:       analysisSummary.analysis_system ||
+  5365:       "";
+  5366: 
+  5367:     payload.analysis_system_reason =
+  5368:       payload.analysis_system_reason ||
+  5369:       payload.analysisSystemReason ||
+  5370:       analysisDraft.analysis_system_reason ||
+  5371:       analysisDraft.analysisSystemReason ||
+  5372:       analysisRoot.analysis_system_reason ||
+  5373:       analysisRoot.analysisSystemReason ||
+  5374:       analysisSummary.analysis_system_reason ||
+  5375:       "";
+  5376: 
+  5377:     payload.analysis_system_confidence =
+  5378:       payload.analysis_system_confidence ||
+  5379:       payload.analysisSystemConfidence ||
+  5380:       analysisDraft.analysis_system_confidence ||
+  5381:       analysisDraft.analysisSystemConfidence ||
+  5382:       analysisRoot.analysis_system_confidence ||
+  5383:       analysisRoot.analysisSystemConfidence ||
+  5384:       analysisSummary.analysis_system_confidence ||
+  5385:       "";
+  5386: 
+  5387:     payload.specialist_route_code =
+  5388:       payload.specialist_route_code ||
+  5389:       payload.specialistRouteCode ||
+  5390:       analysisDraft.specialist_route_code ||
+  5391:       analysisRoot.specialist_route_code ||
+  5392:       analysisResult.document_group ||
+  5393:       analysisDraft.document_group ||
+  5394:       "";
+  5395: 
+  5396:     payload.specialist_route_label =
+  5397:       payload.specialist_route_label ||
+  5398:       payload.specialistRouteLabel ||
+  5399:       analysisDraft.specialist_route_label ||
+  5400:       analysisRoot.specialist_route_label ||
+  5401:       "";
+  5402: 
+  5403:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5404:       method: "POST",
+  5405:       headers: {
+  5406:         "Content-Type": "application/json; charset=utf-8"
+  5407:       },
+  5408:       body: JSON.stringify(payload)
+  5409:     });
+  5410: 
+  5411:     const json = await res.json().catch(function () {
+  5412:       return {};
+  5413:     });
+  5414: 
+  5415:     if (!res.ok || !json.ok) {
+  5416:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5417:     }
+  5418: 
+  5419:     return json;
+  5420:   }
+  5421: 
+  5422:   function looksLikeDraftSaveButton(el) {
+  5423:     if (!el) return false;
+  5424: 
+  5425:     const button = el.closest("button, input[type='button'], input[type='submit'], a");
+  5426: 
+  5427:     if (!button) return false;
+  5428: 
+  5429:     const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+  5430: 
+  5431:     if (!text) return false;
+  5432: 
+  5433:     return text.includes("下書き保存") || text.includes("下書き");
+  5434:   }
+  5435: 
+  5436:   document.addEventListener("click", async function (event) {
+  5437:     const button = event.target.closest("button, input[type='button'], input[type='submit'], a");
+  5438: 
+  5439:     if (!looksLikeDraftSaveButton(button)) {
+  5440:       return;
+  5441:     }
+  5442: 
+  5443:     event.preventDefault();
+  5444:     event.stopPropagation();
+  5445: 
+  5446:     if (button.dataset.hdOriginSortingDraftSaving === "1") {
+  5447:       return;
+  5448:     }
+
+------------------------------------------
+行 5638 ～ 5703
+------------------------------------------
+  5638:       public_utility_label: textValue(aiSummary.public_utility),
+  5639:       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5640: 
+  5641:       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5642:       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5643:       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5644:       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5645:       needs_review: !!(draft.needs_review || root.needs_review),
+  5646: 
+  5647:       ai_summary: aiSummary,
+  5648:       sortResult: root,
+  5649:       visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+  5650:       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+  5651: 
+  5652:       display_rotation: 0,
+  5653:       memo: "まとめて保存ボタンから仕分け下書き保存"
+  5654:     };
+  5655:   }
+  5656: 
+  5657:   async function postSortingDraft(payload) {
+  5658:     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5659:       method: "POST",
+  5660:       headers: {
+  5661:         "Content-Type": "application/json; charset=utf-8"
+  5662:       },
+  5663:       body: JSON.stringify(payload)
+  5664:     });
+  5665: 
+  5666:     const json = await res.json().catch(function () {
+  5667:       return {};
+  5668:     });
+  5669: 
+  5670:     if (!res.ok || !json.ok) {
+  5671:       throw new Error(json.error || "下書き保存に失敗しました。");
+  5672:     }
+  5673: 
+  5674:     return json;
+  5675:   }
+  5676: 
+  5677:   async function bulkSaveSortingDrafts() {
+  5678:     let ids = getSelectedOcrIds();
+  5679: 
+  5680:     if (ids.length === 0) {
+  5681:       ids = getIdsFromCache();
+  5682:     }
+  5683: 
+  5684:     if (ids.length === 0) {
+  5685:       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5686:     }
+  5687: 
+  5688:     const ok = [];
+  5689:     const ng = [];
+  5690: 
+  5691:     for (const id of ids) {
+  5692:       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5693: 
+  5694:       if (!cached) {
+  5695:         ng.push({
+  5696:           id,
+  5697:           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5698:         });
+  5699:         continue;
+  5700:       }
+  5701: 
+  5702:       try {
+  5703:         const payload = buildPayloadFromCachedResult(id, cached);
+
+------------------------------------------
+行 6957 ～ 7022
+------------------------------------------
+  6957:       fieldValue("draftWarnings");
+  6958: 
+  6959:     var aiReason =
+  6960:       fieldValue("draftAiReason");
+  6961: 
+  6962:     var linesRaw =
+  6963:       fieldValue("draftLinesRaw");
+  6964: 
+  6965:     var title =
+  6966:       fieldValue("draftDocumentTitle");
+  6967: 
+  6968:     var summary =
+  6969:       fieldValue("draftSummary") ||
+  6970:       title ||
+  6971:       "請求・未払系専門解析から登録";
+  6972: 
+  6973:     var sourceMemo = [
+  6974:       "請求・未払系専門解析から登録",
+  6975:       "payment_document_ocr_import_id=" +
+  6976:         ocrImportId,
+  6977:       "analysis_system_code=invoice_payable_analysis"
+  6978:     ];
+  6979: 
+  6980:     if (aiReason) {
+  6981:       sourceMemo.push(
+  6982:         "AI判定理由: " +
+  6983:         aiReason
+  6984:       );
+  6985:     }
+  6986: 
+  6987:     var documentData = {
+  6988:       document_type:
+  6989:         normalizeDocumentType(),
+  6990: 
+  6991:       payable_kind:
+  6992:         normalizePayableKind(),
+  6993: 
+  6994:       status: "draft",
+  6995: 
+  6996:       vendor_name:
+  6997:         fieldValue("draftVendorName") ||
+  6998:         fieldValue("draftIssuer"),
+  6999: 
+  7000:       invoice_number:
+  7001:         fieldValue("draftInvoiceNo"),
+  7002: 
+  7003:       supplier_document_no:
+  7004:         fieldValue("draftManagementNo") ||
+  7005:         fieldValue("draftOrderNo") ||
+  7006:         fieldValue("draftTransactionNo"),
+  7007: 
+  7008:       document_date:
+  7009:         firstDate(
+  7010:           "draftBillingDate",
+  7011:           "draftDocumentDate",
+  7012:           "draftIssueDate"
+  7013:         ),
+  7014: 
+  7015:       posting_date:
+  7016:         firstDate(
+  7017:           "draftBillingDate",
+  7018:           "draftDocumentDate",
+  7019:           "draftIssueDate"
+  7020:         ),
+  7021: 
+  7022:       due_date:
+

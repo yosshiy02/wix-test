@@ -1,0 +1,34 @@
+﻿          column_name          |        data_type         | is_nullable | column_default 
+-------------------------------+--------------------------+-------------+----------------
+ latest_specialist_analysis_id | bigint                   | YES         | 
+ specialist_analysis_status    | text                     | YES         | '譛ｪ隗｣譫・::text
+ specialist_analyzed_at        | timestamp with time zone | YES         | 
+ specialist_error_text         | text                     | YES         | 
+ specialist_saved_at           | timestamp with time zone | YES         | 
+(5 行)
+
+ table_schema |                  table_name                  
+--------------+----------------------------------------------
+ accounting   | payment_document_specialist_analysis_results
+(1 行)
+
+            column_name            |        data_type         | is_nullable 
+-----------------------------------+--------------------------+-------------
+ specialist_analysis_id            | bigint                   | NO
+ payment_document_ocr_import_id    | bigint                   | NO
+ payment_document_sorting_draft_id | bigint                   | NO
+ analysis_system_code              | text                     | NO
+ analysis_system_label             | text                     | YES
+ specialist_analysis_status        | text                     | YES
+ ai_confidence                     | numeric                  | YES
+ ai_reason                         | text                     | YES
+ warnings_json                     | jsonb                    | YES
+ raw_result_json                   | jsonb                    | YES
+ human_confirm_status              | text                     | YES
+ human_memo                        | text                     | YES
+ is_current                        | boolean                  | NO
+ created_at                        | timestamp with time zone | NO
+ updated_at                        | timestamp with time zone | NO
+ deleted_at                        | timestamp with time zone | YES
+(16 行)
+

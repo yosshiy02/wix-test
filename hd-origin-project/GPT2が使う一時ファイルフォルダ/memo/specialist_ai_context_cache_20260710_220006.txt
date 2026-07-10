@@ -1,0 +1,34 @@
+==========================================
+GPT2 人間修正時 AI解析結果保持 根本修正
+==========================================
+
+日時:
+2026/07/10 22:00:06
+
+[原因]
+専門解析直後はcontext.analysisResultがあるため保存成功した。
+
+人間修正後はOCR IDだけをcontextへ渡していたため、
+analysis_system_codeを含むAI解析結果が失われた。
+
+[修正]
+- 専門解析直後のanalysisResultを画面内へ保持
+- 解析対象itemも画面内へ保持
+- 人間修正後の自動保存へ同じanalysisResultを再度渡す
+- executeSave内でも保持済みcontextを補完
+- 各画面固有の保存関数へ差込を行わない
+- 契約画面の別保存経路にも依存しない
+- 画面別固定コードは追加しない
+
+[対象]
+web_receiver\public\payables\payment-document-specialist-contract-insurance-lease.html
+web_receiver\public\payables\payment-document-specialist-tax-public.html
+web_receiver\public\payables\payment-document-specialist-utility-communication.html
+web_receiver\public\payables\payment-document-specialist-invoice-payable.html
+
+[未実施]
+- GitUp
+- サーバー再起動
+- 専門解析直後の保存再確認
+- 人間修正後の保存確認
+- DB確認

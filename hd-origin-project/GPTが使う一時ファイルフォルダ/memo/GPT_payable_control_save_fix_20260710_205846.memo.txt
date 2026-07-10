@@ -1,0 +1,50 @@
+==========================================
+未払管理 13項目保存SQL 修正メモ
+==========================================
+
+日時: 2026/07/10 20:58:46
+
+[対象ファイル]
+web_receiver\src\payables\payables.repository.js
+
+[原因]
+会社・証憑・確認・専門家確認の13項目を保存するUPDATE SQLで、
+WHERE payable_id = の後ろにプレースホルダー $1 が欠けていた。
+
+[修正]
+WHERE payable_id =
+↓
+WHERE payable_id = $1
+
+[影響]
+新規保存・既存更新とも、明細保存後に実行される13項目更新SQLが正常に対象行を特定できるようになる。
+
+[DB変更]
+なし
+
+[HTML変更]
+なし
+
+[Routes変更]
+なし
+
+[構文確認]
+node --check 成功
+
+[Git]
+未実施
+
+[サーバー再起動]
+未実施
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT_payable_control_save_fix_20260710_205846.before.payables.repository.js
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT_payable_control_save_fix_20260710_205846.after.payables.repository.js
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_payable_control_save_fix_20260710_205846.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_payable_control_save_fix_20260710_205846.undo.ps1

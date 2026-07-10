@@ -1,0 +1,23 @@
+$ErrorActionPreference = "Stop"
+
+$ProjectRoot = Split-Path -Parent (
+    Split-Path -Parent (
+        Split-Path -Parent (
+            Split-Path -Parent (
+                Split-Path -Parent $PSScriptRoot
+            )
+        )
+    )
+)
+
+$Target = Join-Path $ProjectRoot "web_receiver\public\payables\payment-document-specialist-invoice-payable.html"
+$Before = "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\payment-document-specialist-invoice-payable.before_full_autosave_20260710_213015.html"
+
+if (-not (Test-Path -LiteralPath $Before)) {
+    throw "before file not found."
+}
+
+Copy-Item -LiteralPath $Before -Destination $Target -Force
+
+Write-Host "UNDO OK"
+Write-Host $Target

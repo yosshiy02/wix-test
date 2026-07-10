@@ -1,0 +1,37 @@
+==========================================
+GPT2 専門解析コード 確定保持 現物修正
+==========================================
+
+日時:
+2026/07/10 22:09:22
+
+[現物確認結果]
+契約画面:
+既にanalysis_system_code保持処理が存在するため変更なし。
+
+税金・公共料金・請求画面:
+保存関数内でanalysis_system_codeを取得するが、
+確定値を画面内へ保持していなかった。
+
+[修正]
+- analysisResult直下を取得候補へ追加
+- AI下書き、解析ルート、AI summaryも従来どおり使用
+- 最初に確定したanalysis_system_codeをwindowへ保持
+- 人間修正後は保持済みコードを再利用
+- 画面別固定コードは追加していない
+- saveSortingDraftFromReviewPage内の実在区間だけを置換
+
+[変更対象]
+web_receiver\public\payables\payment-document-specialist-tax-public.html
+web_receiver\public\payables\payment-document-specialist-utility-communication.html
+web_receiver\public\payables\payment-document-specialist-invoice-payable.html
+
+[変更なし]
+payment-document-specialist-contract-insurance-lease.html
+
+[未実施]
+- GitUp
+- サーバー再起動
+- 公共料金専門解析確認
+- 人間修正後の自動保存確認
+- DB確認

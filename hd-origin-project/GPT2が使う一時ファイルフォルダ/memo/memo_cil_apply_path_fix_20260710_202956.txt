@@ -1,0 +1,30 @@
+﻿GPT2 CIL specialist common save apply path fix
+datetime: 2026-07-10 20:29:56
+
+result:
+OK
+
+applied:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\payment-document-specialist-contract-insurance-lease.after_specialist_common_save_20260710_202753.html
+
+to:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-contract-insurance-lease.html
+
+confirmed:
+new api exists
+old api removed
+
+new api:
+/api/payment-documents/specialist-analysis-results/save
+
+old api:
+/api/payment-documents/contract-insurance-lease-drafts/save
+
+note:
+previous apply failed only because generated apply ps1 path was mojibake.
+this script used live resolved paths and copied the already-created after html.
+
+not done:
+server restart
+git
+other specialist pages

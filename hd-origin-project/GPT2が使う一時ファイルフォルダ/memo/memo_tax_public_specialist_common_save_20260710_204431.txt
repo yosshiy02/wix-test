@@ -1,0 +1,35 @@
+﻿GPT2 tax public specialist common save API connect
+datetime: 2026-07-10 20:44:31
+
+result:
+OK
+
+target:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-tax-public.html
+
+new api:
+/api/payment-documents/specialist-analysis-results/save
+
+replaced:
+/api/payment-documents/sorting-drafts/save = 2
+
+design:
+1st and 2nd analysis result is saved in payment_document_sorting_drafts.
+Tax/Public specialist save now posts to common specialist save API.
+The API inserts payment_document_specialist_analysis_results.
+The API updates payment_document_sorting_drafts.latest_specialist_analysis_id.
+
+before:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\payment-document-specialist-tax-public.before_specialist_common_save_20260710_204431.html
+
+after:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\payment-document-specialist-tax-public.after_specialist_common_save_20260710_204431.html
+
+undo:
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_tax_public_specialist_common_save_20260710_204431.ps1
+
+not done:
+server restart
+git
+invoice/payable page
+utility/communication page

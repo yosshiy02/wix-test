@@ -1,0 +1,44 @@
+﻿==========================================
+未払一覧 documentTypeLabel 修正
+==========================================
+
+日時: 2026/07/10 21:30:57
+
+[症状]
+APIは正常にデータを返しているが、
+画面では「未払一覧を読み込めませんでした」と表示された。
+
+[原因]
+renderList内でdocumentTypeLabelを呼んでいたが、
+documentTypeLabel関数が定義されていなかった。
+
+[修正]
+書類区分コードを日本語表示へ変換する
+documentTypeLabel関数を追加。
+
+[対象]
+web_receiver\public\payables\payable-list.html
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\GPT_payables_document_type_label_fix_20260710_213057.before.payable-list.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\GPT_payables_document_type_label_fix_20260710_213057.after.payable-list.html
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_payables_document_type_label_fix_20260710_213057.undo.ps1
+
+[構文確認]
+HTML内JavaScript node --check 成功
+
+[DB変更]
+なし
+
+[Git]
+未実施
+
+[サーバー再起動]
+不要
+
+[GPT2]
+未使用

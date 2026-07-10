@@ -1,0 +1,41 @@
+﻿==========================================
+請求・未払専門解析 → 未払管理 マッピング
+==========================================
+
+日時: 2026/07/10 22:03:10
+
+[対象]
+web_receiver\public\payables\payment-document-specialist-invoice-payable.html
+
+[追加内容]
+- 請求・未払系専門解析画面に「未払管理へ登録」ボタンを追加
+- 新しいAI呼出しは追加しない
+- 現在表示中の専門解析結果を未払管理形式へ変換
+- 未払管理には下書き状態で登録
+- 支払先、請求書番号、日付、支払期限、支払予定日を連携
+- 会社名を連携
+- 税抜金額、消費税額、税込金額を明細へ連携
+- 要確認メモを人間確認待ちとして連携
+- 証憑ファイル名を連携
+- OCR取込IDをsource_memoへ保存
+- 同じOCR取込IDが見つかった場合は二重登録を停止
+- 明細候補は勝手に分解せず、1明細の説明とメモへ全文保存
+
+[before]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\before\payment-document-specialist-invoice-payable.before_payable_bridge_20260710_220310.html
+
+[after]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\after\payment-document-specialist-invoice-payable.after_payable_bridge_20260710_220310.html
+
+[apply]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\apply\GPT_invoice_specialist_to_payables_20260710_220310.apply.ps1
+
+[undo]
+C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPTが使う一時ファイルフォルダ\undo\GPT_invoice_specialist_to_payables_20260710_220310.undo.ps1
+
+[現在の状態]
+- 本体にはまだ反映していません。
+- JavaScript構文確認済みです。
+- Git操作はしていません。
+- サーバー再起動は不要です。
+- GPT2側は使用していません。

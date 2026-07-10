@@ -7289,45 +7289,6 @@ async function handlePaymentDocumentRoutes(req, res) {
       await client.query("BEGIN");
 
       let sortingRow = null;
-      let ocrImportRow = null;
-      let sortingDraftAutoCreated = false;
-
-      const fallbackAnalysisSystemCode = hdOriginSpecialistFirstText(
-        root.analysisSystemCode,
-        root.analysis_system_code,
-        draft.analysis_system_code,
-        draft.specialist_route_code,
-        sortResult.analysis_system_code,
-        sortResult.specialist_route_code,
-        aiSummary.analysis_system_code
-      );
-
-      const fallbackAnalysisSystemLabel = hdOriginSpecialistFirstText(
-        root.analysisSystemLabel,
-        root.analysis_system_label,
-        draft.analysis_system_label,
-        draft.specialist_route_label,
-        sortResult.analysis_system_label,
-        sortResult.specialist_route_label,
-        aiSummary.analysis_system_label,
-        aiSummary.analysis_system
-      );
-
-      const fallbackSpecialistRouteCode = hdOriginSpecialistFirstText(
-        root.specialistRouteCode,
-        root.specialist_route_code,
-        draft.specialist_route_code,
-        sortResult.specialist_route_code,
-        fallbackAnalysisSystemCode
-      );
-
-      const fallbackSpecialistRouteLabel = hdOriginSpecialistFirstText(
-        root.specialistRouteLabel,
-        root.specialist_route_label,
-        draft.specialist_route_label,
-        sortResult.specialist_route_label,
-        fallbackAnalysisSystemLabel
-      );
 
       if (sortingDraftId) {
         const sortingResult = await client.query(`
@@ -7345,362 +7306,32 @@ async function handlePaymentDocumentRoutes(req, res) {
         `, [sortingDraftId]);
 
         sortingRow = sortingResult.rows[0] || null;
-
-        if (sortingRow && !ocrImportId) {
-          ocrImportId = Number(sortingRow.payment_document_ocr_import_id);
-        }
-      }
-
-      if (!sortingRow && ocrImportId) {
-        const ocrResult = await client.query(`
+      } else if (ocrImportId) {
+        const sortingResult = await client.query(`
           SELECT
+            payment_document_sorting_draft_id,
             payment_document_ocr_import_id,
-            latest_sorting_draft_id,
-            original_file_name,
-            saved_file_name,
-            saved_relative_path,
-            sha256,
-            ocr_text_length
-          FROM accounting.payment_document_ocr_imports
+            analysis_system_code,
+            analysis_system_label,
+            specialist_route_code,
+            specialist_route_label
+          FROM accounting.payment_document_sorting_drafts
           WHERE payment_document_ocr_import_id = $1
+            AND is_current = TRUE
             AND deleted_at IS NULL
+          ORDER BY payment_document_sorting_draft_id DESC
+          LIMIT 1
           FOR UPDATE
         `, [ocrImportId]);
 
-        ocrImportRow = ocrResult.rows[0] || null;
-
-        if (!ocrImportRow) {
-          const err = new Error("OCR取込レコードが見つかりません。");
-          err.statusCode = 404;
-          throw err;
-        }
-
-        const latestSortingDraftId = hdOriginSpecialistSaveNumber(
-          ocrImportRow.latest_sorting_draft_id
-        );
-
-        if (latestSortingDraftId) {
-          const latestResult = await client.query(`
-            SELECT
-              payment_document_sorting_draft_id,
-              payment_document_ocr_import_id,
-              analysis_system_code,
-              analysis_system_label,
-              specialist_route_code,
-              specialist_route_label
-            FROM accounting.payment_document_sorting_drafts
-            WHERE payment_document_sorting_draft_id = $1
-              AND payment_document_ocr_import_id = $2
-              AND deleted_at IS NULL
-            FOR UPDATE
-          `, [latestSortingDraftId, ocrImportId]);
-
-          sortingRow = latestResult.rows[0] || null;
-        }
-
-        if (!sortingRow) {
-          const currentResult = await client.query(`
-            SELECT
-              payment_document_sorting_draft_id,
-              payment_document_ocr_import_id,
-              analysis_system_code,
-              analysis_system_label,
-              specialist_route_code,
-              specialist_route_label
-            FROM accounting.payment_document_sorting_drafts
-            WHERE payment_document_ocr_import_id = $1
-              AND is_current = TRUE
-              AND deleted_at IS NULL
-            ORDER BY payment_document_sorting_draft_id DESC
-            LIMIT 1
-            FOR UPDATE
-          `, [ocrImportId]);
-
-          sortingRow = currentResult.rows[0] || null;
-        }
-
-        if (!sortingRow) {
-          const documentTypeCode = hdOriginSpecialistFirstText(
-            draft.document_type_code,
-            draft.documentTypeCode,
-            sortResult.document_type_code,
-            sortResult.documentTypeCode
-          );
-
-          const documentTypeLabel = hdOriginSpecialistFirstText(
-            draft.document_type_label,
-            draft.documentTypeLabel,
-            draft.document_type,
-            draft.documentType,
-            sortResult.document_type_label,
-            sortResult.documentTypeLabel,
-            sortResult.document_type,
-            sortResult.documentType
-          );
-
-          const paymentDestinationCode = hdOriginSpecialistFirstText(
-            draft.payment_destination_code,
-            draft.paymentDestinationCode,
-            sortResult.payment_destination_code,
-            sortResult.paymentDestinationCode
-          );
-
-          const paymentDestinationLabel = hdOriginSpecialistFirstText(
-            draft.payment_destination_label,
-            draft.paymentDestinationLabel,
-            draft.destination,
-            sortResult.payment_destination_label,
-            sortResult.paymentDestinationLabel,
-            sortResult.destination
-          );
-
-          const accountingCategoryCode = hdOriginSpecialistFirstText(
-            draft.accounting_category_code,
-            draft.accountingCategoryCode,
-            sortResult.accounting_category_code,
-            sortResult.accountingCategoryCode
-          );
-
-          const accountingCategoryLabel = hdOriginSpecialistFirstText(
-            draft.accounting_category_label,
-            draft.accountingCategoryLabel,
-            draft.accounting_category,
-            draft.accountingCategory,
-            sortResult.accounting_category_label,
-            sortResult.accountingCategoryLabel
-          );
-
-          const payableKindCode = hdOriginSpecialistFirstText(
-            draft.payable_kind_code,
-            draft.payableKindCode,
-            sortResult.payable_kind_code,
-            sortResult.payableKindCode
-          );
-
-          const payableKindLabel = hdOriginSpecialistFirstText(
-            draft.payable_kind_label,
-            draft.payableKindLabel,
-            draft.payable_kind,
-            draft.payableKind,
-            sortResult.payable_kind_label,
-            sortResult.payableKindLabel
-          );
-
-          const paymentTargetLabel = hdOriginSpecialistFirstText(
-            draft.payment_target_label,
-            draft.paymentTargetLabel,
-            draft.payable_flag,
-            draft.payment_target
-          );
-
-          const payableTargetLabel = hdOriginSpecialistFirstText(
-            draft.payable_target_label,
-            draft.payableTargetLabel,
-            draft.unpaid_flag,
-            draft.payable_target
-          );
-
-          const expenseTargetLabel = hdOriginSpecialistFirstText(
-            draft.expense_target_label,
-            draft.expenseTargetLabel,
-            draft.expense_flag,
-            draft.expense_target
-          );
-
-          const taxPublicLabel = hdOriginSpecialistFirstText(
-            draft.tax_public_label,
-            draft.taxPublicLabel,
-            draft.tax_public_flag
-          );
-
-          const publicUtilityLabel = hdOriginSpecialistFirstText(
-            draft.public_utility_label,
-            draft.publicUtilityLabel
-          );
-
-          const contractInsuranceLeaseLabel = hdOriginSpecialistFirstText(
-            draft.contract_insurance_lease_label,
-            draft.contractInsuranceLeaseLabel,
-            draft.contract_flag
-          );
-
-          const initialAiConfidence = hdOriginSpecialistFirstText(
-            draft.ai_confidence,
-            draft.confidence,
-            sortResult.ai_confidence,
-            sortResult.confidence
-          );
-
-          const initialAiReason = hdOriginSpecialistFirstText(
-            draft.ai_reason,
-            draft.reason,
-            sortResult.ai_reason,
-            sortResult.reason,
-            aiSummary.reason
-          );
-
-          const initialWarnings = hdOriginSpecialistSaveArray(
-            root.warnings ||
-            draft.warnings ||
-            sortResult.warnings
-          );
-
-          const initialVisibleFields = hdOriginSpecialistSaveObject(
-            root.visibleFields ||
-            root.visible_fields ||
-            root.visible_fields_json ||
-            draft.visibleFields ||
-            draft.visible_fields ||
-            draft.visible_fields_json
-          );
-
-          const draftNo =
-            "AUTO-SPECIALIST-" +
-            String(ocrImportId) +
-            "-" +
-            String(Date.now());
-
-          const insertedSorting = await client.query(`
-            INSERT INTO accounting.payment_document_sorting_drafts (
-              payment_document_ocr_import_id,
-              draft_no,
-              draft_version,
-              is_current,
-              draft_status,
-              human_check_status,
-              document_type_code,
-              document_type_label,
-              payment_destination_code,
-              payment_destination_label,
-              accounting_category_code,
-              accounting_category_label,
-              payable_kind_code,
-              payable_kind_label,
-              specialist_route_code,
-              specialist_route_label,
-              payment_target_label,
-              payable_target_label,
-              expense_target_label,
-              tax_public_label,
-              public_utility_label,
-              contract_insurance_lease_label,
-              ai_confidence,
-              ai_confidence_label,
-              ai_reason,
-              ai_summary_json,
-              sort_result_json,
-              visible_fields_json,
-              warnings_json,
-              original_file_name,
-              saved_file_name,
-              saved_relative_path,
-              sha256,
-              ocr_text_length,
-              created_by_page,
-              created_by,
-              updated_by,
-              analysis_system_code,
-              analysis_system_label,
-              analysis_system_reason,
-              analysis_system_confidence,
-              specialist_analysis_status,
-              created_at,
-              updated_at
-            ) VALUES (
-              $1,$2,1,TRUE,'draft','unchecked',
-              $3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
-              $13,$14,$15,$16,$17,$18,$19,$19,$20,
-              $21::jsonb,$22::jsonb,$23::jsonb,$24::jsonb,
-              $25,$26,$27,$28,$29,
-              'payment-document-specialist-auto-save',
-              'specialist-analysis-results/save',
-              'specialist-analysis-results/save',
-              $30,$31,$32,$33,
-              $34,
-              now(),now()
-            )
-            RETURNING
-              payment_document_sorting_draft_id,
-              payment_document_ocr_import_id,
-              analysis_system_code,
-              analysis_system_label,
-              specialist_route_code,
-              specialist_route_label
-          `, [
-            ocrImportId,
-            draftNo,
-            documentTypeCode,
-            documentTypeLabel,
-            paymentDestinationCode,
-            paymentDestinationLabel,
-            accountingCategoryCode,
-            accountingCategoryLabel,
-            payableKindCode,
-            payableKindLabel,
-            fallbackSpecialistRouteCode,
-            fallbackSpecialistRouteLabel,
-            paymentTargetLabel,
-            payableTargetLabel,
-            expenseTargetLabel,
-            taxPublicLabel,
-            publicUtilityLabel,
-            contractInsuranceLeaseLabel,
-            initialAiConfidence,
-            initialAiReason,
-            JSON.stringify(aiSummary || {}),
-            JSON.stringify(sortResult || {}),
-            JSON.stringify(initialVisibleFields || {}),
-            JSON.stringify(initialWarnings),
-            String(ocrImportRow.original_file_name || ""),
-            String(ocrImportRow.saved_file_name || ""),
-            String(ocrImportRow.saved_relative_path || ""),
-            String(ocrImportRow.sha256 || ""),
-            Number(ocrImportRow.ocr_text_length || 0),
-            fallbackAnalysisSystemCode || null,
-            fallbackAnalysisSystemLabel || null,
-            initialAiReason || null,
-            initialAiConfidence || null,
-            "未解析"
-          ]);
-
-          sortingRow = insertedSorting.rows[0] || null;
-          sortingDraftAutoCreated = true;
-
-          if (!sortingRow) {
-            throw new Error("仕分け土台レコードの自動作成に失敗しました。");
-          }
-        }
+        sortingRow = sortingResult.rows[0] || null;
       }
 
       if (!sortingRow) {
-        const err = new Error(
-          "専門解析結果を保存する仕分け土台レコードを確定できませんでした。OCR取込IDを確認してください。"
-        );
+        const err = new Error("1回目・2回目解析結果の保存レコードが見つかりません。先に仕分け下書きを保存してください。");
         err.statusCode = 400;
         throw err;
       }
-
-      sortingDraftId = Number(
-        sortingRow.payment_document_sorting_draft_id
-      );
-
-      ocrImportId = Number(
-        sortingRow.payment_document_ocr_import_id
-      );
-
-      await client.query(`
-        UPDATE accounting.payment_document_ocr_imports
-        SET
-          latest_sorting_draft_id = $1,
-          draft_status = 'draft_saved',
-          sorted_at = COALESCE(sorted_at, now()),
-          updated_at = now()
-        WHERE payment_document_ocr_import_id = $2
-          AND deleted_at IS NULL
-      `, [
-        sortingDraftId,
-        ocrImportId
-      ]);
 
       sortingDraftId = Number(sortingRow.payment_document_sorting_draft_id);
       ocrImportId = Number(sortingRow.payment_document_ocr_import_id);
@@ -7862,8 +7493,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         specialistAnalysisId: saved.specialist_analysis_id,
         analysisSystemCode,
         analysisSystemLabel,
-        specialistAnalysisStatus: specialistStatus,
-        sortingDraftAutoCreated
+        specialistAnalysisStatus: specialistStatus
       };
     } catch (err) {
       try {
@@ -7894,7 +7524,6 @@ async function handlePaymentDocumentRoutes(req, res) {
         analysisSystemCode: saved.analysisSystemCode,
         analysisSystemLabel: saved.analysisSystemLabel,
         specialistAnalysisStatus: saved.specialistAnalysisStatus,
-        sortingDraftAutoCreated: !!saved.sortingDraftAutoCreated,
         saved: saved.saved
       });
     } catch (err) {

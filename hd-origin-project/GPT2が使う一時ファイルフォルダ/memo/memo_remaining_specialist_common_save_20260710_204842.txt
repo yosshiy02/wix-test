@@ -1,0 +1,38 @@
+﻿GPT2 connect remaining specialist pages to common specialist save API
+datetime: 2026-07-10 20:48:42
+
+result:
+[OK] utility communication: connected
+  target: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-utility-communication.html
+  replaced: /api/payment-documents/sorting-drafts/save = 2
+  before: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\payment-document-specialist-utility-communication.before_specialist_common_save_20260710_204842.html
+  after: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\payment-document-specialist-utility-communication.after_specialist_common_save_20260710_204842.html
+  undo: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_utility_communication_specialist_common_save_20260710_204842.ps1
+[OK] invoice payable: connected
+  target: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-invoice-payable.html
+  replaced: /api/payment-documents/sorting-drafts/save = 2
+  before: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\payment-document-specialist-invoice-payable.before_specialist_common_save_20260710_204842.html
+  after: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\after\payment-document-specialist-invoice-payable.after_specialist_common_save_20260710_204842.html
+  undo: C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\undo\undo_invoice_payable_specialist_common_save_20260710_204842.ps1
+
+new API:
+/api/payment-documents/specialist-analysis-results/save
+
+already connected before this step:
+- contract insurance lease
+- tax public
+
+attempted in this step:
+- utility communication
+- invoice payable
+
+design:
+1st and 2nd analysis result is saved in payment_document_sorting_drafts.
+Specialist page save posts to common specialist save API.
+The API inserts payment_document_specialist_analysis_results.
+The API updates payment_document_sorting_drafts.latest_specialist_analysis_id.
+
+not done:
+server restart
+git
+actual browser save test
