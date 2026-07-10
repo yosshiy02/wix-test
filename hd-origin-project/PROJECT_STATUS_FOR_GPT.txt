@@ -42,7 +42,7 @@ HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
 - DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
 
 [生成情報]
-生成日時: 2026/7/10 20:50:47
+生成日時: 2026/7/10 21:08:39
 PC名: 2FLABO
 OS: win32 10.0.19045 x64
 Node.js: v20.16.0
@@ -291,30 +291,35 @@ hd-origin-project\
 │  │  ├─ pd_routes_broken_20260709_213414.js
 │  │  └─ pd_routes_broken_20260709_213432.js
 │  ├─ GPT2に渡すフォルダ\
+│  │  ├─ _DB確認\
+│  │  │  └─ DB確認エラー.txt
 │  │  ├─ database\
 │  │  │  └─ migrations\
 │  │  │     ├─ 20260707_006_payment_document_sorting_drafts.sql
-│  │  │     └─ 20260709_001_payment_document_sorting_drafts_analysis_system_columns.sql
-│  │  └─ web_receiver\
-│  │     ├─ public\
-│  │     │  └─ payables\
-│  │     │     ├─ payment-document-inbox.css
-│  │     │     ├─ payment-document-inbox.html
-│  │     │     ├─ payment-document-review.css
-│  │     │     ├─ payment-document-review.html
-│  │     │     ├─ payment-document-specialist-contract-insurance-lease.html
-│  │     │     ├─ payment-document-specialist-invoice-payable.html
-│  │     │     ├─ payment-document-specialist-tax-public.html
-│  │     │     └─ payment-document-specialist-utility-communication.html
-│  │     ├─ src\
-│  │     │  └─ paymentDocuments\
-│  │     │     ├─ paymentDocuments.aiPromptLoader.js
-│  │     │     └─ paymentDocuments.routes.js
-│  │     └─ server.js
+│  │  │     ├─ 20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
+│  │  │     ├─ 20260708_005_contract_insurance_lease_drafts.sql
+│  │  │     ├─ 20260709_001_payment_document_sorting_drafts_analysis_system_columns.sql
+│  │  │     └─ 20260710_002_payment_document_specialist_link.sql
+│  │  ├─ web_receiver\
+│  │  │  ├─ public\
+│  │  │  │  └─ payables\
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.html
+│  │  │  │     ├─ payment-document-specialist-tax-public.html
+│  │  │  │     └─ payment-document-specialist-utility-communication.html
+│  │  │  └─ src\
+│  │  │     └─ paymentDocuments\
+│  │  │        └─ paymentDocuments.routes.js
+│  │  ├─ _構文確認_paymentDocuments.routes.txt
+│  │  └─ COLLECTION_MEMO.txt
 │  ├─ memo\
+│  │  ├─ check_recent_sorting_drafts_for_specialist_20260710_205602.sql
+│  │  ├─ check_recent_sorting_drafts_for_specialist_20260710_205602.txt
 │  │  ├─ check_specialist_default_mojibake_20260710_201208.txt
 │  │  ├─ check_specialist_link_db_20260710_200955.sql
 │  │  ├─ check_specialist_link_db_20260710_200955.txt
+│  │  ├─ check_utility_specialist_save_20260710_205411.sql
+│  │  ├─ check_utility_specialist_save_20260710_205411.txt
 │  │  ├─ cil_ai_summary_code_fix_20260709_210142.memo.txt
 │  │  ├─ cil_bulk_save_db_check_20260709_213004.js
 │  │  ├─ cil_bulk_save_db_check_20260709_213004.txt
@@ -459,39 +464,15 @@ hd-origin-project\
 │  └─ 00_README_GPT2_TEMP_FOLDER.txt
 ├─ GPTが使う一時ファイルフォルダ\
 │  ├─ 00_GPTに渡すフォルダ\
-│  │  ├─ database\
-│  │  │  └─ migrations\
-│  │  │     ├─ 20260703_001_baseline_current_schema.sql
-│  │  │     ├─ 20260706_001_payables_professional.sql
-│  │  │     ├─ 20260707_002_payment_document_division_masters.sql
-│  │  │     ├─ 20260707_003_all_master_internal_codes.sql
-│  │  │     ├─ 20260707_004_meaningful_master_codes_cleanup.sql
-│  │  │     ├─ 20260707_005_payment_document_ocr_imports.sql
-│  │  │     ├─ 20260707_006_payment_document_sorting_drafts.sql
-│  │  │     └─ 20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
-│  │  ├─ web_receiver\
-│  │  │  ├─ public\
-│  │  │  │  ├─ payables\
-│  │  │  │  │  ├─ payable-list.css
-│  │  │  │  │  ├─ payable-list.html
-│  │  │  │  │  ├─ payment-document-specialist-invoice-payable.css
-│  │  │  │  │  └─ payment-document-specialist-invoice-payable.html
-│  │  │  │  └─ business-flow-settings.html
-│  │  │  └─ src\
-│  │  │     ├─ masters\
-│  │  │     │  ├─ master.repository.js
-│  │  │     │  └─ masters.routes.js
-│  │  │     ├─ payables\
-│  │  │     │  ├─ payables.repository.js
-│  │  │     │  └─ payables.routes.js
-│  │  │     ├─ paymentDocuments\
-│  │  │     │  ├─ prompts\
-│  │  │     │  │  └─ common\
-│  │  │     │  │     ...
-│  │  │     │  ├─ paymentDocuments.aiPromptLoader.js
-│  │  │     │  └─ paymentDocuments.routes.js
-│  │  │     └─ db.js
-│  │  └─ 00_収集結果_業務フロー支払管理再収集.txt
+│  │  └─ web_receiver\
+│  │     ├─ public\
+│  │     │  └─ payables\
+│  │     │     ├─ payable-list.css
+│  │     │     └─ payable-list.html
+│  │     └─ src\
+│  │        └─ payables\
+│  │           ├─ payables.repository.js
+│  │           └─ payables.routes.js
 │  ├─ after\
 │  │  ├─ database\
 │  │  │  └─ migrations\
@@ -565,6 +546,7 @@ hd-origin-project\
 │  │  ├─ GPT_payable_control_B_20260710_204332.after.payable-list.css
 │  │  ├─ GPT_payable_control_B_20260710_204332.after.payable-list.html
 │  │  ├─ GPT_payable_control_B_20260710_204332.html-check.js
+│  │  ├─ GPT_payable_control_save_fix_20260710_205846.after.payables.repository.js
 │  │  ├─ GPT_restart_button_gitup_20260710_170142.after.server.js
 │  │  ├─ GPT_restart_button_gitup_japanese_path_fix_20260710_170836.after.server.js
 │  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.after.server.js
@@ -626,6 +608,7 @@ hd-origin-project\
 │  │  ├─ GPT_gitup_restart_shutdown_20260710_172948.apply.ps1
 │  │  ├─ GPT_payable_control_A_20260710_202518.apply.ps1
 │  │  ├─ GPT_payable_control_B_20260710_204332.apply.ps1
+│  │  ├─ GPT_payable_control_save_fix_20260710_205846.apply.ps1
 │  │  ├─ GPT_restart_button_gitup_20260710_170142.apply.ps1
 │  │  ├─ GPT_restart_button_gitup_final_20260710_171015.apply.ps1
 │  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.apply.ps1
@@ -682,6 +665,7 @@ hd-origin-project\
 │  │  ├─ GPT_payable_control_A_20260710_202518.before.payables.routes.js
 │  │  ├─ GPT_payable_control_B_20260710_204332.before.payable-list.css
 │  │  ├─ GPT_payable_control_B_20260710_204332.before.payable-list.html
+│  │  ├─ GPT_payable_control_save_fix_20260710_205846.before.payables.repository.js
 │  │  ├─ GPT_restart_button_gitup_20260710_165132.before.server.js
 │  │  ├─ GPT_restart_button_gitup_20260710_170142.before.server.js
 │  │  ├─ GPT_restart_button_gitup_final_20260710_171015.before.server.js
@@ -769,6 +753,7 @@ hd-origin-project\
 │  │  ├─ GPT_gitup_restart_shutdown_20260710_172948.memo.txt
 │  │  ├─ GPT_payable_control_A_20260710_202518.memo.txt
 │  │  ├─ GPT_payable_control_B_20260710_204332.memo.txt
+│  │  ├─ GPT_payable_control_save_fix_20260710_205846.memo.txt
 │  │  ├─ GPT_restart_button_gitup_final_20260710_171015.memo.txt
 │  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.memo.txt
 │  │  ├─ GPT_サーバー再起動機能_最低限収集結果_20260710_163553.txt
@@ -836,6 +821,7 @@ hd-origin-project\
 │  │  ├─ GPT_gitup_restart_shutdown_20260710_172948.undo.ps1
 │  │  ├─ GPT_payable_control_A_20260710_202518.undo.ps1
 │  │  ├─ GPT_payable_control_B_20260710_204332.undo.ps1
+│  │  ├─ GPT_payable_control_save_fix_20260710_205846.undo.ps1
 │  │  ├─ GPT_restart_button_gitup_20260710_170142.undo.ps1
 │  │  ├─ GPT_restart_button_gitup_final_20260710_171015.undo.ps1
 │  │  ├─ GPT_restart_gitup_mojibake_fix_20260710_171327.undo.ps1
