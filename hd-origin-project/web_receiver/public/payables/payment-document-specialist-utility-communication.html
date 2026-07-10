@@ -5370,13 +5370,20 @@ function setDocumentPreview(item) {
     payload.analysis_system_code =
       payload.analysis_system_code ||
       payload.analysisSystemCode ||
+      analysisResult.analysis_system_code ||
+      analysisResult.analysisSystemCode ||
       analysisDraft.analysis_system_code ||
       analysisDraft.analysisSystemCode ||
       analysisRoot.analysis_system_code ||
       analysisRoot.analysisSystemCode ||
       analysisSummary.analysis_system_code ||
+      window.__hdOriginSpecialistActiveAnalysisSystemCode ||
       "";
 
+    if (payload.analysis_system_code) {
+      window.__hdOriginSpecialistActiveAnalysisSystemCode =
+        payload.analysis_system_code;
+    }
     payload.analysis_system_label =
       payload.analysis_system_label ||
       payload.analysisSystemLabel ||

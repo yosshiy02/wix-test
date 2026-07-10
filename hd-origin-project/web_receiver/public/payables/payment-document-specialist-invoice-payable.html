@@ -645,6 +645,15 @@
 </div>
 <div class="button-row action-button-row">
         <button type="button" class="action-btn action-ai" onclick="runAiDraftFromSelectedOcr()">単品専門解析</button>
+
+        <!-- HD_ORIGIN_INVOICE_SPECIALIST_TO_PAYABLES_20260710_START -->
+        <button
+          type="button"
+          id="registerSelectedToPayablesButton"
+          class="action-btn post-ai-action"
+          onclick="registerSelectedSpecialistToPayables()"
+        >未払管理へ登録</button>
+        <!-- HD_ORIGIN_INVOICE_SPECIALIST_TO_PAYABLES_20260710_END -->
       </div>
 
       <details class="ocr-details">
@@ -5337,13 +5346,20 @@ function setDocumentPreview(item) {
     payload.analysis_system_code =
       payload.analysis_system_code ||
       payload.analysisSystemCode ||
+      analysisResult.analysis_system_code ||
+      analysisResult.analysisSystemCode ||
       analysisDraft.analysis_system_code ||
       analysisDraft.analysisSystemCode ||
       analysisRoot.analysis_system_code ||
       analysisRoot.analysisSystemCode ||
       analysisSummary.analysis_system_code ||
+      window.__hdOriginSpecialistActiveAnalysisSystemCode ||
       "";
 
+    if (payload.analysis_system_code) {
+      window.__hdOriginSpecialistActiveAnalysisSystemCode =
+        payload.analysis_system_code;
+    }
     payload.analysis_system_label =
       payload.analysis_system_label ||
       payload.analysisSystemLabel ||
@@ -6558,6 +6574,833 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
+
+<!-- HD_ORIGIN_INVOICE_SPECIALIST_PAYABLE_MAPPING_20260710_START -->
+<script>
+(function () {
+  "use strict";
+
+  function elementById(id) {
+    return document.getElementById(id);
+  }
+
+  function fieldValue(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.value === null ||
+      element.value === undefined
+    ) {
+      return "";
+    }
+
+    return String(element.value).trim();
+  }
+
+  function selectedText(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.tagName === "SELECT" &&
+      element.selectedIndex >= 0 &&
+      element.options &&
+      element.options[element.selectedIndex]
+    ) {
+      var option =
+        element.options[element.selectedIndex];
+
+      var text = String(
+        option.textContent || ""
+      ).trim();
+
+      if (
+        text &&
+        text !== "マスタ読込中..." &&
+        text !== "選択"
+      ) {
+        return text;
+      }
+    }
+
+    return fieldValue(id);
+  }
+
+  function selectedCode(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.tagName === "SELECT" &&
+      element.selectedIndex >= 0 &&
+      element.options &&
+      element.options[element.selectedIndex]
+    ) {
+      var option =
+        element.options[element.selectedIndex];
+
+      var dataCode =
+        option.dataset.code ||
+        option.dataset.programCode ||
+        option.dataset.internalCode ||
+        option.getAttribute("data-code") ||
+        option.getAttribute("data-program-code") ||
+        option.getAttribute("data-internal-code") ||
+        "";
+
+      if (String(dataCode || "").trim()) {
+        return String(dataCode).trim();
+      }
+
+      var optionValue =
+        String(option.value || "").trim();
+
+      if (
+        optionValue &&
+        !/^[0-9]+$/.test(optionValue)
+      ) {
+        return optionValue;
+      }
+    }
+
+    return fieldValue(id);
+  }
+
+  function moneyValue(id) {
+    var raw = fieldValue(id)
+      .replace(/,/g, "")
+      .replace(/[^\d.-]/g, "");
+
+    if (!raw) {
+      return 0;
+    }
+
+    var value = Number(raw);
+
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return value;
+  }
+
+  function normalizeDateValue(value) {
+    var text = String(value || "").trim();
+
+    if (!text) {
+      return "";
+    }
+
+    var match = text.match(
+      /(\d{4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})/
+    );
+
+    if (!match) {
+      return "";
+    }
+
+    return (
+      match[1] +
+      "-" +
+      String(match[2]).padStart(2, "0") +
+      "-" +
+      String(match[3]).padStart(2, "0")
+    );
+  }
+
+  function firstDate() {
+    for (
+      var index = 0;
+      index < arguments.length;
+      index++
+    ) {
+      var value =
+        normalizeDateValue(
+          fieldValue(arguments[index])
+        );
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return "";
+  }
+
+  function currentItem() {
+    try {
+      if (
+        typeof selectedItem === "function"
+      ) {
+        var selected = selectedItem();
+
+        if (selected) {
+          return selected;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "selectedItem取得失敗:",
+        error
+      );
+    }
+
+    try {
+      if (
+        Array.isArray(items) &&
+        Number.isInteger(selectedIndex) &&
+        selectedIndex >= 0 &&
+        items[selectedIndex]
+      ) {
+        return items[selectedIndex];
+      }
+    } catch (error) {
+      console.warn(
+        "items取得失敗:",
+        error
+      );
+    }
+
+    return null;
+  }
+
+  function currentOcrImportId(item) {
+    if (!item) {
+      return "";
+    }
+
+    return String(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.id ||
+      ""
+    ).trim();
+  }
+
+  function currentFileName(item) {
+    if (!item) {
+      return "";
+    }
+
+    return String(
+      item.originalFileName ||
+      item.savedFileName ||
+      item.fileName ||
+      item.saved_file_name ||
+      ""
+    ).trim();
+  }
+
+  function normalizeDocumentType() {
+    var text = [
+      selectedCode("draftAiDocumentKind"),
+      selectedText("draftAiDocumentKind"),
+      selectedCode("draftEvidenceType"),
+      selectedText("draftEvidenceType"),
+      fieldValue("draftDocumentTitle")
+    ].join(" ").toLowerCase();
+
+    if (
+      text.includes("delivery_note") ||
+      text.includes("納品書")
+    ) {
+      return "delivery_note";
+    }
+
+    if (
+      text.includes("credit_note") ||
+      text.includes("値引") ||
+      text.includes("返金")
+    ) {
+      return "credit_note";
+    }
+
+    if (
+      text.includes("statement") ||
+      text.includes("明細書")
+    ) {
+      return "statement";
+    }
+
+    if (
+      text.includes("invoice") ||
+      text.includes("請求書")
+    ) {
+      return "invoice";
+    }
+
+    return "other";
+  }
+
+  function normalizePayableKind() {
+    var text = [
+      selectedCode("draftPayableKind"),
+      selectedText("draftPayableKind"),
+      selectedCode("draftAccountingCategory"),
+      selectedText("draftAccountingCategory"),
+      fieldValue("draftAccountsPayableFlag")
+    ].join(" ").toLowerCase();
+
+    if (
+      text.includes("accounts_payable") ||
+      text.includes("買掛")
+    ) {
+      return "accounts_payable";
+    }
+
+    if (
+      text.includes("accrued_expense") ||
+      text.includes("未払費用")
+    ) {
+      return "accrued_expense";
+    }
+
+    if (
+      text.includes("card_payable") ||
+      text.includes("カード未払")
+    ) {
+      return "card_payable";
+    }
+
+    if (
+      text.includes("other") ||
+      text.includes("その他")
+    ) {
+      return "other";
+    }
+
+    return "unpaid";
+  }
+
+  function calculateAmounts() {
+    var amountExTax =
+      moneyValue("draftAmountExTax");
+
+    var taxAmount =
+      moneyValue("draftTaxAmount");
+
+    var amountInTax =
+      moneyValue("draftAmountInTax") ||
+      moneyValue("draftTotalAmount") ||
+      moneyValue("draftAmount");
+
+    if (
+      amountInTax <= 0 &&
+      (
+        amountExTax > 0 ||
+        taxAmount > 0
+      )
+    ) {
+      amountInTax =
+        amountExTax +
+        taxAmount;
+    }
+
+    if (
+      amountExTax <= 0 &&
+      amountInTax > 0
+    ) {
+      amountExTax = Math.max(
+        amountInTax - taxAmount,
+        0
+      );
+    }
+
+    if (
+      taxAmount <= 0 &&
+      amountInTax > amountExTax
+    ) {
+      taxAmount =
+        amountInTax -
+        amountExTax;
+    }
+
+    var taxRate = 0;
+
+    if (
+      amountExTax > 0 &&
+      taxAmount > 0
+    ) {
+      taxRate = Math.round(
+        (
+          taxAmount /
+          amountExTax *
+          100
+        ) *
+        100
+      ) / 100;
+    }
+
+    return {
+      amountExTax: amountExTax,
+      taxAmount: taxAmount,
+      amountInTax: amountInTax,
+      taxRate: taxRate
+    };
+  }
+
+  function buildPayload(item) {
+    var amounts =
+      calculateAmounts();
+
+    var ocrImportId =
+      currentOcrImportId(item);
+
+    var fileName =
+      currentFileName(item);
+
+    var warnings =
+      fieldValue("draftWarnings");
+
+    var aiReason =
+      fieldValue("draftAiReason");
+
+    var linesRaw =
+      fieldValue("draftLinesRaw");
+
+    var title =
+      fieldValue("draftDocumentTitle");
+
+    var summary =
+      fieldValue("draftSummary") ||
+      title ||
+      "請求・未払系専門解析から登録";
+
+    var sourceMemo = [
+      "請求・未払系専門解析から登録",
+      "payment_document_ocr_import_id=" +
+        ocrImportId,
+      "analysis_system_code=invoice_payable_analysis"
+    ];
+
+    if (aiReason) {
+      sourceMemo.push(
+        "AI判定理由: " +
+        aiReason
+      );
+    }
+
+    var documentData = {
+      document_type:
+        normalizeDocumentType(),
+
+      payable_kind:
+        normalizePayableKind(),
+
+      status: "draft",
+
+      vendor_name:
+        fieldValue("draftVendorName") ||
+        fieldValue("draftIssuer"),
+
+      invoice_number:
+        fieldValue("draftInvoiceNo"),
+
+      supplier_document_no:
+        fieldValue("draftManagementNo") ||
+        fieldValue("draftOrderNo") ||
+        fieldValue("draftTransactionNo"),
+
+      document_date:
+        firstDate(
+          "draftBillingDate",
+          "draftDocumentDate",
+          "draftIssueDate"
+        ),
+
+      posting_date:
+        firstDate(
+          "draftBillingDate",
+          "draftDocumentDate",
+          "draftIssueDate"
+        ),
+
+      due_date:
+        firstDate(
+          "draftDueDate"
+        ),
+
+      payment_plan_date:
+        firstDate(
+          "draftPaymentPlanDate",
+          "draftDueDate"
+        ),
+
+      currency_code: "JPY",
+
+      summary: summary,
+
+      memo:
+        fieldValue("draftMemo"),
+
+      internal_note:
+        linesRaw,
+
+      evidence_type:
+        selectedText(
+          "draftEvidenceType"
+        ),
+
+      evidence_file_name:
+        fileName,
+
+      source_memo:
+        sourceMemo.join("\n"),
+
+      journal_status:
+        "not_created",
+
+      created_by:
+        "payment-document-specialist-invoice-payable",
+
+      updated_by:
+        "payment-document-specialist-invoice-payable",
+
+      company_code: "",
+
+      company_name:
+        fieldValue("draftCompanyName"),
+
+      evidence_status:
+        fileName
+          ? "received"
+          : "missing",
+
+      evidence_due_date: "",
+
+      evidence_received_date:
+        fileName
+          ? new Date()
+              .toISOString()
+              .slice(0, 10)
+          : "",
+
+      review_status:
+        warnings
+          ? "needs_review"
+          : "unreviewed",
+
+      review_reason:
+        warnings,
+
+      warning_level:
+        warnings
+          ? "warning"
+          : "none",
+
+      professional_review_required:
+        false,
+
+      professional_review_status:
+        "not_required",
+
+      professional_reviewer: "",
+
+      professional_reviewed_at: null,
+
+      professional_review_result: ""
+    };
+
+    var lineDescription =
+      linesRaw ||
+      title ||
+      summary;
+
+    var lineData = {
+      account_title_id: null,
+      tax_category_id: null,
+
+      item_name:
+        fieldValue("draftSummary") ||
+        title ||
+        "専門解析明細",
+
+      description:
+        lineDescription,
+
+      quantity: 1,
+
+      unit_price:
+        amounts.amountExTax,
+
+      amount_ex_tax:
+        amounts.amountExTax,
+
+      tax_rate:
+        amounts.taxRate,
+
+      tax_amount:
+        amounts.taxAmount,
+
+      amount_in_tax:
+        amounts.amountInTax,
+
+      target_person_id: null,
+      purpose_id: null,
+      project_id: null,
+      department_id: null,
+
+      memo:
+        linesRaw
+    };
+
+    return {
+      document: documentData,
+      lines: [lineData]
+    };
+  }
+
+  async function findExisting(
+    ocrImportId
+  ) {
+    if (!ocrImportId) {
+      return null;
+    }
+
+    var response = await fetch(
+      "/api/payables",
+      {
+        cache: "no-store"
+      }
+    );
+
+    var json = await response
+      .json()
+      .catch(function () {
+        return {};
+      });
+
+    if (
+      !response.ok ||
+      !json.ok ||
+      !Array.isArray(json.items)
+    ) {
+      return null;
+    }
+
+    var marker =
+      "payment_document_ocr_import_id=" +
+      ocrImportId;
+
+    return json.items.find(
+      function (row) {
+        var sourceMemo = String(
+          row.source_memo ||
+          row.sourceMemo ||
+          ""
+        );
+
+        return sourceMemo.includes(
+          marker
+        );
+      }
+    ) || null;
+  }
+
+  window.registerSelectedSpecialistToPayables =
+    async function () {
+      var item = currentItem();
+
+      if (!item) {
+        alert(
+          "左の一覧から登録対象を選択してください。"
+        );
+        return;
+      }
+
+      var button = elementById(
+        "registerSelectedToPayablesButton"
+      );
+
+      if (
+        button &&
+        button.dataset.saving === "1"
+      ) {
+        return;
+      }
+
+      var vendorName =
+        fieldValue("draftVendorName") ||
+        fieldValue("draftIssuer");
+
+      var amounts =
+        calculateAmounts();
+
+      if (!vendorName) {
+        alert(
+          "支払先が空欄です。\n専門解析結果を確認してください。"
+        );
+        return;
+      }
+
+      if (
+        amounts.amountInTax <= 0
+      ) {
+        alert(
+          "税込合計金額が取得できません。\n金額欄を確認してください。"
+        );
+        return;
+      }
+
+      var confirmed = confirm(
+        "現在表示中の専門解析結果を未払管理へ登録します。\n\n" +
+        "支払先: " +
+        vendorName +
+        "\n税込金額: " +
+        amounts.amountInTax.toLocaleString(
+          "ja-JP"
+        ) +
+        "円\n\n" +
+        "登録状態は「下書き」です。"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      var originalText =
+        button
+          ? button.textContent
+          : "未払管理へ登録";
+
+      try {
+        if (button) {
+          button.dataset.saving = "1";
+          button.disabled = true;
+          button.textContent =
+            "登録確認中...";
+        }
+
+        var ocrImportId =
+          currentOcrImportId(item);
+
+        var existing =
+          await findExisting(
+            ocrImportId
+          );
+
+        if (existing) {
+          alert(
+            "このOCR書類は、すでに未払管理へ登録されています。\n\n" +
+            "管理番号: " +
+            (
+              existing.payable_no ||
+              existing.payableNo ||
+              ""
+            ) +
+            "\n支払先: " +
+            (
+              existing.vendor_name ||
+              existing.vendorName ||
+              ""
+            )
+          );
+
+          return;
+        }
+
+        if (button) {
+          button.textContent =
+            "未払管理へ登録中...";
+        }
+
+        var payload =
+          buildPayload(item);
+
+        var response = await fetch(
+          "/api/payables",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(
+              payload
+            )
+          }
+        );
+
+        var json = await response
+          .json()
+          .catch(function () {
+            return {};
+          });
+
+        if (
+          !response.ok ||
+          !json.ok
+        ) {
+          throw new Error(
+            json.error ||
+            json.message ||
+            (
+              "HTTP " +
+              response.status
+            )
+          );
+        }
+
+        var result =
+          json.result || {};
+
+        alert(
+          "未払管理へ登録しました。\n\n" +
+          "管理番号: " +
+          (
+            result.payable_no ||
+            result.payableNo ||
+            ""
+          ) +
+          "\n支払先: " +
+          vendorName +
+          "\n税込金額: " +
+          amounts.amountInTax.toLocaleString(
+            "ja-JP"
+          ) +
+          "円"
+        );
+
+        location.href =
+          "/payables/payable-list.html";
+      } catch (error) {
+        console.error(
+          "未払管理登録失敗:",
+          error
+        );
+
+        alert(
+          "未払管理への登録に失敗しました。\n\n" +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          )
+        );
+      } finally {
+        if (button) {
+          delete button.dataset.saving;
+          button.disabled = false;
+          button.textContent =
+            originalText;
+        }
+      }
+    };
+})();
+</script>
+<!-- HD_ORIGIN_INVOICE_SPECIALIST_PAYABLE_MAPPING_20260710_END -->
 </body>
 </html>
 
