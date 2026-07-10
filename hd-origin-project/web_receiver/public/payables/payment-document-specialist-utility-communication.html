@@ -5336,6 +5336,94 @@ function setDocumentPreview(item) {
   async function saveSortingDraftFromReviewPage(context) {
     const payload = collectSortingDraftPayload(context);
 
+    const analysisResult =
+      context && context.analysisResult && typeof context.analysisResult === "object"
+        ? context.analysisResult
+        : context && context.item && context.item.__aiRawResult
+          ? context.item.__aiRawResult
+          : {};
+
+    const analysisDraft =
+      analysisResult.draft && typeof analysisResult.draft === "object"
+        ? analysisResult.draft
+        : context && context.item && context.item.__aiDraft
+          ? context.item.__aiDraft
+          : {};
+
+    const analysisRoot =
+      analysisResult.sortResult ||
+      analysisResult.sort_result ||
+      analysisResult.result ||
+      analysisDraft.sortResult ||
+      analysisDraft.sort_result ||
+      analysisDraft;
+
+    const analysisSummary =
+      analysisResult.ai_summary ||
+      analysisResult.aiSummary ||
+      analysisDraft.ai_summary ||
+      analysisDraft.aiSummary ||
+      analysisRoot.ai_summary ||
+      analysisRoot.aiSummary ||
+      {};
+
+    payload.analysis_system_code =
+      payload.analysis_system_code ||
+      payload.analysisSystemCode ||
+      analysisDraft.analysis_system_code ||
+      analysisDraft.analysisSystemCode ||
+      analysisRoot.analysis_system_code ||
+      analysisRoot.analysisSystemCode ||
+      analysisSummary.analysis_system_code ||
+      "";
+
+    payload.analysis_system_label =
+      payload.analysis_system_label ||
+      payload.analysisSystemLabel ||
+      analysisDraft.analysis_system_label ||
+      analysisDraft.analysisSystemLabel ||
+      analysisRoot.analysis_system_label ||
+      analysisRoot.analysisSystemLabel ||
+      analysisSummary.analysis_system_label ||
+      analysisSummary.analysis_system ||
+      "";
+
+    payload.analysis_system_reason =
+      payload.analysis_system_reason ||
+      payload.analysisSystemReason ||
+      analysisDraft.analysis_system_reason ||
+      analysisDraft.analysisSystemReason ||
+      analysisRoot.analysis_system_reason ||
+      analysisRoot.analysisSystemReason ||
+      analysisSummary.analysis_system_reason ||
+      "";
+
+    payload.analysis_system_confidence =
+      payload.analysis_system_confidence ||
+      payload.analysisSystemConfidence ||
+      analysisDraft.analysis_system_confidence ||
+      analysisDraft.analysisSystemConfidence ||
+      analysisRoot.analysis_system_confidence ||
+      analysisRoot.analysisSystemConfidence ||
+      analysisSummary.analysis_system_confidence ||
+      "";
+
+    payload.specialist_route_code =
+      payload.specialist_route_code ||
+      payload.specialistRouteCode ||
+      analysisDraft.specialist_route_code ||
+      analysisRoot.specialist_route_code ||
+      analysisResult.document_group ||
+      analysisDraft.document_group ||
+      "";
+
+    payload.specialist_route_label =
+      payload.specialist_route_label ||
+      payload.specialistRouteLabel ||
+      analysisDraft.specialist_route_label ||
+      analysisRoot.specialist_route_label ||
+      "";
+
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
