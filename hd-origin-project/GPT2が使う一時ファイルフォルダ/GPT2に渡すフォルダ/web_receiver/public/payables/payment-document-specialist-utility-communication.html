@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./payment-document-specialist-utility-communication.css">
 </head>
 <body class="specialist-utility-communication-page" data-specialist-route-code="utility_communication">
+<!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
@@ -5301,7 +5302,7 @@ function setDocumentPreview(item) {
   async function saveSortingDraftFromReviewPage() {
     const payload = collectSortingDraftPayload();
 
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5556,7 +5557,7 @@ function setDocumentPreview(item) {
   }
 
   async function postSortingDraft(payload) {
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"

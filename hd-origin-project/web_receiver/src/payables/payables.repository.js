@@ -648,7 +648,7 @@ async function savePayable(payload = {}) {
         professional_reviewed_at = $13,
         professional_review_result = $14,
         updated_at = now()
-      WHERE payable_id =     
+      WHERE payable_id =     $1
     `, [
       id,
       toText(document.company_code),

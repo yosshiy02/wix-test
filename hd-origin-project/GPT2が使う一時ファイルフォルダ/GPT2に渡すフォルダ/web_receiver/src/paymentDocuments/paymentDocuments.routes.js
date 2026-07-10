@@ -7221,6 +7221,321 @@ async function handlePaymentDocumentRoutes(req, res) {
   }
   /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_ROUTE_20260707_END */
 
+  /* HD_ORIGIN_GPT2_SPECIALIST_ANALYSIS_RESULT_SAVE_ROUTE_20260710_START */
+  function hdOriginSpecialistSaveText(value) {
+    if (value === undefined || value === null) return null;
+    const text = String(value).trim();
+    return text ? text : null;
+  }
+
+  function hdOriginSpecialistSaveNumber(value) {
+    if (value === undefined || value === null || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function hdOriginSpecialistSaveObject(value) {
+    if (!value || typeof value !== "object") return {};
+    return value;
+  }
+
+  function hdOriginSpecialistSaveArray(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  function hdOriginSpecialistFirstObject() {
+    for (const value of arguments) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        return value;
+      }
+    }
+    return {};
+  }
+
+  function hdOriginSpecialistFirstText() {
+    for (const value of arguments) {
+      const text = hdOriginSpecialistSaveText(value);
+      if (text) return text;
+    }
+    return null;
+  }
+
+  async function hdOriginSavePaymentDocumentSpecialistAnalysisResult(body) {
+    const root = hdOriginSpecialistFirstObject(body);
+    const draft = hdOriginSpecialistFirstObject(root.draft, root.aiDraft, root.ai_draft, root.sorting, root.classification);
+    const sortResult = hdOriginSpecialistFirstObject(root.sortResult, root.sort_result, root.result, draft.sortResult, draft.sort_result);
+    const aiSummary = hdOriginSpecialistFirstObject(root.ai_summary, root.aiSummary, draft.ai_summary, draft.aiSummary, sortResult.ai_summary, sortResult.aiSummary);
+
+    let ocrImportId = hdOriginSpecialistSaveNumber(
+      root.paymentDocumentOcrImportId ||
+      root.payment_document_ocr_import_id ||
+      root.ocrImportId ||
+      root.ocr_import_id ||
+      root.id
+    );
+
+    let sortingDraftId = hdOriginSpecialistSaveNumber(
+      root.paymentDocumentSortingDraftId ||
+      root.payment_document_sorting_draft_id ||
+      root.sortingDraftId ||
+      root.sorting_draft_id ||
+      root.draftId ||
+      root.draft_id
+    );
+
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      let sortingRow = null;
+
+      if (sortingDraftId) {
+        const sortingResult = await client.query(`
+          SELECT
+            payment_document_sorting_draft_id,
+            payment_document_ocr_import_id,
+            analysis_system_code,
+            analysis_system_label,
+            specialist_route_code,
+            specialist_route_label
+          FROM accounting.payment_document_sorting_drafts
+          WHERE payment_document_sorting_draft_id = $1
+            AND deleted_at IS NULL
+          FOR UPDATE
+        `, [sortingDraftId]);
+
+        sortingRow = sortingResult.rows[0] || null;
+      } else if (ocrImportId) {
+        const sortingResult = await client.query(`
+          SELECT
+            payment_document_sorting_draft_id,
+            payment_document_ocr_import_id,
+            analysis_system_code,
+            analysis_system_label,
+            specialist_route_code,
+            specialist_route_label
+          FROM accounting.payment_document_sorting_drafts
+          WHERE payment_document_ocr_import_id = $1
+            AND is_current = TRUE
+            AND deleted_at IS NULL
+          ORDER BY payment_document_sorting_draft_id DESC
+          LIMIT 1
+          FOR UPDATE
+        `, [ocrImportId]);
+
+        sortingRow = sortingResult.rows[0] || null;
+      }
+
+      if (!sortingRow) {
+        const err = new Error("1回目・2回目解析結果の保存レコードが見つかりません。先に仕分け下書きを保存してください。");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      sortingDraftId = Number(sortingRow.payment_document_sorting_draft_id);
+      ocrImportId = Number(sortingRow.payment_document_ocr_import_id);
+
+      const analysisSystemCode = hdOriginSpecialistFirstText(
+        root.analysisSystemCode,
+        root.analysis_system_code,
+        draft.analysis_system_code,
+        draft.specialist_route_code,
+        sortResult.analysis_system_code,
+        sortResult.specialist_route_code,
+        aiSummary.analysis_system_code,
+        sortingRow.analysis_system_code,
+        sortingRow.specialist_route_code
+      );
+
+      if (!analysisSystemCode) {
+        const err = new Error("analysis_system_code が取得できません。1回目解析の専門解析コードを確認してください。");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const analysisSystemLabel = hdOriginSpecialistFirstText(
+        root.analysisSystemLabel,
+        root.analysis_system_label,
+        draft.analysis_system_label,
+        draft.specialist_route_label,
+        sortResult.analysis_system_label,
+        sortResult.specialist_route_label,
+        aiSummary.analysis_system_label,
+        aiSummary.analysis_system,
+        sortingRow.analysis_system_label,
+        sortingRow.specialist_route_label
+      );
+
+      const aiConfidence = hdOriginSpecialistSaveNumber(
+        root.aiConfidence ||
+        root.ai_confidence ||
+        draft.ai_confidence ||
+        draft.confidence ||
+        sortResult.ai_confidence ||
+        sortResult.confidence
+      );
+
+      const aiReason = hdOriginSpecialistFirstText(
+        root.aiReason,
+        root.ai_reason,
+        root.reason,
+        draft.ai_reason,
+        draft.reason,
+        sortResult.ai_reason,
+        sortResult.reason,
+        aiSummary.reason
+      );
+
+      const warningsJson = hdOriginSpecialistSaveArray(root.warnings || draft.warnings || sortResult.warnings);
+      const rawResultJson = hdOriginSpecialistSaveObject(
+        root.rawResult ||
+        root.raw_result_json ||
+        root.specialistResult ||
+        root.specialist_result ||
+        root.result ||
+        root
+      );
+
+      const humanMemo = hdOriginSpecialistFirstText(
+        root.humanMemo,
+        root.human_memo,
+        root.memo
+      );
+
+      const specialistStatus = hdOriginSpecialistFirstText(
+        root.specialistAnalysisStatus,
+        root.specialist_analysis_status
+      ) || "\u4FDD\u5B58\u6E08\u307F";
+
+      const humanConfirmStatus = hdOriginSpecialistFirstText(
+        root.humanConfirmStatus,
+        root.human_confirm_status
+      ) || "\u672A\u78BA\u8A8D";
+
+      await client.query(`
+        UPDATE accounting.payment_document_specialist_analysis_results
+        SET
+          is_current = FALSE,
+          updated_at = now()
+        WHERE payment_document_sorting_draft_id = $1
+          AND analysis_system_code = $2
+          AND is_current = TRUE
+          AND deleted_at IS NULL
+      `, [sortingDraftId, analysisSystemCode]);
+
+      const inserted = await client.query(`
+        INSERT INTO accounting.payment_document_specialist_analysis_results (
+          payment_document_ocr_import_id,
+          payment_document_sorting_draft_id,
+          analysis_system_code,
+          analysis_system_label,
+          specialist_analysis_status,
+          ai_confidence,
+          ai_reason,
+          warnings_json,
+          raw_result_json,
+          human_confirm_status,
+          human_memo,
+          is_current,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,TRUE,now(),now()
+        )
+        RETURNING
+          specialist_analysis_id,
+          payment_document_ocr_import_id,
+          payment_document_sorting_draft_id,
+          analysis_system_code,
+          analysis_system_label,
+          specialist_analysis_status,
+          created_at,
+          updated_at
+      `, [
+        ocrImportId,
+        sortingDraftId,
+        analysisSystemCode,
+        analysisSystemLabel,
+        specialistStatus,
+        aiConfidence,
+        aiReason,
+        JSON.stringify(warningsJson),
+        JSON.stringify(rawResultJson),
+        humanConfirmStatus,
+        humanMemo
+      ]);
+
+      const saved = inserted.rows[0];
+
+      await client.query(`
+        UPDATE accounting.payment_document_sorting_drafts
+        SET
+          latest_specialist_analysis_id = $1,
+          specialist_analysis_status = $2,
+          specialist_analyzed_at = now(),
+          specialist_saved_at = now(),
+          specialist_error_text = NULL,
+          updated_at = now()
+        WHERE payment_document_sorting_draft_id = $3
+      `, [
+        saved.specialist_analysis_id,
+        specialistStatus,
+        sortingDraftId
+      ]);
+
+      await client.query("COMMIT");
+
+      return {
+        saved,
+        paymentDocumentOcrImportId: ocrImportId,
+        paymentDocumentSortingDraftId: sortingDraftId,
+        specialistAnalysisId: saved.specialist_analysis_id,
+        analysisSystemCode,
+        analysisSystemLabel,
+        specialistAnalysisStatus: specialistStatus
+      };
+    } catch (err) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // 元エラーを優先
+      }
+
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/specialist-analysis-results/save") {
+    try {
+      const body = await readBody(req);
+      const saved = await hdOriginSavePaymentDocumentSpecialistAnalysisResult(body);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "専門解析結果を保存しました。",
+        paymentDocumentOcrImportId: saved.paymentDocumentOcrImportId,
+        paymentDocumentSortingDraftId: saved.paymentDocumentSortingDraftId,
+        specialistAnalysisId: saved.specialistAnalysisId,
+        specialist_analysis_id: saved.specialistAnalysisId,
+        latestSpecialistAnalysisId: saved.specialistAnalysisId,
+        analysisSystemCode: saved.analysisSystemCode,
+        analysisSystemLabel: saved.analysisSystemLabel,
+        specialistAnalysisStatus: saved.specialistAnalysisStatus,
+        saved: saved.saved
+      });
+    } catch (err) {
+      sendJson(res, err.statusCode || 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_GPT2_SPECIALIST_ANALYSIS_RESULT_SAVE_ROUTE_20260710_END */
   /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_ROUTE_20260707_START */
   if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/sorting-drafts/save") {
     try {
