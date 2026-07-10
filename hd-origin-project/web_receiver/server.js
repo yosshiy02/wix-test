@@ -262,7 +262,7 @@ function hdOriginRestartChangedPaths(repoRoot) {
     );
 }
 
-async function hdOriginRunRestartButtonGitUp() {
+async function hdOriginRunRestartButtonGitUp(action) {
   const projectRoot =
     config.projectRoot ||
     path.resolve(__dirname, "..");
@@ -372,8 +372,15 @@ async function hdOriginRunRestartButtonGitUp() {
     );
   }
 
+  const normalizedAction =
+    String(action || "system-exit")
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-");
+
   const commitMessage =
-    "HD Origin GitUp before server restart " +
+    "HD Origin GitUp before server " +
+    normalizedAction +
+    " " +
     new Date().toISOString();
 
   hdOriginRestartGitRun(
@@ -429,27 +436,35 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
 
   try {
     /*
-      GitUp runs only for the restart-button API.
-      It does not run during normal startup or shutdown.
+      GitUp runs only for the restart and shutdown button APIs.
+      It never runs during normal startup.
     */
-    if (
-      String(reason || "").toLowerCase() === "restart"
-    ) {
-      console.log("[RESTART_GITUP] started");
+    const systemExitAction =
+      String(reason || "").toLowerCase();
+
+    const shouldRunGitUp =
+      systemExitAction === "restart" ||
+      systemExitAction === "shutdown";
+
+    if (shouldRunGitUp) {
+      console.log(
+        "[SYSTEM_EXIT_GITUP] started:",
+        systemExitAction
+      );
 
       try {
         gitup =
-          await hdOriginRunRestartButtonGitUp();
+          await hdOriginRunRestartButtonGitUp(systemExitAction);
 
         console.log(
-          "[RESTART_GITUP] completed:",
+          "[SYSTEM_EXIT_GITUP] completed:",
           gitup.commit_hash || "no changes"
         );
       } catch (gitErr) {
         hdOriginSystemExitInProgress = false;
 
         console.error(
-          "[RESTART_GITUP] failed; restart cancelled:",
+          "[SYSTEM_EXIT_GITUP] failed; action cancelled:",
           gitErr.message
         );
 
@@ -457,7 +472,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
           ok: false,
           stage: "gitup",
           error:
-            "GitUp failed. The server restart was cancelled.",
+            "GitUp failed. The shutdown or restart action was cancelled.",
           detail: gitErr.message,
           stderr: gitErr.stderr || undefined
         });
@@ -481,7 +496,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
     sendJson(res, 200, {
       ok: true,
       message:
-        "GitUp and the pre-restart DB backup completed.",
+        "GitUp and the pre-exit DB backup completed.",
       action: reason,
       gitup,
       backup
