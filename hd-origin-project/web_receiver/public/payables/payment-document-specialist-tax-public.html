@@ -6335,6 +6335,11 @@ function setDocumentPreview(item) {
   }
 
   async function executeSave(reason, context) {
+    const resolvedOcrImportId = selectedOcrId(context);
+
+    if (!resolvedOcrImportId) {
+      throw new Error("保存対象のOCR取込IDを確認できません。");
+    }
     const fn = saveFunction();
 
     if (typeof fn !== "function") {
