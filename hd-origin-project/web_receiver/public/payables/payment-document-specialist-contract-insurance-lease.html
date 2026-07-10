@@ -5482,7 +5482,13 @@ function setDocumentPreview(item) {
       analysisRoot.analysis_system_code ||
       analysisRoot.analysisSystemCode ||
       analysisSummary.analysis_system_code ||
+      window.__hdOriginSpecialistActiveAnalysisSystemCode ||
       "";
+
+    if (payload.analysis_system_code) {
+      window.__hdOriginSpecialistActiveAnalysisSystemCode =
+        payload.analysis_system_code;
+    }
 
     payload.analysis_system_label =
       payload.analysis_system_label ||
@@ -6592,6 +6598,8 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   let lastSavedAt = "";
   let lastSaveError = "";
   let activeOcrImportId = 0;
+  let activeAnalysisResult = null;
+  let activeAnalysisItem = null;
   let queuedSaveReason = "";
   let queuedSaveContext = null;
 
@@ -6731,6 +6739,24 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   }
 
   async function executeSave(reason, context) {
+    context = context && typeof context === "object"
+      ? context
+      : {};
+
+    if (
+      !context.analysisResult &&
+      activeAnalysisResult
+    ) {
+      context.analysisResult = activeAnalysisResult;
+    }
+
+    if (
+      !context.item &&
+      activeAnalysisItem
+    ) {
+      context.item = activeAnalysisItem;
+    }
+
     const resolvedOcrImportId = selectedOcrId(context);
 
     if (!resolvedOcrImportId) {
@@ -6831,6 +6857,24 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   }
 
   window.hdOriginSpecialistAutoSaveNow = function (reason, context) {
+    context = context && typeof context === "object"
+      ? context
+      : {};
+
+    if (
+      context.analysisResult &&
+      typeof context.analysisResult === "object"
+    ) {
+      activeAnalysisResult = context.analysisResult;
+    }
+
+    if (
+      context.item &&
+      typeof context.item === "object"
+    ) {
+      activeAnalysisItem = context.item;
+    }
+
     if (saveTimer) {
       window.clearTimeout(saveTimer);
       saveTimer = 0;
@@ -6853,7 +6897,11 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     saveTimer = window.setTimeout(function () {
       saveTimer = 0;
 
-      executeSave("human-edit", { ocrImportId: activeOcrImportId }).catch(function () {});
+      executeSave("human-edit", {
+        ocrImportId: activeOcrImportId,
+        analysisResult: activeAnalysisResult,
+        item: activeAnalysisItem
+      }).catch(function () {});
     }, 1000);
   }
 

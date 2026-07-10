@@ -6284,6 +6284,8 @@ function setDocumentPreview(item) {
   let lastSavedAt = "";
   let lastSaveError = "";
   let activeOcrImportId = 0;
+  let activeAnalysisResult = null;
+  let activeAnalysisItem = null;
   let queuedSaveReason = "";
   let queuedSaveContext = null;
 
@@ -6423,6 +6425,24 @@ function setDocumentPreview(item) {
   }
 
   async function executeSave(reason, context) {
+    context = context && typeof context === "object"
+      ? context
+      : {};
+
+    if (
+      !context.analysisResult &&
+      activeAnalysisResult
+    ) {
+      context.analysisResult = activeAnalysisResult;
+    }
+
+    if (
+      !context.item &&
+      activeAnalysisItem
+    ) {
+      context.item = activeAnalysisItem;
+    }
+
     const resolvedOcrImportId = selectedOcrId(context);
 
     if (!resolvedOcrImportId) {
@@ -6523,6 +6543,24 @@ function setDocumentPreview(item) {
   }
 
   window.hdOriginSpecialistAutoSaveNow = function (reason, context) {
+    context = context && typeof context === "object"
+      ? context
+      : {};
+
+    if (
+      context.analysisResult &&
+      typeof context.analysisResult === "object"
+    ) {
+      activeAnalysisResult = context.analysisResult;
+    }
+
+    if (
+      context.item &&
+      typeof context.item === "object"
+    ) {
+      activeAnalysisItem = context.item;
+    }
+
     if (saveTimer) {
       window.clearTimeout(saveTimer);
       saveTimer = 0;
@@ -6545,7 +6583,11 @@ function setDocumentPreview(item) {
     saveTimer = window.setTimeout(function () {
       saveTimer = 0;
 
-      executeSave("human-edit", { ocrImportId: activeOcrImportId }).catch(function () {});
+      executeSave("human-edit", {
+        ocrImportId: activeOcrImportId,
+        analysisResult: activeAnalysisResult,
+        item: activeAnalysisItem
+      }).catch(function () {});
     }, 1000);
   }
 
