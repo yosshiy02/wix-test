@@ -5179,8 +5179,18 @@ function setDocumentPreview(item) {
     return 0;
   }
 
-  function collectSortingDraftPayload() {
-    const ocrId = findSelectedOcrImportId();
+  function collectSortingDraftPayload(context) {
+    const ocrId =
+      Number(
+        context && (
+          context.ocrImportId ||
+          context.paymentDocumentOcrImportId ||
+          context.payment_document_ocr_import_id ||
+          context.id
+        )
+      ) ||
+      Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+      findSelectedOcrImportId();
 
     if (!ocrId) {
       throw new Error("選択中OCR IDが取得できません。");
@@ -5388,8 +5398,8 @@ function setDocumentPreview(item) {
     return payload;
   }
 
-  async function saveSortingDraftFromReviewPage() {
-    const payload = collectSortingDraftPayload();
+  async function saveSortingDraftFromReviewPage(context) {
+    const payload = collectSortingDraftPayload(context);
 
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
