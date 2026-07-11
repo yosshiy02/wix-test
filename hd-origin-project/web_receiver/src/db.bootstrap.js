@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
 const config = require("./config");
@@ -630,10 +630,121 @@ ON CONFLICT (treatment_name) DO UPDATE SET
     await runTargetSql(masterSql);
   }
 
+  /* GPT00_ORGANIZATION_MASTER_MIGRATION_START */
+  const organizationMasterSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260710_003_company_person_position_permission_masters.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (organizationMasterSql.trim()) {
+    await runTargetSql(organizationMasterSql);
+  }
+  /* GPT00_ORGANIZATION_MASTER_MIGRATION_END */
   console.log(`[DB] ready: ${dbName}`);
+
+  /*
+    GPT00_PAYMENT_DOCUMENT_OCR_BOOTSTRAP_20260711
+
+    CIL専門テーブルが外部キー参照する
+    accounting.payment_document_ocr_imports を先に作成する。
+    CREATE TABLE IF NOT EXISTSを使用する既存マイグレーションなので、
+    既存DBに対しても安全に再実行できる。
+  */
+  /* GPT00_PAYMENT_DOCUMENT_OCR_BOOTSTRAP_20260711_START */
+  const paymentDocumentOcrMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260707_005_payment_document_ocr_imports.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (paymentDocumentOcrMigrationSql.trim()) {
+    await runTargetSql(paymentDocumentOcrMigrationSql);
+  }
+  /* GPT00_PAYMENT_DOCUMENT_OCR_BOOTSTRAP_20260711_END */
+  /*
+    GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711
+
+    CIL専門テーブルが参照する
+    accounting.payment_document_sorting_drafts を先に作成する。
+  */
+  /* GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711_START */
+  const paymentDocumentSortingMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260707_006_payment_document_sorting_drafts.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (paymentDocumentSortingMigrationSql.trim()) {
+    await runTargetSql(paymentDocumentSortingMigrationSql);
+  }
+  /* GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711_END */
+  /*
+    GPT00_PAYMENT_DOCUMENT_SPECIALIST_BOOTSTRAP_20260711
+
+    CIL専門テーブルが参照する
+    accounting.payment_document_specialist_analysis_results を先に作成する。
+  */
+  /* GPT00_PAYMENT_DOCUMENT_SPECIALIST_BOOTSTRAP_20260711_START */
+  const paymentDocumentSpecialistMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260710_002_payment_document_specialist_link.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (paymentDocumentSpecialistMigrationSql.trim()) {
+    await runTargetSql(paymentDocumentSpecialistMigrationSql);
+  }
+  /* GPT00_PAYMENT_DOCUMENT_SPECIALIST_BOOTSTRAP_20260711_END */
+  /*
+    HD_ORIGIN_CIL_BOOTSTRAP_20260711
+
+    CIL専門DBマイグレーションを起動時に安全適用する。
+    UTF-8 BOMを除去し、既存のrunTargetSql経由で実行する。
+  */
+  const cilMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260710_003_contract_insurance_lease_drafts_foundation.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (cilMigrationSql.trim()) {
+    await runTargetSql(cilMigrationSql);
+  }
+
+  /*
+    HD_ORIGIN_CIL_MASTERS_BOOTSTRAP_20260711
+
+    契約・保険・リース系で使用する不足マスタを
+    起動時に安全適用する。
+  */
+  const cilMissingMastersSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260708_006_contract_insurance_lease_missing_masters.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (cilMissingMastersSql.trim()) {
+    await runTargetSql(cilMissingMastersSql);
+  }
 }
 
 module.exports = {
   ensureDatabaseReady
 };
+
+
+
 

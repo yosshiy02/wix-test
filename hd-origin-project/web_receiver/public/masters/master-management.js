@@ -1,4 +1,4 @@
-/* master-management.js
+﻿/* master-management.js
    マスタ管理画面のJS。
    2026-07-07: master-management.html の <script> から分離。
 */
@@ -17,7 +17,12 @@ const MASTER_GROUPS = {
     "projects",
     "departments"
   ],
-  paymentDocuments: [
+  organization: [
+    "companies",
+    "people",
+    "positions",
+    "permissions"
+  ],  paymentDocuments: [
     "document_types",
     "payment_destinations",
     "accounting_categories",
@@ -47,7 +52,14 @@ const MASTER_NOTES = {
     "案件は、仕事・イベント・企画などに紐づけるために使います。",
   departments:
     "部門は、会社内の部署や管理単位に紐づけるために使います。",
-  document_types:
+  companies:
+    "会社は、支払・証憑・台帳・承認処理がどの法人に属するかを区別するために使います。会社名、プログラムコード、法人区分を管理します。",
+  people:
+    "人物は、会社に所属する人や確認担当者を管理します。経費の対象者マスタとは別に管理します。",
+  positions:
+    "役職は、代表取締役、専務取締役、常務取締役など、会社内での役職区分を管理します。",
+  permissions:
+    "権限は、閲覧・確認・承認・管理などの権限区分を管理します。会社・人物・役職との紐付けは次の段階で専用管理します。",  document_types:
     "書類区分は、請求書・納付書・Web明細・カード明細など、支払書類そのものの種類を管理します。固定文字列ではなくマスタから選択します。",
   payment_destinations:
     "処理先は、未払管理・買掛管理・経費管理・税金公的支払など、読取後にどこへ回すかを管理します。",
@@ -59,6 +71,12 @@ const MASTER_NOTES = {
     "入手元区分は、スキャン・PDF取込・メール保存・Web明細ダウンロードなど、支払書類の入手経路を管理します。",};
 
 const EXTRA_LABELS = {
+  company_code: "プログラムコード",
+  company_type: "法人区分",
+  person_code: "プログラムコード",
+  position_code: "プログラムコード",
+  permission_code: "プログラムコード",
+  permission_level: "権限レベル",
   account_code: "科目コード",
 
   payment_method_code: "内部コード",
@@ -119,7 +137,12 @@ function getExtraColumnLabel(column) {
 }
 
 function getExtraInputType(column) {
-  return column === "tax_rate" ? "number" : "text";
+  return (
+    column === "tax_rate" ||
+    column === "permission_level"
+  )
+    ? "number"
+    : "text";
 }
 
 function escapeHtml(value) {
@@ -154,6 +177,7 @@ async function loadMasterTypes() {
 function renderMasterButtons() {
   renderButtonGroup("accountingMasterButtons", MASTER_GROUPS.accounting);
   renderButtonGroup("dailyMasterButtons", MASTER_GROUPS.daily);
+  renderButtonGroup("organizationMasterButtons", MASTER_GROUPS.organization);
   renderButtonGroup("paymentDocumentMasterButtons", MASTER_GROUPS.paymentDocuments);
 }
 
@@ -643,3 +667,4 @@ async function restartServerSimple() {
 }
 /* MASTER_MANAGEMENT_SIMPLE_RESTART_20260707_END */
 document.addEventListener("DOMContentLoaded", loadMasterTypes);
+

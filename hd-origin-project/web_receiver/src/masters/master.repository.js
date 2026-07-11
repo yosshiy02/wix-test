@@ -1,4 +1,4 @@
-const pool = require("../db");
+﻿const pool = require("../db");
 
 const MASTER_DEFS = {
   account_titles: {
@@ -65,7 +65,38 @@ const MASTER_DEFS = {
     nameColumn: "department_name",
     extraColumns: []
   },
-  document_types: {
+  companies: {
+    type: "companies",
+    label: "会社",
+    table: "expenses.companies",
+    idColumn: "company_id",
+    nameColumn: "company_name",
+    extraColumns: ["company_code", "company_type"]
+  },
+  people: {
+    type: "people",
+    label: "人物",
+    table: "expenses.people",
+    idColumn: "person_id",
+    nameColumn: "person_name",
+    extraColumns: ["person_code"]
+  },
+  positions: {
+    type: "positions",
+    label: "役職",
+    table: "expenses.positions",
+    idColumn: "position_id",
+    nameColumn: "position_name",
+    extraColumns: ["position_code"]
+  },
+  permissions: {
+    type: "permissions",
+    label: "権限",
+    table: "expenses.permissions",
+    idColumn: "permission_id",
+    nameColumn: "permission_name",
+    extraColumns: ["permission_code", "permission_level"]
+  },  document_types: {
     type: "document_types",
     label: "書類区分",
     table: "expenses.document_types",
@@ -338,3 +369,4 @@ module.exports = {
   updateMaster,
   disableMaster
 };
+

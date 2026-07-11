@@ -12,19 +12,33 @@ const { ensureDatabaseReady } = require("./src/db.bootstrap");
 
 /* GPT2_RESTORE_DB_TERMINATE_GUARD_20260709_START */
 function hdOriginIsExpectedRestoreDbTerminateError(err) {
+  /*
+    GPT00_RESTORE_ECONNRESET_GUARD_20260711
+
+    DB再作成中に旧PostgreSQL接続が切断された場合だけ、
+    ECONNRESETを想定内として扱う。
+    通常稼働中のECONNRESETは無視しない。
+  */
   const code = String(err && err.code ? err.code : "");
-  const message = String(err && err.message ? err.message : err || "");
+  const message = String(
+    err && err.message
+      ? err.message
+      : err || ""
+  );
 
   return (
     process.env.HD_ORIGIN_DB_RECREATE_IN_PROGRESS === "1" &&
     (
       code === "57P01" ||
-      message.includes("terminating connection due to administrator command") ||
-      message.includes("Connection terminated")
+      code === "ECONNRESET" ||
+      message.includes(
+        "terminating connection due to administrator command"
+      ) ||
+      message.includes("Connection terminated") ||
+      message.includes("read ECONNRESET")
     )
   );
 }
-
 process.on("uncaughtException", err => {
   if (hdOriginIsExpectedRestoreDbTerminateError(err)) {
     console.warn("[RESTORE_DB_RECREATE] DB再作成中の接続切断を無視しました:", err.message || err);
@@ -263,6 +277,14 @@ function hdOriginRestartChangedPaths(repoRoot) {
 }
 
 async function hdOriginRunRestartButtonGitUp(action) {
+  /*
+    HD_ORIGIN_GITUP_TARGET_ONLY_20260711
+
+    - Existing staged changes are preserved.
+    - Only files listed in HD_ORIGIN_GITUP_TARGETS.txt are added.
+    - git commit --only commits only those target files.
+    - Unrelated staged and working-tree changes are left untouched.
+  */
   const projectRoot =
     config.projectRoot ||
     path.resolve(__dirname, "..");
@@ -273,32 +295,6 @@ async function hdOriginRunRestartButtonGitUp(action) {
   if (!repoRoot) {
     throw new Error(
       "Git repository root was not found."
-    );
-  }
-
-  const existingStaged = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "diff",
-      "--cached",
-      "--name-only",
-      "-z"
-    ],
-    repoRoot
-  );
-
-  const existingStagedPaths =
-    hdOriginRestartSplitNullPaths(existingStaged);
-
-  if (existingStagedPaths.length > 0) {
-    throw new Error(
-      [
-        "Staged changes already exist.",
-        "Restart was stopped to prevent a mixed commit.",
-        "",
-        existingStagedPaths.join("\n")
-      ].join("\n")
     );
   }
 
@@ -328,30 +324,7 @@ async function hdOriginRunRestartButtonGitUp(action) {
     repoRoot
   ).trim();
 
-  const targetPaths =
-    hdOriginRestartChangedPaths(repoRoot);
-
-  if (targetPaths.length === 0) {
-    return {
-      ok: true,
-      committed: false,
-      repo_root: repoRoot,
-      branch,
-      target_paths: [],
-      status_before: statusBefore,
-      diff_before: diffBefore,
-      message: "GitUp completed. No commit was required."
-    };
-  }
-
-  for (const targetPath of targetPaths) {
-    hdOriginRestartGitRun(
-      ["add", "--", targetPath],
-      repoRoot
-    );
-  }
-
-  const stagedAfterAdd = hdOriginRestartGitRun(
+  const existingStaged = hdOriginRestartGitRun(
     [
       "-c",
       "core.quotepath=false",
@@ -363,14 +336,115 @@ async function hdOriginRunRestartButtonGitUp(action) {
     repoRoot
   );
 
-  const stagedAfterAddPaths =
-    hdOriginRestartSplitNullPaths(stagedAfterAdd);
+  const existingStagedPaths =
+    hdOriginRestartSplitNullPaths(existingStaged);
 
-  if (stagedAfterAddPaths.length === 0) {
-    throw new Error(
-      "No staged files were found after git add."
+  if (existingStagedPaths.length > 0) {
+    console.warn(
+      "[SYSTEM_EXIT_GITUP] unrelated staged changes will be preserved:",
+      existingStagedPaths.length
     );
   }
+
+  const manifestPath = path.join(
+    projectRoot,
+    "HD_ORIGIN_GITUP_TARGETS.txt"
+  );
+
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(
+      [
+        "GitUp target manifest was not found.",
+        "No files were added or committed.",
+        manifestPath
+      ].join("\n")
+    );
+  }
+
+  const manifestPaths = fs
+    .readFileSync(manifestPath, "utf8")
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .map(hdOriginRestartNormalizeGitPath)
+    .filter(Boolean)
+    .filter(filePath => !filePath.startsWith("#"));
+
+  const requestedPaths = [
+    ...new Set(manifestPaths)
+  ];
+
+  if (requestedPaths.length === 0) {
+    throw new Error(
+      "GitUp target manifest is empty."
+    );
+  }
+
+  const prohibitedPaths =
+    requestedPaths.filter(filePath =>
+      hdOriginRestartPathIsExcluded(filePath)
+    );
+
+  if (prohibitedPaths.length > 0) {
+    throw new Error(
+      [
+        "GitUp target manifest contains excluded paths.",
+        "",
+        prohibitedPaths.join("\n")
+      ].join("\n")
+    );
+  }
+
+  const targetPaths = [];
+
+  for (const filePath of requestedPaths) {
+    const status = hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "status",
+        "--porcelain",
+        "--",
+        filePath
+      ],
+      repoRoot
+    ).trim();
+
+    if (status) {
+      targetPaths.push(filePath);
+    }
+  }
+
+  if (targetPaths.length === 0) {
+    try {
+      fs.unlinkSync(manifestPath);
+    } catch {}
+
+    return {
+      ok: true,
+      committed: false,
+      repo_root: repoRoot,
+      branch,
+      target_paths: [],
+      preserved_staged_paths: existingStagedPaths,
+      status_before: statusBefore,
+      diff_before: diffBefore,
+      message:
+        "GitUp completed. The requested target files had no changes."
+    };
+  }
+
+  /*
+    Only the explicitly requested files are added.
+    Existing staged files outside targetPaths are not removed or changed.
+  */
+  hdOriginRestartGitRun(
+    [
+      "add",
+      "--",
+      ...targetPaths
+    ],
+    repoRoot
+  );
 
   const normalizedAction =
     String(action || "system-exit")
@@ -383,8 +457,19 @@ async function hdOriginRunRestartButtonGitUp(action) {
     " " +
     new Date().toISOString();
 
+  /*
+    --only ensures unrelated staged files are not included
+    in this commit.
+  */
   hdOriginRestartGitRun(
-    ["commit", "-m", commitMessage],
+    [
+      "commit",
+      "--only",
+      "-m",
+      commitMessage,
+      "--",
+      ...targetPaths
+    ],
     repoRoot
   );
 
@@ -393,17 +478,45 @@ async function hdOriginRunRestartButtonGitUp(action) {
     repoRoot
   ).trim();
 
-  const remainingPaths =
-    hdOriginRestartChangedPaths(repoRoot);
+  const remainingTargetChanges = [];
 
-  if (remainingPaths.length > 0) {
+  for (const filePath of targetPaths) {
+    const status = hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "status",
+        "--porcelain",
+        "--",
+        filePath
+      ],
+      repoRoot
+    ).trim();
+
+    if (status) {
+      remainingTargetChanges.push(
+        filePath + ": " + status
+      );
+    }
+  }
+
+  if (remainingTargetChanges.length > 0) {
     throw new Error(
       [
-        "GitUp finished but eligible changes remain.",
-        "DB backup and restart were stopped.",
+        "GitUp committed, but target-file changes remain.",
+        "Unrelated files were not inspected or modified.",
         "",
-        remainingPaths.join("\n")
+        remainingTargetChanges.join("\n")
       ].join("\n")
+    );
+  }
+
+  try {
+    fs.unlinkSync(manifestPath);
+  } catch (manifestDeleteError) {
+    console.warn(
+      "[SYSTEM_EXIT_GITUP] target manifest cleanup failed:",
+      manifestDeleteError.message
     );
   }
 
@@ -415,6 +528,9 @@ async function hdOriginRunRestartButtonGitUp(action) {
     commit_hash: commitHash,
     commit_message: commitMessage,
     target_paths: targetPaths,
+    preserved_staged_paths: existingStagedPaths.filter(
+      filePath => !targetPaths.includes(filePath)
+    ),
     status_before: statusBefore,
     diff_before: diffBefore
   };
