@@ -1,3 +1,0 @@
-$ErrorActionPreference = "Stop"
-Copy-Item -LiteralPath "C:\\Users\\yossh.2FLABO\\Desktop\\新しいフォルダー\\wix-test\\hd-origin-project\\GPT2が使う一時ファイルフォルダ\\after\\payment-document-specialist-contract-insurance-lease.after_specialist_common_save_20260710_202753.html" -Destination "C:\\Users\\yossh.2FLABO\\Desktop\\新しいフォルダー\\wix-test\\hd-origin-project\\web_receiver\\public\\payables\\payment-document-specialist-contract-insurance-lease.html" -Force
-Write-Host "OK"

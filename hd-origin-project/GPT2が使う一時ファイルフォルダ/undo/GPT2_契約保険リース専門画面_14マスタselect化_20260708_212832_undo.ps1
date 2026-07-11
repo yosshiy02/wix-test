@@ -1,3 +1,0 @@
-$ErrorActionPreference = "Stop"
-Copy-Item -LiteralPath "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_契約保険リース専門画面_14マスタselect化_20260708_212832_before.html" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-contract-insurance-lease.html" -Force
-Write-Host "OK: 契約・保険・リース専門画面HTMLを修正前に戻しました。"

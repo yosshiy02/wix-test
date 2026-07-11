@@ -1,3 +1,0 @@
-$ErrorActionPreference = "Stop"
-Copy-Item -LiteralPath "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\GPT2が使う一時ファイルフォルダ\before\GPT2_expenses_masters_契約保険リース14追加_20260708_211652_expenses.repository.js" -Destination "C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\expenses\expenses.repository.js" -Force
-Write-Host "OK: expenses.repository.js を修正前に戻しました。"
