@@ -5421,7 +5421,7 @@ function setDocumentPreview(item) {
       memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
     };
 
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5879,7 +5879,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   }
 
   async function postContractInsuranceLeaseDraft(payload) {
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"

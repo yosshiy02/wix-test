@@ -6385,6 +6385,17 @@ async function hdOriginSaveContractInsuranceLeaseDraft(body) {
 
     const record = hdOriginCilBuildRecord(body, ocrRow, latestSortingDraftId);
 
+    /*
+      共通専門解析結果と契約専門下書きを結ぶ。
+      DB列が存在する場合だけ、既存の動的INSERT処理で保存される。
+    */
+    record.specialist_analysis_id =
+      hdOriginCilNumberOrNull(
+        body.specialistAnalysisId ||
+        body.specialist_analysis_id ||
+        body.latestSpecialistAnalysisId
+      );
+
     await client.query(`
       UPDATE accounting.payment_document_contract_insurance_lease_drafts
       SET
@@ -7878,6 +7889,98 @@ async function handlePaymentDocumentRoutes(req, res) {
     }
   }
 
+  /* HD_ORIGIN_GPT2_CIL_COMBINED_SAVE_ROUTE_20260710_START */
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/contract-insurance-lease-drafts/save"
+  ) {
+    try {
+      const body = await readBody(req);
+
+      const specialistSaved =
+        await hdOriginSavePaymentDocumentSpecialistAnalysisResult(body);
+
+      const cilSaved =
+        await hdOriginSaveContractInsuranceLeaseDraft({
+          ...body,
+
+          paymentDocumentOcrImportId:
+            specialistSaved.paymentDocumentOcrImportId,
+
+          payment_document_ocr_import_id:
+            specialistSaved.paymentDocumentOcrImportId,
+
+          paymentDocumentSortingDraftId:
+            specialistSaved.paymentDocumentSortingDraftId,
+
+          payment_document_sorting_draft_id:
+            specialistSaved.paymentDocumentSortingDraftId,
+
+          specialistAnalysisId:
+            specialistSaved.specialistAnalysisId,
+
+          specialist_analysis_id:
+            specialistSaved.specialistAnalysisId,
+
+          latestSpecialistAnalysisId:
+            specialistSaved.specialistAnalysisId
+        });
+
+      sendJson(res, 200, {
+        ok: true,
+        message:
+          "専門解析結果と契約・保険・リース専門下書きを保存しました。",
+
+        paymentDocumentOcrImportId:
+          specialistSaved.paymentDocumentOcrImportId,
+
+        paymentDocumentSortingDraftId:
+          specialistSaved.paymentDocumentSortingDraftId,
+
+        specialistAnalysisId:
+          specialistSaved.specialistAnalysisId,
+
+        specialist_analysis_id:
+          specialistSaved.specialistAnalysisId,
+
+        latestSpecialistAnalysisId:
+          specialistSaved.specialistAnalysisId,
+
+        contractInsuranceLeaseDraftId:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        paymentDocumentContractInsuranceLeaseDraftId:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        contract_insurance_lease_draft_id:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        analysisSystemCode:
+          specialistSaved.analysisSystemCode,
+
+        analysisSystemLabel:
+          specialistSaved.analysisSystemLabel,
+
+        specialistAnalysisStatus:
+          specialistSaved.specialistAnalysisStatus,
+
+        specialistAnalysis:
+          specialistSaved.saved,
+
+        contractInsuranceLeaseDraft:
+          cilSaved
+      });
+    } catch (err) {
+      sendJson(res, err.statusCode || 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_GPT2_CIL_COMBINED_SAVE_ROUTE_20260710_END */
   if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/specialist-analysis-results/save") {
     try {
       const body = await readBody(req);
