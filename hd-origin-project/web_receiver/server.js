@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const readline = require("readline");
@@ -75,6 +75,12 @@ const { handlePaymentDocumentRoutes } = require("./src/paymentDocuments/paymentD
 /* DELIVERY_NOTE_ROUTE_REQUIRE_20260707_START */
 const { handleDeliveryNoteRoutes } = require("./src/deliveryNotes/deliveryNotes.routes");
 /* DELIVERY_NOTE_ROUTE_REQUIRE_20260707_END */
+/* GPT00_BANK_ROUTE_REQUIRE_20260711_START */
+const { handleBankRoutes } = require("./src/bank/bank.routes");
+/* GPT00_BANK_ROUTE_REQUIRE_20260711_END */
+/* GPT00_SALES_ROUTE_REQUIRE_20260712_START */
+const { handleSalesRoutes } = require("./src/sales/sales.routes");
+/* GPT00_SALES_ROUTE_REQUIRE_20260712_END */
 const { handleMasterRoutes } = require("./src/masters/masters.routes");
 const { makeAppRoutes } = require("./src/app/app.routes");
 
@@ -352,13 +358,18 @@ async function hdOriginRunRestartButtonGitUp(action) {
   );
 
   if (!fs.existsSync(manifestPath)) {
-    throw new Error(
-      [
-        "GitUp target manifest was not found.",
-        "No files were added or committed.",
-        manifestPath
-      ].join("\n")
-    );
+    return {
+      ok: true,
+      committed: false,
+      repo_root: repoRoot,
+      branch,
+      target_paths: [],
+      preserved_staged_paths: existingStagedPaths,
+      status_before: statusBefore,
+      diff_before: diffBefore,
+      message:
+        "GitUp completed. No target manifest was present, so there were no requested target files."
+    };
   }
 
   const manifestPaths = fs
@@ -374,9 +385,22 @@ async function hdOriginRunRestartButtonGitUp(action) {
   ];
 
   if (requestedPaths.length === 0) {
-    throw new Error(
-      "GitUp target manifest is empty."
-    );
+    try {
+      fs.unlinkSync(manifestPath);
+    } catch {}
+
+    return {
+      ok: true,
+      committed: false,
+      repo_root: repoRoot,
+      branch,
+      target_paths: [],
+      preserved_staged_paths: existingStagedPaths,
+      status_before: statusBefore,
+      diff_before: diffBefore,
+      message:
+        "GitUp completed. The target manifest was empty, so there were no requested target files."
+    };
   }
 
   const prohibitedPaths =
@@ -1031,6 +1055,12 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.url.startsWith("/api/")) {
       if (handleSystemRestartRoute(req, res)) return;
+      /* GPT00_BANK_ROUTE_HANDLER_20260711_START */
+      if (await handleBankRoutes(req, res)) return;
+      /* GPT00_SALES_ROUTE_HANDLER_20260712_START */
+      if (await handleSalesRoutes(req, res)) return;
+      /* GPT00_SALES_ROUTE_HANDLER_20260712_END */
+      /* GPT00_BANK_ROUTE_HANDLER_20260711_END */
       if (await handleMasterRoutes(req, res)) return;
       if (await handleItemsRoutes(req, res)) return;
       if (await handleBackupRoutes(req, res)) return;
@@ -1081,6 +1111,8 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
+
+
 
 
 

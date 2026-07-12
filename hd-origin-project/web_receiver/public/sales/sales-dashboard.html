@@ -1,0 +1,1237 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>販売・売掛管理 - HD Origin</title>
+
+  <link
+    rel="stylesheet"
+    href="/sales/sales-dashboard.css"
+  >
+</head>
+
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">
+          HD Origin Sales Management
+        </div>
+
+        <h1>販売・売掛管理</h1>
+
+        <p>
+          商品、得意先別単価、売上、請求、入金、
+          売掛残高、Access受注取込を管理します。
+        </p>
+      </div>
+
+      <div class="hero-actions">
+        <button
+          class="button secondary"
+          type="button"
+          onclick="location.href='/'"
+        >
+          メインへ
+        </button>
+
+        <button
+          class="button primary"
+          type="button"
+          id="reloadAllButton"
+        >
+          全体再読込
+        </button>
+      </div>
+    </header>
+
+    <div
+      id="message"
+      class="message"
+    ></div>
+
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span>有効商品</span>
+        <strong id="summaryProductCount">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>売上伝票</span>
+        <strong id="summarySalesCount">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>売上合計</span>
+        <strong id="summarySalesTotal">0円</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>請求残高</span>
+        <strong id="summaryReceivableTotal">0円</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>未消込入金</span>
+        <strong id="summaryUnappliedTotal">0円</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>Access取込待ち</span>
+        <strong id="summaryAccessWaiting">0</strong>
+      </article>
+    </section>
+
+    <nav class="function-menu">
+      <a href="#products">商品マスタ</a>
+      <a href="#customerPrices">得意先別単価</a>
+      <a href="#salesSlips">売上伝票</a>
+      <a href="#billingCloses">請求締め</a>
+      <a href="#invoices">請求書</a>
+      <a href="#payments">入金</a>
+      <a href="#allocations">入金消込</a>
+      <a href="#accessOrders">Access受注</a>
+    </nav>
+
+    <section
+      id="products"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>商品マスタ</h2>
+          <p>
+            商品コード、ブランド、サイズ、標準売価、
+            標準原価を管理します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="productForm">
+          <input
+            id="product_id"
+            type="hidden"
+          >
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="product_code">
+                商品コード 必須
+              </label>
+
+              <input
+                id="product_code"
+                required
+              >
+            </div>
+
+            <div class="field wide">
+              <label for="product_name">
+                商品名 必須
+              </label>
+
+              <input
+                id="product_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="brand_name">
+                ブランド
+              </label>
+
+              <input id="brand_name">
+            </div>
+
+            <div class="field">
+              <label for="category_name">
+                商品区分
+              </label>
+
+              <input id="category_name">
+            </div>
+
+            <div class="field">
+              <label for="color_name">
+                色
+              </label>
+
+              <input id="color_name">
+            </div>
+
+            <div class="field">
+              <label for="size_name">
+                サイズ
+              </label>
+
+              <input id="size_name">
+            </div>
+
+            <div class="field">
+              <label for="unit_name">
+                単位
+              </label>
+
+              <input
+                id="unit_name"
+                value="足"
+              >
+            </div>
+
+            <div class="field">
+              <label for="standard_price">
+                標準売価
+              </label>
+
+              <input
+                id="standard_price"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="standard_cost">
+                標準原価
+              </label>
+
+              <input
+                id="standard_cost"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="tax_rate">
+                税率
+              </label>
+
+              <select id="tax_rate">
+                <option value="0.10">10％</option>
+                <option value="0.08">8％</option>
+                <option value="0">非課税・対象外</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="product_is_active">
+                状態
+              </label>
+
+              <select id="product_is_active">
+                <option value="true">有効</option>
+                <option value="false">使用停止</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="product_note">
+                備考
+              </label>
+
+              <textarea id="product_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              商品保存
+            </button>
+
+            <button
+              class="button secondary"
+              type="button"
+              id="clearProductButton"
+            >
+              入力クリア
+            </button>
+          </div>
+        </form>
+
+        <div class="toolbar">
+          <input
+            id="productSearch"
+            type="search"
+            placeholder="商品コード・商品名・ブランドで検索"
+          >
+
+          <select id="productStatusFilter">
+            <option value="">有効・停止すべて</option>
+            <option value="true">有効のみ</option>
+            <option value="false">使用停止のみ</option>
+          </select>
+
+          <button
+            class="button secondary"
+            type="button"
+            id="reloadProductsButton"
+          >
+            商品再読込
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>操作</th>
+                <th>商品コード</th>
+                <th>商品名</th>
+                <th>ブランド</th>
+                <th>色</th>
+                <th>サイズ</th>
+                <th>標準売価</th>
+                <th>標準原価</th>
+                <th>状態</th>
+              </tr>
+            </thead>
+
+            <tbody id="productRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="customerPrices"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>得意先別単価</h2>
+          <p>
+            得意先ごとの商品単価と適用期間を管理します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="customerPriceForm">
+          <input
+            id="customer_price_id"
+            type="hidden"
+          >
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="price_customer_id">
+                得意先ID 必須
+              </label>
+
+              <input
+                id="price_customer_id"
+                type="number"
+                min="1"
+                required
+              >
+            </div>
+
+            <div class="field wide">
+              <label for="price_product_id">
+                商品 必須
+              </label>
+
+              <select
+                id="price_product_id"
+                required
+              ></select>
+            </div>
+
+            <div class="field">
+              <label for="price_unit_price">
+                得意先単価
+              </label>
+
+              <input
+                id="price_unit_price"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="price_discount_rate">
+                値引率
+              </label>
+
+              <input
+                id="price_discount_rate"
+                type="number"
+                step="0.0001"
+              >
+            </div>
+
+            <div class="field">
+              <label for="price_effective_from">
+                適用開始日
+              </label>
+
+              <input
+                id="price_effective_from"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="price_effective_to">
+                適用終了日
+              </label>
+
+              <input
+                id="price_effective_to"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="price_is_active">
+                状態
+              </label>
+
+              <select id="price_is_active">
+                <option value="true">有効</option>
+                <option value="false">使用停止</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="price_note">
+                備考
+              </label>
+
+              <textarea id="price_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              得意先別単価を保存
+            </button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>得意先ID</th>
+                <th>商品コード</th>
+                <th>商品名</th>
+                <th>単価</th>
+                <th>値引率</th>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>状態</th>
+              </tr>
+            </thead>
+
+            <tbody id="customerPriceRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="salesSlips"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>売上伝票</h2>
+          <p>
+            売上、返品、値引き、訂正の元になる伝票を登録します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="salesForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="sales_date">
+                売上日
+              </label>
+
+              <input
+                id="sales_date"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_customer_id">
+                得意先ID
+              </label>
+
+              <input
+                id="sales_customer_id"
+                type="number"
+                min="1"
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_customer_code">
+                得意先コード
+              </label>
+
+              <input id="sales_customer_code">
+            </div>
+
+            <div class="field wide">
+              <label for="sales_customer_name">
+                得意先名 必須
+              </label>
+
+              <input
+                id="sales_customer_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_status">
+                状態
+              </label>
+
+              <select id="sales_status">
+                <option value="draft">下書き</option>
+                <option value="confirmed">売上確定</option>
+                <option value="shipped">出荷済み</option>
+                <option value="returned">返品</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sales_product_id">
+                商品
+              </label>
+
+              <select id="sales_product_id"></select>
+            </div>
+
+            <div class="field">
+              <label for="sales_product_code">
+                商品コード
+              </label>
+
+              <input id="sales_product_code">
+            </div>
+
+            <div class="field wide">
+              <label for="sales_product_name">
+                商品名 必須
+              </label>
+
+              <input
+                id="sales_product_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_quantity">
+                数量
+              </label>
+
+              <input
+                id="sales_quantity"
+                type="number"
+                step="0.001"
+                value="1"
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_unit_price">
+                単価
+              </label>
+
+              <input
+                id="sales_unit_price"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_line_tax_rate">
+                税率
+              </label>
+
+              <select id="sales_line_tax_rate">
+                <option value="0.10">10％</option>
+                <option value="0.08">8％</option>
+                <option value="0">非課税・対象外</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sales_transaction_type">
+                明細区分
+              </label>
+
+              <select id="sales_transaction_type">
+                <option value="sale">売上</option>
+                <option value="return">返品</option>
+                <option value="discount">値引き</option>
+                <option value="correction">訂正</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sales_discount_amount">
+                伝票値引額
+              </label>
+
+              <input
+                id="sales_discount_amount"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="sales_freight_amount">
+                送料
+              </label>
+
+              <input
+                id="sales_freight_amount"
+                type="number"
+                step="0.01"
+                value="0"
+              >
+            </div>
+
+            <div class="field full">
+              <label for="sales_note">
+                備考
+              </label>
+
+              <textarea id="sales_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              売上伝票を保存
+            </button>
+          </div>
+        </form>
+
+        <div class="toolbar">
+          <input
+            id="salesSearch"
+            type="search"
+            placeholder="伝票番号・得意先名・Access受注番号で検索"
+          >
+
+          <select id="salesStatusFilter">
+            <option value="">状態すべて</option>
+            <option value="draft">下書き</option>
+            <option value="confirmed">売上確定</option>
+            <option value="shipped">出荷済み</option>
+            <option value="billed">請求済み</option>
+            <option value="paid">入金済み</option>
+            <option value="returned">返品</option>
+            <option value="cancelled">取消</option>
+          </select>
+
+          <button
+            class="button secondary"
+            type="button"
+            id="reloadSalesButton"
+          >
+            売上再読込
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>伝票番号</th>
+                <th>売上日</th>
+                <th>得意先</th>
+                <th>状態</th>
+                <th>明細数</th>
+                <th>税抜</th>
+                <th>税</th>
+                <th>合計</th>
+                <th>売掛残高</th>
+              </tr>
+            </thead>
+
+            <tbody id="salesRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="billingCloses"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>請求締め</h2>
+          <p>
+            得意先ごとの締期間と繰越残高を確定します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="billingCloseForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="close_customer_id">
+                得意先ID
+              </label>
+
+              <input
+                id="close_customer_id"
+                type="number"
+              >
+            </div>
+
+            <div class="field wide">
+              <label for="close_customer_name">
+                得意先名 必須
+              </label>
+
+              <input
+                id="close_customer_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="closing_date">
+                締日
+              </label>
+
+              <input
+                id="closing_date"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="period_from">
+                期間開始
+              </label>
+
+              <input
+                id="period_from"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="period_to">
+                期間終了
+              </label>
+
+              <input
+                id="period_to"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="previous_balance">
+                前回残高
+              </label>
+
+              <input
+                id="previous_balance"
+                type="number"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="close_sales_amount">
+                今回売上
+              </label>
+
+              <input
+                id="close_sales_amount"
+                type="number"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="close_payment_amount">
+                今回入金
+              </label>
+
+              <input
+                id="close_payment_amount"
+                type="number"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="adjustment_amount">
+                調整額
+              </label>
+
+              <input
+                id="adjustment_amount"
+                type="number"
+                value="0"
+              >
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              請求締めを登録
+            </button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>締番号</th>
+                <th>得意先</th>
+                <th>締日</th>
+                <th>期間</th>
+                <th>前回残高</th>
+                <th>売上</th>
+                <th>入金</th>
+                <th>今回残高</th>
+              </tr>
+            </thead>
+
+            <tbody id="billingCloseRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="invoices"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>請求書</h2>
+          <p>
+            請求書番号、請求日、支払期限、発行状態を管理します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="invoiceForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="invoice_customer_id">
+                得意先ID
+              </label>
+
+              <input
+                id="invoice_customer_id"
+                type="number"
+              >
+            </div>
+
+            <div class="field wide">
+              <label for="invoice_customer_name">
+                得意先名 必須
+              </label>
+
+              <input
+                id="invoice_customer_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="invoice_date">
+                請求日
+              </label>
+
+              <input
+                id="invoice_date"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="due_date">
+                支払期限
+              </label>
+
+              <input
+                id="due_date"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="invoice_subtotal_amount">
+                税抜額
+              </label>
+
+              <input
+                id="invoice_subtotal_amount"
+                type="number"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="invoice_tax_amount">
+                消費税
+              </label>
+
+              <input
+                id="invoice_tax_amount"
+                type="number"
+                value="0"
+              >
+            </div>
+
+            <div class="field">
+              <label for="invoice_issue_status">
+                発行状態
+              </label>
+
+              <select id="invoice_issue_status">
+                <option value="draft">下書き</option>
+                <option value="issued">発行済み</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="invoice_note">
+                備考
+              </label>
+
+              <textarea id="invoice_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              請求書を登録
+            </button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>請求書番号</th>
+                <th>得意先</th>
+                <th>請求日</th>
+                <th>支払期限</th>
+                <th>発行状態</th>
+                <th>請求額</th>
+                <th>入金済み</th>
+                <th>残高</th>
+              </tr>
+            </thead>
+
+            <tbody id="invoiceRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="payments"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>入金</h2>
+          <p>
+            振込、現金、相殺、手数料調整などの入金を登録します。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="paymentForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="payment_date">
+                入金日
+              </label>
+
+              <input
+                id="payment_date"
+                type="date"
+              >
+            </div>
+
+            <div class="field">
+              <label for="payment_customer_id">
+                得意先ID
+              </label>
+
+              <input
+                id="payment_customer_id"
+                type="number"
+              >
+            </div>
+
+            <div class="field wide">
+              <label for="payment_customer_name">
+                得意先名 必須
+              </label>
+
+              <input
+                id="payment_customer_name"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="payment_method">
+                入金方法
+              </label>
+
+              <select id="payment_method">
+                <option value="bank_transfer">銀行振込</option>
+                <option value="cash">現金</option>
+                <option value="offset">相殺</option>
+                <option value="fee">振込手数料調整</option>
+                <option value="other">その他</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="payment_amount">
+                入金額 必須
+              </label>
+
+              <input
+                id="payment_amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+              >
+            </div>
+
+            <div class="field full">
+              <label for="payment_note">
+                備考
+              </label>
+
+              <textarea id="payment_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              入金を登録
+            </button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>入金番号</th>
+                <th>入金日</th>
+                <th>得意先</th>
+                <th>方法</th>
+                <th>入金額</th>
+                <th>未消込額</th>
+              </tr>
+            </thead>
+
+            <tbody id="paymentRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="allocations"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>入金消込</h2>
+          <p>
+            入金を請求書へ割り当て、売掛残高を減らします。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="allocationForm">
+          <div class="form-grid">
+            <div class="field wide">
+              <label for="allocation_payment_id">
+                未消込入金
+              </label>
+
+              <select
+                id="allocation_payment_id"
+                required
+              ></select>
+            </div>
+
+            <div class="field wide">
+              <label for="allocation_invoice_id">
+                未回収請求書
+              </label>
+
+              <select
+                id="allocation_invoice_id"
+                required
+              ></select>
+            </div>
+
+            <div class="field">
+              <label for="allocated_amount">
+                消込金額
+              </label>
+
+              <input
+                id="allocated_amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              入金を消込
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section
+      id="accessOrders"
+      class="panel"
+    >
+      <div class="panel-header">
+        <div>
+          <h2>Access受注取込待ち</h2>
+          <p>
+            現行Access受注システムから受け取るデータの待機場所です。
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="accessOrderForm">
+          <div class="form-grid">
+            <div class="field wide">
+              <label for="source_file_name">
+                元ファイル名
+              </label>
+
+              <input id="source_file_name">
+            </div>
+
+            <div class="field">
+              <label for="access_order_no">
+                Access受注番号
+              </label>
+
+              <input id="access_order_no">
+            </div>
+
+            <div class="field full">
+              <label for="access_payload">
+                受注データJSON
+              </label>
+
+              <textarea
+                id="access_payload"
+                placeholder='{"customer_name":"得意先名","items":[]}'
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              class="button primary"
+              type="submit"
+            >
+              取込待ちへ登録
+            </button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>受注番号</th>
+                <th>元ファイル</th>
+                <th>状態</th>
+                <th>登録日時</th>
+                <th>エラー</th>
+              </tr>
+            </thead>
+
+            <tbody id="accessOrderRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/sales/sales-dashboard.js"></script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+</body>
+</html>

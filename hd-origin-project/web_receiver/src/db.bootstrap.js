@@ -643,6 +643,45 @@ ON CONFLICT (treatment_name) DO UPDATE SET
     await runTargetSql(organizationMasterSql);
   }
   /* GPT00_ORGANIZATION_MASTER_MIGRATION_END */
+  /* GPT00_BUSINESS_PARTNER_BOOTSTRAP_20260712_START */
+  const businessPartnerMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260712_001_customer_vendor_csv_import.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (businessPartnerMigrationSql.trim()) {
+    await runTargetSql(businessPartnerMigrationSql);
+  }
+  /* GPT00_BUSINESS_PARTNER_BOOTSTRAP_20260712_END */
+  /* GPT00_COMPANY_TRANSACTION_RULE_BOOTSTRAP_20260712_START */
+  const companyTransactionRuleMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260712_002_company_transaction_rules.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (companyTransactionRuleMigrationSql.trim()) {
+    await runTargetSql(companyTransactionRuleMigrationSql);
+  }
+  /* GPT00_COMPANY_TRANSACTION_RULE_BOOTSTRAP_20260712_END */
+  /* GPT00_SALES_MANAGEMENT_BOOTSTRAP_20260712_START */
+  const salesManagementMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260712_003_sales_management_skeleton.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (salesManagementMigrationSql.trim()) {
+    await runTargetSql(salesManagementMigrationSql);
+  }
+  /* GPT00_SALES_MANAGEMENT_BOOTSTRAP_20260712_END */
   console.log(`[DB] ready: ${dbName}`);
 
   /*
@@ -744,6 +783,11 @@ ON CONFLICT (treatment_name) DO UPDATE SET
 module.exports = {
   ensureDatabaseReady
 };
+
+
+
+
+
 
 
 
