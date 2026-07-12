@@ -699,14 +699,11 @@ ON CONFLICT (treatment_name) DO UPDATE SET
   const salesProductMasterFoundationMigrationSql =
     readSqlIfExists(
       path.join(
-        __dirname,
-        "..",
-        "..",
         "database",
         "migrations",
         "20260712_005_sales_product_master_foundation.sql"
       )
-    );
+    ).replace(/^\uFEFF/, "");
 
   if (salesProductMasterFoundationMigrationSql.trim()) {
     await runTargetSql(
