@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -149,6 +149,328 @@
   <script>
     document.querySelector('[data-page="dashboard"]').classList.add('active');
   </script>
+
+<!-- GPT00_BANK_DASHBOARD_DATA_20260711_START -->
+<script>
+(() => {
+  "use strict";
+
+  function money(value) {
+    return new Intl.NumberFormat(
+      "ja-JP",
+      {
+        style: "currency",
+        currency: "JPY",
+        maximumFractionDigits: 0
+      }
+    ).format(Number(value) || 0);
+  }
+
+  function currentCompany() {
+    const companyId = Number(
+      localStorage.getItem(
+        "current_company_id"
+      )
+    );
+
+    const companyName =
+      localStorage.getItem(
+        "current_company_name"
+      ) || "";
+
+    if (
+      !Number.isInteger(companyId) ||
+      companyId <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      company_id: companyId,
+      company_name: companyName
+    };
+  }
+
+  function addCompanyBanner(company) {
+    const main =
+      document.querySelector(".bank-main");
+
+    const topbar =
+      main?.querySelector(".bank-topbar");
+
+    if (!main || !topbar) {
+      return;
+    }
+
+    let banner =
+      document.getElementById(
+        "bankCurrentCompany"
+      );
+
+    if (!banner) {
+      banner =
+        document.createElement("section");
+
+      banner.id = "bankCurrentCompany";
+      banner.className = "bank-card";
+      banner.style.marginBottom = "1rem";
+
+      topbar.insertAdjacentElement(
+        "afterend",
+        banner
+      );
+    }
+
+    banner.innerHTML =
+      "<strong>現在の会社：</strong>" +
+      escapeHtml(
+        company.company_name ||
+        "会社名未設定"
+      );
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function setMetric(index, title, value, label) {
+    const cards =
+      document.querySelectorAll(
+        ".bank-grid.cols-4 .bank-card"
+      );
+
+    const card = cards[index];
+
+    if (!card) {
+      return;
+    }
+
+    const titleElement =
+      card.querySelector(
+        ".bank-card-title"
+      );
+
+    const metricElement =
+      card.querySelector(
+        ".bank-metric"
+      );
+
+    const labelElement =
+      card.querySelector(
+        ".bank-metric-label"
+      );
+
+    if (titleElement) {
+      titleElement.innerHTML =
+        escapeHtml(title);
+    }
+
+    if (metricElement) {
+      metricElement.textContent = value;
+    }
+
+    if (labelElement) {
+      labelElement.textContent = label;
+    }
+  }
+
+  async function loadDashboard() {
+    const company = currentCompany();
+
+    if (!company) {
+      alert(
+        "メイン画面で会社を選択してください。"
+      );
+
+      location.href = "/";
+      return;
+    }
+
+    addCompanyBanner(company);
+
+    const query =
+      "?company_id=" +
+      encodeURIComponent(
+        company.company_id
+      );
+
+    const [
+      summaryResponse,
+      accountsResponse
+    ] = await Promise.all([
+      fetch(
+        "/api/bank/summary" + query,
+        {
+          cache: "no-store"
+        }
+      ),
+      fetch(
+        "/api/bank/accounts" + query,
+        {
+          cache: "no-store"
+        }
+      )
+    ]);
+
+    if (
+      !summaryResponse.ok ||
+      !accountsResponse.ok
+    ) {
+      throw new Error(
+        "銀行口座情報を取得できません。"
+      );
+    }
+
+    const summaryData =
+      await summaryResponse.json();
+
+    const accountsData =
+      await accountsResponse.json();
+
+    const summary =
+      summaryData.summary || {};
+
+    const accounts =
+      Array.isArray(
+        accountsData.accounts
+      )
+        ? accountsData.accounts
+        : [];
+
+    addCompanyBanner(
+      summaryData.company || company
+    );
+
+    setMetric(
+      0,
+      "現在残高",
+      money(summary.current_balance),
+      "選択会社の全銀行口座"
+    );
+
+    setMetric(
+      1,
+      "銀行口座",
+      String(
+        Number(summary.account_count) || 0
+      ),
+      "有効な口座数"
+    );
+
+    setMetric(
+      2,
+      "入出金明細",
+      String(
+        Number(summary.transaction_count) || 0
+      ),
+      "登録済み明細件数"
+    );
+
+    setMetric(
+      3,
+      "未照合",
+      String(
+        Number(summary.unreconciled_count) || 0
+      ),
+      "照合が必要な明細"
+    );
+
+    let accountSection =
+      document.getElementById(
+        "bankAccountSummarySection"
+      );
+
+    if (!accountSection) {
+      accountSection =
+        document.createElement("section");
+
+      accountSection.id =
+        "bankAccountSummarySection";
+
+      accountSection.className =
+        "bank-card";
+
+      accountSection.style.marginTop =
+        "1rem";
+
+      const main =
+        document.querySelector(
+          ".bank-main"
+        );
+
+      main.appendChild(accountSection);
+    }
+
+    accountSection.innerHTML =
+      "<div class='bank-card-title'>" +
+      "<span>銀行口座</span>" +
+      "<small>実データ</small>" +
+      "</div>" +
+      "<div class='bank-table-wrap'>" +
+      "<table class='bank-table'>" +
+      "<thead><tr>" +
+      "<th>銀行</th>" +
+      "<th>支店</th>" +
+      "<th>口座</th>" +
+      "<th>口座番号</th>" +
+      "<th>開始日</th>" +
+      "<th>現在残高</th>" +
+      "<th>区分</th>" +
+      "</tr></thead>" +
+      "<tbody>" +
+      (
+        accounts.length
+          ? accounts.map(account =>
+              "<tr>" +
+              "<td>" +
+              escapeHtml(account.bank_name) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(account.branch_name) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(account.account_type_name) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(account.account_number) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(account.opening_date) +
+              "</td>" +
+              "<td>" +
+              money(account.current_balance) +
+              "</td>" +
+              "<td>" +
+              (
+                account.is_dummy
+                  ? "<span class='bank-status review'>ダミー</span>"
+                  : "<span class='bank-status done'>本番</span>"
+              ) +
+              "</td>" +
+              "</tr>"
+            ).join("")
+          : "<tr><td colspan='7'>銀行口座がありません。</td></tr>"
+      ) +
+      "</tbody></table></div>";
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      loadDashboard().catch(error => {
+        console.error(error);
+        alert(error.message);
+      });
+    }
+  );
+})();
+</script>
+<!-- GPT00_BANK_DASHBOARD_DATA_20260711_END -->
 </body>
 </html>
 

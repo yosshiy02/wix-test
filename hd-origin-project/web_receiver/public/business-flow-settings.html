@@ -372,7 +372,7 @@ AIは候補作成と確認点整理を行う。
 
       paymentDocuments:
 `【支払書類】
-書類OCR、AI仕分け、専門解析、下書き、人間確認、台帳反映の順に進める。
+書類OCR、AI仕分け、専門解析、自動補完、自動登録、自動照合、台帳反映までをAIとシステムで進め、解消不能な例外だけ停止する。
 証憑不足・金額不一致・支払先不一致は要確認にする。`,
 
       receipts:
@@ -543,14 +543,14 @@ AIだけで支払確定しない。
           if (rule.document_status) lines.push("   書類: " + rule.document_status);
           if (rule.evidence_policy) lines.push("   証憑確認: " + rule.evidence_policy);
           if (rule.bank_or_payment_method) lines.push("   支払方法: " + rule.bank_or_payment_method);
-          lines.push("   人間確認: 必要");
+          lines.push("   自動処理: 通常案件はAIとシステムで完了");
         });
       } else {
         lines.push("・ルール候補なし");
       }
       lines.push("");
 
-      lines.push("【人間確認ポイント】");
+      lines.push("【例外停止条件】");
       if (humanCheckPoints.length) {
         humanCheckPoints.forEach(x => lines.push("・" + x));
       } else {
@@ -666,7 +666,7 @@ AIだけで支払確定しない。
           "",
           text,
           "",
-          "総務AIは、単に人間確認で終わらせず、AI化・システム化・DB化・警告化・最終確認の分担を考える。",
+          "総務AIは、人間確認へ戻すのではなく、AI化・システム化・DB化・自動照合・自動実行によって通常業務を完了させ、解消不能な例外だけ停止する。",
           "AIは支払承認・会計確定・最終責任判断を勝手に行わない。",
           "ただし、分類、候補整理、抜け検出、期限管理、未回収リスト化、警告、次にやることの提示はAIとシステムで担う前提とする。"
         ].join("\n");
@@ -767,7 +767,7 @@ function textIncludesAnyForFlow(text, words) {
       if (r.bank_or_payment_method) lines.push("支払方法: " + r.bank_or_payment_method);
       if (r.evidence_policy) lines.push("証憑確認: " + r.evidence_policy);
 
-      lines.push("人間確認: 必要");
+      lines.push("自動処理方針: 原則自動完了");
 
       if (Array.isArray(r.warnings) && r.warnings.length) {
         lines.push("注意: " + r.warnings.join(" / "));
@@ -849,7 +849,7 @@ function textIncludesAnyForFlow(text, words) {
         const noteLines = [];
 
         if (humanCheckPoints.length) {
-          noteLines.push("人間確認ポイント:");
+          noteLines.push("例外停止条件:");
           humanCheckPoints.forEach(x => noteLines.push("- " + x));
         }
 
@@ -981,8 +981,8 @@ function textIncludesAnyForFlow(text, words) {
       }
       lines.push("");
 
-      const human = Array.isArray(s.human_check_required) ? s.human_check_required : [];
-      lines.push("【人間確認を強めるべき場所】");
+      const human = Array.isArray(s.exception_stop_conditions) ? s.exception_stop_conditions : [];
+      lines.push("【自動処理を停止する真の例外条件】");
       if (human.length) {
         human.forEach(x => lines.push("・" + x));
       } else {
@@ -1067,3 +1067,11 @@ function textIncludesAnyForFlow(text, words) {
   </script>
 </body>
 </html>
+
+<!--
+HD_ORIGIN_BUSINESS_FLOW_EXECUTION_AI_UI_20260711
+この画面の最上位目標は、人間作業の徹底削減です。
+業務フローAIは案内だけで終わらず、通常案件をAIとシステムで完了させます。
+「情報不足」「要確認」を安易に最終回答にせず、
+既存DB・会社マスタ・過去処理・原本・OCR・専門解析から自動補完します。
+-->

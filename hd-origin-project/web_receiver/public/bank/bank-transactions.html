@@ -1,12 +1,194 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>入出金明細一覧 - HD Origin Project</title>
   <link rel="stylesheet" href="/bank/bank.css">
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_START -->
+<style>
+  .hd-ledger-page-view-switch {
+    width: min(1380px, calc(100% - 32px));
+    margin: 18px auto 0;
+    padding: 12px;
+    border: 1px solid rgba(35,48,76,.12);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(50,100,255,.10), transparent 22rem),
+      rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    color: #172033;
+  }
+
+  .hd-ledger-page-view-switch-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .hd-ledger-page-view-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .hd-ledger-page-view-title strong {
+    font-size: 14px;
+    letter-spacing: -.02em;
+  }
+
+  .hd-ledger-page-view-title span {
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .hd-ledger-page-view-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    min-width: 230px;
+    padding: 4px;
+    border-radius: 16px;
+    background: #eef2f7;
+    border: 1px solid rgba(35,48,76,.08);
+  }
+
+  .hd-ledger-page-view-button {
+    min-height: 36px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #596579;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .hd-ledger-page-view-button.is-active {
+    background: #ffffff;
+    color: #2348c7;
+    box-shadow: 0 8px 16px rgba(32,44,72,.10);
+  }
+
+  .hd-ledger-page-view-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  html[data-ledger-view="report"] .hd-ledger-page-view-current::after {
+    content: "帳票形式";
+  }
+
+  html[data-ledger-view="single"] .hd-ledger-page-view-current::after {
+    content: "単票形式";
+  }
+
+  body[data-ledger-view="report"] .ledger-single-only,
+  body[data-ledger-view="single"] .ledger-report-only {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-ledger-page-view-switch {
+      width: calc(100% - 20px);
+      margin-top: 12px;
+    }
+
+    .hd-ledger-page-view-switch-inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hd-ledger-page-view-buttons {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_END -->
 </head>
 <body>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_START -->
+<div class="hd-ledger-page-view-switch" data-ledger-page-view-switch>
+  <div class="hd-ledger-page-view-switch-inner">
+    <div class="hd-ledger-page-view-title">
+      <strong>表示形式</strong>
+      <span>この画面を開いた後に、帳票形式／単票形式を切り替えます。現在: <span class="hd-ledger-page-view-current"></span></span>
+    </div>
+    <div class="hd-ledger-page-view-buttons" role="group" aria-label="表示形式切替">
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="report">帳票形式</button>
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="single">単票形式</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__) return;
+  window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__ = true;
+
+  function normalizeView(value) {
+    return value === 'single' ? 'single' : 'report';
+  }
+
+  function currentViewFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeView(params.get('view') || params.get('format') || 'report');
+  }
+
+  function setUrlView(view) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', view);
+    url.searchParams.set('format', view);
+    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function applyView(view, shouldWriteUrl) {
+    const normalized = normalizeView(view);
+
+    document.documentElement.setAttribute('data-ledger-view', normalized);
+    if (document.body) {
+      document.body.setAttribute('data-ledger-view', normalized);
+    }
+
+    document.querySelectorAll('[data-ledger-view-button]').forEach(function(button){
+      const isActive = button.getAttribute('data-ledger-view-button') === normalized;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    if (shouldWriteUrl) {
+      setUrlView(normalized);
+    }
+
+    window.dispatchEvent(new CustomEvent('hd-ledger-view-change', {
+      detail: { view: normalized }
+    }));
+  }
+
+  document.addEventListener('click', function(event){
+    const button = event.target.closest('[data-ledger-view-button]');
+    if (!button) return;
+
+    event.preventDefault();
+    applyView(button.getAttribute('data-ledger-view-button'), true);
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){
+      applyView(currentViewFromUrl(), false);
+    });
+  } else {
+    applyView(currentViewFromUrl(), false);
+  }
+})();
+</script>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_END -->
+
   <div class="bank-shell">
 <aside class="bank-sidebar">
   <div class="bank-brand">
@@ -110,6 +292,232 @@
   <script>
     document.querySelector('[data-page="transactions"]').classList.add('active');
   </script>
+
+<!-- GPT00_BANK_TRANSACTIONS_DATA_20260711_START -->
+<script>
+(() => {
+  "use strict";
+
+  function money(value) {
+    const number = Number(value) || 0;
+
+    if (!number) {
+      return "";
+    }
+
+    return new Intl.NumberFormat(
+      "ja-JP",
+      {
+        maximumFractionDigits: 0
+      }
+    ).format(number);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function currentCompany() {
+    const companyId = Number(
+      localStorage.getItem(
+        "current_company_id"
+      )
+    );
+
+    if (
+      !Number.isInteger(companyId) ||
+      companyId <= 0
+    ) {
+      return null;
+    }
+
+    return {
+      company_id: companyId,
+      company_name:
+        localStorage.getItem(
+          "current_company_name"
+        ) || ""
+    };
+  }
+
+  function addCompanyBanner(company) {
+    const topbar =
+      document.querySelector(
+        ".bank-topbar"
+      );
+
+    if (!topbar) {
+      return;
+    }
+
+    let banner =
+      document.getElementById(
+        "bankTransactionsCompany"
+      );
+
+    if (!banner) {
+      banner =
+        document.createElement("section");
+
+      banner.id =
+        "bankTransactionsCompany";
+
+      banner.className = "bank-card";
+      banner.style.marginBottom = "1rem";
+
+      topbar.insertAdjacentElement(
+        "afterend",
+        banner
+      );
+    }
+
+    banner.innerHTML =
+      "<strong>現在の会社：</strong>" +
+      escapeHtml(
+        company.company_name ||
+        "会社名未設定"
+      );
+  }
+
+  async function loadTransactions() {
+    const company = currentCompany();
+
+    if (!company) {
+      alert(
+        "メイン画面で会社を選択してください。"
+      );
+
+      location.href = "/";
+      return;
+    }
+
+    addCompanyBanner(company);
+
+    const response = await fetch(
+      "/api/bank/transactions" +
+      "?company_id=" +
+      encodeURIComponent(
+        company.company_id
+      ) +
+      "&limit=500",
+      {
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+
+      throw new Error(
+        text ||
+        "入出金明細を取得できません。"
+      );
+    }
+
+    const data = await response.json();
+
+    addCompanyBanner(
+      data.company || company
+    );
+
+    const rows =
+      Array.isArray(data.transactions)
+        ? data.transactions
+        : [];
+
+    const tbody =
+      document.querySelector(
+        ".bank-table tbody"
+      );
+
+    if (!tbody) {
+      throw new Error(
+        "明細テーブルが見つかりません。"
+      );
+    }
+
+    tbody.innerHTML =
+      rows.length
+        ? rows.map(row =>
+            "<tr>" +
+            "<td>" +
+            escapeHtml(row.transaction_date) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(
+              row.bank_name +
+              " " +
+              row.account_type_name +
+              " " +
+              row.account_number
+            ) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(
+              row.description ||
+              row.transaction_type_name
+            ) +
+            "</td>" +
+            "<td class='bank-amount-in'>" +
+            money(row.deposit_amount) +
+            "</td>" +
+            "<td class='bank-amount-out'>" +
+            money(row.withdrawal_amount) +
+            "</td>" +
+            "<td>" +
+            money(row.running_balance) +
+            "</td>" +
+            "<td>" +
+            escapeHtml(
+              row.transaction_type_name
+            ) +
+            "</td>" +
+            "<td>" +
+            (
+              row.is_dummy
+                ? "<span class='bank-status review'>ダミー</span>"
+                : "<span class='bank-status " +
+                  (
+                    row.reconciliation_status_code ===
+                    "unreconciled"
+                      ? "pending"
+                      : "done"
+                  ) +
+                  "'>" +
+                  escapeHtml(
+                    row.reconciliation_status_name
+                  ) +
+                  "</span>"
+            ) +
+            "</td>" +
+            "</tr>"
+          ).join("")
+        : (
+            "<tr>" +
+            "<td colspan='8'>" +
+            "入出金明細はありません。" +
+            "</td>" +
+            "</tr>"
+          );
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      loadTransactions().catch(error => {
+        console.error(error);
+        alert(error.message);
+      });
+    }
+  );
+})();
+</script>
+<!-- GPT00_BANK_TRANSACTIONS_DATA_20260711_END -->
 </body>
 </html>
 

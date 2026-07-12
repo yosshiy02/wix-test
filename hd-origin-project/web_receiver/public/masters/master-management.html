@@ -69,12 +69,120 @@
       <h2>一覧</h2>
       <div id="masterList">マスタを選んでください。</div>
     </div>
-  </main>
+  
+<!-- HD_ORIGIN_CUSTOMER_VENDOR_MASTER_LINKS -->
+<section
+  id="hd-origin-customer-vendor-master-links"
+  style="
+    margin:20px 0;
+    padding:18px;
+    border:1px solid #d7dde6;
+    border-radius:12px;
+    background:#ffffff;
+    box-shadow:0 2px 8px rgba(15,23,42,.05);
+  "
+>
+  <div style="margin-bottom:14px;">
+    <h2 style="margin:0 0 5px;font-size:20px;color:#1f2937;">
+      得意先・取引先
+    </h2>
+
+    <p style="margin:0;color:#64748b;font-size:14px;">
+      得意先情報、取引先情報、締日、支払条件、振込口座、CSV出力・受入れを管理します。
+    </p>
+  </div>
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:12px;
+    "
+  >
+    <a
+      href="/masters/customer-master.html"
+      style="
+        display:block;
+        padding:18px;
+        border:1px solid #bfdbfe;
+        border-radius:10px;
+        background:#eff6ff;
+        color:#1e3a8a;
+        text-decoration:none;
+      "
+    >
+      <strong style="display:block;margin-bottom:5px;font-size:18px;">
+        得意先マスタ
+      </strong>
+
+      <span style="font-size:13px;color:#475569;">
+        販売先・請求先・入金条件・担当者・CSVを管理
+      </span>
+    </a>
+
+    <a
+      href="/masters/vendor-master.html"
+      style="
+        display:block;
+        padding:18px;
+        border:1px solid #bbf7d0;
+        border-radius:10px;
+        background:#f0fdf4;
+        color:#14532d;
+        text-decoration:none;
+      "
+    >
+      <strong style="display:block;margin-bottom:5px;font-size:18px;">
+        取引先マスタ
+      </strong>
+
+      <span style="font-size:13px;color:#475569;">
+        仕入先・外注先・支払条件・振込口座・CSVを管理
+      </span>
+    </a>
+  </div>
+</section>
+<!-- /HD_ORIGIN_CUSTOMER_VENDOR_MASTER_LINKS -->
+
+<!-- GPT00_COMPANY_TRANSACTION_RULE_LINK_20260712_START -->
+<section style="
+  margin:16px 0;
+  padding:16px;
+  border:1px solid #d7dde6;
+  border-radius:12px;
+  background:#ffffff;
+">
+  <h2 style="margin:0 0 8px;">会社別取引ルール</h2>
+
+  <p style="margin:0 0 12px;color:#64748b;">
+    売り・買い・製造委託・製造受託ごとの歩引き、
+    控除、計算条件、例外JSONを管理します。
+  </p>
+
+  <a
+    href="/masters/company-transaction-rule-master.html"
+    style="
+      display:inline-block;
+      padding:9px 14px;
+      border-radius:8px;
+      background:#1d4ed8;
+      color:#ffffff;
+      text-decoration:none;
+      font-weight:700;
+    "
+  >
+    会社別取引ルールを開く
+  </a>
+</section>
+<!-- GPT00_COMPANY_TRANSACTION_RULE_LINK_20260712_END -->
+</main>
 
 <script src="./master-management.js"></script>
   <script src="/hd-origin-exit-guard.js?v=20260706"></script>
 </body>
 </html>
+
+
 
 
 

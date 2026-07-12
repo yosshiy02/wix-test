@@ -5,8 +5,96 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>契約・保険・リース専門解析システム - HD Origin Project</title>
   <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_contract-insurance-lease-ledger_START -->
+<style>
+  .hd-ledger-form-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+  .hd-ledger-form-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+  .hd-ledger-form-menu-title strong {
+    font-size: 18px;
+  }
+  .hd-ledger-form-menu-title span {
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .hd-ledger-form-menu-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hd-ledger-form-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    text-decoration: none !important;
+    font-size: 16px;
+    letter-spacing: .02em;
+    font-weight: 900;
+    border: 1px solid transparent;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+  .hd-ledger-form-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+  .hd-ledger-form-menu-button.report {
+    background: #eaf0ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.20);
+    border-width: 2px;
+  }
+  @media (max-width:720px){
+    .hd-ledger-form-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .hd-ledger-form-menu-buttons {
+      justify-content: stretch;
+    }
+    .hd-ledger-form-menu-button {
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_contract-insurance-lease-ledger_END -->
 </head>
 <body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
+<!-- GPT00_LEDGER_FORM_MENU_contract-insurance-lease-ledger_START -->
+<div class="hd-ledger-form-menu">
+  <div class="hd-ledger-form-menu-title">
+    <strong>契約・保険・リース 表示形式</strong>
+    <span>単票形式は通常画面、帳面形式は一覧・集計・印刷用です。</span>
+  </div>
+  <div class="hd-ledger-form-menu-buttons">
+    <a class="hd-ledger-form-menu-button single" href="/payables/payment-document-specialist-contract-insurance-lease.html">単票形式</a>
+    <a class="hd-ledger-form-menu-button report" href="/ledgers/reports/contract-insurance-lease-ledger-report.html">帳面形式</a>
+  </div>
+</div>
+<!-- GPT00_LEDGER_FORM_MENU_contract-insurance-lease-ledger_END -->
+
 <!-- HD_ORIGIN_GPT2_CIL_SPECIALIST_COMMON_SAVE_API_20260710 : contract-insurance-lease save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
@@ -1151,9 +1239,9 @@ function setDocumentPreview(item) {
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
-      if (setById("draftAiPaymentTarget", draft.ai_summary.payment_target || fields["支払対象"])) appliedCount++;
-      if (setById("draftAiPayableTarget", draft.ai_summary.payable_target || fields["未払登録対象"])) appliedCount++;
-      if (setById("draftAiExpenseTarget", draft.ai_summary.expense_target || fields["経費登録対象"])) appliedCount++;
+      if (setById("draftAiPaymentTarget", draft.ai_summary.payment_target || (fields.payment_target || fields["支払対象"]))) appliedCount++;
+      if (setById("draftAiPayableTarget", draft.ai_summary.payable_target || (fields.payable_target || fields["未払登録対象"]))) appliedCount++;
+      if (setById("draftAiExpenseTarget", draft.ai_summary.expense_target || (fields.expense_target || fields["経費登録対象"]))) appliedCount++;
       if (setById("draftAiTaxPublic", draft.ai_summary.tax_public || fields["税金・公的支払"])) appliedCount++;
       if (setById("draftAiContractInsuranceLease", draft.ai_summary.contract_insurance_lease || fields["契約・保険・リース"])) appliedCount++;
       if (setById("draftAiConfidence", draft.ai_summary.confidence_label || fields["AI信頼度"])) appliedCount++;
@@ -1542,9 +1630,9 @@ function setDocumentPreview(item) {
     // 契約・保険・リース 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
-    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || fields["未払登録対象"]);
-    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
     // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_START
@@ -2263,9 +2351,9 @@ function setDocumentPreview(item) {
 
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
-    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || fields["未払登録対象"]);
-    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
     put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
@@ -3232,7 +3320,7 @@ function setDocumentPreview(item) {
               </span>
               <span class="sorting-summary-chips">
                 <span class="${visual.kindClass}">種類:${esc(visual.kindLabel)}</span>
-                <span class="${visual.destClass}">行き先:${esc(visual.destinationLabel)}</span>
+                
                 ${reviewBadge}
                 <span class="visual-chip visual-chip-status">${esc(analyzedText)}</span>
               </span>
@@ -3244,7 +3332,7 @@ function setDocumentPreview(item) {
             <div class="sorting-detail-grid">
               <div><span class="detail-label">OCR日時</span><span class="detail-value">${esc(time || "不明")}</span></div>
               <div><span class="detail-label">種類</span><span class="${visual.kindClass}">${esc(visual.kindLabel)}</span></div>
-              <div><span class="detail-label">行き先</span><span class="${visual.destClass}">${esc(visual.destinationLabel)}</span></div>
+              
               <div><span class="detail-label">会計候補</span>${categoryBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">AI信頼度</span>${confidenceBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">要確認理由</span><span class="detail-value">${reasonText}</span></div>
@@ -3439,159 +3527,88 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
 /* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_START */
   window.hdOriginContractInsuranceLeaseSpecialistFilter = function(allItems) {
-    function norm(value) {
-      return String(value || "")
-        .replace(/\s+/g, "")
-        .replace(/　+/g, "")
-        .replace(/[・･·]/g, "")
-        .replace(/[：:]/g, "")
-        .replace(/[／\/]/g, "")
-        .toLowerCase();
+    const expectedAnalysisSystemCode =
+      "contract_insurance_lease_analysis";
+
+    function textValue(value) {
+      return String(value || "").trim();
     }
 
-    function collectText(item) {
-      const draft = item && item.__aiDraft && typeof item.__aiDraft === "object" ? item.__aiDraft : {};
-      const latest = item && item.latestSortingDraft && typeof item.latestSortingDraft === "object" ? item.latestSortingDraft : {};
-      const saved = item && item.__savedSortingDraft && typeof item.__savedSortingDraft === "object" ? item.__savedSortingDraft : {};
-      const aiSummary = draft && draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
-
-      return [
-        item && item.__documentGroup,
-
-        latest.specialistRouteCode,
-        latest.specialist_route_code,
-        latest.paymentDestinationCode,
-        latest.payment_destination_code,
-        latest.documentTypeCode,
-        latest.document_type_code,
-        latest.accountingCategoryCode,
-        latest.accounting_category_code,
-        latest.payableKindCode,
-        latest.payable_kind_code,
-
-        saved.specialistRouteCode,
-        saved.specialist_route_code,
-        saved.paymentDestinationCode,
-        saved.payment_destination_code,
-        saved.documentTypeCode,
-        saved.document_type_code,
-        saved.accountingCategoryCode,
-        saved.accounting_category_code,
-        saved.payableKindCode,
-        saved.payable_kind_code,
-
-        draft.specialist_route_code,
-        draft.specialistRouteCode,
-        draft.payment_destination_code,
-        draft.paymentDestinationCode,
-        draft.document_type_code,
-        draft.documentTypeCode,
-        draft.accounting_category_code,
-        draft.accountingCategoryCode,
-        draft.payable_kind_code,
-        draft.payableKindCode,
-
-        latest.specialistRouteLabel,
-        latest.specialist_route_label,
-        latest.paymentDestinationLabel,
-        latest.payment_destination_label,
-        latest.documentTypeLabel,
-        latest.document_type_label,
-
-        saved.specialistRouteLabel,
-        saved.specialist_route_label,
-        saved.paymentDestinationLabel,
-        saved.payment_destination_label,
-        saved.documentTypeLabel,
-        saved.document_type_label,
-
-        draft.specialist_route_label,
-        draft.specialistRouteLabel,
-        draft.payment_destination_label,
-        draft.paymentDestinationLabel,
-        draft.document_type_label,
-        draft.documentTypeLabel,
-
-        aiSummary.document_kind,
-        aiSummary.destination,
-        aiSummary.contract_insurance_lease_flag,
-        aiSummary.payable_target,
-        aiSummary.payment_target,
-        aiSummary.reason
-      ].map(norm).join(" ");
-    }
-
-    return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
-      const text = collectText(item);
-
-      if (!text) {
-        return false;
-      }
-
-      if (
-        text.includes("contract_insurance_lease") ||
-        text.includes("contractinsurancelease")
-      ) {
-        return true;
-      }
-
-      const isOtherSpecialist =
-        text.includes("invoice_payable") ||
-        text.includes("accountspayable") ||
-        text.includes("accounts_payable") ||
-        text.includes("tax_public") ||
-        text.includes("taxpublic") ||
-        text.includes("tax_payment") ||
-        text.includes("taxpayment") ||
-        text.includes("card_statement") ||
-        text.includes("paid_evidence") ||
-        text.includes("utility_notice") ||
-        text.includes("public_utility") ||
-        text.includes("communication") ||
-        text.includes("reference_check") ||
-        text.includes("cardpayable") ||
-        text.includes("receipt") ||
-        text.includes("請求未払") ||
-        text.includes("買掛") ||
-        text.includes("税金") ||
-        text.includes("公的") ||
-        text.includes("納付") ||
-        text.includes("領収") ||
-        text.includes("レシート") ||
-        text.includes("公共料金") ||
-        text.includes("通信費") ||
-        text.includes("照合用");
-
-      if (isOtherSpecialist) {
-        return false;
-      }
-
+    function objectValue(value) {
       return (
-        text.includes("契約") ||
-        text.includes("契約書") ||
-        text.includes("契約番号") ||
-        text.includes("契約期間") ||
-        text.includes("契約開始") ||
-        text.includes("契約終了") ||
-        text.includes("更新日") ||
-        text.includes("満期") ||
-        text.includes("保険") ||
-        text.includes("保険料") ||
-        text.includes("保険証券") ||
-        text.includes("証券番号") ||
-        text.includes("保険期間") ||
-        text.includes("リース") ||
-        text.includes("リース料") ||
-        text.includes("リース契約") ||
-        text.includes("賃貸借") ||
-        text.includes("借上") ||
-        text.includes("lease") ||
-        text.includes("insurance") ||
-        text.includes("contract")
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+      )
+        ? value
+        : {};
+    }
+
+    function analysisSystemCodeOf(item) {
+      const source = objectValue(item);
+
+      const latest = objectValue(
+        source.latestSortingDraft ||
+        source.latest_sorting_draft
+      );
+
+      const saved = objectValue(
+        source.__savedSortingDraft ||
+        source.savedSortingDraft ||
+        source.sortingDraft ||
+        source.sorting_draft
+      );
+
+      const draft = objectValue(
+        source.__aiDraft ||
+        source.aiDraft ||
+        source.draft
+      );
+
+      const sortResult = objectValue(
+        source.sortResult ||
+        source.sort_result
+      );
+
+      const candidates = [
+        latest.analysisSystemCode,
+        latest.analysis_system_code,
+
+        saved.analysisSystemCode,
+        saved.analysis_system_code,
+
+        draft.analysisSystemCode,
+        draft.analysis_system_code,
+
+        sortResult.analysisSystemCode,
+        sortResult.analysis_system_code,
+
+        source.analysisSystemCode,
+        source.analysis_system_code
+      ];
+
+      for (const candidate of candidates) {
+        const code = textValue(candidate);
+
+        if (code) {
+          return code;
+        }
+      }
+
+      return "";
+    }
+
+    return (
+      Array.isArray(allItems)
+        ? allItems
+        : []
+    ).filter(function(item) {
+      return (
+        analysisSystemCodeOf(item) ===
+        expectedAnalysisSystemCode
       );
     });
   };
-/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_END */
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -6979,6 +6996,8 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 <!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
 </body>
 </html>
+
+
 
 
 

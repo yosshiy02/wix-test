@@ -1,12 +1,100 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>銀行業務 区分マスタ - HD Origin Project</title>
   <link rel="stylesheet" href="/bank/bank.css">
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_bank-transaction-ledger_START -->
+<style>
+  .hd-ledger-form-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+  .hd-ledger-form-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+  .hd-ledger-form-menu-title strong {
+    font-size: 18px;
+  }
+  .hd-ledger-form-menu-title span {
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .hd-ledger-form-menu-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hd-ledger-form-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    text-decoration: none !important;
+    font-size: 16px;
+    letter-spacing: .02em;
+    font-weight: 900;
+    border: 1px solid transparent;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+  .hd-ledger-form-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+  .hd-ledger-form-menu-button.report {
+    background: #eaf0ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.20);
+    border-width: 2px;
+  }
+  @media (max-width:720px){
+    .hd-ledger-form-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .hd-ledger-form-menu-buttons {
+      justify-content: stretch;
+    }
+    .hd-ledger-form-menu-button {
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_bank-transaction-ledger_END -->
 </head>
 <body>
+<!-- GPT00_LEDGER_FORM_MENU_bank-transaction-ledger_START -->
+<div class="hd-ledger-form-menu">
+  <div class="hd-ledger-form-menu-title">
+    <strong>銀行取引明細 表示形式</strong>
+    <span>単票形式は通常画面、帳面形式は一覧・集計・印刷用です。</span>
+  </div>
+  <div class="hd-ledger-form-menu-buttons">
+    <a class="hd-ledger-form-menu-button single" href="/bank/bank-category-master.html">単票形式</a>
+    <a class="hd-ledger-form-menu-button report" href="/ledgers/reports/bank-transaction-ledger-report.html">帳面形式</a>
+  </div>
+</div>
+<!-- GPT00_LEDGER_FORM_MENU_bank-transaction-ledger_END -->
+
   <div class="bank-shell">
     <aside class="bank-sidebar">
       <div class="bank-brand">

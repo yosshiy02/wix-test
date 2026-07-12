@@ -1079,6 +1079,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
       d.payable_kind_label AS current_payable_kind_label,
       d.specialist_route_code AS current_specialist_route_code,
       d.specialist_route_label AS current_specialist_route_label,
+      d.analysis_system_id AS current_analysis_system_id,
       d.analysis_system_code AS current_analysis_system_code,
       d.analysis_system_label AS current_analysis_system_label,
       d.analysis_system_reason AS current_analysis_system_reason,
@@ -1135,6 +1136,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
           payableKindLabel: row.current_payable_kind_label,
           specialistRouteCode: row.current_specialist_route_code,
           specialistRouteLabel: row.current_specialist_route_label,
+          analysisSystemId: row.current_analysis_system_id,
           analysisSystemCode: row.current_analysis_system_code,
           analysisSystemLabel: row.current_analysis_system_label,
           analysisSystemReason: row.current_analysis_system_reason,
@@ -4056,7 +4058,10 @@ function buildPaymentDocumentSortPrompt(ocrText) {
   return [
     "支払書類の1回目仕分けだけを行ってください。",
     "詳細項目抽出はしないでください。",
-    "金額・日付・番号・口座・住所・明細の抽出は禁止です。",
+    "金額・番号・口座・住所・明細の抽出は禁止です。",
+    "ただし発行日だけは例外として、OCR本文と書類全体の文脈からAIが解析してください。",
+    "発行日を確定できた場合は、issue_date と fields の「発行日」の両方へ同じYYYY-MM-DD形式で返してください。",
+    "発行日を確定できない場合は推測せず、issue_date と fields の「発行日」を空文字にしてください。",
     "返すのは書類区分、処理先、専門解析行き先、信頼度、要確認理由に加えて、支払対象、未払登録対象、経費登録対象、税金・公的支払、公共料金・通信費、契約・保険・リースです。",
     "詳細項目抽出は禁止ですが、登録対象の候補判断は1回目仕分けで返してください。",
     "payment_target / payable_target / expense_target / tax_public / public_utility / contract_insurance_lease は ai_summary に入れてください。",
@@ -4190,208 +4195,226 @@ function paymentDocumentDefaultExpenseTargetForSort(destinationCode, documentTyp
 /* HD_ORIGIN_SORT_TARGET_AXIS_ROOT_FIX_20260708_END */
 
 /* HD_ORIGIN_NO_POST_ANALYSIS_SYSTEM_FIX_GPT00_20260709: analysis_system_* の後付け推測補完ブロックを撤去。AI返却値・人間修正値のみ扱う。 */
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
 function normalizePaymentDocumentSortCandidate(value) {
   const raw = value && typeof value === "object" ? value : {};
-  const source = raw.sorting && typeof raw.sorting === "object" ? raw.sorting : raw;
+  const source =
+    raw.draft && typeof raw.draft === "object" ? raw.draft :
+    raw.sorting && typeof raw.sorting === "object" ? raw.sorting :
+    raw.classification && typeof raw.classification === "object" ? raw.classification :
+    raw;
 
-  let confidence = paymentDocumentSortText(source.confidence || source.confidence_level || source.ai_confidence || "").toLowerCase();
-  let confidenceLabel = paymentDocumentSortText(source.confidence_label || "");
+  const aiSummary =
+    source.ai_summary && typeof source.ai_summary === "object" ? source.ai_summary :
+    source.aiSummary && typeof source.aiSummary === "object" ? source.aiSummary :
+    raw.ai_summary && typeof raw.ai_summary === "object" ? raw.ai_summary :
+    raw.aiSummary && typeof raw.aiSummary === "object" ? raw.aiSummary :
+    {};
 
-  if (confidence === "高") confidence = "high";
-  if (confidence === "中") confidence = "medium";
-  if (confidence === "低") confidence = "low";
+  const fields = source.fields && typeof source.fields === "object" ? source.fields : {};
 
-  if (!["high", "medium", "low"].includes(confidence)) {
-    confidence = "medium";
+  function firstText() {
+    for (const value of arguments) {
+      const text = paymentDocumentSortText(value);
+      if (text) return text;
+    }
+
+    return "";
   }
 
-  if (!confidenceLabel) {
-    confidenceLabel = confidence === "high" ? "高" : confidence === "low" ? "低" : "中";
+  function normalizeConfidence(rawConfidence, rawLabel) {
+    let confidence = paymentDocumentSortText(rawConfidence || "").toLowerCase();
+    let label = paymentDocumentSortText(rawLabel || "");
+
+    if (confidence === "高") confidence = "high";
+    if (confidence === "中") confidence = "medium";
+    if (confidence === "低") confidence = "low";
+
+    if (label === "high") label = "高";
+    if (label === "medium") label = "中";
+    if (label === "low") label = "低";
+
+    if (!["high", "medium", "low"].includes(confidence)) {
+      if (label === "高") confidence = "high";
+      else if (label === "低") confidence = "low";
+      else confidence = "medium";
+    }
+
+    if (!label) {
+      label = confidence === "high" ? "高" : confidence === "low" ? "低" : "中";
+    }
+
+    return { confidence, label };
   }
 
-  const documentTypeCode = paymentDocumentSortText(
-    source.document_type_code ||
-    source.documentTypeCode ||
-    source.document_kind_code ||
-    source.documentKindCode ||
-    ""
+  const accountingCategoryCode = firstText(
+    source.accounting_category_code,
+    source.accountingCategoryCode,
+    aiSummary.accounting_category_code,
+    aiSummary.accountingCategoryCode
   );
 
-  const documentTypeLabel = paymentDocumentSortText(
-    source.document_type_label ||
-    source.document_type_name ||
-    source.documentType ||
-    source.document_kind ||
-    source.document_kind_label ||
-    source.documentKind ||
-    source.ai_document_kind ||
-    ""
+  const accountingCategoryLabel = firstText(
+    source.accounting_category_label,
+    source.accountingCategoryLabel,
+    source.accounting_category_name,
+    aiSummary.accounting_category_label,
+    aiSummary.accountingCategoryLabel,
+    aiSummary.accounting_category,
+    aiSummary.accountingCategory,
+    fields["会計区分"]
   );
 
-  const destinationCode = paymentDocumentSortText(
-    source.payment_destination_code ||
-    source.destination_code ||
-    source.paymentDestinationCode ||
-    source.destination ||
-    ""
+  const paymentDestinationCode = firstText(
+    source.payment_destination_code,
+    source.paymentDestinationCode,
+    aiSummary.payment_destination_code,
+    aiSummary.paymentDestinationCode,
+    aiSummary.destination_code,
+    aiSummary.destinationCode
   );
 
-  const destinationLabel = paymentDocumentSortText(
-    source.payment_destination_label ||
-    source.payment_destination_name ||
-    source.paymentDestination ||
-    source.destination_label ||
-    source.destinationName ||
-    ""
+  const paymentDestinationLabel = firstText(
+    source.payment_destination_label,
+    source.paymentDestinationLabel,
+    source.payment_destination_name,
+    aiSummary.payment_destination_label,
+    aiSummary.paymentDestinationLabel,
+    aiSummary.destination_label,
+    aiSummary.destinationLabel,
+    aiSummary.destination,
+    fields["処理先"]
   );
 
-  const specialistRouteCode = paymentDocumentSortText(
-    source.specialist_route_code ||
-    source.next_route_code ||
-    source.next_phase_code ||
-    source.route_code ||
-    source.source_type_code ||
-    ""
+  const issueDate = firstText(
+    source.issue_date,
+    source.issueDate,
+    aiSummary.issue_date,
+    aiSummary.issueDate,
+    fields["発行日"]
   );
 
-  const specialistRouteLabel = paymentDocumentSortText(
-    source.specialist_route_label ||
-    source.next_route_label ||
-    source.next_phase_label ||
-    source.route_label ||
-    ""
+  const analysisSystemCode = firstText(
+    source.analysis_system_code,
+    source.analysisSystemCode,
+    aiSummary.analysis_system_code,
+    aiSummary.analysisSystemCode,
+    source.specialist_route_code
   );
-  const sourceSummary = source.ai_summary && typeof source.ai_summary === "object" ? source.ai_summary : {};
 
-  const analysisSystemCode = paymentDocumentSortText(source.analysis_system_code || source.analysisSystemCode || sourceSummary.analysis_system_code || "");
-  const analysisSystemLabel = paymentDocumentSortText(source.analysis_system_label || source.analysisSystemLabel || sourceSummary.analysis_system_label || sourceSummary.analysis_system || "");
-  const analysisSystemReason = paymentDocumentSortText(source.analysis_system_reason || source.analysisSystemReason || sourceSummary.analysis_system_reason || "");
-  const analysisSystemConfidence = paymentDocumentSortText(source.analysis_system_confidence || source.analysisSystemConfidence || sourceSummary.analysis_system_confidence || "");
-const accountingCategoryCode = paymentDocumentSortText(source.accounting_category_code || "");
-  const payableKindCode = paymentDocumentSortText(source.payable_kind_code || "");
-  const reviewReason = paymentDocumentSortText(source.review_reason || source.needs_review_reason || source.reason || "");
+  const analysisSystemLabel = firstText(
+    source.analysis_system_label,
+    source.analysisSystemLabel,
+    aiSummary.analysis_system_label,
+    aiSummary.analysisSystemLabel,
+    aiSummary.analysis_system,
+    aiSummary.analysisSystem,
+    source.specialist_route_label
+  );
+
+  const analysisSystemReason = firstText(
+    source.analysis_system_reason,
+    source.analysisSystemReason,
+    aiSummary.analysis_system_reason,
+    aiSummary.analysisSystemReason
+  );
+
+  const analysisSystemConfidence = firstText(
+    source.analysis_system_confidence,
+    source.analysisSystemConfidence,
+    aiSummary.analysis_system_confidence,
+    aiSummary.analysisSystemConfidence
+  );
+
+  const confidenceInfo = normalizeConfidence(
+    firstText(source.ai_confidence, source.confidence, source.confidence_level, aiSummary.ai_confidence),
+    firstText(source.ai_confidence_label, source.confidence_label, aiSummary.ai_confidence_label, aiSummary.confidence_label, fields["信頼度"])
+  );
+
+  const aiReason = firstText(
+    source.ai_reason,
+    source.reason,
+    source.review_reason,
+    aiSummary.reason,
+    fields["理由"]
+  );
 
   const needsReview =
     source.needs_review === true ||
     source.needsReview === true ||
-    confidence === "low" ||
-    destinationCode === "needs_review" ||
-    documentTypeCode === "needs_review";
+    confidenceInfo.confidence === "low" ||
+    analysisSystemCode === "needs_review" ||
+    paymentDestinationCode === "needs_review" ||
+    accountingCategoryCode === "needs_review";
+
+  const warnings = Array.isArray(source.warnings)
+    ? source.warnings
+    : Array.isArray(raw.warnings)
+      ? raw.warnings
+      : [];
+
+  const visibleFieldLabels = ["会計区分", "専門解析先", "発行日", "信頼度", "理由"];
 
   return {
-    document_type_code: documentTypeCode,
-    document_type_label: documentTypeLabel,
-    document_type_name: documentTypeLabel,
-    payment_destination_code: destinationCode,
-    payment_destination_label: destinationLabel,
-    payment_destination_name: destinationLabel,
-    specialist_route_code: specialistRouteCode,
-    specialist_route_label: specialistRouteLabel,
+    accounting_category_code: accountingCategoryCode,
+    accounting_category_label: accountingCategoryLabel,
+    payment_destination_code: paymentDestinationCode,
+    payment_destination_label: paymentDestinationLabel,
+    issue_date: issueDate,
+
+    ai_confidence: confidenceInfo.confidence,
+    ai_confidence_label: confidenceInfo.label,
+    confidence: confidenceInfo.confidence,
+    confidence_label: confidenceInfo.label,
+    ai_reason: aiReason,
+    review_reason: aiReason,
+
     analysis_system_code: analysisSystemCode,
     analysis_system_label: analysisSystemLabel,
     analysis_system_reason: analysisSystemReason,
     analysis_system_confidence: analysisSystemConfidence,
-    accounting_category_code: accountingCategoryCode,
-    payable_kind_code: payableKindCode,
-    source_type_code: specialistRouteCode,
-    ai_confidence: confidenceLabel,
-    confidence_level: confidence,
-    confidence,
-    confidence_label: confidenceLabel,
+
     needs_review: needsReview,
-    review_reason: reviewReason,
-    fields: {},
-    ai_summary: {
-      document_kind: documentTypeLabel || documentTypeCode,
-      destination: destinationLabel || destinationCode,
-      payment_target: destinationCode === "evidence_only" ? "対象外" : "支払対象候補",
-      payable_target: paymentDocumentDefaultPayableTargetForSort(destinationCode, documentTypeCode, specialistRouteCode, needsReview),
-      expense_target: paymentDocumentDefaultExpenseTargetForSort(destinationCode, documentTypeCode, specialistRouteCode, needsReview),
-      tax_public: destinationCode === "tax_public" ? "候補" : "対象外",
-      contract_insurance_lease: specialistRouteCode === "contract_insurance_lease" ? "候補" : "対象外",
-      confidence_label: confidenceLabel,
-      reason: reviewReason
+    warnings,
+    visible_field_labels: visibleFieldLabels,
+
+    fields: {
+      "会計区分": accountingCategoryLabel || accountingCategoryCode,
+      "専門解析先": analysisSystemLabel || analysisSystemCode,
+      "発行日": issueDate,
+      "信頼度": confidenceInfo.label,
+      "理由": aiReason
     },
-    warnings: Array.isArray(source.warnings) ? source.warnings : []
+
+    ai_summary: {
+      accounting_category: accountingCategoryLabel || accountingCategoryCode,
+      accounting_category_code: accountingCategoryCode,
+      accounting_category_label: accountingCategoryLabel,
+      destination: paymentDestinationLabel || paymentDestinationCode,
+      payment_destination_code: paymentDestinationCode,
+      payment_destination_label: paymentDestinationLabel,
+      issue_date: issueDate,
+      confidence_label: confidenceInfo.label,
+      reason: aiReason,
+      analysis_system_code: analysisSystemCode,
+      analysis_system: analysisSystemLabel,
+      analysis_system_label: analysisSystemLabel,
+      analysis_system_reason: analysisSystemReason,
+      analysis_system_confidence: analysisSystemConfidence
+    }
   };
 }
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
 
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
 function applyPaymentDocumentSortRuleFallbackFromOcr(ocrText, draft) {
-  const text = String(ocrText || "");
-  const out = draft && typeof draft === "object" ? { ...draft } : {};
-  out.ai_summary = out.ai_summary && typeof out.ai_summary === "object" ? { ...out.ai_summary } : {};
-  out.fields = {};
-
-  function setIfBlank(key, value) {
-    if (!paymentDocumentSortText(out[key])) {
-      out[key] = value;
-    }
-  }
-
-  function setSummaryIfBlank(key, value) {
-    if (!paymentDocumentSortText(out.ai_summary[key])) {
-      out.ai_summary[key] = value;
-    }
-  }
-
-  const tax =
-    paymentDocumentSortHasAny(text, ["納付書", "納税通知書", "税務署", "市税事務所", "府税", "県税", "法人税", "消費税", "源泉所得税", "固定資産税", "社会保険料", "合計納付額"]) ||
-    (paymentDocumentSortHasAny(text, ["税目"]) && paymentDocumentSortHasAny(text, ["納付期限", "納付先"]));
-
-  const card = paymentDocumentSortHasAny(text, ["カード明細", "クレジットカード", "ご利用明細", "カード会社"]);
-  const receipt = paymentDocumentSortHasAny(text, ["領収書", "領収済", "支払済", "レシート"]);
-  const reference = paymentDocumentSortHasAny(text, ["納品書", "注文書", "発注書", "見積書", "検収書"]);
-  const contract = paymentDocumentSortHasAny(text, ["保険料", "保険契約", "リース料", "リース契約", "電気料金", "ガス料金", "水道料金", "通信費", "電話料金", "インターネット料金"]);
-  const invoice = paymentDocumentSortHasAny(text, ["請求書", "請求番号", "請求合計", "支払期限"]);
-  const material = paymentDocumentSortHasAny(text, ["資材", "材料", "部材", "靴資材", "仕入", "外注", "加工"]);
-
-  if (tax) {
-    setIfBlank("document_type_code", "tax_payment");
-    setIfBlank("document_type_label", "税金・公的支払");
-    setIfBlank("payment_destination_code", "tax_public");
-    setIfBlank("payment_destination_label", "税金公的");
-    setIfBlank("specialist_route_code", "tax_public");
-    setIfBlank("specialist_route_label", "税金・公的支払解析");
-  } else if (card) {
-    setIfBlank("document_type_code", "card_statement");
-    setIfBlank("document_type_label", "カード明細");
-    setIfBlank("payment_destination_code", "card_payable");
-    setIfBlank("payment_destination_label", "カード未払");
-    setIfBlank("specialist_route_code", "card_statement");
-    setIfBlank("specialist_route_label", "カード明細照合");
-  } else if (receipt) {
-    setIfBlank("document_type_code", "receipt");
-    setIfBlank("document_type_label", "領収書・支払済み証憑");
-    setIfBlank("payment_destination_code", "expense");
-    setIfBlank("payment_destination_label", "経費");
-    setIfBlank("specialist_route_code", "paid_evidence");
-    setIfBlank("specialist_route_label", "支払済み証憑解析");
-  } else if (reference) {
-    setIfBlank("payment_destination_code", "evidence_only");
-    setIfBlank("payment_destination_label", "照合用");
-    setIfBlank("specialist_route_code", "reference_check");
-    setIfBlank("specialist_route_label", "照合用");
-  } else if (contract) {
-    setIfBlank("payment_destination_code", "unpaid");
-    setIfBlank("payment_destination_label", "未払");
-    setIfBlank("specialist_route_code", "contract_insurance_lease");
-    setIfBlank("specialist_route_label", "契約・保険・リース等解析");
-  } else if (invoice) {
-    setIfBlank("document_type_code", "invoice");
-    setIfBlank("document_type_label", "請求書");
-    setIfBlank("payment_destination_code", material ? "accounts_payable" : "unpaid");
-    setIfBlank("payment_destination_label", material ? "買掛" : "未払");
-    setIfBlank("specialist_route_code", "invoice_payable");
-    setIfBlank("specialist_route_label", "請求・未払系解析");
-  }
-
-  setSummaryIfBlank("document_kind", out.document_type_label || out.document_type_code || "未判定");
-  setSummaryIfBlank("destination", out.payment_destination_label || out.payment_destination_code || "未判定");
-  setSummaryIfBlank("confidence_label", out.confidence_label || out.ai_confidence || "中");
-  setSummaryIfBlank("reason", out.review_reason || "");
-
-  return out;
+  /*
+    基礎解析ではOCR本文の固定語句による後付け分類を禁止する。
+    この関数は旧フォールバック互換名だけ残し、AI返却値の基礎解析正規化だけ行う。
+  */
+  return normalizePaymentDocumentSortCandidate(draft);
 }
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
 
 async function createPaymentDocumentSortFromOcrText(ocrText) {
   const prompt = appendPaymentDocumentExternalPrompt(
@@ -4413,8 +4436,8 @@ async function createPaymentDocumentSortFromOcrText(ocrText) {
     draft,
     classification: draft,
     sorting: draft,
-    document_group: draft.specialist_route_code || draft.document_type_code || "",
-    visible_field_labels: [],
+    document_group: draft.analysis_system_code || draft.analysis_system_label || "",
+    visible_field_labels: draft.visible_field_labels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"],
     display_mode: "sorting_only",
     image_used: false,
     prompt_rule_files: {
@@ -4454,86 +4477,31 @@ function hdOriginSortGrowHasAny(text, words) {
   return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
 }
 
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
 function hdOriginPolishPaymentDocumentSortResult(sortResult, ocrText) {
+  /*
+    基礎解析ではAI結果をOCR本文の固定分類で上書きしない。
+    ここでは、AI返却JSONを基礎解析形式へ揃えるだけにする。
+  */
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isFixedAssetTax = hdOriginSortGrowHasAny(text, [
-    "固定資産税",
-    "都市計画税",
-    "納税通知書",
-    "市税事務所",
-    "税務署",
-    "年税額",
-    "税額合計",
-    "納期限",
-    "期別"
-  ]);
-
-  const isTaxPublic =
-    isFixedAssetTax ||
-    draft.payment_destination_code === "tax_public" ||
-    draft.specialist_route_code === "tax_public" ||
-    hdOriginSortGrowHasAny(text, ["納付書", "税目", "法人税", "消費税", "源泉所得税", "社会保険料"]);
-
-  if (isTaxPublic) {
-    if (!hdOriginSortGrowText(draft.document_type_code)) draft.document_type_code = "tax_payment";
-    if (!hdOriginSortGrowText(draft.document_type_label)) draft.document_type_label = isFixedAssetTax ? "納付書・納税通知書" : "税金・公的支払";
-    if (!hdOriginSortGrowText(draft.document_type_name)) draft.document_type_name = draft.document_type_label;
-
-    draft.payment_destination_code = "tax_public";
-    draft.payment_destination_label = "税金・公的支払い";
-    draft.payment_destination_name = "税金・公的支払い";
-
-    draft.specialist_route_code = "tax_public";
-    draft.specialist_route_label = "税金・公的支払解析";
-    draft.source_type_code = "tax_public";
-
-    if (!hdOriginSortGrowText(draft.accounting_category_code)) draft.accounting_category_code = "tax";
-    if (!hdOriginSortGrowText(draft.payable_kind_code)) draft.payable_kind_code = "tax_public";
-
-    draft.confidence = draft.confidence || "high";
-    draft.confidence_level = draft.confidence_level || "high";
-    draft.confidence_label = draft.confidence_label || "高";
-    draft.ai_confidence = draft.ai_confidence || "高";
-
-    if (!hdOriginSortGrowText(draft.review_reason)) {
-      draft.review_reason = isFixedAssetTax
-        ? "固定資産税・都市計画税、納税通知書、市税事務所等の記載があるため。"
-        : "納付書、税目、納付先等の記載があるため税金・公的支払と判断。";
-    }
-
-    if (draft.confidence === "low" || draft.confidence_label === "低") {
-      draft.needs_review = true;
-    } else if (draft.needs_review !== true) {
-      draft.needs_review = false;
-    }
-  }
-
-  draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-  draft.ai_summary.document_kind = draft.ai_summary.document_kind || draft.document_type_label || draft.document_type_code || "";
-  draft.ai_summary.destination = draft.ai_summary.destination || draft.payment_destination_label || draft.payment_destination_code || "";
-  draft.ai_summary.payment_target = draft.ai_summary.payment_target || (draft.payment_destination_code === "evidence_only" ? "対象外" : "支払対象候補");
-  draft.ai_summary.payable_target = draft.ai_summary.payable_target || paymentDocumentDefaultPayableTargetForSort(draft.payment_destination_code, draft.document_type_code, draft.specialist_route_code, draft.needs_review);
-  draft.ai_summary.expense_target = draft.ai_summary.expense_target || paymentDocumentDefaultExpenseTargetForSort(draft.payment_destination_code, draft.document_type_code, draft.specialist_route_code, draft.needs_review);
-  draft.ai_summary.tax_public = draft.ai_summary.tax_public || (draft.payment_destination_code === "tax_public" ? "候補" : "対象外");
-  draft.ai_summary.contract_insurance_lease = draft.ai_summary.contract_insurance_lease || (draft.specialist_route_code === "contract_insurance_lease" ? "候補" : "対象外");
-  draft.ai_summary.confidence_label = draft.ai_summary.confidence_label || draft.confidence_label || draft.ai_confidence || "";
-  draft.ai_summary.reason = draft.ai_summary.reason || draft.review_reason || "";
+  const draft = normalizePaymentDocumentSortCandidate(
+    result.draft ||
+    result.sorting ||
+    result.classification ||
+    result
+  );
 
   result.draft = draft;
   result.classification = draft;
   result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
+  result.document_group = draft.analysis_system_code || draft.analysis_system_label || "";
+  result.visible_field_labels = draft.visible_field_labels;
+  result.display_mode = result.display_mode || "sorting_only";
   result.image_used = false;
 
   return result;
 }
+/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
 /* PAYMENT_DOCUMENT_SORT_GROW_POLISH_20260707_END */
 /* PAYMENT_DOCUMENT_SORT_GROW_CARD_POLISH_20260707_START */
 function hdOriginCardSortGrowText(value) {
@@ -5485,6 +5453,19 @@ function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
     z(now.getSeconds());
 
   return {
+    issue_date: (() => {
+      const value =
+        body.issue_date ??
+        body.issueDate ??
+        draft.issue_date ??
+        draft.issueDate ??
+        aiSummary.issue_date ??
+        aiSummary.issueDate ??
+        null;
+      if (value === null || value === undefined || value === "") return null;
+      const matched = String(value).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+      return matched ? matched[1] : null;
+    })(),
     payment_document_ocr_import_id: Number(ocrRow.payment_document_ocr_import_id),
     draft_no: hdOriginSortingDraftText(body.draftNo || body.draft_no || draftNo),
     draft_status: hdOriginSortingDraftText(body.draftStatus || body.draft_status || "draft_saved"),
@@ -5563,7 +5544,12 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
     throw err;
   }
 
-  const ocrResult = await db.query(`
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const ocrResult = await client.query(`
     SELECT
       payment_document_ocr_import_id,
       original_file_name,
@@ -5575,6 +5561,7 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
     WHERE payment_document_ocr_import_id = $1
       AND deleted_at IS NULL
     LIMIT 1
+    FOR UPDATE
   `, [id]);
 
   const ocrRow = ocrResult.rows[0];
@@ -5587,17 +5574,21 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
 
   const payload = hdOriginBuildSortingDraftSavePayload(body, ocrRow);
 
-  const result = await db.query(`
-    WITH previous AS (
+    await client.query(`
       UPDATE accounting.payment_document_sorting_drafts
       SET
         is_current = FALSE,
-        updated_by = $48
+        updated_by = $2
       WHERE payment_document_ocr_import_id = $1
         AND is_current = TRUE
         AND deleted_at IS NULL
-    ),
-    inserted AS (
+    `, [
+      payload.payment_document_ocr_import_id,
+      payload.updated_by
+    ]);
+
+    const result = await client.query(`
+    WITH inserted AS (
       INSERT INTO accounting.payment_document_sorting_drafts (
         payment_document_ocr_import_id,
         draft_no,
@@ -5657,7 +5648,8 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
         memo,
         created_by_page,
         created_by,
-        updated_by
+        updated_by,
+        issue_date
       ) VALUES (
         $1,$2,$3,$4,
         $5,$6,$7,
@@ -5670,13 +5662,15 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
         $29,$30,$31,$32,$33,
         $34::jsonb,$35::jsonb,$36::jsonb,$37::jsonb,$38::jsonb,
         $39,$40,$41,$42,$43,
-        $44,$45,$46,$47,$48
+        $44,$45,$46,$47,$48,
+        $49::date
       )
       RETURNING
         payment_document_sorting_draft_id,
         draft_no,
         draft_status,
-        created_at
+        created_at,
+        issue_date
     )
     UPDATE accounting.payment_document_ocr_imports o
     SET
@@ -5690,6 +5684,7 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
       inserted.draft_no,
       inserted.draft_status,
       inserted.created_at,
+      inserted.issue_date,
       o.payment_document_ocr_import_id,
       o.latest_sorting_draft_id,
       o.sorted_at
@@ -5752,13 +5747,27 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
     payload.memo,
     payload.created_by_page,
     payload.created_by,
-    payload.updated_by
+    payload.updated_by,
+    payload.issue_date
   ]);
 
-  return {
-    saved: result.rows[0] || null,
-    payload
-  };
+    await client.query("COMMIT");
+
+    return {
+      saved: result.rows[0] || null,
+      payload
+    };
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ROLLBACK失敗より元のエラーを優先
+    }
+
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
 
@@ -6565,11 +6574,11 @@ function hdOriginNormalizeBusinessFlowAnalysis(parsed, sourceText) {
       category: "要確認",
       payment_timing: "",
       document_status: "",
-      evidence_policy: "証憑・銀行明細・支払先・金額を人間確認する。",
+      evidence_policy: "証憑・銀行明細・支払先・金額を既存DB・会社マスタ・過去処理・原本画像から自動照合し、矛盾が解消できない場合だけ例外として停止する。",
       bank_or_payment_method: "",
       human_check_required: true,
       rule_text: analysis.prompt_text || hdOriginBusinessFlowCleanText(sourceText, 1000),
-      warnings: ["AI整理結果が不十分なため、人間確認が必要です。"]
+      warnings: ["自動処理に必要な情報を既存DB・会社マスタ・過去処理・原本画像から補完できませんでした。処理を例外停止し、不足項目だけを提示します。"]
     });
   }
 
@@ -6660,14 +6669,14 @@ function hdOriginBuildBusinessFlowPromptText(sourceText, analysis) {
     if (rule.bank_or_payment_method) lines.push("  支払方法: " + rule.bank_or_payment_method);
     if (rule.evidence_policy) lines.push("  証憑確認: " + rule.evidence_policy);
     lines.push("  ルール: " + (rule.rule_text || ""));
-    lines.push("  人間確認: 必要");
+    lines.push("  自動処理方針: 通常処理はAIとシステムで完了し、解消不能な例外だけ停止");
     for (const warning of rule.warnings || []) {
       lines.push("  注意: " + warning);
     }
   }
 
   lines.push("");
-  lines.push("【人間確認ポイント】");
+  lines.push("【例外停止条件】");
   for (const point of analysis.human_check_points || []) {
     lines.push("- " + point);
   }
@@ -6785,16 +6794,74 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
   const companyRules = hdOriginReadTextFileSafe(hdOriginBusinessFlowRulesFilePath(), 20000);
   const generalAffairs = hdOriginReadTextFileSafe(path.join(hdOriginBusinessFlowPromptCommonDir(), "general-affairs-ai.txt"), 20000);
   const notes = hdOriginReadTextFileSafe(path.join(hdOriginBusinessFlowPromptCommonDir(), "general-affairs-ai-notes.md"), 20000);
+  /*
+    HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
+
+    最上位目標は完全機械化による人間のミスの除去。
+    機械の誤り対策として人間確認を通常工程へ戻さない。
+  */
+  const humanErrorEliminationPolicy = [
+    "【最上位目標】",
+    "HD Origin Projectは、可能な限り完全機械化し、人間が作業へ介在することで発生するミスをなくします。",
+    "目的は、機械のミスを理由に人間確認を増やすことではありません。",
+    "人間の転記、選択、照合、計算、分類、確認、追跡、督促、再入力をシステムから除去してください。",
+    "",
+    "【基本原則】",
+    "- 通常案件は、最初から最後までAIとシステムだけで完了させる。",
+    "- 人間の最終確認を通常処理の必須工程にしない。",
+    "- 人間が確認しやすい画面ではなく、人間が確認しなくてよい自動処理を提案する。",
+    "- 人間確認件数を減らすのではなく、原則ゼロへ近づける。",
+    "- 情報不足を理由として、直ちに人間へ処理を返さない。",
+    "",
+    "【機械の誤りへの対応】",
+    "- 機械の誤りは、別データとの自動照合、複数AI判定、再解析、再計算、整合性検査で検出する。",
+    "- 金額は請求書、明細合計、銀行明細、支払実績を機械的に相互照合する。",
+    "- 会社はcompany_id、口座会社、取引先履歴、証憑情報を機械的に照合する。",
+    "- 分類結果はOCR、専門解析、過去確定処理、マスタを機械的に照合する。",
+    "- 不一致時は、システムが原因候補を特定して再処理する。",
+    "- 自動修正できない不一致は処理を安全停止し、勝手に確定しない。",
+    "- 安全停止は、人間確認を通常業務へ戻すことを意味しない。",
+    "",
+    "【提案禁止】",
+    "- 人間の最終確認を必須とする提案。",
+    "- 人間確認を促すだけの一覧、警告、フラグ、履歴。",
+    "- 承認待ち件数や確認待ち件数を増やす設計。",
+    "- 人間が効率的に確認できることを、自動化として扱う提案。",
+    "- 差異を発見しただけで人間へ丸投げする提案。",
+    "- 担当者が追跡、督促、照合、転記する提案。",
+    "",
+    "【自動化する対象】",
+    "- 証憑後追いは、自動追跡、自動取得、自動照合、自動督促する。",
+    "- 複数会社はcompany_idで自動分離し、会社間混同をシステム的に不可能にする。",
+    "- 役職と権限はDBから自動判定し、許可されない処理をシステムが拒否する。",
+    "- 銀行明細と支払予定・実績は自動照合し、一致分を自動完了する。",
+    "- 納品書と請求書は明細単位で自動突合し、一致分を自動完了する。",
+    "- 源泉徴収は取引先属性、報酬区分、請求書表示、税務ルールから自動判定する。",
+    "- 未払消込、銀行出金、源泉預り金、取消を一連の処理として自動実行する。",
+    "",
+    "【人間が残る場合】",
+    "法令上本人の意思表示そのものが必要な行為など、機械が代行できない行為だけを残します。",
+    "人間作業を残す場合は、自動化できない法的または物理的理由を具体的に示してください。",
+    "単に危険、重要、情報不足という理由では人間作業を残してはいけません。",
+    "",
+    "【提案の必須評価】",
+    "各提案について、なくなる人間作業、機械が実行する処理、使用するDB・API・AI、機械的な誤り検出方法を明示してください。",
+    "人間の確認工程を追加する提案ではなく、人間がミスを起こす機会そのものを削除する提案を優先してください。"
+  ].join("\n");
 
   const systemMessage = [
     "あなたはHD Origin Projectの業務設計アドバイザーです。",
-    "役割は、育ってきた総務AIプロンプトと業務フロー設定を読み、足りないもの・危ない抜け・作るとよい機能・変えた方がよい点を提案することです。",
-    "単なる要約ではなく、実務で事故を減らすための改善提案をしてください。",
+    "役割は、会社業務を可能な限り完全機械化し、人間が作業へ介在することで発生する転記・選択・判断・確認・見落としのミスをなくすことです。",
+    "通常案件をAIとシステムだけで完了させる実装案を提示してください。機械の誤りは機械的な照合・再解析・再計算・安全停止で制御し、人間確認へ戻してはいけません。",
     "会計仕訳や支払承認をAIだけで最終確定する提案は禁止です。",
     "必ずJSONのみを返してください。"
   ].join("\n");
 
   const prompt = [
+    "以下の最上位方針は、過去メモ、旧ルール、旧確認方針より必ず優先します。",
+    "",
+    humanErrorEliminationPolicy,
+    "",
     "以下はHD Origin Projectの現在の業務フロー設定、AI解析結果、育成済み総務AIプロンプトです。",
     "この内容を見て、今後作るべきもの・変えた方がいいもの・不足しているものを提案してください。",
     "",
@@ -6813,13 +6880,25 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
     "  \"prompt_growth_ideas\": [",
     "    {\"title\":\"プロンプト追記候補\", \"add_rule\":\"追記案\", \"reason\":\"理由\"}",
     "  ],",
-    "  \"human_check_required\": [\"人間確認を強めるべき場所\"],",
+    "  \"exception_stop_conditions\": [\"機械的な再解析・再照合でも処理不能となる条件\"],",
+    "  \"human_work_eliminated\": [\"今回なくなる人間作業\"],",
+    "  \"machine_actions\": [\"AIとシステムが自動実行する処理\"],",
+    "  \"machine_error_controls\": [\"機械同士の照合・再計算・整合性検査・安全停止方法\"],",
+    "  \"remaining_human_actions\": [",
+    "    {\"action\":\"残る行為\", \"legal_or_physical_reason\":\"機械化不能な法的または物理的理由\"}",
+    "  ],",
     "  \"priority_order\": [\"次にやる順番\"]",
     "}",
     "",
     "【判断観点】",
     "- 書類がある業務だけでなく、書類なし支払、銀行引落、定期支払、証憑後追いを考慮する。",
-    "- AIに任せる部分と、人間確認が必須の部分を分ける。",
+    "- 原則としてAIとシステムが処理を完了する。人間が作業へ介在してミスを起こす機会そのものを削除する。",
+    "- 機械の誤りは、機械同士の照合、再解析、再計算、整合性検査、安全停止で制御する。",
+    "- 機械の誤り対策として、人間の最終確認を通常フローへ追加してはいけない。",
+    "- 『人間が確認しやすくなる』ではなく、『人間が確認しなくてよくなる』実装を提案する。",
+    "- 人間の追跡、督促、転記、照合、分類、金額確認、会社選択を残さない。",
+    "- 人間作業を残す場合は、機械化できない法的または物理的理由を明示する。",
+    "- 真の例外条件がない場合、人間確認・承認待ち・確認履歴を新規提案してはいけない。",
     "- DB、台帳、画面、ボタン、一覧、警告、プロンプト追記のどれが必要か考える。",
     "- 社長が雑に書いた言葉がプロンプトとして育っていく前提で、次の育成候補を提案する。",
     "",
@@ -6889,6 +6968,865 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_END */
 
 async function handlePaymentDocumentRoutes(req, res) {
+  /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_START */
+  if (
+    req.method === "GET" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-rules"
+  ) {
+    try {
+      const result = await db.query(
+        `
+        SELECT
+          c.company_id,
+          c.company_code,
+          c.company_name,
+
+          COALESCE(
+            r.payment_cycle_code,
+            'normal'
+          ) AS payment_cycle_code,
+
+          COALESCE(
+            r.special_approval_status_code,
+            'not_approved'
+          ) AS special_approval_status_code,
+
+          COALESCE(
+            r.special_applies_to_payable_withholding,
+            FALSE
+          ) AS special_applies_to_payable_withholding,
+
+          COALESCE(
+            r.effective_from,
+            DATE '1900-01-01'
+          ) AS effective_from,
+
+          r.effective_to,
+
+          COALESCE(
+            r.rule_source_code,
+            'system_default_normal'
+          ) AS rule_source_code,
+
+          COALESCE(
+            r.memo,
+            ''
+          ) AS memo,
+
+          r.created_at,
+          r.updated_at,
+
+          (
+            SELECT COUNT(*)
+            FROM accounting.tax_public_obligations o
+            WHERE
+              o.company_id = c.company_id
+              AND o.source_type_code =
+                'withholding_tax_ledger'
+              AND o.status_code =
+                'scheduled'
+          )::INTEGER AS scheduled_obligation_count
+
+        FROM expenses.companies c
+
+        LEFT JOIN
+          accounting.company_withholding_tax_rules r
+          ON r.company_id = c.company_id
+
+        ORDER BY
+          c.company_id
+        `
+      );
+
+      sendJson(res, 200, {
+        ok: true,
+        rules: result.rows
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-rules/save"
+  ) {
+    try {
+      const body =
+        await readJsonBody(req);
+
+      const companyId =
+        Number(body.company_id || 0);
+
+      const paymentCycleCode =
+        String(
+          body.payment_cycle_code || ""
+        ).trim();
+
+      const approvalStatusCode =
+        String(
+          body.special_approval_status_code || ""
+        ).trim();
+
+      const specialApplies =
+        body.special_applies_to_payable_withholding ===
+          true;
+
+      const effectiveFrom =
+        String(
+          body.effective_from || ""
+        ).trim();
+
+      const effectiveTo =
+        String(
+          body.effective_to || ""
+        ).trim();
+
+      const memo =
+        String(body.memo || "").trim();
+
+      if (!Number.isInteger(companyId) || companyId <= 0) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "company_idが不正です。"
+        });
+
+        return true;
+      }
+
+      if (
+        ![
+          "normal",
+          "special"
+        ].includes(paymentCycleCode)
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "payment_cycle_codeが不正です。"
+        });
+
+        return true;
+      }
+
+      if (
+        ![
+          "not_approved",
+          "pending",
+          "approved",
+          "revoked"
+        ].includes(approvalStatusCode)
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "special_approval_status_codeが不正です。"
+        });
+
+        return true;
+      }
+
+      if (
+        paymentCycleCode === "special" &&
+        (
+          approvalStatusCode !== "approved" ||
+          specialApplies !== true
+        )
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "納期の特例を使用するには、承認済みかつ源泉預り金への適用が必要です。"
+        });
+
+        return true;
+      }
+
+      if (
+        paymentCycleCode === "normal" &&
+        specialApplies === true
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "通常納付では特例適用を有効にできません。"
+        });
+
+        return true;
+      }
+
+      const companyExists =
+        await db.query(
+          `
+          SELECT company_id
+          FROM expenses.companies
+          WHERE company_id = $1
+          `,
+          [companyId]
+        );
+
+      if (!companyExists.rows.length) {
+        sendJson(res, 404, {
+          ok: false,
+          error:
+            "対象会社がありません。"
+        });
+
+        return true;
+      }
+
+      const saveResult =
+        await db.query(
+          `
+          INSERT INTO
+            accounting.company_withholding_tax_rules (
+              company_id,
+              payment_cycle_code,
+              special_approval_status_code,
+              special_applies_to_payable_withholding,
+              effective_from,
+              effective_to,
+              rule_source_code,
+              memo
+            )
+          VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            COALESCE(
+              NULLIF($5, '')::DATE,
+              DATE '1900-01-01'
+            ),
+            NULLIF($6, '')::DATE,
+            'company_setting',
+            $7
+          )
+
+          ON CONFLICT (company_id)
+          DO UPDATE SET
+            payment_cycle_code =
+              EXCLUDED.payment_cycle_code,
+
+            special_approval_status_code =
+              EXCLUDED.special_approval_status_code,
+
+            special_applies_to_payable_withholding =
+              EXCLUDED.special_applies_to_payable_withholding,
+
+            effective_from =
+              EXCLUDED.effective_from,
+
+            effective_to =
+              EXCLUDED.effective_to,
+
+            rule_source_code =
+              EXCLUDED.rule_source_code,
+
+            memo =
+              EXCLUDED.memo,
+
+            updated_at = NOW()
+
+          RETURNING *
+          `,
+          [
+            companyId,
+            paymentCycleCode,
+            approvalStatusCode,
+            specialApplies,
+            effectiveFrom,
+            effectiveTo,
+            memo
+          ]
+        );
+
+      const dueDateResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.calculate_withholding_tax_due_dates()
+          `
+        );
+
+      const bankResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.reconcile_withholding_tax_bank_transactions()
+          `
+        );
+
+      sendJson(res, 200, {
+        ok: true,
+        rule: saveResult.rows[0],
+        dueDateCalculation:
+          dueDateResult.rows[0] || null,
+        bankReconciliation:
+          bankResult.rows[0] || null
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-rules/recalculate"
+  ) {
+    try {
+      const registrationResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.register_withholding_tax_obligations()
+          `
+        );
+
+      const dueDateResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.calculate_withholding_tax_due_dates()
+          `
+        );
+
+      const bankResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.reconcile_withholding_tax_bank_transactions()
+          `
+        );
+
+      sendJson(res, 200, {
+        ok: true,
+        registration:
+          registrationResult.rows[0] || null,
+        dueDateCalculation:
+          dueDateResult.rows[0] || null,
+        bankReconciliation:
+          bankResult.rows[0] || null
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+
+  if (
+    req.method === "GET" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-rules/self-test"
+  ) {
+    try {
+      const result = await db.query(
+        `
+        WITH tests AS (
+          SELECT
+            'normal_basic'::TEXT
+              AS test_code,
+            DATE '2026-06-15'
+              AS recognition_date,
+            'normal'::TEXT
+              AS payment_cycle_code,
+            'not_approved'::TEXT
+              AS approval_code,
+            FALSE
+              AS special_applies,
+            DATE '2026-07-10'
+              AS expected_due_date
+
+          UNION ALL
+
+          SELECT
+            'normal_weekend_adjustment',
+            DATE '2026-04-15',
+            'normal',
+            'not_approved',
+            FALSE,
+            DATE '2026-05-11'
+
+          UNION ALL
+
+          SELECT
+            'special_first_half',
+            DATE '2026-06-15',
+            'special',
+            'approved',
+            TRUE,
+            DATE '2026-07-10'
+
+          UNION ALL
+
+          SELECT
+            'special_second_half',
+            DATE '2026-07-15',
+            'special',
+            'approved',
+            TRUE,
+            DATE '2027-01-20'
+
+          UNION ALL
+
+          SELECT
+            'special_not_approved_falls_back_normal',
+            DATE '2026-06-15',
+            'special',
+            'pending',
+            TRUE,
+            DATE '2026-07-10'
+        )
+
+        SELECT
+          t.test_code,
+          t.recognition_date,
+          t.payment_cycle_code,
+          t.approval_code,
+          t.special_applies,
+          d.raw_due_date,
+          d.calculated_due_date,
+          d.applied_rule_code,
+          d.calendar_complete,
+          t.expected_due_date,
+          (
+            d.calculated_due_date =
+              t.expected_due_date
+          ) AS passed
+
+        FROM tests t
+
+        CROSS JOIN LATERAL
+          accounting.calculate_withholding_tax_due_date_by_rule(
+            t.recognition_date,
+            t.payment_cycle_code,
+            t.approval_code,
+            t.special_applies
+          ) d
+
+        ORDER BY t.test_code
+        `
+      );
+
+      const passedCount =
+        result.rows.filter(
+          row => row.passed === true
+        ).length;
+
+      sendJson(res, 200, {
+        ok:
+          passedCount ===
+          result.rows.length,
+        totalCount:
+          result.rows.length,
+        passedCount,
+        failedCount:
+          result.rows.length -
+          passedCount,
+        tests:
+          result.rows
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_END */
+  /* HD_ORIGIN_TAX_PUBLIC_WITHHOLDING_CANDIDATES_API_20260711_START */
+  if (
+    req.method === "GET" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-candidates"
+  ) {
+    try {
+      const requestUrl = new URL(
+        String(req.url || ""),
+        "http://localhost"
+      );
+
+      const companyIdText = String(
+        requestUrl.searchParams.get(
+          "company_id"
+        ) || ""
+      ).trim();
+
+      const companyId =
+        /^[0-9]+$/.test(companyIdText)
+          ? Number(companyIdText)
+          : null;
+
+      const registrationResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.register_withholding_tax_obligations()
+          `
+        );
+
+      const dueDateResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.calculate_withholding_tax_due_dates()
+          `
+        );
+
+      const bankReconciliationResult =
+        await db.query(
+          `
+          SELECT *
+          FROM accounting.reconcile_withholding_tax_bank_transactions()
+          `
+        );
+
+      const params = [];
+      const conditions = [
+        "source_type_code = 'withholding_tax_ledger'"
+      ];
+
+      if (companyId) {
+        params.push(companyId);
+
+        conditions.push(
+          "company_id = $" +
+          params.length
+        );
+      }
+
+      const result = await db.query(
+        `
+        SELECT
+          tax_public_obligation_id,
+          company_id,
+          company_code,
+          company_name,
+          source_type_code,
+          source_key
+            AS tax_public_source_key,
+          tax_item_code,
+          tax_item_name,
+          source_ledger_id
+            AS withholding_tax_ledger_id,
+          payable_id,
+          payable_payment_id,
+          counterparty_name,
+          recognition_date,
+          due_date
+            AS tax_public_due_date,
+          payment_amount,
+          currency_code,
+          status_code
+            AS tax_public_status_code,
+          scheduled_at,
+          paid_at,
+          paid_reference,
+          machine_validation_status,
+          machine_validation_message,
+          created_at,
+          updated_at,
+          '源泉預り金台帳'
+            AS source_type_name
+        FROM
+          accounting.v_tax_public_obligations
+        WHERE
+          ${conditions.join(" AND ")}
+        ORDER BY
+          CASE status_code
+            WHEN 'error' THEN 1
+            WHEN 'scheduled' THEN 2
+            WHEN 'paid' THEN 3
+            ELSE 4
+          END,
+          due_date NULLS LAST,
+          recognition_date,
+          tax_public_obligation_id
+        `,
+        params
+      );
+
+      const summary = result.rows.reduce(
+        (current, row) => {
+          const amount =
+            Number(row.payment_amount || 0);
+
+          current.count += 1;
+
+          if (row.tax_public_status_code === "scheduled") {
+            current.scheduledCount += 1;
+            current.scheduledAmount +=
+              Number.isFinite(amount)
+                ? amount
+                : 0;
+          }
+
+          if (row.tax_public_status_code === "paid") {
+            current.paidCount += 1;
+            current.paidAmount +=
+              Number.isFinite(amount)
+                ? amount
+                : 0;
+          }
+
+          if (
+            row.machine_validation_status ===
+            "error"
+          ) {
+            current.errorCount += 1;
+          }
+
+          return current;
+        },
+        {
+          count: 0,
+          totalAmount: 0,
+          scheduledCount: 0,
+          scheduledAmount: 0,
+          paidCount: 0,
+          paidAmount: 0,
+          errorCount: 0,
+          currencyCode: "JPY"
+        }
+      );
+
+      summary.totalAmount =
+        summary.scheduledAmount +
+        summary.paidAmount;
+
+      sendJson(res, 200, {
+        ok: true,
+        registration:
+          registrationResult.rows[0] || null,
+
+        dueDateCalculation:
+          dueDateResult.rows[0] || null,
+
+        bankReconciliation:
+          bankReconciliationResult.rows[0] || null,
+
+        candidates: result.rows,
+        summary
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/tax-public/withholding-payment-complete"
+  ) {
+    try {
+      const body =
+        await readJsonBody(req);
+
+      const obligationId =
+        Number(
+          body.tax_public_obligation_id || 0
+        );
+
+      const sourceKey =
+        String(
+          body.tax_public_source_key || ""
+        ).trim();
+
+      const paidReference =
+        String(
+          body.paid_reference || ""
+        ).trim();
+
+      if (
+        !Number.isInteger(obligationId) &&
+        !sourceKey
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error:
+            "tax_public_obligation_idまたはtax_public_source_keyが必要です。"
+        });
+
+        return true;
+      }
+
+      const params = [];
+      const conditions = [];
+
+      if (Number.isInteger(obligationId)) {
+        params.push(obligationId);
+
+        conditions.push(
+          "tax_public_obligation_id = $" +
+          params.length
+        );
+      }
+
+      if (sourceKey) {
+        params.push(sourceKey);
+
+        conditions.push(
+          "source_key = $" +
+          params.length
+        );
+      }
+
+      params.push(
+        paidReference || null
+      );
+
+      const paidReferenceParam =
+        "$" + params.length;
+
+      const result = await db.query(
+        `
+        UPDATE
+          accounting.tax_public_obligations
+        SET
+          status_code = 'paid',
+          paid_at = NOW(),
+          paid_reference =
+            COALESCE(
+              ${paidReferenceParam},
+              paid_reference
+            ),
+          machine_validation_status =
+            'valid',
+          machine_validation_message =
+            NULL,
+          updated_at = NOW()
+        WHERE
+          source_type_code =
+            'withholding_tax_ledger'
+          AND ${conditions.join(" AND ")}
+          AND status_code <> 'cancelled'
+        RETURNING
+          tax_public_obligation_id,
+          company_id,
+          source_key,
+          source_ledger_id,
+          payable_id,
+          payable_payment_id,
+          payment_amount,
+          currency_code,
+          status_code,
+          paid_at,
+          paid_reference
+        `,
+        params
+      );
+
+      if (!result.rows.length) {
+        sendJson(res, 404, {
+          ok: false,
+          error:
+            "対象の源泉所得税納付予定が見つかりません。"
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        payment: result.rows[0],
+        ledgerSynced: true
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          error:
+            error.message ||
+            String(error),
+          code:
+            error.code || null,
+          detail:
+            error.detail || null
+        }
+      );
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_TAX_PUBLIC_WITHHOLDING_CANDIDATES_API_20260711_END */
+
   /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_HANDLER_START */
   if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/business-flow-ai/analyze") {
     try {
@@ -7017,7 +7955,8 @@ async function handlePaymentDocumentRoutes(req, res) {
           d.display_rotation AS d_display_rotation,
           d.memo AS d_memo,
           d.created_at AS d_created_at,
-          d.updated_at AS d_updated_at
+          d.updated_at AS d_updated_at,
+          d.issue_date AS d_issue_date
         FROM accounting.payment_document_ocr_imports o
         LEFT JOIN accounting.payment_document_sorting_drafts d
           ON d.payment_document_sorting_draft_id = o.latest_sorting_draft_id
@@ -7072,7 +8011,8 @@ async function handlePaymentDocumentRoutes(req, res) {
           displayRotation: row.d_display_rotation,
           memo: row.d_memo,
           createdAt: row.d_created_at,
-          updatedAt: row.d_updated_at
+          updatedAt: row.d_updated_at,
+          issueDate: row.d_issue_date
         } : null;
 
         const baseDraft = latestSortingDraft || {};
@@ -7090,6 +8030,8 @@ async function handlePaymentDocumentRoutes(req, res) {
           accounting_category_code: baseDraft.accountingCategoryCode || baseSort.accounting_category_code || "",
           accounting_category_name: baseDraft.accountingCategoryLabel || baseSort.accounting_category_name || baseSort.accounting_category_label || "",
           accounting_category_label: baseDraft.accountingCategoryLabel || baseSort.accounting_category_label || baseSort.accounting_category_name || "",
+
+          issue_date: baseDraft.issueDate || baseDraft.issue_date || baseSort.issue_date || (baseDraft.aiSummary && baseDraft.aiSummary.issue_date) || (baseSort.ai_summary && baseSort.ai_summary.issue_date) || "",
 
           payable_kind_code: baseDraft.payableKindCode || baseSort.payable_kind_code || "",
           payable_kind_name: baseDraft.payableKindLabel || baseSort.payable_kind_name || baseSort.payable_kind_label || "",
@@ -8261,15 +9203,77 @@ async function handlePaymentDocumentRoutes(req, res) {
         return true;
       }
 
-      const aiResult = await createPaymentDocumentSpecialistDraftFromOcrText(ocrText, {
-        ...body,
-        specialist_route_code: body.specialist_route_code || "tax_public",
-        specialist_route_label: body.specialist_route_label || "税金・公的支払解析",
-        analysis_system_code: body.analysis_system_code || "tax_public_analysis",
-        analysis_system_label: body.analysis_system_label || "税金・公的支払解析システム",
-        group: body.group || "tax_public",
-        draft: body.draft || body.classification || {}
-      });
+      const specialistRouteCode = String(
+        body.specialist_route_code ||
+        body.specialistRouteCode ||
+        body.group ||
+        ""
+      ).trim();
+
+      const specialistRouteDefinitions = {
+        invoice_payable: {
+          routeLabel: "請求・未払系解析",
+          analysisSystemCode: "invoice_payable_analysis",
+          analysisSystemLabel: "請求・未払系専門解析システム"
+        },
+        tax_public: {
+          routeLabel: "税金・公的支払解析",
+          analysisSystemCode: "tax_public_analysis",
+          analysisSystemLabel: "税金・公的支払専門解析システム"
+        },
+        utility_communication: {
+          routeLabel: "公共料金・通信費解析",
+          analysisSystemCode: "utility_communication_analysis",
+          analysisSystemLabel: "公共料金・通信費専門解析システム"
+        },
+        contract_insurance_lease: {
+          routeLabel: "契約・保険・リース解析",
+          analysisSystemCode: "contract_insurance_lease_analysis",
+          analysisSystemLabel: "契約・保険・リース専門解析システム"
+        }
+      };
+
+      const specialistRouteDefinition =
+        specialistRouteDefinitions[specialistRouteCode];
+
+      if (!specialistRouteDefinition) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "専門解析コードが未指定または不正です。",
+          received_specialist_route_code:
+            specialistRouteCode
+        });
+
+        return true;
+      }
+
+      const aiResult =
+        await createPaymentDocumentSpecialistDraftFromOcrText(
+          ocrText,
+          {
+            ...body,
+            specialist_route_code:
+              specialistRouteCode,
+            specialist_route_label:
+              body.specialist_route_label ||
+              body.specialistRouteLabel ||
+              specialistRouteDefinition.routeLabel,
+            analysis_system_code:
+              body.analysis_system_code ||
+              body.analysisSystemCode ||
+              specialistRouteDefinition.analysisSystemCode,
+            analysis_system_label:
+              body.analysis_system_label ||
+              body.analysisSystemLabel ||
+              specialistRouteDefinition.analysisSystemLabel,
+            group:
+              specialistRouteCode,
+            draft:
+              body.draft ||
+              body.classification ||
+              {}
+          }
+        );
 
       sendJson(res, 200, {
         ok: true,
@@ -8653,15 +9657,46 @@ module.exports = {
   handlePaymentDocumentRoutes
 };
 
+/*
+HD_ORIGIN_BUSINESS_FLOW_EXECUTION_AI_POLICY_20260711
 
+業務フローAIの最上位目標:
+- 人間の転記、選択、照合、再入力、同一確認を徹底的になくす。
+- 業務フローAIは案内AIではなく、業務を最後まで流す実行設計AIとする。
+- 情報不足を見つけた場合、直ちに人間確認へ回さない。
+- 会社マスタ、取引先マスタ、過去処理、原本画像、OCR、専門解析結果、
+  銀行明細、契約、支払履歴、現在選択会社などから自動補完を試みる。
+- 通常案件はAIとシステムが処理を完了する。
+- 人間へ返すのは、自動補完・自動照合・再解析でも解消不能な例外だけ。
+- 例外時も「確認してください」だけで終わらせず、
+  解消不能な項目、試行済みの自動処理、停止理由、必要な最小入力を提示する。
 
+会社・支払業務:
+- 会社は支払書類取込時のcompany_idを正とする。
+- 未払画面で会社を選び直させない。
+- 支払元銀行口座は同一company_idだけを対象にする。
+- 支払実績と銀行出金は同一DBトランザクションで作成する。
+- 未払消込額は銀行振込額と源泉徴収額の合計。
+- 銀行出金額は銀行振込額と振込手数料の合計。
+- 源泉徴収額は値引きではなく源泉預り金として記録する。
+- 支払取消時は銀行明細と源泉預り金も連動して取消する。
+- 源泉預り金は後日の源泉所得税納付へ引き継ぐ。
 
+業務ルール管理:
+- 現在ルールは追記蓄積ではなく、矛盾のない現在版へ修正する。
+- 変更履歴は別ファイルへ残す。
+*/
 
+/*
+HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 
+目的:
+可能な限り完全機械化し、人間が作業へ介在して発生するミスをなくす。
 
+機械の誤りへの対策:
+機械同士の照合、再解析、再計算、整合性検査、安全停止で制御する。
 
-
-
-
-
+禁止:
+機械の誤り対策として、人間確認を通常業務へ戻すこと。
+*/
 

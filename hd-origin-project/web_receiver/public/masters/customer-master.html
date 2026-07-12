@@ -1,0 +1,1513 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>得意先マスタ</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f3f5f8;
+      color: #1f2937;
+      font-family: "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .page {
+      width: min(1600px, calc(100% - 24px));
+      margin: 20px auto 60px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .description {
+      margin: 0;
+      color: #64748b;
+    }
+
+    .panel {
+      margin-bottom: 16px;
+      background: #fff;
+      border: 1px solid #d7dde6;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #d7dde6;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 13px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+
+    .actions,
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .actions {
+      margin-top: 15px;
+    }
+
+    .btn {
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      color: #1f2937;
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #fff;
+    }
+
+    .btn-success {
+      background: #ecfdf5;
+      border-color: #059669;
+      color: #047857;
+    }
+
+    .btn-warning {
+      background: #fff7ed;
+      border-color: #d97706;
+      color: #b45309;
+    }
+
+    .btn-danger {
+      background: #fff1f2;
+      border-color: #ef4444;
+      color: #b91c1c;
+    }
+
+    .toolbar {
+      width: 100%;
+    }
+
+    .toolbar input {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary-box {
+      min-width: 145px;
+      padding: 10px 14px;
+      border: 1px solid #d7dde6;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .summary-box span {
+      display: block;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .summary-box strong {
+      font-size: 20px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid #d7dde6;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1250px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 8px 9px;
+      border-right: 1px solid #edf0f4;
+      border-bottom: 1px solid #d7dde6;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #eef2f7;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .row-actions button {
+      padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 12px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message-ok {
+      border: 1px solid #a7f3d0;
+      background: #ecfdf5;
+      color: #065f46;
+    }
+
+    .message-error {
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #991b1b;
+    }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .status-on {
+      color: #047857;
+      font-weight: 700;
+    }
+
+    .status-off {
+      color: #b91c1c;
+      font-weight: 700;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      padding: 24px;
+      overflow: auto;
+      background: rgba(15, 23, 42, .62);
+    }
+
+    .modal-backdrop.open {
+      display: block;
+    }
+
+    .modal {
+      width: min(1300px, 100%);
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .3);
+      overflow: hidden;
+    }
+
+    .modal-header,
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #d7dde6;
+    }
+
+    .modal-footer {
+      justify-content: flex-end;
+      border-top: 1px solid #d7dde6;
+      border-bottom: 0;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .modal-body {
+      padding: 16px;
+    }
+
+    .import-settings {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .import-result {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #d7dde6;
+      border-radius: 8px;
+      background: #f8fafc;
+      white-space: pre-wrap;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1000px) {
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+      }
+
+      .import-settings {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .header {
+        display: block;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wide,
+      .full {
+        grid-column: auto;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .no-print,
+      .entry-panel,
+      .modal-backdrop {
+        display: none !important;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+      }
+
+      .panel {
+        border: 0;
+      }
+
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+      }
+
+      th {
+        position: static;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>得意先マスタ</h1>
+        <p class="description">得意先情報をDBで管理し、CSVで追加・更新します。</p>
+      </div>
+
+      <div class="actions no-print">
+        <button class="btn" type="button" onclick="history.back()">戻る</button>
+        <button class="btn" type="button" onclick="window.print()">印刷</button>
+      </div>
+    </header>
+
+    <div id="message" class="message"></div>
+
+    <section class="panel entry-panel">
+      <div class="panel-header">
+        <h2 id="formTitle">新規登録</h2>
+        <button id="clearButton" class="btn" type="button">入力クリア</button>
+      </div>
+
+      <div class="panel-body">
+        <form id="masterForm">
+          <input id="record_id" type="hidden">
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="code">得意先コード 必須</label>
+              <input id="code" type="text" required>
+            </div>
+
+            <div class="field wide">
+              <label for="name">得意先名 必須</label>
+              <input id="name" type="text" required>
+            </div>
+
+            <div class="field">
+              <label for="name_kana">得意先名カナ</label>
+              <input id="name_kana" type="text">
+            </div>
+
+            <div class="field">
+              <label for="type">得意先区分</label>
+              <select id="type">
+                <option value=""></option>
+                <option value="法人">法人</option>
+<option value="個人事業主">個人事業主</option>
+<option value="個人">個人</option>
+<option value="その他">その他</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="corporate_number">法人番号</label>
+              <input id="corporate_number" type="text">
+            </div>
+
+            <div class="field">
+              <label for="invoice_registration_number">
+                インボイス登録番号
+              </label>
+              <input id="invoice_registration_number" type="text">
+            </div>
+
+            <div class="field">
+              <label for="postal_code">郵便番号</label>
+              <input id="postal_code" type="text">
+            </div>
+
+            <div class="field wide">
+              <label for="address">住所</label>
+              <input id="address" type="text">
+            </div>
+
+            <div class="field">
+              <label for="phone">電話番号</label>
+              <input id="phone" type="text">
+            </div>
+
+            <div class="field">
+              <label for="fax">FAX</label>
+              <input id="fax" type="text">
+            </div>
+
+            <div class="field wide">
+              <label for="email">メールアドレス</label>
+              <input id="email" type="email">
+            </div>
+
+            <div class="field">
+              <label for="contact_person">担当者名</label>
+              <input id="contact_person" type="text">
+            </div>
+
+            <div class="field">
+              <label for="closing_day">締日</label>
+              <input id="closing_day" type="text">
+            </div>
+
+            <div class="field">
+              <label for="payment_day">支払・入金日</label>
+              <input id="payment_day" type="text">
+            </div>
+
+            <div class="field wide">
+              <label for="payment_terms">取引条件</label>
+              <input id="payment_terms" type="text">
+            </div>
+
+            <div class="field">
+  <label for="invoice_delivery_method">請求書送付方法</label>
+  <select id="invoice_delivery_method">
+    <option value=""></option>
+    <option value="メール">メール</option>
+    <option value="郵送">郵送</option>
+    <option value="Web">Web</option>
+    <option value="手渡し">手渡し</option>
+    <option value="その他">その他</option>
+  </select>
+</div>
+            
+
+            <div class="field">
+              <label for="is_active">有効状態</label>
+              <select id="is_active">
+                <option value="true">有効</option>
+                <option value="false">無効</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="note">備考</label>
+              <textarea id="note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">DBへ保存</button>
+            <button id="cancelButton" class="btn" type="button">編集取消</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel no-print">
+      <div class="panel-header">
+        <h2>CSV</h2>
+
+        <div class="actions" style="margin-top:0">
+          <button id="csvExportButton" class="btn btn-success" type="button">
+            CSV出力
+          </button>
+
+          <button id="csvTemplateButton" class="btn" type="button">
+            CSVひな形
+          </button>
+
+          <button id="openCsvModalButton" class="btn btn-warning" type="button">
+            CSV受入れ
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>登録一覧</h2>
+
+        <div class="toolbar no-print">
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="コード・名称・住所などで検索"
+          >
+
+          <select id="statusFilter" style="width:auto">
+            <option value="">有効・無効すべて</option>
+            <option value="true">有効のみ</option>
+            <option value="false">無効のみ</option>
+          </select>
+
+          <button id="reloadButton" class="btn" type="button">
+            再読込
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="summary">
+          <div class="summary-box">
+            <span>登録件数</span>
+            <strong id="totalCount">0</strong>
+          </div>
+
+          <div class="summary-box">
+            <span>有効</span>
+            <strong id="activeCount">0</strong>
+          </div>
+
+          <div class="summary-box">
+            <span>無効</span>
+            <strong id="inactiveCount">0</strong>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>得意先コード</th>
+                <th>得意先名</th>
+                <th>得意先区分</th>
+                <th>住所</th>
+                <th>電話番号</th>
+                <th>担当者名</th>
+                <th>締日</th>
+                <th>支払・入金日</th>
+                
+                <th>状態</th>
+                <th>備考</th>
+                <th class="no-print">操作</th>
+              </tr>
+            </thead>
+
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="csvModalBackdrop" class="modal-backdrop">
+    <section class="modal" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h2>CSV受入れ</h2>
+
+        <button id="closeCsvModalButton" class="btn" type="button">
+          閉じる
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="import-settings">
+          <div class="field">
+            <label for="importMode">取込モード</label>
+            <select id="importMode">
+              <option value="validate">検証のみ</option>
+              <option value="insert_only">追加のみ</option>
+              <option value="upsert">追加＋更新</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="blankMode">CSV空欄の扱い</label>
+            <select id="blankMode">
+              <option value="preserve">既存値を維持</option>
+              <option value="clear">既存値をクリア</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="csvFile">CSVファイル</label>
+            <input id="csvFile" type="file" accept=".csv,text/csv">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="validateCsvButton" class="btn btn-primary" type="button">
+            DB照合・検証
+          </button>
+
+          <button id="commitCsvButton" class="btn btn-danger" type="button" disabled>
+            DBへ一括反映
+          </button>
+        </div>
+
+        <div id="csvSummary" class="import-result">
+          CSVファイルを選択してください。
+        </div>
+
+        <div id="csvPreview" style="margin-top:12px"></div>
+      </div>
+
+      <footer class="modal-footer">
+        <button id="closeCsvModalFooterButton" class="btn" type="button">
+          閉じる
+        </button>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    "use strict";
+
+    const PARTNER_TYPE = "customer";
+    const API_BASE = `/api/business-partners/${PARTNER_TYPE}`;
+    const SHOW_BANK = false;
+
+    const idColumn =
+      PARTNER_TYPE === "customer"
+        ? "customer_id"
+        : "vendor_id";
+
+    const codeColumn =
+      PARTNER_TYPE === "customer"
+        ? "customer_code"
+        : "vendor_code";
+
+    const nameColumn =
+      PARTNER_TYPE === "customer"
+        ? "customer_name"
+        : "vendor_name";
+
+    const typeColumn =
+      PARTNER_TYPE === "customer"
+        ? "customer_type"
+        : "vendor_type";
+
+    const nameKanaColumn =
+      PARTNER_TYPE === "customer"
+        ? "customer_name_kana"
+        : "vendor_name_kana";
+
+    const baseCsvKeys = [
+      codeColumn,
+      nameColumn,
+      nameKanaColumn,
+      typeColumn,
+      "corporate_number",
+      "invoice_registration_number",
+      "postal_code",
+      "address",
+      "phone",
+      "fax",
+      "email",
+      "contact_person",
+      "closing_day",
+      "payment_day",
+      "payment_terms"
+    ];
+
+    if (PARTNER_TYPE === "customer") {
+      baseCsvKeys.push("invoice_delivery_method");
+    }
+
+    const csvKeys = [
+      ...baseCsvKeys,
+      ...(SHOW_BANK
+        ? [
+            "bank_name",
+            "branch_name",
+            "account_type",
+            "account_number",
+            "account_holder"
+          ]
+        : []),
+      "is_active",
+      "sort_order",
+      "note"
+    ];
+
+    let records = [];
+    let selectedCsvRows = [];
+    let selectedCsvFileName = "";
+    let lastValidationResult = null;
+
+    function getElement(id) {
+      return document.getElementById(id);
+    }
+
+    function getValue(id) {
+      return String(getElement(id)?.value ?? "").trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showMessage(text, isError = false) {
+      const element = getElement("message");
+
+      element.textContent = text;
+      element.className =
+        "message show " +
+        (isError ? "message-error" : "message-ok");
+
+      clearTimeout(showMessage.timer);
+
+      showMessage.timer = setTimeout(() => {
+        element.classList.remove("show");
+      }, 6000);
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        },
+        ...options
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.ok === false) {
+        const error = new Error(
+          data.message ||
+          data.error ||
+          `通信エラー: ${response.status}`
+        );
+
+        error.responseData = data;
+        throw error;
+      }
+
+      return data;
+    }
+
+    async function loadRecords() {
+      try {
+        const data = await requestJson(
+          `${API_BASE}?time=${Date.now()}`
+        );
+
+        records = Array.isArray(data.rows)
+          ? data.rows
+          : Array.isArray(data.items)
+            ? data.items
+            : [];
+
+        render();
+      } catch (error) {
+        console.error(error);
+        records = [];
+        render();
+        showMessage(
+          `DB一覧取得失敗: ${error.message}`,
+          true
+        );
+      }
+    }
+
+    function resetForm() {
+      getElement("masterForm").reset();
+      getElement("record_id").value = "";
+      getElement("is_active").value = "true";
+      getElement("formTitle").textContent = "新規登録";
+    }
+
+    function buildPayload() {
+      const payload = {
+        [codeColumn]: getValue("code"),
+        [nameColumn]: getValue("name"),
+        [nameKanaColumn]: getValue("name_kana"),
+        [typeColumn]: getValue("type"),
+        corporate_number: getValue("corporate_number"),
+        invoice_registration_number:
+          getValue("invoice_registration_number"),
+        postal_code: getValue("postal_code"),
+        address: getValue("address"),
+        phone: getValue("phone"),
+        fax: getValue("fax"),
+        email: getValue("email"),
+        contact_person: getValue("contact_person"),
+        closing_day: getValue("closing_day"),
+        payment_day: getValue("payment_day"),
+        payment_terms: getValue("payment_terms"),
+        is_active: getValue("is_active") === "true",
+        sort_order: 0,
+        note: getValue("note"),
+        blank_mode: "clear"
+      };
+
+      if (PARTNER_TYPE === "customer") {
+        payload.invoice_delivery_method =
+          getValue("invoice_delivery_method");
+      }
+
+      if (SHOW_BANK) {
+        payload.bank_name = getValue("bank_name");
+        payload.branch_name = getValue("branch_name");
+        payload.account_type = getValue("account_type");
+        payload.account_number = getValue("account_number");
+        payload.account_holder = getValue("account_holder");
+      }
+
+      return payload;
+    }
+
+    async function saveForm(event) {
+      event.preventDefault();
+
+      const id = getValue("record_id");
+      const payload = buildPayload();
+
+      if (!payload[codeColumn] || !payload[nameColumn]) {
+        showMessage(
+          "得意先コードと得意先名は必須です。",
+          true
+        );
+        return;
+      }
+
+      try {
+        const url = id
+          ? `${API_BASE}/${encodeURIComponent(id)}`
+          : API_BASE;
+
+        await requestJson(url, {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify(payload)
+        });
+
+        showMessage(id ? "DBを更新しました。" : "DBへ登録しました。");
+        resetForm();
+        await loadRecords();
+      } catch (error) {
+        console.error(error);
+        showMessage(`保存失敗: ${error.message}`, true);
+      }
+    }
+
+    function editRecord(id) {
+      const row = records.find(
+        item => String(item[idColumn]) === String(id)
+      );
+
+      if (!row) {
+        showMessage("編集対象が見つかりません。", true);
+        return;
+      }
+
+      getElement("record_id").value = row[idColumn] ?? "";
+      getElement("code").value = row[codeColumn] ?? "";
+      getElement("name").value = row[nameColumn] ?? "";
+      getElement("name_kana").value = row[nameKanaColumn] ?? "";
+      getElement("type").value = row[typeColumn] ?? "";
+      getElement("corporate_number").value =
+        row.corporate_number ?? "";
+      getElement("invoice_registration_number").value =
+        row.invoice_registration_number ?? "";
+      getElement("postal_code").value = row.postal_code ?? "";
+      getElement("address").value = row.address ?? "";
+      getElement("phone").value = row.phone ?? "";
+      getElement("fax").value = row.fax ?? "";
+      getElement("email").value = row.email ?? "";
+      getElement("contact_person").value =
+        row.contact_person ?? "";
+      getElement("closing_day").value = row.closing_day ?? "";
+      getElement("payment_day").value = row.payment_day ?? "";
+      getElement("payment_terms").value =
+        row.payment_terms ?? "";
+      getElement("is_active").value =
+        row.is_active === false ? "false" : "true";
+      getElement("note").value = row.note ?? "";
+
+      if (PARTNER_TYPE === "customer") {
+        getElement("invoice_delivery_method").value =
+          row.invoice_delivery_method ?? "";
+      }
+
+      if (SHOW_BANK) {
+        getElement("bank_name").value = row.bank_name ?? "";
+        getElement("branch_name").value = row.branch_name ?? "";
+        getElement("account_type").value = row.account_type ?? "";
+        getElement("account_number").value =
+          row.account_number ?? "";
+        getElement("account_holder").value =
+          row.account_holder ?? "";
+      }
+
+      getElement("formTitle").textContent = "登録内容の編集";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function disableRecord(id, name) {
+      if (!confirm(`「${name}」を無効にしますか？`)) {
+        return;
+      }
+
+      try {
+        await requestJson(
+          `${API_BASE}/${encodeURIComponent(id)}`,
+          { method: "DELETE" }
+        );
+
+        showMessage("無効にしました。");
+        await loadRecords();
+      } catch (error) {
+        console.error(error);
+        showMessage(`無効化失敗: ${error.message}`, true);
+      }
+    }
+
+    function getFilteredRows() {
+      const keyword = getValue("searchInput").toLowerCase();
+      const status = getValue("statusFilter");
+
+      return records.filter(row => {
+        const searchText = csvKeys
+          .map(key => String(row[key] ?? ""))
+          .join(" ")
+          .toLowerCase();
+
+        const keywordMatch =
+          !keyword || searchText.includes(keyword);
+
+        const statusMatch =
+          !status || String(row.is_active) === status;
+
+        return keywordMatch && statusMatch;
+      });
+    }
+
+    function render() {
+      const filtered = getFilteredRows();
+      const body = getElement("tableBody");
+
+      getElement("totalCount").textContent = records.length;
+      getElement("activeCount").textContent =
+        records.filter(row => row.is_active !== false).length;
+      getElement("inactiveCount").textContent =
+        records.filter(row => row.is_active === false).length;
+
+      if (!filtered.length) {
+        body.innerHTML = `
+          <tr>
+            <td colspan="20" class="empty">
+              登録データはありません。
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = filtered.map(row => {
+        const bankCells = SHOW_BANK
+          ? `
+            <td>${escapeHtml(row.bank_name)}</td>
+            <td>${escapeHtml(row.branch_name)}</td>
+            <td>${escapeHtml(row.account_number)}</td>
+            <td>${escapeHtml(row.account_holder)}</td>
+          `
+          : "";
+
+        const statusClass =
+          row.is_active === false
+            ? "status-off"
+            : "status-on";
+
+        const statusText =
+          row.is_active === false
+            ? "無効"
+            : "有効";
+
+        return `
+          <tr>
+            <td>${escapeHtml(row[codeColumn])}</td>
+            <td>${escapeHtml(row[nameColumn])}</td>
+            <td>${escapeHtml(row[typeColumn])}</td>
+            <td>${escapeHtml(row.address)}</td>
+            <td>${escapeHtml(row.phone)}</td>
+            <td>${escapeHtml(row.contact_person)}</td>
+            <td>${escapeHtml(row.closing_day)}</td>
+            <td>${escapeHtml(row.payment_day)}</td>
+            ${bankCells}
+            <td>
+              <span class="${statusClass}">
+                ${statusText}
+              </span>
+            </td>
+            <td>${escapeHtml(row.note)}</td>
+            <td class="no-print">
+              <div class="row-actions">
+                <button
+                  type="button"
+                  onclick="editRecord('${row[idColumn]}')"
+                >
+                  編集
+                </button>
+
+                <button
+                  type="button"
+                  onclick="disableRecord(
+                    '${row[idColumn]}',
+                    '${escapeHtml(row[nameColumn])}'
+                  )"
+                >
+                  無効
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+
+      if (
+        text.includes(",") ||
+        text.includes('"') ||
+        text.includes("\r") ||
+        text.includes("\n")
+      ) {
+        return `"${text.replaceAll('"', '""')}"`;
+      }
+
+      return text;
+    }
+
+    function downloadCsv(fileName, rows) {
+      const text = rows
+        .map(row => row.map(csvEscape).join(","))
+        .join("\r\n");
+
+      const blob = new Blob(
+        ["\uFEFF" + text],
+        { type: "text/csv;charset=utf-8" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCsv(templateOnly) {
+      const rows = templateOnly
+        ? [csvKeys.map(() => "")]
+        : records.map(row =>
+            csvKeys.map(key => row[key] ?? "")
+          );
+
+      const fileName = templateOnly
+        ? `customer_master_template.csv`
+        : `customer_master_${new Date()
+            .toISOString()
+            .slice(0, 10)}.csv`;
+
+      downloadCsv(fileName, [csvKeys, ...rows]);
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            value += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+        } else if (
+          (char === "\r" || char === "\n") &&
+          !inQuotes
+        ) {
+          if (char === "\r" && next === "\n") {
+            index += 1;
+          }
+
+          row.push(value);
+          value = "";
+
+          if (row.some(cell => String(cell).trim() !== "")) {
+            rows.push(row);
+          }
+
+          row = [];
+        } else {
+          value += char;
+        }
+      }
+
+      row.push(value);
+
+      if (row.some(cell => String(cell).trim() !== "")) {
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    async function readSelectedCsv(file) {
+      const text = (await file.text()).replace(/^\uFEFF/, "");
+      const parsed = parseCsv(text);
+
+      if (parsed.length < 2) {
+        throw new Error("CSVに明細行がありません。");
+      }
+
+      const headers = parsed[0].map(value =>
+        String(value).trim()
+      );
+
+      selectedCsvRows = parsed.slice(1).map(values => {
+        const row = {};
+
+        for (const key of csvKeys) {
+          const index = headers.indexOf(key);
+
+          row[key] =
+            index >= 0
+              ? String(values[index] ?? "").trim()
+              : "";
+        }
+
+        return row;
+      });
+
+      selectedCsvFileName = file.name;
+      lastValidationResult = null;
+      getElement("commitCsvButton").disabled = true;
+
+      renderCsvLocalPreview();
+    }
+
+    function renderCsvLocalPreview() {
+      const rows = selectedCsvRows.slice(0, 20);
+
+      getElement("csvSummary").textContent =
+        `CSV読込件数: ${selectedCsvRows.length}件`;
+
+      getElement("csvPreview").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                ${csvKeys.map(key =>
+                  `<th>${escapeHtml(key)}</th>`
+                ).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  ${csvKeys.map(key =>
+                    `<td>${escapeHtml(row[key])}</td>`
+                  ).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function runCsvImport(importMode) {
+      if (!selectedCsvRows.length) {
+        showMessage("CSVファイルを選択してください。", true);
+        return null;
+      }
+
+      const payload = {
+        import_mode: importMode,
+        blank_mode: getValue("blankMode"),
+        file_name: selectedCsvFileName,
+        requested_by: "GPT00画面",
+        rows: selectedCsvRows
+      };
+
+      return await requestJson(`${API_BASE}/csv-import`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+    }
+
+    function renderServerImportResult(result) {
+      const data = result.result || result;
+
+      getElement("csvSummary").textContent = [
+        `取込モード: ${data.import_mode}`,
+        `対象件数: ${data.total_count}`,
+        `新規: ${data.insert_count}`,
+        `更新: ${data.update_count}`,
+        `変更なし: ${data.unchanged_count}`,
+        `エラー: ${data.error_count}`,
+        `DB反映: ${data.committed ? "実施済み" : "未実施"}`
+      ].join("\n");
+
+      const rows = Array.isArray(data.rows)
+        ? data.rows
+        : [];
+
+      getElement("csvPreview").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>CSV行</th>
+                <th>判定</th>
+                <th>コード</th>
+                <th>名称</th>
+                <th>結果</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  <td>${escapeHtml(row.row_number)}</td>
+                  <td>${escapeHtml(row.action_type)}</td>
+                  <td>${escapeHtml(row.program_code)}</td>
+                  <td>${escapeHtml(row.display_name)}</td>
+                  <td>
+                    ${row.valid
+                      ? "OK"
+                      : escapeHtml(
+                          (row.errors || [])
+                            .map(error => error.message)
+                            .join(" / ")
+                        )
+                    }
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function validateCsv() {
+      try {
+        const response = await runCsvImport("validate");
+
+        lastValidationResult = response.result || response;
+        renderServerImportResult(response);
+
+        getElement("commitCsvButton").disabled =
+          Number(lastValidationResult.error_count || 0) > 0;
+
+        showMessage("DB照合・検証が完了しました。");
+      } catch (error) {
+        console.error(error);
+        lastValidationResult = null;
+        getElement("commitCsvButton").disabled = true;
+        showMessage(`CSV検証失敗: ${error.message}`, true);
+      }
+    }
+
+    async function commitCsv() {
+      const mode = getValue("importMode");
+
+      if (mode === "validate") {
+        showMessage(
+          "DB反映する場合は「追加のみ」または「追加＋更新」を選択してください。",
+          true
+        );
+        return;
+      }
+
+      if (!lastValidationResult) {
+        showMessage("先にDB照合・検証を実行してください。", true);
+        return;
+      }
+
+      if (Number(lastValidationResult.error_count || 0) > 0) {
+        showMessage(
+          "エラーがあるためDBへ反映できません。",
+          true
+        );
+        return;
+      }
+
+      const message =
+        mode === "insert_only"
+          ? "CSVを追加のみでDBへ反映しますか？"
+          : "CSVを追加＋更新でDBへ一括反映しますか？";
+
+      if (!confirm(message)) {
+        return;
+      }
+
+      try {
+        const response = await runCsvImport(mode);
+
+        renderServerImportResult(response);
+        getElement("commitCsvButton").disabled = true;
+
+        showMessage("CSVをDBへ一括反映しました。");
+        await loadRecords();
+      } catch (error) {
+        console.error(error);
+
+        const detail =
+          error.responseData?.result ||
+          error.responseData?.details;
+
+        if (detail) {
+          getElement("csvSummary").textContent =
+            JSON.stringify(detail, null, 2);
+        }
+
+        showMessage(
+          `CSV反映失敗・全件ロールバック: ${error.message}`,
+          true
+        );
+      }
+    }
+
+    function openCsvModal() {
+      getElement("csvModalBackdrop").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeCsvModal() {
+      getElement("csvModalBackdrop").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    getElement("masterForm")
+      .addEventListener("submit", saveForm);
+
+    getElement("clearButton")
+      .addEventListener("click", resetForm);
+
+    getElement("cancelButton")
+      .addEventListener("click", resetForm);
+
+    getElement("searchInput")
+      .addEventListener("input", render);
+
+    getElement("statusFilter")
+      .addEventListener("change", render);
+
+    getElement("reloadButton")
+      .addEventListener("click", loadRecords);
+
+    getElement("csvExportButton")
+      .addEventListener("click", () => exportCsv(false));
+
+    getElement("csvTemplateButton")
+      .addEventListener("click", () => exportCsv(true));
+
+    getElement("openCsvModalButton")
+      .addEventListener("click", openCsvModal);
+
+    getElement("closeCsvModalButton")
+      .addEventListener("click", closeCsvModal);
+
+    getElement("closeCsvModalFooterButton")
+      .addEventListener("click", closeCsvModal);
+
+    getElement("csvFile")
+      .addEventListener("change", async event => {
+        try {
+          const file = event.target.files?.[0];
+
+          if (!file) {
+            return;
+          }
+
+          await readSelectedCsv(file);
+        } catch (error) {
+          console.error(error);
+          selectedCsvRows = [];
+          showMessage(`CSV読込失敗: ${error.message}`, true);
+        }
+      });
+
+    getElement("validateCsvButton")
+      .addEventListener("click", validateCsv);
+
+    getElement("commitCsvButton")
+      .addEventListener("click", commitCsv);
+
+    getElement("csvModalBackdrop")
+      .addEventListener("click", event => {
+        if (event.target === getElement("csvModalBackdrop")) {
+          closeCsvModal();
+        }
+      });
+
+    resetForm();
+    loadRecords();
+
+    window.editRecord = editRecord;
+    window.disableRecord = disableRecord;
+  </script>
+</body>
+</html>

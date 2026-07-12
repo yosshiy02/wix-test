@@ -49,69 +49,43 @@ function toDate(value) {
   const v = toText(value);
   return v ? v : null;
 }
-function normalizeStatus(value) {
-  const v = toText(value) || "draft";
-  return ["draft", "confirmed", "partially_paid", "paid", "void"].includes(v) ? v : "draft";
+function normalizeMasterCode(value, fallback) {
+  const code = toText(value);
+  return code || fallback;
 }
-function normalizeDocumentType(value) {
-  const v = toText(value) || "invoice";
-  return ["invoice", "delivery_note", "statement", "credit_note", "other"].includes(v) ? v : "invoice";
-}
-function normalizePayableKind(value) {
-  const v = toText(value) || "unpaid";
-  return ["accounts_payable", "unpaid", "accrued_expense", "card_payable", "other"].includes(v) ? v : "unpaid";
-}
-/* PAYABLE_CONTROL_FIELDS_20260710_START */
-function normalizeEvidenceStatus(value) {
-  const v = toText(value) || "pending";
 
-  return [
-    "not_required",
-    "received",
-    "missing",
-    "pending",
-    "mismatch"
-  ].includes(v) ? v : "pending";
+function normalizeStatus(value) {
+  return normalizeMasterCode(value, "draft");
+}
+
+function normalizeDocumentType(value) {
+  return normalizeMasterCode(value, "invoice");
+}
+
+function normalizePayableKind(value) {
+  return normalizeMasterCode(value, "unpaid");
+}
+
+function normalizeEvidenceStatus(value) {
+  return normalizeMasterCode(value, "pending");
 }
 
 function normalizeReviewStatus(value) {
-  const v = toText(value) || "unreviewed";
-
-  return [
-    "unreviewed",
-    "needs_review",
-    "confirmed",
-    "rejected"
-  ].includes(v) ? v : "unreviewed";
+  return normalizeMasterCode(value, "unreviewed");
 }
 
 function normalizeWarningLevel(value) {
-  const v = toText(value) || "none";
-
-  return [
-    "none",
-    "info",
-    "warning",
-    "critical"
-  ].includes(v) ? v : "none";
+  return normalizeMasterCode(value, "none");
 }
 
 function normalizeProfessionalReviewStatus(
   value,
   required
 ) {
-  const fallback =
-    required ? "pending" : "not_required";
-
-  const v = toText(value) || fallback;
-
-  return [
-    "not_required",
-    "pending",
-    "requested",
-    "confirmed",
-    "recheck_required"
-  ].includes(v) ? v : fallback;
+  return normalizeMasterCode(
+    value,
+    required ? "pending" : "not_required"
+  );
 }
 
 function toBoolean(value) {
@@ -122,7 +96,128 @@ function toBoolean(value) {
     String(value || "").toLowerCase() === "true"
   );
 }
-/* PAYABLE_CONTROL_FIELDS_20260710_END */async function nextPayableNo(q) {
+/* PAYABLE_CONTROL_FIELDS_20260710_END */
+/* GPT00_PAYABLE_MASTER_VALIDATION_20260711_START */
+const PAYABLE_MASTER_VALIDATION = {
+  status: {
+    table: "expenses.payable_statuses",
+    codeColumn: "payable_status_code",
+    fallback: "draft",
+    label: "未払状態"
+  },
+  document_type: {
+    table: "expenses.document_types",
+    codeColumn: "document_type_code",
+    fallback: "invoice",
+    label: "書類区分"
+  },
+  payable_kind: {
+    table: "expenses.payable_kinds",
+    codeColumn: "payable_kind_code",
+    fallback: "unpaid",
+    label: "未払種別"
+  },
+  evidence_type: {
+    table: "expenses.evidence_types",
+    codeColumn: "evidence_type_code",
+    fallback: "",
+    label: "証憑区分"
+  },
+  evidence_status: {
+    table: "expenses.evidence_statuses",
+    codeColumn: "evidence_status_code",
+    fallback: "pending",
+    label: "証憑状態"
+  },
+  review_status: {
+    table: "expenses.review_statuses",
+    codeColumn: "review_status_code",
+    fallback: "unreviewed",
+    label: "確認状態"
+  },
+  warning_level: {
+    table: "expenses.warning_levels",
+    codeColumn: "warning_level_code",
+    fallback: "none",
+    label: "警告レベル"
+  },
+  professional_review_status: {
+    table: "expenses.professional_review_statuses",
+    codeColumn: "professional_review_status_code",
+    fallback: "not_required",
+    label: "専門家確認状態"
+  }
+};
+
+function quoteMasterIdentifier(value) {
+  return '"' +
+    String(value).replace(/"/g, '""') +
+    '"';
+}
+
+function quoteMasterTable(value) {
+  return String(value)
+    .split(".")
+    .map(quoteMasterIdentifier)
+    .join(".");
+}
+
+async function requireActiveMasterCode(
+  q,
+  masterName,
+  value,
+  fallbackOverride
+) {
+  const definition =
+    PAYABLE_MASTER_VALIDATION[masterName];
+
+  if (!definition) {
+    throw new Error(
+      "未対応のマスタ検証です: " +
+      masterName
+    );
+  }
+
+  const fallback =
+    fallbackOverride === undefined
+      ? definition.fallback
+      : fallbackOverride;
+
+  const code =
+    toText(value) || fallback;
+
+  if (!code) {
+    return "";
+  }
+
+  const result = await q.query(
+    `
+    SELECT 1
+    FROM ${quoteMasterTable(definition.table)}
+    WHERE ${quoteMasterIdentifier(
+      definition.codeColumn
+    )} = $1
+      AND is_active = TRUE
+    LIMIT 1
+    `,
+    [code]
+  );
+
+  if (!result.rows.length) {
+    const error = new Error(
+      definition.label +
+      "の有効なマスタ値ではありません: " +
+      code
+    );
+
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return code;
+}
+/* GPT00_PAYABLE_MASTER_VALIDATION_20260711_END */
+async function nextPayableNo(q) {
   const result = await q.query(`
     SELECT
       'PY-' ||
@@ -143,7 +238,18 @@ async function recalcPayable(q, payableId) {
   `, [payableId]);
   const paymentResult = await q.query(`
     SELECT
-      COALESCE(SUM(payment_amount), 0)::NUMERIC(14,2) AS paid_amount
+      COALESCE(
+        SUM(
+          payment_amount +
+          withholding_tax_amount
+        ),
+        0
+      )::NUMERIC(14,2) AS paid_amount,
+      COALESCE(
+        SUM(withholding_tax_amount),
+        0
+      )::NUMERIC(14,2)
+        AS withholding_tax_amount
     FROM accounting.payable_payments
     WHERE payable_id = $1
   `, [payableId]);
@@ -153,6 +259,8 @@ async function recalcPayable(q, payableId) {
   const tax = toMoney(totals.tax_amount);
   const total = toMoney(totals.total_amount);
   const paid = toMoney(payments.paid_amount);
+  const paymentWithholdingTaxAmount =
+    toMoney(payments.withholding_tax_amount);
   const balance = Math.max(total - paid, 0);
   const statusResult = await q.query(`
     SELECT status
@@ -195,6 +303,8 @@ async function recalcPayable(q, payableId) {
     tax_amount: tax,
     total_amount: total,
     paid_amount: paid,
+    payment_withholding_tax_amount:
+      paymentWithholdingTaxAmount,
     balance_amount: balance,
     status: newStatus
   };
@@ -386,10 +496,24 @@ async function getDashboard() {
     ORDER BY line_no
   `, [payableId]);
   const paymentsResult = await baseQuery(`
-    SELECT *
-    FROM accounting.payable_payments
-    WHERE payable_id = $1
-    ORDER BY payment_date, payable_payment_id
+    SELECT
+      p.*,
+      a.bank_name,
+      a.branch_name,
+      a.account_type_name,
+      a.account_number,
+      t.is_cancelled AS bank_transaction_cancelled
+    FROM accounting.payable_payments p
+    LEFT JOIN accounting.bank_accounts a
+      ON a.bank_account_id = p.bank_account_id
+     AND a.company_id = p.company_id
+    LEFT JOIN accounting.bank_transactions t
+      ON t.bank_transaction_id =
+         p.bank_transaction_id
+    WHERE p.payable_id = $1
+    ORDER BY
+      p.payment_date,
+      p.payable_payment_id
   `, [payableId]);
   const historyResult = await baseQuery(`
     SELECT *
@@ -408,8 +532,57 @@ async function getDashboard() {
 async function savePayable(payload = {}) {
   const document = payload.document || payload;
   const lines = Array.isArray(payload.lines) ? payload.lines : [];
-  return withTx(async (q) => {
-    const payableId = toInt(document.payable_id);
+    return withTx(async (q) => {
+    const validatedStatus =
+      await requireActiveMasterCode(
+        q,
+        "status",
+        document.status
+      );
+
+    const validatedDocumentType =
+      await requireActiveMasterCode(
+        q,
+        "document_type",
+        document.document_type
+      );
+
+    const validatedPayableKind =
+      await requireActiveMasterCode(
+        q,
+        "payable_kind",
+        document.payable_kind
+      );
+
+    const validatedEvidenceType =
+      await requireActiveMasterCode(
+        q,
+        "evidence_type",
+        document.evidence_type,
+        ""
+      );
+
+    const validatedEvidenceStatus =
+      await requireActiveMasterCode(
+        q,
+        "evidence_status",
+        document.evidence_status
+      );
+
+    const validatedReviewStatus =
+      await requireActiveMasterCode(
+        q,
+        "review_status",
+        document.review_status
+      );
+
+    const validatedWarningLevel =
+      await requireActiveMasterCode(
+        q,
+        "warning_level",
+        document.warning_level
+      );
+const payableId = toInt(document.payable_id);
     let id = payableId;
     let payableNo = toText(document.payable_no);
     if (!id) {
@@ -451,9 +624,9 @@ async function savePayable(payload = {}) {
         RETURNING payable_id, payable_no
       `, [
         payableNo,
-        normalizeDocumentType(document.document_type),
-        normalizePayableKind(document.payable_kind),
-        normalizeStatus(document.status),
+        validatedDocumentType,
+        validatedPayableKind,
+        validatedStatus,
         toInt(document.vendor_id),
         toText(document.vendor_name),
         toText(document.invoice_number),
@@ -472,7 +645,7 @@ async function savePayable(payload = {}) {
         toText(document.summary),
         toText(document.memo),
         toText(document.internal_note),
-        toText(document.evidence_type),
+        validatedEvidenceType,
         toText(document.evidence_file_name),
         toText(document.evidence_file_path),
         toText(document.source_memo),
@@ -487,7 +660,7 @@ async function savePayable(payload = {}) {
           (payable_id, old_status, new_status, reason)
         VALUES
           ($1, '', $2, 'created')
-      `, [id, normalizeStatus(document.status)]);
+      `, [id, validatedStatus]);
     } else {
       const oldResult = await q.query(`
         SELECT status
@@ -499,7 +672,7 @@ async function savePayable(payload = {}) {
         throw new Error("更新対象の請求書・未払データが見つかりません。");
       }
       const oldStatus = oldResult.rows[0].status;
-      const newStatus = normalizeStatus(document.status);
+      const newStatus = validatedStatus;
       const updated = await q.query(`
         UPDATE accounting.payable_documents
         SET
@@ -536,8 +709,8 @@ async function savePayable(payload = {}) {
         RETURNING payable_id, payable_no
       `, [
         id,
-        normalizeDocumentType(document.document_type),
-        normalizePayableKind(document.payable_kind),
+        validatedDocumentType,
+        validatedPayableKind,
         newStatus,
         toInt(document.vendor_id),
         toText(document.vendor_name),
@@ -557,7 +730,7 @@ async function savePayable(payload = {}) {
         toText(document.summary),
         toText(document.memo),
         toText(document.internal_note),
-        toText(document.evidence_type),
+        validatedEvidenceType,
         toText(document.evidence_file_name),
         toText(document.evidence_file_path),
         toText(document.source_memo),
@@ -626,12 +799,21 @@ async function savePayable(payload = {}) {
       ]);
       lineNo++;
     }
-    const professionalReviewRequired =
+        const professionalReviewRequired =
       toBoolean(
         document.professional_review_required
       );
 
-    await q.query(`
+    const validatedProfessionalReviewStatus =
+      await requireActiveMasterCode(
+        q,
+        "professional_review_status",
+        document.professional_review_status,
+        professionalReviewRequired
+          ? "pending"
+          : "not_required"
+      );
+await q.query(`
       UPDATE accounting.payable_documents
       SET
         company_code = $2,
@@ -653,23 +835,14 @@ async function savePayable(payload = {}) {
       id,
       toText(document.company_code),
       toText(document.company_name),
-      normalizeEvidenceStatus(
-        document.evidence_status
-      ),
+      validatedEvidenceStatus,
       toDate(document.evidence_due_date),
       toDate(document.evidence_received_date),
-      normalizeReviewStatus(
-        document.review_status
-      ),
+      validatedReviewStatus,
       toText(document.review_reason),
-      normalizeWarningLevel(
-        document.warning_level
-      ),
+      validatedWarningLevel,
       professionalReviewRequired,
-      normalizeProfessionalReviewStatus(
-        document.professional_review_status,
-        professionalReviewRequired
-      ),
+      validatedProfessionalReviewStatus,
       toText(document.professional_reviewer),
       document.professional_reviewed_at
         ? document.professional_reviewed_at
@@ -690,16 +863,171 @@ async function savePayable(payload = {}) {
 async function addPayment(payableId, payload = {}) {
   return withTx(async (q) => {
     const id = toInt(payableId);
+
     if (!id) {
       throw new Error("payable_id が不正です。");
     }
-    const paymentAmount = toMoney(payload.payment_amount);
-    if (paymentAmount <= 0) {
-      throw new Error("支払額は1円以上で入力してください。");
+
+    const paymentDate =
+      toDate(payload.payment_date);
+
+    const paymentAmount =
+      toMoney(payload.payment_amount);
+
+    const bankFeeAmount =
+      toMoney(payload.bank_fee_amount);
+
+    const withholdingTaxAmount =
+      toMoney(payload.withholding_tax_amount);
+
+    const bankAccountId =
+      toInt(payload.bank_account_id);
+
+    if (!paymentDate) {
+      throw new Error("支払日を入力してください。");
     }
-    await q.query(`
+
+    if (paymentAmount <= 0) {
+      throw new Error(
+        "銀行振込額は1円以上で入力してください。"
+      );
+    }
+
+    if (bankFeeAmount < 0) {
+      throw new Error(
+        "振込手数料は0円以上で入力してください。"
+      );
+    }
+
+    if (withholdingTaxAmount < 0) {
+      throw new Error(
+        "源泉徴収額は0円以上で入力してください。"
+      );
+    }
+
+    if (!bankAccountId) {
+      throw new Error(
+        "支払元の銀行口座を選択してください。"
+      );
+    }
+
+    const payableResult = await q.query(`
+      SELECT
+        payable_id,
+        payable_no,
+        payable_kind,
+        vendor_name,
+        company_code,
+        company_name,
+        currency_code,
+        deleted_at
+      FROM accounting.payable_documents
+      WHERE payable_id = $1
+      FOR UPDATE
+    `, [id]);
+
+    const payable =
+      payableResult.rows[0];
+
+    if (!payable || payable.deleted_at) {
+      throw new Error(
+        "対象の請求書・未払データが見つかりません。"
+      );
+    }
+
+    const companyResult = await q.query(`
+      SELECT
+        company_id,
+        company_code,
+        company_name
+      FROM expenses.companies
+      WHERE is_active = TRUE
+        AND (
+          (
+            $1 <> ''
+            AND company_code = $1
+          )
+          OR
+          (
+            $2 <> ''
+            AND company_name = $2
+          )
+        )
+      ORDER BY
+        CASE
+          WHEN company_code = $1 THEN 0
+          ELSE 1
+        END,
+        company_id
+      LIMIT 2
+    `, [
+      toText(payable.company_code),
+      toText(payable.company_name)
+    ]);
+
+    if (companyResult.rows.length !== 1) {
+      throw new Error(
+        "未払データの会社を会社マスタで一意に特定できません。"
+      );
+    }
+
+    const company =
+      companyResult.rows[0];
+
+    const accountResult = await q.query(`
+      SELECT
+        bank_account_id,
+        company_id,
+        bank_name,
+        branch_name,
+        account_type_name,
+        account_number,
+        currency_code
+      FROM accounting.bank_accounts
+      WHERE bank_account_id = $1
+        AND company_id = $2
+        AND is_active = TRUE
+      FOR UPDATE
+    `, [
+      bankAccountId,
+      company.company_id
+    ]);
+
+    const account =
+      accountResult.rows[0];
+
+    if (!account) {
+      throw new Error(
+        "選択した銀行口座は、この未払データの会社に属していません。"
+      );
+    }
+
+    const currencyCode =
+      toText(
+        payable.currency_code ||
+        account.currency_code
+      ) || "JPY";
+
+    const currentTotals =
+      await recalcPayable(q, id);
+
+    const settlementAmount =
+      paymentAmount + withholdingTaxAmount;
+
+    if (
+      settlementAmount >
+      toMoney(currentTotals.balance_amount)
+    ) {
+      throw new Error(
+        "銀行振込額と源泉徴収額の合計が未払残高を超えています。"
+      );
+    }
+
+    const paymentInsert = await q.query(`
       INSERT INTO accounting.payable_payments (
         payable_id,
+        company_id,
+        bank_account_id,
         payment_date,
         payment_method_id,
         payment_amount,
@@ -708,34 +1036,309 @@ async function addPayment(payableId, payload = {}) {
         memo,
         journal_status
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
       )
+      RETURNING payable_payment_id
     `, [
       id,
-      toDate(payload.payment_date),
+      company.company_id,
+      bankAccountId,
+      paymentDate,
       toInt(payload.payment_method_id),
       paymentAmount,
-      toMoney(payload.bank_fee_amount),
-      toMoney(payload.withholding_tax_amount),
+      bankFeeAmount,
+      withholdingTaxAmount,
       toText(payload.memo),
-      toText(payload.journal_status) || "not_created"
+      toText(payload.journal_status) ||
+        "not_created"
     ]);
-    return recalcPayable(q, id);
+
+    const paymentId =
+      paymentInsert.rows[0]
+        .payable_payment_id;
+
+    const sourceKey =
+      "PAYABLE_PAYMENT:" +
+      String(paymentId);
+
+    const withholdingSourceKey =
+      "PAYABLE_PAYMENT_WITHHOLDING:" +
+      String(paymentId);
+
+    if (withholdingTaxAmount > 0) {
+      await q.query(`
+        INSERT INTO accounting.withholding_tax_ledger (
+          company_id,
+          payable_id,
+          payable_payment_id,
+          recognition_date,
+          counterparty_name,
+          withholding_tax_amount,
+          currency_code,
+          status_code,
+          status_name,
+          source_type_code,
+          source_reference,
+          source_key,
+          memo
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,$7,
+          'active','預り中',
+          'payable_payment',$8,$9,$10
+        )
+        ON CONFLICT (source_key)
+        DO UPDATE SET
+          company_id = EXCLUDED.company_id,
+          payable_id = EXCLUDED.payable_id,
+          payable_payment_id =
+            EXCLUDED.payable_payment_id,
+          recognition_date =
+            EXCLUDED.recognition_date,
+          counterparty_name =
+            EXCLUDED.counterparty_name,
+          withholding_tax_amount =
+            EXCLUDED.withholding_tax_amount,
+          currency_code =
+            EXCLUDED.currency_code,
+          status_code = 'active',
+          status_name = '預り中',
+          cancelled_at = NULL,
+          memo = EXCLUDED.memo,
+          updated_at = NOW()
+      `, [
+        company.company_id,
+        id,
+        paymentId,
+        paymentDate,
+        toText(payable.vendor_name),
+        withholdingTaxAmount,
+        currencyCode,
+        String(paymentId),
+        withholdingSourceKey,
+        toText(payload.memo)
+      ]);
+    }
+
+    const withdrawalAmount =
+      paymentAmount +
+      bankFeeAmount;
+
+    const description =
+      [
+        toText(payable.payable_no),
+        toText(payable.vendor_name)
+      ].filter(Boolean).join(" ");
+
+    const transactionTypeCode =
+      payable.payable_kind ===
+        "accounts_payable"
+        ? "accounts_payable_payment"
+        : "payable_payment";
+
+    const transactionTypeName =
+      payable.payable_kind ===
+        "accounts_payable"
+        ? "買掛金支払"
+        : "未払支払";
+
+    const bankInsert = await q.query(`
+      INSERT INTO accounting.bank_transactions (
+        company_id,
+        bank_account_id,
+        transaction_date,
+        value_date,
+        transaction_type_code,
+        transaction_type_name,
+        description,
+        counterparty_name,
+        deposit_amount,
+        withdrawal_amount,
+        currency_code,
+        reconciliation_status_code,
+        reconciliation_status_name,
+        source_type_code,
+        source_reference,
+        source_key,
+        is_dummy,
+        is_cancelled
+      ) VALUES (
+        $1,$2,$3,$3,$4,$5,$6,$7,
+        0,$8,$9,
+        'reconciled',
+        '照合済み',
+        'payable_payment',
+        $10,
+        $11,
+        FALSE,
+        FALSE
+      )
+      ON CONFLICT (source_key)
+      WHERE source_key IS NOT NULL
+        AND source_key <> ''
+      DO UPDATE SET
+        company_id =
+          EXCLUDED.company_id,
+        bank_account_id =
+          EXCLUDED.bank_account_id,
+        transaction_date =
+          EXCLUDED.transaction_date,
+        value_date =
+          EXCLUDED.value_date,
+        transaction_type_code =
+          EXCLUDED.transaction_type_code,
+        transaction_type_name =
+          EXCLUDED.transaction_type_name,
+        description =
+          EXCLUDED.description,
+        counterparty_name =
+          EXCLUDED.counterparty_name,
+        deposit_amount = 0,
+        withdrawal_amount =
+          EXCLUDED.withdrawal_amount,
+        currency_code =
+          EXCLUDED.currency_code,
+        reconciliation_status_code =
+          'reconciled',
+        reconciliation_status_name =
+          '照合済み',
+        source_type_code =
+          'payable_payment',
+        source_reference =
+          EXCLUDED.source_reference,
+        is_dummy = FALSE,
+        is_cancelled = FALSE,
+        updated_at = NOW()
+      RETURNING bank_transaction_id
+    `, [
+      company.company_id,
+      bankAccountId,
+      paymentDate,
+      transactionTypeCode,
+      transactionTypeName,
+      description,
+      toText(payable.vendor_name),
+      withdrawalAmount,
+      currencyCode,
+      toText(payable.payable_no),
+      sourceKey
+    ]);
+
+    const bankTransactionId =
+      bankInsert.rows[0]
+        .bank_transaction_id;
+
+    await q.query(`
+      UPDATE accounting.payable_payments
+      SET
+        bank_transaction_id = $2,
+        bank_source_key = $3,
+        updated_at = NOW()
+      WHERE payable_payment_id = $1
+    `, [
+      paymentId,
+      bankTransactionId,
+      sourceKey
+    ]);
+
+    const totals =
+      await recalcPayable(q, id);
+
+    return {
+      payable_id: id,
+      payable_payment_id: paymentId,
+      bank_transaction_id:
+        bankTransactionId,
+      bank_source_key: sourceKey,
+      bank_withdrawal_amount:
+        withdrawalAmount,
+      settlement_amount:
+        settlementAmount,
+      withholding_tax_amount:
+        withholdingTaxAmount,
+      withholding_source_key:
+        withholdingTaxAmount > 0
+          ? withholdingSourceKey
+          : "",
+      totals
+    };
   });
 }
+
 async function deletePayment(payableId, paymentId) {
   return withTx(async (q) => {
     const id = toInt(payableId);
     const pid = toInt(paymentId);
+
     if (!id || !pid) {
       throw new Error("支払IDが不正です。");
     }
+
+    const paymentResult = await q.query(`
+      SELECT
+        payable_payment_id,
+        bank_transaction_id,
+        withholding_tax_amount
+      FROM accounting.payable_payments
+      WHERE payable_id = $1
+        AND payable_payment_id = $2
+      FOR UPDATE
+    `, [id, pid]);
+
+    const payment =
+      paymentResult.rows[0];
+
+    if (!payment) {
+      throw new Error(
+        "削除対象の支払記録が見つかりません。"
+      );
+    }
+
+    if (payment.bank_transaction_id) {
+      await q.query(`
+        UPDATE accounting.bank_transactions
+        SET
+          is_cancelled = TRUE,
+          updated_at = NOW()
+        WHERE bank_transaction_id = $1
+      `, [
+        payment.bank_transaction_id
+      ]);
+    }
+
+    const withholdingTaxCancelled =
+      toMoney(payment.withholding_tax_amount) > 0;
+
+    if (withholdingTaxCancelled) {
+      await q.query(`
+        UPDATE accounting.withholding_tax_ledger
+        SET
+          status_code = 'cancelled',
+          status_name = '取消',
+          cancelled_at = NOW(),
+          updated_at = NOW()
+        WHERE payable_payment_id = $1
+          AND status_code <> 'cancelled'
+      `, [pid]);
+    }
+
     await q.query(`
       DELETE FROM accounting.payable_payments
       WHERE payable_id = $1
         AND payable_payment_id = $2
     `, [id, pid]);
-    return recalcPayable(q, id);
+
+    const totals =
+      await recalcPayable(q, id);
+
+    return {
+      payable_id: id,
+      payable_payment_id: pid,
+      bank_transaction_cancelled:
+        !!payment.bank_transaction_id,
+      withholding_tax_cancelled:
+        withholdingTaxCancelled,
+      totals
+    };
   });
 }
 async function deletePayable(payableId) {
@@ -770,6 +1373,8 @@ async function deletePayable(payableId) {
     return { payable_id: id };
   });
 }
+
+
 module.exports = {
   listPayables,
   getDashboard,

@@ -1,0 +1,926 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>会社別取引ルール</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f3f5f8;
+      color: #1f2937;
+      font-family: "Yu Gothic UI", Meiryo, sans-serif;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button { cursor: pointer; }
+
+    .page {
+      width: min(1600px, calc(100% - 24px));
+      margin: 20px auto 60px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .description {
+      margin: 0;
+      color: #64748b;
+    }
+
+    .panel {
+      margin-bottom: 16px;
+      border: 1px solid #d7dde6;
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #d7dde6;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .wide { grid-column: span 2; }
+    .full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .primary {
+      color: #fff;
+      border-color: #1d4ed8;
+      background: #1d4ed8;
+    }
+
+    .danger {
+      color: #b91c1c;
+      border-color: #ef4444;
+      background: #fff1f2;
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 12px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .message.show { display: block; }
+
+    .ok {
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .error {
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid #d7dde6;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1750px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px 9px;
+      border-right: 1px solid #edf0f4;
+      border-bottom: 1px solid #d7dde6;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #eef2f7;
+    }
+
+    .json-preview {
+      max-width: 340px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .toolbar select {
+      width: auto;
+      min-width: 210px;
+    }
+
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns:
+          repeat(2, minmax(170px, 1fr));
+      }
+    }
+
+    @media (max-width: 650px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wide, .full {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>会社別取引ルール</h1>
+        <p class="description">
+          売り・買い・製造委託・製造受託ごとの歩引き、
+          控除、計算条件、例外JSONを管理します。
+        </p>
+      </div>
+
+      <div>
+        <button class="btn" type="button" onclick="history.back()">
+          戻る
+        </button>
+      </div>
+    </header>
+
+    <div id="message" class="message"></div>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2 id="formTitle">新規ルール登録</h2>
+      </div>
+
+      <div class="panel-body">
+        <form id="ruleForm">
+          <input id="rule_id" type="hidden">
+
+          <div class="grid">
+            <div class="field wide">
+              <label for="company_id">会社 必須</label>
+              <select id="company_id" required></select>
+            </div>
+
+            <div class="field">
+              <label for="transaction_direction">
+                取引方向 必須
+              </label>
+
+              <select id="transaction_direction" required>
+                <option value="sales">売り</option>
+                <option value="purchase">買い</option>
+                <option value="manufacturing_outsource">
+                  製造委託
+                </option>
+                <option value="manufacturing_consign">
+                  製造受託
+                </option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="rule_name">ルール名 必須</label>
+              <input
+                id="rule_name"
+                type="text"
+                value="通常条件"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label for="deduction_enabled">歩引き</label>
+              <select id="deduction_enabled">
+                <option value="false">なし</option>
+                <option value="true">あり</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="deduction_rate">歩引き率（％）</label>
+              <input
+                id="deduction_rate"
+                type="number"
+                min="0"
+                step="0.0001"
+              >
+            </div>
+
+            <div class="field">
+              <label for="deduction_fixed_amount">
+                固定控除額
+              </label>
+              <input
+                id="deduction_fixed_amount"
+                type="number"
+                min="0"
+                step="0.01"
+              >
+            </div>
+
+            <div class="field">
+              <label for="calculation_base">計算基準</label>
+              <select id="calculation_base">
+                <option value="line_amount">明細金額</option>
+                <option value="subtotal" selected>
+                  税抜小計
+                </option>
+                <option value="invoice_total">請求合計</option>
+                <option value="processing_fee">加工賃</option>
+                <option value="custom">個別条件</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="tax_base">税の基準</label>
+              <select id="tax_base">
+                <option value="before_tax">税抜</option>
+                <option value="after_tax">税込</option>
+                <option value="not_applicable">対象外</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="freight_treatment">送料の扱い</label>
+              <select id="freight_treatment">
+                <option value="exclude">歩引き対象外</option>
+                <option value="include">歩引き対象に含む</option>
+                <option value="separate">別計算</option>
+                <option value="not_applicable">対象外</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="rounding_method">端数処理</label>
+              <select id="rounding_method">
+                <option value="round_down">切捨て</option>
+                <option value="round">四捨五入</option>
+                <option value="round_up">切上げ</option>
+                <option value="none">処理なし</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="rounding_unit">端数単位</label>
+              <select id="rounding_unit">
+                <option value="1">1円</option>
+                <option value="10">10円</option>
+                <option value="100">100円</option>
+                <option value="1000">1,000円</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="target_brand">対象ブランド</label>
+              <input id="target_brand" type="text">
+            </div>
+
+            <div class="field">
+              <label for="target_item_group">対象商品区分</label>
+              <input id="target_item_group" type="text">
+            </div>
+
+            <div class="field">
+              <label for="minimum_quantity">最低数量</label>
+              <input
+                id="minimum_quantity"
+                type="number"
+                min="0"
+                step="0.01"
+              >
+            </div>
+
+            <div class="field">
+              <label for="minimum_amount">最低金額</label>
+              <input
+                id="minimum_amount"
+                type="number"
+                min="0"
+                step="0.01"
+              >
+            </div>
+
+            <div class="field">
+              <label for="effective_from">適用開始日</label>
+              <input id="effective_from" type="date">
+            </div>
+
+            <div class="field">
+              <label for="effective_to">適用終了日</label>
+              <input id="effective_to" type="date">
+            </div>
+
+            <div class="field">
+              <label for="priority">優先順位</label>
+              <input
+                id="priority"
+                type="number"
+                value="100"
+              >
+            </div>
+
+            <div class="field">
+              <label for="is_active">状態</label>
+              <select id="is_active">
+                <option value="true">有効</option>
+                <option value="false">無効</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="structured_rule">
+                構造化JSON
+              </label>
+              <textarea
+                id="structured_rule"
+                spellcheck="false"
+              >{}</textarea>
+            </div>
+
+            <div class="field full">
+              <label for="human_note">
+                人間向け備考・例外説明
+              </label>
+              <textarea id="human_note"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">
+              DBへ保存
+            </button>
+
+            <button id="clearButton" class="btn" type="button">
+              入力クリア
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>登録ルール一覧</h2>
+      </div>
+
+      <div class="panel-body">
+        <div class="toolbar">
+          <select id="companyFilter">
+            <option value="">全会社</option>
+          </select>
+
+          <select id="directionFilter">
+            <option value="">全取引方向</option>
+            <option value="sales">売り</option>
+            <option value="purchase">買い</option>
+            <option value="manufacturing_outsource">
+              製造委託
+            </option>
+            <option value="manufacturing_consign">
+              製造受託
+            </option>
+          </select>
+
+          <button id="reloadButton" class="btn" type="button">
+            再読込
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>会社</th>
+                <th>取引方向</th>
+                <th>ルール名</th>
+                <th>歩引き</th>
+                <th>率</th>
+                <th>固定額</th>
+                <th>計算基準</th>
+                <th>税</th>
+                <th>送料</th>
+                <th>端数</th>
+                <th>ブランド</th>
+                <th>商品区分</th>
+                <th>適用期間</th>
+                <th>JSON</th>
+                <th>備考</th>
+                <th>状態</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const API_BASE = "/api/company-transaction-rules";
+
+    let companies = [];
+    let rules = [];
+
+    const directionLabels = {
+      sales: "売り",
+      purchase: "買い",
+      manufacturing_outsource: "製造委託",
+      manufacturing_consign: "製造受託"
+    };
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function value(id) {
+      return String(el(id)?.value ?? "").trim();
+    }
+
+    function escapeHtml(input) {
+      return String(input ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showMessage(message, error = false) {
+      const box = el("message");
+
+      box.textContent = message;
+      box.className =
+        "message show " + (error ? "error" : "ok");
+
+      clearTimeout(showMessage.timer);
+
+      showMessage.timer = setTimeout(() => {
+        box.classList.remove("show");
+      }, 6000);
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        },
+        ...options
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.ok === false) {
+        throw new Error(
+          data.message ||
+          data.error ||
+          `通信エラー: ${response.status}`
+        );
+      }
+
+      return data;
+    }
+
+    async function loadCompanies() {
+      const data = await requestJson(
+        `${API_BASE}/companies?time=${Date.now()}`
+      );
+
+      companies = data.rows || data.items || [];
+
+      const options = companies.map(company => `
+        <option value="${company.company_id}">
+          ${escapeHtml(company.company_code || "")}
+          ${escapeHtml(company.company_name || "")}
+        </option>
+      `).join("");
+
+      el("company_id").innerHTML =
+        '<option value="">会社を選択</option>' + options;
+
+      el("companyFilter").innerHTML =
+        '<option value="">全会社</option>' + options;
+    }
+
+    async function loadRules() {
+      const params = new URLSearchParams();
+
+      if (value("companyFilter")) {
+        params.set("company_id", value("companyFilter"));
+      }
+
+      if (value("directionFilter")) {
+        params.set(
+          "transaction_direction",
+          value("directionFilter")
+        );
+      }
+
+      params.set("time", String(Date.now()));
+
+      const data = await requestJson(
+        `${API_BASE}?${params.toString()}`
+      );
+
+      rules = data.rows || data.items || [];
+      render();
+    }
+
+    function resetForm() {
+      el("ruleForm").reset();
+      el("rule_id").value = "";
+      el("rule_name").value = "通常条件";
+      el("calculation_base").value = "subtotal";
+      el("tax_base").value = "before_tax";
+      el("freight_treatment").value = "exclude";
+      el("rounding_method").value = "round_down";
+      el("rounding_unit").value = "1";
+      el("priority").value = "100";
+      el("is_active").value = "true";
+      el("structured_rule").value = "{}";
+      el("formTitle").textContent = "新規ルール登録";
+    }
+
+    function buildPayload() {
+      let structuredRule;
+
+      try {
+        structuredRule =
+          JSON.parse(value("structured_rule") || "{}");
+      } catch {
+        throw new Error(
+          "構造化JSONの書式が正しくありません。"
+        );
+      }
+
+      return {
+        company_id: Number(value("company_id")),
+        transaction_direction:
+          value("transaction_direction"),
+        rule_name: value("rule_name"),
+        deduction_enabled:
+          value("deduction_enabled") === "true",
+        deduction_rate: value("deduction_rate"),
+        deduction_fixed_amount:
+          value("deduction_fixed_amount"),
+        calculation_base:
+          value("calculation_base"),
+        tax_base: value("tax_base"),
+        freight_treatment:
+          value("freight_treatment"),
+        rounding_method:
+          value("rounding_method"),
+        rounding_unit:
+          Number(value("rounding_unit")),
+        target_brand:
+          value("target_brand"),
+        target_item_group:
+          value("target_item_group"),
+        minimum_quantity:
+          value("minimum_quantity"),
+        minimum_amount:
+          value("minimum_amount"),
+        effective_from:
+          value("effective_from"),
+        effective_to:
+          value("effective_to"),
+        structured_rule: structuredRule,
+        human_note:
+          value("human_note"),
+        priority:
+          Number(value("priority") || 100),
+        is_active:
+          value("is_active") === "true"
+      };
+    }
+
+    async function saveRule(event) {
+      event.preventDefault();
+
+      try {
+        const id = value("rule_id");
+        const payload = buildPayload();
+
+        if (!payload.company_id) {
+          throw new Error("会社を選択してください。");
+        }
+
+        if (!payload.rule_name) {
+          throw new Error("ルール名を入力してください。");
+        }
+
+        await requestJson(
+          id ? `${API_BASE}/${id}` : API_BASE,
+          {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload)
+          }
+        );
+
+        showMessage(
+          id
+            ? "会社別ルールを更新しました。"
+            : "会社別ルールを登録しました。"
+        );
+
+        resetForm();
+        await loadRules();
+      } catch (error) {
+        console.error(error);
+        showMessage(error.message, true);
+      }
+    }
+
+    function editRule(id) {
+      const row = rules.find(
+        item =>
+          String(item.company_transaction_rule_id) ===
+          String(id)
+      );
+
+      if (!row) {
+        showMessage("編集対象がありません。", true);
+        return;
+      }
+
+      el("rule_id").value =
+        row.company_transaction_rule_id;
+      el("company_id").value = row.company_id;
+      el("transaction_direction").value =
+        row.transaction_direction;
+      el("rule_name").value = row.rule_name || "";
+      el("deduction_enabled").value =
+        row.deduction_enabled ? "true" : "false";
+      el("deduction_rate").value =
+        row.deduction_rate ?? "";
+      el("deduction_fixed_amount").value =
+        row.deduction_fixed_amount ?? "";
+      el("calculation_base").value =
+        row.calculation_base || "subtotal";
+      el("tax_base").value =
+        row.tax_base || "before_tax";
+      el("freight_treatment").value =
+        row.freight_treatment || "exclude";
+      el("rounding_method").value =
+        row.rounding_method || "round_down";
+      el("rounding_unit").value =
+        String(row.rounding_unit || 1);
+      el("target_brand").value =
+        row.target_brand || "";
+      el("target_item_group").value =
+        row.target_item_group || "";
+      el("minimum_quantity").value =
+        row.minimum_quantity ?? "";
+      el("minimum_amount").value =
+        row.minimum_amount ?? "";
+      el("effective_from").value =
+        row.effective_from || "";
+      el("effective_to").value =
+        row.effective_to || "";
+      el("structured_rule").value =
+        JSON.stringify(row.structured_rule || {}, null, 2);
+      el("human_note").value =
+        row.human_note || "";
+      el("priority").value =
+        row.priority ?? 100;
+      el("is_active").value =
+        row.is_active ? "true" : "false";
+
+      el("formTitle").textContent =
+        "会社別ルールの編集";
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    async function disableRule(id, name) {
+      if (!confirm(`「${name}」を無効にしますか？`)) {
+        return;
+      }
+
+      try {
+        await requestJson(`${API_BASE}/${id}`, {
+          method: "DELETE"
+        });
+
+        showMessage("会社別ルールを無効にしました。");
+        await loadRules();
+      } catch (error) {
+        console.error(error);
+        showMessage(error.message, true);
+      }
+    }
+
+    function render() {
+      const body = el("tableBody");
+
+      if (!rules.length) {
+        body.innerHTML = `
+          <tr>
+            <td colspan="17">
+              会社別ルールは登録されていません。
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = rules.map(row => {
+        const period = [
+          row.effective_from || "",
+          row.effective_to || ""
+        ].join(" ～ ");
+
+        return `
+          <tr>
+            <td>
+              ${escapeHtml(row.company_code || "")}
+              ${escapeHtml(row.company_name || "")}
+            </td>
+            <td>
+              ${escapeHtml(
+                directionLabels[row.transaction_direction] ||
+                row.transaction_direction
+              )}
+            </td>
+            <td>${escapeHtml(row.rule_name)}</td>
+            <td>
+              ${row.deduction_enabled ? "あり" : "なし"}
+            </td>
+            <td>${escapeHtml(row.deduction_rate)}</td>
+            <td>
+              ${escapeHtml(row.deduction_fixed_amount)}
+            </td>
+            <td>${escapeHtml(row.calculation_base)}</td>
+            <td>${escapeHtml(row.tax_base)}</td>
+            <td>${escapeHtml(row.freight_treatment)}</td>
+            <td>
+              ${escapeHtml(row.rounding_method)}
+              /
+              ${escapeHtml(row.rounding_unit)}
+            </td>
+            <td>${escapeHtml(row.target_brand)}</td>
+            <td>${escapeHtml(row.target_item_group)}</td>
+            <td>${escapeHtml(period)}</td>
+            <td class="json-preview">
+              ${escapeHtml(
+                JSON.stringify(row.structured_rule || {})
+              )}
+            </td>
+            <td>${escapeHtml(row.human_note)}</td>
+            <td>${row.is_active ? "有効" : "無効"}</td>
+            <td>
+              <button
+                class="btn"
+                type="button"
+                onclick="editRule(
+                  '${row.company_transaction_rule_id}'
+                )"
+              >
+                編集
+              </button>
+
+              <button
+                class="btn danger"
+                type="button"
+                onclick="disableRule(
+                  '${row.company_transaction_rule_id}',
+                  '${escapeHtml(row.rule_name)}'
+                )"
+              >
+                無効
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    el("ruleForm")
+      .addEventListener("submit", saveRule);
+
+    el("clearButton")
+      .addEventListener("click", resetForm);
+
+    el("reloadButton")
+      .addEventListener("click", loadRules);
+
+    el("companyFilter")
+      .addEventListener("change", loadRules);
+
+    el("directionFilter")
+      .addEventListener("change", loadRules);
+
+    window.editRule = editRule;
+    window.disableRule = disableRule;
+
+    (async () => {
+      try {
+        resetForm();
+        await loadCompanies();
+        await loadRules();
+      } catch (error) {
+        console.error(error);
+        showMessage(
+          `初期読込失敗: ${error.message}`,
+          true
+        );
+      }
+    })();
+  </script>
+</body>
+</html>

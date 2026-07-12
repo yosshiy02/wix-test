@@ -1,12 +1,336 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <title>請求書・未払管理 - HD Origin Project</title>
   <link rel="stylesheet" href="./payable-list.css">
   
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_START -->
+<style>
+  .hd-ledger-page-view-switch {
+    width: min(1380px, calc(100% - 32px));
+    margin: 18px auto 0;
+    padding: 12px;
+    border: 1px solid rgba(35,48,76,.12);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(50,100,255,.10), transparent 22rem),
+      rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    color: #172033;
+  }
+
+  .hd-ledger-page-view-switch-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .hd-ledger-page-view-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .hd-ledger-page-view-title strong {
+    font-size: 14px;
+    letter-spacing: -.02em;
+  }
+
+  .hd-ledger-page-view-title span {
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .hd-ledger-page-view-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    min-width: 230px;
+    padding: 4px;
+    border-radius: 16px;
+    background: #eef2f7;
+    border: 1px solid rgba(35,48,76,.08);
+  }
+
+  .hd-ledger-page-view-button {
+    min-height: 36px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #596579;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .hd-ledger-page-view-button.is-active {
+    background: #ffffff;
+    color: #2348c7;
+    box-shadow: 0 8px 16px rgba(32,44,72,.10);
+  }
+
+  .hd-ledger-page-view-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  html[data-ledger-view="report"] .hd-ledger-page-view-current::after {
+    content: "帳票形式";
+  }
+
+  html[data-ledger-view="single"] .hd-ledger-page-view-current::after {
+    content: "単票形式";
+  }
+
+  body[data-ledger-view="report"] .ledger-single-only,
+  body[data-ledger-view="single"] .ledger-report-only {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-ledger-page-view-switch {
+      width: calc(100% - 20px);
+      margin-top: 12px;
+    }
+
+    .hd-ledger-page-view-switch-inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hd-ledger-page-view-buttons {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_END -->
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_STYLE_START -->
+<style>
+  .hd-payables-view-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+
+  .hd-payables-view-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+
+  .hd-payables-view-menu-title strong {
+    font-size: 14px;
+  }
+
+  .hd-payables-view-menu-title span {
+    color: #667085;
+    font-size: 12px;
+  }
+
+  .hd-payables-view-menu-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .hd-payables-view-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 13px;
+    border-radius: 12px;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1px solid transparent;
+  }
+
+  .hd-payables-view-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+
+  .hd-payables-view-menu-button.report {
+    background: #eef3ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.18);
+  }
+
+  .hd-payables-view-menu-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  @media (max-width: 720px) {
+    .hd-payables-view-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .hd-payables-view-menu-buttons {
+      justify-content: stretch;
+    }
+
+    .hd-payables-view-menu-button {
+      flex: 1 1 auto;
+    }
+  }
+</style>
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_STYLE_END -->
+<!-- GPT00_PAYABLES_VIEW_BUTTON_VISIBILITY_START -->
+<style>
+  /* GPT00: 請求書・未払 単票/帳票ボタン 視認性アップ */
+  .hd-payables-view-menu {
+    padding: 16px 18px !important;
+    border-radius: 26px !important;
+  }
+
+  .hd-payables-view-menu-title strong {
+    font-size: 18px !important;
+  }
+
+  .hd-payables-view-menu-title span {
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+  }
+
+  .hd-payables-view-menu-buttons {
+    gap: 10px !important;
+  }
+
+  .hd-payables-view-menu-button {
+    min-height: 48px !important;
+    padding: 12px 20px !important;
+    border-radius: 15px !important;
+    font-size: 16px !important;
+    letter-spacing: .02em !important;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+
+  .hd-payables-view-menu-button.report {
+    border-width: 2px !important;
+    background: #eaf0ff !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-payables-view-menu-button {
+      width: 100% !important;
+      font-size: 15px !important;
+    }
+  }
+</style>
+<!-- GPT00_PAYABLES_VIEW_BUTTON_VISIBILITY_END -->
 </head>
 <body>
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_START -->
+<div class="hd-payables-view-menu">
+  <div class="hd-payables-view-menu-title">
+    <strong>請求書・未払 表示形式</strong>
+    <span>単票形式は通常の管理画面、帳票形式は一覧・集計・印刷用の正式帳票です。</span>
+  </div>
+  <div class="hd-payables-view-menu-buttons">
+    <a class="hd-payables-view-menu-button single" href="/payables/payable-list.html">単票形式</a>
+    <a class="hd-payables-view-menu-button report" href="/payables/payment-document-payables-report.html">帳票形式</a>
+  </div>
+</div>
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_END -->
+
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_START -->
+<div class="hd-ledger-page-view-switch" data-ledger-page-view-switch>
+  <div class="hd-ledger-page-view-switch-inner">
+    <div class="hd-ledger-page-view-title">
+      <strong>表示形式</strong>
+      <span>この画面を開いた後に、帳票形式／単票形式を切り替えます。現在: <span class="hd-ledger-page-view-current"></span></span>
+    </div>
+    <div class="hd-ledger-page-view-buttons" role="group" aria-label="表示形式切替">
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="report">帳票形式</button>
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="single">単票形式</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__) return;
+  window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__ = true;
+
+  function normalizeView(value) {
+    return value === 'single' ? 'single' : 'report';
+  }
+
+  function currentViewFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeView(params.get('view') || params.get('format') || 'report');
+  }
+
+  function setUrlView(view) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', view);
+    url.searchParams.set('format', view);
+    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function applyView(view, shouldWriteUrl) {
+    const normalized = normalizeView(view);
+
+    document.documentElement.setAttribute('data-ledger-view', normalized);
+    if (document.body) {
+      document.body.setAttribute('data-ledger-view', normalized);
+    }
+
+    document.querySelectorAll('[data-ledger-view-button]').forEach(function(button){
+      const isActive = button.getAttribute('data-ledger-view-button') === normalized;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    if (shouldWriteUrl) {
+      setUrlView(normalized);
+    }
+
+    window.dispatchEvent(new CustomEvent('hd-ledger-view-change', {
+      detail: { view: normalized }
+    }));
+  }
+
+  document.addEventListener('click', function(event){
+    const button = event.target.closest('[data-ledger-view-button]');
+    if (!button) return;
+
+    event.preventDefault();
+    applyView(button.getAttribute('data-ledger-view-button'), true);
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){
+      applyView(currentViewFromUrl(), false);
+    });
+  } else {
+    applyView(currentViewFromUrl(), false);
+  }
+})();
+</script>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_END -->
+
 <header>
   <h1>請求書・未払管理</h1>
   <div class="button-row">
@@ -62,13 +386,12 @@
       <div class="grid2">
         <div>
           <label>状態</label>
-          <select id="filterStatus">
-            <option value="">すべて</option>
-            <option value="draft">下書き</option>
-            <option value="confirmed">未払確定</option>
-            <option value="partially_paid">一部支払</option>
-            <option value="paid">支払済み</option>
-            <option value="void">無効</option>
+          <select
+            id="filterStatus"
+            data-payable-master-type="payable_statuses"
+            data-empty-label="すべて"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
         <div>
@@ -94,36 +417,34 @@
 
         <div>
           <label>証憑状態</label>
-          <select id="filterEvidenceStatus">
-            <option value="">すべて</option>
-            <option value="not_required">不要</option>
-            <option value="received">回収済み</option>
-            <option value="missing">未回収</option>
-            <option value="pending">後日回収</option>
-            <option value="mismatch">内容不一致</option>
+          <select
+            id="filterEvidenceStatus"
+            data-payable-master-type="evidence_statuses"
+            data-empty-label="すべて"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
 
         <div>
           <label>確認状態</label>
-          <select id="filterReviewStatus">
-            <option value="">すべて</option>
-            <option value="unreviewed">未確認</option>
-            <option value="needs_review">要確認</option>
-            <option value="confirmed">確認済み</option>
-            <option value="rejected">差戻し</option>
+          <select
+            id="filterReviewStatus"
+            data-payable-master-type="review_statuses"
+            data-empty-label="すべて"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
 
         <div>
           <label>専門家確認</label>
-          <select id="filterProfessionalReviewStatus">
-            <option value="">すべて</option>
-            <option value="not_required">不要</option>
-            <option value="pending">確認待ち</option>
-            <option value="requested">確認依頼済み</option>
-            <option value="confirmed">確認済み</option>
-            <option value="recheck_required">再確認必要</option>
+          <select
+            id="filterProfessionalReviewStatus"
+            data-payable-master-type="professional_review_statuses"
+            data-empty-label="すべて"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
       </div>
@@ -168,34 +489,32 @@
         </div>
         <div>
           <label>状態</label>
-          <select id="status">
-            <option value="draft">下書き</option>
-            <option value="confirmed">未払確定</option>
-            <option value="partially_paid">一部支払</option>
-            <option value="paid">支払済み</option>
-            <option value="void">無効</option>
+          <select
+            id="status"
+            data-payable-master-type="payable_statuses"
+            data-default-value="draft"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
         <div>
           <label>書類区分</label>
-          <select id="documentType">
-            <option value="invoice">請求書</option>
-            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_START -->
-            <option value="delivery_note">納品書</option>
-            <!-- PAYABLES_DELIVERY_NOTE_OPTION_20260706_END -->
-            <option value="statement">明細書</option>
-            <option value="credit_note">値引・返品</option>
-            <option value="other">その他</option>
+          <select
+            id="documentType"
+            data-payable-master-type="document_types"
+            data-default-value="invoice"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
         <div>
           <label>会計区分</label>
-          <select id="payableKind">
-            <option value="accounts_payable">買掛金</option>
-            <option value="unpaid">未払金</option>
-            <option value="accrued_expense">未払費用</option>
-            <option value="card_payable">カード未払</option>
-            <option value="other">その他</option>
+          <select
+            id="payableKind"
+            data-payable-master-type="payable_kinds"
+            data-default-value="unpaid"
+          >
+            <option value="">マスタ読込中...</option>
           </select>
         </div>
       </div>
@@ -257,7 +576,12 @@
       <div class="grid3" style="margin-top:8px;">
         <div>
           <label>証憑区分</label>
-          <input id="evidenceType" placeholder="例：PDF / 紙 / メール">
+          <select
+            id="evidenceType"
+            data-payable-master-type="evidence_types"
+          >
+            <option value="">マスタ読込中...</option>
+          </select>
         </div>
         <div>
           <label>証憑ファイル名</label>
@@ -272,34 +596,58 @@
         <h3>会社・証憑・確認管理</h3>
 
         <div class="grid4">
+          <!-- GPT00_PAYABLE_COMPANY_DISPLAY_ONLY_20260711_START -->
           <div>
-            <label>会社コード</label>
-            <input id="companyCode" placeholder="例：hd_origin_style">
+            <label>対象会社</label>
+
+            <input
+              id="companyName"
+              readonly
+              placeholder="取込時の会社情報"
+            >
+
+            <input
+              id="companyCode"
+              type="hidden"
+            >
           </div>
 
           <div>
-            <label>会社名</label>
-            <input id="companyName" placeholder="例：株式会社HDオリジンスタイル">
+            <label>会社情報</label>
+
+            <div
+              id="payableCompanyDisplayStatus"
+              class="muted"
+              style="
+                min-height:38px;
+                padding:8px;
+                border:1px solid #d7dce3;
+                border-radius:6px;
+                background:#f7f8fa;
+              "
+            >取込時に確定した会社を表示します。</div>
           </div>
+          <!-- GPT00_PAYABLE_COMPANY_DISPLAY_ONLY_20260711_END -->
 
           <div>
             <label>証憑状態</label>
-            <select id="evidenceStatus">
-              <option value="pending">後日回収</option>
-              <option value="received">回収済み</option>
-              <option value="missing">未回収</option>
-              <option value="mismatch">内容不一致</option>
-              <option value="not_required">不要</option>
+            <select
+              id="evidenceStatus"
+              data-payable-master-type="evidence_statuses"
+              data-default-value="pending"
+            >
+              <option value="">マスタ読込中...</option>
             </select>
           </div>
 
           <div>
             <label>警告レベル</label>
-            <select id="warningLevel">
-              <option value="none">なし</option>
-              <option value="info">情報</option>
-              <option value="warning">警告</option>
-              <option value="critical">重大</option>
+            <select
+              id="warningLevel"
+              data-payable-master-type="warning_levels"
+              data-default-value="none"
+            >
+              <option value="">マスタ読込中...</option>
             </select>
           </div>
         </div>
@@ -317,11 +665,12 @@
 
           <div>
             <label>確認状態</label>
-            <select id="reviewStatus">
-              <option value="unreviewed">未確認</option>
-              <option value="needs_review">要確認</option>
-              <option value="confirmed">確認済み</option>
-              <option value="rejected">差戻し</option>
+            <select
+              id="reviewStatus"
+              data-payable-master-type="review_statuses"
+              data-default-value="unreviewed"
+            >
+              <option value="">マスタ読込中...</option>
             </select>
           </div>
 
@@ -337,12 +686,12 @@
         <div class="grid3" style="margin-top:8px;">
           <div>
             <label>専門家確認状態</label>
-            <select id="professionalReviewStatus">
-              <option value="not_required">不要</option>
-              <option value="pending">確認待ち</option>
-              <option value="requested">確認依頼済み</option>
-              <option value="confirmed">確認済み</option>
-              <option value="recheck_required">再確認必要</option>
+            <select
+              id="professionalReviewStatus"
+              data-payable-master-type="professional_review_statuses"
+              data-default-value="not_required"
+            >
+              <option value="">マスタ読込中...</option>
             </select>
           </div>
 
@@ -418,8 +767,12 @@
           <select id="paymentMethodId"></select>
         </div>
         <div>
-          <label>支払額</label>
+          <label>銀行振込額</label>
           <input id="paymentAmount" class="money" type="text" inputmode="decimal">
+        </div>
+        <div>
+          <label>源泉徴収額</label>
+          <input id="paymentWithholdingTaxAmount" class="money" type="text" inputmode="decimal" value="0">
         </div>
         <div>
           <label>振込手数料</label>
@@ -430,15 +783,51 @@
         <label>支払メモ</label>
         <input id="paymentMemo">
       </div>
-      <div class="button-row" style="margin-top:10px;">
-        <button type="button" onclick="addPayment()">支払登録</button>
+      <!-- GPT00_PAYABLE_BANK_ACCOUNT_LINK_20260711_START -->
+      <div class="grid4" style="margin-top:8px;">
+        <div>
+          <label>支払元銀行口座</label>
+          <select id="paymentBankAccountId">
+            <option value="">会社を選択してください</option>
+          </select>
+        </div>
+        <div>
+          <label>未払消込額</label>
+          <input
+            id="paymentSettlementPreview"
+            class="money"
+            type="text"
+            readonly
+            value="0"
+          >
+        </div>
+        <div>
+          <label>銀行出金額</label>
+          <input
+            id="paymentBankWithdrawalPreview"
+            class="money"
+            type="text"
+            readonly
+            value="0"
+          >
+        </div>
       </div>
+
+      <div class="button-row" style="margin-top:10px;">
+        <button
+          type="button"
+          onclick="addPayment()"
+        >支払登録・銀行出金作成</button>
+      </div>
+      <!-- GPT00_PAYABLE_BANK_ACCOUNT_LINK_20260711_END -->
       <div class="payment-table-wrap" style="margin-top:10px;">
         <table class="payment-table">
           <thead>
             <tr>
               <th>支払日</th>
-              <th>支払額</th>
+              <th>銀行口座</th>
+              <th>銀行振込額</th>
+              <th>源泉徴収額</th>
               <th>手数料</th>
               <th>メモ</th>
               <th>操作</th>
@@ -817,8 +1206,7 @@ function newPayable() {
 
   document.getElementById("companyCode").value = "";
   document.getElementById("companyName").value = "";
-
-  document.getElementById("evidenceStatus").value =
+document.getElementById("evidenceStatus").value =
     "pending";
 
   document.getElementById("evidenceDueDate").value = "";
@@ -858,6 +1246,9 @@ function newPayable() {
   document.getElementById("paymentDate").value = todayIso();
   document.getElementById("paymentMethodId").value = "";
   document.getElementById("paymentAmount").value = "";
+  document.getElementById(
+    "paymentWithholdingTaxAmount"
+  ).value = "0";
   document.getElementById("bankFeeAmount").value = "0";
   document.getElementById("paymentMemo").value = "";
   addLine();
@@ -1037,6 +1428,19 @@ async function savePayable() {
     alert("明細を1行以上入力してください。");
     return;
   }
+
+  if (
+    !payload.document.company_code.trim() ||
+    !payload.document.company_name.trim()
+  ) {
+    alert(
+      "この未払には会社情報がありません。\n\n" +
+      "会社は支払書類の取込時点で確定するため、" +
+      "取込元データまたは専門解析からの未払登録を確認してください。"
+    );
+
+    return;
+  }
   const id = payload.document.payable_id;
   const url = id ? "/api/payables/" + encodeURIComponent(id) : "/api/payables";
   const method = id ? "PUT" : "POST";
@@ -1083,6 +1487,8 @@ async function loadDetail(id) {
 
   document.getElementById("companyName").value =
     h.company_name || "";
+
+  renderPayableCompanyDisplay();
 
   document.getElementById("evidenceStatus").value =
     h.evidence_status || "pending";
@@ -1143,55 +1549,318 @@ async function loadDetail(id) {
   }
   if (!(data.payable.lines || []).length) addLine();
   renderPayments(data.payable.payments || []);
-  document.getElementById("paymentAmount").value = money(h.calculated_balance_amount || h.balance_amount || 0);
+  await loadPaymentBankAccounts();
+
+  document.getElementById(
+    "paymentAmount"
+  ).value = money(
+    h.calculated_balance_amount ||
+    h.balance_amount ||
+    0
+  );
+
+  updatePaymentBankWithdrawalPreview();
   showResult(`読込完了: ${h.payable_no} / 残高 ${money(h.calculated_balance_amount)}`);
 }
 function renderPayments(payments) {
-  const tbody = document.getElementById("paymentBody");
+  const tbody =
+    document.getElementById("paymentBody");
+
   if (!payments.length) {
-    tbody.innerHTML = '<tr><td colspan="5">支払記録はありません。</td></tr>';
+    tbody.innerHTML =
+      '<tr><td colspan="7">支払記録はありません。</td></tr>';
     return;
   }
+
   tbody.innerHTML = payments.map(p => `
     <tr>
       <td>${esc(dateOnly(p.payment_date))}</td>
+      <td>${esc(
+        p.bank_name
+          ? [
+              p.bank_name,
+              p.branch_name,
+              p.account_number
+            ].filter(Boolean).join(" ")
+          : ""
+      )}</td>
       <td class="money">${money(p.payment_amount)}</td>
+      <td class="money">${money(p.withholding_tax_amount)}</td>
       <td class="money">${money(p.bank_fee_amount)}</td>
       <td>${esc(p.memo || "")}</td>
-      <td><button type="button" class="danger small" onclick="deletePayment(${esc(p.payable_payment_id)})">削除</button></td>
+      <td>
+        <button
+          type="button"
+          class="danger small"
+          onclick="deletePayment(${esc(p.payable_payment_id)})"
+        >削除</button>
+      </td>
     </tr>
   `).join("");
 }
-async function addPayment() {
-  const id = document.getElementById("payableId").value;
-  if (!id) {
-    alert("先に請求書・未払データを保存してください。");
+function updatePaymentBankWithdrawalPreview() {
+  const paymentAmount = num(
+    document.getElementById(
+      "paymentAmount"
+    ).value
+  );
+
+  const withholdingTaxAmount = num(
+    document.getElementById(
+      "paymentWithholdingTaxAmount"
+    ).value
+  );
+
+  const bankFeeAmount = num(
+    document.getElementById(
+      "bankFeeAmount"
+    ).value
+  );
+
+  document.getElementById(
+    "paymentSettlementPreview"
+  ).value = money(
+    paymentAmount + withholdingTaxAmount
+  );
+
+  document.getElementById(
+    "paymentBankWithdrawalPreview"
+  ).value = money(
+    paymentAmount + bankFeeAmount
+  );
+}
+
+async function loadPaymentBankAccounts() {
+  const select =
+    document.getElementById(
+      "paymentBankAccountId"
+    );
+
+  const companyId = Number(
+    localStorage.getItem(
+      "current_company_id"
+    ) || 0
+  );
+
+  select.innerHTML =
+    '<option value="">銀行口座を選択</option>';
+
+  if (
+    !Number.isInteger(companyId) ||
+    companyId <= 0
+  ) {
+    select.innerHTML =
+      '<option value="">メイン画面で会社を選択してください</option>';
     return;
   }
+
+  const data = await fetchJson(
+    "/api/bank/accounts?company_id=" +
+    encodeURIComponent(companyId)
+  );
+
+  for (const account of data.accounts || []) {
+    const option =
+      document.createElement("option");
+
+    option.value =
+      account.bank_account_id;
+
+    option.textContent =
+      [
+        account.bank_name,
+        account.branch_name,
+        account.account_type_name,
+        account.account_number,
+        "残高 " +
+          money(account.current_balance) +
+          "円"
+      ].filter(Boolean).join(" / ");
+
+    select.appendChild(option);
+  }
+
+  if ((data.accounts || []).length === 1) {
+    select.value =
+      data.accounts[0].bank_account_id;
+  }
+}
+
+async function addPayment() {
+  const id =
+    document.getElementById(
+      "payableId"
+    ).value;
+
+  if (!id) {
+    alert(
+      "先に請求書・未払データを保存してください。"
+    );
+    return;
+  }
+
+  const bankAccountId =
+    document.getElementById(
+      "paymentBankAccountId"
+    ).value;
+
+  if (!bankAccountId) {
+    alert(
+      "支払元の銀行口座を選択してください。"
+    );
+    return;
+  }
+
+  const paymentAmount = num(
+    document.getElementById(
+      "paymentAmount"
+    ).value
+  );
+
+  const withholdingTaxAmount = num(
+    document.getElementById(
+      "paymentWithholdingTaxAmount"
+    ).value
+  );
+
+  const bankFeeAmount = num(
+    document.getElementById(
+      "bankFeeAmount"
+    ).value
+  );
+
+  if (paymentAmount <= 0) {
+    alert(
+      "銀行振込額は1円以上で入力してください。"
+    );
+    return;
+  }
+
+  if (withholdingTaxAmount < 0) {
+    alert(
+      "源泉徴収額は0円以上で入力してください。"
+    );
+    return;
+  }
+
+  const settlementAmount =
+    paymentAmount + withholdingTaxAmount;
+
+  const withdrawalAmount =
+    paymentAmount + bankFeeAmount;
+
+  if (!confirm(
+    "支払登録と銀行出金明細を作成します。\n\n" +
+    "銀行振込額: " +
+    money(paymentAmount) +
+    "円\n" +
+    "源泉徴収額: " +
+    money(withholdingTaxAmount) +
+    "円\n" +
+    "未払消込額: " +
+    money(settlementAmount) +
+    "円\n" +
+    "振込手数料: " +
+    money(bankFeeAmount) +
+    "円\n" +
+    "銀行出金額: " +
+    money(withdrawalAmount) +
+    "円"
+  )) {
+    return;
+  }
+
   const payload = {
-    payment_date: document.getElementById("paymentDate").value || todayIso(),
-    payment_method_id: document.getElementById("paymentMethodId").value,
-    payment_amount: document.getElementById("paymentAmount").value,
-    bank_fee_amount: document.getElementById("bankFeeAmount").value,
-    memo: document.getElementById("paymentMemo").value
+    payment_date:
+      document.getElementById(
+        "paymentDate"
+      ).value || todayIso(),
+
+    payment_method_id:
+      document.getElementById(
+        "paymentMethodId"
+      ).value,
+
+    payment_amount:
+      document.getElementById(
+        "paymentAmount"
+      ).value,
+
+    bank_fee_amount:
+      document.getElementById(
+        "bankFeeAmount"
+      ).value,
+
+    withholding_tax_amount:
+      document.getElementById(
+        "paymentWithholdingTaxAmount"
+      ).value,
+
+    bank_account_id:
+      bankAccountId,
+
+    memo:
+      document.getElementById(
+        "paymentMemo"
+      ).value
   };
-  const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+
+  const data = await fetchJson(
+    `/api/payables/${encodeURIComponent(id)}/payments`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
   showResult(data);
+
   await loadPayables();
   await loadDetail(id);
 }
+document.addEventListener("input", event => {
+  if (
+    event.target &&
+    (
+      event.target.id === "paymentAmount" ||
+      event.target.id ===
+        "paymentWithholdingTaxAmount" ||
+      event.target.id === "bankFeeAmount"
+    )
+  ) {
+    updatePaymentBankWithdrawalPreview();
+  }
+});
+
 async function deletePayment(paymentId) {
-  const id = document.getElementById("payableId").value;
-  if (!id || !paymentId) return;
-  if (!confirm("この支払記録を削除しますか？")) return;
-  const data = await fetchJson(`/api/payables/${encodeURIComponent(id)}/payments/${encodeURIComponent(paymentId)}`, {
-    method: "DELETE"
-  });
+  const id =
+    document.getElementById(
+      "payableId"
+    ).value;
+
+  if (!id || !paymentId) {
+    return;
+  }
+
+  if (!confirm(
+    "この支払記録を削除し、連携済み銀行明細と源泉預り金を取消扱いにしますか？"
+  )) {
+    return;
+  }
+
+  const data = await fetchJson(
+    `/api/payables/${encodeURIComponent(id)}/payments/${encodeURIComponent(paymentId)}`,
+    {
+      method: "DELETE"
+    }
+  );
+
   showResult(data);
+
   await loadPayables();
   await loadDetail(id);
 }
@@ -1544,7 +2213,241 @@ function showPayableMemoWindow(title, text) {
           white-space: pre;
         }
       </style>
-    </head>
+    <!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_START -->
+<style>
+  .hd-ledger-page-view-switch {
+    width: min(1380px, calc(100% - 32px));
+    margin: 18px auto 0;
+    padding: 12px;
+    border: 1px solid rgba(35,48,76,.12);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(50,100,255,.10), transparent 22rem),
+      rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    color: #172033;
+  }
+
+  .hd-ledger-page-view-switch-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .hd-ledger-page-view-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .hd-ledger-page-view-title strong {
+    font-size: 14px;
+    letter-spacing: -.02em;
+  }
+
+  .hd-ledger-page-view-title span {
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .hd-ledger-page-view-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    min-width: 230px;
+    padding: 4px;
+    border-radius: 16px;
+    background: #eef2f7;
+    border: 1px solid rgba(35,48,76,.08);
+  }
+
+  .hd-ledger-page-view-button {
+    min-height: 36px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #596579;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .hd-ledger-page-view-button.is-active {
+    background: #ffffff;
+    color: #2348c7;
+    box-shadow: 0 8px 16px rgba(32,44,72,.10);
+  }
+
+  .hd-ledger-page-view-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  html[data-ledger-view="report"] .hd-ledger-page-view-current::after {
+    content: "帳票形式";
+  }
+
+  html[data-ledger-view="single"] .hd-ledger-page-view-current::after {
+    content: "単票形式";
+  }
+
+  body[data-ledger-view="report"] .ledger-single-only,
+  body[data-ledger-view="single"] .ledger-report-only {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-ledger-page-view-switch {
+      width: calc(100% - 20px);
+      margin-top: 12px;
+    }
+
+    .hd-ledger-page-view-switch-inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hd-ledger-page-view-buttons {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_END -->
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_STYLE_START -->
+<style>
+  .hd-payables-view-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+
+  .hd-payables-view-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+
+  .hd-payables-view-menu-title strong {
+    font-size: 14px;
+  }
+
+  .hd-payables-view-menu-title span {
+    color: #667085;
+    font-size: 12px;
+  }
+
+  .hd-payables-view-menu-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .hd-payables-view-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 13px;
+    border-radius: 12px;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 900;
+    border: 1px solid transparent;
+  }
+
+  .hd-payables-view-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+
+  .hd-payables-view-menu-button.report {
+    background: #eef3ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.18);
+  }
+
+  .hd-payables-view-menu-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  @media (max-width: 720px) {
+    .hd-payables-view-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .hd-payables-view-menu-buttons {
+      justify-content: stretch;
+    }
+
+    .hd-payables-view-menu-button {
+      flex: 1 1 auto;
+    }
+  }
+</style>
+<!-- GPT00_PAYABLES_FORMAL_REPORT_BUTTON_STYLE_END -->
+<!-- GPT00_PAYABLES_VIEW_BUTTON_VISIBILITY_START -->
+<style>
+  /* GPT00: 請求書・未払 単票/帳票ボタン 視認性アップ */
+  .hd-payables-view-menu {
+    padding: 16px 18px !important;
+    border-radius: 26px !important;
+  }
+
+  .hd-payables-view-menu-title strong {
+    font-size: 18px !important;
+  }
+
+  .hd-payables-view-menu-title span {
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+  }
+
+  .hd-payables-view-menu-buttons {
+    gap: 10px !important;
+  }
+
+  .hd-payables-view-menu-button {
+    min-height: 48px !important;
+    padding: 12px 20px !important;
+    border-radius: 15px !important;
+    font-size: 16px !important;
+    letter-spacing: .02em !important;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+
+  .hd-payables-view-menu-button.report {
+    border-width: 2px !important;
+    background: #eaf0ff !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-payables-view-menu-button {
+      width: 100% !important;
+      font-size: 15px !important;
+    }
+  }
+</style>
+<!-- GPT00_PAYABLES_VIEW_BUTTON_VISIBILITY_END -->
+</head>
 
     <body>
       <div class="memo-toolbar">
@@ -1692,11 +2595,238 @@ async function openAllPayablesMemo() {
   }
 }
 /* PAYABLES_MEMO_VIEW_JS_20260710_END */
+/* GPT00_PAYABLE_SELECTION_MASTERS_20260711_START */
+let payableSelectionMasters = {};
+let payableSelectionLabels = {};
+
+function rebuildPayableSelectionLabels() {
+  payableSelectionLabels = {};
+
+  for (
+    const [masterType, rows] of
+    Object.entries(payableSelectionMasters || {})
+  ) {
+    payableSelectionLabels[masterType] = {};
+
+    for (const row of rows || []) {
+      const code = String(
+        row.option_code || ""
+      );
+
+      if (!code) continue;
+
+      payableSelectionLabels[masterType][code] =
+        row.display_name || code;
+    }
+  }
+}
+
+function payableMasterLabel(masterType, value) {
+  const code = String(value || "");
+
+  return (
+    payableSelectionLabels[masterType] &&
+    payableSelectionLabels[masterType][code]
+  ) || code;
+}
+
+function statusLabel(value) {
+  return payableMasterLabel(
+    "payable_statuses",
+    value
+  );
+}
+
+function documentTypeLabel(value) {
+  return payableMasterLabel(
+    "document_types",
+    value
+  );
+}
+
+function payableKindLabel(value) {
+  return payableMasterLabel(
+    "payable_kinds",
+    value
+  );
+}
+
+function evidenceStatusLabel(value) {
+  return payableMasterLabel(
+    "evidence_statuses",
+    value
+  );
+}
+
+function reviewStatusLabel(value) {
+  return payableMasterLabel(
+    "review_statuses",
+    value
+  );
+}
+
+function professionalReviewStatusLabel(value) {
+  return payableMasterLabel(
+    "professional_review_statuses",
+    value
+  );
+}
+
+function warningLevelLabel(value) {
+  return payableMasterLabel(
+    "warning_levels",
+    value
+  );
+}
+
+function fillPayableMasterSelect(select) {
+  if (!select) return;
+
+  const masterType =
+    select.dataset.payableMasterType || "";
+
+  const rows =
+    payableSelectionMasters[masterType] || [];
+
+  const oldValue = select.value;
+
+  const emptyLabel =
+    select.dataset.emptyLabel || "選択";
+
+  select.innerHTML =
+    `<option value="">${esc(emptyLabel)}</option>`;
+
+  for (const row of rows) {
+    const option =
+      document.createElement("option");
+
+    option.value =
+      row.option_code || "";
+
+    option.textContent =
+      row.display_name ||
+      row.option_code ||
+      "";
+
+    select.appendChild(option);
+  }
+
+  const targetValue =
+    oldValue ||
+    select.dataset.defaultValue ||
+    "";
+
+  if (
+    Array.from(select.options).some(
+      option => option.value === targetValue
+    )
+  ) {
+    select.value = targetValue;
+  }
+}
+
+async function loadPayableSelectionMasters() {
+  const definitions = {
+    payable_statuses: {
+      code: "payable_status_code",
+      name: "payable_status_name"
+    },
+    document_types: {
+      code: "document_type_code",
+      name: "document_type_name"
+    },
+    payable_kinds: {
+      code: "payable_kind_code",
+      name: "payable_kind_name"
+    },
+    evidence_types: {
+      code: "evidence_type_code",
+      name: "evidence_type_name"
+    },
+    evidence_statuses: {
+      code: "evidence_status_code",
+      name: "evidence_status_name"
+    },
+    review_statuses: {
+      code: "review_status_code",
+      name: "review_status_name"
+    },
+    warning_levels: {
+      code: "warning_level_code",
+      name: "warning_level_name"
+    },
+    professional_review_statuses: {
+      code:
+        "professional_review_status_code",
+      name:
+        "professional_review_status_name"
+    }
+  };
+
+  const results = await Promise.all(
+    Object.keys(definitions).map(
+      async masterType => {
+        const data = await fetchJson(
+          "/api/masters?type=" +
+          encodeURIComponent(masterType)
+        );
+
+        const rows =
+          data.items ||
+          data.rows ||
+          data.masters ||
+          [];
+
+        return [
+          masterType,
+          rows.filter(
+            row => row.is_active !== false
+          )
+        ];
+      }
+    )
+  );
+
+  payableSelectionMasters = {};
+
+  for (
+    const [masterType, rows] of results
+  ) {
+    const definition =
+      definitions[masterType];
+
+    payableSelectionMasters[
+      masterType
+    ] = rows.map(row => ({
+      option_code:
+        row[definition.code] || "",
+      display_name:
+        row[definition.name] ||
+        row.name ||
+        row[definition.code] ||
+        "",
+      sort_order:
+        Number(row.sort_order || 0)
+    }));
+  }
+
+  rebuildPayableSelectionLabels();
+
+  document
+    .querySelectorAll(
+      "select[data-payable-master-type]"
+    )
+    .forEach(fillPayableMasterSelect);
+}
+/* GPT00_PAYABLE_SELECTION_MASTERS_20260711_END */
 async function loadAll() {
   const errors = [];
 
   try {
-    await loadMasters();
+    await Promise.all([
+      loadMasters(),
+      loadPayableSelectionMasters()
+    ]);
   } catch (error) {
     errors.push(
       "マスタ読込: " +
@@ -1794,7 +2924,59 @@ if (document.readyState === "loading") {
     }
   };
 })();
-</script>
+
+/* GPT00_PAYABLE_COMPANY_DISPLAY_ONLY_20260711 */
+function renderPayableCompanyDisplay() {
+  const codeElement =
+    document.getElementById(
+      "companyCode"
+    );
+
+  const nameElement =
+    document.getElementById(
+      "companyName"
+    );
+
+  const statusElement =
+    document.getElementById(
+      "payableCompanyDisplayStatus"
+    );
+
+  if (
+    !codeElement ||
+    !nameElement ||
+    !statusElement
+  ) {
+    return;
+  }
+
+  const companyCode =
+    String(codeElement.value || "")
+      .trim();
+
+  const companyName =
+    String(nameElement.value || "")
+      .trim();
+
+  if (!companyCode || !companyName) {
+    statusElement.textContent =
+      "会社情報がありません。取込元データを確認してください。";
+
+    return;
+  }
+
+  statusElement.textContent =
+    companyCode +
+    " / " +
+    companyName;
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    renderPayableCompanyDisplay();
+  }
+);</script>
 <!-- PAYABLES_BUTTON_GLOBAL_FIX_20260706_END -->
 </body>
 </html>

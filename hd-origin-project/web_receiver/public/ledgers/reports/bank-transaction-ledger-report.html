@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>銀行取引明細 帳面 | HD Origin</title>
+<style>
+:root{
+  --ink:#111827;
+  --muted:#667085;
+  --line:#d0d5dd;
+  --soft:#f2f4f7;
+  --blue:#2348c7;
+  --paper:#fff;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:#eef2f7;
+  color:var(--ink);
+  font-family:"Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+}
+.toolbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px;
+  background:rgba(255,255,255,.95);
+  border-bottom:1px solid rgba(35,48,76,.12);
+  box-shadow:0 8px 24px rgba(32,44,72,.08);
+}
+.toolbar-title{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.toolbar-title strong{font-size:18px}
+.toolbar-title span{font-size:13px;color:var(--muted)}
+.toolbar-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.btn{
+  min-height:44px;
+  padding:10px 17px;
+  border:0;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:900;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn.primary{background:#172033;color:#fff}
+.btn.secondary{background:#eef3ff;color:#2348c7}
+.btn.ghost{background:#f2f4f7;color:#344054}
+.page{
+  width:min(1320px, calc(100% - 24px));
+  margin:24px auto 48px;
+}
+.paper{
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 16px 44px rgba(32,44,72,.12);
+  padding:34px;
+}
+.report-header{
+  display:grid;
+  grid-template-columns:1fr 360px;
+  gap:26px;
+  align-items:start;
+  border-bottom:3px solid #111827;
+  padding-bottom:20px;
+}
+.report-title h1{
+  margin:0;
+  font-size:34px;
+  line-height:1.18;
+  letter-spacing:.02em;
+}
+.report-title p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.85;
+}
+.meta{
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  font-size:13px;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:110px 1fr;
+  border-bottom:1px solid var(--line);
+}
+.meta-row:last-child{border-bottom:0}
+.meta-label{
+  background:var(--soft);
+  font-weight:900;
+  padding:9px 10px;
+}
+.meta-value{
+  padding:9px 10px;
+}
+.filter-box{
+  margin-top:18px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px 14px;
+  background:#fcfcfd;
+  font-size:13px;
+  color:#344054;
+  line-height:1.7;
+}
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:18px;
+}
+.summary-card{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px;
+  background:#fcfcfd;
+}
+.summary-card .label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.summary-card .value{
+  margin-top:5px;
+  font-size:20px;
+  font-weight:900;
+  text-align:right;
+}
+.section-title{
+  margin:26px 0 10px;
+  font-size:20px;
+  font-weight:900;
+  border-left:7px solid var(--blue);
+  padding-left:12px;
+}
+.table-wrap{
+  border:1px solid var(--line);
+  overflow:visible;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:12.5px;
+  background:#fff;
+}
+th,td{
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:8px 8px;
+  vertical-align:top;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  line-height:1.5;
+}
+th:last-child,td:last-child{border-right:0}
+th{
+  background:#f2f4f7;
+  font-weight:900;
+  text-align:center;
+}
+td.num{text-align:right}
+td.center{text-align:center}
+.empty,.error{
+  margin-top:16px;
+  padding:18px;
+  border-radius:10px;
+  line-height:1.8;
+  font-size:14px;
+}
+.empty{background:#fff7e6;color:#8a5200;border:1px solid #fedf89}
+.error{background:#fff0ed;color:#b42318;border:1px solid #fecdca}
+.footer{
+  display:grid;
+  grid-template-columns:1fr 190px 190px;
+  gap:12px;
+  margin-top:24px;
+  align-items:end;
+}
+.note{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.7;
+}
+.stamp{
+  border:1px solid var(--line);
+  height:70px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:7px;
+  font-size:13px;
+  color:#344054;
+}
+@media(max-width:900px){
+  .report-header{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .footer{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  html,body{background:#fff}
+  .toolbar{display:none!important}
+  .page{width:100%;margin:0}
+  .paper{border:0;box-shadow:none;padding:0}
+  .report-title h1{font-size:24px}
+  .report-title p,.filter-box,.meta,.summary-card .label{font-size:10.5px}
+  .summary-card .value{font-size:15px}
+  .section-title{font-size:13px;margin:14px 0 6px}
+  table{font-size:9.6px}
+  th,td{padding:4px 4.5px}
+  .stamp{height:48px;font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div class="toolbar-title">
+    <strong>銀行取引明細 帳面</strong>
+    <span>一覧・集計・確認・印刷用の帳面です。</span>
+  </div>
+  <div class="toolbar-actions">
+    <a class="btn secondary" href="/bank/bank-category-master.html">単票形式へ戻る</a>
+    <button type="button" class="btn ghost" id="reloadBtn">再読込</button>
+    <button type="button" class="btn primary" id="printBtn">印刷</button>
+  </div>
+</div>
+
+<main class="page">
+  <section class="paper">
+    <header class="report-header">
+      <div class="report-title">
+        <h1>銀行取引明細 帳面</h1>
+        <p>元画面の内容を帳面形式で確認・印刷するための固定レイアウトです。横スクロールに頼らず、主要項目を一覧として見やすく整えます。</p>
+      </div>
+      <div class="meta">
+        <div class="meta-row"><div class="meta-label">会社</div><div class="meta-value" id="metaCompany">-</div></div>
+        <div class="meta-row"><div class="meta-label">出力日時</div><div class="meta-value" id="metaPrintedAt">-</div></div>
+        <div class="meta-row"><div class="meta-label">対象件数</div><div class="meta-value" id="metaCount">-</div></div>
+        <div class="meta-row"><div class="meta-label">帳面区分</div><div class="meta-value">銀行取引明細 帳面</div></div>
+      </div>
+    </header>
+
+    <div class="filter-box" id="filterBox">検索条件: 読込中</div>
+
+    <section class="summary-grid" aria-label="集計">
+      <div class="summary-card"><div class="label">件数</div><div class="value" id="sumCount">0</div></div>
+      <div class="summary-card"><div class="label">金額合計</div><div class="value" id="sumAmount">0</div></div>
+      <div class="summary-card"><div class="label">支払・出金合計</div><div class="value" id="sumPayment">0</div></div>
+      <div class="summary-card"><div class="label">残高・未処理</div><div class="value" id="sumBalance">0</div></div>
+    </section>
+
+    <h2 class="section-title">明細</h2>
+    <div id="message"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="headRow"></tr></thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      <div class="note">
+        ※この帳面は既存API候補から取得したデータを帳面形式に整形します。<br>
+        ※API未接続の場合は、次工程で対象画面の実APIに合わせて接続調整します。
+      </div>
+      <div class="stamp">確認</div>
+      <div class="stamp">承認</div>
+    </footer>
+  </section>
+</main>
+
+<script>
+const ENDPOINT_CANDIDATES = ["/api/bank-transactions","/api/bank-transactions/list","/api/bank/transactions","/api/reconciliation/bank-transactions"];
+const REPORT_COLUMNS = [{"key":"transaction_date","label":"取引日","type":"date","aliases":["transaction_date","date","取引日","入出金日"]},{"key":"account_name","label":"口座","type":"text","aliases":["account_name","bank_account_name","口座","銀行口座"]},{"key":"description","label":"摘要","type":"text","aliases":["description","summary","摘要","内容"]},{"key":"counterparty","label":"相手先","type":"text","aliases":["counterparty","partner_name","vendor_name","相手先","取引先"]},{"key":"deposit_amount","label":"入金","type":"money","aliases":["deposit_amount","credit_amount","income_amount","入金"]},{"key":"withdrawal_amount","label":"出金","type":"money","aliases":["withdrawal_amount","debit_amount","payment_amount","出金"]},{"key":"balance","label":"残高","type":"money","aliases":["balance","account_balance","残高"]},{"key":"matched_status","label":"照合","type":"text","aliases":["matched_status","reconcile_status","matching_status","照合状態","照合"]},{"key":"note","label":"備考","type":"text","aliases":["note","memo","remarks","備考"]}];
+
+function yen(value){
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return '';
+  return n.toLocaleString('ja-JP');
+}
+
+function num(value){
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const cleaned = String(value).replace(/[^\d.-]/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function text(value){
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'boolean') return value ? 'はい' : 'いいえ';
+  return String(value);
+}
+
+function escapeHtml(value){
+  return String(value || '').replace(/[&<>"']/g, function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+
+function first(row, aliases){
+  for (const key of aliases || []) {
+    if (row && row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  }
+  return '';
+}
+
+function normalize(row){
+  const out = {};
+  REPORT_COLUMNS.forEach(function(column){
+    out[column.key] = first(row, column.aliases || [column.key]);
+  });
+  return out;
+}
+
+function findArray(payload){
+  if (Array.isArray(payload)) return payload;
+
+  const keys = ['rows','items','data','results','list','records','documents','details'];
+  for (const key of keys) {
+    if (Array.isArray(payload && payload[key])) return payload[key];
+  }
+
+  if (payload && payload.data) {
+    const nested = findArray(payload.data);
+    if (nested.length) return nested;
+  }
+
+  return [];
+}
+
+function buildQuery(){
+  const current = new URL(window.location.href);
+  const params = new URLSearchParams();
+
+  for (const [key, value] of current.searchParams.entries()) {
+    if (['view','format'].includes(key)) continue;
+    if (value) params.set(key, value);
+  }
+
+  params.set('format', 'report');
+  params.set('view', 'report');
+
+  return params;
+}
+
+async function fetchFromEndpoint(endpoint){
+  const query = buildQuery();
+  const url = endpoint + (endpoint.includes('?') ? '&' : '?') + query.toString();
+
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+    credentials: 'same-origin'
+  });
+
+  if (!response.ok) {
+    throw new Error(response.status + ' ' + response.statusText);
+  }
+
+  return response.json();
+}
+
+async function loadRows(){
+  const errors = [];
+
+  for (const endpoint of ENDPOINT_CANDIDATES) {
+    try {
+      const payload = await fetchFromEndpoint(endpoint);
+      const rows = findArray(payload);
+      if (rows.length || payload) {
+        return { endpoint, rows };
+      }
+    } catch (error) {
+      errors.push(endpoint + ': ' + error.message);
+    }
+  }
+
+  throw new Error(errors.join('\\n'));
+}
+
+function renderRows(rows, endpoint){
+  const normalized = rows.map(normalize);
+  const headRow = document.getElementById('headRow');
+  const tbody = document.getElementById('detailBody');
+
+  headRow.innerHTML = '<th style="width:42px">No.</th>' + REPORT_COLUMNS.map(function(column){
+    return '<th>' + escapeHtml(column.label) + '</th>';
+  }).join('');
+
+  tbody.innerHTML = '';
+
+  let sumAmount = 0;
+  let sumPayment = 0;
+  let sumBalance = 0;
+
+  normalized.forEach(function(row, index){
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = '<td class="center">' + (index + 1) + '</td>' + REPORT_COLUMNS.map(function(column){
+      const raw = row[column.key];
+      let value = '';
+
+      if (column.type === 'money') {
+        const amount = num(raw);
+        value = yen(amount);
+
+        if (/amount|total|金額|納付|税込|税抜|消費税|入金/i.test(column.key)) {
+          sumAmount += amount;
+        }
+
+        if (/payment|paid|withdrawal|出金|支払/i.test(column.key)) {
+          sumPayment += amount;
+        }
+
+        if (/balance|remaining|残高|未払/i.test(column.key)) {
+          sumBalance += amount;
+        }
+      } else {
+        value = escapeHtml(text(raw));
+      }
+
+      return '<td class="' + (column.type === 'money' ? 'num' : '') + '">' + value + '</td>';
+    }).join('');
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('sumCount').textContent = normalized.length.toLocaleString('ja-JP');
+  document.getElementById('sumAmount').textContent = yen(sumAmount);
+  document.getElementById('sumPayment').textContent = yen(sumPayment);
+  document.getElementById('sumBalance').textContent = yen(sumBalance);
+  document.getElementById('metaCount').textContent = normalized.length.toLocaleString('ja-JP');
+
+  const params = new URLSearchParams(window.location.search);
+  const company = params.get('company') || '-';
+  document.getElementById('metaCompany').textContent = company;
+  document.getElementById('filterBox').textContent =
+    '検索条件: ' + (window.location.search ? window.location.search.replace(/^\\?/, '') : '指定なし') +
+    ' / 取得API: ' + endpoint;
+
+  if (!normalized.length) {
+    document.getElementById('message').innerHTML =
+      '<div class="empty">対象データがありません。</div>';
+  } else {
+    document.getElementById('message').innerHTML = '';
+  }
+}
+
+async function main(){
+  document.getElementById('metaPrintedAt').textContent = new Date().toLocaleString('ja-JP');
+
+  try {
+    const result = await loadRows();
+    renderRows(result.rows, result.endpoint);
+  } catch (error) {
+    document.getElementById('message').innerHTML =
+      '<div class="error">帳面データを取得できませんでした。<br>' +
+      '帳面HTMLは作成済みです。次工程でこの画面の実APIへ接続調整してください。<br><pre>' +
+      escapeHtml(error.message) +
+      '</pre></div>';
+    document.getElementById('filterBox').textContent = '検索条件: API未接続';
+  }
+}
+
+document.getElementById('printBtn').addEventListener('click', function(){
+  window.print();
+});
+
+document.getElementById('reloadBtn').addEventListener('click', function(){
+  window.location.reload();
+});
+
+main();
+</script>
+</body>
+</html>

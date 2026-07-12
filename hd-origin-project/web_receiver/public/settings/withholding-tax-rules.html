@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>源泉所得税 納期限ルール設定</title>
+
+  <style>
+    :root {
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: #1f2937;
+      background: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .header,
+    .panel {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .header-row,
+    .panel-title,
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    button,
+    a.button {
+      border: 1px solid #9ca3af;
+      background: #fff;
+      color: #111827;
+      border-radius: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    button.primary {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .status {
+      white-space: pre-wrap;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      min-height: 44px;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .rule-card {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .rule-card.error {
+      border-color: #b91c1c;
+    }
+
+    .rule-card.saved {
+      border-color: #047857;
+    }
+
+    .company-title {
+      font-weight: 700;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(210px, 1fr)
+        );
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #9ca3af;
+      border-radius: 7px;
+      padding: 9px;
+      font: inherit;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 25px;
+    }
+
+    .check-label input {
+      width: auto;
+    }
+
+    .card-message {
+      margin-top: 12px;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .test-table th,
+    .test-table td {
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .passed {
+      color: #047857;
+      font-weight: 700;
+    }
+
+    .failed {
+      color: #b91c1c;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="header">
+      <div class="header-row">
+        <div>
+          <h1>源泉所得税 納期限ルール設定</h1>
+
+          <div class="muted">
+            特例は承認済みの場合だけ有効化します。
+            保存後、納付予定・納期限・銀行照合を自動再計算します。
+          </div>
+        </div>
+
+        <div class="actions">
+          <a
+            class="button"
+            href="/payables/payment-document-specialist-tax-public.html"
+          >
+            税金・公的支払へ戻る
+          </a>
+
+          <button
+            type="button"
+            onclick="runRecalculation()"
+          >
+            全件再計算
+          </button>
+
+          <button
+            type="button"
+            onclick="runSelfTest()"
+          >
+            セルフテスト
+          </button>
+
+          <button
+            type="button"
+            class="primary"
+            onclick="loadRules()"
+          >
+            再読込
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>処理状態</h2>
+      </div>
+
+      <div
+        id="globalStatus"
+        class="status"
+      >
+        読込中...
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>会社別設定</h2>
+      </div>
+
+      <div
+        id="ruleList"
+        class="rule-list"
+      ></div>
+    </section>
+
+    <section
+      id="testPanel"
+      class="panel"
+      hidden
+    >
+      <div class="panel-title">
+        <h2>DBセルフテスト結果</h2>
+      </div>
+
+      <div id="testResult"></div>
+    </section>
+  </main>
+
+  <script>
+    function escapeHtml(value) {
+      return String(
+        value === null ||
+        value === undefined
+          ? ""
+          : value
+      )
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatDate(value) {
+      const text = String(value || "");
+
+      if (!text) {
+        return "";
+      }
+
+      return text.slice(0, 10);
+    }
+
+    function setGlobalStatus(text) {
+      const element =
+        document.getElementById(
+          "globalStatus"
+        );
+
+      element.textContent =
+        String(text || "");
+    }
+
+    function renderRules(rules) {
+      const list =
+        document.getElementById(
+          "ruleList"
+        );
+
+      const rows =
+        Array.isArray(rules)
+          ? rules
+          : [];
+
+      if (!rows.length) {
+        list.innerHTML =
+          '<div class="status">' +
+          "会社データがありません。" +
+          "</div>";
+
+        return;
+      }
+
+      list.innerHTML = rows
+        .map(function(rule) {
+          const companyId =
+            Number(rule.company_id);
+
+          const isSpecial =
+            rule.payment_cycle_code ===
+            "special";
+
+          return `
+            <article
+              class="rule-card"
+              id="ruleCard-${companyId}"
+              data-company-id="${companyId}"
+            >
+              <div class="company-title">
+                ${escapeHtml(
+                  rule.company_name ||
+                  rule.company_code ||
+                  "会社名未設定"
+                )}
+              </div>
+
+              <div class="muted">
+                会社ID:
+                ${escapeHtml(companyId)}
+                /
+                プログラムコード:
+                ${escapeHtml(
+                  rule.company_code || ""
+                )}
+                /
+                現在の納付予定:
+                ${escapeHtml(
+                  rule.scheduled_obligation_count || 0
+                )}件
+              </div>
+
+              <div class="grid">
+                <label>
+                  納付方式
+
+                  <select
+                    id="cycle-${companyId}"
+                    onchange="syncRuleControls(${companyId})"
+                  >
+                    <option
+                      value="normal"
+                      ${
+                        !isSpecial
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      通常納付
+                    </option>
+
+                    <option
+                      value="special"
+                      ${
+                        isSpecial
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      納期の特例
+                    </option>
+                  </select>
+                </label>
+
+                <label>
+                  特例承認状態
+
+                  <select
+                    id="approval-${companyId}"
+                    onchange="syncRuleControls(${companyId})"
+                  >
+                    <option
+                      value="not_approved"
+                      ${
+                        rule.special_approval_status_code ===
+                        "not_approved"
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      未承認
+                    </option>
+
+                    <option
+                      value="pending"
+                      ${
+                        rule.special_approval_status_code ===
+                        "pending"
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      申請中
+                    </option>
+
+                    <option
+                      value="approved"
+                      ${
+                        rule.special_approval_status_code ===
+                        "approved"
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      承認済み
+                    </option>
+
+                    <option
+                      value="revoked"
+                      ${
+                        rule.special_approval_status_code ===
+                        "revoked"
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      取消済み
+                    </option>
+                  </select>
+                </label>
+
+                <label class="check-label">
+                  <input
+                    type="checkbox"
+                    id="applies-${companyId}"
+                    ${
+                      rule.special_applies_to_payable_withholding
+                        ? "checked"
+                        : ""
+                    }
+                    onchange="syncRuleControls(${companyId})"
+                  >
+
+                  源泉預り金へ特例を適用
+                </label>
+
+                <label>
+                  適用開始日
+
+                  <input
+                    type="date"
+                    id="effectiveFrom-${companyId}"
+                    value="${escapeHtml(
+                      formatDate(
+                        rule.effective_from
+                      )
+                    )}"
+                  >
+                </label>
+
+                <label>
+                  適用終了日
+
+                  <input
+                    type="date"
+                    id="effectiveTo-${companyId}"
+                    value="${escapeHtml(
+                      formatDate(
+                        rule.effective_to
+                      )
+                    )}"
+                  >
+                </label>
+              </div>
+
+              <div class="grid">
+                <label>
+                  設定メモ
+
+                  <textarea
+                    id="memo-${companyId}"
+                  >${escapeHtml(
+                    rule.memo || ""
+                  )}</textarea>
+                </label>
+              </div>
+
+              <div class="actions">
+                <div
+                  id="message-${companyId}"
+                  class="card-message"
+                ></div>
+
+                <button
+                  type="button"
+                  class="primary"
+                  id="save-${companyId}"
+                  onclick="saveRule(${companyId})"
+                >
+                  保存して自動再計算
+                </button>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+
+      rows.forEach(function(rule) {
+        syncRuleControls(
+          Number(rule.company_id)
+        );
+      });
+    }
+
+    function syncRuleControls(companyId) {
+      const cycle =
+        document.getElementById(
+          "cycle-" + companyId
+        );
+
+      const approval =
+        document.getElementById(
+          "approval-" + companyId
+        );
+
+      const applies =
+        document.getElementById(
+          "applies-" + companyId
+        );
+
+      if (!cycle || !approval || !applies) {
+        return;
+      }
+
+      const special =
+        cycle.value === "special";
+
+      approval.disabled = !special;
+      applies.disabled = !special;
+
+      if (!special) {
+        approval.value =
+          "not_approved";
+
+        applies.checked =
+          false;
+      }
+    }
+
+    async function loadRules() {
+      setGlobalStatus(
+        "会社別ルールを読込中..."
+      );
+
+      try {
+        const response = await fetch(
+          "/api/payment-documents/" +
+          "tax-public/withholding-rules"
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(
+            data && data.error
+              ? data.error
+              : "ルールを取得できません。"
+          );
+        }
+
+        renderRules(data.rules);
+
+        setGlobalStatus(
+          "読込完了: " +
+          data.rules.length +
+          "社"
+        );
+      } catch (error) {
+        setGlobalStatus(
+          "読込エラー: " +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          )
+        );
+      }
+    }
+
+    async function saveRule(companyId) {
+      const card =
+        document.getElementById(
+          "ruleCard-" + companyId
+        );
+
+      const button =
+        document.getElementById(
+          "save-" + companyId
+        );
+
+      const message =
+        document.getElementById(
+          "message-" + companyId
+        );
+
+      const cycle =
+        document.getElementById(
+          "cycle-" + companyId
+        ).value;
+
+      const approval =
+        document.getElementById(
+          "approval-" + companyId
+        ).value;
+
+      const applies =
+        document.getElementById(
+          "applies-" + companyId
+        ).checked;
+
+      const effectiveFrom =
+        document.getElementById(
+          "effectiveFrom-" + companyId
+        ).value;
+
+      const effectiveTo =
+        document.getElementById(
+          "effectiveTo-" + companyId
+        ).value;
+
+      const memo =
+        document.getElementById(
+          "memo-" + companyId
+        ).value;
+
+      card.classList.remove(
+        "error",
+        "saved"
+      );
+
+      button.disabled = true;
+      button.textContent =
+        "保存・再計算中...";
+
+      message.textContent = "";
+
+      try {
+        const response = await fetch(
+          "/api/payment-documents/" +
+          "tax-public/" +
+          "withholding-rules/save",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              company_id:
+                companyId,
+
+              payment_cycle_code:
+                cycle,
+
+              special_approval_status_code:
+                approval,
+
+              special_applies_to_payable_withholding:
+                applies,
+
+              effective_from:
+                effectiveFrom,
+
+              effective_to:
+                effectiveTo,
+
+              memo
+            })
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(
+            data && data.error
+              ? data.error
+              : "保存に失敗しました。"
+          );
+        }
+
+        card.classList.add("saved");
+
+        message.textContent =
+          "保存完了\n" +
+          "納期限再計算: " +
+          JSON.stringify(
+            data.dueDateCalculation || {}
+          ) +
+          "\n銀行照合: " +
+          JSON.stringify(
+            data.bankReconciliation || {}
+          );
+      } catch (error) {
+        card.classList.add("error");
+
+        message.textContent =
+          "保存エラー: " +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          );
+      } finally {
+        button.disabled = false;
+        button.textContent =
+          "保存して自動再計算";
+      }
+    }
+
+    async function runRecalculation() {
+      setGlobalStatus(
+        "納付予定・納期限・銀行照合を再計算中..."
+      );
+
+      try {
+        const response = await fetch(
+          "/api/payment-documents/" +
+          "tax-public/" +
+          "withholding-rules/recalculate",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: "{}"
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok || !data.ok) {
+          throw new Error(
+            data && data.error
+              ? data.error
+              : "再計算に失敗しました。"
+          );
+        }
+
+        setGlobalStatus(
+          "再計算完了\n" +
+          "納付予定登録: " +
+          JSON.stringify(
+            data.registration || {}
+          ) +
+          "\n納期限算定: " +
+          JSON.stringify(
+            data.dueDateCalculation || {}
+          ) +
+          "\n銀行照合: " +
+          JSON.stringify(
+            data.bankReconciliation || {}
+          )
+        );
+
+        await loadRules();
+      } catch (error) {
+        setGlobalStatus(
+          "再計算エラー: " +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          )
+        );
+      }
+    }
+
+    async function runSelfTest() {
+      const panel =
+        document.getElementById(
+          "testPanel"
+        );
+
+      const resultElement =
+        document.getElementById(
+          "testResult"
+        );
+
+      panel.hidden = false;
+
+      resultElement.textContent =
+        "セルフテスト実行中...";
+
+      try {
+        const response = await fetch(
+          "/api/payment-documents/" +
+          "tax-public/" +
+          "withholding-rules/self-test"
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data && data.error
+              ? data.error
+              : "セルフテストに失敗しました。"
+          );
+        }
+
+        const rows =
+          Array.isArray(data.tests)
+            ? data.tests
+            : [];
+
+        resultElement.innerHTML = `
+          <div class="${
+            data.ok
+              ? "passed"
+              : "failed"
+          }">
+            ${
+              data.ok
+                ? "全テスト成功"
+                : "テスト失敗あり"
+            }
+            /
+            ${escapeHtml(data.passedCount)}
+            件成功
+            /
+            ${escapeHtml(data.failedCount)}
+            件失敗
+          </div>
+
+          <table class="test-table">
+            <thead>
+              <tr>
+                <th>テスト</th>
+                <th>認識日</th>
+                <th>適用ルール</th>
+                <th>算定期限</th>
+                <th>期待値</th>
+                <th>結果</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${
+                rows.map(function(row) {
+                  return `
+                    <tr>
+                      <td>
+                        ${escapeHtml(
+                          row.test_code
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHtml(
+                          formatDate(
+                            row.recognition_date
+                          )
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHtml(
+                          row.applied_rule_code
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHtml(
+                          formatDate(
+                            row.calculated_due_date
+                          )
+                        )}
+                      </td>
+
+                      <td>
+                        ${escapeHtml(
+                          formatDate(
+                            row.expected_due_date
+                          )
+                        )}
+                      </td>
+
+                      <td class="${
+                        row.passed
+                          ? "passed"
+                          : "failed"
+                      }">
+                        ${
+                          row.passed
+                            ? "OK"
+                            : "NG"
+                        }
+                      </td>
+                    </tr>
+                  `;
+                }).join("")
+              }
+            </tbody>
+          </table>
+        `;
+      } catch (error) {
+        resultElement.textContent =
+          "セルフテストエラー: " +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          );
+      }
+    }
+
+    window.addEventListener(
+      "DOMContentLoaded",
+      function() {
+        loadRules();
+      }
+    );
+  </script>
+</body>
+</html>

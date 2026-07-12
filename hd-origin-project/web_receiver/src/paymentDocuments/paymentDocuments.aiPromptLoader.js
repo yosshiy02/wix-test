@@ -106,47 +106,46 @@ function promptFilesStage2() {
 }
 
 function specialistCodeFromContext(context = {}) {
-  const draft = context.draft && typeof context.draft === "object" ? context.draft : {};
-  const raw = [
-    context.analysis_system_code,
-    context.specialist_route_code,
-    context.group,
-    draft.analysis_system_code,
-    draft.specialist_route_code,
-    draft.document_group,
-    draft.payment_destination_code,
-    draft.document_type_code
-  ].join(" ");
+  const draft =
+    context.draft &&
+    typeof context.draft === "object" &&
+    !Array.isArray(context.draft)
+      ? context.draft
+      : {};
 
-  const text = normalizeForPromptRule(raw);
+  const analysisSystemCode = String(
+    context.analysis_system_code ||
+    context.analysisSystemCode ||
+    draft.analysis_system_code ||
+    draft.analysisSystemCode ||
+    ""
+  ).trim();
 
-  if (text.includes("taxpublic") || text.includes("taxpayment") || text.includes("税金") || text.includes("公的支払")) {
-    return "tax-public";
-  }
+  const specialistMap = {
+    invoice_payable_analysis:
+      "invoice-payable",
 
-  if (text.includes("invoicepayable") || text.includes("accountspayable") || text.includes("invoice") || text.includes("請求") || text.includes("買掛") || text.includes("未払")) {
-    return "invoice-payable";
-  }
+    tax_public_analysis:
+      "tax-public",
 
-  if (text.includes("receiptevidence") || text.includes("paidevidence") || text.includes("receipt") || text.includes("領収") || text.includes("レシート")) {
-    return "receipt-evidence";
-  }
+    utility_communication_analysis:
+      "utility-communication",
 
-  if (text.includes("cardstatement") || text.includes("card") || text.includes("カード")) {
-    return "card-statement";
-  }
+    contract_insurance_lease_analysis:
+      "contract-insurance-lease",
 
-  if (text.includes("contractinsurancelease") || text.includes("contract") || text.includes("insurance") || text.includes("lease") || text.includes("契約") || text.includes("保険") || text.includes("リース")) {
-    return "contract-insurance-lease";
-  }
+    receipt_evidence_analysis:
+      "receipt-evidence",
 
-  if (text.includes("utilitycommunication") || text.includes("utility") || text.includes("communication") || text.includes("公共料金") || text.includes("通信")) {
-    return "utility-communication";
-  }
+    card_statement_analysis:
+      "card-statement",
 
-  return "";
+    reference_check_analysis:
+      "reference-check"
+  };
+
+  return specialistMap[analysisSystemCode] || "";
 }
-
 function promptFilesStage3(context = {}) {
   const files = [
     "stage3-specialist/common/system.txt",

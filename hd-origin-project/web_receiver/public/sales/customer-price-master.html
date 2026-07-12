@@ -1,14 +1,875 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>販売・売掛管理</title>
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+  <title>得意先別単価</title>
+
+  <style>
+    :root {
+      font-family:
+        "Yu Gothic UI",
+        "Meiryo",
+        sans-serif;
+      color: #1f2937;
+      background: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e5e7eb;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #17365d;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .titlebar h1 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toolbar button {
+      min-height: 34px;
+      border: 1px solid #64748b;
+      border-radius: 3px;
+      background: #f8fafc;
+      padding: 5px 13px;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid #94a3b8;
+      padding: 12px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns:
+        minmax(220px, 1fr)
+        minmax(250px, 1.2fr)
+        auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns:
+        minmax(560px, 1.25fr)
+        minmax(480px, 1fr);
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid #94a3b8;
+      border-radius: 3px;
+      padding: 5px 7px;
+      background: white;
+    }
+
+    .field textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns:
+        150px minmax(220px, 1fr);
+      gap: 8px 10px;
+      align-items: center;
+    }
+
+    .form-grid > label {
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid #94a3b8;
+      border-radius: 3px;
+      padding: 5px 7px;
+    }
+
+    .form-grid textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    .price {
+      text-align: right;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .record-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .record-nav button {
+      min-width: 34px;
+      min-height: 30px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 230px);
+      border: 1px solid #94a3b8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border: 1px solid #cbd5e1;
+      padding: 6px;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #dbeafe;
+      color: #1e3a8a;
+    }
+
+    td.amount {
+      text-align: right;
+    }
+
+    tbody tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: #eff6ff;
+    }
+
+    tbody tr.selected {
+      background: #bfdbfe;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 25px;
+      padding: 5px 8px;
+      border: 1px solid #94a3b8;
+      background: #f8fafc;
+      white-space: pre-wrap;
+    }
+
+    .status.error {
+      border-color: #dc2626;
+      color: #991b1b;
+      background: #fef2f2;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #17365d;
+      font-size: 17px;
+    }
+
+    @media (max-width: 1050px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .table-wrap {
+        max-height: 500px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <main class="app">
+    <header class="titlebar">
+      <h1>得意先別単価</h1>
+
+      <div class="toolbar">
+        <button id="newButton" type="button">新規</button>
+        <button id="saveButton" type="button">保存</button>
+        <button id="reloadButton" type="button">再読込</button>
+        <button
+          type="button"
+          onclick="location.href='/sales/product-master.html'"
+        >
+          商品マスター
+        </button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="search-row">
+        <div class="field">
+          <label for="companySelect">対象会社</label>
+          <select id="companySelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="searchInput">
+            得意先・商品検索
+          </label>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="得意先コード、得意先名、商品ID、商品名"
+          >
+        </div>
+
+        <button id="searchButton" type="button">
+          検索
+        </button>
+      </div>
+
+      <div class="workspace">
+        <section>
+          <h2 class="section-title">登録内容</h2>
+
+          <input
+            id="customerPriceId"
+            type="hidden"
+          >
+
+          <div class="form-grid">
+            <label for="customerSelect">得意先</label>
+            <select id="customerSelect"></select>
+
+            <label for="productSelect">商品</label>
+            <select id="productSelect"></select>
+
+            <label for="unitPrice">販売単価</label>
+            <input
+              id="unitPrice"
+              class="price"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            >
+
+            <label for="discountRate">値引率</label>
+            <input
+              id="discountRate"
+              type="number"
+              step="0.01"
+              placeholder="必要な場合のみ"
+            >
+
+            <label for="effectiveFrom">適用開始日</label>
+            <input
+              id="effectiveFrom"
+              type="date"
+            >
+
+            <label for="effectiveTo">適用終了日</label>
+            <input
+              id="effectiveTo"
+              type="date"
+            >
+
+            <label for="isActive">使用状態</label>
+            <select id="isActive">
+              <option value="true">使用中</option>
+              <option value="false">停止</option>
+            </select>
+
+            <label for="note">備考</label>
+            <textarea id="note"></textarea>
+          </div>
+
+          <div class="record-nav">
+            <button id="firstButton" type="button">|◀</button>
+            <button id="previousButton" type="button">◀</button>
+            <span id="recordPosition">0 / 0</span>
+            <button id="nextButton" type="button">▶</button>
+            <button id="lastButton" type="button">▶|</button>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">登録済み単価</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>得意先ID</th>
+                  <th>得意先名</th>
+                  <th>商品ID</th>
+                  <th>商品名</th>
+                  <th>販売単価</th>
+                  <th>開始日</th>
+                  <th>終了日</th>
+                  <th>状態</th>
+                </tr>
+              </thead>
+
+              <tbody id="priceTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+  </main>
+
   <script>
-    location.replace(
-      "/sales/sales-dashboard.html#customerPrices"
+    "use strict";
+
+    const state = {
+      companies: [],
+      customers: [],
+      products: [],
+      prices: [],
+      selectedIndex: -1
+    };
+
+    const element = id =>
+      document.getElementById(id);
+
+    function setStatus(message, isError = false) {
+      const target = element("status");
+      target.textContent = message || "";
+      target.classList.toggle("error", isError);
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+
+      let data = null;
+
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+          data?.message ||
+          `HTTP ${response.status}`
+        );
+      }
+
+      return data;
+    }
+
+    function todayString() {
+      return new Date()
+        .toISOString()
+        .slice(0, 10);
+    }
+
+    function selectedCompanyId() {
+      return Number(element("companySelect").value);
+    }
+
+    function formatAmount(value) {
+      return Number(value || 0).toLocaleString("ja-JP");
+    }
+
+    function fillSelect(
+      select,
+      rows,
+      valueKey,
+      labelBuilder
+    ) {
+      select.innerHTML = "";
+
+      for (const row of rows) {
+        const option = document.createElement("option");
+        option.value = row[valueKey];
+        option.textContent = labelBuilder(row);
+        select.appendChild(option);
+      }
+    }
+
+    async function loadCompanies() {
+      const data = await requestJson(
+        "/api/company-transaction-rules/companies"
+      );
+
+      state.companies =
+        data.rows ||
+        data.items ||
+        data.companies ||
+        [];
+
+      fillSelect(
+        element("companySelect"),
+        state.companies,
+        "company_id",
+        row =>
+          `${row.company_code}　${row.company_name}`
+      );
+
+      if (!state.companies.length) {
+        throw new Error("会社マスターがありません。");
+      }
+    }
+
+    async function loadCustomers() {
+      const data = await requestJson(
+        "/api/sales/customers?active_only=true"
+      );
+
+      state.customers = data.customers || [];
+
+      fillSelect(
+        element("customerSelect"),
+        state.customers,
+        "customer_id",
+        row =>
+          `${row.customer_code}　${row.customer_name}`
+      );
+    }
+
+    async function loadProducts() {
+      const companyId = selectedCompanyId();
+
+      const data = await requestJson(
+        `/api/sales/products?company_id=${companyId}`
+      );
+
+      state.products =
+        data.products ||
+        data.rows ||
+        data.items ||
+        [];
+
+      fillSelect(
+        element("productSelect"),
+        state.products,
+        "product_id",
+        row =>
+          `${row.product_code}　${row.product_name}`
+      );
+    }
+
+    async function loadPrices(selectFirst = true) {
+      const companyId = selectedCompanyId();
+      const search = element("searchInput").value.trim();
+
+      const parameters = new URLSearchParams({
+        company_id: String(companyId)
+      });
+
+      if (search) {
+        parameters.set("search", search);
+      }
+
+      const data = await requestJson(
+        `/api/sales/customer-prices?${parameters}`
+      );
+
+      state.prices = data.customer_prices || [];
+
+      renderTable();
+
+      if (selectFirst && state.prices.length) {
+        selectRecord(0);
+      } else if (!state.prices.length) {
+        clearForm();
+      }
+    }
+
+    function clearForm() {
+      state.selectedIndex = -1;
+
+      element("customerPriceId").value = "";
+      element("unitPrice").value = "0";
+      element("discountRate").value = "";
+      element("effectiveFrom").value = todayString();
+      element("effectiveTo").value = "";
+      element("isActive").value = "true";
+      element("note").value = "";
+
+      updateSelection();
+    }
+
+    function renderTable() {
+      const body = element("priceTableBody");
+      body.innerHTML = "";
+
+      state.prices.forEach((row, index) => {
+        const tr = document.createElement("tr");
+
+        tr.dataset.index = String(index);
+
+        tr.innerHTML = `
+          <td>${row.customer_code || row.customer_id}</td>
+          <td>${row.customer_name || ""}</td>
+          <td>${row.product_code || row.product_id}</td>
+          <td>${row.product_name || ""}</td>
+          <td class="amount">${formatAmount(row.unit_price)}</td>
+          <td>${row.effective_from || ""}</td>
+          <td>${row.effective_to || ""}</td>
+          <td>${row.is_active ? "使用中" : "停止"}</td>
+        `;
+
+        tr.addEventListener("click", () => {
+          selectRecord(index);
+        });
+
+        body.appendChild(tr);
+      });
+
+      updateSelection();
+    }
+
+    function selectRecord(index) {
+      if (
+        index < 0 ||
+        index >= state.prices.length
+      ) {
+        return;
+      }
+
+      state.selectedIndex = index;
+
+      const row = state.prices[index];
+
+      element("customerPriceId").value =
+        row.customer_price_id || "";
+
+      element("customerSelect").value =
+        String(row.customer_id);
+
+      element("productSelect").value =
+        String(row.product_id);
+
+      element("unitPrice").value =
+        row.unit_price ?? 0;
+
+      element("discountRate").value =
+        row.discount_rate ?? "";
+
+      element("effectiveFrom").value =
+        row.effective_from || todayString();
+
+      element("effectiveTo").value =
+        row.effective_to || "";
+
+      element("isActive").value =
+        row.is_active ? "true" : "false";
+
+      element("note").value =
+        row.note || "";
+
+      updateSelection();
+    }
+
+    function updateSelection() {
+      const rows = [
+        ...element("priceTableBody")
+          .querySelectorAll("tr")
+      ];
+
+      rows.forEach((row, index) => {
+        row.classList.toggle(
+          "selected",
+          index === state.selectedIndex
+        );
+      });
+
+      const current =
+        state.selectedIndex >= 0
+          ? state.selectedIndex + 1
+          : 0;
+
+      element("recordPosition").textContent =
+        `${current} / ${state.prices.length}`;
+    }
+
+    async function savePrice() {
+      const companyId = selectedCompanyId();
+      const customerId =
+        Number(element("customerSelect").value);
+      const productId =
+        Number(element("productSelect").value);
+      const unitPrice =
+        Number(element("unitPrice").value);
+
+      if (!customerId) {
+        throw new Error("得意先を選択してください。");
+      }
+
+      if (!productId) {
+        throw new Error("商品を選択してください。");
+      }
+
+      if (
+        !Number.isFinite(unitPrice) ||
+        unitPrice < 0
+      ) {
+        throw new Error(
+          "販売単価は0円以上で入力してください。"
+        );
+      }
+
+      const effectiveFrom =
+        element("effectiveFrom").value;
+
+      const effectiveTo =
+        element("effectiveTo").value;
+
+      if (!effectiveFrom) {
+        throw new Error(
+          "適用開始日を入力してください。"
+        );
+      }
+
+      if (
+        effectiveTo &&
+        effectiveTo < effectiveFrom
+      ) {
+        throw new Error(
+          "適用終了日は適用開始日以降にしてください。"
+        );
+      }
+
+      const body = {
+        company_id: companyId,
+        customer_price_id:
+          element("customerPriceId").value || null,
+        customer_id: customerId,
+        product_id: productId,
+        unit_price: unitPrice,
+        discount_rate:
+          element("discountRate").value || null,
+        effective_from: effectiveFrom,
+        effective_to: effectiveTo || null,
+        is_active:
+          element("isActive").value === "true",
+        note: element("note").value.trim() || null
+      };
+
+      await requestJson(
+        `/api/sales/customer-prices?company_id=${companyId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      setStatus("得意先別単価を保存しました。");
+
+      await loadPrices(true);
+    }
+
+    async function reloadForCompany() {
+      clearForm();
+
+      await loadProducts();
+      await loadPrices(true);
+    }
+
+    element("newButton").addEventListener(
+      "click",
+      clearForm
     );
+
+    element("saveButton").addEventListener(
+      "click",
+      async () => {
+        try {
+          setStatus("保存中です。");
+          await savePrice();
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+      }
+    );
+
+    element("reloadButton").addEventListener(
+      "click",
+      async () => {
+        try {
+          setStatus("再読込中です。");
+          await reloadForCompany();
+          setStatus("再読込しました。");
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+      }
+    );
+
+    element("searchButton").addEventListener(
+      "click",
+      async () => {
+        try {
+          await loadPrices(true);
+          setStatus(
+            `${state.prices.length}件を表示しました。`
+          );
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+      }
+    );
+
+    element("searchInput").addEventListener(
+      "keydown",
+      async event => {
+        if (event.key !== "Enter") {
+          return;
+        }
+
+        event.preventDefault();
+
+        try {
+          await loadPrices(true);
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+      }
+    );
+
+    element("companySelect").addEventListener(
+      "change",
+      async () => {
+        try {
+          setStatus("会社を切り替えています。");
+          await reloadForCompany();
+          setStatus("会社を切り替えました。");
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+      }
+    );
+
+    element("firstButton").addEventListener(
+      "click",
+      () => selectRecord(0)
+    );
+
+    element("previousButton").addEventListener(
+      "click",
+      () => selectRecord(
+        Math.max(0, state.selectedIndex - 1)
+      )
+    );
+
+    element("nextButton").addEventListener(
+      "click",
+      () => selectRecord(
+        Math.min(
+          state.prices.length - 1,
+          state.selectedIndex + 1
+        )
+      )
+    );
+
+    element("lastButton").addEventListener(
+      "click",
+      () => selectRecord(
+        state.prices.length - 1
+      )
+    );
+
+    async function initialize() {
+      try {
+        setStatus("読込中です。");
+
+        element("effectiveFrom").value =
+          todayString();
+
+        await loadCompanies();
+        await loadCustomers();
+        await loadProducts();
+        await loadPrices(true);
+
+        setStatus(
+          `得意先別単価を${state.prices.length}件読み込みました。`
+        );
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    initialize();
   </script>
 </body>
 </html>

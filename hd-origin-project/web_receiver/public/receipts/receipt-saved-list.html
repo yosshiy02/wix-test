@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -643,8 +643,278 @@ body.receipt-saved-single-boost-page .warn {
 
 /* HD_ORIGIN_RECEIPT_SAVED_SINGLE_VISUAL_BOOST_GPT2_END */
   </style>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_START -->
+<style>
+  .hd-ledger-page-view-switch {
+    width: min(1380px, calc(100% - 32px));
+    margin: 18px auto 0;
+    padding: 12px;
+    border: 1px solid rgba(35,48,76,.12);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(50,100,255,.10), transparent 22rem),
+      rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    color: #172033;
+  }
+
+  .hd-ledger-page-view-switch-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .hd-ledger-page-view-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .hd-ledger-page-view-title strong {
+    font-size: 14px;
+    letter-spacing: -.02em;
+  }
+
+  .hd-ledger-page-view-title span {
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .hd-ledger-page-view-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    min-width: 230px;
+    padding: 4px;
+    border-radius: 16px;
+    background: #eef2f7;
+    border: 1px solid rgba(35,48,76,.08);
+  }
+
+  .hd-ledger-page-view-button {
+    min-height: 36px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #596579;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .hd-ledger-page-view-button.is-active {
+    background: #ffffff;
+    color: #2348c7;
+    box-shadow: 0 8px 16px rgba(32,44,72,.10);
+  }
+
+  .hd-ledger-page-view-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+
+  html[data-ledger-view="report"] .hd-ledger-page-view-current::after {
+    content: "帳票形式";
+  }
+
+  html[data-ledger-view="single"] .hd-ledger-page-view-current::after {
+    content: "単票形式";
+  }
+
+  body[data-ledger-view="report"] .ledger-single-only,
+  body[data-ledger-view="single"] .ledger-report-only {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .hd-ledger-page-view-switch {
+      width: calc(100% - 20px);
+      margin-top: 12px;
+    }
+
+    .hd-ledger-page-view-switch-inner {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hd-ledger-page-view-buttons {
+      min-width: 0;
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_STYLE_END -->
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_receipt-ledger_START -->
+<style>
+  .hd-ledger-form-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+  .hd-ledger-form-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+  .hd-ledger-form-menu-title strong {
+    font-size: 18px;
+  }
+  .hd-ledger-form-menu-title span {
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .hd-ledger-form-menu-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hd-ledger-form-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    text-decoration: none !important;
+    font-size: 16px;
+    letter-spacing: .02em;
+    font-weight: 900;
+    border: 1px solid transparent;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+  .hd-ledger-form-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+  .hd-ledger-form-menu-button.report {
+    background: #eaf0ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.20);
+    border-width: 2px;
+  }
+  @media (max-width:720px){
+    .hd-ledger-form-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .hd-ledger-form-menu-buttons {
+      justify-content: stretch;
+    }
+    .hd-ledger-form-menu-button {
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_receipt-ledger_END -->
 </head>
 <body class="receipt-saved-ledger-page receipt-saved-single-professional-page receipt-saved-single-boost-page">
+<!-- GPT00_LEDGER_FORM_MENU_receipt-ledger_START -->
+<div class="hd-ledger-form-menu">
+  <div class="hd-ledger-form-menu-title">
+    <strong>レシート台帳 表示形式</strong>
+    <span>単票形式は通常画面、帳面形式は一覧・集計・印刷用です。</span>
+  </div>
+  <div class="hd-ledger-form-menu-buttons">
+    <a class="hd-ledger-form-menu-button single" href="/receipts/receipt-saved-list.html">単票形式</a>
+    <a class="hd-ledger-form-menu-button report" href="/ledgers/reports/receipt-ledger-report.html">帳面形式</a>
+  </div>
+</div>
+<!-- GPT00_LEDGER_FORM_MENU_receipt-ledger_END -->
+
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_START -->
+<div class="hd-ledger-page-view-switch" data-ledger-page-view-switch>
+  <div class="hd-ledger-page-view-switch-inner">
+    <div class="hd-ledger-page-view-title">
+      <strong>表示形式</strong>
+      <span>この画面を開いた後に、帳票形式／単票形式を切り替えます。現在: <span class="hd-ledger-page-view-current"></span></span>
+    </div>
+    <div class="hd-ledger-page-view-buttons" role="group" aria-label="表示形式切替">
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="report">帳票形式</button>
+      <button type="button" class="hd-ledger-page-view-button" data-ledger-view-button="single">単票形式</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if (window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__) return;
+  window.__HD_LEDGER_PAGE_VIEW_SWITCH_READY__ = true;
+
+  function normalizeView(value) {
+    return value === 'single' ? 'single' : 'report';
+  }
+
+  function currentViewFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeView(params.get('view') || params.get('format') || 'report');
+  }
+
+  function setUrlView(view) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', view);
+    url.searchParams.set('format', view);
+    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function applyView(view, shouldWriteUrl) {
+    const normalized = normalizeView(view);
+
+    document.documentElement.setAttribute('data-ledger-view', normalized);
+    if (document.body) {
+      document.body.setAttribute('data-ledger-view', normalized);
+    }
+
+    document.querySelectorAll('[data-ledger-view-button]').forEach(function(button){
+      const isActive = button.getAttribute('data-ledger-view-button') === normalized;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    if (shouldWriteUrl) {
+      setUrlView(normalized);
+    }
+
+    window.dispatchEvent(new CustomEvent('hd-ledger-view-change', {
+      detail: { view: normalized }
+    }));
+  }
+
+  document.addEventListener('click', function(event){
+    const button = event.target.closest('[data-ledger-view-button]');
+    if (!button) return;
+
+    event.preventDefault();
+    applyView(button.getAttribute('data-ledger-view-button'), true);
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){
+      applyView(currentViewFromUrl(), false);
+    });
+  } else {
+    applyView(currentViewFromUrl(), false);
+  }
+})();
+</script>
+<!-- GPT00_LEDGER_PAGE_VIEW_SWITCH_END -->
+
   <header>
     <div class="receipt-header-left"><div>レシート台帳</div><button type="button" class="receipt-title-button" onclick="location.href='/receipts/receipt-ledger-print.html'">帳票形式</button></div>
         <div class="receipt-header-actions">

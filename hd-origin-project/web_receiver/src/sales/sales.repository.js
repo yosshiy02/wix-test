@@ -284,6 +284,45 @@ async function setProductActive(productId, isActive, companyIdValue) {
   }
 }
 
+async function listSalesCustomers(filters = {}) {
+  const search = text(filters.search);
+  const values = [];
+  const where = [];
+
+  if (search) {
+    values.push(`%${search}%`);
+    where.push(
+      `(c.customer_code ILIKE ${values.length}
+        OR c.customer_name ILIKE ${values.length}
+        OR COALESCE(c.customer_name_kana, '') ILIKE ${values.length})`
+    );
+  }
+
+  if (filters.active_only !== false) {
+    where.push("c.is_active = TRUE");
+  }
+
+  return (
+    await pool.query(
+      `SELECT
+         c.customer_id,
+         c.customer_code,
+         c.customer_name,
+         c.customer_name_kana,
+         c.closing_day,
+         c.payment_day,
+         c.payment_terms,
+         c.is_active,
+         c.sort_order
+       FROM expenses.customers c
+       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+       ORDER BY c.sort_order, c.customer_code, c.customer_id
+       LIMIT 2000`,
+      values
+    )
+  ).rows;
+}
+
 async function listCustomerPrices(filters = {}) {
   const companyId = requireCompanyId(filters.company_id);
   const values = [companyId];
@@ -291,92 +330,281 @@ async function listCustomerPrices(filters = {}) {
 
   if (nullableNumber(filters.customer_id)) {
     values.push(nullableNumber(filters.customer_id));
-    where.push(`cp.customer_id = $${values.length}`);
+    where.push(`cp.customer_id = ${values.length}`);
   }
+
   if (nullableNumber(filters.product_id)) {
     values.push(nullableNumber(filters.product_id));
-    where.push(`cp.product_id = $${values.length}`);
+    where.push(`cp.product_id = ${values.length}`);
+  }
+
+  if (text(filters.search)) {
+    values.push(`%${text(filters.search)}%`);
+    where.push(
+      `(c.customer_code ILIKE ${values.length}
+        OR c.customer_name ILIKE ${values.length}
+        OR p.product_code ILIKE ${values.length}
+        OR p.product_name ILIKE ${values.length})`
+    );
   }
 
   return (
     await pool.query(
-      `SELECT cp.*, p.product_code, p.product_name, p.brand_name
+      `SELECT
+         cp.*,
+         c.customer_code,
+         c.customer_name,
+         c.customer_name_kana,
+         p.product_code,
+         p.product_name,
+         p.brand_name
        FROM sales.customer_prices cp
+       JOIN expenses.customers c
+         ON c.customer_id = cp.customer_id
        JOIN sales.products p
-         ON p.product_id=cp.product_id
-        AND p.company_id=cp.company_id
+         ON p.product_id = cp.product_id
+        AND p.company_id = cp.company_id
        WHERE ${where.join(" AND ")}
-       ORDER BY cp.customer_id, p.product_code,
-                cp.effective_from DESC NULLS LAST,
-                cp.customer_price_id DESC
+       ORDER BY
+         c.customer_code,
+         p.product_code,
+         cp.effective_from DESC,
+         cp.customer_price_id DESC
        LIMIT 2000`,
       values
     )
   ).rows;
 }
 
+async function resolveCustomerPrice(filters = {}) {
+  const companyId = requireCompanyId(filters.company_id);
+  const customerId = nullableNumber(filters.customer_id);
+  const productId = nullableNumber(filters.product_id);
+  const salesDate =
+    dateValue(filters.sales_date) ||
+    new Date().toISOString().slice(0, 10);
+
+  if (!customerId) {
+    throw createError("得意先IDは必須です。");
+  }
+
+  if (!productId) {
+    throw createError("商品IDは必須です。");
+  }
+
+  const result = await pool.query(
+    `SELECT
+       cp.*,
+       c.customer_code,
+       c.customer_name,
+       p.product_code,
+       p.product_name
+     FROM sales.customer_prices cp
+     JOIN expenses.customers c
+       ON c.customer_id = cp.customer_id
+     JOIN sales.products p
+       ON p.product_id = cp.product_id
+      AND p.company_id = cp.company_id
+     WHERE cp.company_id = $1
+       AND cp.customer_id = $2
+       AND cp.product_id = $3
+       AND cp.is_active = TRUE
+       AND cp.effective_from <= $4::date
+       AND (
+         cp.effective_to IS NULL
+         OR cp.effective_to >= $4::date
+       )
+     ORDER BY
+       cp.effective_from DESC,
+       cp.customer_price_id DESC
+     LIMIT 1`,
+    [
+      companyId,
+      customerId,
+      productId,
+      salesDate
+    ]
+  );
+
+  return result.rows[0] || null;
+}
+
 async function saveCustomerPrice(body) {
   const companyId = requireCompanyId(body.company_id);
   const customerId = nullableNumber(body.customer_id);
   const productId = nullableNumber(body.product_id);
-  if (!customerId) throw createError("得意先IDは必須です。");
-  if (!productId) throw createError("商品IDは必須です。");
+  const unitPrice = numberValue(body.unit_price);
+  const effectiveFrom =
+    dateValue(body.effective_from) ||
+    new Date().toISOString().slice(0, 10);
+  const effectiveTo = dateValue(body.effective_to);
+
+  if (!customerId) {
+    throw createError("得意先IDは必須です。");
+  }
+
+  if (!productId) {
+    throw createError("商品IDは必須です。");
+  }
+
+  if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+    throw createError("販売単価は0円以上で入力してください。");
+  }
+
+  if (
+    effectiveTo &&
+    effectiveTo < effectiveFrom
+  ) {
+    throw createError(
+      "適用終了日は適用開始日以降にしてください。"
+    );
+  }
+
+  const customerCheck = await pool.query(
+    `SELECT
+       customer_id,
+       customer_code,
+       customer_name,
+       is_active
+     FROM expenses.customers
+     WHERE customer_id = $1`,
+    [customerId]
+  );
+
+  if (!customerCheck.rowCount) {
+    throw createError(
+      "得意先マスターに存在しない得意先です。",
+      404
+    );
+  }
 
   const productCheck = await pool.query(
-    `SELECT 1 FROM sales.products
-     WHERE product_id=$1 AND company_id=$2`,
-    [productId, companyId]
+    `SELECT
+       product_id,
+       product_code,
+       product_name
+     FROM sales.products
+     WHERE product_id = $1
+       AND company_id = $2`,
+    [
+      productId,
+      companyId
+    ]
   );
+
   if (!productCheck.rowCount) {
-    throw createError("選択会社の商品が見つかりません。", 404);
-  }
-
-  const customerPriceId = nullableNumber(body.customer_price_id);
-  if (customerPriceId) {
-    const result = await pool.query(
-      `UPDATE sales.customer_prices
-       SET customer_id=$3, product_id=$4, unit_price=$5,
-           discount_rate=$6, effective_from=$7, effective_to=$8,
-           is_active=$9, note=$10, updated_at=NOW()
-       WHERE customer_price_id=$1 AND company_id=$2
-       RETURNING *`,
-      [
-        customerPriceId,
-        companyId,
-        customerId,
-        productId,
-        numberValue(body.unit_price),
-        nullableNumber(body.discount_rate),
-        dateValue(body.effective_from),
-        dateValue(body.effective_to),
-        booleanValue(body.is_active),
-        nullableText(body.note)
-      ]
+    throw createError(
+      "選択会社の商品が見つかりません。",
+      404
     );
-    if (!result.rowCount) throw createError("得意先別単価が見つかりません。", 404);
-    return result.rows[0];
   }
 
-  return (
-    await pool.query(
-      `INSERT INTO sales.customer_prices (
-         company_id, customer_id, product_id, unit_price, discount_rate,
-         effective_from, effective_to, is_active, note
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING *`,
-      [
-        companyId,
-        customerId,
-        productId,
-        numberValue(body.unit_price),
-        nullableNumber(body.discount_rate),
-        dateValue(body.effective_from),
-        dateValue(body.effective_to),
-        booleanValue(body.is_active),
-        nullableText(body.note)
-      ]
-    )
-  ).rows[0];
+  const customerPriceId =
+    nullableNumber(body.customer_price_id);
+
+  try {
+    if (customerPriceId) {
+      const result = await pool.query(
+        `UPDATE sales.customer_prices
+         SET
+           customer_id = $3,
+           product_id = $4,
+           unit_price = $5,
+           discount_rate = $6,
+           effective_from = $7,
+           effective_to = $8,
+           is_active = $9,
+           note = $10,
+           updated_at = NOW()
+         WHERE customer_price_id = $1
+           AND company_id = $2
+         RETURNING *`,
+        [
+          customerPriceId,
+          companyId,
+          customerId,
+          productId,
+          unitPrice,
+          nullableNumber(body.discount_rate),
+          effectiveFrom,
+          effectiveTo,
+          booleanValue(body.is_active),
+          nullableText(body.note)
+        ]
+      );
+
+      if (!result.rowCount) {
+        throw createError(
+          "得意先別単価が見つかりません。",
+          404
+        );
+      }
+
+      return result.rows[0];
+    }
+
+    return (
+      await pool.query(
+        `INSERT INTO sales.customer_prices (
+           company_id,
+           customer_id,
+           product_id,
+           unit_price,
+           discount_rate,
+           effective_from,
+           effective_to,
+           is_active,
+           note
+         ) VALUES (
+           $1,$2,$3,$4,$5,$6,$7,$8,$9
+         )
+         RETURNING *`,
+        [
+          companyId,
+          customerId,
+          productId,
+          unitPrice,
+          nullableNumber(body.discount_rate),
+          effectiveFrom,
+          effectiveTo,
+          booleanValue(body.is_active),
+          nullableText(body.note)
+        ]
+      )
+    ).rows[0];
+  } catch (error) {
+    if (
+      error &&
+      error.code === "23505"
+    ) {
+      throw createError(
+        "同じ会社・得意先・商品・適用開始日の単価が既に登録されています。",
+        409
+      );
+    }
+
+    if (
+      error &&
+      error.code === "23503"
+    ) {
+      throw createError(
+        "指定された得意先または商品が存在しません。",
+        400
+      );
+    }
+
+    if (
+      error &&
+      error.code === "23514"
+    ) {
+      throw createError(
+        "販売単価または適用期間が不正です。",
+        400
+      );
+    }
+
+    throw error;
+  }
 }
 
 async function listSales(filters = {}) {
@@ -982,8 +1210,10 @@ module.exports = {
   getProduct,
   saveProduct,
   setProductActive,
+  listSalesCustomers,
   listCustomerPrices,
   saveCustomerPrice,
+  resolveCustomerPrice,
   listSales,
   getSale,
   createSale,

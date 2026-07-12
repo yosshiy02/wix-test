@@ -446,29 +446,80 @@ async function handleSalesRoutes(req, res) {
 
   /* GPT00_SALES_PRODUCT_MASTER_ROUTES_20260712_END */
 
-  if (req.method === "GET" && pathname === "/api/sales/customer-prices") {
-    const companyId = companyIdFrom(parsed);
+  if (req.method === "GET" && pathname === "/api/sales/customers") {
     sendJson(res, 200, {
       ok: true,
-      company_id: companyId,
-      customer_prices: await repo.listCustomerPrices({
-        company_id: companyId,
-        customer_id: parsed.searchParams.get("customer_id"),
-        product_id: parsed.searchParams.get("product_id")
+      customers: await repo.listSalesCustomers({
+        search: parsed.searchParams.get("search"),
+        active_only:
+          parsed.searchParams.get("active_only") !== "false"
       })
     });
     return true;
   }
 
-  if (req.method === "POST" && pathname === "/api/sales/customer-prices") {
+  if (
+    req.method === "GET" &&
+    pathname === "/api/sales/customer-prices/resolve"
+  ) {
+    const companyId = companyIdFrom(parsed);
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      customer_price: await repo.resolveCustomerPrice({
+        company_id: companyId,
+        customer_id:
+          parsed.searchParams.get("customer_id"),
+        product_id:
+          parsed.searchParams.get("product_id"),
+        sales_date:
+          parsed.searchParams.get("sales_date")
+      })
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/sales/customer-prices"
+  ) {
+    const companyId = companyIdFrom(parsed);
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      customer_prices: await repo.listCustomerPrices({
+        company_id: companyId,
+        customer_id:
+          parsed.searchParams.get("customer_id"),
+        product_id:
+          parsed.searchParams.get("product_id"),
+        search:
+          parsed.searchParams.get("search")
+      })
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/sales/customer-prices"
+  ) {
     const body = await readJsonBody(req);
     const companyId = companyIdFrom(parsed, body);
+
     body.company_id = companyId;
+
     sendJson(res, 201, {
       ok: true,
       company_id: companyId,
-      customer_price: await repo.saveCustomerPrice(body)
+      customer_price:
+        await repo.saveCustomerPrice(body)
     });
+
     return true;
   }
 

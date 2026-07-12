@@ -40,7 +40,10 @@ async function handlePayableRoutes(req, res) {
   }
   const parts = pathname.split("/").filter(Boolean);
   try {
-    if (req.method === "GET" && pathname === "/api/payables/summary") {
+if (
+      req.method === "GET" &&
+      pathname === "/api/payables/summary"
+    ) {
       const summary = await repo.getDashboard();
       sendJson(res, 200, { ok: true, summary });
       return true;

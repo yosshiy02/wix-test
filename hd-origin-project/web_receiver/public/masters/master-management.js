@@ -1,4 +1,4 @@
-﻿/* master-management.js
+/* master-management.js
    マスタ管理画面のJS。
    2026-07-07: master-management.html の <script> から分離。
 */
@@ -24,10 +24,16 @@ const MASTER_GROUPS = {
     "permissions"
   ],  paymentDocuments: [
     "document_types",
+    "analysis_systems",
     "payment_destinations",
     "accounting_categories",
     "payable_kinds",
-    "payment_source_types"
+    "payment_source_types",
+    "payable_statuses",
+    "evidence_statuses",
+    "review_statuses",
+    "warning_levels",
+    "professional_review_statuses"
   ]
 };
 
@@ -38,6 +44,17 @@ const MASTER_NOTES = {
     "支払方法は、現金・普通預金・カードなど、レシート読込や経費入力でも使う支払い手段です。借方・貸方・科目との対応はここに混ぜず、別の仕訳ルール側で扱います。",
   tax_categories:
     "税区分は、消費税の扱いに関係します。自由に増やしすぎず、必要なものだけ管理します。",
+
+  payable_statuses:
+    "未払状態は、下書き・未払確定・一部支払・支払済み・無効を管理します。",
+  evidence_statuses:
+    "証憑状態は、不要・回収済み・未回収・後日回収・内容不一致を管理します。",
+  review_statuses:
+    "確認状態は、未確認・要確認・確認済み・差戻しを管理します。",
+  warning_levels:
+    "警告レベルは、なし・情報・警告・重大を管理します。",
+  professional_review_statuses:
+    "専門家確認状態は、不要・確認待ち・確認依頼済み・確認済み・再確認必要を管理します。",
   invoice_types:
     "インボイス区分は、適格請求書かどうかなどの判定に使います。",
   evidence_types:
@@ -61,6 +78,8 @@ const MASTER_NOTES = {
   permissions:
     "権限は、閲覧・確認・承認・管理などの権限区分を管理します。会社・人物・役職との紐付けは次の段階で専用管理します。",  document_types:
     "書類区分は、請求書・納付書・Web明細・カード明細など、支払書類そのものの種類を管理します。固定文字列ではなくマスタから選択します。",
+  analysis_systems:
+    "専門解析先は、支払書類をどの専門解析システムへ送るかを管理します。有効なプログラムコードをAI候補と画面選択肢に使用します。",
   payment_destinations:
     "処理先は、未払管理・買掛管理・経費管理・税金公的支払など、読取後にどこへ回すかを管理します。",
   accounting_categories:
@@ -71,6 +90,10 @@ const MASTER_NOTES = {
     "入手元区分は、スキャン・PDF取込・メール保存・Web明細ダウンロードなど、支払書類の入手経路を管理します。",};
 
 const EXTRA_LABELS = {
+  analysis_system_code: "プログラムコード",
+  description: "説明",
+  specialist_route_code: "専門ルートコード",
+  destination_url: "遷移先URL",
   company_code: "プログラムコード",
   company_type: "法人区分",
   person_code: "プログラムコード",
@@ -90,6 +113,17 @@ const EXTRA_LABELS = {
   payable_kind_code: "内部コード",
   payment_source_type_code: "内部コード",
 
+
+  payable_status_code:
+    "プログラムコード",
+  evidence_status_code:
+    "プログラムコード",
+  review_status_code:
+    "プログラムコード",
+  warning_level_code:
+    "プログラムコード",
+  professional_review_status_code:
+    "プログラムコード",
   default_credit_account: "通常貸方科目",
   tax_rate: "税率"
 };

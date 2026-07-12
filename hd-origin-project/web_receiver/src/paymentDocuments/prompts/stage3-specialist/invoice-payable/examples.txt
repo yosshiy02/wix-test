@@ -1,0 +1,64 @@
+請求・未払系専門解析例。
+
+例1: 商品仕入請求書
+OCR:
+株式会社サンプル商事
+請求書番号 INV-202607-001
+請求日 2026年7月5日
+支払期限 2026年8月10日
+婦人靴A 10足 単価5,000円 金額50,000円
+婦人靴B 5足 単価6,000円 金額30,000円
+小計80,000円
+消費税8,000円
+合計88,000円
+
+判断:
+- document_type_code: invoice
+- vendor_name: 株式会社サンプル商事
+- invoice_number: INV-202607-001
+- issue_date: 2026-07-05
+- due_date: 2026-08-10
+- payable_kind_code: accounts_payable候補
+- subtotal_amount: 80000
+- tax_amount: 8000
+- total_amount: 88000
+- line_itemsは婦人靴Aと婦人靴Bの2行
+- 支払済み表現がないためpayable_targetは候補
+
+例2: 一般経費の未払請求
+OCR:
+広告制作費請求書
+制作費 一式 100,000円
+消費税 10,000円
+合計 110,000円
+お支払期限 7月末日
+
+判断:
+- payable_kind_code: unpaid候補
+- item_name: 広告制作費
+- quantityは推測しない
+- unit_priceは100000と断定せず、明細金額として保持してよい
+- 基準となる請求日がなければdue_dateを推測しない
+- warningsへ「支払期限の年および基準日確認」と記載
+
+例3: 支払済みの請求書
+OCR:
+御請求額 33,000円
+2026年7月8日 振込済
+
+判断:
+- payment_status_code: paid候補
+- paid_amount: 33000候補
+- unpaid_balance: 0候補
+- 振込済みの対象金額が明確でない場合は要確認を残す
+
+例4: 公共料金の誤分類
+OCR:
+電気ご使用量のお知らせ
+ご請求金額 19,800円
+口座振替予定日 2026年7月27日
+
+判断:
+- invoice_payableとして無理に解析しない
+- utility_communication候補
+- warningsへ専門システム再確認を記載

@@ -1,0 +1,101 @@
+請求・未払系で検討する主な項目。
+
+すべての項目を必ず埋める必要はありません。
+OCR本文と書類内容から必要な項目だけをvisible_field_labelsへ入れてください。
+
+基本情報:
+- document_type_code
+- document_type_label
+- document_title
+- vendor_name
+- vendor_code
+- invoice_number
+- vendor_document_number
+- purchase_order_number
+- delivery_note_number
+- customer_number
+- issue_date
+- billing_date
+- accounting_date
+- due_date
+- scheduled_payment_date
+- currency
+
+金額:
+- subtotal_amount
+- tax_amount
+- total_amount
+- paid_amount
+- unpaid_balance
+- discount_amount
+- adjustment_amount
+- withholding_amount
+
+支払情報:
+- payment_status_code
+- payment_status_label
+- payment_method_code
+- payment_method_label
+- bank_name
+- bank_branch_name
+- bank_account_type
+- bank_account_number
+- bank_account_holder
+- transfer_fee_bearer
+
+会計下書き候補:
+- accounting_category_code
+- accounting_category_label
+- payable_kind_code
+- payable_kind_label
+- account_code
+- account_label
+- tax_category_code
+- tax_category_label
+- department_code
+- department_label
+- project_code
+- project_label
+- person_code
+- person_label
+- purpose_code
+- purpose_label
+
+明細:
+- line_items
+
+line_itemsの各行:
+- line_no
+- item_name
+- description
+- quantity
+- unit
+- unit_price
+- subtotal_amount
+- tax_rate
+- tax_category_code
+- tax_category_label
+- tax_amount
+- total_amount
+- account_code
+- account_label
+- department_code
+- department_label
+- project_code
+- project_label
+- source_text
+
+確認情報:
+- payment_target
+- payable_target
+- expense_target
+- duplicate_risk
+- evidence_status
+- confirmation_notes
+- warnings
+- ai_reason
+- ai_confidence
+
+line_itemsは配列で返してください。
+複数明細を1行にまとめないでください。
+明細が読み取れない場合は空配列にし、warningsへ理由を入れてください。

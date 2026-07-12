@@ -112,6 +112,19 @@ const MASTER_DEFS = {
     nameColumn: "payment_destination_name",
     extraColumns: ["payment_destination_code"]
   },
+  analysis_systems: {
+    type: "analysis_systems",
+    label: "専門解析先",
+    table: "expenses.analysis_systems",
+    idColumn: "analysis_system_id",
+    nameColumn: "analysis_system_name",
+    extraColumns: [
+      "analysis_system_code",
+      "description",
+      "specialist_route_code",
+      "destination_url"
+    ]
+  },
   accounting_categories: {
     type: "accounting_categories",
     label: "会計区分",
@@ -136,6 +149,62 @@ const MASTER_DEFS = {
     nameColumn: "payment_source_type_name",
     extraColumns: ["payment_source_type_code"]
   },
+
+  /* GPT00_PAYABLE_COMMON_MASTERS_20260711_START */
+  payable_statuses: {
+    type: "payable_statuses",
+    label: "未払状態",
+    table: "expenses.payable_statuses",
+    idColumn: "payable_status_id",
+    nameColumn: "payable_status_name",
+    extraColumns: [
+      "payable_status_code"
+    ]
+  },
+  evidence_statuses: {
+    type: "evidence_statuses",
+    label: "証憑状態",
+    table: "expenses.evidence_statuses",
+    idColumn: "evidence_status_id",
+    nameColumn: "evidence_status_name",
+    extraColumns: [
+      "evidence_status_code"
+    ]
+  },
+  review_statuses: {
+    type: "review_statuses",
+    label: "確認状態",
+    table: "expenses.review_statuses",
+    idColumn: "review_status_id",
+    nameColumn: "review_status_name",
+    extraColumns: [
+      "review_status_code"
+    ]
+  },
+  warning_levels: {
+    type: "warning_levels",
+    label: "警告レベル",
+    table: "expenses.warning_levels",
+    idColumn: "warning_level_id",
+    nameColumn: "warning_level_name",
+    extraColumns: [
+      "warning_level_code"
+    ]
+  },
+  professional_review_statuses: {
+    type: "professional_review_statuses",
+    label: "専門家確認状態",
+    table:
+      "expenses.professional_review_statuses",
+    idColumn:
+      "professional_review_status_id",
+    nameColumn:
+      "professional_review_status_name",
+    extraColumns: [
+      "professional_review_status_code"
+    ]
+  },
+  /* GPT00_PAYABLE_COMMON_MASTERS_20260711_END */
   invoice_types: {
     type: "invoice_types",
     label: "インボイス区分",
@@ -369,4 +438,5 @@ module.exports = {
   updateMaster,
   disableMaster
 };
+
 

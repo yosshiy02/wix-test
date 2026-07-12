@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -660,6 +660,131 @@
   </div>
 
 <script>
+/* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_START */
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSpecialistFetchContextInstalled) {
+    return;
+  }
+
+  window.__hdOriginSpecialistFetchContextInstalled = true;
+
+  const originalFetch = window.fetch.bind(window);
+
+  const routeDefinitions = {
+    invoice_payable: {
+      specialist_route_label: "請求・未払系解析",
+      analysis_system_code: "invoice_payable_analysis",
+      analysis_system_label: "請求・未払系専門解析システム"
+    },
+    tax_public: {
+      specialist_route_label: "税金・公的支払解析",
+      analysis_system_code: "tax_public_analysis",
+      analysis_system_label: "税金・公的支払専門解析システム"
+    },
+    utility_communication: {
+      specialist_route_label: "公共料金・通信費解析",
+      analysis_system_code: "utility_communication_analysis",
+      analysis_system_label: "公共料金・通信費専門解析システム"
+    },
+    contract_insurance_lease: {
+      specialist_route_label: "契約・保険・リース解析",
+      analysis_system_code: "contract_insurance_lease_analysis",
+      analysis_system_label: "契約・保険・リース専門解析システム"
+    }
+  };
+
+  window.fetch = function (input, init) {
+    const requestUrl = String(
+      input && input.url ? input.url : input || ""
+    );
+
+    if (
+      !requestUrl.includes(
+        "/api/payment-documents/ai-specialist/"
+      )
+    ) {
+      return originalFetch(input, init);
+    }
+
+    const routeCode = String(
+      document.body &&
+      document.body.dataset &&
+      document.body.dataset.specialistRouteCode
+        ? document.body.dataset.specialistRouteCode
+        : ""
+    ).trim();
+
+    const definition = routeDefinitions[routeCode];
+
+    if (!definition) {
+      return Promise.reject(
+        new Error(
+          "専門解析画面のdata-specialist-route-codeが不正です: " +
+          routeCode
+        )
+      );
+    }
+
+    const nextInit = Object.assign({}, init || {});
+
+    nextInit.method = nextInit.method || "POST";
+
+    nextInit.headers = Object.assign(
+      {},
+      nextInit.headers || {},
+      {
+        "Content-Type": "application/json"
+      }
+    );
+
+    let requestBody = {};
+
+    if (
+      typeof nextInit.body === "string" &&
+      nextInit.body.trim()
+    ) {
+      try {
+        const parsed = JSON.parse(nextInit.body);
+
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          !Array.isArray(parsed)
+        ) {
+          requestBody = parsed;
+        }
+      } catch (error) {
+        return Promise.reject(
+          new Error(
+            "専門解析リクエスト本文がJSONではありません。"
+          )
+        );
+      }
+    }
+
+    nextInit.body = JSON.stringify({
+      ...requestBody,
+      specialist_route_code: routeCode,
+      specialist_route_label:
+        requestBody.specialist_route_label ||
+        definition.specialist_route_label,
+      analysis_system_code:
+        requestBody.analysis_system_code ||
+        definition.analysis_system_code,
+      analysis_system_label:
+        requestBody.analysis_system_label ||
+        definition.analysis_system_label,
+      group: routeCode
+    });
+
+    return originalFetch(input, nextInit);
+  };
+})();
+/* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_END */
+</script>
+<script>
   let items = [];
   let selectedIndex = -1;
   let checkedOcrImportIds = new Set();
@@ -1123,9 +1248,9 @@ function setDocumentPreview(item) {
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
-      if (setById("draftAiPaymentTarget", draft.ai_summary.payment_target || fields["支払対象"])) appliedCount++;
-      if (setById("draftAiPayableTarget", draft.ai_summary.payable_target || fields["未払登録対象"])) appliedCount++;
-      if (setById("draftAiExpenseTarget", draft.ai_summary.expense_target || fields["経費登録対象"])) appliedCount++;
+      if (setById("draftAiPaymentTarget", draft.ai_summary.payment_target || (fields.payment_target || fields["支払対象"]))) appliedCount++;
+      if (setById("draftAiPayableTarget", draft.ai_summary.payable_target || (fields.payable_target || fields["未払登録対象"]))) appliedCount++;
+      if (setById("draftAiExpenseTarget", draft.ai_summary.expense_target || (fields.expense_target || fields["経費登録対象"]))) appliedCount++;
       if (setById("draftAiTaxPublic", draft.ai_summary.tax_public || fields["税金・公的支払"])) appliedCount++;
       if (setById("draftAiContractInsuranceLease", draft.ai_summary.contract_insurance_lease || fields["契約・保険・リース"])) appliedCount++;
       if (setById("draftAiConfidence", draft.ai_summary.confidence_label || fields["AI信頼度"])) appliedCount++;
@@ -1507,9 +1632,9 @@ function setDocumentPreview(item) {
     // 公共料金・通信費 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
-    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || fields["未払登録対象"]);
-    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
     put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
@@ -2200,9 +2325,9 @@ function setDocumentPreview(item) {
 
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftAiPayableFlag", "支払対象", summary.payment_target || fields["支払対象"]);
-    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || fields["未払登録対象"]);
-    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || fields["経費登録対象"]);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
     put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
@@ -2456,7 +2581,7 @@ function setDocumentPreview(item) {
     showResult("公共料金・通信費の専門解析を実行しています。画像は送信しません。");
 
     try {
-      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2687,12 +2812,16 @@ function setDocumentPreview(item) {
     const list = document.getElementById("list");
 
     if (!list) return;
-      renderSortingList();
-      updateSelectedSortingSummary();
+
+    if (
+      typeof window.renderSortingList === "function"
+    ) {
+      window.renderSortingList();
+      return;
+    }
 
     updateSelectedSortingSummary();
   }
-
   async function runAiDraftForItemIndex(index, options = {}) {
     if (!Array.isArray(items) || index < 0 || index >= items.length) {
       showResult("解析する書類が見つかりません。");
@@ -2717,7 +2846,7 @@ function setDocumentPreview(item) {
     }
 
     try {
-      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(id), {
+      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -3146,7 +3275,7 @@ function setDocumentPreview(item) {
               </span>
               <span class="sorting-summary-chips">
                 <span class="${visual.kindClass}">種類:${esc(visual.kindLabel)}</span>
-                <span class="${visual.destClass}">行き先:${esc(visual.destinationLabel)}</span>
+                
                 ${reviewBadge}
                 <span class="visual-chip visual-chip-status">${esc(analyzedText)}</span>
               </span>
@@ -3158,7 +3287,7 @@ function setDocumentPreview(item) {
             <div class="sorting-detail-grid">
               <div><span class="detail-label">OCR日時</span><span class="detail-value">${esc(time || "不明")}</span></div>
               <div><span class="detail-label">種類</span><span class="${visual.kindClass}">${esc(visual.kindLabel)}</span></div>
-              <div><span class="detail-label">行き先</span><span class="${visual.destClass}">${esc(visual.destinationLabel)}</span></div>
+              
               <div><span class="detail-label">会計候補</span>${categoryBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">AI信頼度</span>${confidenceBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">要確認理由</span><span class="detail-value">${reasonText}</span></div>
@@ -3208,7 +3337,7 @@ function setDocumentPreview(item) {
     }
 
     try {
-      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(id), {
+      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -3351,172 +3480,88 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
 /* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
   window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
-    function norm(value) {
-      return String(value || "")
-        .replace(/\s+/g, "")
-        .replace(/　+/g, "")
-        .replace(/[・･·]/g, "")
-        .replace(/[：:]/g, "")
-        .replace(/[／\/]/g, "")
-        .toLowerCase();
+    const expectedAnalysisSystemCode =
+      "utility_communication_analysis";
+
+    function textValue(value) {
+      return String(value || "").trim();
     }
 
-    function collectText(item) {
-      const draft = item && item.__aiDraft && typeof item.__aiDraft === "object" ? item.__aiDraft : {};
-      const latest = item && item.latestSortingDraft && typeof item.latestSortingDraft === "object" ? item.latestSortingDraft : {};
-      const saved = item && item.__savedSortingDraft && typeof item.__savedSortingDraft === "object" ? item.__savedSortingDraft : {};
-      const aiSummary = draft && draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
-
-      return [
-        item && item.__documentGroup,
-
-        latest.specialistRouteCode,
-        latest.specialist_route_code,
-        latest.paymentDestinationCode,
-        latest.payment_destination_code,
-        latest.documentTypeCode,
-        latest.document_type_code,
-        latest.accountingCategoryCode,
-        latest.accounting_category_code,
-        latest.payableKindCode,
-        latest.payable_kind_code,
-
-        saved.specialistRouteCode,
-        saved.specialist_route_code,
-        saved.paymentDestinationCode,
-        saved.payment_destination_code,
-        saved.documentTypeCode,
-        saved.document_type_code,
-        saved.accountingCategoryCode,
-        saved.accounting_category_code,
-        saved.payableKindCode,
-        saved.payable_kind_code,
-
-        draft.specialist_route_code,
-        draft.specialistRouteCode,
-        draft.payment_destination_code,
-        draft.paymentDestinationCode,
-        draft.document_type_code,
-        draft.documentTypeCode,
-        draft.accounting_category_code,
-        draft.accountingCategoryCode,
-        draft.payable_kind_code,
-        draft.payableKindCode,
-
-        latest.specialistRouteLabel,
-        latest.specialist_route_label,
-        latest.paymentDestinationLabel,
-        latest.payment_destination_label,
-        latest.documentTypeLabel,
-        latest.document_type_label,
-
-        saved.specialistRouteLabel,
-        saved.specialist_route_label,
-        saved.paymentDestinationLabel,
-        saved.payment_destination_label,
-        saved.documentTypeLabel,
-        saved.document_type_label,
-
-        draft.specialist_route_label,
-        draft.specialistRouteLabel,
-        draft.payment_destination_label,
-        draft.paymentDestinationLabel,
-        draft.document_type_label,
-        draft.documentTypeLabel,
-
-        aiSummary.document_kind,
-        aiSummary.destination,
-        aiSummary.public_utility_flag,
-        aiSummary.utility_communication_flag,
-        aiSummary.payable_target,
-        aiSummary.payment_target,
-        aiSummary.reason
-      ].map(norm).join(" ");
-    }
-
-    return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
-      const text = collectText(item);
-
-      if (!text) {
-        return false;
-      }
-
-      if (
-        text.includes("utility_communication") ||
-        text.includes("utilitycommunication") ||
-        text.includes("utility_notice") ||
-        text.includes("utilitynotice") ||
-        text.includes("public_utility") ||
-        text.includes("publicutility") ||
-        text.includes("communication")
-      ) {
-        return true;
-      }
-
-      const isOtherSpecialist =
-        text.includes("invoice_payable") ||
-        text.includes("accountspayable") ||
-        text.includes("accounts_payable") ||
-        text.includes("tax_public") ||
-        text.includes("taxpublic") ||
-        text.includes("tax_payment") ||
-        text.includes("taxpayment") ||
-        text.includes("card_statement") ||
-        text.includes("paid_evidence") ||
-        text.includes("contract_insurance_lease") ||
-        text.includes("contractinsurancelease") ||
-        text.includes("reference_check") ||
-        text.includes("cardpayable") ||
-        text.includes("receipt") ||
-        text.includes("insurance") ||
-        text.includes("lease") ||
-        text.includes("contract") ||
-        text.includes("請求未払") ||
-        text.includes("買掛") ||
-        text.includes("税金") ||
-        text.includes("公的") ||
-        text.includes("納付") ||
-        text.includes("領収") ||
-        text.includes("レシート") ||
-        text.includes("保険") ||
-        text.includes("リース") ||
-        text.includes("契約") ||
-        text.includes("照合用");
-
-      if (isOtherSpecialist) {
-        return false;
-      }
-
+    function objectValue(value) {
       return (
-        text.includes("公共料金") ||
-        text.includes("通信費") ||
-        text.includes("電気") ||
-        text.includes("電力") ||
-        text.includes("水道") ||
-        text.includes("ガス") ||
-        text.includes("上下水道") ||
-        text.includes("下水道") ||
-        text.includes("電話") ||
-        text.includes("携帯") ||
-        text.includes("スマホ") ||
-        text.includes("インターネット") ||
-        text.includes("ネット回線") ||
-        text.includes("回線") ||
-        text.includes("プロバイダ") ||
-        text.includes("ntt") ||
-        text.includes("docomo") ||
-        text.includes("ドコモ") ||
-        text.includes("au") ||
-        text.includes("kddi") ||
-        text.includes("softbank") ||
-        text.includes("ソフトバンク") ||
-        text.includes("関西電力") ||
-        text.includes("大阪ガス") ||
-        text.includes("水道局")
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+      )
+        ? value
+        : {};
+    }
+
+    function analysisSystemCodeOf(item) {
+      const source = objectValue(item);
+
+      const latest = objectValue(
+        source.latestSortingDraft ||
+        source.latest_sorting_draft
+      );
+
+      const saved = objectValue(
+        source.__savedSortingDraft ||
+        source.savedSortingDraft ||
+        source.sortingDraft ||
+        source.sorting_draft
+      );
+
+      const draft = objectValue(
+        source.__aiDraft ||
+        source.aiDraft ||
+        source.draft
+      );
+
+      const sortResult = objectValue(
+        source.sortResult ||
+        source.sort_result
+      );
+
+      const candidates = [
+        latest.analysisSystemCode,
+        latest.analysis_system_code,
+
+        saved.analysisSystemCode,
+        saved.analysis_system_code,
+
+        draft.analysisSystemCode,
+        draft.analysis_system_code,
+
+        sortResult.analysisSystemCode,
+        sortResult.analysis_system_code,
+
+        source.analysisSystemCode,
+        source.analysis_system_code
+      ];
+
+      for (const candidate of candidates) {
+        const code = textValue(candidate);
+
+        if (code) {
+          return code;
+        }
+      }
+
+      return "";
+    }
+
+    return (
+      Array.isArray(allItems)
+        ? allItems
+        : []
+    ).filter(function(item) {
+      return (
+        analysisSystemCodeOf(item) ===
+        expectedAnalysisSystemCode
       );
     });
   };
-/* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_END */
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -6600,6 +6645,8 @@ function setDocumentPreview(item) {
 <!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
 </body>
 </html>
+
+
 
 
 
