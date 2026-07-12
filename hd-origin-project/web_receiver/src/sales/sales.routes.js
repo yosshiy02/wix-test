@@ -123,6 +123,329 @@ async function handleSalesRoutes(req, res) {
     return true;
   }
 
+  /* GPT00_SALES_PRODUCT_MASTER_ROUTES_20260712_START */
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/sales/product-master/products"
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    body.company_id = companyId;
+
+    sendJson(res, 201, {
+      ok: true,
+      company_id: companyId,
+      product:
+        await repo.saveProductMasterBasic(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  const productMasterProductId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/product-master\/products\/(\d+)$/
+    );
+
+  if (
+    req.method === "PUT" &&
+    productMasterProductId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    body.company_id = companyId;
+    body.product_id =
+      productMasterProductId;
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      product:
+        await repo.saveProductMasterBasic(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/sales/colors"
+  ) {
+    const companyId =
+      companyIdFrom(parsed);
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      colors:
+        await repo.listProductColors(
+          companyId,
+          {
+            is_active:
+              parsed.searchParams.get(
+                "is_active"
+              )
+          }
+        )
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/sales/colors"
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    body.company_id = companyId;
+
+    sendJson(res, 201, {
+      ok: true,
+      company_id: companyId,
+      color:
+        await repo.saveProductColor(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  const colorMasterId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/colors\/(\d+)$/
+    );
+
+  if (
+    req.method === "PUT" &&
+    colorMasterId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    body.company_id = companyId;
+    body.color_id = colorMasterId;
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      color:
+        await repo.saveProductColor(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  const colorMasterActiveId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/colors\/(\d+)\/active$/
+    );
+
+  if (
+    req.method === "PATCH" &&
+    colorMasterActiveId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      color:
+        await repo.setProductColorActive(
+          colorMasterActiveId,
+          body.is_active,
+          companyId
+        )
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/sales/sizes"
+  ) {
+    const companyId =
+      companyIdFrom(parsed);
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      sizes:
+        await repo.listProductSizes({
+          is_active:
+            parsed.searchParams.get(
+              "is_active"
+            )
+        })
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/sales/sizes"
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    sendJson(res, 201, {
+      ok: true,
+      company_id: companyId,
+      size:
+        await repo.saveProductSize(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  const sizeMasterId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/sizes\/(\d+)$/
+    );
+
+  if (
+    req.method === "PUT" &&
+    sizeMasterId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    body.size_id = sizeMasterId;
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      size:
+        await repo.saveProductSize(
+          body
+        )
+    });
+
+    return true;
+  }
+
+  const sizeMasterActiveId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/sizes\/(\d+)\/active$/
+    );
+
+  if (
+    req.method === "PATCH" &&
+    sizeMasterActiveId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      size:
+        await repo.setProductSizeActive(
+          sizeMasterActiveId,
+          body.is_active
+        )
+    });
+
+    return true;
+  }
+
+  const productVariantProductId =
+    numericId(
+      pathname,
+      /^\/api\/sales\/products\/(\d+)\/variants$/
+    );
+
+  if (
+    req.method === "GET" &&
+    productVariantProductId
+  ) {
+    const companyId =
+      companyIdFrom(parsed);
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      matrix:
+        await repo.getProductVariantMatrix(
+          productVariantProductId,
+          companyId
+        )
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "PUT" &&
+    productVariantProductId
+  ) {
+    const body = await readJsonBody(req);
+    const companyId = companyIdFrom(
+      parsed,
+      body
+    );
+
+    sendJson(res, 200, {
+      ok: true,
+      company_id: companyId,
+      matrix:
+        await repo.replaceProductVariants(
+          productVariantProductId,
+          companyId,
+          body
+        )
+    });
+
+    return true;
+  }
+
+  /* GPT00_SALES_PRODUCT_MASTER_ROUTES_20260712_END */
+
   if (req.method === "GET" && pathname === "/api/sales/customer-prices") {
     const companyId = companyIdFrom(parsed);
     sendJson(res, 200, {

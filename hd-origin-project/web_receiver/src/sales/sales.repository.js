@@ -1000,3 +1000,984 @@ module.exports = {
   addAccessOrderQueue,
   getSummary
 };
+
+/* GPT00_SALES_PRODUCT_MASTER_API_20260712_START */
+
+const __salesProductMasterPool =
+  require("../db");
+
+function __salesProductMasterError(
+  message,
+  statusCode = 400
+) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function __salesProductMasterPositiveId(
+  value,
+  label
+) {
+  const number = Number(value);
+
+  if (
+    !Number.isInteger(number) ||
+    number <= 0
+  ) {
+    throw __salesProductMasterError(
+      label + "が不正です。"
+    );
+  }
+
+  return number;
+}
+
+function __salesProductMasterText(
+  value,
+  label,
+  maxLength = 100
+) {
+  const result = String(
+    value == null ? "" : value
+  ).trim();
+
+  if (!result) {
+    throw __salesProductMasterError(
+      label + "は必須です。"
+    );
+  }
+
+  if (result.length > maxLength) {
+    throw __salesProductMasterError(
+      label +
+      "は" +
+      maxLength +
+      "文字以内で入力してください。"
+    );
+  }
+
+  return result;
+}
+
+function __salesProductMasterBoolean(
+  value,
+  defaultValue = true
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return defaultValue;
+  }
+
+  if (
+    value === true ||
+    value === 1 ||
+    value === "1" ||
+    String(value).toLowerCase() === "true"
+  ) {
+    return true;
+  }
+
+  if (
+    value === false ||
+    value === 0 ||
+    value === "0" ||
+    String(value).toLowerCase() === "false"
+  ) {
+    return false;
+  }
+
+  return defaultValue;
+}
+
+function __salesProductMasterInteger(
+  value,
+  defaultValue = 0
+) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return defaultValue;
+  }
+
+  return Math.trunc(number);
+}
+
+function __salesProductMasterHandleDbError(
+  error,
+  duplicateMessage
+) {
+  if (
+    error &&
+    error.code === "23505"
+  ) {
+    throw __salesProductMasterError(
+      duplicateMessage,
+      409
+    );
+  }
+
+  if (
+    error &&
+    error.code === "23503"
+  ) {
+    throw __salesProductMasterError(
+      "他のデータから使用されているため処理できません。",
+      409
+    );
+  }
+
+  throw error;
+}
+
+async function saveProductMasterBasic(body = {}) {
+  const companyId =
+    __salesProductMasterPositiveId(
+      body.company_id,
+      "会社ID"
+    );
+
+  const productCode =
+    __salesProductMasterText(
+      body.product_code,
+      "商品ID",
+      100
+    );
+
+  const productName =
+    __salesProductMasterText(
+      body.product_name,
+      "商品名",
+      300
+    );
+
+  const isActive =
+    __salesProductMasterBoolean(
+      body.is_active,
+      true
+    );
+
+  const productId =
+    body.product_id == null ||
+    body.product_id === ""
+      ? null
+      : __salesProductMasterPositiveId(
+          body.product_id,
+          "商品内部番号"
+        );
+
+  try {
+    if (productId) {
+      const result =
+        await __salesProductMasterPool.query(
+          `
+          UPDATE sales.products
+          SET
+            product_code = $3,
+            product_name = $4,
+            is_active = $5,
+            updated_at = NOW()
+          WHERE product_id = $1
+            AND company_id = $2
+          RETURNING *
+          `,
+          [
+            productId,
+            companyId,
+            productCode,
+            productName,
+            isActive
+          ]
+        );
+
+      if (!result.rows[0]) {
+        throw __salesProductMasterError(
+          "対象商品が見つかりません。",
+          404
+        );
+      }
+
+      return result.rows[0];
+    }
+
+    const result =
+      await __salesProductMasterPool.query(
+        `
+        INSERT INTO sales.products (
+          company_id,
+          product_code,
+          product_name,
+          unit_name,
+          standard_price,
+          standard_cost,
+          tax_rate,
+          is_active
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          '足',
+          0,
+          0,
+          0.10,
+          $4
+        )
+        RETURNING *
+        `,
+        [
+          companyId,
+          productCode,
+          productName,
+          isActive
+        ]
+      );
+
+    return result.rows[0];
+  }
+  catch (error) {
+    __salesProductMasterHandleDbError(
+      error,
+      "同じ会社に同じ商品IDが既にあります。"
+    );
+  }
+}
+
+async function listProductColors(
+  companyIdValue,
+  options = {}
+) {
+  const companyId =
+    __salesProductMasterPositiveId(
+      companyIdValue,
+      "会社ID"
+    );
+
+  const values = [companyId];
+  const where = [
+    "company_id = $1"
+  ];
+
+  if (
+    options.is_active !== undefined &&
+    options.is_active !== null &&
+    options.is_active !== ""
+  ) {
+    values.push(
+      __salesProductMasterBoolean(
+        options.is_active
+      )
+    );
+
+    where.push(
+      "is_active = $" + values.length
+    );
+  }
+
+  const result =
+    await __salesProductMasterPool.query(
+      `
+      SELECT
+        color_id,
+        company_id,
+        color_code,
+        color_name,
+        sort_order,
+        is_active,
+        created_at,
+        updated_at
+      FROM sales.colors
+      WHERE ${where.join(" AND ")}
+      ORDER BY
+        is_active DESC,
+        sort_order,
+        color_code,
+        color_id
+      `,
+      values
+    );
+
+  return result.rows;
+}
+
+async function saveProductColor(body = {}) {
+  const companyId =
+    __salesProductMasterPositiveId(
+      body.company_id,
+      "会社ID"
+    );
+
+  const colorCode =
+    __salesProductMasterText(
+      body.color_code,
+      "色ID",
+      20
+    );
+
+  const colorName =
+    __salesProductMasterText(
+      body.color_name,
+      "色名",
+      100
+    );
+
+  const sortOrder =
+    __salesProductMasterInteger(
+      body.sort_order,
+      0
+    );
+
+  const isActive =
+    __salesProductMasterBoolean(
+      body.is_active,
+      true
+    );
+
+  const colorId =
+    body.color_id == null ||
+    body.color_id === ""
+      ? null
+      : __salesProductMasterPositiveId(
+          body.color_id,
+          "色内部番号"
+        );
+
+  try {
+    if (colorId) {
+      const result =
+        await __salesProductMasterPool.query(
+          `
+          UPDATE sales.colors
+          SET
+            color_code = $3,
+            color_name = $4,
+            sort_order = $5,
+            is_active = $6,
+            updated_at = NOW()
+          WHERE color_id = $1
+            AND company_id = $2
+          RETURNING *
+          `,
+          [
+            colorId,
+            companyId,
+            colorCode,
+            colorName,
+            sortOrder,
+            isActive
+          ]
+        );
+
+      if (!result.rows[0]) {
+        throw __salesProductMasterError(
+          "対象色が見つかりません。",
+          404
+        );
+      }
+
+      return result.rows[0];
+    }
+
+    const result =
+      await __salesProductMasterPool.query(
+        `
+        INSERT INTO sales.colors (
+          company_id,
+          color_code,
+          color_name,
+          sort_order,
+          is_active
+        )
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+        `,
+        [
+          companyId,
+          colorCode,
+          colorName,
+          sortOrder,
+          isActive
+        ]
+      );
+
+    return result.rows[0];
+  }
+  catch (error) {
+    __salesProductMasterHandleDbError(
+      error,
+      "同じ会社に同じ色IDが既にあります。"
+    );
+  }
+}
+
+async function setProductColorActive(
+  colorIdValue,
+  isActiveValue,
+  companyIdValue
+) {
+  const colorId =
+    __salesProductMasterPositiveId(
+      colorIdValue,
+      "色内部番号"
+    );
+
+  const companyId =
+    __salesProductMasterPositiveId(
+      companyIdValue,
+      "会社ID"
+    );
+
+  const isActive =
+    __salesProductMasterBoolean(
+      isActiveValue,
+      true
+    );
+
+  const result =
+    await __salesProductMasterPool.query(
+      `
+      UPDATE sales.colors
+      SET
+        is_active = $3,
+        updated_at = NOW()
+      WHERE color_id = $1
+        AND company_id = $2
+      RETURNING *
+      `,
+      [
+        colorId,
+        companyId,
+        isActive
+      ]
+    );
+
+  if (!result.rows[0]) {
+    throw __salesProductMasterError(
+      "対象色が見つかりません。",
+      404
+    );
+  }
+
+  return result.rows[0];
+}
+
+async function listProductSizes(
+  options = {}
+) {
+  const values = [];
+  const where = [];
+
+  if (
+    options.is_active !== undefined &&
+    options.is_active !== null &&
+    options.is_active !== ""
+  ) {
+    values.push(
+      __salesProductMasterBoolean(
+        options.is_active
+      )
+    );
+
+    where.push(
+      "is_active = $" + values.length
+    );
+  }
+
+  const whereSql =
+    where.length
+      ? "WHERE " + where.join(" AND ")
+      : "";
+
+  const result =
+    await __salesProductMasterPool.query(
+      `
+      SELECT
+        size_id,
+        size_code,
+        size_name,
+        size_category,
+        sort_order,
+        is_active,
+        created_at,
+        updated_at
+      FROM sales.product_sizes
+      ${whereSql}
+      ORDER BY
+        is_active DESC,
+        sort_order,
+        size_id
+      `,
+      values
+    );
+
+  return result.rows;
+}
+
+async function saveProductSize(body = {}) {
+  const sizeCode =
+    __salesProductMasterText(
+      body.size_code,
+      "サイズコード",
+      30
+    );
+
+  const sizeName =
+    __salesProductMasterText(
+      body.size_name,
+      "サイズ名",
+      100
+    );
+
+  const sizeCategory =
+    String(
+      body.size_category || "OTHER"
+    ).trim().toUpperCase();
+
+  const allowedCategories =
+    new Set([
+      "CM",
+      "ALPHA",
+      "OTHER"
+    ]);
+
+  if (!allowedCategories.has(sizeCategory)) {
+    throw __salesProductMasterError(
+      "サイズ区分が不正です。"
+    );
+  }
+
+  const sortOrder =
+    __salesProductMasterInteger(
+      body.sort_order,
+      0
+    );
+
+  const isActive =
+    __salesProductMasterBoolean(
+      body.is_active,
+      true
+    );
+
+  const sizeId =
+    body.size_id == null ||
+    body.size_id === ""
+      ? null
+      : __salesProductMasterPositiveId(
+          body.size_id,
+          "サイズ内部番号"
+        );
+
+  try {
+    if (sizeId) {
+      const result =
+        await __salesProductMasterPool.query(
+          `
+          UPDATE sales.product_sizes
+          SET
+            size_code = $2,
+            size_name = $3,
+            size_category = $4,
+            sort_order = $5,
+            is_active = $6,
+            updated_at = NOW()
+          WHERE size_id = $1
+          RETURNING *
+          `,
+          [
+            sizeId,
+            sizeCode,
+            sizeName,
+            sizeCategory,
+            sortOrder,
+            isActive
+          ]
+        );
+
+      if (!result.rows[0]) {
+        throw __salesProductMasterError(
+          "対象サイズが見つかりません。",
+          404
+        );
+      }
+
+      return result.rows[0];
+    }
+
+    const result =
+      await __salesProductMasterPool.query(
+        `
+        INSERT INTO sales.product_sizes (
+          size_code,
+          size_name,
+          size_category,
+          sort_order,
+          is_active
+        )
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+        `,
+        [
+          sizeCode,
+          sizeName,
+          sizeCategory,
+          sortOrder,
+          isActive
+        ]
+      );
+
+    return result.rows[0];
+  }
+  catch (error) {
+    __salesProductMasterHandleDbError(
+      error,
+      "同じサイズコードが既にあります。"
+    );
+  }
+}
+
+async function setProductSizeActive(
+  sizeIdValue,
+  isActiveValue
+) {
+  const sizeId =
+    __salesProductMasterPositiveId(
+      sizeIdValue,
+      "サイズ内部番号"
+    );
+
+  const isActive =
+    __salesProductMasterBoolean(
+      isActiveValue,
+      true
+    );
+
+  const result =
+    await __salesProductMasterPool.query(
+      `
+      UPDATE sales.product_sizes
+      SET
+        is_active = $2,
+        updated_at = NOW()
+      WHERE size_id = $1
+      RETURNING *
+      `,
+      [
+        sizeId,
+        isActive
+      ]
+    );
+
+  if (!result.rows[0]) {
+    throw __salesProductMasterError(
+      "対象サイズが見つかりません。",
+      404
+    );
+  }
+
+  return result.rows[0];
+}
+
+async function getProductVariantMatrix(
+  productIdValue,
+  companyIdValue
+) {
+  const productId =
+    __salesProductMasterPositiveId(
+      productIdValue,
+      "商品内部番号"
+    );
+
+  const companyId =
+    __salesProductMasterPositiveId(
+      companyIdValue,
+      "会社ID"
+    );
+
+  const productResult =
+    await __salesProductMasterPool.query(
+      `
+      SELECT *
+      FROM sales.products
+      WHERE product_id = $1
+        AND company_id = $2
+      `,
+      [
+        productId,
+        companyId
+      ]
+    );
+
+  if (!productResult.rows[0]) {
+    throw __salesProductMasterError(
+      "対象商品が見つかりません。",
+      404
+    );
+  }
+
+  const [
+    colors,
+    sizes,
+    variants
+  ] = await Promise.all([
+    listProductColors(companyId),
+    listProductSizes(),
+    __salesProductMasterPool.query(
+      `
+      SELECT
+        variant_id,
+        company_id,
+        product_id,
+        color_id,
+        size_id,
+        variant_code,
+        sort_order,
+        is_active
+      FROM sales.product_variants
+      WHERE product_id = $1
+        AND company_id = $2
+      ORDER BY
+        sort_order,
+        variant_id
+      `,
+      [
+        productId,
+        companyId
+      ]
+    )
+  ]);
+
+  return {
+    product: productResult.rows[0],
+    colors,
+    sizes,
+    variants: variants.rows
+  };
+}
+
+async function replaceProductVariants(
+  productIdValue,
+  companyIdValue,
+  body = {}
+) {
+  const productId =
+    __salesProductMasterPositiveId(
+      productIdValue,
+      "商品内部番号"
+    );
+
+  const companyId =
+    __salesProductMasterPositiveId(
+      companyIdValue,
+      "会社ID"
+    );
+
+  const sourceVariants =
+    Array.isArray(body.variants)
+      ? body.variants
+      : [];
+
+  const uniquePairs = new Map();
+
+  for (const source of sourceVariants) {
+    const colorId =
+      __salesProductMasterPositiveId(
+        source.color_id,
+        "色内部番号"
+      );
+
+    const sizeId =
+      __salesProductMasterPositiveId(
+        source.size_id,
+        "サイズ内部番号"
+      );
+
+    const key =
+      String(colorId) +
+      ":" +
+      String(sizeId);
+
+    uniquePairs.set(key, {
+      color_id: colorId,
+      size_id: sizeId
+    });
+  }
+
+  const variants =
+    Array.from(uniquePairs.values());
+
+  const client =
+    await __salesProductMasterPool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const productResult =
+      await client.query(
+        `
+        SELECT product_id
+        FROM sales.products
+        WHERE product_id = $1
+          AND company_id = $2
+        FOR UPDATE
+        `,
+        [
+          productId,
+          companyId
+        ]
+      );
+
+    if (!productResult.rows[0]) {
+      throw __salesProductMasterError(
+        "対象商品が見つかりません。",
+        404
+      );
+    }
+
+    const colorIds =
+      Array.from(
+        new Set(
+          variants.map(
+            row => row.color_id
+          )
+        )
+      );
+
+    const sizeIds =
+      Array.from(
+        new Set(
+          variants.map(
+            row => row.size_id
+          )
+        )
+      );
+
+    if (colorIds.length) {
+      const colorResult =
+        await client.query(
+          `
+          SELECT color_id
+          FROM sales.colors
+          WHERE company_id = $1
+            AND color_id = ANY($2::BIGINT[])
+          `,
+          [
+            companyId,
+            colorIds
+          ]
+        );
+
+      if (
+        colorResult.rows.length !==
+        colorIds.length
+      ) {
+        throw __salesProductMasterError(
+          "選択された色に、対象会社では使用できない色があります。"
+        );
+      }
+    }
+
+    if (sizeIds.length) {
+      const sizeResult =
+        await client.query(
+          `
+          SELECT size_id
+          FROM sales.product_sizes
+          WHERE size_id = ANY($1::BIGINT[])
+          `,
+          [
+            sizeIds
+          ]
+        );
+
+      if (
+        sizeResult.rows.length !==
+        sizeIds.length
+      ) {
+        throw __salesProductMasterError(
+          "選択されたサイズに存在しないサイズがあります。"
+        );
+      }
+    }
+
+    await client.query(
+      `
+      DELETE FROM sales.product_variants
+      WHERE product_id = $1
+        AND company_id = $2
+      `,
+      [
+        productId,
+        companyId
+      ]
+    );
+
+    let sortOrder = 10;
+
+    for (const variant of variants) {
+      await client.query(
+        `
+        INSERT INTO sales.product_variants (
+          company_id,
+          product_id,
+          color_id,
+          size_id,
+          sort_order,
+          is_active
+        )
+        VALUES ($1, $2, $3, $4, $5, TRUE)
+        `,
+        [
+          companyId,
+          productId,
+          variant.color_id,
+          variant.size_id,
+          sortOrder
+        ]
+      );
+
+      sortOrder += 10;
+    }
+
+    await client.query("COMMIT");
+  }
+  catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    }
+    catch (_) {
+    }
+
+    __salesProductMasterHandleDbError(
+      error,
+      "同じ商品・色・サイズの組合せが重複しています。"
+    );
+  }
+  finally {
+    client.release();
+  }
+
+  return await getProductVariantMatrix(
+    productId,
+    companyId
+  );
+}
+
+Object.assign(
+  module.exports,
+  {
+    saveProductMasterBasic,
+    listProductColors,
+    saveProductColor,
+    setProductColorActive,
+    listProductSizes,
+    saveProductSize,
+    setProductSizeActive,
+    getProductVariantMatrix,
+    replaceProductVariants
+  }
+);
+
+/* GPT00_SALES_PRODUCT_MASTER_API_20260712_END */

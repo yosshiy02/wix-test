@@ -694,6 +694,26 @@ ON CONFLICT (treatment_name) DO UPDATE SET
   if (salesCompanyScopeMigrationSql.trim()) {
     await runTargetSql(salesCompanyScopeMigrationSql);
   }
+
+  /* GPT00_SALES_PRODUCT_MASTER_FOUNDATION_20260712_START */
+  const salesProductMasterFoundationMigrationSql =
+    readSqlIfExists(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "database",
+        "migrations",
+        "20260712_005_sales_product_master_foundation.sql"
+      )
+    );
+
+  if (salesProductMasterFoundationMigrationSql.trim()) {
+    await runTargetSql(
+      salesProductMasterFoundationMigrationSql
+    );
+  }
+  /* GPT00_SALES_PRODUCT_MASTER_FOUNDATION_20260712_END */
   /* GPT00_SALES_COMPANY_SCOPE_BOOTSTRAP_20260712_END */
   console.log(`[DB] ready: ${dbName}`);
 
