@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>台帳・管理 | HD Origin</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:rgba(35,48,76,.12);
+  --blue:#3264ff;--green:#138a62;--amber:#b26a00;--purple:#7754d6;--slate:#596579;
+  --shadow:0 18px 48px rgba(32,44,72,.12);--soft:0 8px 24px rgba(32,44,72,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--ink);
+  font-family:"Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(50,100,255,.18),transparent 32rem),
+    radial-gradient(circle at 85% 8%,rgba(19,138,98,.14),transparent 28rem),
+    linear-gradient(180deg,#fbfcff,#f3f6fb);
+}
+a{color:inherit;text-decoration:none}
+.page{width:min(1380px,calc(100% - 32px));margin:0 auto;padding:28px 0 48px}
+.hero{
+  border:1px solid var(--line);border-radius:32px;background:rgba(255,255,255,.9);
+  box-shadow:var(--shadow);padding:28px;
+}
+.hero-grid{display:grid;grid-template-columns:1fr minmax(320px,520px);gap:22px;align-items:end}
+.badge-top{
+  display:inline-flex;padding:7px 12px;border-radius:999px;background:#eef3ff;color:#2348c7;
+  font-size:13px;font-weight:800;border:1px solid rgba(50,100,255,.16)
+}
+h1{margin:14px 0 10px;font-size:clamp(32px,4vw,52px);letter-spacing:-.04em}
+.hero p{margin:0;color:var(--muted);line-height:1.8}
+.tools{display:grid;gap:12px}
+.box{
+  display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border:1px solid var(--line);
+  border-radius:18px;background:#fff;box-shadow:var(--soft)
+}
+.box input,.box select{width:100%;border:0;outline:0;background:transparent;font:inherit}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0 22px}
+.summary-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--soft)}
+.summary-label{font-size:13px;color:var(--muted)}
+.summary-value{font-size:34px;font-weight:900;letter-spacing:-.04em;margin-top:6px}
+.summary-note{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.filter{
+  border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--slate);
+  padding:9px 14px;cursor:pointer;font-weight:700
+}
+.filter.active{border-color:rgba(50,100,255,.35);background:#eef3ff;color:#2348c7}
+.notice{
+  margin-bottom:18px;border:1px solid rgba(119,84,214,.18);border-radius:24px;
+  background:linear-gradient(135deg,rgba(119,84,214,.08),rgba(50,100,255,.05));
+  padding:16px 18px;color:#51446f;font-size:13px;line-height:1.7
+}
+.sections{display:grid;gap:18px}
+.section{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:30px;box-shadow:var(--soft);overflow:hidden}
+.section-head{display:flex;justify-content:space-between;gap:12px;padding:22px;border-bottom:1px solid var(--line)}
+.section h2{margin:0;font-size:20px}
+.section p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+.count{min-width:96px;text-align:center;border:1px solid var(--line);border-radius:16px;padding:8px 10px;background:#fff;color:var(--muted);font-size:12px}
+.count strong{display:block;color:var(--ink);font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px}
+.item{
+  min-height:172px;border:1px solid var(--line);border-radius:22px;background:#fff;padding:16px;
+  display:flex;flex-direction:column;transition:.16s ease
+}
+a.item:hover{transform:translateY(-2px);border-color:rgba(50,100,255,.38);box-shadow:0 18px 34px rgba(50,100,255,.12)}
+.item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.item h3{margin:0;font-size:16px;line-height:1.45}
+.tag{white-space:nowrap;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;border:1px solid}
+.ledger{background:#e9f8f2;color:var(--green);border-color:rgba(19,138,98,.2)}
+.working{background:#f1edff;color:var(--purple);border-color:rgba(119,84,214,.22)}
+.attention{background:#fff3d6;color:var(--amber);border-color:rgba(178,106,0,.22)}
+.planned{background:#eef2f7;color:var(--slate);border-color:rgba(89,101,121,.18)}
+.setting{background:#eef3ff;color:#2348c7;border-color:rgba(50,100,255,.18)}
+.note{color:var(--muted);font-size:13px;line-height:1.65;margin:12px 0 14px;flex:1}
+.action{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:auto}
+.path{min-width:0;color:#8a95a8;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{border-radius:14px;padding:9px 12px;font-size:12px;font-weight:900;white-space:nowrap}
+.open{background:var(--blue);color:#fff;box-shadow:0 12px 18px rgba(50,100,255,.22)}
+.workbtn{background:#7754d6;color:#fff;box-shadow:0 12px 18px rgba(119,84,214,.18)}
+.disabled{background:#eef2f7;color:var(--slate)}
+.footer{margin-top:18px;border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.75);padding:16px 18px;color:var(--muted);font-size:13px;line-height:1.7}
+.empty{display:none;text-align:center;border:1px dashed rgba(35,48,76,.2);border-radius:24px;background:#fff;padding:30px;color:var(--muted)}
+.empty.show{display:block}
+@media(max-width:1060px){.hero-grid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.page{width:calc(100% - 20px);padding-top:14px}.hero{padding:20px}.summary{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.section-head{flex-direction:column}}
+</style>
+<!-- GPT00_LEDGER_BACK_TO_MAIN_STYLE_START -->
+<style>
+  .hd-ledger-back-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .hd-ledger-back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 10px 15px;
+    border-radius: 999px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.86);
+    color: #172033 !important;
+    text-decoration: none !important;
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    box-shadow: 0 10px 24px rgba(32,44,72,.08);
+  }
+
+  .hd-ledger-back-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(50,100,255,.32);
+    box-shadow: 0 14px 30px rgba(50,100,255,.12);
+  }
+
+  .hd-ledger-back-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #2348c7;
+    font-weight: 900;
+  }
+
+  .hd-ledger-back-caption {
+    color: #667085;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 680px) {
+    .hd-ledger-back-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .hd-ledger-back-caption {
+      display: none;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_BACK_TO_MAIN_STYLE_END -->
+</head>
+<body>
+<main class="page">
+<!-- GPT00_LEDGER_BACK_TO_MAIN_START -->
+<div class="hd-ledger-back-row">
+  <a class="hd-ledger-back-button" href="/index.html" aria-label="メインメニューに戻る">
+    <span class="hd-ledger-back-icon">←</span>
+    <span>メインメニューに戻る</span>
+  </a>
+  <div class="hd-ledger-back-caption">台帳・管理はメインメニュー配下の業務入口です。</div>
+</div>
+<!-- GPT00_LEDGER_BACK_TO_MAIN_END -->
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="badge-top">HD Origin Ledger Hub</div>
+        <h1>台帳・管理</h1>
+        <p>支払、証憑、銀行照合、契約、会計連携の入口をひとつにまとめました。完成済み台帳・作業中の入口・準備中機能を分けて表示します。</p>
+      </div>
+      <div class="tools">
+        <label class="box"><span>検索</span><input id="q" type="search" placeholder="台帳名・説明で検索"></label>
+        <label class="box"><span>会社</span>
+          <select id="company">
+            <option value="HD_ORIGIN_STYLE">HDオリジンスタイル</option>
+            <option value="HATODAIYA">ハトダイヤ</option>
+            <option value="SAKAGUCHI_KATSUYASU_SHOTEN">坂口勝康商店</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="summary">
+    <div class="summary-card"><div class="summary-label">完成済み台帳</div><div class="summary-value" id="sLedger">0</div><div class="summary-note">台帳として開ける入口</div></div>
+    <div class="summary-card"><div class="summary-label">作業中入口</div><div class="summary-value" id="sWorking">0</div><div class="summary-note">仕分けなど台帳前工程</div></div>
+    <div class="summary-card"><div class="summary-label">準備中</div><div class="summary-value" id="sPlanned">0</div><div class="summary-note">未完成・未検出の入口</div></div>
+    <div class="summary-card"><div class="summary-label">分類</div><div class="summary-value" id="sSections">0</div><div class="summary-note">支払・証憑・銀行・契約・会計</div></div>
+  </section>
+
+  <div class="notice">
+    支払書類仕分けシステムは、台帳ではなく「台帳に入る前の中核工程」として扱います。
+    画面が存在していても、業務完成・台帳完成とは表示しません。
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <section class="sections" id="sections"></section>
+  <div class="empty" id="empty">条件に合う入口がありません。</div>
+
+  <div class="footer">
+    第1段階では、実データ件数を無理に表示せず、既存画面へ安全に入れることを優先しています。
+    仕分け側は作業中、源泉預り金台帳・照合エラー一覧・会計連携系は次工程として明示しています。
+  </div>
+</main>
+
+<script>
+const DATA = [
+  /* GPT00_SALES_LEDGER_CATEGORY_20260712 */
+  {
+    key: 'sales',
+    title: '販売・売掛',
+    sub:
+      '商品、得意先別単価、売上、請求、入金、売掛残高を会社別に管理します。',
+    items: [
+      {
+        title: '販売・売掛管理',
+        href: '/sales/sales-dashboard.html',
+        state: 'ledger',
+        tag: '総合入口',
+        note:
+          '販売管理全体のダッシュボードです。'
+      },
+      {
+        title: '商品マスタ',
+        href: '/sales/product-master.html',
+        state: 'ledger',
+        tag: 'マスタ',
+        note:
+          '商品コード、商品名、ブランド、色、サイズ、標準価格を管理します。'
+      },
+      {
+        title: '得意先別単価',
+        href: '/sales/customer-price-master.html',
+        state: 'ledger',
+        tag: '単価',
+        note:
+          '会社・得意先・商品ごとの販売単価を管理します。'
+      },
+      {
+        title: '売上伝票入力',
+        href: '/sales/sales-slip.html',
+        state: 'ledger',
+        tag: '売上',
+        note:
+          '売上伝票と売上明細を登録します。'
+      },
+      {
+        title: '売上一覧',
+        href: '/sales/sales-list.html',
+        state: 'ledger',
+        tag: '一覧',
+        note:
+          '登録済み売上伝票を確認します。'
+      },
+      {
+        title: '請求締め',
+        href: '/sales/billing-close.html',
+        state: 'ledger',
+        tag: '請求',
+        note:
+          '得意先別の請求締めを管理します。'
+      },
+      {
+        title: '請求書',
+        href: '/sales/invoice-list.html',
+        state: 'ledger',
+        tag: '請求書',
+        note:
+          '請求書の作成状況と売掛残高を確認します。'
+      },
+      {
+        title: '入金登録',
+        href: '/sales/payment-entry.html',
+        state: 'ledger',
+        tag: '入金',
+        note:
+          '得意先からの入金を会社別に登録します。'
+      },
+      {
+        title: '売掛台帳',
+        href: '/sales/receivable-ledger.html',
+        state: 'ledger',
+        tag: '台帳',
+        note:
+          '請求額、入金額、未回収残高を確認します。'
+      },
+      {
+        title: '入金消込',
+        href: '/sales/payment-allocation.html',
+        state: 'ledger',
+        tag: '消込',
+        note:
+          '入金と請求書を対応付けます。'
+      },
+      {
+        title: 'Access受注取込',
+        href: '/sales/access-order-import.html',
+        state: 'working',
+        tag: '取込',
+        note:
+          '既存Access受注を取り込む入口です。'
+      }
+    ]
+  },
+  {key:'payables',title:'支払・債務',sub:'未払、税金公的支払、源泉預り金、支払予定をまとめて確認します。',items:[
+    {title:'請求書・未払管理',href:'/payables/payable-list.html',state:'ledger',tag:'台帳候補',note:'請求書・未払の確認入口です。'},
+    {title:'税金・公的支払台帳',href:'/payables/payment-document-specialist-tax-public.html',state:'ledger',tag:'台帳候補',note:'税金・公的支払の専門画面へ接続します。'},
+    {title:'源泉預り金台帳',href:null,state:'planned',tag:'次工程',note:'DB連携は進行済み。人が見る一覧・詳細画面は次工程で作ります。'},
+    {title:'源泉所得税ルール設定',href:'/settings/withholding-tax-rules.html',state:'setting',tag:'設定',note:'会社別の通常納付・納期特例ルールを確認します。台帳ではなく設定画面です。'},
+    {title:'支払予定一覧',href:'/payables/payable-list.html',state:'ledger',tag:'確認',note:'未払・納期限の確認導線です。'},
+    {title:'支払済み一覧',href:'/payables/payable-list.html',state:'ledger',tag:'確認',note:'支払済みの後追い確認用です。'}
+  ]},
+  {key:'evidence',title:'経費・証憑',sub:'レシート、OCR済み支払書類、証憑未紐付けをまとめます。',items:[
+    {title:'レシート台帳',href:'/receipts/receipt-saved-list.html',state:'ledger',tag:'台帳',note:'本保存済みレシート台帳へ接続します。'},
+    {title:'支払書類仕分けシステム',href:'/payables/payment-document-review.html',state:'working',tag:'作業中',note:'台帳ではありません。OCR済み支払書類を仕分け、専門解析へ送る中核工程です。まだ完成扱いにしません。'},
+    {title:'証憑未紐付け一覧',href:'/payables/payment-document-review.html',state:'working',tag:'作業中',note:'未紐付け確認の入口です。仕分け整備中のため、完成済み台帳とは分けます。'},
+    {title:'支払済み証憑台帳',href:null,state:'planned',tag:'準備中',note:'支払済み証憑を一覧化するための入口です。'},
+    {title:'カード利用明細台帳',href:null,state:'planned',tag:'準備中',note:'カード明細専用台帳は未作成です。'}
+  ]},
+  {key:'bank',title:'銀行・照合',sub:'銀行取引明細、自動照合、未照合、複数候補を扱います。',items:[
+    {title:'銀行取引明細',href:'/bank/bank-transactions.html',state:'ledger',tag:'台帳候補',note:'銀行明細画面が検出できた場合だけ開けます。'},
+    {title:'未照合一覧',href:'/bank/bank-transactions.html',state:'working',tag:'作業中',note:'銀行未照合の確認導線です。照合専用画面が未完成のため作業中扱いです。'},
+    {title:'照合エラー一覧',href:null,state:'planned',tag:'次工程',note:'自動照合できなかったものを人が確認する画面です。'},
+    {title:'複数候補一覧',href:null,state:'planned',tag:'次工程',note:'AMBIGUOUSの手動確定画面として作る予定です。'}
+  ]},
+  {key:'contracts',title:'契約・継続支払',sub:'契約、保険、リース、更新期限、満了予定を集約します。',items:[
+    {title:'契約・保険・リース専門解析',href:'/payables/payment-document-specialist-contract-insurance-lease.html',state:'working',tag:'作業中',note:'専門解析画面への入口です。契約台帳そのものではないため作業中扱いです。'},
+    {title:'契約台帳',href:null,state:'planned',tag:'準備中',note:'契約書データの一覧・詳細画面は次工程です。'},
+    {title:'保険台帳',href:null,state:'planned',tag:'準備中',note:'保険料通知・保険契約の台帳化予定です。'},
+    {title:'リース台帳',href:null,state:'planned',tag:'準備中',note:'リース契約・支払予定との連携予定です。'},
+    {title:'更新期限一覧',href:null,state:'planned',tag:'準備中',note:'期限管理の横断一覧として作る予定です。'}
+  ]},
+  {key:'accounting',title:'会計連携',sub:'仕訳候補、未確定仕訳、確定済み仕訳、連携エラーを扱います。',items:[
+    {title:'仕訳候補台帳',href:null,state:'planned',tag:'将来',note:'支払・経費・税金から会計仕訳候補へ送る入口です。'},
+    {title:'未確定仕訳一覧',href:null,state:'planned',tag:'将来',note:'人間確認前の仕訳候補一覧です。'},
+    {title:'確定済み仕訳一覧',href:null,state:'planned',tag:'将来',note:'承認済み仕訳の確認用です。'},
+    {title:'会計連携エラー一覧',href:null,state:'planned',tag:'将来',note:'会計連携時の例外・不整合を確認します。'}
+  ]}
+];
+
+for (const sec of DATA) {
+  for (const item of sec.items) {
+    if (!item.href && item.state !== 'planned') {
+      item.state = 'planned';
+      item.tag = '未検出';
+      item.note += ' 現在のHTML棚卸しでは対象画面を検出できませんでした。';
+    }
+  }
+}
+
+let active = 'all';
+const q = document.getElementById('q');
+const company = document.getElementById('company');
+const sections = document.getElementById('sections');
+const filters = document.getElementById('filters');
+const empty = document.getElementById('empty');
+
+function norm(v){ return String(v || '').toLowerCase().replace(/\s+/g,''); }
+function allItems(){ return DATA.flatMap(s => s.items.map(i => ({...i, section:s.title}))); }
+function withCompany(href){
+  if(!href) return '';
+  const u = new URL(href, location.origin);
+  u.searchParams.set('company', company.value || '');
+  return u.pathname + u.search + u.hash;
+}
+function updateSummary(){
+  const items = allItems();
+  document.getElementById('sLedger').textContent = items.filter(i => i.href && i.state === 'ledger').length;
+  document.getElementById('sWorking').textContent = items.filter(i => i.href && i.state === 'working').length;
+  document.getElementById('sPlanned').textContent = items.filter(i => !i.href || i.state === 'planned').length;
+  document.getElementById('sSections').textContent = DATA.length;
+}
+function renderFilters(){
+  filters.innerHTML = '';
+  for(const f of [
+    {k:'all',l:'すべて'},
+    {k:'ledger',l:'完成済み台帳'},
+    {k:'working',l:'作業中入口'},
+    {k:'setting',l:'設定'},
+    {k:'planned',l:'準備中'}
+  ]){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'filter' + (active === f.k ? ' active' : '');
+    b.textContent = f.l;
+    b.onclick = () => { active = f.k; renderFilters(); render(); };
+    filters.appendChild(b);
+  }
+}
+function matchFilter(item){
+  if(active === 'all') return true;
+  if(active === 'planned') return !item.href || item.state === 'planned';
+  return item.href && item.state === active;
+}
+function card(item){
+  const el = document.createElement('div');
+  el.className = 'item';
+
+  const cls = item.state || (item.href ? 'ledger' : 'planned');
+
+  el.innerHTML =
+    '<div class="item-top"><h3></h3><span class="tag '+cls+'"></span></div>' +
+    '<div class="note"></div>' +
+    '<div class="action"><span class="path"></span><span class="actionButtons"></span></div>';
+
+  el.querySelector('h3').textContent = item.title;
+  el.querySelector('.tag').textContent = item.tag || '';
+  el.querySelector('.note').textContent = item.note || '';
+  el.querySelector('.path').textContent = item.href || '未作成・未接続';
+
+  const action = el.querySelector('.actionButtons');
+  action.className = 'actionButtons ledger-action-single';
+
+  if(!item.href){
+    action.innerHTML = '<span class="btn disabled">準備中</span>';
+    return el;
+  }
+
+  const a = document.createElement('a');
+
+  if(item.state === 'working'){
+    a.className = 'btn workbtn';
+    a.href = withCompany(item.href);
+    a.textContent = '作業へ →';
+    action.appendChild(a);
+    return el;
+  }
+
+  if(item.state === 'setting'){
+    a.className = 'btn open';
+    a.href = withCompany(item.href);
+    a.textContent = '設定へ →';
+    action.appendChild(a);
+    return el;
+  }
+
+  a.className = 'btn open';
+  a.href = withCompany(item.href);
+  a.textContent = '開く →';
+  action.appendChild(a);
+
+  return el;
+}
+
+function render(){
+  const query = norm(q.value);
+  sections.innerHTML = '';
+  let visible = 0;
+
+  for(const sec of DATA){
+    const items = sec.items
+      .filter(i => !query || norm(i.title + ' ' + i.note + ' ' + i.tag).includes(query))
+      .filter(matchFilter);
+
+    if(!items.length) continue;
+    visible += items.length;
+
+    const box = document.createElement('section');
+    box.className = 'section';
+    const linked = items.filter(i => i.href).length;
+    box.innerHTML =
+      '<div class="section-head"><div><h2></h2><p></p></div><div class="count"><strong>'+linked+'/'+items.length+'</strong>接続</div></div><div class="grid"></div>';
+    box.querySelector('h2').textContent = sec.title;
+    box.querySelector('p').textContent = sec.sub;
+
+    const grid = box.querySelector('.grid');
+    for(const item of items) grid.appendChild(card(item));
+    sections.appendChild(box);
+  }
+
+  empty.classList.toggle('show', visible === 0);
+}
+
+q.addEventListener('input', render);
+company.addEventListener('change', render);
+updateSummary();
+renderFilters();
+render();
+</script>
+</body>
+</html>

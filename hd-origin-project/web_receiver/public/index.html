@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -491,6 +491,435 @@
   }
 </style>
 <!-- GPT2_BUSINESS_FLOW_MAIN_BUTTON_STYLE_20260709_END -->
+
+<!-- GPT00_COMPANY_CONTEXT_20260711_START -->
+<style>
+  :root {
+    --company-primary: #1e3a8a;
+    --company-secondary: #2563eb;
+    --company-soft: rgba(37, 99, 235, 0.15);
+    --company-shadow: rgba(37, 99, 235, 0.24);
+  }
+
+  body {
+    transition: background 0.25s ease;
+  }
+
+  body[data-company-theme="hatodaiya"] {
+    --company-primary: #172554;
+    --company-secondary: #1d4ed8;
+    --company-soft: rgba(29, 78, 216, 0.15);
+    --company-shadow: rgba(29, 78, 216, 0.25);
+  }
+
+  body[data-company-theme="origin"] {
+    --company-primary: #075985;
+    --company-secondary: #0284c7;
+    --company-soft: rgba(2, 132, 199, 0.15);
+    --company-shadow: rgba(2, 132, 199, 0.24);
+  }
+
+  body[data-company-theme="sakaguchi"] {
+    --company-primary: #14532d;
+    --company-secondary: #15803d;
+    --company-soft: rgba(21, 128, 61, 0.15);
+    --company-shadow: rgba(21, 128, 61, 0.24);
+  }
+
+  body[data-company-theme="other"] {
+    --company-primary: #581c87;
+    --company-secondary: #7e22ce;
+    --company-soft: rgba(126, 34, 206, 0.14);
+    --company-shadow: rgba(126, 34, 206, 0.23);
+  }
+
+  body[data-company-theme] {
+    background:
+      radial-gradient(
+        circle at top left,
+        var(--company-soft),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at top right,
+        var(--company-soft),
+        transparent 30%
+      ),
+      linear-gradient(
+        135deg,
+        #f8fafc 0%,
+        var(--bg-main) 55%,
+        #e2e8f0 100%
+      );
+  }
+
+  body[data-company-theme] .hero {
+    background:
+      linear-gradient(
+        135deg,
+        var(--company-primary),
+        var(--company-secondary)
+      ),
+      radial-gradient(
+        circle at 80% 10%,
+        rgba(255, 255, 255, 0.24),
+        transparent 38%
+      );
+  }
+
+  body[data-company-theme] .hero-button.primary {
+    color: var(--company-primary);
+  }
+
+  body[data-company-theme] .small-button {
+    background:
+      linear-gradient(
+        135deg,
+        var(--company-primary),
+        var(--company-secondary)
+      );
+  }
+
+  .company-context-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px 4px;
+  }
+
+  .company-context-panel {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(300px, 0.7fr);
+    gap: 18px;
+    align-items: center;
+    padding: 18px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow:
+      0 14px 34px rgba(15, 23, 42, 0.11);
+    backdrop-filter: blur(14px);
+  }
+
+  .company-current {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .company-mark {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    flex: 0 0 auto;
+    border-radius: 17px;
+    background:
+      linear-gradient(
+        135deg,
+        var(--company-primary),
+        var(--company-secondary)
+      );
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900;
+    box-shadow:
+      0 10px 24px var(--company-shadow);
+  }
+
+  .company-copy {
+    min-width: 0;
+  }
+
+  .company-label {
+    margin-bottom: 3px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  .company-name {
+    overflow: hidden;
+    color: var(--company-primary);
+    font-size: clamp(19px, 2.4vw, 28px);
+    font-weight: 900;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .company-code {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .company-select-area {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+    gap: 8px;
+    align-items: end;
+  }
+
+  .company-select-field label {
+    display: block;
+    margin-bottom: 5px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  #companyContextSelect {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    outline: none;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 750;
+  }
+
+  #companyContextSelect:focus {
+    border-color: var(--company-secondary);
+    box-shadow:
+      0 0 0 4px var(--company-soft);
+  }
+
+  #companyContextApply {
+    min-height: 44px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 12px;
+    background:
+      linear-gradient(
+        135deg,
+        var(--company-primary),
+        var(--company-secondary)
+      );
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 850;
+    cursor: pointer;
+    box-shadow:
+      0 9px 20px var(--company-shadow);
+  }
+
+  #companyContextApply:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  .company-warning {
+    display: none;
+    grid-column: 1 / -1;
+    padding: 10px 12px;
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .company-warning.is-visible {
+    display: block;
+  }
+
+  body[data-company-selected="false"] .company-mark {
+    background:
+      linear-gradient(
+        135deg,
+        #64748b,
+        #94a3b8
+      );
+    box-shadow:
+      0 10px 24px rgba(100, 116, 139, 0.22);
+  }
+
+  body[data-company-selected="false"] .company-name {
+    color: #475569;
+  }
+
+  @media (max-width: 900px) {
+    .company-context-wrap {
+      padding-inline: 16px;
+    }
+
+    .company-context-panel {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .company-context-wrap {
+      padding-inline: 10px;
+    }
+
+    .company-context-panel {
+      padding: 15px;
+      border-radius: 18px;
+    }
+
+    .company-select-area {
+      grid-template-columns: 1fr;
+    }
+
+    #companyContextApply {
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_COMPANY_CONTEXT_20260711_END -->
+<!-- GPT00_LEDGER_MANAGEMENT_MAIN_STYLE_START -->
+<style>
+  .hd-ledger-main-menu-card {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    min-height: 132px;
+    padding: 20px;
+    border-radius: 28px;
+    border: 1px solid rgba(50, 100, 255, .22);
+    background:
+      radial-gradient(circle at 12% 10%, rgba(255,255,255,.55), transparent 20rem),
+      linear-gradient(135deg, #172033 0%, #2846b8 48%, #3264ff 100%);
+    color: #fff !important;
+    text-decoration: none !important;
+    box-shadow: 0 22px 48px rgba(32, 44, 72, .24);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hd-ledger-main-menu-card::before {
+    content: "";
+    position: absolute;
+    inset: -80px -80px auto auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+    z-index: -1;
+  }
+
+  .hd-ledger-main-menu-card::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 0;
+    height: 4px;
+    border-radius: 999px 999px 0 0;
+    background: linear-gradient(90deg, #76e4b2, #ffffff, #9db7ff);
+    opacity: .95;
+  }
+
+  .hd-ledger-main-menu-card:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+  }
+
+  .hd-ledger-main-menu-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 74px;
+    height: 74px;
+    border-radius: 24px;
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.24);
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: -.08em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  }
+
+  .hd-ledger-main-menu-body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .hd-ledger-main-menu-kicker {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.86);
+  }
+
+  .hd-ledger-main-menu-title {
+    display: block;
+    font-size: 23px;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: -.04em;
+  }
+
+  .hd-ledger-main-menu-sub {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255,255,255,.78);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .hd-ledger-main-menu-arrow {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.22);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  @media (max-width: 680px) {
+    .hd-ledger-main-menu-card {
+      min-height: 120px;
+      padding: 18px;
+      border-radius: 24px;
+    }
+
+    .hd-ledger-main-menu-icon {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      font-size: 28px;
+    }
+
+    .hd-ledger-main-menu-title {
+      font-size: 20px;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_MANAGEMENT_MAIN_STYLE_END -->
 </head>
 
 <body>
@@ -519,6 +948,73 @@
       </div>
     </section>
   </header>
+  <!-- GPT00_COMPANY_CONTEXT_PANEL_20260711_START -->
+  <section
+    class="company-context-wrap"
+    aria-label="現在の会社"
+  >
+    <div class="company-context-panel">
+      <div class="company-current">
+        <div
+          class="company-mark"
+          id="companyContextMark"
+          aria-hidden="true"
+        >
+          会
+        </div>
+
+        <div class="company-copy">
+          <div class="company-label">
+            CURRENT COMPANY
+          </div>
+
+          <div
+            class="company-name"
+            id="companyContextName"
+          >
+            会社を選択してください
+          </div>
+
+          <div
+            class="company-code"
+            id="companyContextCode"
+          >
+            業務画面を開く前に対象会社を選択します。
+          </div>
+        </div>
+      </div>
+
+      <div class="company-select-area">
+        <div class="company-select-field">
+          <label for="companyContextSelect">
+            対象会社
+          </label>
+
+          <select id="companyContextSelect">
+            <option value="">
+              会社マスタを読み込み中...
+            </option>
+          </select>
+        </div>
+
+        <button
+          type="button"
+          id="companyContextApply"
+        >
+          この会社で作業
+        </button>
+      </div>
+
+      <div
+        class="company-warning"
+        id="companyContextWarning"
+        role="alert"
+      >
+        会社を選択してから業務画面へ進んでください。
+      </div>
+    </div>
+  </section>
+  <!-- GPT00_COMPANY_CONTEXT_PANEL_20260711_END -->
 
   <main>
     <div class="layout">
@@ -529,6 +1025,18 @@
         </div>
 
         <div class="menu-grid">
+<!-- GPT00_LEDGER_MANAGEMENT_MAIN_MENU_START -->
+<a class="hd-ledger-main-menu-card" href="/ledgers/ledger-management-dashboard.html" aria-label="台帳・管理を開く" data-hd-origin-menu="ledger-management">
+  <span class="hd-ledger-main-menu-icon">帳</span>
+  <span class="hd-ledger-main-menu-body">
+    <span class="hd-ledger-main-menu-kicker">Ledger Management</span>
+    <span class="hd-ledger-main-menu-title">台帳・管理</span>
+    <span class="hd-ledger-main-menu-sub">支払・証憑・銀行照合・契約・会計連携の入口</span>
+  </span>
+  <span class="hd-ledger-main-menu-arrow">→</span>
+</a>
+<!-- GPT00_LEDGER_MANAGEMENT_MAIN_MENU_END -->
+
           <button type="button" class="menu-button accent-green" onclick="location.href='/expenses/expense-input.html'">
             <span class="menu-icon">経</span>
             <span class="menu-title">経費入力</span>
@@ -618,6 +1126,520 @@
   </main>
 
 <script>
+/* GPT00_COMPANY_CONTEXT_SCRIPT_20260711_START */
+const HD_COMPANY_CONTEXT_KEY =
+  "hd_origin_current_company";
+
+let hdCompanyRows = [];
+
+function hdCompanyText(value) {
+  return String(value ?? "").trim();
+}
+
+function hdCompanyTheme(company) {
+  const value = (
+    hdCompanyText(company?.company_code) +
+    " " +
+    hdCompanyText(company?.company_name)
+  ).toLowerCase();
+
+  if (
+    value.includes("ハトダイヤ") ||
+    value.includes("hatodaiya")
+  ) {
+    return "hatodaiya";
+  }
+
+  if (
+    value.includes("hdオリジン") ||
+    value.includes("origin")
+  ) {
+    return "origin";
+  }
+
+  if (
+    value.includes("坂口勝康商店") ||
+    value.includes("sakaguchi")
+  ) {
+    return "sakaguchi";
+  }
+
+  return "other";
+}
+
+function hdCompanyMark(company) {
+  const name =
+    hdCompanyText(company?.company_name);
+
+  if (name.includes("ハトダイヤ")) {
+    return "";
+  }
+
+  if (name.includes("オリジン")) {
+    return "O";
+  }
+
+  if (name.includes("坂口")) {
+    return "坂";
+  }
+
+  return name ? name.slice(0, 1) : "会";
+}
+
+function hdCompanyRead() {
+  try {
+    const raw =
+      localStorage.getItem(
+        HD_COMPANY_CONTEXT_KEY
+      );
+
+    if (!raw) {
+      return null;
+    }
+
+    const company = JSON.parse(raw);
+
+    if (
+      !company ||
+      !company.company_id ||
+      !hdCompanyText(company.company_name)
+    ) {
+      return null;
+    }
+
+    return company;
+  }
+  catch {
+    return null;
+  }
+}
+
+function hdCompanySave(company) {
+  const saved = {
+    company_id:
+      Number(company.company_id) || null,
+    company_code:
+      hdCompanyText(company.company_code),
+    company_name:
+      hdCompanyText(company.company_name),
+    company_type:
+      hdCompanyText(company.company_type),
+    theme:
+      hdCompanyTheme(company),
+    selected_at:
+      new Date().toISOString()
+  };
+
+  localStorage.setItem(
+    HD_COMPANY_CONTEXT_KEY,
+    JSON.stringify(saved)
+  );
+
+  localStorage.setItem(
+    "current_company_id",
+    String(saved.company_id || "")
+  );
+
+  localStorage.setItem(
+    "current_company_code",
+    saved.company_code
+  );
+
+  localStorage.setItem(
+    "current_company_name",
+    saved.company_name
+  );
+
+  localStorage.setItem(
+    "current_company_theme",
+    saved.theme
+  );
+
+  return saved;
+}
+
+function hdCompanyRender(company) {
+  const name =
+    document.getElementById(
+      "companyContextName"
+    );
+
+  const code =
+    document.getElementById(
+      "companyContextCode"
+    );
+
+  const mark =
+    document.getElementById(
+      "companyContextMark"
+    );
+
+  const select =
+    document.getElementById(
+      "companyContextSelect"
+    );
+
+  const warning =
+    document.getElementById(
+      "companyContextWarning"
+    );
+
+  if (!company) {
+    document.body.removeAttribute(
+      "data-company-theme"
+    );
+
+    document.body.setAttribute(
+      "data-company-selected",
+      "false"
+    );
+
+    name.textContent =
+      "会社を選択してください";
+
+    code.textContent =
+      "業務画面を開く前に対象会社を選択します。";
+
+    mark.textContent = "会";
+    select.value = "";
+
+    document.title =
+      "HD Origin Project";
+
+    return;
+  }
+
+  document.body.setAttribute(
+    "data-company-theme",
+    company.theme ||
+      hdCompanyTheme(company)
+  );
+
+  document.body.setAttribute(
+    "data-company-selected",
+    "true"
+  );
+
+  name.textContent =
+    company.company_name;
+
+  code.textContent =
+    [
+      company.company_code,
+      company.company_type
+    ].filter(Boolean).join(" ／ ") ||
+    "会社マスタ選択中";
+
+  mark.textContent =
+    hdCompanyMark(company);
+
+  select.value =
+    String(company.company_id);
+
+  warning.classList.remove(
+    "is-visible"
+  );
+
+  document.title =
+    company.company_name +
+    "｜HD Origin Project";
+}
+
+function hdCompanyWarn(message) {
+  const warning =
+    document.getElementById(
+      "companyContextWarning"
+    );
+
+  warning.textContent =
+    message ||
+    "会社を選択してください。";
+
+  warning.classList.add(
+    "is-visible"
+  );
+
+  warning.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+async function hdCompanyLoad() {
+  const select =
+    document.getElementById(
+      "companyContextSelect"
+    );
+
+  try {
+    const response = await fetch(
+      "/api/masters?type=companies",
+      {
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "会社マスタ取得失敗: " +
+        response.status
+      );
+    }
+
+    const data = await response.json();
+
+    const rows =
+      Array.isArray(data.items)
+        ? data.items
+        : Array.isArray(data.rows)
+          ? data.rows
+          : Array.isArray(data.masters)
+            ? data.masters
+            : [];
+
+    hdCompanyRows =
+      rows.filter(row =>
+        row &&
+        row.company_id &&
+        hdCompanyText(row.company_name)
+      );
+
+    select.innerHTML = "";
+
+    const empty =
+      document.createElement("option");
+
+    empty.value = "";
+    empty.textContent =
+      "会社を選択してください";
+
+    select.appendChild(empty);
+
+    for (const company of hdCompanyRows) {
+      const option =
+        document.createElement("option");
+
+      option.value =
+        String(company.company_id);
+
+      option.textContent =
+        company.company_code
+          ? company.company_name +
+            "（" +
+            company.company_code +
+            "）"
+          : company.company_name;
+
+      select.appendChild(option);
+    }
+
+    const stored =
+      hdCompanyRead();
+
+    if (stored) {
+      const current =
+        hdCompanyRows.find(
+          row =>
+            Number(row.company_id) ===
+            Number(stored.company_id)
+        );
+
+      if (current) {
+        hdCompanyRender(
+          hdCompanySave(current)
+        );
+
+        return;
+      }
+
+      localStorage.removeItem(
+        HD_COMPANY_CONTEXT_KEY
+      );
+    }
+
+    hdCompanyRender(null);
+  }
+  catch (error) {
+    select.innerHTML =
+      '<option value="">' +
+      '会社マスタを取得できません' +
+      '</option>';
+
+    hdCompanyWarn(
+      "会社マスタを取得できませんでした。"
+    );
+
+    console.error(error);
+  }
+}
+
+function hdCompanyApply() {
+  const select =
+    document.getElementById(
+      "companyContextSelect"
+    );
+
+  const selectedId =
+    Number(select.value);
+
+  if (!selectedId) {
+    hdCompanyWarn(
+      "対象会社を選択してください。"
+    );
+
+    return;
+  }
+
+  const selected =
+    hdCompanyRows.find(
+      row =>
+        Number(row.company_id) ===
+        selectedId
+    );
+
+  if (!selected) {
+    hdCompanyWarn(
+      "選択した会社が会社マスタにありません。"
+    );
+
+    return;
+  }
+
+  const current =
+    hdCompanyRead();
+
+  if (
+    current &&
+    Number(current.company_id) !==
+      Number(selected.company_id)
+  ) {
+    const confirmed = confirm(
+      "現在の会社を\n\n" +
+      current.company_name +
+      "\n\nから\n\n" +
+      selected.company_name +
+      "\n\nへ切り替えますか？"
+    );
+
+    if (!confirmed) {
+      select.value =
+        String(current.company_id);
+
+      return;
+    }
+  }
+
+  const saved =
+    hdCompanySave(selected);
+
+  hdCompanyRender(saved);
+
+  showResult(
+    "現在の会社を「" +
+    saved.company_name +
+    "」に設定しました。"
+  );
+}
+
+function hdCompanyHasSelection() {
+  if (hdCompanyRead()) {
+    return true;
+  }
+
+  hdCompanyWarn(
+    "会社を選択してから業務画面へ進んでください。"
+  );
+
+  return false;
+}
+
+function hdCompanyInstallGuard() {
+  const allowedPaths = [
+    "/settings.html",
+    "/settings/",
+    "/masters/"
+  ];
+
+  document.addEventListener(
+    "click",
+    event => {
+      const button =
+        event.target.closest(
+          "button[onclick]"
+        );
+
+      if (!button) {
+        return;
+      }
+
+      const source =
+        button.getAttribute("onclick") ||
+        "";
+
+      const match =
+        source.match(
+          /location\.href\s*=\s*['"]([^'"]+)['"]/
+        );
+
+      if (!match) {
+        return;
+      }
+
+      const destination =
+        match[1];
+
+      const allowed =
+        allowedPaths.some(path =>
+          destination.startsWith(path)
+        );
+
+      if (allowed) {
+        return;
+      }
+
+      if (!hdCompanyHasSelection()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    document
+      .getElementById(
+        "companyContextApply"
+      )
+      .addEventListener(
+        "click",
+        hdCompanyApply
+      );
+
+    document
+      .getElementById(
+        "companyContextSelect"
+      )
+      .addEventListener(
+        "change",
+        () => {
+          document
+            .getElementById(
+              "companyContextWarning"
+            )
+            .classList.remove(
+              "is-visible"
+            );
+        }
+      );
+
+    hdCompanyInstallGuard();
+    hdCompanyLoad();
+  }
+);
+/* GPT00_COMPANY_CONTEXT_SCRIPT_20260711_END */
 function openSettings() {
   const width = 760;
   const height = 600;
@@ -680,6 +1702,115 @@ async function exitApp() {
 }
 </script>
   <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+<!-- GPT00_SALES_MANAGEMENT_LINK_20260712_START -->
+<style>
+  .hd-sales-management-entry {
+    position: fixed;
+    right: 22px;
+    bottom: 82px;
+    z-index: 9999;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 48px;
+    padding: 12px 17px;
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        135deg,
+        #173f8f,
+        #3264ff
+      );
+    color: #fff !important;
+    text-decoration: none !important;
+    font-family:
+      "Yu Gothic",
+      "YuGothic",
+      "Meiryo",
+      system-ui,
+      sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .01em;
+    box-shadow:
+      0 16px 34px
+      rgba(32,44,72,.22);
+  }
+
+  .hd-sales-management-entry:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  .hd-sales-management-entry-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background:
+      rgba(255,255,255,.18);
+    font-weight: 900;
+  }
+
+  @media (max-width: 680px) {
+    .hd-sales-management-entry {
+      right: 14px;
+      bottom: 76px;
+      padding: 11px 14px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<a
+  id="hdSalesManagementEntry"
+  class="hd-sales-management-entry"
+  href="/sales/sales-dashboard.html"
+  aria-label="販売・売掛管理を開く"
+>
+  <span class="hd-sales-management-entry-mark">売</span>
+  <span>販売・売掛管理</span>
+</a>
+
+<script>
+(() => {
+  "use strict";
+
+  const entry =
+    document.getElementById(
+      "hdSalesManagementEntry"
+    );
+
+  if (!entry) {
+    return;
+  }
+
+  entry.addEventListener(
+    "click",
+    event => {
+      const companyId = Number(
+        localStorage.getItem(
+          "current_company_id"
+        )
+      );
+
+      if (
+        !Number.isInteger(companyId) ||
+        companyId <= 0
+      ) {
+        event.preventDefault();
+
+        alert(
+          "先に対象会社を選択してください。"
+        );
+      }
+    }
+  );
+})();
+</script>
+<!-- GPT00_SALES_MANAGEMENT_LINK_20260712_END -->
 </body>
 </html>
 

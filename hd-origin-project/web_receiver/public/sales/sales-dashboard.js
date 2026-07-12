@@ -1,4 +1,70 @@
-﻿"use strict";
+"use strict";
+
+/* GPT00_SALES_COMPANY_SCOPE_JS_20260712_START */
+let activeCompany = null;
+
+function currentCompany() {
+  const companyId = Number(
+    localStorage.getItem("current_company_id")
+  );
+
+  const companyName =
+    localStorage.getItem("current_company_name") || "";
+
+  if (!Number.isInteger(companyId) || companyId <= 0) {
+    return null;
+  }
+
+  return {
+    company_id: companyId,
+    company_name: companyName
+  };
+}
+
+function addCompanyBanner(company) {
+  const hero = document.querySelector(".hero");
+
+  if (!hero) {
+    return;
+  }
+
+  let banner =
+    document.getElementById("salesCurrentCompany");
+
+  if (!banner) {
+    banner = document.createElement("section");
+    banner.id = "salesCurrentCompany";
+    banner.className = "company-banner";
+
+    hero.insertAdjacentElement(
+      "afterend",
+      banner
+    );
+  }
+
+  banner.innerHTML =
+    "<strong>現在の会社：</strong>" +
+    escapeHtml(
+      company.company_name || "会社名未設定"
+    );
+}
+
+function salesApiUrl(url) {
+  const parsed =
+    new URL(url, location.origin);
+
+  parsed.searchParams.set(
+    "company_id",
+    activeCompany.company_id
+  );
+
+  return (
+    parsed.pathname +
+    parsed.search +
+    parsed.hash
+  );
+}
+/* GPT00_SALES_COMPANY_SCOPE_JS_20260712_END */
 
 const state = {
   products: [],
@@ -75,14 +141,59 @@ function hideMessage() {
 }
 
 async function requestJson(url, options = {}) {
-  const response = await fetch(url, {
-    cache: "no-store",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
+  if (!activeCompany) {
+    throw new Error(
+      "メイン画面で会社を選択してください。"
+    );
+  }
+
+  const normalizedOptions = {
+    ...options
+  };
+
+  const method = String(
+    normalizedOptions.method || "GET"
+  ).toUpperCase();
+
+  if (
+    method !== "GET" &&
+    method !== "HEAD"
+  ) {
+    let requestBody = {};
+
+    if (
+      typeof normalizedOptions.body === "string" &&
+      normalizedOptions.body.trim()
+    ) {
+      requestBody =
+        JSON.parse(normalizedOptions.body);
+    } else if (
+      normalizedOptions.body &&
+      typeof normalizedOptions.body === "object"
+    ) {
+      requestBody = {
+        ...normalizedOptions.body
+      };
     }
-  });
+
+    requestBody.company_id =
+      activeCompany.company_id;
+
+    normalizedOptions.body =
+      JSON.stringify(requestBody);
+  }
+
+  const response = await fetch(
+    salesApiUrl(url),
+    {
+      cache: "no-store",
+      ...normalizedOptions,
+      headers: {
+        "Content-Type": "application/json",
+        ...(normalizedOptions.headers || {})
+      }
+    }
+  );
 
   let data;
 
@@ -1205,6 +1316,18 @@ function setInitialDates() {
 document.addEventListener(
   "DOMContentLoaded",
   async () => {
+    activeCompany = currentCompany();
+
+    if (!activeCompany) {
+      alert(
+        "メイン画面で会社を選択してください。"
+      );
+
+      location.href = "/";
+      return;
+    }
+
+    addCompanyBanner(activeCompany);
     bindEvents();
     setInitialDates();
     await loadAll();

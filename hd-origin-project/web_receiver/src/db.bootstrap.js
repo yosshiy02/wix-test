@@ -682,6 +682,19 @@ ON CONFLICT (treatment_name) DO UPDATE SET
     await runTargetSql(salesManagementMigrationSql);
   }
   /* GPT00_SALES_MANAGEMENT_BOOTSTRAP_20260712_END */
+  /* GPT00_SALES_COMPANY_SCOPE_BOOTSTRAP_20260712_START */
+  const salesCompanyScopeMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260712_004_sales_company_scope.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (salesCompanyScopeMigrationSql.trim()) {
+    await runTargetSql(salesCompanyScopeMigrationSql);
+  }
+  /* GPT00_SALES_COMPANY_SCOPE_BOOTSTRAP_20260712_END */
   console.log(`[DB] ready: ${dbName}`);
 
   /*
@@ -783,12 +796,3 @@ ON CONFLICT (treatment_name) DO UPDATE SET
 module.exports = {
   ensureDatabaseReady
 };
-
-
-
-
-
-
-
-
-
