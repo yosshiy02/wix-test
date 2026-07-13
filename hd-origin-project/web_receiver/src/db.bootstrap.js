@@ -702,7 +702,6 @@ ON CONFLICT (treatment_name) DO UPDATE SET
         "database",
         "migrations",
         "20260712_005_sales_product_master_foundation.sql"
-        "20260712_006_sales_customer_price_stage13.sql"
       )
     ).replace(/^\uFEFF/, "");
 
@@ -712,6 +711,23 @@ ON CONFLICT (treatment_name) DO UPDATE SET
     );
   }
   /* GPT00_SALES_PRODUCT_MASTER_FOUNDATION_20260712_END */
+
+  /* GPT00_SALES_CUSTOMER_PRICE_STAGE13_20260712_START */
+  const salesCustomerPriceStage13MigrationSql =
+    readSqlIfExists(
+      path.join(
+        "database",
+        "migrations",
+        "20260712_006_sales_customer_price_stage13.sql"
+      )
+    ).replace(/^\uFEFF/, "");
+
+  if (salesCustomerPriceStage13MigrationSql.trim()) {
+    await runTargetSql(
+      salesCustomerPriceStage13MigrationSql
+    );
+  }
+  /* GPT00_SALES_CUSTOMER_PRICE_STAGE13_20260712_END */
   /* GPT00_SALES_COMPANY_SCOPE_BOOTSTRAP_20260712_END */
   console.log(`[DB] ready: ${dbName}`);
 

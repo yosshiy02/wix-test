@@ -42,7 +42,7 @@ HD_ORIGIN_START_DOCUMENT_FIXED_PATH_RULE_20260706
 - DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。
 
 [生成情報]
-生成日時: 2026/7/12 13:56:18
+生成日時: 2026/7/13 22:26:15
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -170,6 +170,7 @@ hd-origin-project\
 │     ├─ 20260712_003_sales_management_skeleton.sql
 │     ├─ 20260712_004_sales_company_scope.sql
 │     ├─ 20260712_005_sales_product_master_foundation.sql
+│     ├─ 20260712_006_sales_customer_price_stage13.sql
 │     └─ README_MIGRATIONS.txt
 ├─ GPT2が使う一時ファイルフォルダ\
 │  ├─ after\
@@ -260,9 +261,11 @@ hd-origin-project\
 │  │  ├─ payment-document-review.after_ai_autosave_bridge_20260712_095618.html
 │  │  ├─ payment-document-review.after_analysis_system_20260712_115153.html
 │  │  ├─ payment-document-review.after_analysis_system_id_20260712_120449.html
+│  │  ├─ payment-document-review.after_analysis_system_json_display_20260712_140749.html
 │  │  ├─ payment-document-review.after_basic_analysis_always_visible_20260712_090631.html
 │  │  ├─ payment-document-review.after_basic_analysis_fixed_20260712_084057.html
 │  │  ├─ payment-document-review.after_basic_analysis_layout_safe2_20260711_224004.html
+│  │  ├─ payment-document-review.after_basic_reason_confirmed_20260712_142658.html
 │  │  ├─ payment-document-review.after_css_separation_20260712_085803.css
 │  │  ├─ payment-document-review.after_css_separation_20260712_085803.html
 │  │  ├─ payment-document-review.after_hide_payment_destination_20260712_104800.html
@@ -276,6 +279,7 @@ hd-origin-project\
 │  │  ├─ payment-document-review.after_specialist_destination_20260712_104309.html
 │  │  ├─ payment-document-review.after_stage1_four_fields_20260711_184548.html
 │  │  ├─ payment-document-review.after_stage1_visual_block_20260711_185223.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease_after_specialist_actual_code_fix_20260712_164459.html
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_ai_context_cache_20260710_220006.html
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_analysis_code_20260710_215322.html
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_analysis_code_cache_20260710_215722.html
@@ -286,6 +290,11 @@ hd-origin-project\
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_remove_left_destination_20260711_184300.html
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_resolved_id_20260710_215002.html
 │  │  ├─ payment-document-specialist-contract-insurance-lease.after_specialist_common_save_20260710_202753.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.html.after_record_controls_20260712_151750.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.html.after_remove_unneeded_single_button_20260712_152540.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.html.after_remove_visible_single_button_20260712_153031.html
+│  │  ├─ payment-document-specialist-contract-insurance-lease.html.after_specialist_actual_code_connection_20260712_163836
+│  │  ├─ payment-document-specialist-invoice-payable_after_specialist_actual_code_fix_20260712_164459.html
 │  │  ├─ payment-document-specialist-invoice-payable.after_ai_context_cache_20260710_220006.html
 │  │  ├─ payment-document-specialist-invoice-payable.after_ai_specialist_20260711_114434.html
 │  │  ├─ payment-document-specialist-invoice-payable.after_analysis_code_20260710_215322.html
@@ -298,30 +307,22 @@ hd-origin-project\
 │  │  ├─ payment-document-specialist-invoice-payable.after_resolved_id_20260710_215002.html
 │  │  ├─ payment-document-specialist-invoice-payable.after_specialist_common_save_20260710_204842.html
 │  │  ├─ payment-document-specialist-invoice-payable.after_target_mapping_20260711_173928.html
+│  │  ├─ payment-document-specialist-invoice-payable.html.after_record_controls_20260712_151750.html
+│  │  ├─ payment-document-specialist-invoice-payable.html.after_remove_unneeded_single_button_20260712_152540.html
+│  │  ├─ payment-document-specialist-invoice-payable.html.after_remove_visible_single_button_20260712_153031.html
+│  │  ├─ payment-document-specialist-invoice-payable.html.after_specialist_actual_code_connection_20260712_163836
+│  │  ├─ payment-document-specialist-record-navigation_after_specialist_actual_code_fix_20260712_164459.css
+│  │  ├─ payment-document-specialist-record-navigation_after_specialist_actual_code_fix_20260712_164459.js
+│  │  ├─ payment-document-specialist-record-navigation.after_20260712_151750.css
+│  │  ├─ payment-document-specialist-record-navigation.after_20260712_151750.js
+│  │  ├─ payment-document-specialist-record-navigation.css.after_specialist_actual_code_connection_20260712_163836
+│  │  ├─ payment-document-specialist-record-navigation.js.after_specialist_actual_code_connection_20260712_163836
+│  │  ├─ payment-document-specialist-routing.after_20260712_154413.js
+│  │  ├─ payment-document-specialist-tax-public_after_specialist_actual_code_fix_20260712_164459.html
 │  │  ├─ payment-document-specialist-tax-public.after_ai_context_cache_20260710_220006.html
 │  │  ├─ payment-document-specialist-tax-public.after_analysis_code_20260710_215322.html
 │  │  ├─ payment-document-specialist-tax-public.after_analysis_code_actual_20260710_220922.html
-│  │  ├─ payment-document-specialist-tax-public.after_autosave_id_20260710_214043.html
-│  │  ├─ payment-document-specialist-tax-public.after_context_min_20260710_214711.html
-│  │  ├─ payment-document-specialist-tax-public.after_full_autosave_20260710_213015.html
-│  │  ├─ payment-document-specialist-tax-public.after_remove_left_destination_20260711_184300.html
-│  │  ├─ payment-document-specialist-tax-public.after_resolved_id_20260710_215002.html
-│  │  ├─ payment-document-specialist-tax-public.after_specialist_common_save_20260710_204431.html
-│  │  ├─ payment-document-specialist-utility-communication.after_ai_context_cache_20260710_220006.html
-│  │  ├─ payment-document-specialist-utility-communication.after_ai_specialist_20260711_114434.html
-│  │  ├─ payment-document-specialist-utility-communication.after_analysis_code_20260710_215322.html
-│  │  ├─ payment-document-specialist-utility-communication.after_analysis_code_actual_20260710_220922.html
-│  │  ├─ payment-document-specialist-utility-communication.after_autosave_id_20260710_214043.html
-│  │  ├─ payment-document-specialist-utility-communication.after_context_min_20260710_214711.html
-│  │  ├─ payment-document-specialist-utility-communication.after_full_autosave_20260710_213015.html
-│  │  ├─ payment-document-specialist-utility-communication.after_remove_left_destination_20260711_184300.html
-│  │  ├─ payment-document-specialist-utility-communication.after_resolved_id_20260710_215002.html
-│  │  ├─ payment-document-specialist-utility-communication.after_specialist_common_save_20260710_204842.html
-│  │  ├─ paymentDocuments.routes.after_ai_sort_autosave_20260711_163321.js
-│  │  ├─ paymentDocuments.routes.after_analysis_code_autosave_20260711_160933.js
-│  │  ├─ paymentDocuments.routes.after_analysis_system_id_20260712_120449.js
-│  │  ├─ paymentDocuments.routes.after_autosave_tx_20260711_171605.js
-│  │  └─ ... 27 items omitted
+│  │  └─ ... 62 items omitted
 │  ├─ apply\
 │  │  ├─ apply_ai_sort_autosave_20260711_163321.ps1
 │  │  ├─ apply_all_specialist_target_mapping_20260711_174250.ps1
@@ -332,6 +333,7 @@ hd-origin-project\
 │  │  ├─ apply_autosave_tx_20260711_171605.ps1
 │  │  ├─ apply_basic_analysis_layout_safe2_20260711_224004.ps1
 │  │  ├─ apply_basic_analysis_prompt_20260711_224322.ps1
+│  │  ├─ apply_basic_analysis_single_prompt_20260712_150305.ps1
 │  │  ├─ apply_cil_combined_save_20260711_000250.ps1
 │  │  ├─ apply_cil_combined_save_encoding_fixed_20260711_000402.ps1
 │  │  ├─ apply_cil_specialist_common_save_20260710_202753.ps1
@@ -346,8 +348,12 @@ hd-origin-project\
 │  │  ├─ apply_order4_basic_analysis_routes_safe3_20260711_230847.ps1
 │  │  ├─ apply_remove_all_left_list_destination_20260711_184300.ps1
 │  │  ├─ apply_remove_invoice_list_destination_20260711_183940.ps1
+│  │  ├─ apply_remove_unneeded_specialist_single_button_20260712_152540.ps1
+│  │  ├─ apply_remove_visible_specialist_single_button_20260712_153031.ps1
+│  │  ├─ apply_specialist_actual_code_fix_20260712_164459.ps1
 │  │  ├─ apply_specialist_fetch_context_20260711_124158.ps1
 │  │  ├─ apply_specialist_parent_auto_20260710_211608.ps1
+│  │  ├─ apply_specialist_record_controls_20260712_151750.ps1
 │  │  ├─ apply_specialist_save_api_20260710_201656.ps1
 │  │  ├─ apply_stage1_four_fields_20260711_184548.ps1
 │  │  ├─ apply_stage1_visual_block_20260711_185223.ps1
@@ -502,59 +508,48 @@ hd-origin-project\
 │  │  ├─ payment_document_sorting_drafts.issue_date.before_safe4_20260711_233719.txt
 │  │  ├─ payment-document-review.before_ai_autosave_bridge_20260712_095540.html
 │  │  ├─ payment-document-review.before_ai_autosave_bridge_20260712_095618.html
+│  │  ├─ payment-document-review.before_analysis_json_display_flexible_20260712_140938.html
 │  │  ├─ payment-document-review.before_analysis_system_20260712_111038.html
 │  │  ├─ payment-document-review.before_analysis_system_20260712_114416.html
 │  │  ├─ payment-document-review.before_analysis_system_20260712_115153.html
 │  │  ├─ payment-document-review.before_analysis_system_id_20260712_120449.html
+│  │  ├─ payment-document-review.before_analysis_system_json_display_20260712_140749.html
+│  │  ├─ payment-document-review.before_analysis_system_json_display_20260712_140825.html
 │  │  ├─ payment-document-review.before_basic_analysis_always_visible_20260712_090631.html
 │  │  ├─ payment-document-review.before_basic_analysis_fixed_20260712_084057.html
 │  │  ├─ payment-document-review.before_basic_analysis_fixed_20260712_084209.html
 │  │  ├─ payment-document-review.before_basic_analysis_fixed_safe2_20260712_084339.html
 │  │  ├─ payment-document-review.before_basic_analysis_fixed_safe3_20260712_084537.html
 │  │  ├─ payment-document-review.before_basic_analysis_layout_safe2_20260711_224004.html
+│  │  ├─ payment-document-review.before_basic_reason_20260712_142456.html
+│  │  ├─ payment-document-review.before_basic_reason_confirmed_20260712_142658.html
 │  │  ├─ payment-document-review.before_css_separation_20260712_085803.css
 │  │  ├─ payment-document-review.before_css_separation_20260712_085803.html
 │  │  ├─ payment-document-review.before_hide_payment_destination_20260712_104800.html
 │  │  ├─ payment-document-review.before_issue_date_pipeline_20260712_094722.html
 │  │  ├─ payment-document-review.before_issue_date_pipeline_20260712_094853.html
 │  │  ├─ payment-document-review.before_issue_date_value_20260712_090431.html
-│  │  ├─ payment-document-review.before_record_navigation_20260712_092840.css
-│  │  ├─ payment-document-review.before_record_navigation_20260712_092840.html
-│  │  ├─ payment-document-review.before_remove_left_destination_20260711_184300.html
-│  │  ├─ payment-document-review.before_remove_single_sort_button_20260712_091152.html
-│  │  ├─ payment-document-review.before_remove_single_sort_buttons_20260712_091438.html
-│  │  ├─ payment-document-review.before_remove_single_sort_buttons_20260712_091636.html
-│  │  ├─ payment-document-review.before_specialist_destination_20260712_104309.html
-│  │  └─ ... 90 items omitted
+│  │  ├─ payment-document-review.before_reason_actual_20260712_141943.html
+│  │  ├─ payment-document-review.before_reason_display_20260712_141753.html
+│  │  └─ ... 130 items omitted
 │  ├─ GPT2に渡すフォルダ\
-│  │  ├─ context\
-│  │  │  ├─ analysis_system_connection_exact_blocks_20260712_115355.txt
-│  │  │  ├─ db_bootstrap_master_context.txt
-│  │  │  ├─ master_management_html_context.txt
-│  │  │  ├─ master_management_js_context.txt
-│  │  │  ├─ master_repository_context.txt
-│  │  │  ├─ migration_file_list.txt
-│  │  │  ├─ payment_document_review_analysis_master_context.txt
-│  │  │  ├─ payment_documents_routes_analysis_master_context.txt
-│  │  │  ├─ project_analysis_system_master_search.txt
-│  │  │  └─ server_master_routes_context.txt
-│  │  ├─ db\
-│  │  │  └─ analysis_system_master_db_actual.json
-│  │  ├─ files\
-│  │  │  ├─ web_receiver__package.json
-│  │  │  ├─ web_receiver__public__masters__master-management.css
-│  │  │  ├─ web_receiver__public__masters__master-management.html
-│  │  │  ├─ web_receiver__public__masters__master-management.js
-│  │  │  ├─ web_receiver__public__payables__payment-document-review.html
-│  │  │  ├─ web_receiver__server.js
-│  │  │  ├─ web_receiver__src__db.bootstrap.js
-│  │  │  ├─ web_receiver__src__masters__master.repository.js
-│  │  │  ├─ web_receiver__src__masters__master.routes.js
-│  │  │  ├─ web_receiver__src__masters__masters.routes.js
-│  │  │  ├─ web_receiver__src__paymentDocuments__paymentDocuments.routes.js
-│  │  │  ├─ web_receiver__src__paymentDocuments__prompts__sorting.extra-rules.txt
-│  │  │  └─ web_receiver__src__paymentDocuments__prompts__sorting.system.txt
-│  │  └─ 00_ANALYSIS_SYSTEM_MASTER_COLLECTION_STATUS.txt
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-card-statement.css
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-card-statement.html
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-needs-review.css
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-needs-review.html
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-reference-check.css
+│  │  ├─ web_receiver__public__payables__payment-document-specialist-reference-check.html
+│  │  ├─ web_receiver__src__paymentDocuments__paymentDocuments.aiPromptLoader.js
+│  │  ├─ web_receiver__src__paymentDocuments__paymentDocuments.routes.js
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__sorting.system.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__card-statement__examples.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__card-statement__fields.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__card-statement__rules.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__card-statement__system.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__reference-check__examples.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__reference-check__fields.txt
+│  │  ├─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__reference-check__rules.txt
+│  │  └─ web_receiver__src__paymentDocuments__prompts__stage3-specialist__reference-check__system.txt
 │  ├─ memo\
 │  │  ├─ ai_autosave_bridge_fix_20260712_095618.txt
 │  │  ├─ ai_only_specialist_routing_20260711_144121.txt
@@ -578,20 +573,24 @@ hd-origin-project\
 │  │  ├─ analysis_system_connection_collection_20260712_115355.txt
 │  │  ├─ analysis_system_connection_fix_20260712_133507.txt
 │  │  ├─ analysis_system_current_records_20260712_132837.txt
+│  │  ├─ analysis_system_display_actual_check_20260712_141208.txt
 │  │  ├─ analysis_system_failed_repair_actual_check_20260712_133820.txt
 │  │  ├─ analysis_system_final_connection_blocks_20260712_121003.txt
 │  │  ├─ analysis_system_id_column_and_sync_20260712_135507.txt
 │  │  ├─ analysis_system_id_connection_20260712_120449.txt
+│  │  ├─ analysis_system_json_display_fix_20260712_140749.txt
 │  │  ├─ analysis_system_master_actual_inspection_20260712_110434.txt
 │  │  ├─ analysis_system_master_exact_blocks_20260712_110644.txt
 │  │  ├─ analysis_system_master_foundation_20260712_115153.txt
 │  │  ├─ analysis_system_parent5_20260712_130107.txt
 │  │  ├─ analysis_system_parent5_direct_fix_20260712_134525.txt
 │  │  ├─ autosave_tx_fix_20260711_171605.txt
+│  │  ├─ base_analysis_actual_ai_fields_collection_20260712_171646.txt
 │  │  ├─ basic_analysis_always_visible_20260712_090631.txt
 │  │  ├─ basic_analysis_fixed_display_20260712_084057.txt
 │  │  ├─ basic_analysis_layout_safe2_20260711_224004.txt
 │  │  ├─ basic_analysis_prompt_20260711_224322.txt
+│  │  ├─ basic_analysis_single_prompt_20260712_150305.txt
 │  │  ├─ basic_analysis_step1_actual_check_20260711_223130.txt
 │  │  ├─ check_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144121.js
 │  │  ├─ check_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144354.js
@@ -649,6 +648,7 @@ hd-origin-project\
 │  │  ├─ cil_bulk_save_db_check_20260709_213004.txt
 │  │  ├─ cil_bulk_save_fix_20260709_213004.memo.txt
 │  │  ├─ cil_map_fix_20260709_211315.memo.txt
+│  │  ├─ collect_new_specialist_3screens_discovery_20260712_174616.txt
 │  │  ├─ contract_issue_date_prompt_fix_20260712_103003.txt
 │  │  ├─ fix_specialist_default_mojibake_20260710_201208.sql
 │  │  ├─ four_specialist_batch_analysis_20260711_143122.txt
@@ -671,24 +671,24 @@ hd-origin-project\
 │  │  ├─ GPT2_CIL_failed_after_check_20260711_003501.txt.stderr.txt
 │  │  ├─ GPT2_CIL_failed_after_check_20260711_003501.txt.stdout.txt
 │  │  ├─ GPT2_CIL_failed_after_check_20260711_003622.txt
-│  │  ├─ GPT2_CIL_failed_after_check_20260711_003622.txt.stderr.txt
-│  │  ├─ GPT2_CIL_failed_after_check_20260711_003622.txt.stdout.txt
-│  │  ├─ GPT2_CIL_foundation_correct_db_result_20260711_002856.txt
-│  │  ├─ GPT2_CIL_integrated_save_db_check_retry_20260711_001031.js
-│  │  ├─ GPT2_CIL_integrated_save_verification_retry_20260711_001031.txt
-│  │  └─ ... 165 items omitted
+│  │  └─ ... 179 items omitted
 │  ├─ report\
 │  │  └─ issue_date_safe3_20260712_000244.txt
 │  ├─ temp\
 │  │  ├─ add_and_sync_analysis_system_id_20260712_135507.js
 │  │  ├─ analysis_system_records_20260712_132959.json
 │  │  ├─ analysis_system_records_20260712_133036.json
+│  │  ├─ check_specialist_inline_scripts_20260712_151750.js
 │  │  ├─ fix_analysis_system_id_sync_20260712_135147.js
+│  │  ├─ fix_payment_document_reason_display_20260712_141753.js
+│  │  ├─ fix_payment_document_reason_parser_20260712_142110.js
 │  │  ├─ read_analysis_system_records_20260712_132959.js
 │  │  ├─ read_analysis_system_records_20260712_133036.js
 │  │  ├─ repair_analysis_system_records_20260712_134525.js
 │  │  ├─ repair_analysis_system_records_result_20260712_134525.json
-│  │  └─ repair_analysis_system_repository_20260712_133652.js
+│  │  ├─ repair_analysis_system_repository_20260712_133652.js
+│  │  ├─ specialist_review_items_20260712_154413.json
+│  │  └─ verify_specialist_routing_20260712_154413.js
 │  ├─ undo\
 │  │  ├─ cil_ai_summary_code_fix_20260709_210142.undo.ps1
 │  │  ├─ cil_bulk_save_fix_20260709_213004.undo.ps1
@@ -743,6 +743,7 @@ hd-origin-project\
 │  │  ├─ undo_analysis_system_connection_fix_20260712_133507.ps1
 │  │  ├─ undo_analysis_system_id_column_20260712_135507.ps1
 │  │  ├─ undo_analysis_system_id_connection_20260712_120449.ps1
+│  │  ├─ undo_analysis_system_json_display_20260712_140749.ps1
 │  │  ├─ undo_analysis_system_master_20260712_115153.ps1
 │  │  ├─ undo_analysis_system_parent5_20260712_130107.ps1
 │  │  ├─ undo_autosave_tx_20260711_171605.ps1
@@ -750,6 +751,7 @@ hd-origin-project\
 │  │  ├─ undo_basic_analysis_fixed_display_20260712_084057.txt
 │  │  ├─ undo_basic_analysis_layout_safe2_20260711_224004.ps1
 │  │  ├─ undo_basic_analysis_prompt_20260711_224322.ps1
+│  │  ├─ undo_basic_analysis_single_prompt_20260712_150305.ps1
 │  │  ├─ undo_cil_combined_save_20260711_000250.ps1
 │  │  ├─ undo_cil_combined_save_encoding_fixed_20260711_000402.ps1
 │  │  ├─ undo_cil_specialist_common_save_20260710_202753.ps1
@@ -771,6 +773,7 @@ hd-origin-project\
 │  │  ├─ undo_order1_clear_basic_analysis_prompts_20260711_225408.ps1
 │  │  ├─ undo_order2_minimal_basic_analysis_prompts_20260711_231619.ps1
 │  │  ├─ undo_order4_basic_analysis_routes_safe3_20260711_230847.ps1
+│  │  ├─ undo_payment_document_basic_reason_confirmed_20260712_142658.ps1
 │  │  ├─ undo_payment_document_record_navigation_20260712_092840.ps1
 │  │  ├─ undo_payment_document_review_css_separation_20260712_085803.ps1
 │  │  ├─ undo_payment-document-specialist-contract-insurance-lease_ai_context_cache_20260710_220006.ps1
@@ -805,12 +808,9 @@ hd-origin-project\
 │  │  ├─ undo_remove_all_left_list_destination_20260711_184300.ps1
 │  │  ├─ undo_remove_invoice_list_destination_20260711_183940.ps1
 │  │  ├─ undo_remove_single_sort_buttons_20260712_091636.ps1
-│  │  ├─ undo_specialist_api_fix_20260711_123635.ps1
-│  │  ├─ undo_specialist_destination_20260712_104309.ps1
-│  │  ├─ undo_specialist_fetch_context_20260711_124158_ascii.ps1
-│  │  ├─ undo_specialist_fetch_context_20260711_124158.ps1
-│  │  ├─ undo_specialist_link_db_20260710_200655.ps1
-│  │  └─ ... 11 items omitted
+│  │  ├─ undo_remove_unneeded_specialist_single_button_20260712_152540.ps1
+│  │  ├─ undo_remove_visible_specialist_single_button_20260712_153031.ps1
+│  │  └─ ... 19 items omitted
 │  ├─ 00_README_GPT2_TEMP_FOLDER.txt
 │  ├─ issue_date_db_column_apply_safe2_20260711_233043.js
 │  ├─ issue_date_db_column_apply_safe3_20260711_233236.js
@@ -847,21 +847,16 @@ hd-origin-project\
 │  └─ specialist_core_trace.txt
 ├─ GPTが使う一時ファイルフォルダ\
 │  ├─ 00_GPTに渡すフォルダ\
-│  │  ├─ database\
-│  │  │  └─ migrations\
-│  │  │     └─ 20260712_005_sales_product_master_foundation.sql
-│  │  ├─ web_receiver\
-│  │  │  ├─ public\
-│  │  │  │  └─ sales\
-│  │  │  │     └─ product-master.html
-│  │  │  └─ src\
-│  │  │     ├─ sales\
-│  │  │     │  ├─ sales.repository.js
-│  │  │     │  └─ sales.routes.js
-│  │  │     └─ db.bootstrap.js
-│  │  ├─ _ACTUAL_COLLECTION_MANIFEST.txt
-│  │  ├─ HD_ORIGIN_RUNTIME_PATHS.txt
-│  │  └─ PROJECT_STATUS_FOR_GPT.txt
+│  │  └─ web_receiver\
+│  │     └─ public\
+│  │        └─ payables\
+│  │           ├─ payment-document-review.html
+│  │           ├─ payment-document-specialist-card-statement.html
+│  │           ├─ payment-document-specialist-contract-insurance-lease.html
+│  │           ├─ payment-document-specialist-invoice-payable.html
+│  │           ├─ payment-document-specialist-reference-check.html
+│  │           ├─ payment-document-specialist-tax-public.html
+│  │           └─ payment-document-specialist-utility-communication.html
 │  ├─ after\
 │  │  ├─ database\
 │  │  │  └─ migrations\
@@ -916,7 +911,15 @@ hd-origin-project\
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
 │  │  │  │  └─ payables\
-│  │  │  │     └─ payment-document-specialist-tax-public.html
+│  │  │  │     ├─ payment-document-review.html
+│  │  │  │     ├─ payment-document-specialist-card-statement.css
+│  │  │  │     ├─ payment-document-specialist-card-statement.html
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.html
+│  │  │  │     ├─ payment-document-specialist-reference-check.css
+│  │  │  │     ├─ payment-document-specialist-reference-check.html
+│  │  │  │     ├─ payment-document-specialist-tax-public.html
+│  │  │  │     └─ payment-document-specialist-utility-communication.html
 │  │  │  └─ src\
 │  │  │     ├─ paymentDocuments\
 │  │  │     │  ├─ prompts\
@@ -964,6 +967,7 @@ hd-origin-project\
 │  │  ├─ db.bootstrap.after_ocr_prerequisite_20260711_100858.js
 │  │  ├─ db.bootstrap.after_sorting_prerequisite_20260711_101100.js
 │  │  ├─ db.bootstrap.after_specialist_prerequisite_20260711_101442.js
+│  │  ├─ db.bootstrap.after_stage13_minimum_repair_20260712_144536.js
 │  │  ├─ general-affairs-ai-changelog.after_business_flow_execution_ai_20260711_173855.md
 │  │  ├─ general-affairs-ai-changelog.md.after_20260709_193826.md
 │  │  ├─ general-affairs-ai-changelog.md.after_20260709_195549.md
@@ -1040,8 +1044,7 @@ hd-origin-project\
 │  │  ├─ GPT00_server_after_gitup_no_manifest_20260711_112733.js
 │  │  ├─ GPT00_server_after_restore_econnreset_20260711_094435.js
 │  │  ├─ GPT00_server_restart_marker_stale_fix_20260709_214209.after.server.js
-│  │  ├─ GPT00_仕分け画面_自動保存_collect未定義修正_20260709_092504.after.html
-│  │  └─ ... 85 items omitted
+│  │  └─ ... 90 items omitted
 │  ├─ apply\
 │  │  ├─ apply_bank_foundation_fk_fix_20260711_153623.ps1
 │  │  ├─ apply_business_flow_execution_ai_20260711_173855.ps1
@@ -1104,12 +1107,14 @@ hd-origin-project\
 │  │  ├─ GPT00_apply_gitup_no_manifest_20260711_112733.ps1
 │  │  ├─ GPT00_business_flow_ai_free_input_20260709_203645.apply.ps1
 │  │  ├─ GPT00_business_flow_ai_input_20260709_203144.apply.ps1
+│  │  ├─ gpt00_card_reference_utf8_apply_20260712_165052.txt
 │  │  ├─ GPT00_company_role_stage1_20260710_235505.apply.ps1
 │  │  ├─ GPT00_db_bootstrap_ocr_prerequisite_20260711_100858.apply.ps1
 │  │  ├─ GPT00_db_bootstrap_sorting_prerequisite_20260711_101100.apply.ps1
 │  │  ├─ GPT00_db_bootstrap_specialist_prerequisite_20260711_101442.apply.ps1
 │  │  ├─ GPT00_db_pool_error_listener_20260711_095718.apply.ps1
 │  │  ├─ GPT00_routes_analysis_system_AI返却値DB列保存_20260709_113508.apply.ps1
+│  │  ├─ gpt00_specialist_navigation_apply_20260712_171305.txt
 │  │  ├─ GPT00_仕分けAI_analysis_system必須プロンプト修正_20260709_112613.apply.ps1
 │  │  ├─ verify_sales_actual_operation_20260712_101511.js
 │  │  ├─ verify_sales_company_isolation_20260712_104000.js
@@ -1167,7 +1172,13 @@ hd-origin-project\
 │  │  ├─ web_receiver\
 │  │  │  ├─ public\
 │  │  │  │  └─ payables\
-│  │  │  │     └─ payment-document-specialist-tax-public.html
+│  │  │  │     ├─ payment-document-review.html
+│  │  │  │     ├─ payment-document-specialist-card-statement.html
+│  │  │  │     ├─ payment-document-specialist-contract-insurance-lease.html
+│  │  │  │     ├─ payment-document-specialist-invoice-payable.html
+│  │  │  │     ├─ payment-document-specialist-reference-check.html
+│  │  │  │     ├─ payment-document-specialist-tax-public.html
+│  │  │  │     └─ payment-document-specialist-utility-communication.html
 │  │  │  └─ src\
 │  │  │     ├─ paymentDocuments\
 │  │  │     │  ├─ prompts\
@@ -1199,6 +1210,10 @@ hd-origin-project\
 │  │  ├─ db.bootstrap.before_ocr_prerequisite_20260711_100858.js
 │  │  ├─ db.bootstrap.before_sorting_prerequisite_20260711_101100.js
 │  │  ├─ db.bootstrap.before_specialist_prerequisite_20260711_101442.js
+│  │  ├─ db.bootstrap.before_stage13_confirmed_repair_20260712_144335.js
+│  │  ├─ db.bootstrap.before_stage13_minimum_repair_20260712_144536.js
+│  │  ├─ db.bootstrap.before_stage13_syntax_repair_20260712_143836.js
+│  │  ├─ db.bootstrap.before_stage13_syntax_repair_20260712_144146.js
 │  │  ├─ general-affairs-ai-changelog.before_business_flow_execution_ai_20260711_173855.md
 │  │  ├─ general-affairs-ai-notes.before_business_flow_execution_ai_20260711_173855.md
 │  │  ├─ general-affairs-ai.before_business_flow_execution_ai_20260711_173855.txt
@@ -1278,11 +1293,7 @@ hd-origin-project\
 │  │  ├─ GPT00_server_before_gitup_no_manifest_20260711_112733.js
 │  │  ├─ GPT00_server_before_restore_econnreset_20260711_094152.js
 │  │  ├─ GPT00_server_before_restore_econnreset_20260711_094435.js
-│  │  ├─ GPT00_server_restart_marker_stale_fix_20260709_214209.before.server.js
-│  │  ├─ GPT00_仕分け画面_自動保存_collect未定義修正_20260709_092504.before.html
-│  │  ├─ GPT00_仕分け画面_選択中OCR_ID取得修正_20260709_092940.before.html
-│  │  ├─ GPT00_仕分け画面_保存ボタン廃止_自動保存_20260709_091312.before.html
-│  │  └─ ... 109 items omitted
+│  │  └─ ... 121 items omitted
 │  ├─ memo\
 │  │  ├─ 00_payment_document_review_visible_fields_20260708_201917.txt
 │  │  ├─ 00_payment_document_review_visible_fields_20260708_202022.txt
@@ -1313,6 +1324,11 @@ hd-origin-project\
 │  │  ├─ 00_payment_document_review_visible_fields_20260712_090509.txt
 │  │  ├─ 00_payment_document_review_visible_fields_20260712_101245.txt
 │  │  ├─ 00_payment_document_review_visible_fields_20260712_103238.txt
+│  │  ├─ 00_payment_document_review_visible_fields_20260712_135753.txt
+│  │  ├─ 00_payment_document_review_visible_fields_20260712_140419.txt
+│  │  ├─ 00_payment_document_review_visible_fields_20260712_140509.txt
+│  │  ├─ 00_payment_document_review_visible_fields_20260712_144946.txt
+│  │  ├─ 00_payment_document_review_visible_fields_20260712_213636.txt
 │  │  ├─ bank_foundation_fk_fix_20260711_153623.txt
 │  │  ├─ bank_foundation_fk_fix_verify_20260711_153623.txt
 │  │  ├─ bank_tax_public_absolute_inspection_20260711_215011.txt
@@ -1332,6 +1348,10 @@ hd-origin-project\
 │  │  ├─ customer_vendor_master_20260712_082822.txt
 │  │  ├─ customer_vendor_master_test_20260712_083219.txt
 │  │  ├─ customer_vendor_restart_verification_20260712_091700.txt
+│  │  ├─ db_bootstrap_stage13_confirmed_repair_20260712_144335.txt
+│  │  ├─ db_bootstrap_stage13_minimum_repair_20260712_144536.txt
+│  │  ├─ db_bootstrap_stage13_syntax_repair_20260712_143836.txt
+│  │  ├─ db_bootstrap_stage13_syntax_repair_20260712_144146.txt
 │  │  ├─ fix_customer_vendor_links_target_20260712_084312.txt
 │  │  ├─ general_affairs_ai_3files_memo_20260709_193826.txt
 │  │  ├─ general_affairs_ai_loader_memo_20260709_195549.txt
@@ -1375,6 +1395,8 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_remove_extra_buttons_20260709_204825.memo.txt
 │  │  ├─ GPT00_business_flow_settings_place_20260709_203013.memo.txt
 │  │  ├─ GPT00_business_flow_settings_url_fix_20260709_204302.memo.txt
+│  │  ├─ gpt00_card_reference_required_files_20260712_160541.txt
+│  │  ├─ gpt00_card_reference_utf8_result_20260712_165052.txt
 │  │  ├─ GPT00_check_company_role_schema.js
 │  │  ├─ GPT00_check_organization_bootstrap_20260711_003129.js
 │  │  ├─ GPT00_check_organization_bootstrap_20260711_003129.txt
@@ -1393,18 +1415,7 @@ hd-origin-project\
 │  │  ├─ GPT00_company_role_stage1_db_check_20260710.js
 │  │  ├─ GPT00_company_role_stage1_db_check_20260710.txt
 │  │  ├─ GPT00_company_role_stage1_migration_runner_20260710_235505.js
-│  │  ├─ GPT00_company_role_utf8_direct_check_20260710.js
-│  │  ├─ GPT00_company_role_utf8_direct_check_20260710.txt
-│  │  ├─ GPT00_compare_database_connection.js
-│  │  ├─ GPT00_compare_database_connection.txt
-│  │  ├─ GPT00_customer_vendor_company_rules_handover_20260712_094027.txt
-│  │  ├─ GPT00_db_bootstrap_cil_20260711_092310.txt
-│  │  ├─ GPT00_db_bootstrap_cil_masters_20260711_093333.txt
-│  │  ├─ GPT00_db_bootstrap_ocr_prerequisite_20260711_100858.txt
-│  │  ├─ GPT00_db_bootstrap_sorting_prerequisite_20260711_101100.txt
-│  │  ├─ GPT00_db_bootstrap_specialist_prerequisite_20260711_101442.txt
-│  │  ├─ GPT00_db_from_temp.json
-│  │  └─ ... 112 items omitted
+│  │  └─ ... 137 items omitted
 │  ├─ old_not_use_general_affairs_20260709\
 │  │  ├─ apply_general_affairs_ai_3files_20260709_193826.ps1
 │  │  ├─ apply_general_affairs_ai_prompt_20260709_193316.ps1
@@ -1448,6 +1459,7 @@ hd-origin-project\
 │  │  ├─ GPT00_business_flow_restart_button_20260709_210859.undo.ps1
 │  │  ├─ GPT00_business_flow_settings_place_20260709_203013.undo.ps1
 │  │  ├─ GPT00_business_flow_settings_url_fix_20260709_204302.undo.ps1
+│  │  ├─ gpt00_card_reference_utf8_undo_20260712_165052.ps1
 │  │  ├─ GPT00_company_role_stage1_20260710_235505.undo.ps1
 │  │  ├─ GPT00_db_bootstrap_cil_20260711_092310.undo.ps1
 │  │  ├─ GPT00_db_bootstrap_cil_masters_20260711_093333.undo.ps1
@@ -1465,6 +1477,7 @@ hd-origin-project\
 │  │  ├─ GPT00_routes_analysis_system_AI返却値DB列保存_20260709_113508.undo.ps1
 │  │  ├─ GPT00_routes_後付け解析システム補完撤去_20260709_101225.undo.ps1
 │  │  ├─ GPT00_server_restart_marker_stale_fix_20260709_214209.undo.ps1
+│  │  ├─ gpt00_specialist_navigation_undo_20260712_171305.ps1
 │  │  ├─ GPT00_undo_gitup_no_manifest_20260711_112733.ps1
 │  │  ├─ GPT00_仕分けAI_analysis_system必須プロンプト修正_20260709_112613.undo.ps1
 │  │  ├─ GPT00_仕分け画面_自動保存_collect未定義修正_20260709_092504.undo.ps1
@@ -1473,6 +1486,7 @@ hd-origin-project\
 │  │  ├─ GPT00_仕分け表示ボタン_DB最新情報対応_20260709_094708.undo.ps1
 │  │  ├─ undo_bank_foundation_fk_fix_20260711_153623.ps1
 │  │  ├─ undo_business_flow_execution_ai_20260711_173855.ps1
+│  │  ├─ undo_db_bootstrap_stage13_minimum_repair_20260712_144536.ps1
 │  │  ├─ undo_general_affairs_ai_3files_20260709_193826.ps1
 │  │  ├─ undo_general_affairs_ai_loader_20260709_195549.ps1
 │  │  ├─ undo_general_affairs_ai_prompt_20260709_193316.ps1
@@ -1507,6 +1521,7 @@ hd-origin-project\
 │  │  ├─ undo_remove_hato_return_20260711_154854.ps1
 │  │  ├─ undo_remove_payable_company_selector_20260711_163732.ps1
 │  │  ├─ undo_sales_menu_entry_20260712_105215.ps1
+│  │  ├─ undo_sales_stage14a_20260712_151740.ps1
 │  │  ├─ undo_tax_public_bank_reconciliation_view_fix_20260711_215505.ps1
 │  │  ├─ undo_tax_public_withholding_api_ui_20260711_190728.ps1
 │  │  ├─ undo_tax_public_withholding_obligation_20260711_190941.ps1
@@ -1547,7 +1562,13 @@ hd-origin-project\
 │  ├─ patch_payables_common_master_result_20260711_124534.json
 │  ├─ payable_bank_auto_test_20260711_161238.js
 │  ├─ payable_bank_full_auto_test_20260711_161526.js
-│  └─ payables_repository_base_check_20260711_130437.js
+│  ├─ payables_repository_base_check_20260711_130437.js
+│  ├─ payment-document-specialist-card-statement.css
+│  ├─ payment-document-specialist-card-statement.html
+│  ├─ payment-document-specialist-needs-review.css
+│  ├─ payment-document-specialist-needs-review.html
+│  ├─ payment-document-specialist-reference-check.css
+│  └─ payment-document-specialist-reference-check.html
 ├─ ORIGIN会計ソフト\
 │  ├─ レシートページ\
 │  │  ├─ _old_20260627_082025\
@@ -1697,10 +1718,18 @@ hd-origin-project\
 │  │  │  ├─ payment-document-payables-report.html
 │  │  │  ├─ payment-document-review.css
 │  │  │  ├─ payment-document-review.html
+│  │  │  ├─ payment-document-specialist-card-statement.css
+│  │  │  ├─ payment-document-specialist-card-statement.html
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.css
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.html
 │  │  │  ├─ payment-document-specialist-invoice-payable.css
 │  │  │  ├─ payment-document-specialist-invoice-payable.html
+│  │  │  ├─ payment-document-specialist-needs-review.css
+│  │  │  ├─ payment-document-specialist-needs-review.html
+│  │  │  ├─ payment-document-specialist-record-navigation.css
+│  │  │  ├─ payment-document-specialist-record-navigation.js
+│  │  │  ├─ payment-document-specialist-reference-check.css
+│  │  │  ├─ payment-document-specialist-reference-check.html
 │  │  │  ├─ payment-document-specialist-tax-public.css
 │  │  │  ├─ payment-document-specialist-tax-public.html
 │  │  │  ├─ payment-document-specialist-utility-communication.css
@@ -1810,6 +1839,11 @@ hd-origin-project\
 │  │  │  │  │  ├─ general-affairs-ai-notes.md
 │  │  │  │  │  └─ general-affairs-ai.txt
 │  │  │  │  ├─ stage3-specialist\
+│  │  │  │  │  ├─ card-statement\
+│  │  │  │  │  │  ├─ examples.txt
+│  │  │  │  │  │  ├─ fields.txt
+│  │  │  │  │  │  ├─ rules.txt
+│  │  │  │  │  │  └─ system.txt
 │  │  │  │  │  ├─ common\
 │  │  │  │  │  │  ├─ human-confirm-rules.txt
 │  │  │  │  │  │  ├─ output-schema.txt
@@ -1820,6 +1854,16 @@ hd-origin-project\
 │  │  │  │  │  │  ├─ rules.txt
 │  │  │  │  │  │  └─ system.txt
 │  │  │  │  │  ├─ invoice-payable\
+│  │  │  │  │  │  ├─ examples.txt
+│  │  │  │  │  │  ├─ fields.txt
+│  │  │  │  │  │  ├─ rules.txt
+│  │  │  │  │  │  └─ system.txt
+│  │  │  │  │  ├─ needs-review\
+│  │  │  │  │  │  ├─ examples.txt
+│  │  │  │  │  │  ├─ fields.txt
+│  │  │  │  │  │  ├─ rules.txt
+│  │  │  │  │  │  └─ system.txt
+│  │  │  │  │  ├─ reference-check\
 │  │  │  │  │  │  ├─ examples.txt
 │  │  │  │  │  │  ├─ fields.txt
 │  │  │  │  │  │  ├─ rules.txt
@@ -1850,7 +1894,6 @@ hd-origin-project\
 │  │  │  │  ├─ rules-receipt.txt
 │  │  │  │  ├─ rules-tax.txt
 │  │  │  │  ├─ rules-utility.txt
-│  │  │  │  ├─ sorting.extra-rules.txt
 │  │  │  │  └─ sorting.system.txt
 │  │  │  ├─ paymentDocuments.aiPromptLoader.js
 │  │  │  └─ paymentDocuments.routes.js
@@ -1924,7 +1967,6 @@ hd-origin-project\
 ├─ env_initializer.py
 ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
 ├─ HD_ORIGIN_PC_RULES.txt
-├─ HD_ORIGIN_RESTART_IN_PROGRESS.json
 ├─ HD_ORIGIN_RUNTIME_PATHS.txt
 ├─ PROJECT_STATUS_FOR_GPT.txt
 ├─ PROJECT_TODO_FOR_GPT.txt
@@ -1943,208 +1985,3 @@ HD_ORIGIN_TODO_DELIVERY_NOTE_VENDOR_RULES_20260707
 - 明細解析では、数量 × 単価 = 金額 が一致する組み合わせを優先する。
 - 税額がOCRで読めない場合は、明細合計を税抜額候補として扱い、税込合計・消費税額は要確認にする。
 - 初期段階ではDB化を急がず、まずAIプロンプトまたはルールJSONで取引先別ルールを持てる形にする。
-
-
-==============================
-専門解析システム 共通設計メモ
-HD_ORIGIN_SPECIALIST_STAGE3_COMMON_DESIGN_MEMO_20260709_START
-==============================
-
-[対象]
-このメモは、支払書類仕分けシステムの各専門解析システムを作るGPT向け。
-
-対象例:
-- 税金・公的支払解析
-- 契約・保険・リース解析
-- 公共料金・通信費解析
-- 支払済み証憑解析
-- カード明細照合解析
-- 請求・未払系解析
-
-[最重要結論]
-専門解析画面の「専門解析」ボタン、または「まとめて専門解析」ボタンでは、1回目解析・2回目解析を再実行しない。
-
-専門解析ボタンで実行するAIは、各専門システム用の stage3 specialist 解析だけ。
-
-つまり、専門解析ボタンは「1段階解析」である。
-
-[正しい流れ]
-専門解析ボタン
-→ /api/payment-documents/ai-specialist/:id
-→ OCR本文を取得
-→ 対象専門システムの stage3-specialist プロンプトを読む
-→ specialist AIを1回だけ実行
-→ fields / visible_field_labels / warnings 等を返す
-→ 画面表示
-
-[専門解析ボタンで走るもの]
-- stage3 specialist のAI解析のみ
-- 各専門システム専用プロンプト
-- 共通専門プロンプト
-- OCR本文ベースの専門解析
-
-[専門解析ボタンで走らないもの]
-- 1回目仕分けAI
-- /api/payment-documents/ai-sort/:id
-- classification
-- sorting
-- 2回目共通下書きAI
-- /api/payment-documents/ai-draft/:id
-- detail
-- 旧2段階AI
-
-[重要な考え方]
-1回目解析・2回目解析は、専門解析ボタンの中で再実行しない。
-専門解析は、1回目・2回目をもう一度やる場所ではない。
-
-専門解析は、すでに専門画面へ来た書類に対して、その専門分野として深掘りするためのAIである。
-
-[stage3 という名前について]
-stage3-specialist という名前だが、専門解析ボタンを押した時に3回AIが走るという意味ではない。
-
-stage3 は全体設計上の位置付け。
-実際の専門解析ボタンのAI呼び出しは、各書類ごとに1回だけ。
-
-[まとめて専門解析について]
-「まとめて専門解析」で対象書類が複数ある場合、書類ごとに specialist を1回ずつ実行する。
-
-例:
-対象書類が2件の場合
-- 1件目 → specialist 1回
-- 2件目 → specialist 1回
-
-これは3段階解析ではない。
-単に、対象書類ごとに専門解析を1回ずつ実行しているだけ。
-
-[プロンプトファイルについて]
-専門解析では、複数のプロンプトファイルを読むことがある。
-
-例:
-- stage3-specialist/common/system.txt
-- stage3-specialist/common/output-schema.txt
-- stage3-specialist/common/human-confirm-rules.txt
-- stage3-specialist/各専門/system.txt
-- stage3-specialist/各専門/fields.txt
-- stage3-specialist/各専門/rules.txt
-- stage3-specialist/各専門/examples.txt
-
-ただし、複数ファイルを読むことは、複数段階AIを実行することではない。
-
-複数プロンプトファイルを、1回の specialist AI呼び出しにまとめて渡すだけ。
-
-[1回目解析結果との関係]
-専門解析画面へ対象書類を表示するために、1回目仕分け結果の analysis_system_code や specialist_route_code を参照することはある。
-
-ただし、それは「どの専門画面に出すか」のルーティング・絞り込みのため。
-
-専門解析ボタンを押した時に、1回目解析を再実行してはいけない。
-また、専門解析の結果を1回目解析ロジックで後から上書きしてはいけない。
-
-[2回目解析結果との関係]
-専門解析ボタンでは、旧2回目 detail / ai-draft を呼ばない。
-
-専門解析画面では、共通下書きAIのdetail結果を作り直すのではなく、専門解析AIが専門項目を返す。
-
-[専門解析の出力方針]
-専門解析AIは、固定項目を無理に全部埋めるのではなく、AIが必要と判断した項目を返す。
-
-基本出力:
-- draft
-- fields
-- visible_field_labels
-- warnings
-- analysis_system_code
-- analysis_system_label
-- analysis_system_reason
-- analysis_system_confidence
-- document_type_code / document_type_label
-- payment_destination_code / payment_destination_label
-- accounting_category_code / accounting_category_label
-- payable_kind_code / payable_kind_label
-- specialist_route_code / specialist_route_label
-
-[表示方針]
-画面側は、AIが返した visible_field_labels を正とする。
-
-HTML・JSで、
-「この種類ならこの項目を足す」
-「このOCR語句があるからこの項目を補正する」
-「空欄だから勝手に固定値を入れる」
-という後付け補正をしない。
-
-[表示メモと保存処理の違い]
-各専門画面の「表示中項目メモ」は、画面に現在表示されている項目を確認用に出力するだけの機能である。
-
-このメモ出力操作では、DB保存・下書き保存・本登録は行わない。
-
-ただし、これは「専門解析結果を保存しない」という意味ではない。
-
-専門解析AIが返した fields / visible_field_labels / warnings などの結果は、単体保存・まとめて保存などの保存処理で下書きDBへ保存する前提である。
-
-AI解析の成功確認、表示メモの確認、DB保存の確認は別々に扱う。
-
-[保存方針]
-専門解析AIが返した fields / visible_field_labels / warnings は、下書き保存時に壊さず保存する。
-
-専門解析ボタン自体はAI解析を実行するボタンであり、保存処理とは責務を分ける。
-
-保存は、単体保存・まとめて保存などの保存処理で行う。
-
-保存側では、専門AIの結果を固定フォーム項目だけに丸め込まない。
-専門AIが選んだ項目、表示対象ラベル、警告情報をそのまま保持できるようにする。
-
-[他GPTへの禁止事項]
-専門解析システムを作る時、以下は禁止。
-
-- 専門解析ボタンから /ai-sort を呼ぶ
-- 専門解析ボタンから /ai-draft を呼ぶ
-- 専門解析の中で1回目仕分けAIを再実行する
-- 専門解析の中で2回目detail AIを再実行する
-- 1回目・2回目の解析結果を専門解析結果として流用して終わらせる
-- HTML/JSでOCR語句ベースの後付け分類をする
-- AIの visible_field_labels を無視して固定項目だけ表示する
-- 専門AI結果を保存時に固定項目へ潰す
-- 「表示中項目メモに保存していませんと書いてある」ことを理由に、専門解析結果は保存不要と解釈する
-
-[確認方法]
-専門解析ボタンが正しく作れているかは、rawResult の ai_steps を見る。
-
-正しい状態:
-[
-  {
-    "name": "specialist"
-  }
-]
-
-classification が {} であること。
-旧 detail が走っていないこと。
-prompt_rule_files に stage3-specialist/common と対象専門フォルダが入っていること。
-
-[税金・公的支払で確認済みの例]
-税金・公的支払専門解析では、専門解析ボタン実行時に ai_steps は specialist のみ。
-classification は {}。
-image_used は false。
-display_mode は ai_decides_visible_fields。
-prompt_rule_files は common と tax-public を読んでいる。
-
-これは、専門解析ボタンが1回目・2回目を走らせず、stage3 specialist だけを1回実行している状態である。
-
-[保存確認について]
-専門解析AIが成功していても、下書き保存が成功しているとは限らない。
-
-これは「保存しない」という意味ではない。
-専門解析結果は保存する前提。
-
-保存で失敗した場合は、AI段階数の問題ではなく、保存API・DB列・JSON保存形式の問題として切り分ける。
-
-AI解析の成功確認と、DB保存の成功確認は別物。
-
-[結論]
-各専門解析システムは、1回目・2回目をいじらず、専門解析ボタンでは stage3 specialist だけを1回実行する設計にする。
-
-専門解析は「既存解析を再実行する場所」ではなく、「専門分野として深掘りする場所」である。
-
-専門解析結果は、表示して終わりではなく、保存処理で下書きDBへ保存する前提で扱う。
-
-HD_ORIGIN_SPECIALIST_STAGE3_COMMON_DESIGN_MEMO_20260709_END
-==============================\n\n==============================\n支払書類仕分けシステム 引き継ぎ\n==============================\n\n[ページ名称]\n- 旧: 支払書類 読取内容確認\n- 新: 支払書類仕分けシステム\n- このページは単なるOCR確認画面ではなく、OCR済み支払書類をAI候補と人間判断で仕分ける中核ページとして扱う。\n\n[根本設計]\n- 解析構成は「共通1個 + 専門5個 = 合計6個」で進める。\n- AIに全項目を一気に埋めさせない。\n- まず共通読取で事実を読む。\n- 次に共通仕分けで専門解析を選ぶ。\n- 最後に専門解析で会計候補・表示項目・要確認点を出す。\n\n[0. 共通読取・共通仕分けシステム]\n- 全書類共通。\n- OCR本文から、書類名、発行元、支払先候補、宛名、会社名、日付、支払期限、金額、税抜金額、消費税額、合計金額、登録番号、支払方法、明細、要確認文言などの事実を読む。\n- そのうえで、どの専門解析へ回すかを判定する。\n- 共通部分では会計確定まで踏み込みすぎない。\n\n[1. 請求・未払系解析システム]\n- 対象: 請求書、材料仕入請求書、外注請求書、保険料通知、リース料、家賃、公共料金、通信費など。\n- 主な判断: 買掛、未払、経費、保険、リース、通信費、公共料金など。\n- 保険・契約・リース・公共料金・通信費は、当初はこの中のサブ分類として扱う。\n- 材料仕入請求書は買掛候補。\n- 保険料通知は買掛ではなく未払金または未払費用候補。\n\n[2. 支払済み証憑解析システム]\n- 対象: 領収書、レシート、支払済み証憑。\n- これは既存のレシート系機能が実質該当する。\n- 新規でゼロから作るのではなく、既存レシート機能をこの6分類の中へ正式編入する。\n- 既存レシート系では、取込、OCR、AI候補、明細、明細内訳、税区分、対象者、目的、案件、部門、未精算/精算済み、下書き保存、本保存、本保存済み台帳まで進んでいる。\n\n[3. 税金・公的支払解析システム]\n- 対象: 納付書、納税通知書、社会保険、労働保険、行政手数料など。\n- 主な項目: 税目、納付先、納付番号、通知書番号、年度、期別、納期限、納付額、延滞金。\n- 税金・公的支払は買掛登録しない。\n- 登録番号T、消費税、税抜金額、請求合計だけで税金扱いしない。\n\n[4. カード・決済明細解析システム]\n- 対象: クレジットカード明細、Square、PayPay、Stripe、決済サービス明細。\n- 主な項目: 明細行、利用日、利用先、金額、カード未払、決済手数料、支払方法、引落日。\n- 1枚の書類に複数明細がある前提で見る。\n\n[5. 取引補助書類解析システム]\n- 対象: 納品書、注文書、発注書、見積書、検収書。\n- 原則、支払確定ではなく照合用。\n- 請求書待ち、納品照合、発注照合、見積確認へ回す。\n\n[重要方針]\n- 書類区分は「これは何の書類か」。\n- 処理先は「どこへ回すか」。\n- 会計候補は「勘定科目・税区分・インボイス区分など」。\n- 保存先は「買掛、未払、経費、税金、公的支払、カード、照合用、保留」など。\n- 書類区分と会計処理を混ぜすぎない。\n\n[現時点の完成度]\n- 共通読取・共通仕分け: これから根本設計。\n- 請求・未払系: 支払書類・請求書・未払系として作成中。\n- 支払済み証憑系: 既存レシート系としてかなり完成済み。\n- 税金・公的支払系: これから。\n- カード・決済明細系: これから。\n- 取引補助書類系: 納品書ページ土台あり、解析はこれから。\n\n[今回の判断]\n- 1つの巨大AI解析で全書類を処理する方式は複雑化しやすい。\n- 今後は、共通読取・仕分け + 専門解析5系統に分ける。\n- 支払書類仕分けシステムは、この6構成を前提に再設計する。\n

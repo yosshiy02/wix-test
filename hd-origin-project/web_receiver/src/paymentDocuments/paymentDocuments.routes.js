@@ -4417,10 +4417,7 @@ function applyPaymentDocumentSortRuleFallbackFromOcr(ocrText, draft) {
 /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
 
 async function createPaymentDocumentSortFromOcrText(ocrText) {
-  const prompt = appendPaymentDocumentExternalPrompt(
-    buildPaymentDocumentSortPrompt(ocrText),
-    ["sorting.extra-rules.txt"]
-  );
+  const prompt = buildPaymentDocumentSortPrompt(ocrText);
 
   const response = await callPaymentDocumentOpenAiJson(
     prompt,
@@ -4441,7 +4438,7 @@ async function createPaymentDocumentSortFromOcrText(ocrText) {
     display_mode: "sorting_only",
     image_used: false,
     prompt_rule_files: {
-      sorting: ["sorting.system.txt", "sorting.extra-rules.txt"]
+      sorting: ["sorting.system.txt"]
     },
     steps: [
       {

@@ -678,6 +678,44 @@ async function createSale(body) {
     const quantity = numberValue(line.quantity);
     const unitPrice = numberValue(line.unit_price);
     const taxRate = numberValue(line.tax_rate, 0.10);
+    const transactionType =
+      text(line.transaction_type) || "sale";
+
+    /* GPT00_SALES_STAGE14_TRANSACTION_SIGN_20260712_START */
+    if (quantity <= 0) {
+      throw createError(
+        `売上明細${index + 1}行目の数量は0より大きい値にしてください。`
+      );
+    }
+
+    if (unitPrice < 0) {
+      throw createError(
+        `売上明細${index + 1}行目の単価は0以上にしてください。`
+      );
+    }
+
+    if (
+      ![
+        "sale",
+        "return",
+        "discount",
+        "correction"
+      ].includes(transactionType)
+    ) {
+      throw createError(
+        `売上明細${index + 1}行目の明細区分が不正です。`
+      );
+    }
+
+    const rawLineAmount =
+      quantity * unitPrice;
+
+    const lineAmount =
+      transactionType === "return" ||
+      transactionType === "discount"
+        ? -Math.abs(rawLineAmount)
+        : rawLineAmount;
+    /* GPT00_SALES_STAGE14_TRANSACTION_SIGN_20260712_END */
     return {
       line_no: index + 1,
       product_id: nullableNumber(line.product_id),
@@ -688,9 +726,9 @@ async function createSale(body) {
       quantity,
       unit_name: text(line.unit_name) || "足",
       unit_price: unitPrice,
-      line_amount: quantity * unitPrice,
+      line_amount: lineAmount,
       tax_rate: taxRate,
-      transaction_type: text(line.transaction_type) || "sale",
+      transaction_type: transactionType,
       note: nullableText(line.note)
     };
   });

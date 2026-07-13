@@ -91,9 +91,7 @@ function promptFilesGeneralAffairs() {
 }
 function promptFilesStage1() {
   return [
-    "stage1-classification/system.txt",
-    ...promptFilesGeneralAffairs(),
-    "stage1-classification/extra-rules.txt"
+    "sorting.system.txt"
   ];
 }
 
@@ -121,27 +119,15 @@ function specialistCodeFromContext(context = {}) {
     ""
   ).trim();
 
-  const specialistMap = {
-    invoice_payable_analysis:
-      "invoice-payable",
-
-    tax_public_analysis:
-      "tax-public",
-
-    utility_communication_analysis:
-      "utility-communication",
-
-    contract_insurance_lease_analysis:
-      "contract-insurance-lease",
-
-    receipt_evidence_analysis:
-      "receipt-evidence",
-
-    card_statement_analysis:
-      "card-statement",
-
-    reference_check_analysis:
-      "reference-check"
+    const specialistMap = {
+    invoice_payable_analysis: "invoice-payable",
+    tax_public_analysis: "tax-public",
+    utility_communication_analysis: "utility-communication",
+    contract_insurance_lease_analysis: "contract-insurance-lease",
+    receipt_evidence_analysis: "receipt-evidence",
+    card_statement_analysis: "card-statement",
+    reference_check_analysis: "reference-check",
+    needs_review_analysis: "needs-review"
   };
 
   return specialistMap[analysisSystemCode] || "";

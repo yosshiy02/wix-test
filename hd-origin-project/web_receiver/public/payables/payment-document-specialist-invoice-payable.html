@@ -1,10 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>請求・未払系専門解析システム - HD Origin Project</title>
   <link rel="stylesheet" href="./payment-document-specialist-invoice-payable.css">
+  <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
 <body class="specialist-invoice-payable-page" data-specialist-route-code="invoice_payable">
 <!-- HD_ORIGIN_GPT2_INVOICE_PAYABLE_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
@@ -23,8 +24,10 @@
         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
         <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-        <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>
-      </nav>
+        <button type="button" class="specialist-system-button specialist-card" onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細</button>
+        <button type="button" class="specialist-system-button specialist-reference" onclick="location.href='./payment-document-specialist-reference-check.html'">照合用</button>
+        <button type="button" class="specialist-system-button specialist-needs-review" onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color: #ffc107; color: #000;">要確認</button>
+        <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>      </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
 <span class="muted">1回目仕分けで請求・未払系へ送った書類を、請求・未払系として専門解析する画面です。</span>
     </header>
@@ -73,7 +76,40 @@
     <section class="panel draft-panel">
       <div class="panel-title">
         <span>請求・未払系 解析確認</span>
-        <button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
+        <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
+<div class="specialist-panel-actions">
+  <div class="specialist-record-controls" aria-label="専門解析レコード移動">
+    <button
+      type="button"
+      id="specialistPreviousRecordButton"
+      class="light specialist-record-arrow"
+      onclick="hdOriginSpecialistMoveRecord(-1)"
+      aria-label="前のレコード"
+      title="前のレコードへ"
+      disabled
+    >◀</button>
+
+    <span
+      id="specialistRecordCounter"
+      class="specialist-record-counter"
+      aria-live="polite"
+    >0 / 0</span>
+
+    <button
+      type="button"
+      id="specialistNextRecordButton"
+      class="light specialist-record-arrow"
+      onclick="hdOriginSpecialistMoveRecord(1)"
+      aria-label="次のレコード"
+      title="次のレコードへ"
+      disabled
+    >▶</button>
+
+    </div>
+
+<button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
+</div>
+<!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_END -->
       </div>
 
             <div class="draft-form-scroll">
@@ -644,7 +680,7 @@
         </details>
 </div>
 <div class="button-row action-button-row">
-        <button type="button" class="action-btn action-ai" onclick="runAiDraftFromSelectedOcr()">単品専門解析</button>
+        
 
         <!-- HD_ORIGIN_INVOICE_SPECIALIST_TO_PAYABLES_20260710_START -->
         <button
@@ -3301,9 +3337,6 @@ function setDocumentPreview(item) {
               <div><span class="detail-label">AI信頼度</span>${confidenceBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">要確認理由</span><span class="detail-value">${reasonText}</span></div>
             </div>
-            <div class="sorting-detail-actions">
-              <button type="button" class="sorting-single-analyze" onclick="runAiDraftForItemIndex(${index})">単品専門解析</button>
-            </div>
           </div>
         </div>
       `;
@@ -3490,7 +3523,7 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_SPECIALIST_INVOICE_PAYABLE_FILTER_GPT2_AFTER_20260708_START */
   window.hdOriginInvoicePayableSpecialistFilter = function(allItems) {
     const expectedAnalysisSystemCode =
-      "invoice_payable_analysis";
+      "unpaid";
 
     function textValue(value) {
       return String(value || "").trim();
@@ -7479,8 +7512,10 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_INVOICE_SPECIALIST_PAYABLE_MAPPING_20260710_END -->
+<script src="./payment-document-specialist-record-navigation.js"></script>
 </body>
 </html>
+
 
 
 

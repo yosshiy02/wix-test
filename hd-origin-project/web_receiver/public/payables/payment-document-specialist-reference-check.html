@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>税金・公的支払専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-tax-public.css">
+  <title>照合用専門解析システム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-specialist-reference-check.css">
   <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
-<body class="specialist-tax-public-page" data-specialist-route-code="tax_public">
+<body class="specialist-reference-check-page" data-specialist-route-code="reference_check">
 <!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>税金・公的支払専門解析システム</h1>
+      <h1>照合用専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
@@ -23,18 +23,18 @@
         <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
         <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
         <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
-        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">税金・公的支払</button>
+        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">照合用</button>
         <button type="button" class="specialist-system-button specialist-card" onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細</button>
         <button type="button" class="specialist-system-button specialist-reference" onclick="location.href='./payment-document-specialist-reference-check.html'">照合用</button>
         <button type="button" class="specialist-system-button specialist-needs-review" onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color: #ffc107; color: #000;">要確認</button>
         <button type="button" class="light specialist-system-back-button" onclick="location.href='./payment-document-review.html'">仕分けシステムへ</button>      </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで税金・公的支払へ送った書類を、税金・公的支払として専門解析する画面です。</span>
+<span class="muted">1回目仕分けで照合用へ送った書類を、照合用として専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>税金・公的支払 対象書類</span>
+        <span>照合用 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
@@ -49,7 +49,7 @@
         <span class="legend-chip legend-expense">レシート・領収書</span>
         <span class="legend-chip legend-tax">税金・公的支払</span>
         <span class="legend-chip legend-contract">契約・保険・リース</span>
-        <span class="legend-chip legend-utility">税金・公的支払</span>
+        <span class="legend-chip legend-utility">照合用</span>
         <span class="legend-chip legend-card">カード</span>
         <span class="legend-chip legend-reference">照合用</span>
         <span class="legend-chip legend-review">要確認</span>
@@ -75,7 +75,7 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>税金・公的支払 解析確認</span>
+        <span>照合用 解析確認</span>
         <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
 <div class="specialist-panel-actions">
   <div class="specialist-record-controls" aria-label="専門解析レコード移動">
@@ -114,7 +114,7 @@
 
             <div class="draft-form-scroll">
         <section class="draft-section">
-          <div class="draft-section-title">税金・公的支払 解析サマリー</div>
+          <div class="draft-section-title">照合用 解析サマリー</div>
           <div class="form-grid">
             <label>
               書類区分
@@ -719,10 +719,10 @@
       analysis_system_code: "tax_public_analysis",
       analysis_system_label: "税金・公的支払専門解析システム"
     },
-    tax_public: {
-      specialist_route_label: "税金・公的支払解析",
-      analysis_system_code: "tax_public_analysis",
-      analysis_system_label: "税金・公的支払専門解析システム"
+    reference_check: {
+      specialist_route_label: "照合用解析",
+      analysis_system_code: "reference_check_analysis",
+      analysis_system_label: "照合用専門解析システム"
     },
     contract_insurance_lease: {
       specialist_route_label: "契約・保険・リース解析",
@@ -1280,7 +1280,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // 税金・公的支払 解析サマリー
+    // 照合用 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1665,7 +1665,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // 税金・公的支払 解析サマリー
+    // 照合用 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -2004,7 +2004,7 @@ function setDocumentPreview(item) {
       "receipt",
       "tax_payment_notice",
       "card_statement",
-      "tax_public_analysis",
+      "reference_check_analysis",
       "insurance_notice",
       "lease_contract",
       "contract",
@@ -2041,7 +2041,7 @@ function setDocumentPreview(item) {
       if (valueNorm.includes("リース")) return "lease_contract";
       if (valueNorm.includes("納付") || valueNorm.includes("納税") || valueNorm.includes("税金")) return "tax_payment_notice";
       if (valueNorm.includes("カード")) return "card_statement";
-      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "tax_public_analysis";
+      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "reference_check_analysis";
       if (valueNorm.includes("保険")) return "insurance_notice";
       if (valueNorm.includes("請求")) return "invoice";
       if (valueNorm.includes("領収")) return "receipt";
@@ -2203,7 +2203,7 @@ function setDocumentPreview(item) {
     if (!raw) return "";
 
     const knownCodes = [
-      "invoice", "receipt", "tax_payment_notice", "card_statement", "tax_public_analysis",
+      "invoice", "receipt", "tax_payment_notice", "card_statement", "reference_check_analysis",
       "insurance_notice", "lease_contract", "contract", "web_statement", "mail_saved", "other",
       "payable", "accounts_payable", "expense", "tax_public", "card_payable",
       "contract_insurance_lease", "no_process", "needs_review",
@@ -2217,7 +2217,7 @@ function setDocumentPreview(item) {
       if (norm.includes("リース")) return "lease_contract";
       if (norm.includes("納付") || norm.includes("納税") || norm.includes("税金") || norm.includes("税務署")) return "tax_payment_notice";
       if (norm.includes("カード")) return "card_statement";
-      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "tax_public_analysis";
+      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "reference_check_analysis";
       if (norm.includes("保険")) return "insurance_notice";
       if (norm.includes("請求")) return "invoice";
       if (norm.includes("領収")) return "receipt";
@@ -2576,7 +2576,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("税金・公的支払 解析サマリー")) {
+      if (titleText === normalizeLabelText("照合用 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2614,7 +2614,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("税金・公的支払の専門解析を実行しています。画像は送信しません。");
+    showResult("照合用の専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2634,7 +2634,7 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "税金・公的支払の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "照合用の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
@@ -2878,7 +2878,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\n税金・公的支払の専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n照合用の専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -3366,7 +3366,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、税金・公的支払の専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、照合用の専門解析をしています。");
     }
 
     try {
@@ -3514,7 +3514,7 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
   window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
     const expectedAnalysisSystemCode =
-      "tax_public_analysis";
+      "reference_check_analysis";
 
     function textValue(value) {
       return String(value || "").trim();
@@ -3620,10 +3620,10 @@ function setDocumentPreview(item) {
       items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
 
       summary.textContent =
-        "税金・公的支払専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "照合用専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">税金・公的支払の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">照合用の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -5135,11 +5135,11 @@ function setDocumentPreview(item) {
     const s = textValue(label).replace(/[　\s・･／\/（）()]/g, "");
 
     const map = [
-      ["公共料金通知書", "tax_public_analysis"],
-      ["水道料金通知書", "tax_public_analysis"],
-      ["電気料金", "tax_public_analysis"],
-      ["ガス料金", "tax_public_analysis"],
-      ["通信費", "tax_public_analysis"],
+      ["公共料金通知書", "reference_check_analysis"],
+      ["水道料金通知書", "reference_check_analysis"],
+      ["電気料金", "reference_check_analysis"],
+      ["ガス料金", "reference_check_analysis"],
+      ["通信費", "reference_check_analysis"],
 
       ["その他証憑", "other"],
       ["要確認", "needs_review"],
@@ -6046,7 +6046,7 @@ function setDocumentPreview(item) {
     pushField(fields, section, "未払登録対象", "payable_target", draft.payable_target_label || summary.payable_target || "");
     pushField(fields, section, "経費登録対象", "expense_target", draft.expense_target_label || summary.expense_target || "");
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
-    pushField(fields, section, "税金・公的支払", "public_utility", draft.public_utility_label || summary.public_utility || "");
+    pushField(fields, section, "照合用", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));

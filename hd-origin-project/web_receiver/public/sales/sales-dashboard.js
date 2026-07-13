@@ -620,6 +620,364 @@ async function saveCustomerPrice(event) {
   }
 }
 
+
+/* GPT00_SALES_STAGE14_MULTI_LINE_JS_20260712_START */
+
+const salesDraftLines = [];
+
+function salesTransactionLabel(value) {
+  const labels = {
+    sale: "売上",
+    return: "返品",
+    discount: "値引き",
+    correction: "訂正"
+  };
+
+  return labels[value] || value;
+}
+
+function salesLineSign(transactionType) {
+  return (
+    transactionType === "return" ||
+    transactionType === "discount"
+  )
+    ? -1
+    : 1;
+}
+
+function readCurrentSalesLine() {
+  const productName =
+    formValue("sales_product_name");
+
+  const quantity =
+    Number(formValue("sales_quantity"));
+
+  const unitPrice =
+    Number(formValue("sales_unit_price"));
+
+  const taxRate =
+    Number(formValue("sales_line_tax_rate"));
+
+  const transactionType =
+    formValue("sales_transaction_type") || "sale";
+
+  if (!productName) {
+    throw new Error("商品名を入力してください。");
+  }
+
+  if (
+    !Number.isFinite(quantity) ||
+    quantity <= 0
+  ) {
+    throw new Error("数量は0より大きい値を入力してください。");
+  }
+
+  if (
+    !Number.isFinite(unitPrice) ||
+    unitPrice < 0
+  ) {
+    throw new Error("単価は0以上で入力してください。");
+  }
+
+  if (
+    ![
+      "sale",
+      "return",
+      "discount",
+      "correction"
+    ].includes(transactionType)
+  ) {
+    throw new Error("明細区分が不正です。");
+  }
+
+  const lineAmount =
+    salesLineSign(transactionType) *
+    quantity *
+    unitPrice;
+
+  return {
+    product_id:
+      nullableNumber("sales_product_id"),
+    product_code:
+      formValue("sales_product_code"),
+    product_name:
+      productName,
+    quantity,
+    unit_name: "足",
+    unit_price: unitPrice,
+    tax_rate: Number.isFinite(taxRate)
+      ? taxRate
+      : 0.10,
+    transaction_type: transactionType,
+    line_amount: lineAmount
+  };
+}
+
+function currentSalesLinesForSave() {
+  const lines =
+    salesDraftLines.map(line => ({ ...line }));
+
+  if (formValue("sales_product_name")) {
+    lines.push(readCurrentSalesLine());
+  }
+
+  if (!lines.length) {
+    throw new Error("売上明細を1行以上入力してください。");
+  }
+
+  return lines;
+}
+
+function renderSalesDraftLines() {
+  const rows = element("salesDraftRows");
+
+  if (!rows) {
+    return;
+  }
+
+  if (!salesDraftLines.length) {
+    rows.innerHTML = `
+      <tr>
+        <td
+          class="empty"
+          colspan="7"
+        >
+          明細はまだ追加されていません。
+        </td>
+      </tr>
+    `;
+  } else {
+    rows.innerHTML = salesDraftLines
+      .map((line, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>
+            ${escapeHtml(line.product_code)}
+            ${escapeHtml(line.product_name)}
+          </td>
+          <td>${formatNumber(line.quantity)}</td>
+          <td>${formatMoney(line.unit_price)}</td>
+          <td>
+            ${escapeHtml(
+              salesTransactionLabel(
+                line.transaction_type
+              )
+            )}
+          </td>
+          <td>${formatMoney(line.line_amount)}</td>
+          <td>
+            <button
+              class="button secondary compact"
+              type="button"
+              onclick="removeSalesDraftLine(${index})"
+            >
+              削除
+            </button>
+          </td>
+        </tr>
+      `)
+      .join("");
+  }
+
+  const subtotal = salesDraftLines.reduce(
+    (sum, line) =>
+      sum + Number(line.line_amount || 0),
+    0
+  );
+
+  const tax = salesDraftLines.reduce(
+    (sum, line) =>
+      sum +
+      Number(line.line_amount || 0) *
+      Number(line.tax_rate || 0),
+    0
+  );
+
+  const discountAmount =
+    Number(formValue("sales_discount_amount")) || 0;
+
+  const freightAmount =
+    Number(formValue("sales_freight_amount")) || 0;
+
+  const total =
+    subtotal -
+    discountAmount +
+    freightAmount +
+    tax;
+
+  element("salesDraftSubtotal").textContent =
+    formatMoney(subtotal);
+
+  element("salesDraftTax").textContent =
+    formatMoney(tax);
+
+  element("salesDraftTotal").textContent =
+    formatMoney(total);
+}
+
+function clearCurrentSalesLine() {
+  element("sales_product_id").value = "";
+  element("sales_product_code").value = "";
+  element("sales_product_name").value = "";
+  element("sales_quantity").value = "1";
+  element("sales_unit_price").value = "0";
+  element("sales_line_tax_rate").value = "0.10";
+  element("sales_transaction_type").value = "sale";
+}
+
+function addSalesDraftLine() {
+  try {
+    hideMessage();
+
+    salesDraftLines.push(
+      readCurrentSalesLine()
+    );
+
+    clearCurrentSalesLine();
+    renderSalesDraftLines();
+
+    showMessage(
+      "売上明細を追加しました。"
+    );
+  } catch (error) {
+    showMessage(error.message, "error");
+  }
+}
+
+window.removeSalesDraftLine =
+function removeSalesDraftLine(index) {
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= salesDraftLines.length
+  ) {
+    return;
+  }
+
+  salesDraftLines.splice(index, 1);
+  renderSalesDraftLines();
+};
+
+function clearSalesDraftLines() {
+  salesDraftLines.length = 0;
+  clearCurrentSalesLine();
+  renderSalesDraftLines();
+
+  showMessage(
+    "入力中の売上明細をクリアしました。"
+  );
+}
+
+async function resolveSalesDraftUnitPrice() {
+  const customerId =
+    nullableNumber("sales_customer_id");
+
+  const productId =
+    nullableNumber("sales_product_id");
+
+  const salesDate =
+    formValue("sales_date");
+
+  if (!productId) {
+    return;
+  }
+
+  const productOption =
+    element("sales_product_id")
+      .selectedOptions[0];
+
+  const standardPrice =
+    productOption &&
+    productOption.dataset.price
+      ? productOption.dataset.price
+      : "0";
+
+  if (!customerId || !salesDate) {
+    element("sales_unit_price").value =
+      standardPrice;
+
+    return;
+  }
+
+  try {
+    const params = new URLSearchParams({
+      customer_id: String(customerId),
+      product_id: String(productId),
+      sales_date: salesDate
+    });
+
+    const data = await requestJson(
+      `/api/sales/customer-prices/resolve?${params.toString()}`
+    );
+
+    const customerPrice =
+      data.customer_price;
+
+    element("sales_unit_price").value =
+      customerPrice
+        ? customerPrice.unit_price
+        : standardPrice;
+  } catch (error) {
+    element("sales_unit_price").value =
+      standardPrice;
+
+    showMessage(
+      "得意先別単価を取得できなかったため標準売価を使用します。",
+      "error"
+    );
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    element("addSalesLineButton")
+      .addEventListener(
+        "click",
+        addSalesDraftLine
+      );
+
+    element("clearSalesLinesButton")
+      .addEventListener(
+        "click",
+        clearSalesDraftLines
+      );
+
+    element("sales_product_id")
+      .addEventListener(
+        "change",
+        resolveSalesDraftUnitPrice
+      );
+
+    element("sales_customer_id")
+      .addEventListener(
+        "change",
+        resolveSalesDraftUnitPrice
+      );
+
+    element("sales_date")
+      .addEventListener(
+        "change",
+        resolveSalesDraftUnitPrice
+      );
+
+    element("sales_discount_amount")
+      .addEventListener(
+        "input",
+        renderSalesDraftLines
+      );
+
+    element("sales_freight_amount")
+      .addEventListener(
+        "input",
+        renderSalesDraftLines
+      );
+
+    renderSalesDraftLines();
+  }
+);
+
+/* GPT00_SALES_STAGE14_MULTI_LINE_JS_20260712_END */
 async function loadSales() {
   const params = new URLSearchParams();
 
@@ -679,6 +1037,8 @@ async function saveSale(event) {
 
   try {
     hideMessage();
+    const linesForSave =
+      currentSalesLinesForSave();
 
     await requestJson(
       "/api/sales/slips",
@@ -701,30 +1061,14 @@ async function saveSale(event) {
             formValue("sales_freight_amount"),
           note:
             formValue("sales_note"),
-          lines: [
-            {
-              product_id:
-                nullableNumber("sales_product_id"),
-              product_code:
-                formValue("sales_product_code"),
-              product_name:
-                formValue("sales_product_name"),
-              quantity:
-                formValue("sales_quantity"),
-              unit_name: "足",
-              unit_price:
-                formValue("sales_unit_price"),
-              tax_rate:
-                formValue("sales_line_tax_rate"),
-              transaction_type:
-                formValue("sales_transaction_type")
-            }
-          ]
+          lines: linesForSave
         })
       }
     );
 
     element("salesForm").reset();
+    salesDraftLines.length = 0;
+    renderSalesDraftLines();
     element("sales_date").value =
       localDateString();
 

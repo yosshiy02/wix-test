@@ -1,0 +1,70 @@
+﻿/*
+  HD_ORIGIN_SPECIALIST_RECORD_NAVIGATION_GPT2_20260712
+*/
+
+.specialist-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.specialist-record-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.specialist-record-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.specialist-record-arrow:disabled {
+  opacity: .35;
+  cursor: default;
+  transform: none;
+}
+
+.specialist-record-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 30px;
+  padding: 0 7px;
+  border: 1px solid rgba(35, 48, 76, .16);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .78);
+  color: #38445a;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .specialist-panel-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .specialist-record-controls {
+    flex-wrap: wrap;
+  }
+}
