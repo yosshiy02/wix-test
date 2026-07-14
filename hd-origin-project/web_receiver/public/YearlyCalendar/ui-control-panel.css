@@ -1,0 +1,251 @@
+/* UI Control Panel */
+
+.ui-control-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #334155, #0f172a);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+}
+
+.ui-control-btn:hover {
+    transform: translateY(-2px);
+}
+
+.ui-control-panel {
+    position: fixed;
+    right: 20px;
+    top: 72px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    z-index: 12000;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 25px 70px rgba(15, 23, 42, 0.35);
+    display: none;
+}
+
+.ui-control-panel.active {
+    display: block;
+}
+
+.ui-control-header {
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f8fafc, #eef2ff);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ui-control-header b {
+    color: #0f172a;
+}
+
+.ui-control-header button {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.ui-control-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ui-control-label {
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.ui-segment {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+    gap: 4px;
+}
+
+.ui-segment button,
+.ui-action-btn {
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    padding: 8px;
+    cursor: pointer;
+    font-weight: 900;
+    color: #64748b;
+}
+
+.ui-segment button.active,
+.ui-action-btn.active {
+    background: #ffffff;
+    color: #2563eb;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.ui-action-btn {
+    width: 100%;
+    margin-bottom: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.ui-mini-result {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ui-mini-card {
+    border-left: 5px solid #2563eb;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.ui-mini-card b {
+    display: block;
+    color: #2563eb;
+    font-size: 0.78rem;
+}
+
+.ui-mini-card span {
+    display: block;
+    color: #0f172a;
+    font-size: 0.82rem;
+    margin-top: 3px;
+}
+
+.ui-mini-empty {
+    padding: 10px;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.ui-shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #475569;
+    font-size: 0.78rem;
+}
+
+/* Density */
+body.ui-density-compact .cal-cell {
+    min-height: 86px !important;
+    max-height: 86px !important;
+    font-size: 0.82rem;
+}
+
+body.ui-density-compact .event-badge {
+    font-size: 0.66rem;
+    padding: 2px 3px;
+}
+
+body.ui-density-compact .view-container {
+    padding: 10px;
+}
+
+body.ui-density-wide .cal-cell {
+    min-height: 160px !important;
+    max-height: 160px !important;
+}
+
+body.ui-density-wide .view-container {
+    padding: 28px;
+}
+
+/* Sidebar collapsed */
+body.ui-sidebar-collapsed .sidebar {
+    width: 72px !important;
+    padding: 12px 8px !important;
+}
+
+body.ui-sidebar-collapsed .sidebar .app-title,
+body.ui-sidebar-collapsed .sidebar .section-title,
+body.ui-sidebar-collapsed .sidebar #dateDisplay,
+body.ui-sidebar-collapsed .sidebar .filter-btn,
+body.ui-sidebar-collapsed .sidebar .today-btn,
+body.ui-sidebar-collapsed .sidebar .ai-generate-btn,
+body.ui-sidebar-collapsed .sidebar .workflow-ai-btn,
+body.ui-sidebar-collapsed .sidebar .ultimate-feature-btn,
+body.ui-sidebar-collapsed .sidebar .conflict-engine-btn,
+body.ui-sidebar-collapsed .sidebar .executive-cockpit-btn,
+body.ui-sidebar-collapsed .sidebar .reverse-scheduler-btn,
+body.ui-sidebar-collapsed .sidebar .status-manager-btn {
+    font-size: 0 !important;
+}
+
+body.ui-sidebar-collapsed .sidebar button::first-letter {
+    font-size: 1rem;
+}
+
+/* Big text */
+body.ui-big-text {
+    font-size: 17px;
+}
+
+body.ui-big-text .event-badge {
+    font-size: 0.85rem;
+}
+
+/* Dark-ish mode */
+body.ui-dark-mode {
+    background: #0f172a !important;
+    color: #e5e7eb !important;
+}
+
+body.ui-dark-mode .main-content,
+body.ui-dark-mode .top-header,
+body.ui-dark-mode .sidebar,
+body.ui-dark-mode .mini-month,
+body.ui-dark-mode .cal-cell,
+body.ui-dark-mode .modal-box,
+body.ui-dark-mode .ui-control-panel {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+}
+
+body.ui-dark-mode .cal-header,
+body.ui-dark-mode .view-tabs,
+body.ui-dark-mode .mode-tabs,
+body.ui-dark-mode .input-field {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+}
+
+body.ui-dark-mode .tab-btn.active,
+body.ui-dark-mode .mode-btn.active,
+body.ui-dark-mode .filter-btn.active {
+    background: #0f172a !important;
+    color: #93c5fd !important;
+}
+
+body.ui-dark-mode .filter-btn,
+body.ui-dark-mode .today-btn,
+body.ui-dark-mode .icon-btn {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+}

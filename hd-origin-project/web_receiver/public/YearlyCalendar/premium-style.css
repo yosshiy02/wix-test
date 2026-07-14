@@ -1,0 +1,335 @@
+/* Premium Style Pack */
+
+:root {
+    --premium-font: "Yu Gothic UI", "Yu Gothic", "Meiryo", "Segoe UI", system-ui, sans-serif;
+    --premium-bg: #f4f7fb;
+    --premium-panel: rgba(255,255,255,0.88);
+    --premium-text: #172033;
+    --premium-muted: #667085;
+    --premium-border: rgba(148, 163, 184, 0.32);
+    --premium-blue: #2563eb;
+    --premium-purple: #7c3aed;
+    --premium-green: #10b981;
+    --premium-orange: #f59e0b;
+    --premium-red: #ef4444;
+    --premium-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+    --premium-shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.07);
+    --premium-radius: 18px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--premium-font) !important;
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.13), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.12), transparent 32%),
+        var(--premium-bg) !important;
+    color: var(--premium-text) !important;
+    letter-spacing: 0.01em;
+}
+
+/* 全体カード感 */
+.sidebar,
+.top-header,
+.main-content,
+.view-container,
+.mini-month,
+.modal-box,
+.conflict-box,
+.executive-box,
+.reverse-box,
+.status-box,
+.ui-control-panel {
+    border-color: var(--premium-border) !important;
+    box-shadow: var(--premium-shadow-soft) !important;
+}
+
+/* サイドバー */
+.sidebar {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.96)) !important;
+    backdrop-filter: blur(16px);
+    color: #ffffff !important;
+}
+
+.sidebar .app-title,
+.sidebar h1,
+.sidebar h2,
+.sidebar h3,
+.sidebar .section-title {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.03em;
+}
+
+.sidebar .section-title {
+    opacity: 0.78;
+    font-size: 0.78rem !important;
+    text-transform: uppercase;
+}
+
+.sidebar button,
+.sidebar .filter-btn,
+.sidebar .today-btn {
+    border-radius: 13px !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease !important;
+}
+
+.sidebar button:hover,
+.sidebar .filter-btn:hover,
+.sidebar .today-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.20) !important;
+}
+
+/* ヘッダー */
+.top-header {
+    background: rgba(255,255,255,0.78) !important;
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--premium-border) !important;
+}
+
+.top-header h1,
+.current-title,
+#currentTitle {
+    font-weight: 950 !important;
+    letter-spacing: -0.03em;
+    color: #0f172a !important;
+}
+
+/* タブ */
+.tab-btn,
+.mode-btn,
+.filter-btn,
+.icon-btn,
+.today-btn,
+.btn-save,
+button {
+    font-family: var(--premium-font) !important;
+}
+
+.tab-btn,
+.mode-btn {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+    transition: all .16s ease !important;
+}
+
+.tab-btn.active,
+.mode-btn.active {
+    background: linear-gradient(135deg, var(--premium-blue), var(--premium-purple)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.24) !important;
+}
+
+/* カレンダーセル */
+.cal-cell,
+.day-cell,
+.month-cell,
+.week-cell {
+    border-color: rgba(148, 163, 184, 0.24) !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,0.74) !important;
+    transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease !important;
+}
+
+.cal-cell:hover,
+.day-cell:hover,
+.month-cell:hover,
+.week-cell:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.10) !important;
+    border-color: rgba(37, 99, 235, 0.40) !important;
+    z-index: 5;
+}
+
+/* 日付数字 */
+.date-num,
+.day-number,
+.cell-date {
+    font-weight: 950 !important;
+    color: #1e293b !important;
+}
+
+/* 今日 */
+.today,
+.is-today,
+.cal-cell.today {
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(255,255,255,0.85)) !important;
+    border-color: rgba(37, 99, 235, 0.62) !important;
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.20), var(--premium-shadow-soft) !important;
+}
+
+/* 予定バッジ */
+.event-badge,
+.badge,
+.schedule-item {
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid rgba(255,255,255,0.55) !important;
+}
+
+/* 入力欄 */
+input,
+select,
+textarea,
+.input-field {
+    font-family: var(--premium-font) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--premium-border) !important;
+    background: rgba(255,255,255,0.88) !important;
+    color: var(--premium-text) !important;
+    transition: box-shadow .14s ease, border-color .14s ease !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.input-field:focus {
+    outline: none !important;
+    border-color: rgba(37, 99, 235, 0.72) !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
+}
+
+/* モーダル */
+.modal-overlay.active {
+    backdrop-filter: blur(8px);
+    background: rgba(15, 23, 42, 0.36) !important;
+}
+
+.modal-box,
+.conflict-box,
+.executive-box,
+.reverse-box,
+.status-box {
+    border-radius: 24px !important;
+    border: 1px solid rgba(255,255,255,0.62) !important;
+    box-shadow: 0 34px 90px rgba(15, 23, 42, 0.28) !important;
+}
+
+/* 機能ボタンを少し統一 */
+.executive-cockpit-btn,
+.conflict-engine-btn,
+.reverse-scheduler-btn,
+.status-manager-btn,
+.ui-control-btn,
+.function-help-btn,
+.ai-generate-btn,
+.workflow-ai-btn,
+.ultimate-feature-btn {
+    border-radius: 14px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.01em;
+}
+
+/* テーブル */
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+th {
+    font-weight: 950 !important;
+    color: #475569 !important;
+    background: #f8fafc !important;
+}
+
+td,
+th {
+    border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+/* 右クリックメニュー */
+.rcp-menu,
+.ib-context-menu {
+    border-radius: 16px !important;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.30) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+
+.rcp-menu button,
+.ib-context-menu button {
+    border-radius: 10px !important;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.42);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #94a3b8, #64748b);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #64748b, #475569);
+}
+
+/* ちょいリッチな表示 */
+.executive-kpi,
+.status-kpi,
+.conflict-card,
+.executive-card,
+.reverse-table,
+.status-card,
+.ui-mini-card,
+.reminder-countdown-bar {
+    border-radius: 16px !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* ダーク風表示ON時との相性 */
+body.ui-dark-mode {
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.16), transparent 32%),
+        #0b1120 !important;
+}
+
+body.ui-dark-mode .cal-cell,
+body.ui-dark-mode .day-cell,
+body.ui-dark-mode .month-cell,
+body.ui-dark-mode .week-cell {
+    background: rgba(17, 24, 39, 0.86) !important;
+}
+
+body.ui-dark-mode .date-num,
+body.ui-dark-mode .day-number,
+body.ui-dark-mode .cell-date {
+    color: #e5e7eb !important;
+}
+
+body.ui-dark-mode input,
+body.ui-dark-mode select,
+body.ui-dark-mode textarea,
+body.ui-dark-mode .input-field {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+}
+
+/* 画面が安っぽく見えないように文字を少し締める */
+p,
+small,
+span,
+label,
+td {
+    line-height: 1.55;
+}
+
+/* 年間表示の詰まり軽減 */
+.year-grid .cal-cell,
+.year-view .cal-cell {
+    border-radius: 10px !important;
+}

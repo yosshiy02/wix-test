@@ -1,0 +1,220 @@
+/* Status Manager */
+
+.status-manager-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #10b981, #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
+}
+
+.status-manager-btn:hover {
+    transform: translateY(-2px);
+}
+
+.status-manager-modal {
+    z-index: 9950;
+}
+
+.status-box {
+    width: 94%;
+    max-width: 1080px;
+    max-height: 92vh;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.42);
+    display: flex;
+    flex-direction: column;
+}
+
+.status-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+    border-bottom: 1px solid #bbf7d0;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.status-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+}
+
+.status-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.86rem;
+}
+
+.status-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #bbf7d0;
+    background: #fff;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.status-toolbar {
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 1fr 180px 90px;
+    gap: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.status-summary {
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.status-kpi {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.status-kpi b {
+    display: block;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+.status-kpi span {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 900;
+}
+
+.status-kpi.status-done b {
+    color: #10b981;
+}
+
+.status-kpi.status-late b,
+.status-kpi.overdue b {
+    color: #ef4444;
+}
+
+.status-list {
+    padding: 16px 18px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-card {
+    display: grid;
+    grid-template-columns: 100px 1fr 150px;
+    gap: 10px;
+    align-items: center;
+    border-left: 7px solid #94a3b8;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 10px;
+}
+
+.status-card.status-todo {
+    border-left-color: #94a3b8;
+}
+
+.status-card.status-doing {
+    border-left-color: #2563eb;
+    background: #eff6ff;
+}
+
+.status-card.status-waiting {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.status-card.status-done {
+    border-left-color: #10b981;
+    background: #ecfdf5;
+    opacity: 0.75;
+}
+
+.status-card.status-hold {
+    border-left-color: #64748b;
+}
+
+.status-card.status-late,
+.status-card.is-past {
+    border-left-color: #ef4444;
+    background: #fff1f2;
+}
+
+.status-date {
+    font-weight: 900;
+    color: #2563eb;
+}
+
+.status-main b {
+    display: block;
+    color: #0f172a;
+}
+
+.status-main small {
+    color: #64748b;
+}
+
+.status-empty {
+    padding: 30px;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+}
+
+.status-cell-done {
+    opacity: 0.55 !important;
+}
+
+.status-cell-late {
+    outline: 3px solid rgba(239, 68, 68, 0.9) !important;
+    outline-offset: -3px;
+}
+
+.status-cell-waiting {
+    outline: 3px solid rgba(245, 158, 11, 0.85) !important;
+    outline-offset: -3px;
+}
+
+.status-cell-doing {
+    outline: 3px solid rgba(37, 99, 235, 0.85) !important;
+    outline-offset: -3px;
+}
+
+.status-mini-badge {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
+    z-index: 85;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.92);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 900;
+    pointer-events: none;
+}
+
+@media (max-width: 900px) {
+    .status-toolbar,
+    .status-summary,
+    .status-card {
+        grid-template-columns: 1fr;
+    }
+}

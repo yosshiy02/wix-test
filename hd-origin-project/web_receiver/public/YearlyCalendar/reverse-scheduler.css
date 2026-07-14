@@ -1,0 +1,156 @@
+/* Reverse Scheduler */
+
+.reverse-scheduler-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(124, 58, 237, 0.26);
+}
+
+.reverse-scheduler-btn:hover {
+    transform: translateY(-2px);
+}
+
+.reverse-scheduler-modal {
+    z-index: 9900;
+}
+
+.reverse-box {
+    width: 94%;
+    max-width: 980px;
+    max-height: 92vh;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.42);
+    display: flex;
+    flex-direction: column;
+}
+
+.reverse-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f5f3ff, #eff6ff);
+    border-bottom: 1px solid #ddd6fe;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.reverse-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+}
+
+.reverse-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.86rem;
+}
+
+.reverse-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd6fe;
+    background: #fff;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.reverse-form {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 150px 150px;
+    gap: 10px;
+}
+
+.reverse-form label {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.reverse-actions {
+    padding: 0 20px 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.reverse-apply {
+    background: #10b981;
+}
+
+.reverse-preview {
+    margin: 0 20px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: auto;
+    max-height: 420px;
+}
+
+.reverse-empty {
+    padding: 30px;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.reverse-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.reverse-table th {
+    background: #f8fafc;
+    color: #64748b;
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+}
+
+.reverse-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.reverse-phase {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 0.72rem;
+}
+
+.reverse-phase.phase-準備,
+.reverse-phase.phase-確認 {
+    background: #eab308;
+}
+
+.reverse-phase.phase-移動 {
+    background: #60a5fa;
+}
+
+.reverse-phase.phase-本番,
+.reverse-phase.phase-実行 {
+    background: #2563eb;
+}
+
+.reverse-phase.phase-締切 {
+    background: #ef4444;
+}
+
+@media (max-width: 900px) {
+    .reverse-form {
+        grid-template-columns: 1fr;
+    }
+}

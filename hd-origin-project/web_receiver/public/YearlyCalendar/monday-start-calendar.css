@@ -1,0 +1,92 @@
+/* Monday Start V3 */
+
+.monday-v3-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+}
+
+.monday-v3-hide-old-header {
+    display: none !important;
+}
+
+.monday-v3-header {
+    min-height: 34px !important;
+    padding: 8px 6px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #f8fafc, #eef2ff) !important;
+    color: #475569 !important;
+    font-weight: 950 !important;
+    text-align: center !important;
+    border: 1px solid rgba(148, 163, 184, 0.28) !important;
+}
+
+.monday-v3-header.sat {
+    color: #2563eb !important;
+    background: #eff6ff !important;
+}
+
+.monday-v3-header.sun {
+    color: #dc2626 !important;
+    background: #fff1f2 !important;
+}
+
+.monday-v3-cell {
+    min-height: 240px !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.monday-v3-cell .cell-inner {
+    min-height: 235px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.monday-v3-sat {
+    background: linear-gradient(180deg, rgba(219, 234, 254, 0.96), rgba(255,255,255,0.82)) !important;
+    border-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+.monday-v3-sun {
+    background: linear-gradient(180deg, rgba(255, 241, 242, 0.97), rgba(255,255,255,0.82)) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.monday-v3-sat .date-num,
+.monday-v3-sat .day-number,
+.monday-v3-sat .cell-date {
+    color: #2563eb !important;
+}
+
+.monday-v3-sun .date-num,
+.monday-v3-sun .day-number,
+.monday-v3-sun .cell-date {
+    color: #dc2626 !important;
+}
+
+body.ui-density-wide .monday-v3-grid {
+    grid-auto-rows: minmax(300px, auto) !important;
+}
+
+body.ui-density-wide .monday-v3-cell {
+    min-height: 300px !important;
+}
+
+body.ui-density-wide .monday-v3-cell .cell-inner {
+    min-height: 295px !important;
+}
+
+body.ui-density-compact .monday-v3-grid {
+    grid-auto-rows: minmax(180px, auto) !important;
+}
+
+body.ui-density-compact .monday-v3-cell {
+    min-height: 180px !important;
+}
+
+body.ui-density-compact .monday-v3-cell .cell-inner {
+    min-height: 175px !important;
+}

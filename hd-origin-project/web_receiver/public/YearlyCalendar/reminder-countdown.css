@@ -1,0 +1,140 @@
+/* Reminder Countdown */
+
+.reminder-countdown-bar {
+    margin: 12px 20px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.reminder-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.reminder-kpi {
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 7px;
+    text-align: center;
+}
+
+.reminder-kpi b {
+    display: block;
+    font-size: 1.25rem;
+    color: #0f172a;
+}
+
+.reminder-kpi span {
+    font-size: 0.68rem;
+    font-weight: 900;
+    color: #64748b;
+}
+
+.reminder-kpi.danger b {
+    color: #ef4444;
+}
+
+.reminder-kpi.today b {
+    color: #2563eb;
+}
+
+.reminder-kpi.soon b {
+    color: #f59e0b;
+}
+
+.reminder-ticker {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.reminder-chip {
+    flex: 0 0 auto;
+    max-width: 320px;
+    border-left: 6px solid #94a3b8;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.reminder-chip b {
+    display: block;
+    font-size: 0.74rem;
+    color: #ef4444;
+    margin-bottom: 2px;
+}
+
+.reminder-chip span {
+    display: block;
+    font-size: 0.78rem;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reminder-chip.phase-deadline {
+    border-left-color: #ef4444;
+    background: #fff1f2;
+}
+
+.reminder-chip.phase-main {
+    border-left-color: #2563eb;
+    background: #eff6ff;
+}
+
+.reminder-chip.phase-move {
+    border-left-color: #93c5fd;
+    background: #f0f9ff;
+}
+
+.reminder-empty {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.reminder-cell-overdue {
+    outline: 4px solid rgba(239, 68, 68, 0.95) !important;
+    outline-offset: -4px;
+}
+
+.reminder-cell-today {
+    outline: 4px solid rgba(37, 99, 235, 0.9) !important;
+    outline-offset: -4px;
+}
+
+.reminder-cell-soon {
+    outline: 3px solid rgba(245, 158, 11, 0.9) !important;
+    outline-offset: -3px;
+}
+
+.reminder-cell-badge {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    z-index: 95;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.9);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 900;
+    pointer-events: none;
+}
+
+@media (max-width: 800px) {
+    .reminder-countdown-bar {
+        grid-template-columns: 1fr;
+    }
+}

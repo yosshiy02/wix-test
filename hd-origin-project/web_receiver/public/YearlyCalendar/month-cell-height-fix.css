@@ -1,0 +1,100 @@
+/* Month Cell Height Fix - Much Bigger */
+
+/* 月表示の1日マスをかなり広げる */
+.month-view .cal-cell,
+.month-grid .cal-cell,
+.calendar-month .cal-cell,
+#monthView .cal-cell,
+body:not(.ui-density-compact):not(.ui-density-wide) .cal-cell[data-date] {
+    min-height: 240px !important;
+    height: 240px !important;
+    max-height: none !important;
+}
+
+/* 中身も切れないようにする */
+.month-view .cell-inner,
+.month-grid .cell-inner,
+.calendar-month .cell-inner,
+#monthView .cell-inner,
+.cal-cell[data-date] .cell-inner {
+    min-height: 235px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* 予定バッジを見やすく */
+.month-view .event-badge,
+.month-grid .event-badge,
+.calendar-month .event-badge,
+#monthView .event-badge,
+.cal-cell[data-date] .event-badge {
+    display: block !important;
+    margin-top: 5px !important;
+    padding: 5px 7px !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* 広め表示モードはさらに大きく */
+body.ui-density-wide .month-view .cal-cell,
+body.ui-density-wide .month-grid .cal-cell,
+body.ui-density-wide .calendar-month .cal-cell,
+body.ui-density-wide #monthView .cal-cell,
+body.ui-density-wide .cal-cell[data-date] {
+    min-height: 300px !important;
+    height: 300px !important;
+    max-height: none !important;
+}
+
+body.ui-density-wide .month-view .cell-inner,
+body.ui-density-wide .month-grid .cell-inner,
+body.ui-density-wide .calendar-month .cell-inner,
+body.ui-density-wide #monthView .cell-inner,
+body.ui-density-wide .cal-cell[data-date] .cell-inner {
+    min-height: 295px !important;
+}
+
+/* 詰める表示でも前より広く */
+body.ui-density-compact .month-view .cal-cell,
+body.ui-density-compact .month-grid .cal-cell,
+body.ui-density-compact .calendar-month .cal-cell,
+body.ui-density-compact #monthView .cal-cell,
+body.ui-density-compact .cal-cell[data-date] {
+    min-height: 180px !important;
+    height: 180px !important;
+    max-height: none !important;
+}
+
+body.ui-density-compact .month-view .cell-inner,
+body.ui-density-compact .month-grid .cell-inner,
+body.ui-density-compact .calendar-month .cell-inner,
+body.ui-density-compact #monthView .cell-inner,
+body.ui-density-compact .cal-cell[data-date] .cell-inner {
+    min-height: 175px !important;
+}
+
+/* 月表示全体が縦スクロールできるように */
+.view-container,
+.main-content,
+.calendar-container,
+#calendarGrid {
+    overflow: auto !important;
+}
+
+/* 年間ミニカレンダーまで巨大化しすぎる場合の抑制 */
+.year-view .mini-month .cal-cell,
+.year-grid .mini-month .cal-cell,
+.mini-month .cal-cell {
+    min-height: 34px !important;
+    height: 34px !important;
+    max-height: 34px !important;
+}
+
+.year-view .mini-month .cell-inner,
+.year-grid .mini-month .cell-inner,
+.mini-month .cell-inner {
+    min-height: 30px !important;
+}

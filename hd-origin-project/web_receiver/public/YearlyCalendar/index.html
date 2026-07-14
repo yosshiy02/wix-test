@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高機能マルチチャンネルカレンダー</title>
+    <link rel="stylesheet" href="style.css?v=20260714235805">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+    <link rel="stylesheet" href="ultimate-features.css?v=20260715000107">
+    <link rel="stylesheet" href="conflict-engine.css?v=20260715001217">
+    <link rel="stylesheet" href="event-flow-visual.css?v=20260715001815">
+    <link rel="stylesheet" href="executive-cockpit.css?v=20260715001842">
+    <link rel="stylesheet" href="reverse-scheduler.css?v=20260715001948">
+    <link rel="stylesheet" href="status-manager.css?v=20260715002102">
+    <link rel="stylesheet" href="ui-control-panel.css?v=20260715002311">
+    <link rel="stylesheet" href="reminder-countdown.css?v=20260715002634">
+    <link rel="stylesheet" href="interaction-boost.css?v=20260715002938">
+    <link rel="stylesheet" href="right-click-plus.css?v=20260715004623">
+    <link rel="stylesheet" href="premium-style.css?v=20260715005309">
+    <link rel="stylesheet" href="month-cell-height-fix.css?v=20260715005640">
+    <link rel="stylesheet" href="monday-start-calendar.css?v=20260715010432">
+</head>
+<body>
+    <div class="app-container">
+        <!-- サイドバー -->
+        <aside class="sidebar">
+            <h1 class="app-title">Team Calendar</h1>
+            
+            <div class="date-navigator">
+                <button id="prevBtn" class="nav-btn">◀</button>
+                <h2 id="dateDisplay">2026年</h2>
+                <button id="nextBtn" class="nav-btn">▶</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="todayBtn" class="today-btn">今日</button>
+                <button id="undoBtn" class="today-btn undo-btn" disabled title="操作を元に戻す">↩️ UNDO</button>
+            </div>
+
+            <!-- 担当者 -->
+            <div class="section-title" style="margin-top:10px;">👤 担当者</div>
+            <div class="filter-buttons" id="userFilters"><button class="filter-btn active" data-type="user" data-val="sakaguchi"><span class="dot bg-sakaguchi"></span>坂口 喜康</button><button class="filter-btn active" data-type="user" data-val="kawatani"><span class="dot bg-kawatani"></span>川谷 武弘</button><button class="filter-btn active" data-type="user" data-val="takayama"><span class="dot bg-takayama"></span>高山 昌祐</button></div>
+
+            <!-- AI自動提案ボタン -->
+            <button id="aiGenerateBtn" class="ai-generate-btn">🤖 月間予定をAI自動提案</button>
+        </aside>
+
+        <!-- メイン画面 -->
+        <main class="main-content">
+                        <header class="top-header">
+                <div class="header-top-row" style="display:flex; gap: 20px; align-items:center; flex-wrap:wrap;">
+                    <div class="view-tabs">
+                        <button class="tab-btn active" data-view="year">年</button>
+                        <button class="tab-btn" data-view="month">月</button>
+                        <button class="tab-btn" data-view="week">週</button>
+                        <button class="tab-btn" data-view="day">日</button>
+                    </div>
+                    <!-- ★ ここに追加したモード切替ボタン -->
+                    <div class="mode-tabs" id="topModeTabs">
+                        <button class="mode-btn active" data-val="all">総合</button>
+                        <button class="mode-btn" data-val="accounting">会計</button>
+                        <button class="mode-btn" data-val="sales">商談</button>
+                        <button class="mode-btn" data-val="event">出店</button>
+                        <button class="mode-btn" data-val="manufacture">製造</button>
+                        <button class="mode-btn" data-val="general">全般</button>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <div id="trashZone" class="trash-zone">🗑️ ドロップして削除</div>
+                    <!-- ★ 歯車ボタン -->
+                    <button id="settingsBtn" class="icon-btn" title="設定">⚙️</button>
+                </div>
+            </header>
+            <div id="calendarGrid" class="view-container"></div>
+        </main>
+    </div>
+
+    <!-- 予定入力・編集用モーダル -->
+    <div id="memoModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalDateTitle" class="modal-title"></h3>
+            <div id="modalEventList" class="modal-event-list"></div>
+            <div class="add-event-form">
+                <h4 style="font-size:0.85rem; margin-bottom:8px; color:var(--text-sub);">＋ 新規予定を追加</h4>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <select id="modalAddChannel" class="input-field" style="width:45%;">
+                        <option value="general">📁 全般</option>
+                        <option value="accounting">💰 会計</option>
+                        <option value="sales">🤝 商談</option>
+                        <option value="event">🎪 出店</option>
+                        <option value="manufacture">🏭 製造</option>
+                    </select>
+                    <select id="modalAddUser" class="input-field" style="width:55%;">
+                        <option value="sakaguchi">🔵 坂口</option>
+                        <option value="kawatani">🟢 川谷</option>
+                        <option value="takayama">🟠 高山</option>
+                    </select>
+                </div>
+                <input type="text" id="modalAddText" class="input-field" placeholder="例: 14:00 ○○会議" style="margin-bottom:10px;">
+                <button id="modalAddBtn" class="btn-save" style="width:100%;">追加する</button>
+            </div>
+            <div class="modal-footer">
+                <button id="closeModal" class="btn-cancel" style="width:100%;">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 年ビュー用 月間予定一覧モーダル -->
+    <div id="bigMonthModal" class="modal-overlay">
+        <div class="big-modal-content">
+            <div class="big-modal-header">
+                <h2 id="bigMonthTitle">📅 月の予定一覧</h2>
+                <button class="big-modal-close" id="closeBigMonth">✖</button>
+            </div>
+            <div class="big-modal-body" id="bigMonthBody"></div>
+        </div>
+    </div>
+
+    <!-- AI 月間スケジュール提案モーダル -->
+    <div id="aiSuggestModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px;">
+            <h3 class="modal-title">🤖 AI スケジュール自動生成</h3>
+            <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">現在の月と祝日、会社のルールを考慮してプロンプトを作成・解析します。</p>
+            <textarea id="aiSuggestText" class="input-field" style="height: 250px; font-family: monospace; white-space: pre; line-height: 1.5; background: #1e293b; color: #10b981; border: none; padding: 15px;" placeholder="AIのプロンプトと結果が表示されます..."></textarea>
+            <div class="modal-footer">
+                <button id="closeAiSuggest" class="btn-cancel">キャンセル</button>
+                <button id="applyAiSuggest" class="btn-save" style="background: #10b981;">一括反映する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右クリックメニュー -->
+    <div id="contextMenu" class="context-menu">
+        <div id="menuHeader" class="menu-header"></div>
+        <div class="menu-item" id="menuEdit">✏️ 編集</div>
+        <div class="menu-item" id="menuCopy">📄 複製</div>
+        <div class="menu-item" id="menuMoveTomorrow">➡️ 翌日へ移動</div>
+        <div class="menu-separator"></div>
+        <div class="menu-item text-danger" id="menuDelete">🗑️ 削除</div>
+    </div>
+
+    <script src="script.js?v=20260714235805"></script>
+    <!-- ⚙️ 設定・ルール管理モーダル -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px;">
+            <h3 class="modal-title">⚙️ システム設定・業務ルール管理</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:5px;">💰 会計業務ルール</h4>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <label style="flex:1; font-size:0.85rem;">給料日: 
+                        <input type="number" id="setSalaryDay" class="input-field" value="25" style="width:60px; padding:4px;"> 日
+                    </label>
+                    <label style="flex:1; font-size:0.85rem;">土日祝の場合: 
+                        <select id="setSalaryRule" class="input-field" style="padding:4px;">
+                            <option value="before_holiday">前倒し（前営業日）</option>
+                            <option value="after_holiday">後倒し（翌営業日）</option>
+                        </select>
+                    </label>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <label style="flex:1; font-size:0.85rem;">請求締め日: 
+                        <input type="number" id="setCloseDay" class="input-field" value="20" style="width:60px; padding:4px;"> 日
+                    </label>
+                    <label style="flex:1; font-size:0.85rem;">支払日: 
+                        <select id="setPayDay" class="input-field" style="padding:4px;">
+                            <option value="end_of_month">当月末</option>
+                            <option value="next_end_of_month">翌月末</option>
+                        </select>
+                    </label>
+                </div>
+                <div style="margin-top:10px;">
+                    <label style="font-size:0.85rem;">支払処理(TODO)を支払日の何日前に通知するか: 
+                        <input type="number" id="setPaymentTaskDaysBefore" class="input-field" value="3" style="width:60px; padding:4px;"> 日前
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:5px;">🤖 AI スケジュール解析プロンプト</h4>
+                <textarea id="setAiPrompt" class="input-field" style="height: 80px; font-size:0.85rem;" placeholder="AIへの指示を記述..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 15px; padding:10px; background:#f0fdf4; border:1px solid #22c55e; border-radius:6px;">
+                <h4 style="font-size:0.85rem; color:#166534; margin-bottom:5px;">💾 データ保存先について</h4>
+                <p style="font-size:0.75rem; color:#15803d;">※カレンダーのデータは同じフォルダの「data.json」「settings.json」に保存・読み込みされるようになります。</p>
+            </div>
+
+            <div class="modal-footer">
+                <button id="closeSettings" class="btn-cancel">キャンセル</button>
+                <button id="saveSettings" class="btn-save" style="background:#4f46e5;">設定を保存</button>
+            </div>
+        </div>
+    </div>
+    <script src="ultimate-features.js?v=20260715000107"></script>
+    <script src="dummy-osaka-business-data.js?v=20260715000545"></script>
+    <script src="conflict-engine.js?v=20260715001217"></script>
+    <script src="event-flow-visual.js?v=20260715001815"></script>
+    <script src="executive-cockpit.js?v=20260715001842"></script>
+    <script src="reverse-scheduler.js?v=20260715001948"></script>
+    <script src="status-manager.js?v=20260715002102"></script>
+    <script src="ui-control-panel.js?v=20260715002311"></script>
+    <script src="reminder-countdown.js?v=20260715002634"></script>
+    <script src="interaction-boost.js?v=20260715003055"></script>
+    <script src="right-click-plus.js?v=20260715004623"></script>
+    <script src="monday-start-calendar.js?v=20260715010432"></script>
+</body>
+</html>
+
+
+
