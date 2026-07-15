@@ -1,0 +1,193 @@
+/* HD_CALENDAR_EVENT_EDITOR_V1 */
+
+.calendar-event-editor-ready {
+    gap: 10px;
+}
+
+.calendar-event-inline-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.calendar-event-inline-actions button {
+    min-height: 30px;
+    padding: 5px 9px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.calendar-event-inline-edit {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.calendar-event-inline-copy {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.calendar-event-inline-actions .delete-btn-small {
+    width: auto;
+    min-width: 34px;
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.calendar-event-editor-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    padding: 18px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(7px);
+}
+
+.calendar-event-editor-modal.active {
+    display: flex;
+}
+
+.calendar-event-editor-box {
+    width: min(650px, 96vw);
+    overflow: hidden;
+    border: 1px solid #dbeafe;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 40px 100px rgba(15, 23, 42, 0.34);
+}
+
+.calendar-event-editor-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+}
+
+.calendar-event-editor-header h2 {
+    margin: 0 0 4px;
+    color: #0f172a;
+    font-size: 1.2rem;
+}
+
+.calendar-event-editor-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.calendar-event-editor-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.calendar-event-editor-body {
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+}
+
+.calendar-event-editor-body label {
+    display: grid;
+    gap: 6px;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.calendar-event-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.calendar-event-editor-text {
+    min-height: 130px;
+    padding: 12px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.calendar-event-editor-info {
+    padding: 8px 10px;
+    border-radius: 9px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.72rem;
+}
+
+.calendar-event-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    padding: 14px 20px 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.calendar-event-editor-footer button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.calendar-event-editor-delete {
+    margin-right: auto;
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.calendar-event-editor-duplicate {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+@media (max-width: 650px) {
+    .calendar-event-editor-modal {
+        padding: 6px;
+    }
+
+    .calendar-event-editor-box {
+        width: 100%;
+        border-radius: 13px;
+    }
+
+    .calendar-event-editor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-event-editor-footer {
+        flex-wrap: wrap;
+    }
+
+    .calendar-event-editor-footer button {
+        flex: 1 1 45%;
+    }
+
+    .calendar-event-editor-delete {
+        margin-right: 0;
+    }
+
+    .calendar-event-inline-actions {
+        flex-wrap: wrap;
+    }
+}
