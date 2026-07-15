@@ -142,7 +142,7 @@
                 <div class="ultimate-tabs">
                     <button class="ultimate-tab active" data-tab="dashboard">ダッシュボード</button>
                     <button class="ultimate-tab" data-tab="search">検索</button>
-                    <!-- テンプレート機能削除 <button class="ultimate-tab" data-tab="quickadd">クイック追加</button> -->
+                    <!-- テンプレート機能削除 <!-- テンプレート機能削除 --> -->
                     <button class="ultimate-tab" data-tab="backup">保存/復元</button>
                     <button class="ultimate-tab" data-tab="tools">整理ツール</button>
                 </div>
@@ -150,7 +150,7 @@
                 <div class="ultimate-body">
                     <section id="ultimateTab-dashboard" class="ultimate-panel active"></section>
                     <section id="ultimateTab-search" class="ultimate-panel"></section>
-                    <!-- <section id="ultimateTab-quickadd" class="ultimate-panel"></section> -->
+                    <!-- <!-- テンプレート機能削除 --> -->
                     <section id="ultimateTab-backup" class="ultimate-panel"></section>
                     <section id="ultimateTab-tools" class="ultimate-panel"></section>
                 </div>

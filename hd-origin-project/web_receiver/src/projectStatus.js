@@ -356,6 +356,36 @@ function writeProjectStatus() {
   lines.push("- DBへ保存する証憑パスも、旧PCの絶対パスを前提にしない。config.receiptRoot と local_image_file_name から再解決できる形を優先する。");
   lines.push("");
 
+  /* HD_ORIGIN_ALL_PC_SYNC_STATUS_20260715_START */
+  lines.push("[Git・Dropbox 全PC同期仕様]");
+  lines.push("HD_ORIGIN_ALL_PC_SYNC_STATUS_20260715");
+  lines.push("- 最大目的は、どのPCで開いてもソースとDBが同じ状態になること。");
+  lines.push("- ソースの正本はGitHubの現在ブランチとする。");
+  lines.push("- PostgreSQL業務データの正本はDropbox内の最新バックアップとする。");
+  lines.push("");
+  lines.push("[サーバー再起動・終了ボタンの動作]");
+  lines.push("- GPT一時フォルダ、秘密.env、PC固有実行パス、スタート文書、Access DB、ロックファイル、DBバックアップはGit対象外とする。");
+  lines.push("- 除外対象以外の変更を全件自動抽出し、変更があればgit addとgit commitを行う。");
+  lines.push("- GitHubからfetchとpull --rebase --autostashを行う。");
+  lines.push("- 現在ブランチをGitHubへpushする。");
+  lines.push("- origin側だけのコミット数とローカル側だけのコミット数が両方0であることを確認する。");
+  lines.push("- commit、pull、push、完全一致確認のどこかが失敗した場合、DBバックアップと再起動・終了を中止する。");
+  lines.push("- GitHubとの完全一致確認後にだけ、DropboxへPostgreSQL終了前バックアップを作成する。");
+  lines.push("- DBバックアップ成功後にだけサーバーを終了または再起動する。");
+  lines.push("");
+  lines.push("[通常起動の動作]");
+  lines.push("- start_hd_origin.batは通常起動処理より先にGitHubからfetchとpullを行う。");
+  lines.push("- ローカルに既存コミットがあればGitHubへpushする。");
+  lines.push("- originとローカルの差分が両方0であることを確認する。");
+  lines.push("- 同期後の最新start_hd_origin.batを読み直してから、環境読込、最新DB復元、server.js起動へ進む。");
+  lines.push("- Git同期に失敗した場合は、PCごとの状態が分かれることを防ぐため起動を中止する。");
+  lines.push("");
+  lines.push("[禁止]");
+  lines.push("- commitだけ行い、pushせずに別PCへ移ることを禁止する。");
+  lines.push("- GitHubとの差分を残したまま正常再起動として扱うことを禁止する。");
+  lines.push("- Git同期失敗を無視してDB復元やサーバー起動へ進むことを禁止する。");
+  lines.push("");
+  /* HD_ORIGIN_ALL_PC_SYNC_STATUS_20260715_END */
   lines.push("[生成情報]");
   lines.push(`生成日時: ${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`);
   lines.push(`PC名: ${os.hostname()}`);

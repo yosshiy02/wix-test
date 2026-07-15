@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>得意先アドレス帳</title>
+    <style>
+        body { font-family: 'Yu Gothic UI', Meiryo, sans-serif; background: #f3f5f8; margin: 0; padding: 20px; color: #1f2937; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .search-bar { padding: 10px; width: 300px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: #fff; border: 1px solid #d7dde6; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card h2 { margin: 0 0 10px 0; font-size: 18px; color: #1d4ed8; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        .info-line { margin: 8px 0; font-size: 14px; display: flex; align-items: flex-start; }
+        .info-label { font-weight: bold; width: 70px; flex-shrink: 0; color: #64748b; }
+        .actions { margin-top: 15px; display: flex; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .btn { flex: 1; text-align: center; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; cursor: pointer; border: none; }
+        .btn-mail { background: #ecfdf5; color: #047857; border: 1px solid #059669; }
+        .btn-edit { background: #eff6ff; color: #1d4ed8; border: 1px solid #3b82f6; }
+        .btn-back { background: #fff; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>得意先アドレス帳</h1>
+            <p style="margin: 5px 0 0; color: #64748b;">ワンクリックでメール作成・マスター編集</p>
+        </div>
+        <div>
+            <input type="text" id="searchInput" class="search-bar" placeholder="会社名や担当者で検索...">
+            <button class="btn-back" onclick="location.href='public/index.html'" style="margin-left: 10px;">トップへ戻る</button>
+        </div>
+    </div>
+    <div id="addressGrid" class="grid"></div>
+    <script>
+        let customers = [];
+        async function loadData() {
+            try {
+                const res = await fetch('/api/business-partners/customer');
+                const data = await res.json();
+                customers = Array.isArray(data.rows) ? data.rows : (Array.isArray(data.items) ? data.items : []);
+                render();
+            } catch (e) {
+                document.getElementById('addressGrid').innerHTML = '<p style="color:red">読み込み失敗しました。</p>';
+            }
+        }
+        function render() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('addressGrid');
+            const filtered = customers.filter(c => {
+                if (c.is_active === false) return false;
+                return [c.customer_name, c.customer_name_kana, c.contact_person, c.phone].join(' ').toLowerCase().includes(keyword);
+            });
+            if (filtered.length === 0) { grid.innerHTML = '<p>見つかりません。</p>'; return; }
+
+            grid.innerHTML = filtered.map(c => {
+                const mailBtn = c.email ? <a href="mailto: + c.email + " class="btn btn-mail">✉ メール</a> : <span class="btn" style="background:#f1f5f9; color:#94a3b8; border:1px solid #cbd5e1;">未登録</span>;
+                return 
+                    <div class="card">
+                        <h2> + (c.customer_name || '未設定') + </h2>
+                        <div class="info-line"><span class="info-label">担当者</span>  + (c.contact_person || '-') + </div>
+                        <div class="info-line"><span class="info-label">電話</span>  + (c.phone || '-') + </div>
+                        <div class="info-line"><span class="info-label">住所</span>  + (c.address || '-') + </div>
+                        <div class="actions">
+                             + mailBtn + 
+                            <a href="public/masters/master-management.html" class="btn btn-edit">⚙ 編集</a>
+                        </div>
+                    </div>
+                ;
+            }).join('');
+        }
+        document.getElementById('searchInput').addEventListener('input', render);
+        loadData();
+    </script>
+</body>
+</html>

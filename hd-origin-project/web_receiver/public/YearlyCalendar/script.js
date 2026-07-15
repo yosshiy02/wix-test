@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("担当者設定を保存しました");
     }
 
-    let currentView = "month";
+    let currentView = "year";
     let baseDate = new Date();
     let dragData = null;
     let ctxData = null;
@@ -539,9 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const y = baseDate.getFullYear(); const memos = getEvents();
         const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
-        const accountingTodoMap = isAccountingOnlyMode()
-            ? getAccountingAutoTodoMapForYear(y)
-            : {};
+        const accountingTodoMap = {};
 
         for (let m = 0; m < 12; m++) {
             const box = document.createElement("div"); box.className = "mini-month";
@@ -691,7 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 🌟 会計モードの場合、自動でTODOバッジを配置
         const isAccountingOnly = filters.channels.accounting && !filters.channels.general && !filters.channels.sales && !filters.channels.event && !filters.channels.manufacture;
         if (isAccountingOnly) {
-            applyAccountingAutoTodo();
+            // 会計ダミー自動表示は廃止
         }
 
         setupRangeSelection();

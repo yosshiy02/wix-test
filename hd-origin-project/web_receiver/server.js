@@ -102,6 +102,7 @@ function hdOriginExitLater(code) {
   }, 500);
 }
 /* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_START */
+/* GPT00_ALL_PC_GIT_SYNC_20260715_START */
 function hdOriginRestartGitRun(args, cwd) {
   const { execFileSync } = require("child_process");
 
@@ -110,16 +111,19 @@ function hdOriginRestartGitRun(args, cwd) {
       cwd,
       encoding: "utf8",
       windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"]
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 20 * 1024 * 1024
     });
   } catch (err) {
-    const stdout = err && err.stdout
-      ? String(err.stdout).trim()
-      : "";
+    const stdout =
+      err && err.stdout
+        ? String(err.stdout).trim()
+        : "";
 
-    const stderr = err && err.stderr
-      ? String(err.stderr).trim()
-      : "";
+    const stderr =
+      err && err.stderr
+        ? String(err.stderr).trim()
+        : "";
 
     const detail = [
       `git ${args.join(" ")} failed.`,
@@ -139,11 +143,42 @@ function hdOriginRestartGitRun(args, cwd) {
   }
 }
 
+function hdOriginRestartGitRunPathChunks(
+  baseArgs,
+  paths,
+  cwd
+) {
+  const chunkSize = 100;
+
+  for (
+    let index = 0;
+    index < paths.length;
+    index += chunkSize
+  ) {
+    const chunk = paths.slice(
+      index,
+      index + chunkSize
+    );
+
+    hdOriginRestartGitRun(
+      [
+        ...baseArgs,
+        "--",
+        ...chunk
+      ],
+      cwd
+    );
+  }
+}
+
 function hdOriginRestartFindGitRoot(startPath) {
   let currentPath = path.resolve(startPath);
 
   while (currentPath) {
-    const gitMarker = path.join(currentPath, ".git");
+    const gitMarker = path.join(
+      currentPath,
+      ".git"
+    );
 
     if (fs.existsSync(gitMarker)) {
       return currentPath;
@@ -151,7 +186,10 @@ function hdOriginRestartFindGitRoot(startPath) {
 
     const parentPath = path.dirname(currentPath);
 
-    if (!parentPath || parentPath === currentPath) {
+    if (
+      !parentPath ||
+      parentPath === currentPath
+    ) {
       break;
     }
 
@@ -170,72 +208,68 @@ function hdOriginRestartNormalizeGitPath(value) {
 
 function hdOriginRestartPathIsExcluded(filePath) {
   const value =
-    hdOriginRestartNormalizeGitPath(filePath).toLowerCase();
+    hdOriginRestartNormalizeGitPath(
+      filePath
+    ).toLowerCase();
 
   if (!value) {
     return true;
   }
 
-  /*
-    Exclude GPT temporary work folders without placing Japanese
-    folder names inside this source file.
-
-    Examples:
-      GPT.../before/
-      GPT.../after/
-      GPT.../apply/
-      GPT.../undo/
-      GPT.../memo/
-      GPT.../00_.../
-  */
   const gptTempPattern =
-    /(^|\/)gpt2?[^\/]*\/(before|after|apply|undo|memo|00_[^\/]*)(\/|$)/i;
+    /(^|\/)gpt(?:2|3)?[^\/]*\/(before|after|apply|undo|memo|00_[^\/]*)(\/|$)/i;
 
   if (gptTempPattern.test(value)) {
     return true;
   }
 
   const excludedFolderPatterns = [
+    /(^|\/)\.git(\/|$)/i,
     /(^|\/)node_modules(\/|$)/i,
-    /(^|\/)backup(\/|$)/i,
-    /(^|\/)uploads?(\/|$)/i
+    /(^|\/)backups?(\/|$)/i,
+    /(^|\/)uploads?(\/|$)/i,
+    /(^|\/)tmp(\/|$)/i,
+    /(^|\/)temp(\/|$)/i,
+    /(^|\/)\.cache(\/|$)/i
   ];
 
   if (
-    excludedFolderPatterns.some(pattern =>
-      pattern.test(value)
+    excludedFolderPatterns.some(
+      pattern => pattern.test(value)
     )
   ) {
     return true;
   }
 
-  const fileName = value.split("/").pop() || "";
+  const fileName =
+    value.split("/").pop() || "";
 
-  if (
-    fileName === ".env" ||
-    fileName.startsWith(".env.") ||
-    fileName === "hd_origin_restart_in_progress.json"
-  ) {
+  const excludedFileNames = new Set([
+    ".env",
+    "project_status_for_gpt.txt",
+    "hd_origin_runtime_paths.txt",
+    "hd_origin_restart_in_progress.json",
+    "hd_origin_restarting.flag"
+  ]);
+
+  if (excludedFileNames.has(fileName)) {
     return true;
   }
 
   const excludedExtensions = [
+    ".accdb",
+    ".laccdb",
+    ".mdb",
     ".backup",
     ".data.backup",
-    ".schema.sql",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".bmp",
-    ".tif",
-    ".tiff",
-    ".pdf"
+    ".bak",
+    ".tmp",
+    ".lock",
+    ".log"
   ];
 
-  return excludedExtensions.some(extension =>
-    value.endsWith(extension)
+  return excludedExtensions.some(
+    extension => value.endsWith(extension)
   );
 }
 
@@ -247,56 +281,105 @@ function hdOriginRestartSplitNullPaths(output) {
 }
 
 function hdOriginRestartChangedPaths(repoRoot) {
-  const trackedOutput = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "diff",
-      "--name-only",
-      "-z",
-      "--diff-filter=ACDMRTUXB"
-    ],
-    repoRoot
-  );
-
-  const untrackedOutput = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "ls-files",
-      "--others",
-      "--exclude-standard",
-      "-z"
-    ],
-    repoRoot
-  );
-
-  const paths = [
-    ...hdOriginRestartSplitNullPaths(trackedOutput),
-    ...hdOriginRestartSplitNullPaths(untrackedOutput)
-  ];
-
-  return [...new Set(paths)]
-    .filter(filePath =>
-      !hdOriginRestartPathIsExcluded(filePath)
+  const workingOutput =
+    hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "--name-only",
+        "-z",
+        "--diff-filter=ACDMRTUXB"
+      ],
+      repoRoot
     );
+
+  const stagedOutput =
+    hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z",
+        "--diff-filter=ACDMRTUXB"
+      ],
+      repoRoot
+    );
+
+  const untrackedOutput =
+    hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "-z"
+      ],
+      repoRoot
+    );
+
+  return [
+    ...new Set([
+      ...hdOriginRestartSplitNullPaths(
+        workingOutput
+      ),
+      ...hdOriginRestartSplitNullPaths(
+        stagedOutput
+      ),
+      ...hdOriginRestartSplitNullPaths(
+        untrackedOutput
+      )
+    ])
+  ];
 }
 
-async function hdOriginRunRestartButtonGitUp(action) {
-  /*
-    HD_ORIGIN_GITUP_TARGET_ONLY_20260711
+function hdOriginRestartHasRemoteBranch(
+  repoRoot,
+  branch
+) {
+  try {
+    hdOriginRestartGitRun(
+      [
+        "show-ref",
+        "--verify",
+        "--quiet",
+        `refs/remotes/origin/${branch}`
+      ],
+      repoRoot
+    );
 
-    - Existing staged changes are preserved.
-    - Only files listed in HD_ORIGIN_GITUP_TARGETS.txt are added.
-    - git commit --only commits only those target files.
-    - Unrelated staged and working-tree changes are left untouched.
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function hdOriginRunRestartButtonGitUp(
+  action
+) {
+  /*
+    全PCを同じ状態にするための処理順:
+
+    1. 一時ファイル・DB・秘密情報を除外する。
+    2. それ以外の全変更を自動抽出する。
+    3. 全対象をgit add・git commitする。
+    4. GitHubからfetch・pull --rebaseする。
+    5. GitHubへpushする。
+    6. ローカルとoriginが完全一致したことを確認する。
+    7. 一致後にだけDBバックアップと再起動へ進む。
   */
+
   const projectRoot =
     config.projectRoot ||
     path.resolve(__dirname, "..");
 
   const repoRoot =
-    hdOriginRestartFindGitRoot(projectRoot);
+    hdOriginRestartFindGitRoot(
+      projectRoot
+    );
 
   if (!repoRoot) {
     throw new Error(
@@ -304,171 +387,131 @@ async function hdOriginRunRestartButtonGitUp(action) {
     );
   }
 
-  const branch = hdOriginRestartGitRun(
-    ["branch", "--show-current"],
-    repoRoot
-  ).trim();
-
-  const statusBefore = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "status",
-      "--short",
-      "--branch"
-    ],
-    repoRoot
-  ).trim();
-
-  const diffBefore = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "diff",
-      "--stat"
-    ],
-    repoRoot
-  ).trim();
-
-  const existingStaged = hdOriginRestartGitRun(
-    [
-      "-c",
-      "core.quotepath=false",
-      "diff",
-      "--cached",
-      "--name-only",
-      "-z"
-    ],
-    repoRoot
-  );
-
-  const existingStagedPaths =
-    hdOriginRestartSplitNullPaths(existingStaged);
-
-  if (existingStagedPaths.length > 0) {
-    console.warn(
-      "[SYSTEM_EXIT_GITUP] unrelated staged changes will be preserved:",
-      existingStagedPaths.length
-    );
-  }
-
-  const manifestPath = path.join(
-    projectRoot,
-    "HD_ORIGIN_GITUP_TARGETS.txt"
-  );
-
-  if (!fs.existsSync(manifestPath)) {
-    return {
-      ok: true,
-      committed: false,
-      repo_root: repoRoot,
-      branch,
-      target_paths: [],
-      preserved_staged_paths: existingStagedPaths,
-      status_before: statusBefore,
-      diff_before: diffBefore,
-      message:
-        "GitUp completed. No target manifest was present, so there were no requested target files."
-    };
-  }
-
-  const manifestPaths = fs
-    .readFileSync(manifestPath, "utf8")
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/)
-    .map(hdOriginRestartNormalizeGitPath)
-    .filter(Boolean)
-    .filter(filePath => !filePath.startsWith("#"));
-
-  const requestedPaths = [
-    ...new Set(manifestPaths)
-  ];
-
-  if (requestedPaths.length === 0) {
-    try {
-      fs.unlinkSync(manifestPath);
-    } catch {}
-
-    return {
-      ok: true,
-      committed: false,
-      repo_root: repoRoot,
-      branch,
-      target_paths: [],
-      preserved_staged_paths: existingStagedPaths,
-      status_before: statusBefore,
-      diff_before: diffBefore,
-      message:
-        "GitUp completed. The target manifest was empty, so there were no requested target files."
-    };
-  }
-
-  const prohibitedPaths =
-    requestedPaths.filter(filePath =>
-      hdOriginRestartPathIsExcluded(filePath)
-    );
-
-  if (prohibitedPaths.length > 0) {
-    throw new Error(
+  const branch =
+    hdOriginRestartGitRun(
       [
-        "GitUp target manifest contains excluded paths.",
-        "",
-        prohibitedPaths.join("\n")
-      ].join("\n")
-    );
-  }
-
-  const targetPaths = [];
-
-  for (const filePath of requestedPaths) {
-    const status = hdOriginRestartGitRun(
-      [
-        "-c",
-        "core.quotepath=false",
-        "status",
-        "--porcelain",
-        "--",
-        filePath
+        "branch",
+        "--show-current"
       ],
       repoRoot
     ).trim();
 
-    if (status) {
-      targetPaths.push(filePath);
-    }
+  if (!branch) {
+    throw new Error(
+      "Current Git branch could not be resolved."
+    );
   }
 
-  if (targetPaths.length === 0) {
-    try {
-      fs.unlinkSync(manifestPath);
-    } catch {}
+  const statusBefore =
+    hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "status",
+        "--short",
+        "--branch"
+      ],
+      repoRoot
+    ).trim();
 
-    return {
-      ok: true,
-      committed: false,
-      repo_root: repoRoot,
-      branch,
-      target_paths: [],
-      preserved_staged_paths: existingStagedPaths,
-      status_before: statusBefore,
-      diff_before: diffBefore,
-      message:
-        "GitUp completed. The requested target files had no changes."
-    };
+  const allChangedPaths =
+    hdOriginRestartChangedPaths(
+      repoRoot
+    );
+
+  const excludedPaths =
+    allChangedPaths.filter(
+      hdOriginRestartPathIsExcluded
+    );
+
+  const targetPaths =
+    allChangedPaths.filter(
+      filePath =>
+        !hdOriginRestartPathIsExcluded(
+          filePath
+        )
+    );
+
+  const stagedBefore =
+    hdOriginRestartSplitNullPaths(
+      hdOriginRestartGitRun(
+        [
+          "-c",
+          "core.quotepath=false",
+          "diff",
+          "--cached",
+          "--name-only",
+          "-z"
+        ],
+        repoRoot
+      )
+    );
+
+  const excludedStagedPaths =
+    stagedBefore.filter(
+      hdOriginRestartPathIsExcluded
+    );
+
+  if (excludedStagedPaths.length > 0) {
+    hdOriginRestartGitRunPathChunks(
+      [
+        "reset",
+        "-q",
+        "HEAD"
+      ],
+      excludedStagedPaths,
+      repoRoot
+    );
   }
 
-  /*
-    Only the explicitly requested files are added.
-    Existing staged files outside targetPaths are not removed or changed.
-  */
-  hdOriginRestartGitRun(
-    [
-      "add",
-      "--",
-      ...targetPaths
-    ],
-    repoRoot
-  );
+  if (targetPaths.length > 0) {
+    hdOriginRestartGitRunPathChunks(
+      [
+        "add",
+        "-A"
+      ],
+      targetPaths,
+      repoRoot
+    );
+  }
+
+  const stagedAfterAdd =
+    hdOriginRestartSplitNullPaths(
+      hdOriginRestartGitRun(
+        [
+          "-c",
+          "core.quotepath=false",
+          "diff",
+          "--cached",
+          "--name-only",
+          "-z"
+        ],
+        repoRoot
+      )
+    );
+
+  const prohibitedStagedPaths =
+    stagedAfterAdd.filter(
+      hdOriginRestartPathIsExcluded
+    );
+
+  if (prohibitedStagedPaths.length > 0) {
+    throw new Error(
+      [
+        "Excluded files remain staged.",
+        "",
+        ...prohibitedStagedPaths
+      ].join("\n")
+    );
+  }
+
+  const committablePaths =
+    stagedAfterAdd.filter(
+      filePath =>
+        !hdOriginRestartPathIsExcluded(
+          filePath
+        )
+    );
 
   const normalizedAction =
     String(action || "system-exit")
@@ -476,89 +519,174 @@ async function hdOriginRunRestartButtonGitUp(action) {
       .replace(/[^a-z0-9_-]+/g, "-");
 
   const commitMessage =
-    "HD Origin GitUp before server " +
+    "HD Origin full sync before server " +
     normalizedAction +
     " " +
     new Date().toISOString();
 
-  /*
-    --only ensures unrelated staged files are not included
-    in this commit.
-  */
-  hdOriginRestartGitRun(
-    [
-      "commit",
-      "--only",
-      "-m",
-      commitMessage,
-      "--",
-      ...targetPaths
-    ],
-    repoRoot
-  );
-
-  const commitHash = hdOriginRestartGitRun(
-    ["rev-parse", "--short", "HEAD"],
-    repoRoot
-  ).trim();
-
-  const remainingTargetChanges = [];
-
-  for (const filePath of targetPaths) {
-    const status = hdOriginRestartGitRun(
+  let committed = false;
+  let commitHash =
+    hdOriginRestartGitRun(
       [
-        "-c",
-        "core.quotepath=false",
-        "status",
-        "--porcelain",
-        "--",
-        filePath
+        "rev-parse",
+        "--short",
+        "HEAD"
       ],
       repoRoot
     ).trim();
 
-    if (status) {
-      remainingTargetChanges.push(
-        filePath + ": " + status
+  if (committablePaths.length > 0) {
+    hdOriginRestartGitRun(
+      [
+        "commit",
+        "-m",
+        commitMessage
+      ],
+      repoRoot
+    );
+
+    committed = true;
+
+    commitHash =
+      hdOriginRestartGitRun(
+        [
+          "rev-parse",
+          "--short",
+          "HEAD"
+        ],
+        repoRoot
+      ).trim();
+  }
+
+  hdOriginRestartGitRun(
+    [
+      "fetch",
+      "origin"
+    ],
+    repoRoot
+  );
+
+  const remoteBranchExisted =
+    hdOriginRestartHasRemoteBranch(
+      repoRoot,
+      branch
+    );
+
+  if (remoteBranchExisted) {
+    try {
+      hdOriginRestartGitRun(
+        [
+          "pull",
+          "--rebase",
+          "--autostash",
+          "origin",
+          branch
+        ],
+        repoRoot
       );
+    } catch (pullError) {
+      try {
+        hdOriginRestartGitRun(
+          [
+            "rebase",
+            "--abort"
+          ],
+          repoRoot
+        );
+      } catch {}
+
+      throw pullError;
     }
   }
 
-  if (remainingTargetChanges.length > 0) {
+  hdOriginRestartGitRun(
+    [
+      "push",
+      "-u",
+      "origin",
+      branch
+    ],
+    repoRoot
+  );
+
+  hdOriginRestartGitRun(
+    [
+      "fetch",
+      "origin"
+    ],
+    repoRoot
+  );
+
+  const syncCounts =
+    hdOriginRestartGitRun(
+      [
+        "rev-list",
+        "--left-right",
+        "--count",
+        `origin/${branch}...${branch}`
+      ],
+      repoRoot
+    )
+      .trim()
+      .split(/\s+/)
+      .map(value => Number(value));
+
+  const remoteOnly =
+    Number(syncCounts[0] || 0);
+
+  const localOnly =
+    Number(syncCounts[1] || 0);
+
+  if (
+    remoteOnly !== 0 ||
+    localOnly !== 0
+  ) {
     throw new Error(
       [
-        "GitUp committed, but target-file changes remain.",
-        "Unrelated files were not inspected or modified.",
-        "",
-        remainingTargetChanges.join("\n")
+        "Git synchronization verification failed.",
+        `REMOTE_ONLY=${remoteOnly}`,
+        `LOCAL_ONLY=${localOnly}`
       ].join("\n")
     );
   }
 
-  try {
-    fs.unlinkSync(manifestPath);
-  } catch (manifestDeleteError) {
-    console.warn(
-      "[SYSTEM_EXIT_GITUP] target manifest cleanup failed:",
-      manifestDeleteError.message
-    );
-  }
+  const statusAfter =
+    hdOriginRestartGitRun(
+      [
+        "-c",
+        "core.quotepath=false",
+        "status",
+        "--short",
+        "--branch"
+      ],
+      repoRoot
+    ).trim();
 
   return {
     ok: true,
-    committed: true,
+    committed,
+    pushed: true,
+    synchronized: true,
     repo_root: repoRoot,
     branch,
     commit_hash: commitHash,
-    commit_message: commitMessage,
+    commit_message:
+      committed
+        ? commitMessage
+        : "",
     target_paths: targetPaths,
-    preserved_staged_paths: existingStagedPaths.filter(
-      filePath => !targetPaths.includes(filePath)
-    ),
+    excluded_paths: excludedPaths,
+    remote_only: remoteOnly,
+    local_only: localOnly,
     status_before: statusBefore,
-    diff_before: diffBefore
+    status_after: statusAfter,
+    message:
+      committed
+        ? "All eligible project changes were committed and pushed. Local and GitHub are synchronized."
+        : "No new eligible changes required a commit. Existing local commits were pushed and synchronization was verified."
   };
 }
+/* GPT00_ALL_PC_GIT_SYNC_20260715_END */
 /* HD_ORIGIN_RESTART_BUTTON_GITUP_20260710_END */
 
 async function hdOriginRunBackupThenExit(res, reason, exitCode) {
@@ -636,7 +764,7 @@ async function hdOriginRunBackupThenExit(res, reason, exitCode) {
     sendJson(res, 200, {
       ok: true,
       message:
-        "GitUp and the pre-exit DB backup completed.",
+        "Git commit, GitHub push, synchronization verification, and the pre-exit DB backup completed.",
       action: reason,
       gitup,
       backup
@@ -1111,6 +1239,7 @@ start().catch(err => {
   console.error("[起動失敗]", err);
   process.exit(1);
 });
+
 
 
 

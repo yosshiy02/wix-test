@@ -26,6 +26,142 @@ for %%I in ("%TEMP_PROJECT_ROOT%") do set "TEMP_PROJECT_DRIVE=%%~dI"
 
 set "PC_RULES_FILE=%TEMP_PROJECT_ROOT%\HD_ORIGIN_PC_RULES.txt"
 set "RUNTIME_PATHS_FILE=%TEMP_PROJECT_ROOT%\HD_ORIGIN_RUNTIME_PATHS.txt"
+rem HD_ORIGIN_STARTUP_GIT_SYNC_20260715_START
+rem GitHubのソースを全PCで一致させてから通常起動する。
+rem 同期後は最新のstart_hd_origin.batを読み直すため一度だけ再実行する。
+if not defined HD_ORIGIN_STARTUP_GIT_SYNC_DONE (
+    echo.
+    echo ============================================================
+    echo HD Origin Project GitHub source synchronization
+    echo ============================================================
+    echo PROJECT_ROOT = !TEMP_PROJECT_ROOT!
+    echo.
+
+    where git >nul 2>nul
+
+    if errorlevel 1 (
+        echo ERROR: git command was not found.
+        echo GitHub source synchronization was cancelled.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    git -C "!TEMP_PROJECT_ROOT!" rev-parse --is-inside-work-tree >nul 2>nul
+
+    if errorlevel 1 (
+        echo ERROR: PROJECT_ROOT is not a Git repository.
+        echo !TEMP_PROJECT_ROOT!
+        echo.
+        pause
+        exit /b 1
+    )
+
+    set "HD_ORIGIN_GIT_BRANCH="
+
+    for /f "delims=" %%B in ('git -C "!TEMP_PROJECT_ROOT!" branch --show-current') do (
+        set "HD_ORIGIN_GIT_BRANCH=%%B"
+    )
+
+    if not defined HD_ORIGIN_GIT_BRANCH (
+        echo ERROR: Current Git branch could not be resolved.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo BRANCH = !HD_ORIGIN_GIT_BRANCH!
+    echo Fetching GitHub...
+    echo.
+
+    git -C "!TEMP_PROJECT_ROOT!" fetch origin
+
+    if errorlevel 1 (
+        echo ERROR: git fetch failed.
+        echo Startup was cancelled to prevent PC state divergence.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo Pulling latest source from GitHub...
+    echo.
+
+    git -C "!TEMP_PROJECT_ROOT!" pull --rebase --autostash origin "!HD_ORIGIN_GIT_BRANCH!"
+
+    if errorlevel 1 (
+        git -C "!TEMP_PROJECT_ROOT!" rebase --abort >nul 2>nul
+        echo ERROR: git pull --rebase failed.
+        echo Startup was cancelled to prevent PC state divergence.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo Publishing existing local commits...
+    echo.
+
+    git -C "!TEMP_PROJECT_ROOT!" push -u origin "!HD_ORIGIN_GIT_BRANCH!"
+
+    if errorlevel 1 (
+        echo ERROR: git push failed.
+        echo Startup was cancelled to prevent PC state divergence.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    git -C "!TEMP_PROJECT_ROOT!" fetch origin
+
+    if errorlevel 1 (
+        echo ERROR: Final git fetch failed.
+        echo.
+        pause
+        exit /b 1
+    )
+
+    set "HD_ORIGIN_REMOTE_ONLY="
+    set "HD_ORIGIN_LOCAL_ONLY="
+
+    for /f "tokens=1,2" %%A in ('git -C "!TEMP_PROJECT_ROOT!" rev-list --left-right --count "origin/!HD_ORIGIN_GIT_BRANCH!...!HD_ORIGIN_GIT_BRANCH!"') do (
+        set "HD_ORIGIN_REMOTE_ONLY=%%A"
+        set "HD_ORIGIN_LOCAL_ONLY=%%B"
+    )
+
+    if not "!HD_ORIGIN_REMOTE_ONLY!"=="0" (
+        echo ERROR: GitHub has commits that are not present locally.
+        echo REMOTE_ONLY=!HD_ORIGIN_REMOTE_ONLY!
+        echo LOCAL_ONLY=!HD_ORIGIN_LOCAL_ONLY!
+        echo.
+        pause
+        exit /b 1
+    )
+
+    if not "!HD_ORIGIN_LOCAL_ONLY!"=="0" (
+        echo ERROR: Local commits have not been published.
+        echo REMOTE_ONLY=!HD_ORIGIN_REMOTE_ONLY!
+        echo LOCAL_ONLY=!HD_ORIGIN_LOCAL_ONLY!
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo GitHub source synchronization completed.
+    echo REMOTE_ONLY=0
+    echo LOCAL_ONLY=0
+    echo.
+
+    set "HD_ORIGIN_STARTUP_GIT_SYNC_DONE=1"
+
+    echo Reloading the synchronized launcher...
+    echo.
+
+    call "%~f0"
+
+    set "HD_ORIGIN_STARTUP_RELAUNCH_EXIT=!ERRORLEVEL!"
+    exit /b !HD_ORIGIN_STARTUP_RELAUNCH_EXIT!
+)
+rem HD_ORIGIN_STARTUP_GIT_SYNC_20260715_END
 
 echo COMPUTER_NAME = %COMPUTER_NAME%
 echo USER_NAME     = %USER_NAME%
