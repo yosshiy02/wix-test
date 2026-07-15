@@ -1402,6 +1402,8 @@ function paymentDocumentSetField(fields, label, value, force) {
 }
 
 function applyPaymentDocumentRuleFallbackFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
 
@@ -1511,6 +1513,8 @@ function applyPaymentDocumentRuleFallbackFromOcr(ocrText, draft) {
 /* PAYMENT_DOCUMENT_TAX_PAYMENT_RULE_FALLBACK_20260707_END */
 /* HD_ORIGIN_OTHER_EVIDENCE_FALLBACK_20260707_START */
 function applyPaymentDocumentOtherEvidenceFallbackFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
   const base = draft && typeof draft === "object" ? { ...draft } : {};
@@ -2266,6 +2270,8 @@ function paymentDocumentInvoiceTitleSetField(fields, key, domId, value) {
 }
 
 function applyPaymentDocumentInvoiceTitlePriorityFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const out = draft && typeof draft === "object" ? { ...draft } : {};
   const fields = out.fields && typeof out.fields === "object" ? { ...out.fields } : {};
@@ -2519,6 +2525,8 @@ function paymentDocumentInvoiceCleanupVisibleLabels(labels) {
 }
 
 function applyPaymentDocumentInvoiceCleanupFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const out = draft && typeof draft === "object" ? { ...draft } : {};
   const fields = out.fields && typeof out.fields === "object" ? { ...out.fields } : {};
@@ -2785,6 +2793,8 @@ function paymentDocumentInvoiceFinalFilterLabels(labels) {
 }
 
 function applyPaymentDocumentInvoiceFinalCleanupFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const out = draft && typeof draft === "object" ? draft : {};
 
@@ -3239,6 +3249,8 @@ function paymentDocumentInvoiceDisplayAllowedLabels(fields) {
 }
 
 function applyPaymentDocumentInvoiceDisplayCleanupFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   const text = String(ocrText || "");
   const out = draft && typeof draft === "object" ? draft : {};
 
@@ -3697,7 +3709,9 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
     )
   );
 
-  const classification = applyPaymentDocumentInvoiceCleanupFromOcr(ocrText, applyPaymentDocumentInvoiceTitlePriorityFromOcr(ocrText, applyPaymentDocumentRuleFallbackFromOcr(ocrText, normalizeAiDraftCandidate(classificationResponse.parsed))));
+  const classification = normalizeAiDraftCandidate(
+    classificationResponse.parsed
+  );
   const group = paymentDocumentAiGroupFromDraft(classification);
   const visibleLabels = paymentDocumentAiVisibleFieldLabels(group);
 
@@ -3737,11 +3751,19 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
     ]
   };
 
-  const draft = applyPaymentDocumentInvoiceCleanupFromOcr(ocrText, applyPaymentDocumentInvoiceTitlePriorityFromOcr(ocrText, applyPaymentDocumentRuleFallbackFromOcr(ocrText, normalizeAiDraftCandidate(mergedRaw))));
-  draft.visible_field_labels = paymentDocumentInvoiceCleanupTitleSaysInvoice(ocrText) ? paymentDocumentInvoiceCleanupVisibleLabels(visibleLabels) : visibleLabels;
-  draft.document_group = paymentDocumentInvoiceCleanupTitleSaysInvoice(ocrText) ? "invoice" : group;
-  applyPaymentDocumentInvoiceFinalCleanupFromOcr(ocrText, draft);
-  applyPaymentDocumentInvoiceDisplayCleanupFromOcr(ocrText, draft);
+  const draft = normalizeAiDraftCandidate(
+    mergedRaw
+  );
+
+  draft.visible_field_labels = Array.isArray(
+    draft.visible_field_labels
+  )
+    ? draft.visible_field_labels
+    : visibleLabels;
+
+  draft.document_group = String(
+    draft.document_group || ""
+  ).trim();
   return {
     draft,
     classification,
@@ -3788,14 +3810,57 @@ function hdOriginAiOnlyObject(value) {
 }
 
 async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context = {}) {
+  const specialistRouteCode = String(
+    context.specialist_route_code ||
+    context.specialistRouteCode ||
+    ""
+  ).trim();
+
+  const specialistRouteLabel = String(
+    context.specialist_route_label ||
+    context.specialistRouteLabel ||
+    ""
+  ).trim();
+
+  const analysisSystemCode = String(
+    context.analysis_system_code ||
+    context.analysisSystemCode ||
+    ""
+  ).trim();
+
+  const analysisSystemLabel = String(
+    context.analysis_system_label ||
+    context.analysisSystemLabel ||
+    ""
+  ).trim();
+
+  if (!specialistRouteCode) {
+    const error = new Error(
+      "specialist_route_codeがありません。AI以外の推測は行いません。"
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!analysisSystemCode) {
+    const error = new Error(
+      "analysis_system_codeがありません。AI以外の推測は行いません。"
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
   const specialistContext = {
     phase: "specialist",
-    specialist_route_code: context.specialist_route_code || "tax_public",
-    specialist_route_label: context.specialist_route_label || "税金・公的支払解析",
-    analysis_system_code: context.analysis_system_code || "tax_public_analysis",
-    analysis_system_label: context.analysis_system_label || "税金・公的支払解析システム",
-    group: context.group || "tax_public",
-    draft: hdOriginAiOnlyObject(context.draft || context.classification)
+    specialist_route_code: specialistRouteCode,
+    specialist_route_label: specialistRouteLabel,
+    analysis_system_code: analysisSystemCode,
+    analysis_system_label: analysisSystemLabel,
+    group: String(context.group || "").trim(),
+    draft: hdOriginAiOnlyObject(
+      context.draft ||
+      context.classification
+    )
   };
 
   const prompt = appendPaymentDocumentExternalPrompt(
@@ -3850,12 +3915,54 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
   const fields = hdOriginAiOnlyObject(rawDraft.fields || parsed.fields);
 
   draft.fields = fields;
-  draft.visible_field_labels = hdOriginAiOnlyArray(parsed.visible_field_labels || parsed.visibleFieldLabels || rawDraft.visible_field_labels || rawDraft.visibleFieldLabels);
-  draft.document_group = draft.document_group || draft.specialist_route_code || specialistContext.specialist_route_code;
-  draft.specialist_route_code = draft.specialist_route_code || specialistContext.specialist_route_code;
-  draft.specialist_route_label = draft.specialist_route_label || specialistContext.specialist_route_label;
-  draft.analysis_system_code = draft.analysis_system_code || specialistContext.analysis_system_code;
-  draft.analysis_system_label = draft.analysis_system_label || specialistContext.analysis_system_label;
+
+  draft.visible_field_labels = hdOriginAiOnlyArray(
+    parsed.visible_field_labels ||
+    parsed.visibleFieldLabels ||
+    rawDraft.visible_field_labels ||
+    rawDraft.visibleFieldLabels
+  );
+
+  draft.document_group = String(
+    rawDraft.document_group || ""
+  ).trim();
+
+  draft.specialist_route_code = String(
+    rawDraft.specialist_route_code || ""
+  ).trim();
+
+  draft.specialist_route_label = String(
+    rawDraft.specialist_route_label || ""
+  ).trim();
+
+  draft.analysis_system_code = String(
+    rawDraft.analysis_system_code || ""
+  ).trim();
+
+  draft.analysis_system_label = String(
+    rawDraft.analysis_system_label || ""
+  ).trim();
+
+  const requiredAiFields = [
+    ["draft.document_group", draft.document_group],
+    ["draft.specialist_route_code", draft.specialist_route_code],
+    ["draft.specialist_route_label", draft.specialist_route_label],
+    ["draft.analysis_system_code", draft.analysis_system_code],
+    ["draft.analysis_system_label", draft.analysis_system_label]
+  ];
+
+  const missingAiFields = requiredAiFields
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+
+  if (missingAiFields.length) {
+    const error = new Error(
+      "AI専門解析結果の必須項目が不足しています: " +
+      missingAiFields.join(", ")
+    );
+    error.statusCode = 502;
+    throw error;
+  }
 
   if (Array.isArray(parsed.warnings) && parsed.warnings.length) {
     draft.warnings = parsed.warnings;
@@ -4408,6 +4515,8 @@ function normalizePaymentDocumentSortCandidate(value) {
 
 /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
 function applyPaymentDocumentSortRuleFallbackFromOcr(ocrText, draft) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return draft;
   /*
     基礎解析ではOCR本文の固定語句による後付け分類を禁止する。
     この関数は旧フォールバック互換名だけ残し、AI返却値の基礎解析正規化だけ行う。
@@ -4520,6 +4629,11 @@ function hdOriginCardSortGrowHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentCardSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -4621,6 +4735,11 @@ function hdOriginMailCommSortHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentMailCommSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -4740,6 +4859,11 @@ function hdOriginReceiptAttentionSortHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentReceiptAttentionSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -4840,6 +4964,11 @@ function hdOriginMaterialInvoiceSortHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentMaterialInvoiceSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -4961,6 +5090,11 @@ function hdOriginInsuranceSortHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentInsuranceSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -5069,6 +5203,11 @@ function hdOriginLeaseSortHasAny(text, words) {
 }
 
 function hdOriginPolishPaymentDocumentLeaseSortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
@@ -5224,6 +5363,11 @@ function hdOriginDetectUtilityKindForReason(ocrText) {
 }
 
 function hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText) {
+  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  return sortResult &&
+    typeof sortResult === "object"
+      ? sortResult
+      : {};
   const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
   const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
   const text = String(ocrText || "");
