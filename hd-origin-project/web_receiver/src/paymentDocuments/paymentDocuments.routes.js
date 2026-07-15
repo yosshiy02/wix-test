@@ -6965,6 +6965,156 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_END */
 
 async function handlePaymentDocumentRoutes(req, res) {
+  /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_START */
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/access-ai-specialist"
+  ) {
+    try {
+      const body = await readBody(req);
+      const ocrText = String(
+        body.ocr_text ||
+        body.ocrText ||
+        ""
+      ).trim();
+
+      if (!ocrText) {
+        sendJson(res, 400, {
+          ok: false,
+          source: "access_openai_ocr_text_only",
+          image_used: false,
+          error: "OCR text is empty."
+        });
+        return true;
+      }
+
+      if (ocrText.length > 50000) {
+        sendJson(res, 400, {
+          ok: false,
+          source: "access_openai_ocr_text_only",
+          image_used: false,
+          error: "OCR text is too long."
+        });
+        return true;
+      }
+
+      const specialistRouteCode = String(
+        body.specialist_route_code ||
+        body.specialistRouteCode ||
+        body.group ||
+        ""
+      )
+        .trim()
+        .toLowerCase()
+        .replace(/_analysis$/, "");
+
+      const definitions = {
+        invoice_payable: {
+          analysisSystemCode: "invoice_payable_analysis"
+        },
+        tax_public: {
+          analysisSystemCode: "tax_public_analysis"
+        },
+        utility_communication: {
+          analysisSystemCode: "utility_communication_analysis"
+        },
+        contract_insurance_lease: {
+          analysisSystemCode: "contract_insurance_lease_analysis"
+        },
+        card_statement: {
+          analysisSystemCode: "card_statement_analysis"
+        },
+        reference_check: {
+          analysisSystemCode: "reference_check_analysis"
+        },
+        needs_review: {
+          analysisSystemCode: "needs_review_analysis"
+        }
+      };
+
+      const definition = definitions[specialistRouteCode];
+
+      if (!definition) {
+        sendJson(res, 400, {
+          ok: false,
+          source: "access_openai_ocr_text_only",
+          image_used: false,
+          error: "Unsupported specialist route code.",
+          received_specialist_route_code:
+            specialistRouteCode
+        });
+        return true;
+      }
+
+      const aiResult =
+        await createPaymentDocumentSpecialistDraftFromOcrText(
+          ocrText,
+          {
+            ...body,
+            specialist_route_code:
+              specialistRouteCode,
+            analysis_system_code:
+              body.analysis_system_code ||
+              body.analysisSystemCode ||
+              definition.analysisSystemCode,
+            group:
+              specialistRouteCode,
+            draft:
+              body.draft ||
+              body.classification ||
+              {}
+          }
+        );
+
+      sendJson(res, 200, {
+        ok: true,
+        source: "access_openai_ocr_text_only",
+        image_used: false,
+        access_ocr_id:
+          body.access_ocr_id ||
+          body.accessOcrId ||
+          null,
+        specialist_route_code:
+          specialistRouteCode,
+        analysis_system_code:
+          definition.analysisSystemCode,
+        ai_steps:
+          aiResult.steps,
+        display_mode:
+          aiResult.display_mode,
+        document_group:
+          aiResult.document_group,
+        visible_field_labels:
+          aiResult.visible_field_labels,
+        prompt_rule_files:
+          aiResult.prompt_rule_files,
+        classification:
+          aiResult.classification,
+        specialist:
+          aiResult.specialist,
+        draft:
+          aiResult.draft
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          source: "access_openai_ocr_text_only",
+          image_used: false,
+          error:
+            error.message ||
+            String(error)
+        }
+      );
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_END */
+
   /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_START */
   if (
     req.method === "GET" &&

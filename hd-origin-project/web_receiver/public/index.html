@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -13,11 +13,11 @@
       --text-main: #0f172a;
       --text-sub: #64748b;
       --line-soft: rgba(148, 163, 184, 0.35);
-      --shadow-soft: 0 1.375rem 3.75rem rgba(15, 23, 42, 0.12);
-      --shadow-card: 0 0.875rem 2.375rem rgba(15, 23, 42, 0.10);
-      --radius-xl: 1.75rem;
-      --radius-lg: 1.25rem;
-      --radius-md: 0.875rem;
+      --shadow-soft: 0 22px 60px rgba(15, 23, 42, 0.12);
+      --shadow-card: 0 14px 38px rgba(15, 23, 42, 0.10);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
       --blue: #2563eb;
       --cyan: #0891b2;
       --green: #059669;
@@ -50,17 +50,17 @@
       background-image:
         linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
         linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
-      background-size: 2.25rem 2.25rem;
+      background-size: 36px 36px;
       mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent 75%);
     }
 
     header {
       position: relative;
-      padding: 1.75rem 2rem 1.125rem;
+      padding: 28px 32px 18px;
     }
 
     .hero {
-      max-width: 73.75rem;
+      max-width: 1180px;
       margin: 0 auto;
       border: 1px solid rgba(255, 255, 255, 0.78);
       border-radius: var(--radius-xl);
@@ -76,10 +76,10 @@
     .hero::after {
       content: "";
       position: absolute;
-      right: -6.875rem;
-      top: -7.5rem;
-      width: 20rem;
-      height: 20rem;
+      right: -110px;
+      top: -120px;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.12);
     }
@@ -89,67 +89,67 @@
       z-index: 1;
       display: flex;
       justify-content: space-between;
-      gap: 1.5rem;
+      gap: 24px;
       align-items: center;
-      padding: 2.125rem 2.375rem;
+      padding: 34px 38px;
     }
 
     .hero-kicker {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.4375rem 0.75rem;
-      border-radius: 9999px;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
       background: rgba(255, 255, 255, 0.14);
       color: rgba(255, 255, 255, 0.88);
-      font-size: 0.8125rem;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.04em;
-      margin-bottom: 0.875rem;
+      margin-bottom: 14px;
     }
 
     .hero-kicker::before {
       content: "";
-      width: 0.5rem;
-      height: 0.5rem;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #22c55e;
-      box-shadow: 0 0 0 0.3125rem rgba(34, 197, 94, 0.18);
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.18);
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 4.5vw, 3.375rem);
+      font-size: clamp(32px, 4.5vw, 54px);
       line-height: 1.05;
       letter-spacing: -0.04em;
     }
 
     .hero-text {
-      margin: 0.875rem 0 0;
+      margin: 14px 0 0;
       color: rgba(255, 255, 255, 0.78);
       line-height: 1.8;
-      font-size: 0.9375rem;
+      font-size: 15px;
     }
 
     .hero-actions {
       display: flex;
-      gap: 0.625rem;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      min-width: min(22.5rem, 100%);
+      min-width: min(360px, 100%);
     }
 
     main {
       position: relative;
-      max-width: 73.75rem;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 1rem 2rem 2.625rem;
+      padding: 16px 32px 42px;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(18.75rem, 0.85fr);
-      gap: 1.125rem;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+      gap: 18px;
       align-items: start;
     }
 
@@ -163,27 +163,27 @@
     }
 
     .panel-head {
-      padding: 1.5rem 1.625rem 0.75rem;
+      padding: 24px 26px 12px;
     }
 
     .panel-title {
       margin: 0;
-      font-size: 1.375rem;
+      font-size: 22px;
       letter-spacing: -0.02em;
     }
 
     .panel-subtitle {
-      margin: 0.5rem 0 0;
+      margin: 8px 0 0;
       color: var(--text-sub);
-      font-size: 0.875rem;
+      font-size: 14px;
       line-height: 1.7;
     }
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(13.75rem, 1fr));
-      gap: 0.875rem;
-      padding: 1.125rem 1.375rem 1.5rem;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 14px;
+      padding: 18px 22px 24px;
     }
 
     .menu-button,
@@ -198,11 +198,11 @@
 
     .menu-button {
       position: relative;
-      min-height: 7rem;
-      padding: 1.125rem 1.125rem 1rem;
+      min-height: 112px;
+      padding: 18px 18px 16px;
       border-radius: var(--radius-lg);
       background: var(--bg-panel-solid);
-      box-shadow: 0 0.625rem 1.625rem rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
       border: 1px solid rgba(148, 163, 184, 0.22);
       overflow: hidden;
     }
@@ -210,9 +210,9 @@
     .menu-button::after {
       content: "";
       position: absolute;
-      inset: auto -1.875rem -2.625rem auto;
-      width: 6.875rem;
-      height: 6.875rem;
+      inset: auto -30px -42px auto;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
       background: var(--accent-soft);
     }
@@ -220,7 +220,7 @@
     .menu-button:hover,
     .hero-button:hover,
     .small-button:hover {
-      transform: translateY(-0.125rem);
+      transform: translateY(-2px);
       filter: brightness(1.02);
     }
 
@@ -231,22 +231,22 @@
     }
 
     .menu-icon {
-      width: 2.625rem;
-      height: 2.625rem;
-      border-radius: 0.875rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
       color: #ffffff;
-      font-size: 1.25rem;
+      font-size: 20px;
       font-weight: 900;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 0.625rem 1.375rem var(--accent-shadow);
-      margin-bottom: 0.875rem;
+      box-shadow: 0 10px 22px var(--accent-shadow);
+      margin-bottom: 14px;
     }
 
     .menu-title {
       display: block;
-      font-size: 1.125rem;
+      font-size: 18px;
       font-weight: 850;
       color: var(--text-main);
       letter-spacing: -0.02em;
@@ -254,9 +254,9 @@
 
     .menu-desc {
       display: block;
-      margin-top: 0.4375rem;
+      margin-top: 7px;
       color: var(--text-sub);
-      font-size: 0.8125rem;
+      font-size: 13px;
       line-height: 1.55;
       font-weight: 600;
     }
@@ -304,8 +304,8 @@
     }
 
     .hero-button {
-      padding: 0.75rem 1rem;
-      border-radius: 0.875rem;
+      padding: 12px 16px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.15);
       color: #ffffff;
       font-weight: 800;
@@ -320,43 +320,43 @@
 
     .side-stack {
       display: grid;
-      gap: 1.125rem;
+      gap: 18px;
     }
 
     .status-card {
-      padding: 1.5rem;
+      padding: 24px;
     }
 
     .status-list {
       display: grid;
-      gap: 0.75rem;
-      margin-top: 1.125rem;
+      gap: 12px;
+      margin-top: 18px;
     }
 
     .status-item {
       display: flex;
       align-items: center;
-      gap: 0.6875rem;
-      padding: 0.75rem 0.8125rem;
-      border-radius: 1rem;
+      gap: 11px;
+      padding: 12px 13px;
+      border-radius: 16px;
       background: rgba(248, 250, 252, 0.82);
       border: 1px solid var(--line-soft);
       color: var(--text-sub);
-      font-size: 0.8125rem;
+      font-size: 13px;
       font-weight: 700;
     }
 
     .status-dot {
-      width: 0.625rem;
-      height: 0.625rem;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: #22c55e;
-      box-shadow: 0 0 0 0.3125rem rgba(34, 197, 94, 0.12);
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
       flex: 0 0 auto;
     }
 
     .bank-card {
-      padding: 1.5rem;
+      padding: 24px;
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.90), rgba(239, 246, 255, 0.92)),
         radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 38%);
@@ -364,40 +364,40 @@
 
     .bank-title {
       margin: 0;
-      font-size: 1.375rem;
+      font-size: 22px;
       letter-spacing: -0.02em;
     }
 
     .bank-text {
-      margin: 0.625rem 0 1.125rem;
+      margin: 10px 0 18px;
       color: var(--text-sub);
       line-height: 1.75;
-      font-size: 0.875rem;
+      font-size: 14px;
     }
 
     .small-button {
       width: 100%;
-      padding: 0.8125rem 1rem;
-      border-radius: 0.875rem;
+      padding: 13px 16px;
+      border-radius: 14px;
       background: linear-gradient(135deg, var(--blue), var(--cyan));
       color: #ffffff;
-      font-size: 0.9375rem;
+      font-size: 15px;
       font-weight: 850;
       text-align: center;
-      box-shadow: 0 0.875rem 1.75rem rgba(37, 99, 235, 0.25);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
     }
 
     #result {
-      margin-top: 1rem;
+      margin-top: 16px;
       white-space: pre-wrap;
       background: #0f172a;
       color: #dbeafe;
       border: 1px solid rgba(148, 163, 184, 0.35);
-      border-radius: 1rem;
-      padding: 0.875rem;
-      min-height: 4.625rem;
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 74px;
       line-height: 1.65;
-      font-size: 0.8125rem;
+      font-size: 13px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
@@ -405,9 +405,9 @@
       color: #be123c;
     }
 
-    @media (max-width: 56.25rem) {
+    @media (max-width: 900px) {
       header {
-        padding: 1.125rem 1rem 0.625rem;
+        padding: 18px 16px 10px;
       }
 
       .hero-inner,
@@ -417,16 +417,16 @@
 
       .hero-inner {
         display: block;
-        padding: 1.75rem 1.5rem;
+        padding: 28px 24px;
       }
 
       .hero-actions {
         justify-content: flex-start;
-        margin-top: 1.25rem;
+        margin-top: 20px;
       }
 
       main {
-        padding: 0.75rem 1rem 2rem;
+        padding: 12px 16px 32px;
       }
 
       .layout {
@@ -455,7 +455,7 @@
     font-weight: 900;
     padding: 0.72rem 0.85rem;
     cursor: pointer;
-    box-shadow: 0 0.625rem 1.375rem rgba(15, 23, 42, 0.18);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
   }
 
   .business-flow-main-button:hover {
@@ -470,7 +470,7 @@
     min-width: 2.7rem;
     height: 1.55rem;
     padding: 0 0.35rem;
-    border-radius: 9999px;
+    border-radius: 999px;
     background: rgba(34, 197, 94, 0.18);
     color: #bbf7d0;
     border: 1px solid rgba(187, 247, 208, 0.28);
@@ -581,41 +581,41 @@
   }
 
   .company-context-wrap {
-    max-width: 73.75rem;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 0 2rem 0.25rem;
+    padding: 0 32px 4px;
   }
 
   .company-context-panel {
     display: grid;
     grid-template-columns:
       minmax(0, 1fr)
-      minmax(18.75rem, 0.7fr);
-    gap: 1.125rem;
+      minmax(300px, 0.7fr);
+    gap: 18px;
     align-items: center;
-    padding: 1.125rem 1.25rem;
+    padding: 18px 20px;
     border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 1.375rem;
+    border-radius: 22px;
     background: rgba(255, 255, 255, 0.92);
     box-shadow:
-      0 0.875rem 2.125rem rgba(15, 23, 42, 0.11);
+      0 14px 34px rgba(15, 23, 42, 0.11);
     backdrop-filter: blur(14px);
   }
 
   .company-current {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: 14px;
     min-width: 0;
   }
 
   .company-mark {
     display: grid;
     place-items: center;
-    width: 3.375rem;
-    height: 3.375rem;
+    width: 54px;
+    height: 54px;
     flex: 0 0 auto;
-    border-radius: 1.0625rem;
+    border-radius: 17px;
     background:
       linear-gradient(
         135deg,
@@ -623,10 +623,10 @@
         var(--company-secondary)
       );
     color: #ffffff;
-    font-size: 1.25rem;
+    font-size: 20px;
     font-weight: 900;
     box-shadow:
-      0 0.625rem 1.5rem var(--company-shadow);
+      0 10px 24px var(--company-shadow);
   }
 
   .company-copy {
@@ -634,9 +634,9 @@
   }
 
   .company-label {
-    margin-bottom: 0.1875rem;
+    margin-bottom: 3px;
     color: #64748b;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.05em;
   }
@@ -644,7 +644,7 @@
   .company-name {
     overflow: hidden;
     color: var(--company-primary);
-    font-size: clamp(1.1875rem, 2.4vw, 1.75rem);
+    font-size: clamp(19px, 2.4vw, 28px);
     font-weight: 900;
     line-height: 1.2;
     text-overflow: ellipsis;
@@ -652,9 +652,9 @@
   }
 
   .company-code {
-    margin-top: 0.25rem;
+    margin-top: 4px;
     color: #64748b;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 700;
   }
 
@@ -663,43 +663,43 @@
     grid-template-columns:
       minmax(0, 1fr)
       auto;
-    gap: 0.5rem;
+    gap: 8px;
     align-items: end;
   }
 
   .company-select-field label {
     display: block;
-    margin-bottom: 0.3125rem;
+    margin-bottom: 5px;
     color: #475569;
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 800;
   }
 
   #companyContextSelect {
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.5625rem 0.6875rem;
+    min-height: 44px;
+    padding: 9px 11px;
     border: 1px solid #cbd5e1;
-    border-radius: 0.75rem;
+    border-radius: 12px;
     outline: none;
     background: #ffffff;
     color: #0f172a;
     font: inherit;
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 750;
   }
 
   #companyContextSelect:focus {
     border-color: var(--company-secondary);
     box-shadow:
-      0 0 0 0.25rem var(--company-soft);
+      0 0 0 4px var(--company-soft);
   }
 
   #companyContextApply {
-    min-height: 2.75rem;
-    padding: 0.5625rem 0.875rem;
+    min-height: 44px;
+    padding: 9px 14px;
     border: 0;
-    border-radius: 0.75rem;
+    border-radius: 12px;
     background:
       linear-gradient(
         135deg,
@@ -708,27 +708,27 @@
       );
     color: #ffffff;
     font-family: inherit;
-    font-size: 0.8125rem;
+    font-size: 13px;
     font-weight: 850;
     cursor: pointer;
     box-shadow:
-      0 0.5625rem 1.25rem var(--company-shadow);
+      0 9px 20px var(--company-shadow);
   }
 
   #companyContextApply:hover {
     filter: brightness(1.05);
-    transform: translateY(-0.0625rem);
+    transform: translateY(-1px);
   }
 
   .company-warning {
     display: none;
     grid-column: 1 / -1;
-    padding: 0.625rem 0.75rem;
+    padding: 10px 12px;
     border: 1px solid #fed7aa;
-    border-radius: 0.75rem;
+    border-radius: 12px;
     background: #fff7ed;
     color: #9a3412;
-    font-size: 0.8125rem;
+    font-size: 13px;
     font-weight: 750;
   }
 
@@ -744,16 +744,16 @@
         #94a3b8
       );
     box-shadow:
-      0 0.625rem 1.5rem rgba(100, 116, 139, 0.22);
+      0 10px 24px rgba(100, 116, 139, 0.22);
   }
 
   body[data-company-selected="false"] .company-name {
     color: #475569;
   }
 
-  @media (max-width: 56.25rem) {
+  @media (max-width: 900px) {
     .company-context-wrap {
-      padding-inline: 1rem;
+      padding-inline: 16px;
     }
 
     .company-context-panel {
@@ -761,14 +761,14 @@
     }
   }
 
-  @media (max-width: 35rem) {
+  @media (max-width: 560px) {
     .company-context-wrap {
-      padding-inline: 0.625rem;
+      padding-inline: 10px;
     }
 
     .company-context-panel {
-      padding: 0.9375rem;
-      border-radius: 1.125rem;
+      padding: 15px;
+      border-radius: 18px;
     }
 
     .company-select-area {
@@ -787,17 +787,17 @@
     position: relative;
     display: flex;
     align-items: stretch;
-    gap: 1rem;
-    min-height: 8.25rem;
-    padding: 1.25rem;
-    border-radius: 1.75rem;
+    gap: 16px;
+    min-height: 132px;
+    padding: 20px;
+    border-radius: 28px;
     border: 1px solid rgba(50, 100, 255, .22);
     background:
       radial-gradient(circle at 12% 10%, rgba(255,255,255,.55), transparent 20rem),
       linear-gradient(135deg, #172033 0%, #2846b8 48%, #3264ff 100%);
     color: #fff !important;
     text-decoration: none !important;
-    box-shadow: 0 1.375rem 3rem rgba(32, 44, 72, .24);
+    box-shadow: 0 22px 48px rgba(32, 44, 72, .24);
     overflow: hidden;
     isolation: isolate;
   }
@@ -805,10 +805,10 @@
   .hd-ledger-main-menu-card::before {
     content: "";
     position: absolute;
-    inset: -5rem -5rem auto auto;
-    width: 13.75rem;
-    height: 13.75rem;
-    border-radius: 9999px;
+    inset: -80px -80px auto auto;
+    width: 220px;
+    height: 220px;
+    border-radius: 999px;
     background: rgba(255,255,255,.14);
     z-index: -1;
   }
@@ -816,17 +816,17 @@
   .hd-ledger-main-menu-card::after {
     content: "";
     position: absolute;
-    left: 1.375rem;
-    right: 1.375rem;
+    left: 22px;
+    right: 22px;
     bottom: 0;
-    height: 0.25rem;
-    border-radius: 9999px 9999px 0 0;
+    height: 4px;
+    border-radius: 999px 999px 0 0;
     background: linear-gradient(90deg, #76e4b2, #ffffff, #9db7ff);
     opacity: .95;
   }
 
   .hd-ledger-main-menu-card:hover {
-    transform: translateY(-0.125rem);
+    transform: translateY(-2px);
     filter: brightness(1.04);
   }
 
@@ -834,12 +834,12 @@
     display: grid;
     place-items: center;
     flex: 0 0 auto;
-    width: 4.625rem;
-    height: 4.625rem;
-    border-radius: 1.5rem;
+    width: 74px;
+    height: 74px;
+    border-radius: 24px;
     background: rgba(255,255,255,.16);
     border: 1px solid rgba(255,255,255,.24);
-    font-size: 2.125rem;
+    font-size: 34px;
     font-weight: 900;
     letter-spacing: -.08em;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
@@ -856,13 +856,13 @@
     display: inline-flex;
     width: fit-content;
     align-items: center;
-    gap: 0.375rem;
-    margin-bottom: 0.5rem;
-    padding: 0.3125rem 0.5625rem;
-    border-radius: 9999px;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 5px 9px;
+    border-radius: 999px;
     background: rgba(255,255,255,.14);
     border: 1px solid rgba(255,255,255,.18);
-    font-size: 0.6875rem;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -871,7 +871,7 @@
 
   .hd-ledger-main-menu-title {
     display: block;
-    font-size: 1.4375rem;
+    font-size: 23px;
     line-height: 1.2;
     font-weight: 900;
     letter-spacing: -.04em;
@@ -879,43 +879,43 @@
 
   .hd-ledger-main-menu-sub {
     display: block;
-    margin-top: 0.5rem;
+    margin-top: 8px;
     color: rgba(255,255,255,.78);
-    font-size: 0.8125rem;
+    font-size: 13px;
     line-height: 1.55;
   }
 
   .hd-ledger-main-menu-arrow {
     position: absolute;
-    right: 1.25rem;
-    top: 1.25rem;
+    right: 20px;
+    top: 20px;
     display: grid;
     place-items: center;
-    width: 2.125rem;
-    height: 2.125rem;
-    border-radius: 9999px;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
     background: rgba(255,255,255,.16);
     border: 1px solid rgba(255,255,255,.22);
-    font-size: 1.125rem;
+    font-size: 18px;
     font-weight: 900;
   }
 
-  @media (max-width: 42.5rem) {
+  @media (max-width: 680px) {
     .hd-ledger-main-menu-card {
-      min-height: 7.5rem;
-      padding: 1.125rem;
-      border-radius: 1.5rem;
+      min-height: 120px;
+      padding: 18px;
+      border-radius: 24px;
     }
 
     .hd-ledger-main-menu-icon {
-      width: 3.875rem;
-      height: 3.875rem;
-      border-radius: 1.25rem;
-      font-size: 1.75rem;
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      font-size: 28px;
     }
 
     .hd-ledger-main-menu-title {
-      font-size: 1.25rem;
+      font-size: 20px;
     }
   }
 </style>
@@ -936,13 +936,13 @@
 
         <div class="hero-actions">
           <!-- GPT2_BUSINESS_FLOW_MAIN_BUTTON_20260709_START -->
-<button type="button" class="business-flow-main-button" onclick="location.href='../settings/business-flow-settings.html'">
+<button type="button" class="business-flow-main-button" onclick="location.href='/settings/business-flow-settings.html'">
   <span class="business-flow-main-kicker">FLOW</span>
   <span class="business-flow-main-title">業務フロー設定</span>
-  <span class="business-flow-main-desc">総務・支払の帳面確認・会社ルール</span>
+  <span class="business-flow-main-desc">総務・支払・帳面確認の会社ルール</span>
 </button>
 <!-- GPT2_BUSINESS_FLOW_MAIN_BUTTON_20260709_END -->
-<button type="button" class="hero-button primary" onclick="location.href='../payables/payment-document-inbox.html'">支払書類を取込</button>
+<button type="button" class="hero-button primary" onclick="location.href='/payables/payment-document-inbox.html'">支払書類へ</button>
           <button type="button" class="hero-button" onclick="openSettings()">設定</button>
         </div>
       </div>
@@ -1026,7 +1026,7 @@
 
         <div class="menu-grid">
 <!-- GPT00_LEDGER_MANAGEMENT_MAIN_MENU_START -->
-<a class="hd-ledger-main-menu-card" href="../ledgers/ledger-management-dashboard.html" aria-label="台帳・管理を開く" data-hd-origin-menu="ledger-management">
+<a class="hd-ledger-main-menu-card" href="/ledgers/ledger-management-dashboard.html" aria-label="台帳・管理を開く" data-hd-origin-menu="ledger-management">
   <span class="hd-ledger-main-menu-icon">帳</span>
   <span class="hd-ledger-main-menu-body">
     <span class="hd-ledger-main-menu-kicker">Ledger Management</span>
@@ -1037,49 +1037,56 @@
 </a>
 <!-- GPT00_LEDGER_MANAGEMENT_MAIN_MENU_END -->
 
-          <button type="button" class="menu-button accent-green" onclick="location.href='../expenses/expense-input.html'">
+          <button type="button" class="menu-button accent-green" onclick="location.href='/expenses/expense-input.html'">
             <span class="menu-icon">経</span>
             <span class="menu-title">経費入力</span>
-            <span class="menu-desc">レシートや支払内容を入力します。</span>
+            <span class="menu-desc">レシート・支払内容を入力します。</span>
           </button>
 
-          <button type="button" class="menu-button accent-blue" onclick="location.href='../expenses/expense-list.html'">
+          <button type="button" class="menu-button accent-blue" onclick="location.href='/expenses/expense-list.html'">
             <span class="menu-icon">覧</span>
             <span class="menu-title">経費一覧</span>
             <span class="menu-desc">登録済みの経費を確認します。</span>
           </button>
+          <!-- HD_ORIGIN_CALENDAR_MENU_BUTTON_START -->
+          <button type="button" class="menu-button accent-slate" onclick="if (hdCompanyHasSelection()) { window.open('./YearlyCalendar/index.html', '_blank'); }">
+            <span class="menu-icon">暦</span>
+            <span class="menu-title">業務カレンダー</span>
+            <span class="menu-desc">年・月間の業務スケジュールやタスクを確認します。</span>
+          </button>
+          <!-- HD_ORIGIN_CALENDAR_MENU_BUTTON_END -->
+
+          <!-- HD_ORIGIN_ADDRESS_BOOK_BUTTON_START -->
+          <button type="button" class="menu-button accent-slate" onclick="location.href='../../customer-address-book.html'">
+            <span class="menu-icon">📖</span>
+            <span class="menu-title">得意先アドレス帳</span>
+            <span class="menu-desc">ワンクリックでメール作成・マスター編集を行います。</span>
+          </button>
+          <!-- HD_ORIGIN_ADDRESS_BOOK_BUTTON_END -->
 
           <!-- PAYABLES_MAIN_MENU_BUTTON_20260706_START -->
-          <button type="button" class="menu-button accent-orange" onclick="location.href='../payables/payable-list.html'">
+          <button type="button" class="menu-button accent-orange" onclick="location.href='/payables/payable-list.html'">
             <span class="menu-icon">未</span>
             <span class="menu-title">請求書・未払管理</span>
             <span class="menu-desc">請求書、未払、支払予定を管理します。</span>
           </button>
           <!-- PAYABLES_MAIN_MENU_BUTTON_20260706_END -->
 
-          <button type="button" class="menu-button accent-purple" onclick="location.href='../payables/payment-document-inbox.html'">
+          <button type="button" class="menu-button accent-purple" onclick="location.href='/payables/payment-document-inbox.html'">
             <span class="menu-icon">証</span>
             <span class="menu-title">支払書類仕分け</span>
             <span class="menu-desc">OCR済み支払書類を仕分けします。</span>
           </button>
 
           <!-- HD_ORIGIN_RECEIVABLES_MENU_BUTTON_20260707_START -->
-          <button type="button" class="menu-button accent-blue" onclick="location.href='../receivables/receivable-dashboard.html'">
+          <button type="button" class="menu-button accent-blue" onclick="location.href='/receivables/receivable-dashboard.html'">
             <span class="menu-icon">入</span>
             <span class="menu-title">入金管理</span>
             <span class="menu-desc">入金予定と確認状況を見ます。</span>
           </button>
           <!-- HD_ORIGIN_RECEIVABLES_MENU_BUTTON_20260707_END -->
 
-          <!-- HD_ORIGIN_CALENDAR_MENU_BUTTON_20260715_START -->
-          <button type="button" class="menu-button accent-slate" onclick="location.href='./YearlyCalendar/index.html'">
-            <span class="menu-icon">暦</span>
-            <span class="menu-title">業務カレンダー</span>
-            <span class="menu-desc">年・月間の業務スケジュールやタスクを確認します。</span>
-          </button>
-          <!-- HD_ORIGIN_CALENDAR_MENU_BUTTON_20260715_END -->
-
-          <button type="button" class="menu-button accent-slate" onclick="location.href='../masters/master-management.html'">
+          <button type="button" class="menu-button accent-slate" onclick="location.href='/masters/master-management.html'">
             <span class="menu-icon">主</span>
             <span class="menu-title">マスタ管理</span>
             <span class="menu-desc">区分、科目、取引先などを管理します。</span>
@@ -1106,15 +1113,15 @@
           <p class="bank-text">
             通帳読取、銀行明細取込、入出金確認、未払・売掛との照合を行います。
           </p>
-          <button type="button" class="small-button" onclick="location.href='../bank/bank-dashboard.html'">
+          <button type="button" class="small-button" onclick="location.href='/bank/bank-dashboard.html'">
             銀行業務へ
           </button>
         </section>
         <!-- HD_ORIGIN_BANK_ENTRY_BUTTON_20260708_END -->
 
         <section class="panel status-card">
-          <h2 class="panel-title">システム状況</h2>
-          <p class="panel-subtitle">操作結果や終了処理の状況を表示します。</p>
+          <h2 class="panel-title">システム状態</h2>
+          <p class="panel-subtitle">操作結果や終了処理の状態を表示します。</p>
 
           <div class="status-list">
             <div class="status-item">
@@ -1166,7 +1173,7 @@ function hdCompanyTheme(company) {
   }
 
   if (
-    value.includes("坂口健康商店") ||
+    value.includes("坂口勝康商店") ||
     value.includes("sakaguchi")
   ) {
     return "sakaguchi";
@@ -1335,7 +1342,7 @@ function hdCompanyRender(company) {
     [
       company.company_code,
       company.company_type
-    ].filter(Boolean).join(" - ") ||
+    ].filter(Boolean).join(" ／ ") ||
     "会社マスタ選択中";
 
   mark.textContent =
@@ -1350,7 +1357,7 @@ function hdCompanyRender(company) {
 
   document.title =
     company.company_name +
-    " - HD Origin Project";
+    "｜HD Origin Project";
 }
 
 function hdCompanyWarn(message) {
@@ -1361,7 +1368,7 @@ function hdCompanyWarn(message) {
 
   warning.textContent =
     message ||
-    "対象会社を選択してください。";
+    "会社を選択してください。";
 
   warning.classList.add(
     "is-visible"
@@ -1381,7 +1388,7 @@ async function hdCompanyLoad() {
 
   try {
     const response = await fetch(
-      "../api/masters?type=companies",
+      "/api/masters?type=companies",
       {
         cache: "no-store"
       }
@@ -1433,9 +1440,9 @@ async function hdCompanyLoad() {
       option.textContent =
         company.company_code
           ? company.company_name +
-            " [" +
+            "（" +
             company.company_code +
-            "]"
+            "）"
           : company.company_name;
 
       select.appendChild(option);
@@ -1563,9 +1570,9 @@ function hdCompanyHasSelection() {
 
 function hdCompanyInstallGuard() {
   const allowedPaths = [
-    "../settings.html",
-    "../settings/",
-    "../masters/"
+    "/settings.html",
+    "/settings/",
+    "/masters/"
   ];
 
   document.addEventListener(
@@ -1655,9 +1662,9 @@ function openSettings() {
   const top = window.screenY + 80;
 
   window.open(
-    "../settings.html",
+    "/settings.html",
     "hd_origin_settings",
-    width= + width + ,height= + height + ,left= + left + ,top= + top + ,resizable=yes,scrollbars=yes
+    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
   );
 }
 
@@ -1683,7 +1690,7 @@ async function exitApp() {
   );
 
   try {
-    const res = await fetch("../api/app/exit", {
+    const res = await fetch("/api/app/exit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ backup: backupOk })
@@ -1696,12 +1703,12 @@ async function exitApp() {
       window.close();
 
       setTimeout(() => {
-        document.body.innerHTML = 
-          <main style="font-family: system-ui, sans-serif; padding: 2rem;">
+        document.body.innerHTML = `
+          <main style="font-family: system-ui, sans-serif; padding: 32px;">
             <h1>HD Origin Projectを終了しました</h1>
             <p>この画面は閉じて大丈夫です。</p>
           </main>
-        ;
+        `;
       }, 500);
     }, 800);
   } catch (err) {
@@ -1709,21 +1716,21 @@ async function exitApp() {
   }
 }
 </script>
-  <script src="../hd-origin-exit-guard.js?v=20260706"></script>
+  <script src="/hd-origin-exit-guard.js?v=20260706"></script>
 <!-- GPT00_SALES_MANAGEMENT_LINK_20260712_START -->
 <style>
   .hd-sales-management-entry {
     position: fixed;
-    right: 1.375rem;
-    bottom: 5.125rem;
+    right: 22px;
+    bottom: 82px;
     z-index: 9999;
     display: inline-flex;
     align-items: center;
-    gap: 0.5625rem;
-    min-height: 3rem;
-    padding: 0.75rem 1.0625rem;
+    gap: 9px;
+    min-height: 48px;
+    padding: 12px 17px;
     border: 1px solid rgba(255,255,255,.28);
-    border-radius: 9999px;
+    border-radius: 999px;
     background:
       linear-gradient(
         135deg,
@@ -1738,36 +1745,36 @@ async function exitApp() {
       "Meiryo",
       system-ui,
       sans-serif;
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 900;
     letter-spacing: .01em;
     box-shadow:
-      0 1rem 2.125rem
+      0 16px 34px
       rgba(32,44,72,.22);
   }
 
   .hd-sales-management-entry:hover {
-    transform: translateY(-0.0625rem);
+    transform: translateY(-1px);
     filter: brightness(1.05);
   }
 
   .hd-sales-management-entry-mark {
     display: inline-grid;
     place-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 9999px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
     background:
       rgba(255,255,255,.18);
     font-weight: 900;
   }
 
-  @media (max-width: 42.5rem) {
+  @media (max-width: 680px) {
     .hd-sales-management-entry {
-      right: 0.875rem;
-      bottom: 4.75rem;
-      padding: 0.6875rem 0.875rem;
-      font-size: 0.8125rem;
+      right: 14px;
+      bottom: 76px;
+      padding: 11px 14px;
+      font-size: 13px;
     }
   }
 </style>
@@ -1775,7 +1782,7 @@ async function exitApp() {
 <a
   id="hdSalesManagementEntry"
   class="hd-sales-management-entry"
-  href="../sales/sales-dashboard.html"
+  href="/sales/sales-dashboard.html"
   aria-label="販売・売掛管理を開く"
 >
   <span class="hd-sales-management-entry-mark">売</span>
@@ -1821,3 +1828,4 @@ async function exitApp() {
 <!-- GPT00_SALES_MANAGEMENT_LINK_20260712_END -->
 </body>
 </html>
+
