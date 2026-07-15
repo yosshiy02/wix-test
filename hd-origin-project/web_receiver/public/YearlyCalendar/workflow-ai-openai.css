@@ -1,0 +1,416 @@
+/* HD_WORKFLOW_OPENAI_UI_V1 */
+
+.workflow-ai-openai-btn {
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.24);
+}
+
+.workflow-ai-openai-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+
+.workflow-ai-openai-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(8px);
+}
+
+.workflow-ai-openai-modal.active {
+    display: flex;
+}
+
+.workflow-ai-openai-box {
+    width: min(1500px, 98vw);
+    max-height: 94vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 40px 100px rgba(15, 23, 42, 0.32);
+}
+
+.workflow-ai-openai-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+}
+
+.workflow-ai-openai-header h2 {
+    margin: 0 0 6px;
+    color: #0f172a;
+    font-size: 1.35rem;
+}
+
+.workflow-ai-openai-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+.workflow-ai-openai-close {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.workflow-ai-openai-body {
+    min-height: 0;
+    overflow: auto;
+    padding: 20px 24px 24px;
+}
+
+.workflow-ai-openai-input-panel {
+    padding: 16px;
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.workflow-ai-openai-year-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.workflow-ai-openai-year-row label,
+.workflow-ai-openai-input-label {
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.workflow-ai-openai-year-row input {
+    width: 120px;
+}
+
+.workflow-ai-openai-connection {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.workflow-ai-openai-connection.checking {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.workflow-ai-openai-connection.ready {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.workflow-ai-openai-connection.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.workflow-ai-openai-connection.error {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.workflow-ai-openai-input-label {
+    display: block;
+    margin-top: 13px;
+}
+
+.workflow-ai-openai-textarea {
+    width: 100%;
+    min-height: 170px;
+    margin-top: 6px;
+    padding: 14px;
+    resize: vertical;
+    line-height: 1.65;
+}
+
+.workflow-ai-openai-note {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.workflow-ai-openai-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.workflow-ai-openai-analyze {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+.workflow-ai-openai-apply {
+    background: #059669;
+}
+
+.workflow-ai-openai-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.workflow-ai-openai-status {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.workflow-ai-openai-status.working {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.workflow-ai-openai-status.success {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.workflow-ai-openai-status.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.workflow-ai-openai-status.error {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.workflow-ai-openai-result {
+    margin-top: 18px;
+}
+
+.workflow-ai-openai-empty {
+    padding: 40px 20px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+    text-align: center;
+}
+
+.workflow-ai-openai-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 14px;
+}
+
+.workflow-ai-openai-summary h3 {
+    margin: 0 0 5px;
+    color: #0f172a;
+}
+
+.workflow-ai-openai-summary p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.84rem;
+    line-height: 1.55;
+}
+
+.workflow-ai-openai-kpis {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.workflow-ai-openai-kpis span {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.workflow-ai-openai-kpis span.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.workflow-ai-openai-groups {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.workflow-ai-openai-group {
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.workflow-ai-openai-group h3 {
+    margin: 0 0 10px;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.workflow-ai-openai-group-items {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.workflow-ai-openai-group-items span {
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 0.8rem;
+}
+
+.workflow-ai-openai-group-items span.review {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.workflow-ai-openai-warnings {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid #fdba74;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+.workflow-ai-openai-table-wrap {
+    max-height: 520px;
+    overflow: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.workflow-ai-openai-table {
+    width: 100%;
+    min-width: 1350px;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.workflow-ai-openai-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 9px;
+    border-bottom: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.workflow-ai-openai-table td {
+    padding: 9px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.workflow-ai-openai-table tr.needs-review td {
+    background: #fffaf0;
+}
+
+.workflow-ai-openai-table small {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.workflow-ai-task-date {
+    min-width: 140px;
+}
+
+.workflow-ai-task-user,
+.workflow-ai-task-channel {
+    min-width: 130px;
+}
+
+.workflow-ai-task-title {
+    min-width: 280px;
+}
+
+.workflow-ai-phase,
+.workflow-ai-priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #475569;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .workflow-ai-openai-modal {
+        padding: 6px;
+    }
+
+    .workflow-ai-openai-box {
+        width: 100%;
+        max-height: 98vh;
+        border-radius: 12px;
+    }
+
+    .workflow-ai-openai-body {
+        padding: 12px;
+    }
+
+    .workflow-ai-openai-groups {
+        grid-template-columns: 1fr;
+    }
+
+    .workflow-ai-openai-summary,
+    .workflow-ai-openai-actions {
+        flex-direction: column;
+    }
+
+    .workflow-ai-openai-actions button {
+        width: 100%;
+    }
+}

@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const readline = require("readline");
@@ -81,6 +81,9 @@ const { handleBankRoutes } = require("./src/bank/bank.routes");
 /* GPT00_SALES_ROUTE_REQUIRE_20260712_START */
 const { handleSalesRoutes } = require("./src/sales/sales.routes");
 /* GPT00_SALES_ROUTE_REQUIRE_20260712_END */
+/* GPT2_CALENDAR_WORKFLOW_OPENAI_REQUIRE_20260715_START */
+const { handleCalendarWorkflowRoutes } = require("./src/calendar/calendarWorkflow.routes");
+/* GPT2_CALENDAR_WORKFLOW_OPENAI_REQUIRE_20260715_END */
 const { handleMasterRoutes } = require("./src/masters/masters.routes");
 const { makeAppRoutes } = require("./src/app/app.routes");
 
@@ -1189,6 +1192,9 @@ const server = http.createServer(async (req, res) => {
       if (await handleSalesRoutes(req, res)) return;
       /* GPT00_SALES_ROUTE_HANDLER_20260712_END */
       /* GPT00_BANK_ROUTE_HANDLER_20260711_END */
+      /* GPT2_CALENDAR_WORKFLOW_OPENAI_HANDLER_20260715_START */
+if (await handleCalendarWorkflowRoutes(req, res)) return;
+/* GPT2_CALENDAR_WORKFLOW_OPENAI_HANDLER_20260715_END */
       if (await handleMasterRoutes(req, res)) return;
       if (await handleItemsRoutes(req, res)) return;
       if (await handleBackupRoutes(req, res)) return;
