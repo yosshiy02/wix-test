@@ -342,7 +342,7 @@
       "workflow-ai-openai-btn";
 
     button.textContent =
-      "🧭 業務フローAI仕分け";
+      "🧭 業務フローAI仕分け・内容修正";
 
     const before =
       document.getElementById(
@@ -398,7 +398,7 @@
         <header class="workflow-ai-openai-header">
           <div>
             <h2 id="workflowAiTitle">
-              🧭 業務フローAI仕分け
+              🧭 業務フローAI仕分け・内容修正
             </h2>
             <p>
               対象者を先に選ばず、業務内容をまとめて入力してください。
@@ -467,24 +467,6 @@
               >
                 OpenAIで解析・仕分け
               </button>
-
-              <button
-                id="workflowAiApplyBtn"
-                type="button"
-                class="btn-save workflow-ai-openai-apply"
-                disabled
-              >
-                選択した予定を反映・更新
-              </button>
-
-              <button
-                id="workflowAiRemoveBtn"
-                type="button"
-                class="workflow-ai-openai-remove"
-                disabled
-              >
-                選択した予定の反映解除
-              </button>
             </div>
 
             <div
@@ -527,24 +509,6 @@
       .addEventListener(
         "click",
         analyzeWorkflow
-      );
-
-    document
-      .getElementById(
-        "workflowAiApplyBtn"
-      )
-      .addEventListener(
-        "click",
-        applySelectedTasks
-      );
-
-    document
-      .getElementById(
-        "workflowAiRemoveBtn"
-      )
-      .addEventListener(
-        "click",
-        removeSelectedTasksFromCalendar
       );
 
     modal.addEventListener(
@@ -701,16 +665,6 @@
         "workflowAiAnalyzeBtn"
       );
 
-    const applyButton =
-      document.getElementById(
-        "workflowAiApplyBtn"
-      );
-
-    const removeButton =
-      document.getElementById(
-        "workflowAiRemoveBtn"
-      );
-
     if (analyzeButton) {
       analyzeButton.disabled =
         value;
@@ -719,32 +673,6 @@
         value
           ? "OpenAIが解析中..."
           : "OpenAIで解析・仕分け";
-    }
-
-    if (applyButton) {
-      applyButton.disabled =
-        value ||
-        !(
-          currentResult &&
-          Array.isArray(
-            currentResult.tasks
-          ) &&
-          currentResult.tasks.length
-        );
-    }
-
-    if (removeButton) {
-      removeButton.disabled =
-        value ||
-        !(
-          currentResult &&
-          Array.isArray(
-            currentResult.tasks
-          ) &&
-          currentResult.tasks.some(
-            task => task.applied
-          )
-        );
     }
   }
 
@@ -1043,7 +971,7 @@
       .join("");
   }
 
-  /* WORKFLOW_AI_APPLIED_EDIT_V2 */
+  /* WORKFLOW_AI_ROW_EDITOR_V3 */
 
   function buildCalendarEventText(task) {
     const departmentLabel =
@@ -1163,10 +1091,6 @@
       }
     }
 
-    /*
-      過去に反映した予定にはworkflow_task_idがないため、
-      日付・担当者・区分・表示文が完全一致した場合だけ紐付ける。
-    */
     const legacyDate =
       String(
         task.applied_date ||
@@ -1293,6 +1217,28 @@
                 .workflow_raw_title
             );
         }
+
+        if (
+          linked.event
+            .workflow_phase
+        ) {
+          task.phase =
+            String(
+              linked.event
+                .workflow_phase
+            );
+        }
+
+        if (
+          linked.event
+            .workflow_priority
+        ) {
+          task.priority =
+            String(
+              linked.event
+                .workflow_priority
+            );
+        }
       }
       else {
         task.applied =
@@ -1312,20 +1258,60 @@
     );
   }
 
+  function phaseOptions(
+    selectedPhase
+  ) {
+    return Object
+      .entries(
+        PHASE_LABELS
+      )
+      .map(
+        ([value, label]) => `
+          <option
+            value="${value}"
+            ${
+              value ===
+              selectedPhase
+                ? "selected"
+                : ""
+            }
+          >
+            ${escapeHtml(label)}
+          </option>
+        `
+      )
+      .join("");
+  }
+
+  function priorityOptions(
+    selectedPriority
+  ) {
+    return Object
+      .entries(
+        PRIORITY_LABELS
+      )
+      .map(
+        ([value, label]) => `
+          <option
+            value="${value}"
+            ${
+              value ===
+              selectedPriority
+                ? "selected"
+                : ""
+            }
+          >
+            ${escapeHtml(label)}
+          </option>
+        `
+      )
+      .join("");
+  }
+
   function renderResult() {
     const area =
       document.getElementById(
         "workflowAiResult"
-      );
-
-    const applyButton =
-      document.getElementById(
-        "workflowAiApplyBtn"
-      );
-
-    const removeButton =
-      document.getElementById(
-        "workflowAiRemoveBtn"
       );
 
     const tasks =
@@ -1343,14 +1329,6 @@
     if (!tasks.length) {
       area.innerHTML =
         '<div class="workflow-ai-openai-empty">解析結果がありません。</div>';
-
-      if (applyButton) {
-        applyButton.disabled = true;
-      }
-
-      if (removeButton) {
-        removeButton.disabled = true;
-      }
 
       return;
     }
@@ -1394,7 +1372,7 @@
       <div class="workflow-ai-openai-summary">
         <div>
           <h3>
-            解析結果
+            入力後内容修正システム
           </h3>
 
           <p>
@@ -1405,8 +1383,8 @@
           </p>
 
           <p class="workflow-ai-openai-edit-help">
-            反映済みの予定も、この表で修正して
-            「選択した予定を反映・更新」を押すと上書きされます。
+            日付・担当者・区分・段階・優先度・内容を修正し、
+            各予定の右端にあるボタンを押してください。
           </p>
         </div>
 
@@ -1468,17 +1446,17 @@
         <table class="workflow-ai-openai-table">
           <thead>
             <tr>
-              <th>選択</th>
               <th>状態</th>
               <th>日付</th>
               <th>部門・区分</th>
               <th>人物判定</th>
-              <th>カレンダー担当</th>
+              <th>担当者</th>
               <th>予定区分</th>
               <th>段階</th>
-              <th>優先</th>
+              <th>優先度</th>
               <th>作業内容</th>
               <th>判断理由</th>
+              <th>操作</th>
             </tr>
           </thead>
 
@@ -1486,13 +1464,6 @@
             ${tasks
               .map(
                 (task, index) => {
-                  const canApply =
-                    Boolean(
-                      task.date &&
-                      task.calendar_user_id &&
-                      task.title
-                    );
-
                   const groupName =
                     task.department_name ||
                     CHANNEL_LABELS[
@@ -1517,18 +1488,6 @@
                           : ""
                       }"
                     >
-                      <td>
-                        <input
-                          class="workflow-ai-task-check"
-                          type="checkbox"
-                          ${
-                            canApply
-                              ? "checked"
-                              : ""
-                          }
-                        >
-                      </td>
-
                       <td>
                         <span class="workflow-ai-apply-state ${
                           task.applied
@@ -1587,43 +1546,36 @@
                       </td>
 
                       <td>
-                        <span class="workflow-ai-phase">
-                          ${escapeHtml(
-                            PHASE_LABELS[
-                              task.phase
-                            ] ||
+                        <select class="input-field workflow-ai-task-phase">
+                          ${phaseOptions(
                             task.phase ||
-                            "実行"
+                            "execute"
                           )}
-                        </span>
+                        </select>
                       </td>
 
                       <td>
-                        <span class="workflow-ai-priority">
-                          ${escapeHtml(
-                            PRIORITY_LABELS[
-                              task.priority
-                            ] ||
+                        <select class="input-field workflow-ai-task-priority">
+                          ${priorityOptions(
                             task.priority ||
-                            "中"
+                            "medium"
                           )}
-                        </span>
+                        </select>
                       </td>
 
                       <td>
-                        <input
+                        <textarea
                           class="input-field workflow-ai-task-title"
-                          value="${escapeHtml(
-                            task.title ||
-                            ""
-                          )}"
-                        >
+                        >${escapeHtml(
+                          task.title ||
+                          ""
+                        )}</textarea>
 
                         ${
                           task.source_text
                             ? `
                               <small>
-                                根拠:
+                                元の入力:
                                 ${escapeHtml(
                                   task.source_text
                                 )}
@@ -1641,6 +1593,40 @@
                           )}
                         </small>
                       </td>
+
+                      <td>
+                        <div class="workflow-ai-row-actions">
+                          <button
+                            type="button"
+                            class="workflow-ai-row-save ${
+                              task.applied
+                                ? "update"
+                                : "apply"
+                            }"
+                            data-index="${index}"
+                          >
+                            ${
+                              task.applied
+                                ? "変更を保存"
+                                : "カレンダーへ反映"
+                            }
+                          </button>
+
+                          ${
+                            task.applied
+                              ? `
+                                <button
+                                  type="button"
+                                  class="workflow-ai-row-remove"
+                                  data-index="${index}"
+                                >
+                                  反映解除
+                                </button>
+                              `
+                              : ""
+                          }
+                        </div>
+                      </td>
                     </tr>
                   `;
                 }
@@ -1651,98 +1637,113 @@
       </div>
     `;
 
-    if (applyButton) {
-      applyButton.disabled =
-        false;
-    }
-
-    if (removeButton) {
-      removeButton.disabled =
-        appliedCount === 0;
-    }
+    bindRowActions(area);
   }
 
-  function readSelectedRows() {
-    const selected = [];
+  function readRowValues(index) {
+    const row =
+      document.querySelector(
+        '.workflow-ai-openai-table tbody tr[data-index="' +
+        index +
+        '"]'
+      );
 
-    document
-      .querySelectorAll(
-        ".workflow-ai-openai-table tbody tr"
-      )
-      .forEach(row => {
-        const checkbox =
-          row.querySelector(
-            ".workflow-ai-task-check"
-          );
+    if (!row) {
+      return null;
+    }
 
-        if (
-          !checkbox ||
-          !checkbox.checked
-        ) {
-          return;
-        }
+    return {
+      row,
 
-        const index =
-          Number(
-            row.dataset.index
-          );
+      date:
+        row
+          .querySelector(
+            ".workflow-ai-task-date"
+          )
+          .value,
 
-        const task =
-          currentResult.tasks[index];
+      userId:
+        row
+          .querySelector(
+            ".workflow-ai-task-user"
+          )
+          .value,
 
-        if (!task) {
-          return;
-        }
+      channel:
+        row
+          .querySelector(
+            ".workflow-ai-task-channel"
+          )
+          .value,
 
-        selected.push({
-          row,
-          index,
-          task,
+      phase:
+        row
+          .querySelector(
+            ".workflow-ai-task-phase"
+          )
+          .value,
 
-          date:
-            row
-              .querySelector(
-                ".workflow-ai-task-date"
-              )
-              .value,
+      priority:
+        row
+          .querySelector(
+            ".workflow-ai-task-priority"
+          )
+          .value,
 
-          userId:
-            row
-              .querySelector(
-                ".workflow-ai-task-user"
-              )
-              .value,
-
-          channel:
-            row
-              .querySelector(
-                ".workflow-ai-task-channel"
-              )
-              .value,
-
-          title:
-            row
-              .querySelector(
-                ".workflow-ai-task-title"
-              )
-              .value
-              .trim()
-        });
-      });
-
-    return selected;
+      title:
+        row
+          .querySelector(
+            ".workflow-ai-task-title"
+          )
+          .value
+          .trim()
+    };
   }
 
-  function applySelectedTasks() {
+  function saveTaskRow(index) {
     if (
+      analyzing ||
       !currentResult ||
       !Array.isArray(
         currentResult.tasks
-      ) ||
-      !currentResult.tasks.length
+      )
     ) {
+      return;
+    }
+
+    const task =
+      currentResult.tasks[index];
+
+    const values =
+      readRowValues(index);
+
+    if (!task || !values) {
       alert(
-        "先にOpenAI解析を実行してください。"
+        "編集対象の予定が見つかりません。"
+      );
+
+      return;
+    }
+
+    if (!values.date) {
+      alert(
+        "日付を入力してください。"
+      );
+
+      return;
+    }
+
+    if (!values.userId) {
+      alert(
+        "担当者を選択してください。"
+      );
+
+      return;
+    }
+
+    if (!values.title) {
+      alert(
+        "作業内容を入力してください。"
       );
 
       return;
@@ -1759,12 +1760,9 @@
           )
       );
 
-    const selectedRows =
-      readSelectedRows();
-
-    if (!selectedRows.length) {
+    if (!userMap.has(values.userId)) {
       alert(
-        "反映・更新する予定を選択してください。"
+        "担当者マスタを確認してください。"
       );
 
       return;
@@ -1776,231 +1774,26 @@
         {}
       );
 
-    let appliedCount = 0;
-    let skippedCount = 0;
-
-    for (
-      const selected
-      of selectedRows
-    ) {
-      const {
+    /*
+      入力値でtaskを書き換える前に、
+      現在紐付いているカレンダー予定を特定する。
+    */
+    const linked =
+      findWorkflowEvent(
         task,
-        date,
-        userId,
-        channel,
-        title
-      } = selected;
-
-      if (
-        !date ||
-        !userMap.has(userId) ||
-        !title
-      ) {
-        skippedCount += 1;
-        continue;
-      }
-
-      const linked =
-        findWorkflowEvent(
-          task,
-          events
-        );
-
-      let eventId =
-        linked &&
-        linked.event &&
-        linked.event.id
-          ? String(
-              linked.event.id
-            )
-          : makeId();
-
-      if (linked) {
-        events[linked.date].splice(
-          linked.index,
-          1
-        );
-
-        if (
-          events[linked.date]
-            .length === 0
-        ) {
-          delete events[
-            linked.date
-          ];
-        }
-      }
-
-      task.date =
-        date;
-
-      task.calendar_user_id =
-        userId;
-
-      task.calendar_user_name =
-        userMap.get(
-          userId
-        ).name;
-
-      task.channel =
-        channel;
-
-      task.title =
-        title;
-
-      if (
-        !Array.isArray(
-          events[date]
-        )
-      ) {
-        events[date] = [];
-      }
-
-      events[date].push({
-        id:
-          eventId,
-
-        channel,
-        user:
-          userId,
-
-        text:
-          buildCalendarEventText(
-            task
-          ),
-
-        workflow_ai:
-          true,
-
-        source:
-          "workflow_ai",
-
-        workflow_task_id:
-          task.client_id,
-
-        workflow_raw_title:
-          title,
-
-        workflow_department_id:
-          task.department_id ||
-          "",
-
-        workflow_department_name:
-          task.department_name ||
-          "",
-
-        workflow_person_id:
-          task.person_id ||
-          "",
-
-        workflow_person_name:
-          task.person_name ||
-          "",
-
-        workflow_phase:
-          task.phase ||
-          "",
-
-        workflow_priority:
-          task.priority ||
-          "",
-
-        workflow_updated_at:
-          new Date()
-            .toISOString()
-      });
-
-      task.applied =
-        true;
-
-      task.applied_event_id =
-        eventId;
-
-      task.applied_date =
-        date;
-
-      appliedCount += 1;
-    }
-
-    if (!appliedCount) {
-      alert(
-        "反映できる予定がありません。日付・担当者・内容を確認してください。"
+        events
       );
 
-      return;
-    }
+    const eventId =
+      linked &&
+      linked.event &&
+      linked.event.id
+        ? String(
+            linked.event.id
+          )
+        : makeId();
 
-    writeJson(
-      EVENT_KEY,
-      events
-    );
-
-    writeJson(
-      RESULT_KEY,
-      currentResult
-    );
-
-    renderResult();
-
-    setStatus(
-      appliedCount +
-      "件をカレンダーへ反映・更新しました。" +
-      (
-        skippedCount
-          ? " 未反映 " +
-            skippedCount +
-            "件。"
-          : ""
-      ),
-      skippedCount
-        ? "warning"
-        : "success"
-    );
-  }
-
-  function removeSelectedTasksFromCalendar() {
-    if (
-      !currentResult ||
-      !Array.isArray(
-        currentResult.tasks
-      )
-    ) {
-      return;
-    }
-
-    const selectedRows =
-      readSelectedRows();
-
-    if (!selectedRows.length) {
-      alert(
-        "反映解除する予定を選択してください。"
-      );
-
-      return;
-    }
-
-    const events =
-      readJson(
-        EVENT_KEY,
-        {}
-      );
-
-    let removedCount = 0;
-
-    for (
-      const selected
-      of selectedRows
-    ) {
-      const linked =
-        findWorkflowEvent(
-          selected.task,
-          events
-        );
-
-      if (!linked) {
-        continue;
-      }
-
+    if (linked) {
       events[linked.date].splice(
         linked.index,
         1
@@ -2014,26 +1807,104 @@
           linked.date
         ];
       }
-
-      selected.task.applied =
-        false;
-
-      selected.task.applied_event_id =
-        "";
-
-      selected.task.applied_date =
-        "";
-
-      removedCount += 1;
     }
 
-    if (!removedCount) {
-      alert(
-        "選択した予定に反映済みデータはありません。"
-      );
+    task.date =
+      values.date;
 
-      return;
+    task.calendar_user_id =
+      values.userId;
+
+    task.calendar_user_name =
+      userMap.get(
+        values.userId
+      ).name;
+
+    task.channel =
+      values.channel;
+
+    task.phase =
+      values.phase;
+
+    task.priority =
+      values.priority;
+
+    task.title =
+      values.title;
+
+    task.needs_review =
+      false;
+
+    if (
+      !Array.isArray(
+        events[values.date]
+      )
+    ) {
+      events[values.date] = [];
     }
+
+    events[values.date].push({
+      id:
+        eventId,
+
+      channel:
+        values.channel,
+
+      user:
+        values.userId,
+
+      text:
+        buildCalendarEventText(
+          task
+        ),
+
+      workflow_ai:
+        true,
+
+      source:
+        "workflow_ai",
+
+      workflow_task_id:
+        task.client_id,
+
+      workflow_raw_title:
+        values.title,
+
+      workflow_department_id:
+        task.department_id ||
+        "",
+
+      workflow_department_name:
+        task.department_name ||
+        "",
+
+      workflow_person_id:
+        task.person_id ||
+        "",
+
+      workflow_person_name:
+        task.person_name ||
+        "",
+
+      workflow_phase:
+        values.phase,
+
+      workflow_priority:
+        values.priority,
+
+      workflow_updated_at:
+        new Date()
+          .toISOString()
+    });
+
+    task.applied =
+      true;
+
+    task.applied_event_id =
+      eventId;
+
+    task.applied_date =
+      values.date;
 
     writeJson(
       EVENT_KEY,
@@ -2048,10 +1919,155 @@
     renderResult();
 
     setStatus(
-      removedCount +
-      "件のカレンダー反映を解除しました。解析結果は残っています。",
+      linked
+        ? "予定の変更を保存しました。"
+        : "予定をカレンダーへ反映しました。",
       "success"
     );
+  }
+
+  function removeTaskRow(index) {
+    if (
+      analyzing ||
+      !currentResult ||
+      !Array.isArray(
+        currentResult.tasks
+      )
+    ) {
+      return;
+    }
+
+    const task =
+      currentResult.tasks[index];
+
+    if (!task) {
+      return;
+    }
+
+    const events =
+      readJson(
+        EVENT_KEY,
+        {}
+      );
+
+    const linked =
+      findWorkflowEvent(
+        task,
+        events
+      );
+
+    if (!linked) {
+      task.applied =
+        false;
+
+      task.applied_event_id =
+        "";
+
+      task.applied_date =
+        "";
+
+      writeJson(
+        RESULT_KEY,
+        currentResult
+      );
+
+      renderResult();
+
+      setStatus(
+        "反映済み予定が見つからなかったため、状態だけ未反映へ戻しました。",
+        "warning"
+      );
+
+      return;
+    }
+
+    if (
+      !confirm(
+        "この予定をカレンダーから解除しますか？\n\n" +
+        String(
+          task.title ||
+          ""
+        )
+      )
+    ) {
+      return;
+    }
+
+    events[linked.date].splice(
+      linked.index,
+      1
+    );
+
+    if (
+      events[linked.date]
+        .length === 0
+    ) {
+      delete events[
+        linked.date
+      ];
+    }
+
+    task.applied =
+      false;
+
+    task.applied_event_id =
+      "";
+
+    task.applied_date =
+      "";
+
+    writeJson(
+      EVENT_KEY,
+      events
+    );
+
+    writeJson(
+      RESULT_KEY,
+      currentResult
+    );
+
+    renderResult();
+
+    setStatus(
+      "カレンダーへの反映を解除しました。編集内容は仕分け画面に残っています。",
+      "success"
+    );
+  }
+
+  function bindRowActions(area) {
+    area
+      .querySelectorAll(
+        ".workflow-ai-row-save"
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            saveTaskRow(
+              Number(
+                button.dataset.index
+              )
+            );
+          }
+        );
+      });
+
+    area
+      .querySelectorAll(
+        ".workflow-ai-row-remove"
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            removeTaskRow(
+              Number(
+                button.dataset.index
+              )
+            );
+          }
+        );
+      });
   }
 
   document.addEventListener(
