@@ -525,7 +525,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentView === "year") { dateDisplay.textContent = `${y}年`; renderYear(); }
         else if (currentView === "month") { dateDisplay.textContent = `${y}年 ${m+1}月`; renderGrid("month"); }
         else if (currentView === "week") {
-            const s = new Date(baseDate); s.setDate(s.getDate() - s.getDay());
+            const s = new Date(baseDate);
+
+            const mondayOffset =
+                (s.getDay() + 6) % 7;
+
+            s.setDate(
+                s.getDate() -
+                mondayOffset
+            );
             const e = new Date(s); e.setDate(s.getDate() + 6);
             dateDisplay.textContent = `${s.getMonth()+1}/${s.getDate()} 〜 ${e.getMonth()+1}/${e.getDate()}`;
             renderGrid("week", s);
@@ -537,7 +545,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderYear() {
         mainArea.className = "year-grid";
         const y = baseDate.getFullYear(); const memos = getEvents();
-        const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
+        const dayNames = [
+            "月",
+            "火",
+            "水",
+            "木",
+            "金",
+            "土",
+            "日"
+        ];
 
         const accountingTodoMap = {};
 
@@ -549,8 +565,32 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             box.querySelector("h3").onclick = () => switchView("month", new Date(y, m, 1));
 
-            let html = "<table class='mini-table'><tr>" + dayNames.map((d,i)=>`<th class="${i===0?'sun':i===6?'sat':''}">${d}</th>`).join('') + "</tr>";
-            const fd = new Date(y, m, 1).getDay(); const days = new Date(y, m+1, 0).getDate();
+            let html = "<table class='mini-table'><tr>" + dayNames.map(
+                    (dayName, index) =>
+                        `<th class="${
+                            index === 5
+                                ? "sat"
+                                : index === 6
+                                  ? "sun"
+                                  : ""
+                        }">${dayName}</th>`
+                ).join("") + "</tr>";
+            const fd =
+                (
+                    new Date(
+                        y,
+                        m,
+                        1
+                    ).getDay() +
+                    6
+                ) % 7;
+
+            const days =
+                new Date(
+                    y,
+                    m + 1,
+                    0
+                ).getDate();
             let d = 1;
 
             for(let i=0; i<6; i++) {
@@ -559,7 +599,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     if(i===0 && j<fd || d>days) { html += "<td></td>"; }
                     else {
                         const dt = new Date(y, m, d); const dk = fDate(dt);
-                        let tdClass = ""; if(j===0) tdClass += " sun"; else if(j===6) tdClass += " sat";
+                        let tdClass = "";
+
+                        if (j === 5) {
+                            tdClass += " sat";
+                        }
+                        else if (j === 6) {
+                            tdClass += " sun";
+                        }
                         if(holidays[dk]) tdClass += " holiday";
 
                         let contentHtml = isToday(dt) ? `<span class="today-num">${d}</span>` : d;
@@ -631,15 +678,55 @@ document.addEventListener("DOMContentLoaded", () => {
         const allEvents = getEvents();
         let s, e;
         if(mode==="month") {
-            s = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1); s.setDate(s.getDate() - s.getDay());
-            e = new Date(baseDate.getFullYear(), baseDate.getMonth()+1, 0); e.setDate(e.getDate() + (6 - e.getDay()));
+            s = new Date(
+                baseDate.getFullYear(),
+                baseDate.getMonth(),
+                1
+            );
+
+            const monthStartOffset =
+                (s.getDay() + 6) % 7;
+
+            s.setDate(
+                s.getDate() -
+                monthStartOffset
+            );
+            e = new Date(
+                baseDate.getFullYear(),
+                baseDate.getMonth() + 1,
+                0
+            );
+
+            const monthEndOffset =
+                (7 - e.getDay()) % 7;
+
+            e.setDate(
+                e.getDate() +
+                monthEndOffset
+            );
         } else {
             s = new Date(startD); e = new Date(startD); e.setDate(e.getDate()+6);
         }
 
-        ['日','月','火','水','木','金','土'].forEach((d,i) => {
+        [
+            "月",
+            "火",
+            "水",
+            "木",
+            "金",
+            "土",
+            "日"
+        ].forEach((d, i) => {
             const h = document.createElement("div"); h.className = "cal-header";
-            if(i===0) h.style.color="var(--c-danger)"; if(i===6) h.style.color="var(--primary)";
+            if (i === 5) {
+                h.style.color =
+                    "var(--primary)";
+            }
+
+            if (i === 6) {
+                h.style.color =
+                    "var(--c-danger)";
+            }
             h.textContent = d; mainArea.appendChild(h);
         });
 
