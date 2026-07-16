@@ -9,6 +9,18 @@ const PROMPT_PATH = path.join(
   "workflow.system.txt"
 );
 
+const PROFESSIONAL_PROMPT_PATH = path.join(
+  __dirname,
+  "prompts",
+  "workflow-professional.system.txt"
+);
+
+const JOB_MASTER_PATH = path.join(
+  __dirname,
+  "workflow-masters",
+  "workflow-job-master.json"
+);
+
 const OPENAI_URL =
   "https://api.openai.com/v1/responses";
 
@@ -241,7 +253,38 @@ function loadPrompt() {
     throw error;
   }
 
-  return prompt;
+  const professionalPrompt =
+    fs.existsSync(PROFESSIONAL_PROMPT_PATH)
+      ? fs
+        .readFileSync(
+          PROFESSIONAL_PROMPT_PATH,
+          "utf8"
+        )
+        .trim()
+      : "";
+
+  const jobMasterText =
+    fs.existsSync(JOB_MASTER_PATH)
+      ? fs
+        .readFileSync(
+          JOB_MASTER_PATH,
+          "utf8"
+        )
+        .trim()
+      : "";
+
+  return [
+    prompt,
+    professionalPrompt,
+    jobMasterText
+      ? [
+          "【職務分類マスタJSON】",
+          jobMasterText
+        ].join("\n")
+      : ""
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function outputSchema() {
@@ -289,7 +332,13 @@ function outputSchema() {
             "priority",
             "source_text",
             "reason",
-            "needs_review"
+            "needs_review",
+            "job_code",
+            "major_category",
+            "middle_category",
+            "minor_category",
+            "recurrence",
+            "rule_key"
           ],
 
           properties: {
@@ -368,6 +417,37 @@ function outputSchema() {
 
             needs_review: {
               type: "boolean"
+            },
+
+            job_code: {
+              type: "string"
+            },
+
+            major_category: {
+              type: "string"
+            },
+
+            middle_category: {
+              type: "string"
+            },
+
+            minor_category: {
+              type: "string"
+            },
+
+            recurrence: {
+              type: "string",
+              enum: [
+                "none",
+                "daily",
+                "weekly",
+                "monthly",
+                "yearly"
+              ]
+            },
+
+            rule_key: {
+              type: "string"
             }
           }
         }
@@ -572,7 +652,48 @@ function normalizeResult(parsed, context) {
           ),
 
         needs_review:
-          needsReview
+          needsReview,
+
+        job_code:
+          safeText(
+            source.job_code,
+            100
+          ) || "general_workflow",
+
+        major_category:
+          safeText(
+            source.major_category,
+            200
+          ),
+
+        middle_category:
+          safeText(
+            source.middle_category,
+            200
+          ),
+
+        minor_category:
+          safeText(
+            source.minor_category,
+            200
+          ),
+
+        recurrence:
+          [
+            "none",
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly"
+          ].includes(source.recurrence)
+            ? source.recurrence
+            : "none",
+
+        rule_key:
+          safeText(
+            source.rule_key,
+            200
+          )
       };
     })
     .filter(task => task.title);

@@ -619,6 +619,9 @@
       text:
         newText,
 
+      workflow_manually_edited:
+        true,
+
       edited_at:
         new Date().toISOString()
     });

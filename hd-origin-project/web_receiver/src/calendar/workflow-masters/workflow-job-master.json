@@ -1,0 +1,123 @@
+{
+    "version":  1,
+    "master_name":  "HD Origin 業務フロー職務分類マスタ",
+    "classification_order":  [
+                                 "department",
+                                 "major_category",
+                                 "middle_category",
+                                 "minor_category",
+                                 "job_code"
+                             ],
+    "jobs":  [
+                 {
+                     "job_code":  "payroll_monthly",
+                     "department":  "総務・経理",
+                     "major_category":  "人件費",
+                     "middle_category":  "給与・賞与",
+                     "minor_category":  "月例給与",
+                     "default_channel":  "accounting",
+                     "keywords":  [
+                                      "給料",
+                                      "給与",
+                                      "給料日",
+                                      "給与支給",
+                                      "月例給与"
+                                  ]
+                 },
+                 {
+                     "job_code":  "bonus_payment",
+                     "department":  "総務・経理",
+                     "major_category":  "人件費",
+                     "middle_category":  "給与・賞与",
+                     "minor_category":  "賞与",
+                     "default_channel":  "accounting",
+                     "keywords":  [
+                                      "賞与",
+                                      "ボーナス",
+                                      "夏季賞与",
+                                      "冬季賞与",
+                                      "決算賞与"
+                                  ]
+                 },
+                 {
+                     "job_code":  "tax_public_payment",
+                     "department":  "総務・経理",
+                     "major_category":  "税金・公的支払",
+                     "middle_category":  "納税・納付",
+                     "minor_category":  "税金・社会保険・公課",
+                     "default_channel":  "accounting",
+                     "keywords":  [
+                                      "税金",
+                                      "源泉所得税",
+                                      "住民税",
+                                      "社会保険",
+                                      "納付"
+                                  ]
+                 },
+                 {
+                     "job_code":  "invoice_payment",
+                     "department":  "総務・経理",
+                     "major_category":  "仕入・経費",
+                     "middle_category":  "請求・未払",
+                     "minor_category":  "支払管理",
+                     "default_channel":  "accounting",
+                     "keywords":  [
+                                      "請求書",
+                                      "支払",
+                                      "振込",
+                                      "未払"
+                                  ]
+                 },
+                 {
+                     "job_code":  "sales_customer",
+                     "department":  "営業",
+                     "major_category":  "営業活動",
+                     "middle_category":  "顧客・商談",
+                     "minor_category":  "商談・提案・フォロー",
+                     "default_channel":  "sales",
+                     "keywords":  [
+                                      "営業",
+                                      "商談",
+                                      "顧客",
+                                      "提案",
+                                      "見積"
+                                  ]
+                 },
+                 {
+                     "job_code":  "manufacturing",
+                     "department":  "製造",
+                     "major_category":  "製造管理",
+                     "middle_category":  "生産・品質",
+                     "minor_category":  "製造・検品・納期",
+                     "default_channel":  "manufacture",
+                     "keywords":  [
+                                      "製造",
+                                      "生産",
+                                      "検品",
+                                      "納期",
+                                      "加工"
+                                  ]
+                 },
+                 {
+                     "job_code":  "event_operation",
+                     "department":  "営業・イベント",
+                     "major_category":  "出店・イベント",
+                     "middle_category":  "催事運営",
+                     "minor_category":  "準備・移動・設営・本番・撤収",
+                     "default_channel":  "event",
+                     "keywords":  [
+                                      "出店",
+                                      "イベント",
+                                      "展示会",
+                                      "催事",
+                                      "移動",
+                                      "設営"
+                                  ]
+                 }
+             ],
+    "human_override_policy":  {
+                                  "human_edit_wins":  true,
+                                  "automatic_reanalysis_does_not_overwrite_human_edit":  true,
+                                  "same_rule_instance_is_updated_not_duplicated":  true
+                              }
+}

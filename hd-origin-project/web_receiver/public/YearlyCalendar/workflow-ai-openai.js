@@ -465,7 +465,7 @@
                 type="button"
                 class="btn-save workflow-ai-openai-analyze"
               >
-                OpenAIで解析・仕分け
+                OpenAIで解析・自動反映
               </button>
             </div>
 
@@ -672,7 +672,7 @@
       analyzeButton.textContent =
         value
           ? "OpenAIが解析中..."
-          : "OpenAIで解析・仕分け";
+          : "OpenAIで解析・自動反映";
     }
   }
 
@@ -808,6 +808,9 @@
             : []
       };
 
+      const autoApplyResult =
+        autoApplyAnalyzedTasks();
+
       writeJson(
         RESULT_KEY,
         currentResult
@@ -815,20 +818,18 @@
 
       renderResult();
 
-      const reviewCount =
-        currentResult.tasks
-          .filter(
-            task =>
-              task.needs_review
-          )
-          .length;
-
       setStatus(
         currentResult.tasks.length +
-        "件へ分解しました。要確認 " +
-        reviewCount +
+        "件を解析しました。新規反映 " +
+        autoApplyResult.created +
+        "件、更新 " +
+        autoApplyResult.updated +
+        "件、人間修正保護 " +
+        autoApplyResult.protectedCount +
+        "件、要確認 " +
+        autoApplyResult.reviewCount +
         "件です。",
-        reviewCount
+        autoApplyResult.reviewCount
           ? "warning"
           : "success"
       );
@@ -855,6 +856,233 @@
     }
   }
 
+  function autoApplyAnalyzedTasks() {
+    const events =
+      readJson(
+        EVENT_KEY,
+        {}
+      );
+
+    let created = 0;
+    let updated = 0;
+    let protectedCount = 0;
+    let reviewCount = 0;
+
+    for (
+      const task
+      of currentResult.tasks
+    ) {
+      if (
+        !task.date ||
+        !task.title ||
+        !task.calendar_user_id ||
+        task.needs_review
+      ) {
+        reviewCount++;
+        continue;
+      }
+
+      const stableKey = [
+        task.rule_key ||
+          task.job_code ||
+          "general_workflow",
+        task.date,
+        task.calendar_user_id
+      ].join("|");
+
+      let foundDate = "";
+      let foundIndex = -1;
+      let foundEvent = null;
+
+      for (
+        const [date, items]
+        of Object.entries(events)
+      ) {
+        if (!Array.isArray(items)) {
+          continue;
+        }
+
+        const index =
+          items.findIndex(
+            item =>
+              String(
+                item.workflow_rule_instance ||
+                ""
+              ) === stableKey
+          );
+
+        if (index >= 0) {
+          foundDate = date;
+          foundIndex = index;
+          foundEvent = items[index];
+          break;
+        }
+      }
+
+      if (
+        foundEvent &&
+        foundEvent.workflow_manually_edited ===
+          true
+      ) {
+        task.applied = true;
+
+        task.applied_event_id =
+          String(
+            foundEvent.id ||
+            ""
+          );
+
+        task.applied_date =
+          foundDate;
+
+        protectedCount++;
+        continue;
+      }
+
+      const eventId =
+        foundEvent &&
+        foundEvent.id
+          ? String(
+              foundEvent.id
+            )
+          : makeId();
+
+      if (foundEvent) {
+        events[foundDate].splice(
+          foundIndex,
+          1
+        );
+
+        if (
+          events[foundDate].length ===
+          0
+        ) {
+          delete events[foundDate];
+        }
+
+        updated++;
+      }
+      else {
+        created++;
+      }
+
+      if (
+        !Array.isArray(
+          events[task.date]
+        )
+      ) {
+        events[task.date] = [];
+      }
+
+      events[task.date].push({
+        id:
+          eventId,
+
+        channel:
+          task.channel ||
+          "general",
+
+        user:
+          task.calendar_user_id,
+
+        text:
+          buildCalendarEventText(
+            task
+          ),
+
+        workflow_ai:
+          true,
+
+        source:
+          "workflow_ai",
+
+        workflow_task_id:
+          task.client_id,
+
+        workflow_rule_instance:
+          stableKey,
+
+        workflow_rule_key:
+          task.rule_key ||
+          "",
+
+        workflow_job_code:
+          task.job_code ||
+          "",
+
+        workflow_major_category:
+          task.major_category ||
+          "",
+
+        workflow_middle_category:
+          task.middle_category ||
+          "",
+
+        workflow_minor_category:
+          task.minor_category ||
+          "",
+
+        workflow_recurrence:
+          task.recurrence ||
+          "none",
+
+        workflow_raw_title:
+          task.title,
+
+        workflow_department_id:
+          task.department_id ||
+          "",
+
+        workflow_department_name:
+          task.department_name ||
+          "",
+
+        workflow_person_id:
+          task.person_id ||
+          "",
+
+        workflow_person_name:
+          task.person_name ||
+          "",
+
+        workflow_phase:
+          task.phase,
+
+        workflow_priority:
+          task.priority,
+
+        workflow_reason:
+          task.reason ||
+          "",
+
+        workflow_manually_edited:
+          false,
+
+        workflow_updated_at:
+          new Date().toISOString()
+      });
+
+      task.applied = true;
+
+      task.applied_event_id =
+        eventId;
+
+      task.applied_date =
+        task.date;
+    }
+
+    writeJson(
+      EVENT_KEY,
+      events
+    );
+
+    return {
+      created,
+      updated,
+      protectedCount,
+      reviewCount
+    };
+  }
   function groupedCounts(selector) {
     const counts =
       new Map();
