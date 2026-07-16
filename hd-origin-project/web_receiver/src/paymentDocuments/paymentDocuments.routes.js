@@ -578,6 +578,7 @@ async function ocrOneFile(fileName) {
   const mimeType = current.mimeType || getMimeType(filePath);
 
   const ext = path.extname(filePath).toLowerCase();
+
   const ocrAllowed =
     mimeType.startsWith("image/") ||
     mimeType.includes("pdf") ||
@@ -594,6 +595,7 @@ async function ocrOneFile(fileName) {
       ocrError: "この形式はOCR対象外です。",
       ocrAt: new Date().toISOString()
     };
+
     writeJson(metaPath, next);
 
     return {
@@ -605,14 +607,26 @@ async function ocrOneFile(fileName) {
   }
 
   try {
-    const analyzed = await analyzeFileWithAzure(filePath, mimeType);
+    const analyzed = await analyzeFileWithAzure(
+      filePath,
+      mimeType
+    );
 
-    const rawText = String(analyzed.rawText || "").trim();
+    const rawText = String(
+      analyzed.rawText || ""
+    ).trim();
+
+    const fileHash =
+      current.sha256 ||
+      current.fileSha256 ||
+      current.contentHash ||
+      sha256File(filePath);
 
     const next = {
       ...current,
       ocrStatus: rawText ? "ocr_done" : "ocr_empty",
-      ocrProvider: "azure_document_intelligence_prebuilt_read",
+      ocrProvider:
+        "azure_document_intelligence_prebuilt_read",
       ocrApiVersion: AZURE_API_VERSION,
       ocrAt: new Date().toISOString(),
       ocrRawText: rawText,
@@ -620,54 +634,55 @@ async function ocrOneFile(fileName) {
       ocrText: rawText,
       ocrTextLength: rawText.length,
       ocrError: "",
-      processStatus: rawText ? "ocr_done" : "ocr_empty"
+      processStatus:
+        rawText ? "ocr_done" : "ocr_empty",
+      sha256: fileHash,
+      fileSha256: fileHash,
+      contentHash: fileHash,
+      dbSaved: false,
+      paymentDocumentOcrImportId: null,
+      storageTarget: "access"
     };
-
-    let dbSaved = null;
-
-    if (rawText) {
-      const statForDb = fs.statSync(filePath);
-      const fileHashForDb = current.sha256 || current.fileSha256 || current.contentHash || sha256File(filePath);
-
-      dbSaved = await upsertPaymentDocumentOcrImportWithTransaction({
-        ...next,
-        originalFileName: next.originalFileName || path.basename(filePath),
-        savedFileName: next.savedFileName || path.basename(filePath),
-        mimeType,
-        sizeBytes: next.sizeBytes || statForDb.size,
-        sha256: fileHashForDb,
-        fileSha256: fileHashForDb,
-        contentHash: fileHashForDb,
-        sourceType: next.sourceType || "scan_inbox"
-      }, path.basename(filePath));
-
-      next.sha256 = fileHashForDb;
-      next.fileSha256 = fileHashForDb;
-      next.contentHash = fileHashForDb;
-      next.dbSaved = !!dbSaved;
-      next.paymentDocumentOcrImportId = dbSaved && dbSaved.payment_document_ocr_import_id;
-    }
 
     writeJson(metaPath, next);
 
     return {
       ok: true,
       fileName,
+      originalFileName:
+        next.originalFileName ||
+        path.basename(filePath),
+      savedFileName:
+        next.savedFileName ||
+        path.basename(filePath),
+      savedFilePath: filePath,
+      mimeType,
+      sha256: fileHash,
       status: next.ocrStatus,
-      dbSaved: !!dbSaved,
-      paymentDocumentOcrImportId: dbSaved && dbSaved.payment_document_ocr_import_id,
+      ocrProvider: next.ocrProvider,
+      ocrApiVersion: next.ocrApiVersion,
+      ocrAt: next.ocrAt,
+      ocrText: rawText,
       textLength: rawText.length,
-      textPreview: rawText.slice(0, 180)
+      textPreview: rawText.slice(0, 180),
+      azureResult: analyzed.rawJson || null,
+      dbSaved: false,
+      paymentDocumentOcrImportId: null,
+      storageTarget: "access"
     };
   } catch (err) {
     const next = {
       ...current,
       ocrStatus: "ocr_error",
-      ocrProvider: "azure_document_intelligence_prebuilt_read",
+      ocrProvider:
+        "azure_document_intelligence_prebuilt_read",
       ocrApiVersion: AZURE_API_VERSION,
       ocrAt: new Date().toISOString(),
       ocrError: err.message || String(err),
-      processStatus: "ocr_error"
+      processStatus: "ocr_error",
+      dbSaved: false,
+      paymentDocumentOcrImportId: null,
+      storageTarget: "access"
     };
 
     writeJson(metaPath, next);
@@ -676,7 +691,10 @@ async function ocrOneFile(fileName) {
       ok: false,
       fileName,
       status: "ocr_error",
-      error: err.message || String(err)
+      error: err.message || String(err),
+      dbSaved: false,
+      paymentDocumentOcrImportId: null,
+      storageTarget: "access"
     };
   }
 }
