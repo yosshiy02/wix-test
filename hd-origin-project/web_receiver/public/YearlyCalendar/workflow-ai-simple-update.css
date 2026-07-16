@@ -1,0 +1,254 @@
+/* HD_WORKFLOW_AI_SIMPLE_UPDATE_UI_V1 */
+
+.workflow-ai-openai-box {
+    width: min(980px, 96vw);
+}
+
+.workflow-ai-openai-header {
+    padding: 22px 26px;
+}
+
+.workflow-ai-openai-header h2 {
+    font-size: 1.55rem;
+}
+
+.workflow-ai-openai-input-panel {
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid #bfdbfe;
+    background:
+        linear-gradient(
+            180deg,
+            #eff6ff 0,
+            #ffffff 170px
+        );
+}
+
+.workflow-ai-simple-selector {
+    display: grid;
+    gap: 12px;
+}
+
+.workflow-ai-simple-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.workflow-ai-simple-step > span {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 900;
+    box-shadow:
+        0 6px 16px
+        rgba(37, 99, 235, 0.25);
+}
+
+.workflow-ai-simple-step strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.workflow-ai-simple-step small {
+    display: block;
+    margin-top: 2px;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.workflow-ai-simple-step-two,
+.workflow-ai-simple-step-three {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid #dbeafe;
+}
+
+.workflow-ai-simple-step-two > span {
+    background: #7c3aed;
+}
+
+.workflow-ai-simple-step-three > span {
+    background: #059669;
+}
+
+.workflow-ai-simple-select-label {
+    display: grid;
+    gap: 7px;
+    color: #1e3a8a;
+    font-size: 0.83rem;
+    font-weight: 900;
+}
+
+.workflow-ai-simple-select {
+    min-height: 52px;
+    padding: 10px 14px;
+    border: 2px solid #60a5fa;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.workflow-ai-simple-help {
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.6;
+}
+
+.workflow-ai-simple-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.workflow-ai-simple-flow span {
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+}
+
+.workflow-ai-simple-flow b {
+    color: #94a3b8;
+}
+
+#workflowAiText {
+    min-height: 150px;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    line-height: 1.7;
+}
+
+.workflow-ai-openai-note {
+    display: none;
+}
+
+.workflow-ai-openai-actions {
+    display: block;
+}
+
+#workflowAiAnalyzeBtn {
+    width: 100%;
+    min-height: 58px;
+    padding: 13px 18px;
+    border: 0;
+    border-radius: 14px;
+    background:
+        linear-gradient(
+            135deg,
+            #059669,
+            #0d9488
+        );
+    color: #ffffff;
+    font-size: 1.03rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow:
+        0 12px 26px
+        rgba(5, 150, 105, 0.28);
+}
+
+#workflowAiAnalyzeBtn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+}
+
+#workflowAiAnalyzeBtn:disabled {
+    cursor: wait;
+    opacity: 0.75;
+}
+
+.workflow-ai-openai-status {
+    margin-top: 4px;
+    padding: 13px;
+    border-radius: 11px;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.workflow-ai-simple-detail-toggle {
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+#workflowAiResult {
+    display: none;
+}
+
+#workflowAiResult.simple-details-open {
+    display: block;
+}
+
+.workflow-ai-openai-btn {
+    background:
+        linear-gradient(
+            135deg,
+            #059669,
+            #0d9488
+        );
+}
+
+@media (max-width: 700px) {
+    .workflow-ai-openai-modal {
+        padding: 6px;
+    }
+
+    .workflow-ai-openai-box {
+        width: 100%;
+        max-height: 98vh;
+        border-radius: 14px;
+    }
+
+    .workflow-ai-openai-header,
+    .workflow-ai-openai-body {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .workflow-ai-simple-flow b {
+        display: none;
+    }
+
+    .workflow-ai-simple-flow {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .workflow-ai-simple-flow span {
+        text-align: center;
+    }
+}

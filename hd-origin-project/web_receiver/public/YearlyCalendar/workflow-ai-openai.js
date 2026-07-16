@@ -856,6 +856,458 @@
     }
   }
 
+
+
+  function padDatePart(value) {
+    return String(value)
+      .padStart(2, "0");
+  }
+
+  function formatWorkflowDate(
+    year,
+    month,
+    day
+  ) {
+    return [
+      year,
+      padDatePart(month),
+      padDatePart(day)
+    ].join("-");
+  }
+
+  function parseWorkflowDate(value) {
+    const match =
+      String(value || "")
+        .match(
+          /^(\d{4})-(\d{2})-(\d{2})$/
+        );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      year:
+        Number(match[1]),
+
+      month:
+        Number(match[2]),
+
+      day:
+        Number(match[3])
+    };
+  }
+
+  function workflowDaysInMonth(
+    year,
+    month
+  ) {
+    return new Date(
+      year,
+      month,
+      0
+    ).getDate();
+  }
+
+  function isWorkflowMonthEndTask(
+    task
+  ) {
+    const ruleText = [
+      task.monthly_rule,
+      task.date_rule,
+      task.schedule_rule,
+      task.title,
+      task.reason
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    return (
+      task.month_end === true ||
+      ruleText.includes("month_end") ||
+      ruleText.includes("月末") ||
+      ruleText.includes("最終日")
+    );
+  }
+
+  function workflowSeriesId(task) {
+    return String(
+      task.series_id ||
+      task.rule_key ||
+      task.job_code ||
+      task.title ||
+      task.client_id ||
+      "general_workflow"
+    )
+      .trim()
+      .replace(
+        /\s+/g,
+        "_"
+      );
+  }
+
+  function cloneWorkflowOccurrence(
+    task,
+    date,
+    occurrenceIndex,
+    targetYear
+  ) {
+    const seriesId =
+      workflowSeriesId(task);
+
+    return {
+      ...task,
+
+      client_id:
+        [
+          task.client_id ||
+            makeId(),
+          date,
+          occurrenceIndex
+        ].join("_"),
+
+      date,
+
+      target_year:
+        targetYear,
+
+      workflow_series_id:
+        seriesId,
+
+      workflow_occurrence_key:
+        [
+          seriesId,
+          date,
+          task.calendar_user_id ||
+            "unassigned"
+        ].join("|"),
+
+      workflow_original_date:
+        task.workflow_original_date ||
+        task.date ||
+        "",
+
+      workflow_is_expanded:
+        true,
+
+      workflow_occurrence_index:
+        occurrenceIndex
+    };
+  }
+
+  function expandMonthlyWorkflowTask(
+    task,
+    targetYear,
+    parts
+  ) {
+    const rows = [];
+
+    for (
+      let month = 1;
+      month <= 12;
+      month++
+    ) {
+      const lastDay =
+        workflowDaysInMonth(
+          targetYear,
+          month
+        );
+
+      const day =
+        isWorkflowMonthEndTask(task)
+          ? lastDay
+          : Math.min(
+              parts.day,
+              lastDay
+            );
+
+      rows.push(
+        cloneWorkflowOccurrence(
+          task,
+          formatWorkflowDate(
+            targetYear,
+            month,
+            day
+          ),
+          month,
+          targetYear
+        )
+      );
+    }
+
+    return rows;
+  }
+
+  function expandWeeklyWorkflowTask(
+    task,
+    targetYear,
+    parts
+  ) {
+    const original =
+      new Date(
+        parts.year,
+        parts.month - 1,
+        parts.day
+      );
+
+    const targetWeekday =
+      original.getDay();
+
+    const cursor =
+      new Date(
+        targetYear,
+        0,
+        1
+      );
+
+    while (
+      cursor.getDay() !==
+      targetWeekday
+    ) {
+      cursor.setDate(
+        cursor.getDate() + 1
+      );
+    }
+
+    const rows = [];
+    let occurrenceIndex = 1;
+
+    while (
+      cursor.getFullYear() ===
+      targetYear
+    ) {
+      rows.push(
+        cloneWorkflowOccurrence(
+          task,
+          formatWorkflowDate(
+            cursor.getFullYear(),
+            cursor.getMonth() + 1,
+            cursor.getDate()
+          ),
+          occurrenceIndex,
+          targetYear
+        )
+      );
+
+      occurrenceIndex++;
+
+      cursor.setDate(
+        cursor.getDate() + 7
+      );
+    }
+
+    return rows;
+  }
+
+  function expandDailyWorkflowTask(
+    task,
+    targetYear
+  ) {
+    const rows = [];
+
+    const cursor =
+      new Date(
+        targetYear,
+        0,
+        1
+      );
+
+    let occurrenceIndex = 1;
+
+    while (
+      cursor.getFullYear() ===
+      targetYear
+    ) {
+      rows.push(
+        cloneWorkflowOccurrence(
+          task,
+          formatWorkflowDate(
+            cursor.getFullYear(),
+            cursor.getMonth() + 1,
+            cursor.getDate()
+          ),
+          occurrenceIndex,
+          targetYear
+        )
+      );
+
+      occurrenceIndex++;
+
+      cursor.setDate(
+        cursor.getDate() + 1
+      );
+    }
+
+    return rows;
+  }
+
+  function expandYearlyWorkflowTask(
+    task,
+    targetYear,
+    parts
+  ) {
+    const lastDay =
+      workflowDaysInMonth(
+        targetYear,
+        parts.month
+      );
+
+    const day =
+      Math.min(
+        parts.day,
+        lastDay
+      );
+
+    return [
+      cloneWorkflowOccurrence(
+        task,
+        formatWorkflowDate(
+          targetYear,
+          parts.month,
+          day
+        ),
+        1,
+        targetYear
+      )
+    ];
+  }
+
+  function expandWorkflowTask(
+    task,
+    targetYear
+  ) {
+    const parts =
+      parseWorkflowDate(
+        task.date
+      );
+
+    if (!parts) {
+      return [
+        {
+          ...task,
+
+          workflow_series_id:
+            workflowSeriesId(task),
+
+          workflow_is_expanded:
+            false,
+
+          needs_review:
+            true
+        }
+      ];
+    }
+
+    const recurrence =
+      String(
+        task.recurrence ||
+        "none"
+      ).toLowerCase();
+
+    if (recurrence === "monthly") {
+      return expandMonthlyWorkflowTask(
+        task,
+        targetYear,
+        parts
+      );
+    }
+
+    if (recurrence === "weekly") {
+      return expandWeeklyWorkflowTask(
+        task,
+        targetYear,
+        parts
+      );
+    }
+
+    if (recurrence === "daily") {
+      return expandDailyWorkflowTask(
+        task,
+        targetYear
+      );
+    }
+
+    if (recurrence === "yearly") {
+      return expandYearlyWorkflowTask(
+        task,
+        targetYear,
+        parts
+      );
+    }
+
+    return [
+      cloneWorkflowOccurrence(
+        task,
+        task.date,
+        1,
+        targetYear
+      )
+    ];
+  }
+
+  function expandWorkflowTasksForYear(
+    tasks,
+    targetYear
+  ) {
+    const expanded = [];
+    const unique = new Map();
+
+    for (
+      const task
+      of tasks
+    ) {
+      const occurrences =
+        expandWorkflowTask(
+          task,
+          targetYear
+        );
+
+      for (
+        const occurrence
+        of occurrences
+      ) {
+        const uniqueKey = [
+          occurrence.workflow_series_id ||
+            workflowSeriesId(occurrence),
+          occurrence.date ||
+            "no-date",
+          occurrence.calendar_user_id ||
+            "unassigned",
+          occurrence.phase ||
+            "",
+          occurrence.title ||
+            ""
+        ].join("|");
+
+        if (!unique.has(uniqueKey)) {
+          unique.set(
+            uniqueKey,
+            occurrence
+          );
+        }
+      }
+    }
+
+    for (
+      const occurrence
+      of unique.values()
+    ) {
+      expanded.push(occurrence);
+    }
+
+    expanded.sort(
+      (left, right) =>
+        String(left.date || "")
+          .localeCompare(
+            String(right.date || "")
+          )
+    );
+
+    return expanded;
+  }
+
+
+
   function autoApplyAnalyzedTasks() {
     const events =
       readJson(
@@ -863,31 +1315,80 @@
         {}
       );
 
+    const users =
+      calendarUsers();
+
+    const fallbackUser =
+      users.length
+        ? users[0]
+        : {
+            id: "unassigned",
+            name: "未割当"
+          };
+
     let created = 0;
     let updated = 0;
     let protectedCount = 0;
     let reviewCount = 0;
 
-    for (
-      const task
-      of currentResult.tasks
-    ) {
+    const tasks =
+      currentResult &&
+      Array.isArray(
+        currentResult.tasks
+      )
+        ? currentResult.tasks
+        : [];
+
+    for (const task of tasks) {
       if (
+        !task ||
         !task.date ||
-        !task.title ||
-        !task.calendar_user_id ||
-        task.needs_review
+        !task.title
       ) {
         reviewCount++;
         continue;
       }
 
+      const effectiveUserId =
+        String(
+          task.calendar_user_id ||
+          fallbackUser.id ||
+          "unassigned"
+        ).trim() ||
+        "unassigned";
+
+      const effectiveUserName =
+        String(
+          task.calendar_user_name ||
+          fallbackUser.name ||
+          "未割当"
+        ).trim() ||
+        "未割当";
+
+      const requiresReview =
+        task.needs_review === true ||
+        !task.calendar_user_id;
+
+      if (requiresReview) {
+        reviewCount++;
+      }
+
+      task.calendar_user_id =
+        effectiveUserId;
+
+      task.calendar_user_name =
+        effectiveUserName;
+
+      task.needs_review =
+        requiresReview;
+
       const stableKey = [
         task.rule_key ||
           task.job_code ||
+          task.title ||
           "general_workflow",
         task.date,
-        task.calendar_user_id
+        effectiveUserId
       ].join("|");
 
       let foundDate = "";
@@ -906,8 +1407,10 @@
           items.findIndex(
             item =>
               String(
-                item.workflow_rule_instance ||
-                ""
+                item &&
+                item.workflow_rule_instance
+                  ? item.workflow_rule_instance
+                  : ""
               ) === stableKey
           );
 
@@ -983,7 +1486,7 @@
           "general",
 
         user:
-          task.calendar_user_id,
+          effectiveUserId,
 
         text:
           buildCalendarEventText(
@@ -997,7 +1500,8 @@
           "workflow_ai",
 
         workflow_task_id:
-          task.client_id,
+          task.client_id ||
+          makeId(),
 
         workflow_rule_instance:
           stableKey,
@@ -1045,15 +1549,26 @@
           task.person_name ||
           "",
 
+        workflow_calendar_user_id:
+          effectiveUserId,
+
+        workflow_calendar_user_name:
+          effectiveUserName,
+
         workflow_phase:
-          task.phase,
+          task.phase ||
+          "execute",
 
         workflow_priority:
-          task.priority,
+          task.priority ||
+          "medium",
 
         workflow_reason:
           task.reason ||
           "",
+
+        workflow_needs_review:
+          requiresReview,
 
         workflow_manually_edited:
           false,

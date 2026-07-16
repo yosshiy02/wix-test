@@ -994,7 +994,7 @@ async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileN
       textOrEmpty(meta.note),
       textOrEmpty(meta.emailSubject),
       textOrEmpty(meta.emailFrom),
-      dateOrNull(meta.emailReceivedAt),
+      textOrEmpty(meta.emailReceivedAt),
       textOrEmpty(meta.ocrStatus || "ocr_done"),
       textOrEmpty(meta.ocrProvider),
       textOrEmpty(meta.ocrApiVersion),
