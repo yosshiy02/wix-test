@@ -7495,7 +7495,7 @@ async function handlePaymentDocumentRoutes(req, res) {
   ) {
     try {
       const body =
-        await readJsonBody(req);
+        await readBody(req);
 
       const decision =
         await createHdOriginAccessFirstAiDecision(
@@ -7815,7 +7815,7 @@ async function handlePaymentDocumentRoutes(req, res) {
   ) {
     try {
       const body =
-        await readJsonBody(req);
+        await readBody(req);
 
       const companyId =
         Number(body.company_id || 0);
@@ -8440,7 +8440,7 @@ async function handlePaymentDocumentRoutes(req, res) {
   ) {
     try {
       const body =
-        await readJsonBody(req);
+        await readBody(req);
 
       const obligationId =
         Number(
