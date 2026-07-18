@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HD ORGIN STYLE MAIL SYSTEM</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="page-index">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="eyebrow">HD ORGIN STYLE MAIL SYSTEM</p>
+        <h1 class="shop-name">Rasiːm</h1>
+        <p class="shop-mail">rasi-m@hatodaiya.com</p>
+      </div>
+
+      <button
+        class="icon-button"
+        id="menuButton"
+        type="button"
+        aria-label="メニューを開く"
+        aria-expanded="false"
+        aria-controls="menuPanel">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"/>
+        </svg>
+      </button>
+    </header>
+
+    <section class="hero">
+      <div class="hero__head">
+        <div>
+          <p class="hero__label">STORE STATUS</p>
+          <h2 class="hero__title">受信一覧</h2>
+        </div>
+        <span class="hero-chip">新着 2</span>
+      </div>
+
+      <div class="hero-metrics">
+        <article class="metric metric--new">
+          <p class="metric__label">未対応</p>
+          <p class="metric__value">2</p>
+        </article>
+        <article class="metric metric--progress">
+          <p class="metric__label">対応中</p>
+          <p class="metric__value">1</p>
+        </article>
+        <article class="metric metric--staff">
+          <p class="metric__label">担当</p>
+          <p class="metric__value metric__value--name">村上</p>
+        </article>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="状態絞り込み">
+      <button class="tab active" type="button" data-filter="all">すべて</button>
+      <button class="tab" type="button" data-filter="new">未対応</button>
+      <button class="tab" type="button" data-filter="progress">対応中</button>
+      <button class="tab" type="button" data-filter="done">完了</button>
+    </nav>
+
+    <main class="mail-list">
+      <a href="./detail.html" class="mail-card is-new" data-status="new">
+        <div class="mail-card__accent"></div>
+        <div class="mail-card__head">
+          <div class="mail-card__badges">
+            <span class="badge badge--new">NEW</span>
+            <span class="badge badge--store">Rasiːm</span>
+          </div>
+          <span class="mail-card__time">09:24</span>
+        </div>
+        <div class="mail-card__body">
+          <p class="mail-card__from">田中 一郎</p>
+          <h3 class="mail-card__subject">商品の在庫確認について</h3>
+          <p class="mail-card__preview">今週末受け取り予定です。在庫の有無をご確認ください。</p>
+        </div>
+        <div class="mail-card__foot">
+          <span class="state state--new">未対応</span>
+          <span class="assignee">未割当</span>
+        </div>
+      </a>
+
+      <a href="./detail.html" class="mail-card" data-status="progress">
+        <div class="mail-card__accent"></div>
+        <div class="mail-card__head">
+          <div class="mail-card__badges">
+            <span class="badge badge--progress">対応中</span>
+            <span class="badge badge--store">Rasiːm</span>
+          </div>
+          <span class="mail-card__time">10:18</span>
+        </div>
+        <div class="mail-card__body">
+          <p class="mail-card__from">鈴木 美咲</p>
+          <h3 class="mail-card__subject">予約変更のお願い</h3>
+          <p class="mail-card__preview">予約日時の変更をお願いしたく、ご連絡しました。</p>
+        </div>
+        <div class="mail-card__foot">
+          <span class="state state--progress">対応中</span>
+          <span class="assignee">担当: 村上</span>
+        </div>
+      </a>
+
+      <a href="./detail.html" class="mail-card is-new" data-status="new">
+        <div class="mail-card__accent"></div>
+        <div class="mail-card__head">
+          <div class="mail-card__badges">
+            <span class="badge badge--new">NEW</span>
+            <span class="badge badge--store">Rasiːm</span>
+          </div>
+          <span class="mail-card__time">11:02</span>
+        </div>
+        <div class="mail-card__body">
+          <p class="mail-card__from">佐藤 直樹</p>
+          <h3 class="mail-card__subject">見積書の再送依頼</h3>
+          <p class="mail-card__preview">前回の添付が開けなかったため、再送をお願いいたします。</p>
+        </div>
+        <div class="mail-card__foot">
+          <span class="state state--new">未対応</span>
+          <span class="assignee">未割当</span>
+        </div>
+      </a>
+
+      <a href="./detail.html" class="mail-card" data-status="done">
+        <div class="mail-card__accent"></div>
+        <div class="mail-card__head">
+          <div class="mail-card__badges">
+            <span class="badge badge--done">完了</span>
+            <span class="badge badge--store">Rasiːm</span>
+          </div>
+          <span class="mail-card__time">昨日</span>
+        </div>
+        <div class="mail-card__body">
+          <p class="mail-card__from">山本 健</p>
+          <h3 class="mail-card__subject">発送日の確認</h3>
+          <p class="mail-card__preview">発送予定日をご連絡いただき、ありがとうございました。</p>
+        </div>
+        <div class="mail-card__foot">
+          <span class="state state--done">完了</span>
+          <span class="assignee">担当: 中村</span>
+        </div>
+      </a>
+    </main>
+  </div>
+
+  <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+
+  <aside class="menu-panel" id="menuPanel" aria-hidden="true">
+    <div class="menu-panel__head">
+      <div class="menu-panel__title-group">
+        <p class="menu-panel__eyebrow">SYSTEM CORE</p>
+        <h2 class="menu-panel__title">HD ORGIN</h2>
+        <p class="menu-panel__sub">MAIL SYSTEM</p>
+      </div>
+
+      <button class="icon-button icon-button--soft" id="menuClose" type="button" aria-label="メニューを閉じる">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="menu-list">
+      <button class="menu-item" type="button" data-refresh="true">
+        <span class="menu-item__main">更新</span>
+        <span class="menu-item__sub">Refresh</span>
+      </button>
+      <button class="menu-item" type="button">
+        <span class="menu-item__main">設定</span>
+        <span class="menu-item__sub">Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>

@@ -7813,6 +7813,9 @@ async function handlePaymentDocumentRoutes(req, res) {
         contract_insurance_lease: {
           analysisSystemCode: "contract_insurance_lease_analysis"
         },
+        receipt_evidence: {
+          analysisSystemCode: "receipt_evidence_analysis"
+        },
         card_statement: {
           analysisSystemCode: "card_statement_analysis"
         },
