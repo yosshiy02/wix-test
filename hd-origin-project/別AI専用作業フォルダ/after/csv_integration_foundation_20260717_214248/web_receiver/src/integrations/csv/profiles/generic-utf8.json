@@ -1,0 +1,69 @@
+{
+    "profileCode":  "generic-utf8",
+    "profileName":  "汎用UTF-8 CSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "generic_utf8",
+    "duplicateKeyFields":  [
+                               "record_id"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "record_id",
+                        "csvHeader":  "レコードID",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "record_type",
+                        "csvHeader":  "レコード種別",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "company_code",
+                        "csvHeader":  "会社コード",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "document_no",
+                        "csvHeader":  "管理番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "partner_name",
+                        "csvHeader":  "相手先名",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "record_date",
+                        "csvHeader":  "日付",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "amount",
+                        "csvHeader":  "金額",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "memo",
+                        "csvHeader":  "メモ",
+                        "required":  false,
+                        "type":  "string"
+                    }
+                ]
+}

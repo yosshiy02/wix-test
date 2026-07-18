@@ -1,0 +1,115 @@
+{
+    "profileCode":  "payable-schedule",
+    "profileName":  "支払予定CSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "payable_schedule",
+    "duplicateKeyFields":  [
+                               "document_no"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "company_code",
+                        "csvHeader":  "会社コード",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "document_no",
+                        "csvHeader":  "管理番号",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "vendor_code",
+                        "csvHeader":  "支払先コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "vendor_name",
+                        "csvHeader":  "支払先名",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "invoice_no",
+                        "csvHeader":  "請求書番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "invoice_date",
+                        "csvHeader":  "請求日",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "payment_due_date",
+                        "csvHeader":  "支払期限",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "scheduled_payment_date",
+                        "csvHeader":  "支払予定日",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "amount_excluding_tax",
+                        "csvHeader":  "税抜金額",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "tax_amount",
+                        "csvHeader":  "消費税額",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "amount_including_tax",
+                        "csvHeader":  "税込金額",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "payment_method",
+                        "csvHeader":  "支払方法",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "bank_account_code",
+                        "csvHeader":  "銀行口座コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "status",
+                        "csvHeader":  "状態",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "memo",
+                        "csvHeader":  "メモ",
+                        "required":  false,
+                        "type":  "string"
+                    }
+                ]
+}

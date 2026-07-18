@@ -1,0 +1,105 @@
+{
+    "profileCode":  "bank-transfer",
+    "profileName":  "銀行振込CSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "bank_transfer",
+    "duplicateKeyFields":  [
+                               "document_no"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "transfer_date",
+                        "csvHeader":  "振込指定日",
+                        "required":  true,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "requester_code",
+                        "csvHeader":  "依頼人コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "recipient_name",
+                        "csvHeader":  "受取人名",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "bank_code",
+                        "csvHeader":  "金融機関コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "bank_name",
+                        "csvHeader":  "金融機関名",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "branch_code",
+                        "csvHeader":  "支店コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "branch_name",
+                        "csvHeader":  "支店名",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "account_type",
+                        "csvHeader":  "預金種目",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "account_no",
+                        "csvHeader":  "口座番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "transfer_amount",
+                        "csvHeader":  "振込金額",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "fee_type",
+                        "csvHeader":  "手数料区分",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "customer_code",
+                        "csvHeader":  "顧客コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "document_no",
+                        "csvHeader":  "管理番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "memo",
+                        "csvHeader":  "メモ",
+                        "required":  false,
+                        "type":  "string"
+                    }
+                ]
+}

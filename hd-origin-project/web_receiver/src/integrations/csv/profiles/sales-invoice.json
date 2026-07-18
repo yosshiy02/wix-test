@@ -1,0 +1,137 @@
+{
+    "profileCode":  "sales-invoice",
+    "profileName":  "売上・請求CSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "sales_invoice",
+    "duplicateKeyFields":  [
+                               "sales_no",
+                               "product_code"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "company_code",
+                        "csvHeader":  "会社コード",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "sales_no",
+                        "csvHeader":  "売上番号",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "invoice_no",
+                        "csvHeader":  "請求番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "customer_code",
+                        "csvHeader":  "得意先コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "customer_name",
+                        "csvHeader":  "得意先名",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "sales_date",
+                        "csvHeader":  "売上日",
+                        "required":  true,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "billing_date",
+                        "csvHeader":  "請求日",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "payment_due_date",
+                        "csvHeader":  "支払期限",
+                        "required":  false,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "product_code",
+                        "csvHeader":  "商品コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "product_name",
+                        "csvHeader":  "商品名",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "quantity",
+                        "csvHeader":  "数量",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "unit",
+                        "csvHeader":  "単位",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "unit_price",
+                        "csvHeader":  "単価",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "amount_excluding_tax",
+                        "csvHeader":  "税抜金額",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "tax_rate",
+                        "csvHeader":  "税率",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  2
+                    },
+                    {
+                        "sourceField":  "tax_amount",
+                        "csvHeader":  "消費税額",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "amount_including_tax",
+                        "csvHeader":  "税込金額",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "description",
+                        "csvHeader":  "摘要",
+                        "required":  false,
+                        "type":  "string"
+                    }
+                ]
+}

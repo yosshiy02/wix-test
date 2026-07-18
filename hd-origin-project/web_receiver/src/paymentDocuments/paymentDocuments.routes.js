@@ -562,6 +562,124 @@ async function analyzeFileWithAzure(filePath, mimeType) {
   throw new Error("Azure OCRがタイムアウトしました。最後の状態: " + JSON.stringify(lastJson || {}).slice(0, 800));
 }
 
+/* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_20260717_START */
+function isLocalAccessOcrRequest(req) {
+  const remoteAddress = String(
+    req &&
+    req.socket &&
+    req.socket.remoteAddress
+      ? req.socket.remoteAddress
+      : ""
+  ).toLowerCase();
+
+  return (
+    remoteAddress === "127.0.0.1" ||
+    remoteAddress === "::1" ||
+    remoteAddress === "::ffff:127.0.0.1"
+  );
+}
+
+function validateAccessOcrLocalFilePath(value) {
+  const requestedPath = String(value || "").trim();
+
+  if (!requestedPath) {
+    throw new Error("OCR対象ファイルパスが空です。");
+  }
+
+  if (requestedPath.includes("\0")) {
+    throw new Error("OCR対象ファイルパスが不正です。");
+  }
+
+  const resolvedPath = path.resolve(requestedPath);
+
+  if (!path.isAbsolute(resolvedPath)) {
+    throw new Error("OCR対象には絶対パスを指定してください。");
+  }
+
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error("OCR対象ファイルが見つかりません。");
+  }
+
+  const stat = fs.statSync(resolvedPath);
+
+  if (!stat.isFile()) {
+    throw new Error("OCR対象はファイルではありません。");
+  }
+
+  if (stat.size > MAX_UPLOAD_BYTES) {
+    throw new Error("30MBを超えるファイルはOCRできません。");
+  }
+
+  const mimeType = getMimeType(resolvedPath);
+  const extensionName = path.extname(resolvedPath).toLowerCase();
+
+  const allowed =
+    mimeType.startsWith("image/") ||
+    mimeType.includes("pdf") ||
+    [".pdf", ".png", ".jpg", ".jpeg", ".webp"].includes(extensionName);
+
+  if (!allowed) {
+    throw new Error("このファイル形式はOCR対象外です。");
+  }
+
+  return {
+    filePath: resolvedPath,
+    fileName: path.basename(resolvedPath),
+    mimeType,
+    sizeBytes: stat.size
+  };
+}
+
+async function importAccessLocalFileAndRunOcr(body) {
+  const validated = validateAccessOcrLocalFilePath(
+    body.localFilePath ||
+    body.filePath
+  );
+
+  const fileHash = sha256File(validated.filePath);
+  const safeOriginal = safeFileName(validated.fileName);
+  const saveName = timestampPrefix() + "_" + safeOriginal;
+  const inboxFilePath = path.join(inboxDir(), saveName);
+
+  fs.copyFileSync(
+    validated.filePath,
+    inboxFilePath
+  );
+
+  const uploadedAt = new Date().toISOString();
+
+  writeJson(metaPathFor(inboxFilePath), {
+    originalFileName: validated.fileName,
+    originalFilePath: validated.filePath,
+    savedFileName: saveName,
+    mimeType: validated.mimeType,
+    sizeBytes: validated.sizeBytes,
+    sha256: fileHash,
+    fileSha256: fileHash,
+    sourceType: String(body.sourceType || "access_ocr_form"),
+    note: String(body.note || "Access F_OCR取込解析から送信"),
+    accessOcrId:
+      Number.isInteger(Number(body.accessOcrId))
+        ? Number(body.accessOcrId)
+        : null,
+    ocrStatus: "ocr_waiting",
+    processStatus: "inbox",
+    uploadedAt
+  });
+
+  const ocrResult = await ocrOneFile(saveName);
+
+  return {
+    ...ocrResult,
+    accessOcrId:
+      Number.isInteger(Number(body.accessOcrId))
+        ? Number(body.accessOcrId)
+        : null,
+    sourceFilePath: validated.filePath,
+    storedFileName: saveName
+  };
+}
+/* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_20260717_END */
 async function ocrOneFile(fileName) {
   const filePath = filePathFromName(fileName);
 
@@ -7126,7 +7244,325 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
 /* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_20260709_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_END */
 
+/* HD_ORIGIN_ACCESS_FIRST_AI_20260718_START */
+function hdOriginAccessFirstAiArray(value) {
+  return Array.isArray(value)
+    ? value
+        .map((item) => {
+          const source =
+            item && typeof item === "object"
+              ? item
+              : {};
+
+          return {
+            code: String(source.code || "").trim(),
+            label: String(source.label || source.name || "").trim()
+          };
+        })
+        .filter((item) => item.code)
+    : [];
+}
+
+function hdOriginAccessFirstAiText(value) {
+  return String(
+    value === null || value === undefined
+      ? ""
+      : value
+  ).trim();
+}
+
+function hdOriginAccessFirstAiWarnings(value) {
+  return Array.isArray(value)
+    ? value
+        .map((item) => String(item || "").trim())
+        .filter(Boolean)
+    : [];
+}
+
+function hdOriginAccessFirstAiConfidence(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(1, number));
+}
+
+function hdOriginAccessFirstAiFindCandidate(candidates, code) {
+  const target = String(code || "").trim();
+
+  return candidates.find(
+    (item) => item.code === target
+  ) || null;
+}
+
+async function createHdOriginAccessFirstAiDecision(body) {
+  const ocrText = hdOriginAccessFirstAiText(
+    body.ocr_text ||
+    body.ocrText
+  );
+
+  if (!ocrText) {
+    const error = new Error("OCR本文が空です。");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const companies = hdOriginAccessFirstAiArray(
+    body.candidate_companies ||
+    body.candidateCompanies
+  );
+
+  const documentTypes = hdOriginAccessFirstAiArray(
+    body.candidate_document_types ||
+    body.candidateDocumentTypes
+  );
+
+  const specialists = hdOriginAccessFirstAiArray(
+    body.candidate_specialists ||
+    body.candidateSpecialists
+  );
+
+  if (!companies.length) {
+    const error = new Error("会社候補がありません。");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!documentTypes.length) {
+    const error = new Error("文書種別候補がありません。");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!specialists.length) {
+    const error = new Error("専門解析候補がありません。");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const userPrompt = [
+    "次のOCR本文を一次判定してください。",
+    "",
+    "candidate_companies:",
+    JSON.stringify(companies, null, 2),
+    "",
+    "candidate_document_types:",
+    JSON.stringify(documentTypes, null, 2),
+    "",
+    "candidate_specialists:",
+    JSON.stringify(specialists, null, 2),
+    "",
+    "OCR本文:",
+    ocrText
+  ].join("\n");
+
+  const systemPrompt =
+    loadPaymentDocumentPromptText(
+      "access-first-decision.system.txt",
+      ""
+    );
+
+  if (!String(systemPrompt || "").trim()) {
+    const error = new Error(
+      "Access一次判定プロンプトを読み込めません。"
+    );
+
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const response =
+    await callPaymentDocumentOpenAiJson(
+      userPrompt,
+      systemPrompt
+    );
+
+  const parsed =
+    response &&
+    response.parsed &&
+    typeof response.parsed === "object"
+      ? response.parsed
+      : {};
+
+  const companyCode =
+    hdOriginAccessFirstAiText(
+      parsed.company_code ||
+      parsed.companyCode
+    );
+
+  const documentTypeCode =
+    hdOriginAccessFirstAiText(
+      parsed.document_type_code ||
+      parsed.documentTypeCode
+    );
+
+  const analysisSystemCode =
+    hdOriginAccessFirstAiText(
+      parsed.analysis_system_code ||
+      parsed.analysisSystemCode
+    );
+
+  const company =
+    hdOriginAccessFirstAiFindCandidate(
+      companies,
+      companyCode
+    );
+
+  const documentType =
+    hdOriginAccessFirstAiFindCandidate(
+      documentTypes,
+      documentTypeCode
+    );
+
+  const specialist =
+    hdOriginAccessFirstAiFindCandidate(
+      specialists,
+      analysisSystemCode
+    );
+
+  if (!company) {
+    const error = new Error(
+      "AIが会社候補外のコードを返しました: " +
+      companyCode
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (!documentType) {
+    const error = new Error(
+      "AIが文書種別候補外のコードを返しました: " +
+      documentTypeCode
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (!specialist) {
+    const error = new Error(
+      "AIが専門解析候補外のコードを返しました: " +
+      analysisSystemCode
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  return {
+    company_code: company.code,
+    company_label: company.label,
+    document_type_code: documentType.code,
+    document_type_label: documentType.label,
+    analysis_system_code: specialist.code,
+    analysis_system_label: specialist.label,
+    confidence:
+      hdOriginAccessFirstAiConfidence(
+        parsed.confidence
+      ),
+    reason:
+      hdOriginAccessFirstAiText(
+        parsed.reason
+      ),
+    needs_review:
+      parsed.needs_review === true ||
+      parsed.needsReview === true,
+    warnings:
+      hdOriginAccessFirstAiWarnings(
+        parsed.warnings
+      ),
+    model: getOpenAiModel(),
+    prompt_version:
+      "access-first-decision-v1",
+    raw_result: parsed,
+    usage:
+      response && response.usage
+        ? response.usage
+        : null
+  };
+}
+/* HD_ORIGIN_ACCESS_FIRST_AI_20260718_END */
+
 async function handlePaymentDocumentRoutes(req, res) {
+  /* HD_ORIGIN_ACCESS_FIRST_AI_ROUTE_20260718 */
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/access-ai/first-decision"
+  ) {
+    try {
+      const body =
+        await readJsonBody(req);
+
+      const decision =
+        await createHdOriginAccessFirstAiDecision(
+          body
+        );
+
+      sendJson(res, 200, {
+        ok: true,
+        source:
+          "access_openai_first_decision_text_only",
+        image_used: false,
+        access_ocr_id:
+          body.access_ocr_id ||
+          body.accessOcrId ||
+          null,
+        company_code:
+          decision.company_code,
+        company_label:
+          decision.company_label,
+        document_type_code:
+          decision.document_type_code,
+        document_type_label:
+          decision.document_type_label,
+        analysis_system_code:
+          decision.analysis_system_code,
+        analysis_system_label:
+          decision.analysis_system_label,
+        confidence:
+          decision.confidence,
+        reason:
+          decision.reason,
+        needs_review:
+          decision.needs_review,
+        warnings:
+          decision.warnings,
+        warnings_json:
+          JSON.stringify(
+            decision.warnings || []
+          ),
+        model:
+          decision.model,
+        prompt_version:
+          decision.prompt_version,
+        raw_result:
+          decision.raw_result,
+        usage:
+          decision.usage
+      });
+    } catch (error) {
+      sendJson(
+        res,
+        error.statusCode || 500,
+        {
+          ok: false,
+          source:
+            "access_openai_first_decision_text_only",
+          image_used: false,
+          error:
+            error.message ||
+            String(error)
+        }
+      );
+    }
+
+    return true;
+  }
+
   /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_START */
   if (
     req.method === "POST" &&
@@ -9734,6 +10170,38 @@ async function handlePaymentDocumentRoutes(req, res) {
     return true;
   }
 
+  /* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_ROUTE_20260717_START */
+  if (
+    req.method === "POST" &&
+    urlPath === "/api/payment-documents/access-ocr/local-file"
+  ) {
+    if (!isLocalAccessOcrRequest(req)) {
+      sendJson(res, 403, {
+        ok: false,
+        error: "このOCR APIはlocalhostからのみ利用できます。"
+      });
+      return true;
+    }
+
+    try {
+      const body = await readBody(req);
+      const result = await importAccessLocalFileAndRunOcr(body);
+
+      sendJson(
+        res,
+        result.ok ? 200 : 422,
+        result
+      );
+    } catch (err) {
+      sendJson(res, 400, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_ROUTE_20260717_END */
   if (req.method === "POST" && urlPath === "/api/payment-documents/scan-inbox/upload") {
     try {
       const body = await readBody(req);

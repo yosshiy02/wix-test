@@ -1,0 +1,130 @@
+{
+    "profileCode":  "accounting-journal",
+    "profileName":  "会計仕訳CSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "accounting_journal",
+    "duplicateKeyFields":  [
+                               "voucher_no"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "voucher_date",
+                        "csvHeader":  "伝票日付",
+                        "required":  true,
+                        "type":  "date",
+                        "format":  "yyyy/MM/dd"
+                    },
+                    {
+                        "sourceField":  "voucher_no",
+                        "csvHeader":  "伝票番号",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "debit_department_code",
+                        "csvHeader":  "借方部門",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "debit_account_code",
+                        "csvHeader":  "借方科目",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "debit_subaccount_code",
+                        "csvHeader":  "借方補助科目",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "debit_tax_code",
+                        "csvHeader":  "借方税区分",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "debit_amount",
+                        "csvHeader":  "借方金額",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "credit_department_code",
+                        "csvHeader":  "貸方部門",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "credit_account_code",
+                        "csvHeader":  "貸方科目",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "credit_subaccount_code",
+                        "csvHeader":  "貸方補助科目",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "credit_tax_code",
+                        "csvHeader":  "貸方税区分",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "credit_amount",
+                        "csvHeader":  "貸方金額",
+                        "required":  true,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "description",
+                        "csvHeader":  "摘要",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "business_partner_code",
+                        "csvHeader":  "取引先コード",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "evidence_no",
+                        "csvHeader":  "証憑番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "invoice_type",
+                        "csvHeader":  "インボイス区分",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "registration_no",
+                        "csvHeader":  "登録番号",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "memo",
+                        "csvHeader":  "メモ",
+                        "required":  false,
+                        "type":  "string"
+                    }
+                ]
+}

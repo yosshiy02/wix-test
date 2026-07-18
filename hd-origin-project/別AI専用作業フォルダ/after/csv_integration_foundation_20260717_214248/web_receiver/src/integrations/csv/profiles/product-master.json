@@ -1,0 +1,87 @@
+{
+    "profileCode":  "product-master",
+    "profileName":  "商品マスタCSV",
+    "direction":  "export",
+    "encoding":  "utf-8-bom",
+    "delimiter":  ",",
+    "lineEnding":  "\r\n",
+    "includeHeader":  true,
+    "quoteMode":  "necessary",
+    "nullValue":  "",
+    "booleanFormat":  "1/0",
+    "injectionProtection":  true,
+    "fileNamePrefix":  "product_master",
+    "duplicateKeyFields":  [
+                               "product_code"
+                           ],
+    "columns":  [
+                    {
+                        "sourceField":  "product_code",
+                        "csvHeader":  "商品コード",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "product_name",
+                        "csvHeader":  "商品名",
+                        "required":  true,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "product_kana",
+                        "csvHeader":  "商品名カナ",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "specification",
+                        "csvHeader":  "規格",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "unit",
+                        "csvHeader":  "単位",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "standard_unit_price",
+                        "csvHeader":  "標準単価",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  0
+                    },
+                    {
+                        "sourceField":  "tax_rate",
+                        "csvHeader":  "税率",
+                        "required":  false,
+                        "type":  "number",
+                        "decimalPlaces":  2
+                    },
+                    {
+                        "sourceField":  "sales_account_code",
+                        "csvHeader":  "売上科目",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "purchase_account_code",
+                        "csvHeader":  "仕入科目",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "stock_control_type",
+                        "csvHeader":  "在庫管理区分",
+                        "required":  false,
+                        "type":  "string"
+                    },
+                    {
+                        "sourceField":  "is_active",
+                        "csvHeader":  "有効フラグ",
+                        "required":  true,
+                        "type":  "boolean"
+                    }
+                ]
+}
