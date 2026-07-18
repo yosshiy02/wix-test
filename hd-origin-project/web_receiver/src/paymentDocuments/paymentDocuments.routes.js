@@ -7297,6 +7297,150 @@ function hdOriginAccessFirstAiFindCandidate(candidates, code) {
   ) || null;
 }
 
+async function callHdOriginAccessFirstAiOpenAiJson(
+  userPrompt,
+  systemPrompt
+) {
+  const apiKey = getOpenAiApiKey();
+
+  if (!apiKey) {
+    const error = new Error(
+      "OPENAI_API_KEY が未設定です。"
+    );
+
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const response = await fetch(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: getOpenAiModel(),
+        temperature: 0,
+        messages: [
+          {
+            role: "system",
+            content: String(
+              systemPrompt || ""
+            )
+          },
+          {
+            role: "user",
+            content: String(
+              userPrompt || ""
+            )
+          }
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "hd_origin_access_first_decision",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                company_code: {
+                  type: "string"
+                },
+                document_type_code: {
+                  type: "string"
+                },
+                analysis_system_code: {
+                  type: "string"
+                },
+                confidence: {
+                  type: "number",
+                  minimum: 0,
+                  maximum: 1
+                },
+                reason: {
+                  type: "string"
+                },
+                needs_review: {
+                  type: "boolean"
+                },
+                warnings: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                }
+              },
+              required: [
+                "company_code",
+                "document_type_code",
+                "analysis_system_code",
+                "confidence",
+                "reason",
+                "needs_review",
+                "warnings"
+              ]
+            }
+          }
+        }
+      })
+    }
+  );
+
+  const data = await response
+    .json()
+    .catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      data &&
+      data.error &&
+      data.error.message
+        ? data.error.message
+        : "OpenAI API error: " +
+          String(response.status);
+
+    const error = new Error(message);
+    error.statusCode =
+      response.status || 500;
+
+    throw error;
+  }
+
+  const content =
+    data &&
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+      ? data.choices[0].message.content
+      : "";
+
+  const parsed = safeJsonParse(content);
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed)
+  ) {
+    const error = new Error(
+      "Access一次判定AI応答をJSONとして解析できませんでした。"
+    );
+
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return {
+    parsed,
+    usage:
+      data && data.usage
+        ? data.usage
+        : null
+  };
+}
 async function createHdOriginAccessFirstAiDecision(body) {
   const ocrText = hdOriginAccessFirstAiText(
     body.ocr_text ||
@@ -7374,7 +7518,7 @@ async function createHdOriginAccessFirstAiDecision(body) {
   }
 
   const response =
-    await callPaymentDocumentOpenAiJson(
+    await callHdOriginAccessFirstAiOpenAiJson(
       userPrompt,
       systemPrompt
     );
