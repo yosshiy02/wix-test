@@ -7299,9 +7299,47 @@ function hdOriginAccessFirstAiFindCandidate(candidates, code) {
 
 async function callHdOriginAccessFirstAiOpenAiJson(
   userPrompt,
-  systemPrompt
+  systemPrompt,
+  allowedCodes
 ) {
   const apiKey = getOpenAiApiKey();
+
+  const companyCodes = Array.isArray(
+    allowedCodes && allowedCodes.companyCodes
+  )
+    ? allowedCodes.companyCodes
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    : [];
+
+  const documentTypeCodes = Array.isArray(
+    allowedCodes && allowedCodes.documentTypeCodes
+  )
+    ? allowedCodes.documentTypeCodes
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    : [];
+
+  const analysisSystemCodes = Array.isArray(
+    allowedCodes && allowedCodes.analysisSystemCodes
+  )
+    ? allowedCodes.analysisSystemCodes
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    : [];
+
+  if (
+    !companyCodes.length ||
+    !documentTypeCodes.length ||
+    !analysisSystemCodes.length
+  ) {
+    const error = new Error(
+      "Access一次判定AIの候補コードが不足しています。"
+    );
+
+    error.statusCode = 500;
+    throw error;
+  }
 
   if (!apiKey) {
     const error = new Error(
@@ -7347,13 +7385,16 @@ async function callHdOriginAccessFirstAiOpenAiJson(
               additionalProperties: false,
               properties: {
                 company_code: {
-                  type: "string"
+                  type: "string",
+                  enum: companyCodes
                 },
                 document_type_code: {
-                  type: "string"
+                  type: "string",
+                  enum: documentTypeCodes
                 },
                 analysis_system_code: {
-                  type: "string"
+                  type: "string",
+                  enum: analysisSystemCodes
                 },
                 confidence: {
                   type: "number",
@@ -7520,7 +7561,15 @@ async function createHdOriginAccessFirstAiDecision(body) {
   const response =
     await callHdOriginAccessFirstAiOpenAiJson(
       userPrompt,
-      systemPrompt
+      systemPrompt,
+      {
+        companyCodes:
+          companies.map((item) => item.code),
+        documentTypeCodes:
+          documentTypes.map((item) => item.code),
+        analysisSystemCodes:
+          specialists.map((item) => item.code)
+      }
     );
 
   const parsed =
