@@ -10,3 +10,18 @@
 - 未判定の理由
 - 人間が確認すべき重要ポイント
 - 推奨される次のアクション
+
+HD_ORIGIN_NEEDS_REVIEW_MACHINE_FIELDS_20260719_START
+
+Access解析結果値保存用の機械項目:
+- draft.unreadable_reason
+  要確認または処理不能となった理由を文字列で返す。
+- draft.candidate_document_types_json
+  書類種別候補をJSON配列で返す。候補なしは空配列。
+- draft.missing_fields_json
+  不足項目名をJSON配列で返す。不足なしは空配列。
+
+3項目はfields内ではなくdraft直下へ返す。
+値はOCR本文と既存AIコンテキストからAI自身が判断する。
+
+HD_ORIGIN_NEEDS_REVIEW_MACHINE_FIELDS_20260719_END

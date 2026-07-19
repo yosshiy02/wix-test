@@ -4,3 +4,15 @@
 - なぜ「要確認」になったのか、OCR本文から特異な点（矛盾、欠落、新形式）を見つけ出す。
 - 既存マスタにない取引先や科目の場合は、その旨を明記する。
 - fieldsは人間が判断しやすい日本語ラベルを使用する。
+
+HD_ORIGIN_NEEDS_REVIEW_VALUE_RULES_20260719_START
+
+- draft.unreadable_reasonを必ず返す。
+- draft.candidate_document_types_jsonをJSON配列で返す。
+- draft.missing_fields_jsonをJSON配列で返す。
+- 配列を文字列化しない。
+- 候補または不足がない場合は空配列を返す。
+- API、Access、HTML側で値を後付けしない。
+- AI自身がOCR本文を根拠に判断する。
+
+HD_ORIGIN_NEEDS_REVIEW_VALUE_RULES_20260719_END

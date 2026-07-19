@@ -127,6 +127,7 @@ function specialistCodeFromContext(context = {}) {
     receipt_evidence_analysis: "receipt-evidence",
     card_statement_analysis: "card-statement",
     reference_check_analysis: "reference-check",
+    needs_review: "needs-review",
     needs_review_analysis: "needs-review"
   };
 
