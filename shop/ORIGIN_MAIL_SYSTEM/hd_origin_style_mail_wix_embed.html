@@ -1,0 +1,2586 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>HD ORGIN STYLE MAIL SYSTEM</title>
+  <style>
+:root {
+  --color-bg: #ffffff;
+  --color-bg-soft: #fbfcff;
+  --color-surface: #ffffff;
+  --color-surface-violet: #faf7ff;
+  --color-surface-blue: #f4f8ff;
+
+  --color-text: #343b61;
+  --color-text-strong: #252d55;
+  --color-text-soft: #77809f;
+  --color-text-muted: #9299b2;
+
+  --color-line: rgba(190, 199, 232, 0.76);
+  --color-line-strong: rgba(168, 180, 224, 0.88);
+
+  --color-violet: #826fc8;
+  --color-violet-soft: #eee9ff;
+  --color-blue: #719fdc;
+  --color-blue-soft: #eaf3ff;
+
+  --color-new: #9d5872;
+  --color-new-bg: #ffeaf1;
+  --color-new-line: #e8b8c9;
+
+  --color-progress: #916725;
+  --color-progress-bg: #fff1cb;
+  --color-progress-line: #e9cd84;
+
+  --color-done: #477b60;
+  --color-done-bg: #e1f4e8;
+  --color-done-line: #afd7bd;
+
+  --shadow-soft: 0 0.375rem 1rem rgba(150, 162, 207, 0.1);
+  --shadow-card: 0 0.625rem 1.375rem rgba(150, 162, 207, 0.12);
+  --shadow-panel: 0 1rem 2.25rem rgba(134, 146, 195, 0.15);
+
+  --radius-xs: 0.625rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 0.9375rem;
+  --radius-lg: 1.125rem;
+  --radius-pill: 999rem;
+
+  --font-2xs: 0.625rem;
+  --font-xs: 0.6875rem;
+  --font-sm: 0.75rem;
+  --font-md: 0.8125rem;
+  --font-lg: 0.9375rem;
+  --font-xl: 1.0625rem;
+
+  --shell-width: 27rem;
+  --tap-size: 2.375rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  font-size: 100%;
+  background: var(--color-bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--color-text);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(218, 230, 255, 0.2),
+      transparent 23%
+    ),
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(236, 229, 255, 0.18),
+      transparent 20%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fdfdff 48%,
+      #fbfcff 100%
+    );
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Hiragino Sans",
+    "Yu Gothic UI",
+    "Yu Gothic",
+    Meiryo,
+    sans-serif;
+  font-size: var(--font-md);
+  line-height: 1.55;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 0.58s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.is-loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+body.is-leaving {
+  opacity: 0;
+  transform: translateY(0.375rem);
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 0.125rem solid rgba(117, 142, 215, 0.42);
+  outline-offset: 0.125rem;
+}
+
+.app-shell {
+  width: min(100%, var(--shell-width));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding:
+    max(0.75rem, env(safe-area-inset-top))
+    0.75rem
+    max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.topbar,
+.subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.topbar {
+  align-items: flex-start;
+}
+
+.brand-block,
+.subbar__text {
+  min-inline-size: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.125rem;
+  overflow: hidden;
+  color: #746d99;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.13em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-name {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.shop-mail {
+  margin: 0.125rem 0 0;
+  overflow: hidden;
+  color: var(--color-text-soft);
+  font-size: var(--font-xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  flex: 0 0 auto;
+  inline-size: var(--tap-size);
+  block-size: var(--tap-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: 0.8125rem;
+  color: #62598e;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f7f4ff 100%
+    );
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    background 0.28s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--color-line-strong);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f0ecff 100%
+    );
+}
+
+.icon-button:active {
+  transform: scale(0.96);
+}
+
+.icon-button--soft {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+}
+
+.icon {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.hero {
+  padding: 0.6875rem 0.75rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(255, 255, 255, 0.76),
+      transparent 23%
+    ),
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(214, 231, 255, 0.45),
+      transparent 25%
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f7f2ff 40%,
+      #edf5ff 78%,
+      #ffffff 100%
+    );
+  box-shadow: var(--shadow-card);
+}
+
+.hero__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+  margin-bottom: 0.5625rem;
+}
+
+.hero__label {
+  margin: 0 0 0.0625rem;
+  color: #8076a8;
+  font-size: var(--font-2xs);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+}
+
+.hero__title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: var(--font-lg);
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.hero-chip {
+  min-block-size: 1.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+  border: 0.0625rem solid rgba(184, 176, 228, 0.82);
+  border-radius: var(--radius-pill);
+  color: #6f5e9c;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #efeaff 100%
+    );
+  font-size: var(--font-2xs);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.metric {
+  min-inline-size: 0;
+  padding: 0.5rem 0.5625rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0.25rem 0.75rem rgba(151, 164, 208, 0.08);
+}
+
+.metric--new {
+  background:
+    linear-gradient(
+      180deg,
+      #fff5f8 0%,
+      #ffedf3 100%
+    );
+}
+
+.metric--progress {
+  background:
+    linear-gradient(
+      180deg,
+      #fff9e9 0%,
+      #fff2d3 100%
+    );
+}
+
+.metric--staff {
+  background:
+    linear-gradient(
+      180deg,
+      #f3f7ff 0%,
+      #eaf1ff 100%
+    );
+}
+
+.metric__label {
+  margin: 0 0 0.0625rem;
+  overflow: hidden;
+  color: var(--color-text-soft);
+  font-size: var(--font-2xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric__value {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 0.875rem;
+  font-weight: 750;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric__value--name {
+  font-size: 0.75rem;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+  margin: 0.625rem 0;
+}
+
+.tab {
+  min-inline-size: 0;
+  min-block-size: 2.125rem;
+  padding: 0 0.3125rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-sm);
+  color: #626b8b;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fafbff 100%
+    );
+  box-shadow: 0 0.1875rem 0.625rem rgba(150, 163, 207, 0.06);
+  font-size: var(--font-sm);
+  font-weight: 750;
+  white-space: nowrap;
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.24s ease,
+    box-shadow 0.24s ease,
+    background 0.24s ease;
+}
+
+.tab:active {
+  transform: scale(0.975);
+}
+
+.tab[data-filter="new"] {
+  color: var(--color-new);
+  border-color: var(--color-new-line);
+  background:
+    linear-gradient(
+      180deg,
+      #fff7f9 0%,
+      #fff0f4 100%
+    );
+}
+
+.tab[data-filter="progress"] {
+  color: var(--color-progress);
+  border-color: var(--color-progress-line);
+  background:
+    linear-gradient(
+      180deg,
+      #fffaf0 0%,
+      #fff4db 100%
+    );
+}
+
+.tab[data-filter="done"] {
+  color: var(--color-done);
+  border-color: var(--color-done-line);
+  background:
+    linear-gradient(
+      180deg,
+      #f3fbf6 0%,
+      #e9f7ee 100%
+    );
+}
+
+.tab.active {
+  box-shadow: var(--shadow-soft);
+}
+
+.tab.active[data-filter="all"] {
+  color: #63518f;
+  border-color: rgba(177, 167, 225, 0.94);
+  background:
+    linear-gradient(
+      180deg,
+      #f2eeff 0%,
+      #e9e3ff 100%
+    );
+}
+
+.tab.active[data-filter="new"] {
+  color: #8f4f67;
+  border-color: #dfa8bc;
+  background:
+    linear-gradient(
+      180deg,
+      #ffe8ef 0%,
+      #ffdde7 100%
+    );
+}
+
+.tab.active[data-filter="progress"] {
+  color: #855c1f;
+  border-color: #e2bd65;
+  background:
+    linear-gradient(
+      180deg,
+      #ffefc5 0%,
+      #ffe2a8 100%
+    );
+}
+
+.tab.active[data-filter="done"] {
+  color: #407359;
+  border-color: #96cbaa;
+  background:
+    linear-gradient(
+      180deg,
+      #e1f6e9 0%,
+      #d2eedc 100%
+    );
+}
+
+.mail-list {
+  display: grid;
+  gap: 0.5625rem;
+}
+
+.mail-card {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  padding: 0.6875rem 0.75rem 0.625rem 0.8125rem;
+  border: 0.0625rem solid rgba(197, 206, 235, 0.82);
+  border-radius: var(--radius-md);
+  color: inherit;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.99) 0%,
+      rgba(252, 252, 255, 0.98) 100%
+    );
+  box-shadow: 0 0.375rem 1rem rgba(148, 161, 206, 0.09);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.mail-card:hover {
+  border-color: var(--color-line-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.mail-card:active {
+  transform: translateY(-0.0625rem) scale(0.995);
+}
+
+.mail-card.is-new {
+  border-color: rgba(181, 193, 234, 0.9);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(246, 249, 255, 0.99) 0%,
+      rgba(252, 249, 255, 0.99) 100%
+    );
+}
+
+.mail-card.is-hidden {
+  display: none;
+}
+
+.mail-card__accent {
+  position: absolute;
+  inset: 0 auto 0 0;
+  inline-size: 0.1875rem;
+  background:
+    linear-gradient(
+      180deg,
+      #ad91e8 0%,
+      #7eade9 50%,
+      #b3a0e8 100%
+    );
+}
+
+.mail-card__head,
+.mail-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mail-card__head {
+  margin-bottom: 0.4375rem;
+}
+
+.mail-card__foot {
+  margin-top: 0.5rem;
+}
+
+.mail-card__badges {
+  min-inline-size: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.badge,
+.state {
+  min-block-size: 1.3125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4375rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-2xs);
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge--new {
+  color: #7151a0;
+  background:
+    linear-gradient(
+      180deg,
+      #f3edff 0%,
+      #e9e1ff 100%
+    );
+}
+
+.badge--progress {
+  color: var(--color-progress);
+  background:
+    linear-gradient(
+      180deg,
+      #fff7df 0%,
+      #ffedc4 100%
+    );
+}
+
+.badge--done {
+  color: var(--color-done);
+  background:
+    linear-gradient(
+      180deg,
+      #edf9f1 0%,
+      #def3e6 100%
+    );
+}
+
+.badge--store {
+  color: #75699a;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f4f0ff 100%
+    );
+}
+
+.state--new {
+  color: var(--color-new);
+  background: var(--color-new-bg);
+}
+
+.state--progress {
+  color: var(--color-progress);
+  background: var(--color-progress-bg);
+}
+
+.state--done {
+  color: var(--color-done);
+  background: var(--color-done-bg);
+}
+
+.mail-card__time,
+.mail-card__preview,
+.assignee {
+  color: var(--color-text-soft);
+  font-size: var(--font-sm);
+}
+
+.mail-card__time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.mail-card__body {
+  min-inline-size: 0;
+}
+
+.mail-card__from {
+  margin: 0 0 0.1875rem;
+  overflow: hidden;
+  color: #515879;
+  font-size: var(--font-sm);
+  font-weight: 750;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mail-card__subject {
+  margin: 0 0 0.1875rem;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 0.875rem;
+  font-weight: 750;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mail-card__preview {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.assignee {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(119, 132, 180, 0.18);
+  opacity: 0;
+  transition: opacity 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.menu-backdrop.is-visible {
+  opacity: 1;
+}
+
+.menu-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 30;
+  inline-size: min(78vw, 18.5rem);
+  padding:
+    max(0.875rem, env(safe-area-inset-top))
+    0.875rem
+    max(0.875rem, env(safe-area-inset-bottom));
+  border-left: 0.0625rem solid var(--color-line);
+  background:
+    radial-gradient(
+      circle at 90% 5%,
+      rgba(222, 231, 255, 0.48),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f8f5ff 100%
+    );
+  box-shadow: var(--shadow-panel);
+  transform: translateX(100%);
+  transition: transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.menu-panel.is-open {
+  transform: translateX(0);
+}
+
+.menu-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.6875rem;
+  border-bottom: 0.0625rem solid rgba(196, 205, 235, 0.76);
+}
+
+.menu-panel__title-group {
+  min-inline-size: 0;
+}
+
+.menu-panel__eyebrow,
+.menu-panel__sub {
+  margin: 0;
+  color: #8379a6;
+  font-size: var(--font-2xs);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.menu-panel__title {
+  margin: 0.125rem 0;
+  color: #3c436e;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.menu-list {
+  display: grid;
+  gap: 0.4375rem;
+}
+
+.menu-item {
+  inline-size: 100%;
+  min-block-size: 2.1875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-sm);
+  color: #5e5689;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #faf8ff 100%
+    );
+  box-shadow: 0 0.25rem 0.75rem rgba(149, 161, 205, 0.07);
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.menu-item:hover {
+  border-color: var(--color-line-strong);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f3efff 100%
+    );
+}
+
+.menu-item:active {
+  transform: scale(0.985);
+}
+
+.menu-item__main {
+  font-size: var(--font-sm);
+  font-weight: 750;
+}
+
+.menu-item__sub {
+  color: #8d84aa;
+  font-size: var(--font-2xs);
+}
+
+.panel {
+  padding: 0.75rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.99) 0%,
+      rgba(249, 247, 255, 0.98) 100%
+    );
+  box-shadow: var(--shadow-card);
+}
+
+.detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-subject {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-strong);
+  font-size: 0.9375rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.meta-list {
+  display: grid;
+  gap: 0;
+  margin: 0 0 0.75rem;
+  overflow: hidden;
+  border: 0.0625rem solid rgba(199, 207, 235, 0.8);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(0, 1fr);
+  gap: 0.625rem;
+  padding: 0.4375rem 0.5625rem;
+  border-bottom: 0.0625rem solid rgba(211, 217, 239, 0.72);
+}
+
+.meta-row:last-child {
+  border-bottom: 0;
+}
+
+.meta-row dt {
+  color: var(--color-text-soft);
+  font-size: var(--font-sm);
+}
+
+.meta-row dd {
+  min-inline-size: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: var(--font-sm);
+}
+
+.message-box {
+  padding: 0.6875rem;
+  border: 0.0625rem solid rgba(199, 208, 236, 0.82);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fcfbff 100%
+    );
+  font-size: var(--font-md);
+  line-height: 1.7;
+}
+
+.message-box p {
+  margin: 0 0 0.625rem;
+}
+
+.message-box p:last-child {
+  margin-bottom: 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.3125rem;
+  margin-top: 0.6875rem;
+}
+
+.field__label {
+  color: #596181;
+  font-size: var(--font-sm);
+  font-weight: 750;
+}
+
+.input,
+.textarea {
+  inline-size: 100%;
+  padding: 0.625rem 0.6875rem;
+  border: 0.0625rem solid rgba(190, 200, 232, 0.9);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: #ffffff;
+  outline: none;
+  box-shadow: inset 0 0.0625rem 0.1875rem rgba(120, 132, 178, 0.04);
+  transition:
+    border-color 0.24s ease,
+    box-shadow 0.24s ease,
+    background 0.24s ease;
+}
+
+.input {
+  min-block-size: 2.25rem;
+}
+
+.textarea {
+  min-block-size: 5.75rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.textarea--large {
+  min-block-size: 8.5rem;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(124, 139, 205, 0.9);
+  background: #fefeff;
+  box-shadow:
+    0 0 0 0.1875rem rgba(140, 154, 218, 0.12),
+    inset 0 0.0625rem 0.1875rem rgba(120, 132, 178, 0.04);
+}
+
+.reply-fixed {
+  display: grid;
+  gap: 0;
+  margin-bottom: 0.6875rem;
+  overflow: hidden;
+  border: 0.0625rem solid rgba(197, 206, 235, 0.82);
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #faf8ff 100%
+    );
+}
+
+.reply-fixed__row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 0.625rem;
+  padding: 0.4375rem 0.5625rem;
+  border-bottom: 0.0625rem solid rgba(211, 217, 239, 0.72);
+}
+
+.reply-fixed__row:last-child {
+  border-bottom: 0;
+}
+
+.reply-fixed__label {
+  color: var(--color-text-soft);
+  font-size: var(--font-sm);
+}
+
+.reply-fixed__value {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: var(--font-sm);
+}
+
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.6875rem;
+  padding:
+    0.4375rem
+    0
+    max(0.4375rem, env(safe-area-inset-bottom));
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 252, 255, 0) 0%,
+      rgba(251, 252, 255, 0.92) 24%,
+      rgba(251, 252, 255, 0.98) 100%
+    );
+  backdrop-filter: blur(0.25rem);
+}
+
+.button {
+  min-block-size: 2.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.6875rem;
+  border: 0.0625rem solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-sm);
+  font-weight: 750;
+  line-height: 1.2;
+  box-shadow: 0 0.25rem 0.75rem rgba(149, 161, 205, 0.08);
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.button:hover {
+  border-color: var(--color-line-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button--soft {
+  color: #64598f;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f5f1ff 100%
+    );
+}
+
+.button--primary {
+  color: #405584;
+  background:
+    linear-gradient(
+      135deg,
+      #eee8ff 0%,
+      #e3efff 100%
+    );
+}
+
+.from-left {
+  animation: card-in-left 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.from-right {
+  animation: card-in-right 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem) translateY(0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes card-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem) translateY(0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@media (max-width: 21rem) {
+  .app-shell {
+    padding-inline: 0.625rem;
+  }
+
+  .hero-metrics {
+    gap: 0.25rem;
+  }
+
+  .metric {
+    padding-inline: 0.4375rem;
+  }
+
+  .tabs {
+    gap: 0.25rem;
+  }
+
+  .tab {
+    font-size: var(--font-xs);
+  }
+
+  .meta-row {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 40rem) {
+  .app-shell {
+    padding-top: 1rem;
+  }
+
+  .mail-card:hover {
+    transform: translateY(-0.0625rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  body {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* new-badge-motion-start */
+.badge--new {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding-inline: 0.625rem 0.875rem;
+  border: 0.0625rem solid rgba(196, 104, 147, 0.9);
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #ff6fa7 0%,
+      #ff87bc 34%,
+      #a78cff 100%
+    );
+  box-shadow:
+    0 0.25rem 0.75rem rgba(255, 116, 170, 0.3),
+    0 0 0 0 rgba(255, 124, 179, 0.24);
+  text-shadow: 0 0.0625rem 0.125rem rgba(120, 38, 79, 0.24);
+  letter-spacing: 0.08em;
+  transform-origin: center;
+  animation:
+    new-badge-float 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite,
+    new-badge-pulse 2.2s ease-in-out infinite;
+}
+
+.badge--new::before {
+  content: "";
+  position: absolute;
+  inset-block: -20%;
+  inset-inline-start: -40%;
+  inline-size: 42%;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.88) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  transform: skewX(-22deg);
+  opacity: 0;
+  animation: new-badge-shine 2.9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.badge--new::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0.25rem;
+  inset-inline-end: 0.3125rem;
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  border-radius: 999rem;
+  background: #fff7ae;
+  box-shadow:
+    0 0 0.25rem rgba(255, 247, 174, 0.95),
+    0 0 0.5rem rgba(255, 247, 174, 0.55);
+  animation: new-badge-dot 1.25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mail-card.is-new {
+  border-color: rgba(199, 147, 203, 0.92);
+  box-shadow:
+    0 0.5rem 1rem rgba(181, 142, 218, 0.12),
+    0 0 0 0.0625rem rgba(255, 175, 208, 0.16);
+}
+
+.mail-card.is-new .mail-card__accent {
+  background:
+    linear-gradient(
+      180deg,
+      #ff7fb1 0%,
+      #b18fff 52%,
+      #8fc2ff 100%
+    );
+  animation: new-accent-wave 2.2s ease-in-out infinite;
+}
+
+.state--new {
+  border: 0.0625rem solid rgba(232, 182, 205, 0.92);
+  box-shadow: 0 0.1875rem 0.5625rem rgba(255, 155, 194, 0.14);
+}
+
+@keyframes new-badge-float {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  24% {
+    transform: translateY(-0.0625rem) scale(1.03);
+  }
+
+  50% {
+    transform: translateY(0) scale(1.09);
+  }
+
+  76% {
+    transform: translateY(-0.03125rem) scale(1.03);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes new-badge-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0.25rem 0.75rem rgba(255, 116, 170, 0.3),
+      0 0 0 0 rgba(255, 124, 179, 0.2);
+    filter: saturate(1);
+  }
+
+  50% {
+    box-shadow:
+      0 0.375rem 0.9375rem rgba(255, 105, 166, 0.38),
+      0 0 0 0.25rem rgba(255, 149, 194, 0.18);
+    filter: saturate(1.08);
+  }
+}
+
+@keyframes new-badge-shine {
+  0% {
+    transform: translateX(-180%) skewX(-22deg);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0.85;
+  }
+
+  38% {
+    transform: translateX(285%) skewX(-22deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(285%) skewX(-22deg);
+    opacity: 0;
+  }
+}
+
+@keyframes new-badge-dot {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.84);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes new-accent-wave {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+
+  50% {
+    filter: brightness(1.14) saturate(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge--new,
+  .badge--new::before,
+  .badge--new::after,
+  .mail-card.is-new .mail-card__accent {
+    animation: none !important;
+  }
+}
+/* new-badge-motion-end */
+
+/* Wix単一HTML専用 */
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  opacity: 1;
+  transform: none;
+}
+
+.app-view {
+  display: none;
+}
+
+.app-view.is-active {
+  display: block;
+  animation: wix-view-enter 0.54s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+[data-view-link] {
+  cursor: pointer;
+}
+
+.mail-card {
+  inline-size: 100%;
+  text-align: start;
+  appearance: none;
+}
+
+.mail-card[type="button"] {
+  font-family: inherit;
+}
+
+.send-result {
+  position: fixed;
+  inset-inline: 50% auto;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  z-index: 60;
+  inline-size: min(calc(100% - 1.5rem), 24rem);
+  padding: 0.6875rem 0.75rem;
+  border: 0.0625rem solid rgba(164, 201, 180, 0.9);
+  border-radius: 0.875rem;
+  color: #3f7559;
+  background:
+    linear-gradient(
+      180deg,
+      #f2fbf5 0%,
+      #e4f6ea 100%
+    );
+  box-shadow: 0 0.75rem 1.75rem rgba(113, 156, 133, 0.18);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 1rem);
+  transition:
+    opacity 0.42s ease,
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.send-result.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@keyframes wix-view-enter {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-view.is-active {
+    animation: none;
+  }
+}
+  </style>
+</head>
+<body>
+  <main id="mailSystem">
+
+    <!-- 受信一覧 -->
+    <section
+      class="app-view is-active"
+      id="viewIndex"
+      data-view="index"
+      aria-label="受信一覧">
+
+      <div class="app-shell">
+        <header class="topbar">
+          <div class="brand-block">
+            <p class="eyebrow">HD ORGIN STYLE MAIL SYSTEM</p>
+            <h1 class="shop-name">Rasiːm</h1>
+            <p class="shop-mail">rasi-m@hatodaiya.com</p>
+          </div>
+
+          <button
+            class="icon-button"
+            id="menuButton"
+            type="button"
+            aria-label="メニューを開く"
+            aria-expanded="false"
+            aria-controls="menuPanel">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M4 7h16M4 12h16M4 17h16"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"/>
+            </svg>
+          </button>
+        </header>
+
+        <section class="hero">
+          <div class="hero__head">
+            <div>
+              <p class="hero__label">STORE STATUS</p>
+              <h2 class="hero__title">受信一覧</h2>
+            </div>
+            <span class="hero-chip">新着 2</span>
+          </div>
+
+          <div class="hero-metrics">
+            <article class="metric metric--new">
+              <p class="metric__label">未対応</p>
+              <p class="metric__value">2</p>
+            </article>
+
+            <article class="metric metric--progress">
+              <p class="metric__label">対応中</p>
+              <p class="metric__value">1</p>
+            </article>
+
+            <article class="metric metric--staff">
+              <p class="metric__label">担当</p>
+              <p class="metric__value metric__value--name">村上</p>
+            </article>
+          </div>
+        </section>
+
+        <nav class="tabs" aria-label="状態絞り込み">
+          <button
+            class="tab active"
+            type="button"
+            data-filter="all">
+            すべて
+          </button>
+
+          <button
+            class="tab"
+            type="button"
+            data-filter="new">
+            未対応
+          </button>
+
+          <button
+            class="tab"
+            type="button"
+            data-filter="progress">
+            対応中
+          </button>
+
+          <button
+            class="tab"
+            type="button"
+            data-filter="done">
+            完了
+          </button>
+        </nav>
+
+        <div class="mail-list">
+          <button
+            class="mail-card is-new"
+            type="button"
+            data-status="new"
+            data-view-link="detail">
+
+            <span class="mail-card__accent"></span>
+
+            <span class="mail-card__head">
+              <span class="mail-card__badges">
+                <span class="badge badge--new">NEW</span>
+                <span class="badge badge--store">Rasiːm</span>
+              </span>
+              <span class="mail-card__time">09:24</span>
+            </span>
+
+            <span class="mail-card__body">
+              <span class="mail-card__from">田中 一郎</span>
+              <span class="mail-card__subject">
+                商品の在庫確認について
+              </span>
+              <span class="mail-card__preview">
+                今週末受け取り予定です。在庫の有無をご確認ください。
+              </span>
+            </span>
+
+            <span class="mail-card__foot">
+              <span class="state state--new">未対応</span>
+              <span class="assignee">未割当</span>
+            </span>
+          </button>
+
+          <button
+            class="mail-card"
+            type="button"
+            data-status="progress"
+            data-view-link="detail">
+
+            <span class="mail-card__accent"></span>
+
+            <span class="mail-card__head">
+              <span class="mail-card__badges">
+                <span class="badge badge--progress">対応中</span>
+                <span class="badge badge--store">Rasiːm</span>
+              </span>
+              <span class="mail-card__time">10:18</span>
+            </span>
+
+            <span class="mail-card__body">
+              <span class="mail-card__from">鈴木 美咲</span>
+              <span class="mail-card__subject">
+                予約変更のお願い
+              </span>
+              <span class="mail-card__preview">
+                予約日時の変更をお願いしたく、ご連絡しました。
+              </span>
+            </span>
+
+            <span class="mail-card__foot">
+              <span class="state state--progress">対応中</span>
+              <span class="assignee">担当: 村上</span>
+            </span>
+          </button>
+
+          <button
+            class="mail-card is-new"
+            type="button"
+            data-status="new"
+            data-view-link="detail">
+
+            <span class="mail-card__accent"></span>
+
+            <span class="mail-card__head">
+              <span class="mail-card__badges">
+                <span class="badge badge--new">NEW</span>
+                <span class="badge badge--store">Rasiːm</span>
+              </span>
+              <span class="mail-card__time">11:02</span>
+            </span>
+
+            <span class="mail-card__body">
+              <span class="mail-card__from">佐藤 直樹</span>
+              <span class="mail-card__subject">
+                見積書の再送依頼
+              </span>
+              <span class="mail-card__preview">
+                前回の添付が開けなかったため、再送をお願いいたします。
+              </span>
+            </span>
+
+            <span class="mail-card__foot">
+              <span class="state state--new">未対応</span>
+              <span class="assignee">未割当</span>
+            </span>
+          </button>
+
+          <button
+            class="mail-card"
+            type="button"
+            data-status="done"
+            data-view-link="detail">
+
+            <span class="mail-card__accent"></span>
+
+            <span class="mail-card__head">
+              <span class="mail-card__badges">
+                <span class="badge badge--done">完了</span>
+                <span class="badge badge--store">Rasiːm</span>
+              </span>
+              <span class="mail-card__time">昨日</span>
+            </span>
+
+            <span class="mail-card__body">
+              <span class="mail-card__from">山本 健</span>
+              <span class="mail-card__subject">
+                発送日の確認
+              </span>
+              <span class="mail-card__preview">
+                発送予定日をご連絡いただき、ありがとうございました。
+              </span>
+            </span>
+
+            <span class="mail-card__foot">
+              <span class="state state--done">完了</span>
+              <span class="assignee">担当: 中村</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- メール詳細 -->
+    <section
+      class="app-view"
+      id="viewDetail"
+      data-view="detail"
+      aria-label="メール詳細">
+
+      <div class="app-shell">
+        <header class="subbar">
+          <button
+            class="icon-button icon-button--soft"
+            type="button"
+            data-view-link="index"
+            aria-label="一覧へ戻る">
+
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 18l-6-6 6-6"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"/>
+            </svg>
+          </button>
+
+          <div class="subbar__text">
+            <p class="eyebrow">HD ORGIN STYLE MAIL SYSTEM</p>
+            <h1 class="shop-name">Rasiːm</h1>
+          </div>
+        </header>
+
+        <section class="panel">
+          <div class="detail-head">
+            <span class="badge badge--new">NEW</span>
+            <span class="badge badge--store">Rasiːm</span>
+          </div>
+
+          <h2 class="detail-subject">
+            商品の在庫確認について
+          </h2>
+
+          <dl class="meta-list">
+            <div class="meta-row">
+              <dt>差出人</dt>
+              <dd>田中 一郎 &lt;tanaka@example.com&gt;</dd>
+            </div>
+
+            <div class="meta-row">
+              <dt>宛先</dt>
+              <dd>rasi-m@hatodaiya.com</dd>
+            </div>
+
+            <div class="meta-row">
+              <dt>状態</dt>
+              <dd>未対応</dd>
+            </div>
+
+            <div class="meta-row">
+              <dt>担当</dt>
+              <dd>未割当</dd>
+            </div>
+          </dl>
+
+          <div class="message-box">
+            <p>お世話になっております。</p>
+            <p>
+              今週末に受け取りを予定しております。
+              対象商品の在庫があるかご確認をお願いいたします。
+            </p>
+            <p>どうぞよろしくお願いいたします。</p>
+          </div>
+
+          <label class="field">
+            <span class="field__label">内部メモ</span>
+            <textarea
+              class="textarea"
+              rows="5"
+              placeholder="担当者向けメモを入力"></textarea>
+          </label>
+        </section>
+
+        <div class="bottom-bar">
+          <button
+            class="button button--soft"
+            type="button"
+            data-view-link="index">
+            戻る
+          </button>
+
+          <button
+            class="button button--primary"
+            type="button"
+            data-view-link="reply">
+            返信する
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 返信 -->
+    <section
+      class="app-view"
+      id="viewReply"
+      data-view="reply"
+      aria-label="返信">
+
+      <div class="app-shell">
+        <header class="subbar">
+          <button
+            class="icon-button icon-button--soft"
+            type="button"
+            data-view-link="detail"
+            aria-label="詳細へ戻る">
+
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 18l-6-6 6-6"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"/>
+            </svg>
+          </button>
+
+          <div class="subbar__text">
+            <p class="eyebrow">HD ORGIN STYLE MAIL SYSTEM</p>
+            <h1 class="shop-name">返信</h1>
+          </div>
+        </header>
+
+        <section class="panel">
+          <div class="reply-fixed">
+            <div class="reply-fixed__row">
+              <span class="reply-fixed__label">From</span>
+              <span class="reply-fixed__value">
+                rasi-m@hatodaiya.com
+              </span>
+            </div>
+
+            <div class="reply-fixed__row">
+              <span class="reply-fixed__label">To</span>
+              <span class="reply-fixed__value">
+                tanaka@example.com
+              </span>
+            </div>
+          </div>
+
+          <label class="field">
+            <span class="field__label">件名</span>
+            <input
+              class="input"
+              type="text"
+              value="Re: 商品の在庫確認について">
+          </label>
+
+          <label class="field">
+            <span class="field__label">本文</span>
+            <textarea
+              class="textarea textarea--large"
+              rows="10">田中様
+
+お問い合わせありがとうございます。
+在庫を確認のうえ、折り返しご連絡いたします。
+
+Rasiːm</textarea>
+          </label>
+        </section>
+
+        <div class="bottom-bar">
+          <button
+            class="button button--soft"
+            type="button"
+            data-view-link="detail">
+            戻る
+          </button>
+
+          <button
+            class="button button--primary"
+            id="sendButton"
+            type="button">
+            送信
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div
+    class="menu-backdrop"
+    id="menuBackdrop"
+    hidden></div>
+
+  <aside
+    class="menu-panel"
+    id="menuPanel"
+    aria-hidden="true">
+
+    <div class="menu-panel__head">
+      <div class="menu-panel__title-group">
+        <p class="menu-panel__eyebrow">SYSTEM CORE</p>
+        <h2 class="menu-panel__title">HD ORGIN</h2>
+        <p class="menu-panel__sub">MAIL SYSTEM</p>
+      </div>
+
+      <button
+        class="icon-button icon-button--soft"
+        id="menuClose"
+        type="button"
+        aria-label="メニューを閉じる">
+
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="menu-list">
+      <button
+        class="menu-item"
+        id="refreshButton"
+        type="button">
+
+        <span class="menu-item__main">更新</span>
+        <span class="menu-item__sub">Refresh</span>
+      </button>
+
+      <button
+        class="menu-item"
+        id="settingsButton"
+        type="button">
+
+        <span class="menu-item__main">設定</span>
+        <span class="menu-item__sub">Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <div
+    class="send-result"
+    id="sendResult"
+    role="status"
+    aria-live="polite">
+    静的試作のため、メールは実際には送信されません。
+  </div>
+
+  <script>
+(() => {
+  "use strict";
+
+  const views = [...document.querySelectorAll(".app-view")];
+  const tabs = [...document.querySelectorAll(".tab")];
+  const cards = [...document.querySelectorAll(".mail-card")];
+
+  const body = document.body;
+  const menuButton = document.getElementById("menuButton");
+  const menuClose = document.getElementById("menuClose");
+  const menuPanel = document.getElementById("menuPanel");
+  const menuBackdrop = document.getElementById("menuBackdrop");
+  const refreshButton = document.getElementById("refreshButton");
+  const settingsButton = document.getElementById("settingsButton");
+  const sendButton = document.getElementById("sendButton");
+  const sendResult = document.getElementById("sendResult");
+
+  function showView(viewName) {
+    const nextView = views.find(
+      (view) => view.dataset.view === viewName
+    );
+
+    if (!nextView) {
+      return;
+    }
+
+    views.forEach((view) => {
+      view.classList.toggle("is-active", view === nextView);
+    });
+
+    closeMenu();
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+  function animateVisibleCards(filter = "all") {
+    let visibleIndex = 0;
+
+    cards.forEach((card) => {
+      const status = card.dataset.status;
+      const visible = filter === "all" || status === filter;
+
+      card.classList.remove("from-left", "from-right");
+
+      if (!visible) {
+        card.classList.add("is-hidden");
+        card.style.animationDelay = "";
+        return;
+      }
+
+      card.classList.remove("is-hidden");
+      void card.offsetWidth;
+
+      const animationClass =
+        visibleIndex % 2 === 0
+          ? "from-left"
+          : "from-right";
+
+      card.classList.add(animationClass);
+      card.style.animationDelay =
+        `${0.12 + visibleIndex * 0.1}s`;
+
+      visibleIndex += 1;
+    });
+  }
+
+  function applyFilter(filter) {
+    tabs.forEach((tab) => {
+      tab.classList.toggle(
+        "active",
+        tab.dataset.filter === filter
+      );
+    });
+
+    animateVisibleCards(filter);
+  }
+
+  function openMenu() {
+    if (!menuPanel || !menuBackdrop || !menuButton) {
+      return;
+    }
+
+    body.classList.add("menu-open");
+    menuPanel.classList.add("is-open");
+    menuPanel.setAttribute("aria-hidden", "false");
+
+    menuButton.setAttribute("aria-expanded", "true");
+
+    menuBackdrop.hidden = false;
+
+    requestAnimationFrame(() => {
+      menuBackdrop.classList.add("is-visible");
+    });
+  }
+
+  function closeMenu() {
+    if (!menuPanel || !menuBackdrop || !menuButton) {
+      return;
+    }
+
+    body.classList.remove("menu-open");
+    menuPanel.classList.remove("is-open");
+    menuPanel.setAttribute("aria-hidden", "true");
+
+    menuButton.setAttribute("aria-expanded", "false");
+    menuBackdrop.classList.remove("is-visible");
+
+    window.setTimeout(() => {
+      if (!menuPanel.classList.contains("is-open")) {
+        menuBackdrop.hidden = true;
+      }
+    }, 460);
+  }
+
+  document.querySelectorAll("[data-view-link]").forEach(
+    (element) => {
+      element.addEventListener("click", () => {
+        showView(element.dataset.viewLink);
+      });
+    }
+  );
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      applyFilter(tab.dataset.filter || "all");
+    });
+  });
+
+  if (menuButton) {
+    menuButton.addEventListener("click", openMenu);
+  }
+
+  if (menuClose) {
+    menuClose.addEventListener("click", closeMenu);
+  }
+
+  if (menuBackdrop) {
+    menuBackdrop.addEventListener("click", closeMenu);
+  }
+
+  if (refreshButton) {
+    refreshButton.addEventListener("click", () => {
+      const activeTab = document.querySelector(".tab.active");
+      const filter = activeTab
+        ? activeTab.dataset.filter
+        : "all";
+
+      animateVisibleCards(filter);
+      closeMenu();
+    });
+  }
+
+  if (settingsButton) {
+    settingsButton.addEventListener("click", () => {
+      closeMenu();
+    });
+  }
+
+  if (sendButton && sendResult) {
+    sendButton.addEventListener("click", () => {
+      sendResult.classList.add("is-visible");
+
+      window.setTimeout(() => {
+        sendResult.classList.remove("is-visible");
+      }, 2800);
+    });
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMenu();
+    }
+  });
+
+  applyFilter("all");
+})();
+  </script>
+<!-- hd-origin-style-mail-wix-bridge-start -->
+<script>
+(() => {
+  "use strict";
+
+  const SYSTEM = "HD_ORIGIN_STYLE_MAIL_SYSTEM";
+
+  const state = {
+    messages: [],
+    selectedMessage: null,
+    pageReady: false,
+    backendConnected: false,
+    googleWorkspaceConnected: false
+  };
+
+  const postToWix = (type, payload = {}) => {
+    window.parent.postMessage(
+      {
+        system: SYSTEM,
+        type,
+        payload
+      },
+      "*"
+    );
+  };
+
+  const showResult = (text, isError = false) => {
+    const result = document.getElementById("sendResult");
+
+    if (!result) {
+      return;
+    }
+
+    result.textContent = text;
+    result.dataset.resultType = isError ? "error" : "success";
+    result.classList.add("is-visible");
+
+    window.setTimeout(() => {
+      result.classList.remove("is-visible");
+    }, 3200);
+  };
+
+  const formatTime = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return new Intl.DateTimeFormat("ja-JP", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
+  };
+
+  const statusLabel = (status) => {
+    switch (status) {
+      case "new":
+        return "未対応";
+
+      case "progress":
+        return "対応中";
+
+      case "done":
+        return "完了";
+
+      default:
+        return "未対応";
+    }
+  };
+
+  const badgeHtml = (message) => {
+    if (message.status === "new") {
+      return '<span class="badge badge--new">NEW</span>';
+    }
+
+    if (message.status === "progress") {
+      return '<span class="badge badge--progress">対応中</span>';
+    }
+
+    return '<span class="badge badge--done">完了</span>';
+  };
+
+  const escapeHtml = (value) => {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  };
+
+  const createMailCard = (message) => {
+    const card = document.createElement("button");
+
+    card.type = "button";
+    card.className =
+      message.status === "new"
+        ? "mail-card is-new"
+        : "mail-card";
+
+    card.dataset.status = message.status || "new";
+    card.dataset.messageId = message.id || "";
+
+    card.innerHTML = `
+      <span class="mail-card__accent"></span>
+
+      <span class="mail-card__head">
+        <span class="mail-card__badges">
+          ${badgeHtml(message)}
+          <span class="badge badge--store">Rasiːm</span>
+        </span>
+
+        <span class="mail-card__time">
+          ${escapeHtml(formatTime(message.receivedAt))}
+        </span>
+      </span>
+
+      <span class="mail-card__body">
+        <span class="mail-card__from">
+          ${escapeHtml(message.fromName || message.fromEmail)}
+        </span>
+
+        <span class="mail-card__subject">
+          ${escapeHtml(message.subject)}
+        </span>
+
+        <span class="mail-card__preview">
+          ${escapeHtml(message.preview || message.body)}
+        </span>
+      </span>
+
+      <span class="mail-card__foot">
+        <span class="state state--${escapeHtml(message.status || "new")}">
+          ${escapeHtml(statusLabel(message.status))}
+        </span>
+
+        <span class="assignee">
+          ${
+            message.assignee
+              ? `担当: ${escapeHtml(message.assignee)}`
+              : "未割当"
+          }
+        </span>
+      </span>
+    `;
+
+    card.addEventListener("click", () => {
+      openMessage(message);
+    });
+
+    return card;
+  };
+
+  const updateMetrics = (messages) => {
+    const newCount = messages.filter(
+      (message) => message.status === "new"
+    ).length;
+
+    const progressCount = messages.filter(
+      (message) => message.status === "progress"
+    ).length;
+
+    const metricValues =
+      document.querySelectorAll(".metric__value");
+
+    if (metricValues[0]) {
+      metricValues[0].textContent = String(newCount);
+    }
+
+    if (metricValues[1]) {
+      metricValues[1].textContent = String(progressCount);
+    }
+
+    const heroChip = document.querySelector(".hero-chip");
+
+    if (heroChip) {
+      heroChip.textContent = `新着 ${newCount}`;
+    }
+  };
+
+  const renderMessages = (messages) => {
+    const list = document.querySelector(".mail-list");
+
+    if (!list) {
+      return;
+    }
+
+    list.innerHTML = "";
+
+    messages.forEach((message) => {
+      list.appendChild(createMailCard(message));
+    });
+
+    updateMetrics(messages);
+
+    const activeTab = document.querySelector(".tab.active");
+    const currentFilter =
+      activeTab?.dataset.filter || "all";
+
+    applyCurrentFilter(currentFilter);
+  };
+
+  const applyCurrentFilter = (filter) => {
+    document.querySelectorAll(".mail-card").forEach((card) => {
+      const visible =
+        filter === "all" ||
+        card.dataset.status === filter;
+
+      card.classList.toggle("is-hidden", !visible);
+    });
+  };
+
+  const openMessage = (message) => {
+    state.selectedMessage = message;
+
+    const subject =
+      document.querySelector("#viewDetail .detail-subject");
+
+    const metaValues =
+      document.querySelectorAll("#viewDetail .meta-row dd");
+
+    const messageBox =
+      document.querySelector("#viewDetail .message-box");
+
+    const memo =
+      document.querySelector("#viewDetail .textarea");
+
+    const replyTo =
+      document.querySelector(
+        "#viewReply .reply-fixed__row:nth-child(2) " +
+        ".reply-fixed__value"
+      );
+
+    const replySubject =
+      document.querySelector("#viewReply .input");
+
+    const replyBody =
+      document.querySelector("#viewReply .textarea--large");
+
+    if (subject) {
+      subject.textContent = message.subject || "";
+    }
+
+    if (metaValues[0]) {
+      metaValues[0].textContent =
+        `${message.fromName || ""} <${message.fromEmail || ""}>`;
+    }
+
+    if (metaValues[1]) {
+      metaValues[1].textContent =
+        message.toEmail || "rasi-m@hatodaiya.com";
+    }
+
+    if (metaValues[2]) {
+      metaValues[2].textContent =
+        statusLabel(message.status);
+    }
+
+    if (metaValues[3]) {
+      metaValues[3].textContent =
+        message.assignee || "未割当";
+    }
+
+    if (messageBox) {
+      const bodyLines = String(message.body || "")
+        .split(/\r?\n/)
+        .filter((line) => line.trim() !== "");
+
+      messageBox.innerHTML = "";
+
+      bodyLines.forEach((line) => {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = line;
+        messageBox.appendChild(paragraph);
+      });
+    }
+
+    if (memo) {
+      memo.value = message.internalMemo || "";
+    }
+
+    if (replyTo) {
+      replyTo.textContent = message.fromEmail || "";
+    }
+
+    if (replySubject) {
+      const currentSubject = message.subject || "";
+      replySubject.value =
+        currentSubject.startsWith("Re:")
+          ? currentSubject
+          : `Re: ${currentSubject}`;
+    }
+
+    if (replyBody) {
+      const recipient =
+        message.fromName
+          ? `${message.fromName}様`
+          : "";
+
+      replyBody.value =
+`${recipient}
+
+お問い合わせありがとうございます。
+内容を確認のうえ、ご連絡いたします。
+
+Rasiːm`;
+    }
+
+    const detailView =
+      document.querySelector('[data-view="detail"]');
+
+    document.querySelectorAll(".app-view").forEach((view) => {
+      view.classList.toggle(
+        "is-active",
+        view === detailView
+      );
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  const sendReply = () => {
+    if (!state.selectedMessage) {
+      showResult(
+        "返信対象のメールが選択されていません。",
+        true
+      );
+      return;
+    }
+
+    const subject =
+      document.querySelector("#viewReply .input")?.value || "";
+
+    const body =
+      document.querySelector(
+        "#viewReply .textarea--large"
+      )?.value || "";
+
+    if (!body.trim()) {
+      showResult(
+        "返信本文を入力してください。",
+        true
+      );
+      return;
+    }
+
+    postToWix(
+      "HD_ORIGIN_STYLE_MAIL_SEND_REPLY",
+      {
+        messageId: state.selectedMessage.id,
+        subject,
+        body
+      }
+    );
+  };
+
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+
+    if (
+      !message ||
+      typeof message !== "object" ||
+      typeof message.type !== "string"
+    ) {
+      return;
+    }
+
+    const payload = message.payload || {};
+
+    switch (message.type) {
+      case "HD_ORIGIN_STYLE_MAIL_PAGE_READY":
+        state.pageReady = true;
+        state.backendConnected =
+          Boolean(payload.backendConnected);
+
+        state.googleWorkspaceConnected =
+          Boolean(payload.googleWorkspaceConnected);
+
+        postToWix(
+          "HD_ORIGIN_STYLE_MAIL_REQUEST_MESSAGES"
+        );
+        break;
+
+      case "HD_ORIGIN_STYLE_MAIL_MESSAGES_RESULT":
+        if (!payload.ok) {
+          showResult(
+            `メール一覧取得失敗: ${
+              payload.error || "UNKNOWN_ERROR"
+            }`,
+            true
+          );
+          return;
+        }
+
+        state.messages = Array.isArray(payload.messages)
+          ? payload.messages
+          : [];
+
+        renderMessages(state.messages);
+        break;
+
+      case "HD_ORIGIN_STYLE_MAIL_SEND_REPLY_RESULT":
+        if (!payload.ok) {
+          if (
+            payload.error ===
+            "GOOGLE_WORKSPACE_NOT_CONNECTED"
+          ) {
+            showResult(
+              "Google Workspaceはまだ接続されていません。",
+              true
+            );
+            return;
+          }
+
+          showResult(
+            `返信処理失敗: ${
+              payload.error || "UNKNOWN_ERROR"
+            }`,
+            true
+          );
+          return;
+        }
+
+        showResult("返信を送信しました。");
+        break;
+
+      case "HD_ORIGIN_STYLE_MAIL_ERROR":
+        showResult(
+          payload.message ||
+          payload.error ||
+          "Wix側でエラーが発生しました。",
+          true
+        );
+        break;
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const filter = tab.dataset.filter || "all";
+
+        document.querySelectorAll(".tab").forEach(
+          (target) => {
+            target.classList.toggle(
+              "active",
+              target === tab
+            );
+          }
+        );
+
+        applyCurrentFilter(filter);
+      });
+    });
+
+    const sendButton =
+      document.getElementById("sendButton");
+
+    if (sendButton) {
+      const replacement =
+        sendButton.cloneNode(true);
+
+      sendButton.replaceWith(replacement);
+      replacement.addEventListener("click", sendReply);
+    }
+
+    window.setTimeout(() => {
+      postToWix("HD_ORIGIN_STYLE_MAIL_READY");
+    }, 250);
+  });
+})();
+</script>
+<!-- hd-origin-style-mail-wix-bridge-end -->
+</body>
+</html>

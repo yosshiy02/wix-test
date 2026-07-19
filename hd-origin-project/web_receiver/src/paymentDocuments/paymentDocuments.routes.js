@@ -4082,9 +4082,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
   const requiredAiFields = [
     ["draft.document_group", draft.document_group],
     ["draft.specialist_route_code", draft.specialist_route_code],
-    ["draft.specialist_route_label", draft.specialist_route_label],
-    ["draft.analysis_system_code", draft.analysis_system_code],
-    ["draft.analysis_system_label", draft.analysis_system_label]
+    ["draft.analysis_system_code", draft.analysis_system_code]
   ];
 
   const missingAiFields = requiredAiFields
