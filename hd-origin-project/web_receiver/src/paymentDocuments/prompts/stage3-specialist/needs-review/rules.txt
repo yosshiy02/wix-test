@@ -5,14 +5,15 @@
 - 既存マスタにない取引先や科目の場合は、その旨を明記する。
 - fieldsは人間が判断しやすい日本語ラベルを使用する。
 
-HD_ORIGIN_NEEDS_REVIEW_VALUE_RULES_20260719_START
+HD_ORIGIN_NEEDS_REVIEW_GENERIC_JSON_RULES_20260719_START
 
-- draft.unreadable_reasonを必ず返す。
-- draft.candidate_document_types_jsonをJSON配列で返す。
-- draft.missing_fields_jsonをJSON配列で返す。
-- 配列を文字列化しない。
-- 候補または不足がない場合は空配列を返す。
-- API、Access、HTML側で値を後付けしない。
-- AI自身がOCR本文を根拠に判断する。
+会計外書類の判定・出力ルール:
+- 読めるが会計対象外の書類と、文字が読めない書類を明確に区別する。
+- unreadable_reasonは本当に読取不能な場合だけ使用し、必須項目にしない。
+- candidate_document_types_jsonを必須項目にしない。
+- missing_fields_jsonを必須項目にしない。
+- draft.fieldsにはAIがOCR本文から抽出した値だけを返す。
+- visible_field_labelsには実際に返したfieldsに対応する表示名だけを返す。
+- Node、Access、HTML側で補完する前提の値を作らない。
 
-HD_ORIGIN_NEEDS_REVIEW_VALUE_RULES_20260719_END
+HD_ORIGIN_NEEDS_REVIEW_GENERIC_JSON_RULES_20260719_END
