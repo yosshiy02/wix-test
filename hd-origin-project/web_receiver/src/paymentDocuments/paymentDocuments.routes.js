@@ -926,6 +926,247 @@ async function ocrOneFile(fileName) {
   }
 }
 
+/* PAYMENT_DOCUMENT_RAW_RECEIPT_MOVE_TO_DONE_20260720_START */
+function paymentDocumentRawReceiptDirectoryPairs() {
+  const pairs = [];
+  const seen = new Set();
+
+  function addPair(sourceDir, destinationDir) {
+    if (!sourceDir || !destinationDir) {
+      return;
+    }
+
+    const source = path.resolve(sourceDir);
+    const destination = path.resolve(destinationDir);
+    const key =
+      source.toLowerCase() +
+      "|" +
+      destination.toLowerCase();
+
+    if (seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+
+    pairs.push({
+      sourceDir: source,
+      destinationDir: destination
+    });
+  }
+
+  const configuredRoots = [
+    process.env.DROPBOX_ROOT,
+    process.env.HD_ORIGIN_DROPBOX_ROOT
+  ].filter(Boolean);
+
+  for (const rootValue of configuredRoots) {
+    const root = path.resolve(String(rootValue));
+
+    addPair(
+      path.join(root, "会社", "レシート", "未OCR"),
+      path.join(root, "会社", "レシート", "済OCR")
+    );
+
+    addPair(
+      path.join(
+        root,
+        "Dropbox",
+        "会社",
+        "レシート",
+        "未OCR"
+      ),
+      path.join(
+        root,
+        "Dropbox",
+        "会社",
+        "レシート",
+        "済OCR"
+      )
+    );
+  }
+
+  for (
+    let code = "C".charCodeAt(0);
+    code <= "Z".charCodeAt(0);
+    code++
+  ) {
+    const drive = String.fromCharCode(code) + ":\\";
+
+    addPair(
+      path.join(
+        drive,
+        "DROPBOX",
+        "Dropbox",
+        "会社",
+        "レシート",
+        "未OCR"
+      ),
+      path.join(
+        drive,
+        "DROPBOX",
+        "Dropbox",
+        "会社",
+        "レシート",
+        "済OCR"
+      )
+    );
+
+    addPair(
+      path.join(
+        drive,
+        "Dropbox",
+        "会社",
+        "レシート",
+        "未OCR"
+      ),
+      path.join(
+        drive,
+        "Dropbox",
+        "会社",
+        "レシート",
+        "済OCR"
+      )
+    );
+  }
+
+  return pairs;
+}
+
+function safeRawReceiptRelativePath(value) {
+  const parts = String(value || "")
+    .replace(/\\/g, "/")
+    .split("/")
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  if (
+    parts.length > 0 &&
+    parts[0].toLowerCase() === "未ocr"
+  ) {
+    parts.shift();
+  }
+
+  if (
+    parts.length < 1 ||
+    parts.includes("..") ||
+    parts.some(part => part.includes("\0"))
+  ) {
+    return "";
+  }
+
+  return parts.join(path.sep);
+}
+
+function resolveRawReceiptSource(meta) {
+  const relativePath = safeRawReceiptRelativePath(
+    meta.rawSourceRelativePath
+  );
+
+  const originalFileName = path.basename(
+    String(
+      meta.rawSourceOriginalFileName ||
+      meta.originalFileName ||
+      ""
+    )
+  );
+
+  for (const pair of paymentDocumentRawReceiptDirectoryPairs()) {
+    if (!fs.existsSync(pair.sourceDir)) {
+      continue;
+    }
+
+    const candidates = [];
+
+    if (relativePath) {
+      candidates.push(
+        path.resolve(
+          pair.sourceDir,
+          relativePath
+        )
+      );
+    }
+
+    if (originalFileName) {
+      candidates.push(
+        path.resolve(
+          pair.sourceDir,
+          originalFileName
+        )
+      );
+    }
+
+    for (const candidate of candidates) {
+      const sourceRoot = path.resolve(pair.sourceDir);
+
+      if (
+        candidate !== sourceRoot &&
+        !candidate.startsWith(sourceRoot + path.sep)
+      ) {
+        continue;
+      }
+
+      if (
+        fs.existsSync(candidate) &&
+        fs.statSync(candidate).isFile()
+      ) {
+        return {
+          sourcePath: candidate,
+          sourceDir: pair.sourceDir,
+          destinationDir: pair.destinationDir
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function moveRawReceiptToOcrDone(meta) {
+  const resolved = resolveRawReceiptSource(meta);
+
+  if (!resolved) {
+    return {
+      status: "not_found",
+      moved: false,
+      sourcePath: "",
+      destinationPath: "",
+      error: ""
+    };
+  }
+
+  ensureDir(resolved.destinationDir);
+
+  const destinationPath = uniqueFilePath(
+    resolved.destinationDir,
+    path.basename(resolved.sourcePath)
+  );
+
+  try {
+    moveFileAllowCrossDevice(
+      resolved.sourcePath,
+      destinationPath
+    );
+
+    return {
+      status: "moved",
+      moved: true,
+      sourcePath: resolved.sourcePath,
+      destinationPath,
+      error: ""
+    };
+  } catch (err) {
+    return {
+      status: "move_error",
+      moved: false,
+      sourcePath: resolved.sourcePath,
+      destinationPath,
+      error: err.message || String(err)
+    };
+  }
+}
+/* PAYMENT_DOCUMENT_RAW_RECEIPT_MOVE_TO_DONE_20260720_END */
+
 async function saveOneInboxItem(fileName) {
   const filePath = filePathFromName(fileName);
 
@@ -1085,6 +1326,31 @@ async function saveOneInboxItem(fileName) {
       );
     }
 
+    const rawSourceMove =
+      moveRawReceiptToOcrDone(finalMeta);
+
+    finalMeta.rawSourceMoveStatus =
+      rawSourceMove.status;
+    finalMeta.rawSourceMoved =
+      rawSourceMove.moved;
+    finalMeta.rawSourcePath =
+      rawSourceMove.sourcePath;
+    finalMeta.rawSourceDonePath =
+      rawSourceMove.destinationPath;
+    finalMeta.rawSourceMoveError =
+      rawSourceMove.error;
+    finalMeta.rawSourceMovedAt =
+      rawSourceMove.moved
+        ? new Date().toISOString()
+        : "";
+
+    if (movedMetaPath) {
+      writeJson(
+        movedMetaPath,
+        finalMeta
+      );
+    }
+
     return {
       ok: true,
       fileName: moved.fileName,
@@ -1092,6 +1358,11 @@ async function saveOneInboxItem(fileName) {
       originalFileName:
         moved.originalFileName,
       status: "saved",
+      rawSourceMoveStatus: rawSourceMove.status,
+      rawSourceMoved: rawSourceMove.moved,
+      rawSourcePath: rawSourceMove.sourcePath,
+      rawSourceDonePath: rawSourceMove.destinationPath,
+      rawSourceMoveError: rawSourceMove.error,
       savedAt:
         moved.savedAt ||
         now,
@@ -10711,7 +10982,11 @@ async function handlePaymentDocumentRoutes(req, res) {
   if (req.method === "POST" && urlPath === "/api/payment-documents/scan-inbox/upload") {
     try {
       const body = await readBody(req);
-      const originalFileName = String(body.fileName || "payment-document").trim();
+      const originalFileName = String(
+        body.originalFileName ||
+        body.fileName ||
+        "payment-document"
+      ).trim();
       const safeOriginal = safeFileName(originalFileName);
       const parsed = parseDataUrl(body.dataUrl);
 
@@ -10749,6 +11024,11 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       writeJson(metaPathFor(filePath), {
         originalFileName,
+        rawSourceRelativePath:
+          body.originalRelativePath ||
+          body.originalFileName ||
+          originalFileName,
+        rawSourceOriginalFileName: originalFileName,
         savedFileName: saveName,
         mimeType: body.mimeType || parsed.mimeType,
         sizeBytes: parsed.buffer.length,

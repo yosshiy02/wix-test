@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -338,6 +338,120 @@
     });
   }
 
+  /* PAYMENT_DOCUMENT_IMAGE_UPLOAD_COMPRESSION_20260720_START */
+  const PAYMENT_DOCUMENT_UPLOAD_MIN_BYTES = 60 * 1024;
+  const PAYMENT_DOCUMENT_UPLOAD_MAX_BYTES = 100 * 1024;
+
+
+  function dataUrlBytes(dataUrl) {
+    const base64 = String(dataUrl || "").split(",")[1] || "";
+    return Math.round(base64.length * 3 / 4);
+  }
+
+
+  function fileNameWithoutExt(fileName) {
+    return String(fileName || "payment-document").replace(/\.[^.]+$/, "");
+  }
+
+
+  function readFileAsImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const img = new Image();
+
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+
+  function drawImageToDataUrl(img, maxSide, quality) {
+    let w = img.naturalWidth;
+    let h = img.naturalHeight;
+
+    const longSide = Math.max(w, h);
+
+    if (longSide > maxSide) {
+      const scale = maxSide / longSide;
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+
+  async function preparePaymentDocumentImageForUpload(file) {
+    if (file.size <= PAYMENT_DOCUMENT_UPLOAD_MAX_BYTES) {
+      return {
+        dataUrl: await readFileAsDataUrl(file),
+        fileName: file.name,
+        mimeType: file.type || "image/jpeg",
+        originalBytes: file.size,
+        uploadBytes: file.size,
+        compressed: false
+      };
+    }
+
+    const img = await readFileAsImage(file);
+
+    const attempts = [
+      { maxSide: 1600, quality: 0.72 },
+      { maxSide: 1400, quality: 0.68 },
+      { maxSide: 1200, quality: 0.64 },
+      { maxSide: 1000, quality: 0.58 },
+      { maxSide: 900,  quality: 0.52 },
+      { maxSide: 800,  quality: 0.48 },
+      { maxSide: 700,  quality: 0.44 },
+      { maxSide: 600,  quality: 0.40 },
+      { maxSide: 520,  quality: 0.36 }
+    ];
+
+    let bestDataUrl = "";
+    let bestBytes = Number.MAX_SAFE_INTEGER;
+
+    for (const attempt of attempts) {
+      const dataUrl = drawImageToDataUrl(img, attempt.maxSide, attempt.quality);
+      const bytes = dataUrlBytes(dataUrl);
+
+      if (bytes < bestBytes) {
+        bestDataUrl = dataUrl;
+        bestBytes = bytes;
+      }
+
+      if (bytes >= PAYMENT_DOCUMENT_UPLOAD_MIN_BYTES && bytes <= PAYMENT_DOCUMENT_UPLOAD_MAX_BYTES) {
+        break;
+      }
+    }
+
+    return {
+      dataUrl: bestDataUrl,
+      fileName: fileNameWithoutExt(file.name) + "_compressed.jpg",
+      mimeType: "image/jpeg",
+      originalBytes: file.size,
+      uploadBytes: bestBytes,
+      compressed: true
+    };
+  }
+  /* PAYMENT_DOCUMENT_IMAGE_UPLOAD_COMPRESSION_20260720_END */
+
   async function uploadSelectedFiles() {
     return uploadSelectedFilesFromInput("uploadInput");
   }
@@ -377,15 +491,21 @@
           "ファイル: " + file.name
         );
 
-        const dataUrl = await readFileAsDataUrl(file);
+        const prepared = await preparePaymentDocumentImageForUpload(file);
 
         const res = await fetch("/api/payment-documents/scan-inbox/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json; charset=utf-8" },
           body: JSON.stringify({
-            fileName: file.name,
-            mimeType: file.type || "",
-            dataUrl,
+            fileName: prepared.fileName,
+            mimeType: prepared.mimeType,
+            dataUrl: prepared.dataUrl,
+            originalFileName: file.name,
+            originalRelativePath: file.webkitRelativePath || file.name,
+            /* PAYMENT_DOCUMENT_RAW_RECEIPT_MOVE_TO_DONE_20260720 */
+            originalBytes: prepared.originalBytes,
+            uploadBytes: prepared.uploadBytes,
+            compressed: prepared.compressed,
             documentType: "",
             destination: "",
             sourceType: "",
