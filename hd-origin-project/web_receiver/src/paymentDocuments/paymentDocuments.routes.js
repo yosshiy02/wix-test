@@ -832,15 +832,23 @@ async function saveOneInboxItem(fileName) {
   const metaPath = metaPathFor(filePath);
   const current = readJsonSafe(metaPath) || {};
   const stat = fs.statSync(filePath);
-  const ocrText = String(current.ocrRawText || current.ocr_raw_text || current.ocrText || "").trim();
+  const ocrText = String(
+    current.ocrRawText ||
+    current.ocr_raw_text ||
+    current.ocrText ||
+    ""
+  ).trim();
 
   if (!ocrText) {
     return {
       ok: false,
       fileName,
       status: "no_ocr",
-      originalFileName: current.originalFileName || path.basename(filePath),
-      error: "OCR本文が未保存のため、保存できません。"
+      originalFileName:
+        current.originalFileName ||
+        path.basename(filePath),
+      error:
+        "OCR本文が未保存のため、保存できません。"
     };
   }
 
@@ -848,12 +856,22 @@ async function saveOneInboxItem(fileName) {
 
   const next = {
     ...current,
-    originalFileName: current.originalFileName || path.basename(filePath),
-    savedFileName: current.savedFileName || path.basename(filePath),
-    mimeType: current.mimeType || getMimeType(filePath),
-    sizeBytes: current.sizeBytes || stat.size,
+    originalFileName:
+      current.originalFileName ||
+      path.basename(filePath),
+    savedFileName:
+      current.savedFileName ||
+      path.basename(filePath),
+    mimeType:
+      current.mimeType ||
+      getMimeType(filePath),
+    sizeBytes:
+      current.sizeBytes ||
+      stat.size,
 
-    ocrStatus: current.ocrStatus || "ocr_done",
+    ocrStatus:
+      current.ocrStatus ||
+      "ocr_done",
     ocrRawText: ocrText,
     ocr_raw_text: ocrText,
     ocrText,
@@ -870,18 +888,203 @@ async function saveOneInboxItem(fileName) {
     savedByPage: "payment-document-inbox",
     updatedAt: now
   };
-  const moved = movePaymentDocumentToSaved(filePath, next);
 
-  return {
-    ok: true,
-    fileName: moved.fileName,
-    originalFileName: moved.originalFileName,
-    status: "saved",
-    savedAt: moved.savedAt || now,
-    textLength: ocrText.length,
-    savedRelativePath: moved.savedRelativePath,
-    savedMetaRelativePath: moved.savedMetaRelativePath
-  };
+  let moved = null;
+
+  try {
+    moved = movePaymentDocumentToSaved(
+      filePath,
+      next
+    );
+
+    const movedFilePath =
+      safePaymentDocumentFilePathFromRelative(
+        moved.savedRelativePath
+      );
+
+    const movedMetaPath =
+      safePaymentDocumentFilePathFromRelative(
+        moved.savedMetaRelativePath
+      );
+
+    const savedMeta =
+      (
+        movedMetaPath &&
+        fs.existsSync(movedMetaPath)
+      )
+        ? (
+            readJsonSafe(movedMetaPath) ||
+            {}
+          )
+        : {};
+
+    const dbMeta = {
+      ...next,
+      ...savedMeta,
+      originalFileName:
+        moved.originalFileName ||
+        next.originalFileName,
+      savedFileName:
+        moved.fileName ||
+        next.savedFileName,
+      savedRelativePath:
+        moved.savedRelativePath,
+      savedMetaRelativePath:
+        moved.savedMetaRelativePath,
+      savedAt:
+        moved.savedAt ||
+        now,
+      processStatus: "saved",
+      saveStatus: "saved",
+      savedStatus: "saved",
+      evidenceSaved: true,
+      ocrSaved: true,
+      ocrRawText: ocrText,
+      ocr_raw_text: ocrText,
+      ocrText,
+      ocrTextLength: ocrText.length
+    };
+
+    const dbRow =
+      await upsertPaymentDocumentOcrImportWithTransaction(
+        dbMeta,
+        moved.fileName
+      );
+
+    if (
+      !dbRow ||
+      !dbRow.payment_document_ocr_import_id
+    ) {
+      throw new Error(
+        "OCR取込DBレコードを作成できませんでした。"
+      );
+    }
+
+    const finalMeta = {
+      ...dbMeta,
+      dbSaved: true,
+      paymentDocumentOcrImportId:
+        dbRow.payment_document_ocr_import_id,
+      databaseSavedAt:
+        new Date().toISOString()
+    };
+
+    if (movedMetaPath) {
+      writeJson(
+        movedMetaPath,
+        finalMeta
+      );
+    }
+
+    return {
+      ok: true,
+      fileName: moved.fileName,
+      originalInboxFileName: fileName,
+      originalFileName:
+        moved.originalFileName,
+      status: "saved",
+      savedAt:
+        moved.savedAt ||
+        now,
+      textLength:
+        ocrText.length,
+      savedRelativePath:
+        moved.savedRelativePath,
+      savedMetaRelativePath:
+        moved.savedMetaRelativePath,
+      dbSaved: true,
+      paymentDocumentOcrImportId:
+        dbRow.payment_document_ocr_import_id
+    };
+  } catch (err) {
+    if (moved) {
+      const movedFilePath =
+        safePaymentDocumentFilePathFromRelative(
+          moved.savedRelativePath
+        );
+
+      const movedMetaPath =
+        safePaymentDocumentFilePathFromRelative(
+          moved.savedMetaRelativePath
+        );
+
+      try {
+        if (
+          movedFilePath &&
+          fs.existsSync(movedFilePath)
+        ) {
+          moveFileAllowCrossDevice(
+            movedFilePath,
+            filePath
+          );
+        }
+
+        if (
+          movedMetaPath &&
+          fs.existsSync(movedMetaPath)
+        ) {
+          moveFileAllowCrossDevice(
+            movedMetaPath,
+            metaPath
+          );
+        }
+
+        const restoredMeta =
+          readJsonSafe(metaPath) ||
+          next;
+
+        writeJson(
+          metaPath,
+          {
+            ...restoredMeta,
+            processStatus:
+              current.processStatus ||
+              "ocr_done",
+            saveStatus:
+              current.saveStatus ||
+              "",
+            savedStatus:
+              current.savedStatus ||
+              "",
+            evidenceSaved:
+              !!current.evidenceSaved,
+            ocrSaved:
+              !!current.ocrSaved,
+            dbSaved: false,
+            paymentDocumentOcrImportId:
+              current.paymentDocumentOcrImportId ||
+              null,
+            saveError:
+              err.message ||
+              String(err),
+            saveErrorAt:
+              new Date().toISOString()
+          }
+        );
+      } catch (rollbackError) {
+        const combined = new Error(
+          "DB保存失敗後のINBOX復元にも失敗しました。" +
+          " DB_ERROR=" +
+          (
+            err.message ||
+            String(err)
+          ) +
+          " ROLLBACK_ERROR=" +
+          (
+            rollbackError.message ||
+            String(rollbackError)
+          )
+        );
+
+        combined.originalError = err;
+        combined.rollbackError = rollbackError;
+
+        throw combined;
+      }
+    }
+
+    throw err;
+  }
 }
 /* PAYMENT_DOCUMENT_DB_OCR_IMPORTS_20260707_START */
 function textOrEmpty(value) {
