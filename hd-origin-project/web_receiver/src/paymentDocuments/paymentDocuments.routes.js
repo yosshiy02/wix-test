@@ -637,6 +637,25 @@ async function importAccessLocalFileAndRunOcr(body) {
   );
 
   const fileHash = sha256File(validated.filePath);
+
+  /* PAYMENT_DOCUMENT_FIRST_IMPORT_DUPLICATE_CHECK_20260720_START */
+  const duplicateItem = findDuplicateInboxItem(
+    fileHash,
+    validated.sizeBytes
+  );
+
+  if (duplicateItem) {
+    throw new Error(
+      "同じ画像はすでに取り込まれています。既存ファイル: " +
+      (
+        duplicateItem.originalFileName ||
+        duplicateItem.fileName ||
+        "不明"
+      )
+    );
+  }
+  /* PAYMENT_DOCUMENT_FIRST_IMPORT_DUPLICATE_CHECK_20260720_END */
+
   const safeOriginal = safeFileName(validated.fileName);
   const saveName = timestampPrefix() + "_" + safeOriginal;
   const inboxFilePath = path.join(inboxDir(), saveName);
