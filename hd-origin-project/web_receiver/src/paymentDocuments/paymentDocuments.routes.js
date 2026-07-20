@@ -1788,7 +1788,7 @@ async function createAiDraftFromOcrText(ocrText) {
         },
         {
           role: "user",
-          content: appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
+          content: await appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
         }
       ],
       response_format: {
@@ -3783,7 +3783,7 @@ async function callPaymentDocumentOpenAiJson(prompt, systemMessage) {
         },
         {
           role: "user",
-          content: appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
+          content: await appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
         }
       ],
       response_format: {
@@ -3829,9 +3829,9 @@ async function callPaymentDocumentOpenAiJson(prompt, systemMessage) {
 }
 
 async function createTwoStepAiDraftFromOcrText(ocrText) {
-  const classificationPrompt = appendPaymentDocumentExternalPrompt(
+  const classificationPrompt = await appendPaymentDocumentExternalPrompt(
     buildPaymentDocumentClassificationPrompt(ocrText),
-    selectPaymentDocumentPromptFiles({
+    await selectPaymentDocumentPromptFiles({
       ocrText,
       phase: "classification"
     })
@@ -3851,9 +3851,9 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
   const group = paymentDocumentAiGroupFromDraft(classification);
   const visibleLabels = paymentDocumentAiVisibleFieldLabels(group);
 
-  const detailPrompt = appendPaymentDocumentExternalPrompt(
+  const detailPrompt = await appendPaymentDocumentExternalPrompt(
     buildPaymentDocumentDetailPrompt(ocrText, classification, group, visibleLabels),
-    selectPaymentDocumentPromptFiles({
+    await selectPaymentDocumentPromptFiles({
       ocrText,
       draft: classification,
       group,
@@ -3907,11 +3907,11 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
     visible_field_labels: draft.visible_field_labels || visibleLabels,
     display_mode: "visible_fields_only",
     prompt_rule_files: {
-      classification: selectPaymentDocumentPromptFiles({
+      classification: await selectPaymentDocumentPromptFiles({
         ocrText,
         phase: "classification"
       }),
-      detail: selectPaymentDocumentPromptFiles({
+      detail: await selectPaymentDocumentPromptFiles({
         ocrText,
         draft: classification,
         group,
@@ -3999,7 +3999,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
     )
   };
 
-  const prompt = appendPaymentDocumentExternalPrompt(
+  const prompt = await appendPaymentDocumentExternalPrompt(
     [
       "あなたは支払書類の専門解析AIです。",
       "",
@@ -4034,7 +4034,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
       "OCR本文:",
       String(ocrText || "")
     ].join("\n"),
-    selectPaymentDocumentPromptFiles(specialistContext)
+    await selectPaymentDocumentPromptFiles(specialistContext)
   );
 
   const response = await callPaymentDocumentOpenAiJson(
@@ -4111,7 +4111,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
     display_mode: "ai_decides_visible_fields",
     image_used: false,
     prompt_rule_files: {
-      specialist: selectPaymentDocumentPromptFiles(specialistContext)
+      specialist: await selectPaymentDocumentPromptFiles(specialistContext)
     },
     steps: [
       {
