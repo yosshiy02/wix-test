@@ -2517,6 +2517,54 @@ function normalizeAiDraftCandidate(value) {
     document_type_code: normalizeAiValueText(draft.document_type_code || normalizePaymentDocumentTypeCodeFromText(fields["書類種別"] || fields["書類区分"] || (draft.ai_summary && draft.ai_summary.document_kind))),
     payment_destination_code: normalizeAiValueText(draft.payment_destination_code || normalizePaymentDestinationCodeFromText(fields["処理先"] || (draft.ai_summary && draft.ai_summary.destination))),
     accounting_category_code: normalizeAiValueText(draft.accounting_category_code),
+    analysis_system_code: normalizeAiValueText(
+      draft.analysis_system_code ||
+      draft.analysisSystemCode ||
+      (draft.ai_summary && draft.ai_summary.analysis_system_code)
+    ),
+
+    analysis_system_label: normalizeAiValueText(
+      draft.analysis_system_label ||
+      draft.analysis_system ||
+      draft.analysisSystemLabel ||
+      (draft.ai_summary && (
+        draft.ai_summary.analysis_system_label ||
+        draft.ai_summary.analysis_system
+      ))
+    ),
+
+    analysis_system_reason: normalizeAiValueText(
+      draft.analysis_system_reason ||
+      draft.analysisSystemReason ||
+      draft.reason ||
+      draft.review_reason ||
+      (draft.ai_summary && (
+        draft.ai_summary.analysis_system_reason ||
+        draft.ai_summary.reason
+      ))
+    ),
+
+    analysis_system_confidence: normalizeAiValueText(
+      draft.analysis_system_confidence ||
+      draft.analysisSystemConfidence ||
+      draft.confidence_label ||
+      draft.ai_confidence ||
+      (draft.ai_summary && (
+        draft.ai_summary.analysis_system_confidence ||
+        draft.ai_summary.confidence_label
+      ))
+    ),
+
+    specialist_route_code: normalizeAiValueText(
+      draft.specialist_route_code ||
+      draft.specialistRouteCode
+    ),
+
+    specialist_route_label: normalizeAiValueText(
+      draft.specialist_route_label ||
+      draft.specialistRouteLabel
+    ),
+
     payable_kind_code: normalizeAiValueText(draft.payable_kind_code),
     source_type_code: normalizeAiValueText(draft.source_type_code),
 
@@ -4460,6 +4508,24 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
     document_type_code: classification.document_type_code,
     payment_destination_code: classification.payment_destination_code,
     accounting_category_code: classification.accounting_category_code,
+    analysis_system_code:
+      classification.analysis_system_code,
+
+    analysis_system_label:
+      classification.analysis_system_label,
+
+    analysis_system_reason:
+      classification.analysis_system_reason,
+
+    analysis_system_confidence:
+      classification.analysis_system_confidence,
+
+    specialist_route_code:
+      classification.specialist_route_code,
+
+    specialist_route_label:
+      classification.specialist_route_label,
+
     payable_kind_code: classification.payable_kind_code,
     source_type_code: classification.source_type_code,
     ai_summary: classification.ai_summary,
