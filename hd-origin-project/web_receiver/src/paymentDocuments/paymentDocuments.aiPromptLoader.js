@@ -257,7 +257,16 @@ async function appendPaymentDocumentExternalPrompt(basePrompt, promptTexts) {
   return parts.join("\n\n");
 }
 
+function loadPaymentDocumentPromptText(_legacyFileName, fallbackText = "") {
+  /*
+    現在の正規プロンプトはPostgreSQLマスタから取得する。
+    この関数は、routes.jsに残る旧ファイル読込形式との互換用であり、
+    ファイル探索・固定分類・後付け判定は行わない。
+  */
+  return String(fallbackText ?? "").trim();
+}
 module.exports = {
+  loadPaymentDocumentPromptText,
   selectPaymentDocumentPromptFiles,
   appendPaymentDocumentExternalPrompt
 };
