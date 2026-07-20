@@ -2753,93 +2753,281 @@ function setDocumentPreview(item) {
   }
 
   async function runAiDraftForItemIndex(index, options = {}) {
-    if (!Array.isArray(items) || index < 0 || index >= items.length) {
-      showResult("解析する書類が見つかりません。");
-      return { ok: false, error: "解析する書類が見つかりません。" };
+    if (
+      !Array.isArray(items) ||
+      index < 0 ||
+      index >= items.length
+    ) {
+      const error =
+        "解析する書類が見つかりません。";
+
+      showResult(error);
+
+      return {
+        ok: false,
+        error
+      };
     }
 
     selectedIndex = index;
     selectItem(index);
 
     const item = items[index];
-    const id = String(ocrImportIdOf(item) || "");
-    const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+
+    const id = String(
+      ocrImportIdOf(item) || ""
+    );
+
+    const name =
+      item.originalFileName ||
+      item.fileName ||
+      ("No." + (index + 1));
 
     if (!id) {
-      const error = "OCR保存IDがないため解析できません。";
+      const error =
+        "OCR保存IDがないため解析できません。";
+
       showResult(error);
-      return { ok: false, name, error };
+
+      return {
+        ok: false,
+        name,
+        error
+      };
     }
 
     if (!options.silent) {
-      showResult("単品仕分け中: " + name + "\n1回目仕分けのみ実行しています。詳細項目抽出は行いません。画像は送信しません。");
+      showResult(
+        "単品仕分け中: " +
+        name +
+        "\n" +
+        "マスタ駆動AIの1回目解析と" +
+        "2回目解析を実行しています。" +
+        "3回目の専門解析は実行しません。" +
+        "画像は送信しません。"
+      );
     }
 
     try {
-      const res = await fetch("/api/payment-documents/ai-sort/" + encodeURIComponent(id), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
+      const res = await fetch(
+        "/api/payment-documents/ai-draft/" +
+        encodeURIComponent(id),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          }
         }
-      });
+      );
 
       const data = await res.json();
 
-      if (!data.ok) {
-        const error = data.error || data.message || "AI仕分け失敗";
-        showResult({ ok: false, name, error, data });
-        return { ok: false, name, error };
+      if (!res.ok || !data.ok) {
+        const error =
+          data.error ||
+          data.message ||
+          (
+            "マスタ駆動AI解析に失敗しました。" +
+            " HTTP=" +
+            res.status
+          );
+
+        showResult({
+          ok: false,
+          name,
+          error,
+          data
+        });
+
+        return {
+          ok: false,
+          name,
+          error
+        };
       }
 
-      item.__aiDraft = data.draft || {};
-      item.__visibleFieldLabels = ["会計区分", "専門解析先", "発行日", "信頼度", "理由"];
-      item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
-      item.__aiSteps = data.ai_steps || [];
+      const draft =
+        data.draft &&
+        typeof data.draft === "object" &&
+        !Array.isArray(data.draft)
+          ? data.draft
+          : {};
 
-      const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft);
-      showVisibleFieldsOnly(item.__visibleFieldLabels);
-      window.__lastAiDraftAppliedCount = appliedCount;
+      const aiSteps =
+        Array.isArray(data.ai_steps)
+          ? data.ai_steps
+          : [];
 
-      renderSortingList();
+      const stepNames =
+        aiSteps.map(step =>
+          String(
+            step &&
+            step.name
+              ? step.name
+              : ""
+          ).trim()
+        );
+
+      if (
+        stepNames.length !== 2 ||
+        stepNames[0] !== "classification" ||
+        stepNames[1] !== "detail"
+      ) {
+        throw new Error(
+          "正規の1回目・2回目解析結果ではありません。" +
+          " ai_steps=" +
+          JSON.stringify(stepNames)
+        );
+      }
+
+      item.__aiDraft = draft;
+
+      item.__visibleFieldLabels =
+        Array.isArray(
+          data.visible_field_labels
+        )
+          ? data.visible_field_labels
+          : (
+              Array.isArray(
+                draft.visible_field_labels
+              )
+                ? draft.visible_field_labels
+                : []
+            );
+
+      item.__documentGroup =
+        data.document_group ||
+        draft.document_group ||
+        "";
+
+      item.__aiSteps = aiSteps;
+
+      if (
+        typeof applyAiDraftToFormHardDebug
+        !== "function"
+      ) {
+        throw new Error(
+          "AI下書きを画面へ反映する関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const appliedCount =
+        applyAiDraftToFormHardDebug(
+          item.__aiDraft
+        );
+
+      if (
+        typeof showVisibleFieldsOnly
+        === "function"
+      ) {
+        showVisibleFieldsOnly(
+          item.__visibleFieldLabels
+        );
+      }
+
+      window.__lastAiDraftAppliedCount =
+        appliedCount;
+
+      if (
+        typeof window
+          .hdOriginRunSortingDraftAutoSave
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+        renderSortingList();
+      }
 
       if (!options.silent) {
         showResult({
           ok: true,
-          message: "単品仕分けが完了しました。画像はOpenAIへ送信していません。",
+          message:
+            "マスタ駆動AIの1回目解析、" +
+            "2回目解析、DB保存が完了しました。" +
+            "3回目解析は実行していません。",
           fileName: name,
-          document_group: item.__documentGroup,
-          visible_field_labels: item.__visibleFieldLabels,
+          ai_steps:
+            item.__aiSteps,
+          document_group:
+            item.__documentGroup,
+          visible_field_labels:
+            item.__visibleFieldLabels,
+          paymentDocumentSortingDraftId:
+            autoSaved
+              .paymentDocumentSortingDraftId ||
+            autoSaved
+              .payment_document_sorting_draft_id ||
+            null,
           appliedCount
         });
       }
-      /* HD_ORIGIN_AI_RESULT_AUTOSAVE_BRIDGE_20260712_START */
-      if (typeof window.hdOriginRunSortingDraftAutoSave !== "function") {
-        throw new Error("仕分け下書き自動保存関数が見つかりません。");
-      }
-
-      const autoSaved = await window.hdOriginRunSortingDraftAutoSave("ai");
-
-      if (!autoSaved || autoSaved.ok !== true) {
-        const saveError =
-          autoSaved && autoSaved.error
-            ? autoSaved.error
-            : "AI仕分け結果の自動保存に失敗しました。";
-
-        throw new Error(saveError);
-      }
-      /* HD_ORIGIN_AI_RESULT_AUTOSAVE_BRIDGE_20260712_END */
 
       return {
         ok: true,
         name,
-        document_group: item.__documentGroup,
-        visible_field_labels: item.__visibleFieldLabels,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        visible_field_labels:
+          item.__visibleFieldLabels,
+        paymentDocumentSortingDraftId:
+          autoSaved
+            .paymentDocumentSortingDraftId ||
+          autoSaved
+            .payment_document_sorting_draft_id ||
+          null,
         appliedCount
       };
-    } catch (error) {
-      const message = error.message || String(error);
-      showResult({ ok: false, name, error: message });
-      return { ok: false, name, error: message };
+    }
+    catch (error) {
+      const message =
+        error.message ||
+        String(error);
+
+      showResult({
+        ok: false,
+        name,
+        error: message
+      });
+
+      return {
+        ok: false,
+        name,
+        error: message
+      };
     }
   }
 
