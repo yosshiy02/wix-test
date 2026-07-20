@@ -272,6 +272,96 @@ function findDuplicateInboxItem(fileHash, sizeBytes) {
 
   return null;
 }
+/* PAYMENT_DOCUMENT_HTML_UPLOAD_DB_DUPLICATE_20260720_START */
+async function findDuplicatePaymentDocument(fileHash, sizeBytes) {
+  const targetHash = String(fileHash || "").trim().toLowerCase();
+  const targetSize = Number(sizeBytes || 0);
+
+  if (!targetHash) {
+    return null;
+  }
+
+  const inboxDuplicate = findDuplicateInboxItem(
+    targetHash,
+    targetSize
+  );
+
+  if (inboxDuplicate) {
+    return {
+      ...inboxDuplicate,
+      duplicateSource: "scan-inbox"
+    };
+  }
+
+  const result = await db.query(`
+    SELECT
+      payment_document_ocr_import_id,
+      original_file_name,
+      saved_file_name,
+      mime_type,
+      size_bytes,
+      sha256,
+      process_status,
+      save_status,
+      saved_relative_path,
+      saved_at
+    FROM accounting.payment_document_ocr_imports
+    WHERE deleted_at IS NULL
+      AND LOWER(COALESCE(sha256, '')) = $1
+      AND (
+        $2::bigint <= 0
+        OR size_bytes IS NULL
+        OR size_bytes = $2::bigint
+      )
+    ORDER BY
+      payment_document_ocr_import_id DESC
+    LIMIT 1
+  `, [
+    targetHash,
+    targetSize
+  ]);
+
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    duplicateSource: "database",
+    paymentDocumentOcrImportId:
+      row.payment_document_ocr_import_id,
+    fileName:
+      row.saved_file_name ||
+      row.original_file_name,
+    originalFileName:
+      row.original_file_name ||
+      row.saved_file_name,
+    savedFileName:
+      row.saved_file_name ||
+      row.original_file_name,
+    mimeType:
+      row.mime_type ||
+      "",
+    sizeBytes:
+      row.size_bytes,
+    sha256:
+      row.sha256,
+    processStatus:
+      row.process_status ||
+      "saved",
+    saveStatus:
+      row.save_status ||
+      "saved",
+    savedRelativePath:
+      row.saved_relative_path ||
+      "",
+    savedAt:
+      row.saved_at ||
+      ""
+  };
+}
+/* PAYMENT_DOCUMENT_HTML_UPLOAD_DB_DUPLICATE_20260720_END */
 
 function getMimeType(fileName) {
   const ext = path.extname(String(fileName || "")).toLowerCase();
@@ -10635,7 +10725,10 @@ async function handlePaymentDocumentRoutes(req, res) {
       }
 
       const fileHash = sha256Buffer(parsed.buffer);
-      const duplicateItem = findDuplicateInboxItem(fileHash, parsed.buffer.length);
+      const duplicateItem = await findDuplicatePaymentDocument(
+        fileHash,
+        parsed.buffer.length
+      );
 
       if (duplicateItem) {
         sendJson(res, 200, {
