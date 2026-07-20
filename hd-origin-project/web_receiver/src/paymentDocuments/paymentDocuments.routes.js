@@ -4122,14 +4122,19 @@ function paymentDocumentAiAllFieldLabels() {
 function paymentDocumentAiVisibleFieldLabels(group) {
   const common = [
     "書類区分", "処理先", "支払対象", "未払登録対象", "経費登録対象", "税金・公的支払", "契約・保険・リース", "AI信頼度", "AI判定理由",
-    "書類区分", "証憑区分", "書類名", "発行元", "支払先", "宛名", "会社名", "個人名", "住所", "電話番号",
+    "証憑区分", "書類名", "発行元", "支払先", "宛名", "会社名", "個人名", "住所", "電話番号",
     "書類日付", "発行日", "支払期限・納期限",
     "請求・支払金額", "合計金額", "税込金額",
-    "会計区分", "処理先", "未払種別", "支払先マスタ候補", "勘定科目", "税区分", "対象者", "目的", "部門", "摘要",
+    "会計区分", "未払種別", "支払先マスタ候補", "勘定科目", "税区分", "対象者", "目的", "部門", "摘要",
     "会社負担可否", "個人負担混在", "未払登録", "買掛登録", "社内メモ", "要確認メモ"
   ];
 
   const byGroup = {
+    receipt: [
+      "領収書番号", "登録番号", "取引日・利用日", "決済日",
+      "税抜金額", "消費税額", "10%対象金額", "10%消費税",
+      "8%対象金額", "8%消費税", "支払方法", "明細候補"
+    ],
     tax: [
       "納付番号", "通知書番号", "管理番号", "税目", "納付先", "年度", "期別",
       "延滞金", "非課税・不課税", "明細候補"
@@ -4137,8 +4142,8 @@ function paymentDocumentAiVisibleFieldLabels(group) {
     invoice: [
       "請求書番号", "登録番号", "法人番号", "請求日", "締日", "支払予定日",
       "税抜金額", "消費税額", "10%対象金額", "10%消費税", "8%対象金額", "8%消費税",
-      "支払方法", "支払状態", "振込先銀行", "銀行コード", "支店名", "支店コード", "口座種別", "口座番号", "口座名義",
-      "インボイス区分", "明細候補"
+      "支払方法", "支払状態", "振込先銀行", "銀行コード", "支店名", "支店コード",
+      "口座種別", "口座番号", "口座名義", "インボイス区分", "明細候補"
     ],
     card: [
       "カード会社", "カード名", "カード番号下4桁", "取引日・利用日", "引落日", "決済日",
@@ -4148,19 +4153,13 @@ function paymentDocumentAiVisibleFieldLabels(group) {
       "お客様番号", "公共料金お客様番号", "使用期間", "使用量", "対象開始日", "対象終了日",
       "引落日", "支払方法", "支払状態", "明細候補"
     ],
-    insurance: [
-      "契約番号", "保険種類", "対象開始日", "対象終了日", "契約開始日", "契約終了日", "更新日",
-      "支払回数", "支払方法", "明細候補"
-    ],
-    lease: [
-      "契約番号", "リース物件", "対象開始日", "対象終了日", "契約開始日", "契約終了日", "更新日",
-      "支払回数", "支払方法", "明細候補"
-    ],
-    mail: [
-      "メール", "メール件名", "メール送信者", "メール受信日時", "添付ファイル名", "ダウンロード日", "Webサイト"
-    ],
     contract: [
-      "契約番号", "契約開始日", "契約終了日", "更新日", "担当者名", "部署名", "明細候補"
+      "契約番号", "保険種類", "リース物件", "対象開始日", "対象終了日",
+      "契約開始日", "契約終了日", "更新日", "支払回数", "支払方法", "明細候補"
+    ],
+    reference: [
+      "注文番号", "管理番号", "取引番号", "納品日",
+      "税抜金額", "消費税額", "明細候補"
     ],
     other: [
       "管理番号", "お客様番号", "取引番号", "注文番号", "明細候補"
@@ -4175,6 +4174,26 @@ function paymentDocumentAiGroupFromDraft(draft) {
   const d = draft && typeof draft === "object" ? draft : {};
   const summary = d.ai_summary && typeof d.ai_summary === "object" ? d.ai_summary : {};
   const fields = d.fields && typeof d.fields === "object" ? d.fields : {};
+
+  const analysisSystemCode = String(
+    d.analysis_system_code || ""
+  ).trim().toLowerCase();
+
+  if (analysisSystemCode === "invoice_payable_analysis") return "invoice";
+  if (analysisSystemCode === "receipt_evidence_analysis") return "receipt";
+  if (analysisSystemCode === "tax_public_analysis") return "tax";
+  if (
+    analysisSystemCode === "card_statement_analysis" ||
+    analysisSystemCode === "card_payment_analysis"
+  ) return "card";
+  if (analysisSystemCode === "utility_communication_analysis") return "utility";
+  if (analysisSystemCode === "contract_insurance_lease_analysis") return "contract";
+  if (
+    analysisSystemCode === "reference_check_analysis" ||
+    analysisSystemCode === "delivery_support_analysis"
+  ) return "reference";
+  if (analysisSystemCode === "needs_review_analysis") return "other";
+
   const text = [
     d.document_type_code,
     d.payment_destination_code,
@@ -4190,14 +4209,62 @@ function paymentDocumentAiGroupFromDraft(draft) {
     fields["契約・保険・リース"]
   ].join(" ").toLowerCase();
 
-  if (text.includes("tax_payment_notice") || text.includes("tax_public") || text.includes("tax") || text.includes("税") || text.includes("納税") || text.includes("納付")) return "tax";
-  if (text.includes("card_statement") || text.includes("card_payable") || text.includes("カード")) return "card";
-  if (text.includes("utility_notice") || text.includes("public_utility") || text.includes("公共") || text.includes("電気") || text.includes("水道") || text.includes("ガス")) return "utility";
-  if (text.includes("insurance_notice") || text.includes("insurance") || text.includes("保険")) return "insurance";
-  if (text.includes("lease_contract") || text.includes("lease") || text.includes("リース")) return "lease";
-  if (text.includes("mail_saved") || text.includes("メール")) return "mail";
-  if (text.includes("contract") || text.includes("契約")) return "contract";
-  if (text.includes("invoice") || text.includes("payable") || text.includes("請求")) return "invoice";
+  if (
+    text.includes("receipt") ||
+    text.includes("領収") ||
+    text.includes("レシート")
+  ) return "receipt";
+
+  if (
+    text.includes("tax_payment_notice") ||
+    text.includes("tax_public") ||
+    text.includes("tax") ||
+    text.includes("税") ||
+    text.includes("納税") ||
+    text.includes("納付")
+  ) return "tax";
+
+  if (
+    text.includes("card_statement") ||
+    text.includes("card_payable") ||
+    text.includes("カード")
+  ) return "card";
+
+  if (
+    text.includes("utility_notice") ||
+    text.includes("public_utility") ||
+    text.includes("公共") ||
+    text.includes("電気") ||
+    text.includes("水道") ||
+    text.includes("ガス") ||
+    text.includes("通信")
+  ) return "utility";
+
+  if (
+    text.includes("insurance_notice") ||
+    text.includes("insurance") ||
+    text.includes("保険") ||
+    text.includes("lease_contract") ||
+    text.includes("lease") ||
+    text.includes("リース") ||
+    text.includes("contract") ||
+    text.includes("契約")
+  ) return "contract";
+
+  if (
+    text.includes("delivery_note") ||
+    text.includes("納品") ||
+    text.includes("注文書") ||
+    text.includes("見積書") ||
+    text.includes("検収書")
+  ) return "reference";
+
+  if (
+    text.includes("invoice") ||
+    text.includes("payable") ||
+    text.includes("請求")
+  ) return "invoice";
+
   return "other";
 }
 
@@ -4210,7 +4277,12 @@ function buildPaymentDocumentClassificationPrompt(ocrText) {
     "絶対ルール:",
     "- 画像を見た前提の判断は禁止。",
     "- OCR本文にない情報を作らない。",
-    "- 迷う場合は needs_review を使う。",
+    "- analysis_system_codeは、提供された専門解析先候補から必ず1つ選ぶ。",
+    "- analysis_system_codeを空文字にしない。",
+    "- analysis_system_label、analysis_system_reason、analysis_system_confidenceも必ず返す。",
+    "- source_type_codeをanalysis_system_codeの代用にしない。",
+    "- 迷う場合のみneeds_review_analysisを選ぶ。",
+    "- サーバー側の固定値や後付け判定を前提にしない。",
     "",
     "document_type_code候補:",
     "invoice, tax_payment_notice, receipt, web_statement, card_statement, utility_notice, insurance_notice, lease_contract, mail_saved, contract, other",
@@ -4224,11 +4296,20 @@ function buildPaymentDocumentClassificationPrompt(ocrText) {
     "payable_kind_code候補:",
     "accounts_payable, unpaid, accrued_expense, card_payable, other",
     "",
+    "analysis_system_code候補:",
+    "invoice_payable_analysis, receipt_evidence_analysis, tax_public_analysis, card_statement_analysis, utility_communication_analysis, contract_insurance_lease_analysis, reference_check_analysis, needs_review_analysis",
+    "",
     "返すJSON形式:",
     "{",
     '  "document_type_code": "",',
     '  "payment_destination_code": "",',
     '  "accounting_category_code": "",',
+    '  "analysis_system_code": "",',
+    '  "analysis_system_label": "",',
+    '  "analysis_system_reason": "",',
+    '  "analysis_system_confidence": "",',
+    '  "specialist_route_code": "",',
+    '  "specialist_route_label": "",',
     '  "payable_kind_code": "",',
     '  "source_type_code": "",',
     '  "ai_summary": {',
