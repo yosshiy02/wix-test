@@ -4240,7 +4240,6 @@ async function runSelectedAiDrafts() {
 
     return String(
       row.name ||
-      row.master_name ||
       row.account_name ||
       row.method_name ||
       row.tax_name ||
@@ -4251,6 +4250,13 @@ async function runSelectedAiDrafts() {
       row.department_name ||
       row.invoice_type_name ||
       row.evidence_type_name ||
+      row.document_type_name ||
+      row.payment_destination_name ||
+      row.accounting_category_name ||
+      row.payable_kind_name ||
+      row.payment_source_type_name ||
+      row.analysis_system_name ||
+      row.specialist_analysis_name ||
       ""
     ).trim();
   }
@@ -4270,6 +4276,8 @@ async function runSelectedAiDrafts() {
       row.department_id ??
       row.invoice_type_id ??
       row.evidence_type_id ??
+      row.analysis_system_id ??
+      row.specialist_analysis_id ??
       "";
 
     return String(id || masterRowName(row) || "");
@@ -4335,6 +4343,7 @@ async function runSelectedAiDrafts() {
       const option = document.createElement("option");
       option.value = value;
       option.dataset.name = name;
+      option.dataset.code = masterRowCode(row);
       option.textContent = labelText;
       select.appendChild(option);
     }
@@ -4448,6 +4457,7 @@ async function runSelectedAiDrafts() {
     if (!row) return "";
 
     return String(
+      row.code ||
       row.account_code ||
       row.payment_method_code ||
       row.tax_category_code ||
@@ -4458,6 +4468,8 @@ async function runSelectedAiDrafts() {
       row.accounting_category_code ||
       row.payable_kind_code ||
       row.payment_source_type_code ||
+      row.analysis_system_code ||
+      row.specialist_analysis_code ||
       ""
     ).trim();
   }
@@ -4549,6 +4561,7 @@ async function runSelectedAiDrafts() {
       const option = document.createElement("option");
       option.value = value;
       option.dataset.name = name;
+      option.dataset.code = masterRowCode(row);
 
       if (code) {
         option.dataset.code = code;
@@ -4686,6 +4699,7 @@ async function runSelectedAiDrafts() {
       const option = document.createElement("option");
       option.value = value;
       option.dataset.name = name;
+      option.dataset.code = masterRowCode(row);
 
       if (code) {
         option.dataset.code = code;
@@ -7413,6 +7427,8 @@ const directNames = [
 
 </body>
 </html>
+
+
 
 
 
