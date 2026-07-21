@@ -129,6 +129,16 @@
               </select>
             </label>
 
+            <label>
+              取込媒体
+              <select class="draft-field master-select"
+                      id="draftPaymentSourceType"
+                      data-master-type="payment_source_types"
+                      data-master-label="取込媒体">
+                <option value="">マスタ読込中.</option>
+              </select>
+            </label>
+
             <label hidden aria-hidden="true" data-internal-field="payment-destination">
               処理先
               <select class="draft-field master-select"
@@ -4173,6 +4183,7 @@ async function runSelectedAiDrafts() {
     { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
     { id: "draftDestination", type: "payment_destinations", label: "処理先" },
     { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
+    { id: "draftPaymentSourceType", type: "payment_source_types", label: "取込媒体" },
     { id: "draftPayableKind", type: "payable_kinds", label: "未払種別" },
 
     { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
@@ -5940,22 +5951,52 @@ const directNames = [
         documentTypeCode
       );
 
-    const documentTypeLabel = firstText(currentDraft.document_type_label);
+    const documentTypeLabel = firstText(
+      currentDraft.document_type_label,
+      masterName(documentTypeMaster)
+    );
 
     const payableKindCode = "";
     const payableKindMaster = null;
     const payableKindLabel = "";
 
-    const destinationLabel = firstText(currentDraft.payment_destination_label);
+    const destinationMaster =
+      masterRowForCode(
+        "payment_destinations",
+        currentDraft.payment_destination_code
+      );
 
-    const accountingCategoryLabel = firstText(currentDraft.accounting_category_label);
+    const destinationLabel = firstText(
+      currentDraft.payment_destination_label,
+      masterName(destinationMaster)
+    );
+
+    const accountingCategoryMaster =
+      masterRowForCode(
+        "accounting_categories",
+        currentDraft.accounting_category_code
+      );
+
+    const accountingCategoryLabel = firstText(
+      currentDraft.accounting_category_label,
+      masterName(accountingCategoryMaster)
+    );
 
     const analysisSystemCode = firstText(
       currentDraft.analysis_system_code,
       aiSummary.analysis_system_code
     );
 
-    const analysisSystemLabel = firstText(currentDraft.analysis_system_label);
+    const analysisSystemMaster =
+      masterRowForCode(
+        "analysis_systems",
+        analysisSystemCode
+      );
+
+    const analysisSystemLabel = firstText(
+      currentDraft.analysis_system_label,
+      masterName(analysisSystemMaster)
+    );
 
     const visibleFieldLabels =
       selectedItem &&
@@ -7483,7 +7524,7 @@ const saveDraft = Object.assign(
     pushField(fields, base, "下書き状態", "draftStatus", draft.draftStatus || draft.draft_status || "", "database_latest_sorting_draft");
     pushField(fields, base, "人間確認状態", "humanCheckStatus", draft.humanCheckStatus || draft.human_check_status || "", "database_latest_sorting_draft");
 
-    pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || masterName(masterRowForCode("document_types", draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "")) || draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI仕分け", "処理先", "paymentDestinationLabel", draft.paymentDestinationLabel || draft.payment_destination_label || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI仕分け", "会計区分", "accountingCategoryLabel", draft.accountingCategoryLabel || draft.accounting_category_label || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI仕分け", "未払種別", "payableKindLabel", draft.payableKindLabel || draft.payable_kind_label || "", "database_latest_sorting_draft");
