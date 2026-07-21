@@ -2257,8 +2257,8 @@ function setDocumentPreview(item) {
     put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
-    put("draftAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
+    put("draftAiConfidence", "AI信頼度", draft.analysis_system_confidence);
+    put("draftAiReason", "AI判定理由", draft.analysis_system_reason);
 
     put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
     put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
@@ -2289,7 +2289,7 @@ function setDocumentPreview(item) {
     put("draftCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
 
     put("draftDocumentDate", "書類日付", fields["書類日付"] || draft.issue_date);
-    put("draftIssueDate", "発行日", fields["発行日"] || draft.issue_date);
+    put("draftIssueDate", "発行日", fields.document_date || draft.document_date);
     put("draftBillingDate", "請求日", fields["請求日"] || draft.issue_date);
     put("draftTransactionDate", "取引日・利用日", fields["取引日・利用日"]);
     put("draftDeliveryDate", "納品日", fields["納品日"]);

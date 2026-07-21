@@ -1,4 +1,4 @@
-﻿const pool = require("../db");
+const pool = require("../db");
 
 async function getMasters() {
   const [
@@ -204,11 +204,12 @@ async function getMasters() {
     `),
     pool.query(`
       SELECT
-        specialist_analysis_id AS analysis_system_id,
-        specialist_analysis_code AS analysis_system_code,
-        specialist_analysis_name AS analysis_system_name
-      FROM accounting.payment_document_specialist_analyses
-      ORDER BY specialist_analysis_id
+        analysis_system_id,
+        analysis_system_code,
+        analysis_system_name
+      FROM expenses.analysis_systems
+      WHERE is_active = TRUE
+      ORDER BY sort_order, analysis_system_id
     `)
   ]);
 
