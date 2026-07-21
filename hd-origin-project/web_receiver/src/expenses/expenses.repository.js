@@ -1,4 +1,4 @@
-const pool = require("../db");
+﻿const pool = require("../db");
 
 async function getMasters() {
   const [
@@ -23,7 +23,8 @@ async function getMasters() {
     accountsPayableRegistrationTypes,
     autoRenewalTypes,
     ownershipTransferTypes,
-    earlyCancellationTypes
+    earlyCancellationTypes,
+    analysisSystems
   ] = await Promise.all([
     pool.query(`
       SELECT account_title_id, account_code, account_name
@@ -200,6 +201,14 @@ async function getMasters() {
       FROM expenses.early_cancellation_types
       WHERE is_active = TRUE
       ORDER BY sort_order, early_cancellation_type_id
+    `),
+    pool.query(`
+      SELECT
+        specialist_analysis_id AS analysis_system_id,
+        specialist_analysis_code AS analysis_system_code,
+        specialist_analysis_name AS analysis_system_name
+      FROM accounting.payment_document_specialist_analyses
+      ORDER BY specialist_analysis_id
     `)
   ]);
 
@@ -226,7 +235,8 @@ async function getMasters() {
     accounts_payable_registration_types: accountsPayableRegistrationTypes.rows,
     auto_renewal_types: autoRenewalTypes.rows,
     ownership_transfer_types: ownershipTransferTypes.rows,
-    early_cancellation_types: earlyCancellationTypes.rows
+    early_cancellation_types: earlyCancellationTypes.rows,
+    analysis_systems: analysisSystems.rows
   };
 }
 
@@ -596,3 +606,4 @@ module.exports = {
   deleteExpense,
   listExpenseCsvRows,
 };
+
