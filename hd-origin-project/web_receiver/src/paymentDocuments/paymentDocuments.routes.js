@@ -4254,12 +4254,11 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels
   const summary = classification && classification.ai_summary ? classification.ai_summary : {};
 
   return [
-    "あなたは日本の中小企業向け会計入力補助AIです。",
-    "画像は見ていません。OCR本文だけを根拠に、支払書類の必要項目だけを抽出してください。",
-    "1回目の分類結果に基づき、指定された項目だけ返してください。",
-    "指定外の項目は返さないでください。",
+    "あなたは日本の中小企業向けAIです。画像は見ず、OCR本文だけを根拠に支払書類の【汎用的な下書き（Stage2）】を作成してください。",
+    "※注意: この段階では会計仕訳や税率計算、未払登録の可否など、高度な専門判断は行いません。",
+    "書類の文脈（会計、契約、通知など）を理解し、そこに書かれている「ありのままの事実（基本情報）」だけを整理して返してください。",
     "",
-    "分類結果:",
+    "分類結果（Stage1）:",
     "document_type_code=" + String(classification.document_type_code || ""),
     "payment_destination_code=" + String(classification.payment_destination_code || ""),
     "accounting_category_code=" + String(classification.accounting_category_code || ""),
@@ -4270,14 +4269,21 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels
     "",
     "絶対ルール:",
     "- 画像を見た前提の判断は禁止。",
-    "- OCR本文にない情報を作らない。",
-    "- 分からない項目は空文字。",
-    "- 金額は数値だけ。円記号やカンマは入れない。",
-    "- 日付は分かる場合だけ YYYY-MM-DD。",
-    "- 個人名義や会社負担可否が危ない場合は、要確認メモや社内メモに注意を書く。",
+    "- OCR本文にない情報を作らない。推測して補完しない。",
+    "- 金額はカンマを除いた数値だけ。通貨記号は入れない。",
+    "- 「お釣り」や「預り金」を支払金額や消費税額と混同しないこと。",
+    "- 日付は YYYY-MM-DD 形式にできる場合のみ変換する。",
+    "- 該当する記載がない項目は、必ず空文字（\"\"）または null にする。",
     "",
-    "抽出対象項目:",
-    labels.map(name => "- " + name).join("\n"),
+    "【抽出する汎用メタ情報】",
+    "vendor_name: 書類の発行元、または支払先となる会社名・店舗名",
+    "issue_date: 書類の発行日、または取引日",
+    "due_date: 支払期限、または納期限（あれば）",
+    "invoice_number: 請求書番号、領収書番号、管理番号、お客様番号など、書類を特定する識別番号",
+    "total_amount: 書類の「最終的な合計金額」（お釣り・預り金を含めない、実際の請求・支払額）",
+    "tax_amount: 明記されている消費税額の合計（あれば）",
+    "summary: この書類が何であるか、何を買ったのかを短く要約（例: 「事務用品購入」「7月分電気料金」など）",
+    "memo: 特記事項、または人間が確認すべき不明点・警告事項",
     "",
     "返すJSON形式:",
     "{",
@@ -4290,9 +4296,6 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels
     '  "currency": "JPY",',
     '  "summary": "",',
     '  "memo": "",',
-    '  "fields": {',
-    labels.map(name => '    "' + name + '": ""').join(",\n"),
-    "  },",
     '  "warnings": []',
     "}",
     "",
@@ -4503,48 +4506,41 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
 
   const mergedRaw = {
     ...detail,
-    ...(detailFields || {}),
     document_type_code: classification.document_type_code,
     payment_destination_code: classification.payment_destination_code,
     accounting_category_code: classification.accounting_category_code,
-    analysis_system_code:
-      classification.analysis_system_code,
-
-    analysis_system_label:
-      classification.analysis_system_label,
-
-    analysis_system_reason:
-      classification.analysis_system_reason,
-
-    analysis_system_confidence:
-      classification.analysis_system_confidence,
-
-    specialist_route_code:
-      classification.specialist_route_code,
-
-    specialist_route_label:
-      classification.specialist_route_label,
-
+    analysis_system_code: classification.analysis_system_code,
+    analysis_system_label: classification.analysis_system_label,
+    analysis_system_reason: classification.analysis_system_reason,
+    analysis_system_confidence: classification.analysis_system_confidence,
+    specialist_route_code: classification.specialist_route_code,
+    specialist_route_label: classification.specialist_route_label,
     payable_kind_code: classification.payable_kind_code,
     source_type_code: classification.source_type_code,
     ai_summary: classification.ai_summary,
-    fields: detailFields,
+    
+    // AIはStage2で日本語ラベル(fields)を作らない。サーバー側で基本情報をセットする。
+    fields: {
+      "発行元": detail.vendor_name || "",
+      "支払先": detail.vendor_name || "",
+      "発行日": detail.issue_date || "",
+      "支払期限・納期限": detail.due_date || "",
+      "合計金額": detail.total_amount || "",
+      "請求・支払金額": detail.total_amount || "",
+      "消費税額": detail.tax_amount || "",
+      "摘要": detail.summary || "",
+      "管理番号": detail.invoice_number || ""
+    },
     warnings: [
       ...(Array.isArray(classification.warnings) ? classification.warnings : []),
       ...(Array.isArray(detail.warnings) ? detail.warnings : [])
     ]
   };
 
-  const draft = normalizeAiDraftCandidate(
-    mergedRaw
-  );
+  const draft = normalizeAiDraftCandidate(mergedRaw);
 
-  draft.visible_field_labels = Array.isArray(
-    draft.visible_field_labels
-  )
-    ? draft.visible_field_labels
-    : visibleLabels;
-
+  // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
+  draft.visible_field_labels = visibleLabels;
   draft.document_group = String(
     draft.document_group || ""
   ).trim();
@@ -11330,6 +11326,7 @@ HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 禁止:
 機械の誤り対策として、人間確認を通常業務へ戻すこと。
 */
+
 
 
 
