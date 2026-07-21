@@ -4554,6 +4554,7 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
 
   const mergedRaw = {
     ...detail,
+    ...(detailFields || {}),
     document_type_code: classification.document_type_code,
     payment_destination_code: classification.payment_destination_code,
     accounting_category_code: classification.accounting_category_code,
@@ -11380,5 +11381,6 @@ HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 禁止:
 機械の誤り対策として、人間確認を通常業務へ戻すこと。
 */
+
 
 
