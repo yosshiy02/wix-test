@@ -23,12 +23,14 @@
 
   <div class="receipt-header-nav-row">
     <nav class="specialist-system-nav" aria-label="専門解析システム">
-      <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='/payables/payment-document-specialist-invoice-payable.html'">請求・未払系</button>
-      <button type="button" class="specialist-system-button specialist-receipt active" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
-      <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='/payables/payment-document-specialist-tax-public.html'">税金・公的支払</button>
-      <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='/payables/payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
-      <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='/payables/payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-      <button type="button" class="light specialist-system-back-button" onclick="location.href='/payables/payment-document-review.html'">仕分けシステムへ</button>
+      <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='/payables/payment-document-specialist-invoice-payable.html'">請求・未払</button>
+      <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='/payables/payment-document-specialist-tax-public.html'">税金・公的</button>
+      <button type="button" class="specialist-system-button specialist-card" onclick="location.href='/payables/payment-document-specialist-card-statement.html'">カード・決済</button>
+      <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='/payables/payment-document-specialist-utility-communication.html'">公共・通信</button>
+      <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='/payables/payment-document-specialist-contract-insurance-lease.html'">契約・保険</button>
+      <button type="button" class="specialist-system-button specialist-delivery" onclick="location.href='/payables/payment-document-specialist-reference-check.html'">納品書・照合</button>
+      <button type="button" class="specialist-system-button specialist-review" onclick="location.href='/payables/payment-document-specialist-needs-review.html'">要確認</button>
+      <button type="button" class="light specialist-system-back-button" onclick="location.href='/payables/payment-document-review.html'">仕分け画面へ</button>
     </nav>
   </div>
 
@@ -369,11 +371,44 @@
         await receiptAlert("サーバー再起動要求でエラーが発生しました: " + (error && error.message ? error.message : error), "サーバー再起動");
       }
     }
+    function receiptSpecialistFilter(allItems) {
+      const expectedAnalysisSystemCode = "receipt_evidence";
+      function textValue(value) { return String(value || "").trim(); }
+      function objectValue(value) { return (value && typeof value === "object" && !Array.isArray(value)) ? value : {}; }
+
+      function analysisSystemCodeOf(item) {
+        const source = objectValue(item);
+        const latest = objectValue(source.latestSortingDraft || source.latest_sorting_draft);
+        const saved = objectValue(source.__savedSortingDraft || source.savedSortingDraft || source.sortingDraft || source.sorting_draft);
+        const draft = objectValue(source.__aiDraft || source.aiDraft || source.draft);
+        const sortResult = objectValue(source.sortResult || source.sort_result);
+
+        const candidates = [
+          latest.analysisSystemCode, latest.analysis_system_code,
+          saved.analysisSystemCode, saved.analysis_system_code,
+          draft.analysisSystemCode, draft.analysis_system_code,
+          sortResult.analysisSystemCode, sortResult.analysis_system_code,
+          source.analysisSystemCode, source.analysis_system_code
+        ];
+
+        for (const candidate of candidates) {
+          const code = textValue(candidate);
+          if (code) return code;
+        }
+        return "";
+      }
+
+      return (Array.isArray(allItems) ? allItems : []).filter(function(item) {
+        return analysisSystemCodeOf(item) === expectedAnalysisSystemCode;
+      });
+    }
+
     async function loadList() {
       const list = document.getElementById("list");
       list.innerHTML = "読込中...";
 
-      const res = await fetch("/api/receipts/imports?limit=100");
+      // レシート専用APIから、全専門画面共通の仕分け済みAPIへ変更
+      const res = await fetch("/api/payment-documents/review-items");
       const data = await res.json();
 
       if (!data.ok) {
@@ -381,30 +416,35 @@
         return;
       }
 
-      currentItems = data.items || [];
+      const allItems = data.items || [];
+      // receipt_evidence (領収・レシート) の書類だけを抽出
+      currentItems = receiptSpecialistFilter(allItems);
 
       if (currentItems.length === 0) {
-        list.innerHTML = '<div class="list-item">レシートがありません。</div>';
+        list.innerHTML = '<div class="list-item">レシート・領収書の対象書類がありません。<br>仕分けページで1回目仕分けを保存してください。</div>';
         return;
       }
 
       list.innerHTML = currentItems.map(item => {
-        const active = Number(item.id) === Number(selectedId) ? " active" : "";
+        // 共通APIとレシート旧仕様のプロパティ差異を吸収
+        const itemId = item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id || "";
+        const fileName = item.originalFileName || item.original_file_name || item.savedFileName || item.local_image_file_name || "";
+        const time = item.ocrAt || item.imported_at_jst || "";
+        const active = Number(itemId) === Number(selectedId) ? " active" : "";
 
         return `
-          <div class="list-item${active} receipt-list-with-check" onclick="loadDetail(${item.id})">
-                        <input
+          <div class="list-item${active} receipt-list-with-check" onclick="loadDetail(${itemId})">
+            <input
               type="checkbox"
               class="receipt-ai-check"
-              data-receipt-id="${esc(item.id)}"
-              ${selectedBulkReceiptIds.has(Number(item.id)) ? "checked" : ""}
+              data-receipt-id="${esc(itemId)}"
+              ${selectedBulkReceiptIds.has(Number(itemId)) ? "checked" : ""}
               onclick="event.stopPropagation()"
               onchange="toggleBulkReceiptCheck(this)"
             >
-            <div class="list-main">ID ${esc(item.id)} / ${esc(item.upload_id || "")}</div>
+            <div class="list-main">ID ${esc(itemId)} / ${esc(fileName)}</div>
             <div class="list-sub">
-              ${esc(item.local_image_file_name || "")}<br>
-              ${esc(item.imported_at_jst || "")}
+              ${esc(time)}
             </div>
           </div>
         `;
@@ -415,21 +455,23 @@
       selectedId = id;
       await loadList();
 
-      document.getElementById("imageArea").innerHTML = `<img src="/api/receipts/image/${id}" alt="receipt">`;
       document.getElementById("formArea").innerHTML = "読込中...";
 
-      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
-      const data = await res.json();
+      const item = currentItems.find(i => String(i.paymentDocumentOcrImportId || i.payment_document_ocr_import_id || i.id) === String(id));
 
-      if (!data.ok) {
-        document.getElementById("formArea").innerHTML = '<div class="warn">読込失敗: ' + esc(data.error) + '</div>';
+      if (!item) {
+        document.getElementById("formArea").innerHTML = '<div class="warn">対象データが見つかりません。</div>';
         return;
       }
 
-      await loadReceiptMasterOptions();
-      renderForm(data.item, data.aiDrafts || []);
-    }
+      const imageUrl = "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(id);
+      document.getElementById("imageArea").innerHTML = `<img src="${imageUrl}" alt="receipt">`;
 
+      await loadReceiptMasterOptions();
+      
+      const drafts = item.__aiDraft ? [item.__aiDraft] : [];
+      renderForm(item, drafts);
+    }
     function receiptExtractTimeText(value) {
       const text = String(value === null || value === undefined ? "" : value)
         .replace(/：/g, ":")
@@ -755,8 +797,8 @@ receiptTaxBreakdowns = [];
 receiptTaxBreakdownsLoadedDraftId = null;
 document.getElementById("formArea").innerHTML = `
           <div class="actions">
-            <button class="primary" onclick="analyzeReceipt(${item.id})">AIで読取候補を作成</button>
-            <button class="danger" onclick="deleteReceiptImport(${item.id})">削除</button>
+            <button class="primary" onclick="analyzeReceipt(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">AIで読取候補を作成</button>
+            <button class="danger" onclick="deleteReceiptImport(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">削除</button>
           </div>
           <div class="muted">まだ読取候補がありません。画像とOCR本文を確認し、必要に応じてAI解析してください。</div>
         `;
@@ -771,8 +813,8 @@ receiptTaxBreakdownsLoadedDraftId = null;
 document.getElementById("formArea").innerHTML = `
         <div class="actions">
           <button class="primary" onclick="saveDraft()">候補を保存</button>
-          <button onclick="analyzeReceipt(${item.id})">AI再解析</button>
-          <button class="danger" onclick="deleteReceiptImport(${item.id})">削除</button>
+          <button onclick="analyzeReceipt(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">AI再解析</button>
+          <button class="danger" onclick="deleteReceiptImport(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">削除</button>
         </div>
 
         <div class="block">
@@ -3845,6 +3887,10 @@ loadList();
   <script src="/hd-origin-exit-guard.js?v=20260706"></script>
 </body>
 </html>
+
+
+
+
 
 
 

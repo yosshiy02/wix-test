@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const config = require("../config");
@@ -4187,117 +4187,42 @@ function paymentDocumentAiGroupFromDraft(draft) {
 
 function buildPaymentDocumentClassificationPrompt(ocrText) {
   return [
-    "あなたは日本の中小企業向け会計入力補助AIです。",
-    "画像は見ていません。OCR本文だけを根拠に、支払書類を分類してください。",
-    "ここでは詳細項目を拾わず、まず分類と処理方針だけを返してください。",
+    "あなたは支払書類のStage1共通仕分けAIです。",
+    "画像は見ていません。OCR本文全体を根拠に仕分けしてください。",
+    "選択区分は、後続で提示されるPostgreSQLの有効マスタ候補だけを使用してください。",
     "",
     "絶対ルール:",
-    "- 画像を見た前提の判断は禁止。",
+    "- 会社、文書種別、処理先、会計区分、専門解析先はAIだけが判断する。",
+    "- company_codeは会社マスタ候補から必ず1つ選ぶ。",
+    "- document_type_codeは文書種別マスタ候補から必ず1つ選ぶ。",
+    "- payment_destination_codeは処理先マスタ候補から必ず1つ選ぶ。",
+    "- accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
+    "- analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
+    "- 選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
+    "- analysis_system_codeへ末尾_analysisを付けない。",
+    "- payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
+    "- analysis_system_reasonは必ず具体的に返す。",
+    "- analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
+    "- needs_reviewは必ずtrueまたはfalseのbooleanで返す。",
+    "- 判断に迷う場合も有効なマスタコードを選び、needs_review=trueにする。",
+    "- Node.js、SQL、HTML、固定語句、既定値、後付け補正を前提にしない。",
     "- OCR本文にない情報を作らない。",
-    "- analysis_system_codeは、提供された専門解析先候補から必ず1つ選ぶ。",
-    "- analysis_system_codeを空文字にしない。",
-    "- analysis_system_label、analysis_system_reason、analysis_system_confidenceも必ず返す。",
-    "- source_type_codeをanalysis_system_codeの代用にしない。",
-    "- 迷う場合のみneeds_review_analysisを選ぶ。",
-    "- サーバー側の固定値や後付け判定を前提にしない。",
-    "",
-    "document_type_code候補:",
-    "invoice, tax_payment_notice, receipt, web_statement, card_statement, utility_notice, insurance_notice, lease_contract, mail_saved, contract, other",
-    "",
-    "payment_destination_code候補:",
-    "payable, accounts_payable, expense, tax_public, card_payable, contract_insurance_lease, no_process, needs_review",
-    "",
-    "accounting_category_code候補:",
-    "normal, advance_payment, tax, public_utility, insurance, lease, asset, mixed_personal, needs_review",
-    "",
-    "payable_kind_code候補:",
-    "accounts_payable, unpaid, accrued_expense, card_payable, other",
-    "",
-    "analysis_system_code候補:",
-    "invoice_payable, receipt_evidence, tax_public, card_statement, utility_communication, contract_insurance_lease, delivery_note, needs_review",
     "",
     "返すJSON形式:",
     "{",
+    '  "company_code": "",',
     '  "document_type_code": "",',
     '  "payment_destination_code": "",',
     '  "accounting_category_code": "",',
     '  "analysis_system_code": "",',
-    '  "analysis_system_label": "",',
     '  "analysis_system_reason": "",',
-    '  "analysis_system_confidence": "",',
-    '  "specialist_route_code": "",',
-    '  "specialist_route_label": "",',
-    '  "payable_kind_code": "",',
-    '  "source_type_code": "",',
-    '  "ai_summary": {',
-    '    "document_kind": "",',
-    '    "destination": "",',
-    '    "payment_target": "",',
-    '    "payable_target": "",',
-    '    "expense_target": "",',
-    '    "tax_public": "",',
-    '    "contract_insurance_lease": "",',
-    '    "confidence_label": "",',
-    '    "reason": ""',
-    "  },",
+    '  "analysis_system_confidence": "high",',
+    '  "needs_review": false,',
     '  "warnings": []',
     "}",
     "",
-    "OCR本文:",
-    "------------------------------",
-    String(ocrText || "").slice(0, 8000),
-    "------------------------------"
-  ].join("\n");
-}
-
-function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels) {
-  const summary = classification && classification.ai_summary ? classification.ai_summary : {};
-
-  return [
-    "あなたは日本の中小企業向けAIです。画像は見ず、OCR本文だけを根拠に支払書類の【汎用的な下書き（Stage2）】を作成してください。",
-    "※注意: この段階では会計仕訳や税率計算、未払登録の可否など、高度な専門判断は行いません。",
-    "書類の文脈（会計、契約、通知など）を理解し、そこに書かれている「ありのままの事実（基本情報）」だけを整理して返してください。",
-    "",
-    "分類結果（Stage1）:",
-    "document_type_code=" + String(classification.document_type_code || ""),
-    "payment_destination_code=" + String(classification.payment_destination_code || ""),
-    "accounting_category_code=" + String(classification.accounting_category_code || ""),
-    "payable_kind_code=" + String(classification.payable_kind_code || ""),
-    "document_group=" + String(group || ""),
-    "document_kind=" + String(summary.document_kind || ""),
-    "reason=" + String(summary.reason || ""),
-    "",
-    "絶対ルール:",
-    "- 画像を見た前提の判断は禁止。",
-    "- OCR本文にない情報を作らない。推測して補完しない。",
-    "- 金額はカンマを除いた数値だけ。通貨記号は入れない。",
-    "- 「お釣り」や「預り金」を支払金額や消費税額と混同しないこと。",
-    "- 日付は YYYY-MM-DD 形式にできる場合のみ変換する。",
-    "- 該当する記載がない項目は、必ず空文字（\"\"）または null にする。",
-    "",
-    "【抽出する汎用メタ情報】",
-    "vendor_name: 書類の発行元、または支払先となる会社名・店舗名",
-    "issue_date: 書類の発行日、または取引日",
-    "due_date: 支払期限、または納期限（あれば）",
-    "invoice_number: 請求書番号、領収書番号、管理番号、お客様番号など、書類を特定する識別番号",
-    "total_amount: 書類の「最終的な合計金額」（お釣り・預り金を含めない、実際の請求・支払額）",
-    "tax_amount: 明記されている消費税額の合計（あれば）",
-    "summary: この書類が何であるか、何を買ったのかを短く要約（例: 「事務用品購入」「7月分電気料金」など）",
-    "memo: 特記事項、または人間が確認すべき不明点・警告事項",
-    "",
-    "返すJSON形式:",
-    "{",
-    '  "vendor_name": "",',
-    '  "issue_date": "",',
-    '  "due_date": "",',
-    '  "invoice_number": "",',
-    '  "total_amount": null,',
-    '  "tax_amount": null,',
-    '  "currency": "JPY",',
-    '  "summary": "",',
-    '  "memo": "",',
-    '  "warnings": []',
-    "}",
+    "上記9項目以外は返さない。",
+    "JSON以外の文章は返さない。",
     "",
     "OCR本文:",
     "------------------------------",
@@ -4305,7 +4230,62 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels
     "------------------------------"
   ].join("\n");
 }
-
+function buildPaymentDocumentDetailPrompt(ocrText, classification) {
+  return [
+    "あなたは支払書類のStage2共通基本情報抽出AIです。",
+    "画像は見ず、OCR本文に明記された基本情報だけを抽出してください。",
+    "Stage1の分類結果を変更または再判定してはいけません。",
+    "",
+    "Stage1結果:",
+    JSON.stringify(classification || {}, null, 2),
+    "",
+    "抽出する基本10項目:",
+    "- document_number",
+    "- reference_number",
+    "- issuer_name",
+    "- issuer_registration_number",
+    "- issuer_postal_code",
+    "- issuer_address",
+    "- issuer_phone",
+    "- recipient_name",
+    "- recipient_code",
+    "- document_date",
+    "",
+    "絶対ルール:",
+    "- OCR本文にない情報を作らない。",
+    "- 推測や補完をしない。",
+    "- 不明な項目は空文字にする。",
+    "- document_dateは明確な場合だけYYYY-MM-DD形式にする。",
+    "- 金額、税額、支払期限、支払日、支払方法を抽出しない。",
+    "- 明細、摘要、契約内容、保険内容、専門解析項目を抽出しない。",
+    "- Stage1のマスタコードを返さない。",
+    "- stage2_fieldsには基本10項目以外を入れない。",
+    "",
+    "返すJSON形式:",
+    "{",
+    '  "stage2_fields": {',
+    '    "document_number": "",',
+    '    "reference_number": "",',
+    '    "issuer_name": "",',
+    '    "issuer_registration_number": "",',
+    '    "issuer_postal_code": "",',
+    '    "issuer_address": "",',
+    '    "issuer_phone": "",',
+    '    "recipient_name": "",',
+    '    "recipient_code": "",',
+    '    "document_date": ""',
+    "  },",
+    '  "warnings": []',
+    "}",
+    "",
+    "JSON以外の文章は返さない。",
+    "",
+    "OCR本文:",
+    "------------------------------",
+    String(ocrText || "").slice(0, 12000),
+    "------------------------------"
+  ].join("\n");
+}
 
 /* PAYMENT_DOCUMENT_AI_PROMPT_SAFE_PRECISION_20260707_START */
 function appendPaymentDocumentMasterCodeInstruction(prompt) {
@@ -4460,7 +4440,311 @@ async function callPaymentDocumentOpenAiJson(prompt, systemMessage) {
   };
 }
 
-async function createTwoStepAiDraftFromOcrText(ocrText) {
+function normalizeStage1ClassificationCandidate(
+  value,
+  sourceTypeCode
+) {
+  const result =
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+      ? value
+      : {};
+
+  const confidence = String(
+    result.analysis_system_confidence || ""
+  ).trim().toLowerCase();
+
+  if (
+    confidence &&
+    !["high", "medium", "low"].includes(confidence)
+  ) {
+    const error = new Error(
+      "Stage1のAI信頼度コードが不正です: " +
+      confidence
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  if (typeof result.needs_review !== "boolean") {
+    const error = new Error(
+      "Stage1のneeds_reviewはboolean必須です。"
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  return {
+    company_code: String(
+      result.company_code || ""
+    ).trim(),
+
+    document_type_code: String(
+      result.document_type_code || ""
+    ).trim(),
+
+    payment_destination_code: String(
+      result.payment_destination_code || ""
+    ).trim(),
+
+    accounting_category_code: String(
+      result.accounting_category_code || ""
+    ).trim(),
+
+    analysis_system_code: String(
+      result.analysis_system_code || ""
+    ).trim(),
+
+    analysis_system_reason: String(
+      result.analysis_system_reason || ""
+    ).trim(),
+
+    analysis_system_confidence:
+      confidence,
+
+    needs_review:
+      result.needs_review,
+
+    source_type_code: String(
+      sourceTypeCode || ""
+    ).trim(),
+
+    warnings: Array.isArray(result.warnings)
+      ? result.warnings
+          .map(item =>
+            String(item || "").trim()
+          )
+          .filter(Boolean)
+      : []
+  };
+}
+
+async function validateStage1MasterCodes(
+  classification
+) {
+  const requiredValues = {
+    company_code: String(
+      classification.company_code || ""
+    ).trim(),
+
+    document_type_code: String(
+      classification.document_type_code || ""
+    ).trim(),
+
+    payment_destination_code: String(
+      classification.payment_destination_code || ""
+    ).trim(),
+
+    accounting_category_code: String(
+      classification.accounting_category_code || ""
+    ).trim(),
+
+    analysis_system_code: String(
+      classification.analysis_system_code || ""
+    ).trim(),
+
+    source_type_code: String(
+      classification.source_type_code || ""
+    ).trim()
+  };
+
+  for (const [fieldName, code] of Object.entries(requiredValues)) {
+    if (!code) {
+      const error = new Error(
+        "Stage1必須マスタコードが空です: " +
+        fieldName
+      );
+
+      error.statusCode = 422;
+      throw error;
+    }
+  }
+
+  const result = await db.query(`
+    SELECT
+      'company_code' AS field_name,
+      company_code AS code
+    FROM expenses.companies
+    WHERE is_active = true
+
+    UNION ALL
+
+    SELECT
+      'document_type_code',
+      document_type_code
+    FROM expenses.document_types
+    WHERE is_active = true
+
+    UNION ALL
+
+    SELECT
+      'payment_destination_code',
+      payment_destination_code
+    FROM expenses.payment_destinations
+    WHERE is_active = true
+
+    UNION ALL
+
+    SELECT
+      'accounting_category_code',
+      accounting_category_code
+    FROM expenses.accounting_categories
+    WHERE is_active = true
+
+    UNION ALL
+
+    SELECT
+      'analysis_system_code',
+      analysis_system_code
+    FROM expenses.analysis_systems
+    WHERE is_active = true
+
+    UNION ALL
+
+    SELECT
+      'source_type_code',
+      payment_source_type_code
+    FROM expenses.payment_source_types
+    WHERE is_active = true
+  `);
+
+  const activeCodes = new Map();
+
+  for (const row of result.rows) {
+    const fieldName = String(
+      row.field_name || ""
+    ).trim();
+
+    const code = String(
+      row.code || ""
+    ).trim();
+
+    if (!activeCodes.has(fieldName)) {
+      activeCodes.set(
+        fieldName,
+        new Set()
+      );
+    }
+
+    if (code) {
+      activeCodes
+        .get(fieldName)
+        .add(code);
+    }
+  }
+
+  for (const [fieldName, code] of Object.entries(requiredValues)) {
+    const fieldCodes =
+      activeCodes.get(fieldName) ||
+      new Set();
+
+    if (!fieldCodes.has(code)) {
+      const error = new Error(
+        "Stage1の選択値が有効なマスタコードではありません。" +
+        " field=" + fieldName +
+        " code=" + code
+      );
+
+      error.statusCode = 422;
+      throw error;
+    }
+  }
+
+  return classification;
+}
+
+async function resolvePaymentDocumentSourceTypeCode(row) {
+  const result = await db.query(`
+    SELECT
+      payment_source_type_code
+    FROM expenses.payment_source_types
+    WHERE is_active = true
+      AND COALESCE(payment_source_type_code, '') <> ''
+    ORDER BY sort_order, payment_source_type_id
+  `);
+
+  const activeCodes = new Set(
+    result.rows.map(item =>
+      String(
+        item.payment_source_type_code || ""
+      ).trim()
+    )
+  );
+
+  const sourceType = String(
+    row && row.source_type || ""
+  ).trim().toLowerCase();
+
+  const mimeType = String(
+    row && row.mime_type || ""
+  ).trim().toLowerCase();
+
+  let resolvedCode = "";
+
+  if (activeCodes.has(sourceType)) {
+    resolvedCode = sourceType;
+  } else if (
+    sourceType === "scan_inbox" ||
+    sourceType === "scan" ||
+    sourceType === "image_upload"
+  ) {
+    resolvedCode = "scan_upload";
+  } else if (
+    sourceType.includes("mail")
+  ) {
+    resolvedCode = "mail_saved";
+  } else if (
+    sourceType.includes("web")
+  ) {
+    resolvedCode = "web_download";
+  } else if (
+    sourceType.includes("manual")
+  ) {
+    resolvedCode = "manual_upload";
+  } else if (
+    mimeType === "application/pdf"
+  ) {
+    resolvedCode = "pdf_upload";
+  } else if (
+    mimeType.startsWith("image/")
+  ) {
+    resolvedCode = "scan_upload";
+  }
+
+  if (
+    !resolvedCode ||
+    !activeCodes.has(resolvedCode)
+  ) {
+    const error = new Error(
+      "入手元区分を有効なマスタコードへ確定できません。" +
+      " source_type=" + sourceType +
+      " mime_type=" + mimeType +
+      " resolved_code=" + resolvedCode
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
+
+  return resolvedCode;
+}
+
+async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
+  const sourceTypeCode = String(
+    context && context.source_type_code || ""
+  ).trim();
+
+  if (!sourceTypeCode) {
+    const error = new Error(
+      "システム確定済みの入手元区分マスタコードがありません。"
+    );
+
+    error.statusCode = 422;
+    throw error;
+  }
   const classificationPrompt = await appendPaymentDocumentExternalPrompt(
     buildPaymentDocumentClassificationPrompt(ocrText),
     await selectPaymentDocumentPromptFiles({
@@ -4477,9 +4761,16 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
     )
   );
 
-  const classification = normalizeAiDraftCandidate(
-    classificationResponse.parsed
+  const classification =
+    normalizeStage1ClassificationCandidate(
+      classificationResponse.parsed,
+      sourceTypeCode
+    );
+
+  await validateStage1MasterCodes(
+    classification
   );
+
   const group = paymentDocumentAiGroupFromDraft(classification);
   const visibleLabels = paymentDocumentAiVisibleFieldLabels(group);
 
@@ -10900,6 +11191,8 @@ async function handlePaymentDocumentRoutes(req, res) {
           payment_document_ocr_import_id,
           original_file_name,
           saved_file_name,
+          source_type,
+          mime_type,
           ocr_raw_text,
           ocr_text_length
         FROM accounting.payment_document_ocr_imports
@@ -10921,7 +11214,16 @@ async function handlePaymentDocumentRoutes(req, res) {
         return true;
       }
 
-            const aiResult = await createTwoStepAiDraftFromOcrText(ocrText);
+            const sourceTypeCode =
+        await resolvePaymentDocumentSourceTypeCode(row);
+
+      const aiResult =
+        await createTwoStepAiDraftFromOcrText(
+          ocrText,
+          {
+            source_type_code: sourceTypeCode
+          }
+        );
       const draft = aiResult.draft;
 
       sendJson(res, 200, {

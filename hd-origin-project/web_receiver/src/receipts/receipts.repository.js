@@ -39,7 +39,7 @@ async function listImports(limit = 100, offset = 0, options = {}) {
   const result = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     ${whereSql}
     ORDER BY imported_at_jst DESC NULLS LAST, id DESC
     LIMIT $${limitIndex}
@@ -56,7 +56,7 @@ async function getImportById(id) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -75,8 +75,8 @@ async function getImportById(id) {
       status,
       created_at,
       updated_at
-    FROM accounting.receipt_imports
-    WHERE id = $1
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
     LIMIT 1
     `,
     [id]
@@ -376,7 +376,7 @@ async function updateAiDraft(id, patch) {
       project_temp_name = $28,
       department_temp_name = $29,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $1
+    WHERE payment_document_ocr_import_id = $1
     RETURNING *
     `,
     [
@@ -420,7 +420,7 @@ async function getImportByImageHashSha256(hash) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -439,7 +439,7 @@ async function getImportByImageHashSha256(hash) {
       status,
       created_at,
       updated_at
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     WHERE image_hash_sha256 = $1
     ORDER BY id DESC
     LIMIT 1
@@ -516,7 +516,7 @@ async function listImportsForOcrDuplicateCheck(limit = 300) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       local_image_file_name,
       local_image_path,
@@ -530,7 +530,7 @@ async function listImportsForOcrDuplicateCheck(limit = 300) {
       status,
       created_at,
       updated_at
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     WHERE ocr_raw_text IS NOT NULL
       AND length(trim(ocr_raw_text)) > 0
     ORDER BY id DESC
@@ -552,8 +552,8 @@ async function deleteImportById(id) {
     const found = await client.query(
       `
       SELECT *
-      FROM accounting.receipt_imports
-      WHERE id = $1
+      FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
       LIMIT 1
       `,
       [id]
@@ -576,8 +576,8 @@ async function deleteImportById(id) {
 
     await client.query(
       `
-      DELETE FROM accounting.receipt_imports
-      WHERE id = $1
+      DELETE FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
       `,
       [id]
     );
@@ -722,7 +722,7 @@ async function getReceiptTaxBreakdowns(receiptAiDraftId) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       receipt_ai_draft_id,
       tax_category_id,
       tax_category_name,
@@ -754,7 +754,7 @@ async function replaceReceiptTaxBreakdowns(receiptAiDraftId, items) {
       `
       SELECT id
       FROM accounting.receipt_ai_drafts
-      WHERE id = $1
+      WHERE payment_document_ocr_import_id = $1
       LIMIT 1
       `,
       [receiptAiDraftId]
@@ -905,7 +905,7 @@ async function listImportsForOcrDuplicateCheck(limit = 300) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -924,7 +924,7 @@ async function listImportsForOcrDuplicateCheck(limit = 300) {
       status,
       created_at,
       updated_at
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     WHERE ocr_raw_text IS NOT NULL
       AND length(trim(ocr_raw_text)) > 0
     ORDER BY imported_at_jst DESC NULLS LAST, id DESC
@@ -943,7 +943,7 @@ async function listImports(limit = 100, offset = 0) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -980,7 +980,7 @@ async function listImports(limit = 100, offset = 0) {
       ''::text AS evidence_type,
       ''::text AS evidence_memo,
       ''::text AS summary
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     ORDER BY imported_at_jst DESC NULLS LAST, id DESC
     LIMIT $1 OFFSET $2
     `,
@@ -994,7 +994,7 @@ async function getImportById(id) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -1031,8 +1031,8 @@ async function getImportById(id) {
       ''::text AS evidence_type,
       ''::text AS evidence_memo,
       ''::text AS summary
-    FROM accounting.receipt_imports
-    WHERE id = $1
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
     LIMIT 1
     `,
     [id]
@@ -1045,7 +1045,7 @@ async function getImportByImageHashSha256(hash) {
   const result = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       upload_id,
       wix_item_id,
       wix_image_url,
@@ -1064,7 +1064,7 @@ async function getImportByImageHashSha256(hash) {
       status,
       created_at,
       updated_at
-    FROM accounting.receipt_imports
+    FROM accounting.payment_document_ocr_imports
     WHERE image_hash_sha256 = $1
     ORDER BY id DESC
     LIMIT 1
@@ -1142,8 +1142,8 @@ async function deleteImportById(id) {
     const found = await client.query(
       `
       SELECT *
-      FROM accounting.receipt_imports
-      WHERE id = $1
+      FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
       LIMIT 1
       `,
       [id]
@@ -1178,8 +1178,8 @@ async function deleteImportById(id) {
 
     await client.query(
       `
-      DELETE FROM accounting.receipt_imports
-      WHERE id = $1
+      DELETE FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
       `,
       [id]
     );
@@ -1389,14 +1389,14 @@ async function createReceiptDraftFromImport(receiptImportId) {
   const importResult = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       local_image_file_name,
       local_image_path,
       image_hash_sha256,
       original_file_name,
       imported_at_jst
-    FROM accounting.receipt_imports
-    WHERE id = $1
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
     LIMIT 1
     `,
     [receiptImportId]
@@ -1443,10 +1443,10 @@ async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, d
   const importResult = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       ocr_raw_text
-    FROM accounting.receipt_imports
-    WHERE id = $1
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
     LIMIT 1
     `,
     [receiptImportId]
@@ -2413,10 +2413,10 @@ async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receip
   const importResult = await pool.query(
     `
     SELECT
-      id,
+      payment_document_ocr_import_id AS id,
       ocr_raw_text
-    FROM accounting.receipt_imports
-    WHERE id = $1
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
     LIMIT 1
     `,
     [receiptImportId]
@@ -2806,7 +2806,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         UPDATE accounting.receipt_imports
         SET status = '本保存済み',
             updated_at = NOW()
-        WHERE id = $1
+        WHERE payment_document_ocr_import_id = $1
         `,
         [importId]
       );
@@ -3053,7 +3053,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
       UPDATE accounting.receipt_imports
       SET status = '本保存済み',
           updated_at = NOW()
-      WHERE id = $1
+      WHERE payment_document_ocr_import_id = $1
       `,
       [importId]
     );
@@ -3263,6 +3263,7 @@ async function getSavedReceiptById(receiptId) {
 module.exports.listSavedReceipts = listSavedReceipts;
 module.exports.getSavedReceiptById = getSavedReceiptById;
 /* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_END */
+
 
 
 

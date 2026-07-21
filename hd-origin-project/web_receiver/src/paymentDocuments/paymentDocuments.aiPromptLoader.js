@@ -121,6 +121,25 @@ async function loadActiveCandidateMasters() {
   };
 }
 
+async function loadStage1CandidateMasters() {
+  const [companies, documentTypes, destinations, categories, systems] =
+    await Promise.all([
+      queryRows(`SELECT company_code, company_name FROM expenses.companies WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT document_type_code, document_type_name FROM expenses.document_types WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT payment_destination_code, payment_destination_name FROM expenses.payment_destinations WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT accounting_category_code, accounting_category_name FROM expenses.accounting_categories WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT analysis_system_code, analysis_system_name, description FROM expenses.analysis_systems WHERE is_active=true ORDER BY sort_order`)
+    ]);
+
+  return {
+    companies,
+    document_types: documentTypes,
+    payment_destinations: destinations,
+    accounting_categories: categories,
+    analysis_systems: systems
+  };
+}
+
 function buildCandidateMasterPrompt(candidateMasters) {
   return [
     "【PostgreSQLマスタから取得した有効候補】",
@@ -130,6 +149,19 @@ function buildCandidateMasterPrompt(candidateMasters) {
     "【会社候補】\n" + JSON.stringify(candidateMasters.companies, null, 2),
     "【文書種別候補】\n" + JSON.stringify(candidateMasters.document_types, null, 2),
     "【専門解析候補】\n" + JSON.stringify(candidateMasters.specialist_analyses, null, 2)
+  ].join("\n");
+}
+
+function buildStage1CandidateMasterPrompt(m) {
+  return [
+    "【Stage1 有効マスタ候補】",
+    "OCR本文全体から、各候補を1つずつAIが選択してください。",
+    "固定値・後付け補完は禁止です。",
+    "【会社】\n" + JSON.stringify(m.companies, null, 2),
+    "【書類種類】\n" + JSON.stringify(m.document_types, null, 2),
+    "【支払処理先】\n" + JSON.stringify(m.payment_destinations, null, 2),
+    "【会計区分】\n" + JSON.stringify(m.accounting_categories, null, 2),
+    "【専門解析先】\n" + JSON.stringify(m.analysis_systems, null, 2)
   ].join("\n");
 }
 
