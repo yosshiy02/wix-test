@@ -2517,9 +2517,7 @@ function setDocumentPreview(item) {
     try {
       const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
       });
 
       const data = await res.json();
@@ -2535,9 +2533,18 @@ function setDocumentPreview(item) {
         showVisibleFieldsOnly(data.visible_field_labels);
       }
       
+      // 解析直後に必ず自動保存する
+      let savedInfo = " (保存に失敗しました)";
+      try {
+          await saveSortingDraftFromReviewPage();
+          savedInfo = " (結果を自動保存しました)";
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
       showResult({
         ok: true,
-        message: "基礎解析が完了しました。画像はOpenAIへ送信していません。AI項目反映件数: " + appliedCount + "件",
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || [],
@@ -3036,7 +3043,50 @@ function setDocumentPreview(item) {
     }
   }
 
-  async function runSelectedAiDrafts() {
+  async function runAiDraftForItemIndex(index, options) {
+    const item = items[index];
+    if (!item || !item.paymentDocumentOcrImportId) {
+      return { ok: false, error: "無効なアイテムです" };
+    }
+
+    try {
+      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(item.paymentDocumentOcrImportId)), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+
+      if (!data.ok) return data;
+
+      // 一括処理用にDBへ直接保存用Payloadを作る
+      const payload = {
+        paymentDocumentOcrImportId: item.paymentDocumentOcrImportId,
+        issue_date: data.draft.issue_date || "",
+        document_type_code: data.draft.document_type_code || "",
+        payment_destination_code: data.draft.payment_destination_code || "",
+        accounting_category_code: data.draft.accounting_category_code || "",
+        analysis_system_code: data.draft.analysis_system_code || "",
+        needs_review: data.draft.needs_review || false,
+        ai_summary: data.draft.ai_summary || {},
+        visibleFields: data.draft.fields || {},
+        fields: data.draft.fields || {},
+        sortResult: data.draft || {},
+        memo: "まとめて仕分けによる自動解析"
+      };
+
+      const saveRes = await fetch("/api/payment-documents/sorting-drafts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const saveJson = await saveRes.json();
+      
+      return { ok: true, saved: saveJson.ok, draft: data.draft };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+async function runSelectedAiDrafts() {
     const indexes = selectedSortingIndexes();
 
     if (!indexes.length) {
@@ -6252,16 +6302,6 @@ const directNames = [
       return { ok: false, skipped: true, reason: "no_selected_ocr" };
     }
 
-    if (!saveFunctionReady()) {
-      setStatus("自動保存待機: 保存関数の読込待ち", false);
-
-      setTimeout(function () {
-        runAutoSave(reason || "human");
-      }, 500);
-
-      return { ok: false, skipped: true, reason: "save_function_not_ready" };
-    }
-
     if (autoSaveRunning) {
       autoSaveQueued = true;
       return { ok: false, queued: true };
@@ -6271,12 +6311,7 @@ const directNames = [
     setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
 
     try {
-      /*
-        重要:
-        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
-        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
-      */
-      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+      var saved = await saveSortingDraftFromReviewPage();
 
       setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
 
@@ -7378,6 +7413,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 
