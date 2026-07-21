@@ -2533,6 +2533,31 @@ function setDocumentPreview(item) {
         showVisibleFieldsOnly(data.visible_field_labels);
       }
       
+      // ★メモリ上の items 配列を更新する（移動して戻った時のデータ消失を防ぐ）
+      if (typeof selectedIndex !== 'undefined' && items && items[selectedIndex]) {
+         items[selectedIndex].__aiDraft = data.draft;
+         items[selectedIndex].__visibleFieldLabels = data.visible_field_labels || [];
+         
+         if (!items[selectedIndex].latestSortingDraft) {
+             items[selectedIndex].latestSortingDraft = {};
+         }
+         // 画面上の全入力値をかき集めてメモリに保持
+         const currentFormFields = {};
+         document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
+           const name = el.name || el.id;
+           if (name && el.type !== "hidden") {
+             currentFormFields[name] = el.value || "";
+           }
+         });
+         
+         items[selectedIndex].latestSortingDraft.visibleFields = Object.assign(
+             {},
+             currentFormFields,
+             data.draft.fields || {},
+             data.draft
+         );
+      }
+
       // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
       let savedInfo = " (保存に失敗しました)";
       try {
@@ -7430,6 +7455,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 
