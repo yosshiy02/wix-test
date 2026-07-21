@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -2511,6 +2511,44 @@ function setDocumentPreview(item) {
       showResult("左リストからDB保存済みOCRを選択してください。");
       return;
     }
+
+    showResult("AI基礎解析（1回目・2回目）を実行しています。画像は送信しません。");
+
+    try {
+      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        showResult(data);
+        return;
+      }
+      
+      const appliedCount = applyAiDraftToFormHardDebug(data.draft) + applyAiFieldMap(data.draft.fields || {});
+      
+      if (data.visible_field_labels && data.visible_field_labels.length > 0) {
+        showVisibleFieldsOnly(data.visible_field_labels);
+      }
+      
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。画像はOpenAIへ送信していません。AI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+  }
 
     showResult("1回目仕分けのみ実行しています。詳細項目抽出は行いません。画像は送信しません。");
 
@@ -7383,6 +7421,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 
