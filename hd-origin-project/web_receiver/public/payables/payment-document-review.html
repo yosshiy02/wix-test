@@ -2533,11 +2533,16 @@ function setDocumentPreview(item) {
         showVisibleFieldsOnly(data.visible_field_labels);
       }
       
-      // 解析直後に必ず自動保存する
+      // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
       let savedInfo = " (保存に失敗しました)";
       try {
-          await saveSortingDraftFromReviewPage();
-          savedInfo = " (結果を自動保存しました)";
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
       } catch (saveErr) {
           console.error("AI後の自動保存エラー", saveErr);
       }
@@ -3058,7 +3063,6 @@ function setDocumentPreview(item) {
 
       if (!data.ok) return data;
 
-      // 一括処理用にDBへ直接保存用Payloadを作る
       const payload = {
         paymentDocumentOcrImportId: item.paymentDocumentOcrImportId,
         issue_date: data.draft.issue_date || "",
@@ -4084,7 +4088,7 @@ async function runSelectedAiDrafts() {
 
     updateRecordNavigationControls();
 
-    document.querySelectorAll(".item").forEach((el, i) => {
+    document.querySelectorAll(".item").forEach(function(el, i) {
       el.classList.toggle("active", i === index);
     });
 
@@ -4127,7 +4131,7 @@ async function runSelectedAiDrafts() {
     setBottomOcrText(ocrValue);
 
     showResult("原本画像とOCR本文を読み込みました。");
-  }
+}
 
   function showPlanned(name) {
     const item = selectedIndex >= 0 ? items[selectedIndex] : null;
@@ -5729,10 +5733,10 @@ const directNames = [
     const documentTypeLabel = controlLabel("draftAiDocumentKind");
     const destinationLabel = controlLabel("draftAiDestination");
     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
-    
+
     // --- 画面上の全入力値を網羅的に回収する ---
     const extractedFields = {};
-    document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(el => {
+    document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
       const name = el.name || el.id;
       if (name && el.type !== "hidden") {
         extractedFields[name] = el.value || "";
@@ -5781,13 +5785,11 @@ const directNames = [
         reason: controlValue("draftAiReason")
       },
 
-      // visibleFields に集めた情報をすべて詰め込む (DBのJSONへ保存される)
-      visibleFields: {
-         ...extractedFields,
+      visibleFields: Object.assign({}, extractedFields, {
          analysis_system_code: selectedOptionCode("draftAnalysisSystemLabel", controlLabel("draftAnalysisSystemLabel")) || controlValue("draftAnalysisSystemCode"),
          analysis_system_label: controlLabel("draftAnalysisSystemLabel"),
          reason: controlValue("draftAiReason")
-      },
+      }),
 
       fields: extractedFields,
 
@@ -5808,7 +5810,7 @@ const directNames = [
     };
 
     return payload;
-  }
+}
 
   async function saveSortingDraftFromReviewPage() {
     const payload = collectSortingDraftPayload();
@@ -6302,6 +6304,16 @@ const directNames = [
       return { ok: false, skipped: true, reason: "no_selected_ocr" };
     }
 
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
     if (autoSaveRunning) {
       autoSaveQueued = true;
       return { ok: false, queued: true };
@@ -6311,7 +6323,12 @@ const directNames = [
     setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
 
     try {
-      var saved = await saveSortingDraftFromReviewPage();
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
 
       setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
 
@@ -7413,6 +7430,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 
