@@ -4814,8 +4814,9 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
     )
   );
 
-  const detail = detailResponse.parsed && typeof detailResponse.parsed === "object" ? detailResponse.parsed : {};
-  const detailFields = detail.fields && typeof detail.fields === "object" ? detail.fields : {};
+  const detail = normalizeStage2CommonFieldsCandidate(
+    detailResponse.parsed
+  );
 
   const mergedRaw = {
     ...detail,
