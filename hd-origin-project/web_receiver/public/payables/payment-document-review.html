@@ -37,18 +37,50 @@
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
-            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_FIXED_START -->
       <nav class="specialist-system-nav" aria-label="専門解析システム">
-        <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
-        <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
-        <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
-        <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
-        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-        <button type="button" class="specialist-system-button specialist-card" onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細</button>
-        <button type="button" class="specialist-system-button specialist-reference" onclick="location.href='./payment-document-specialist-reference-check.html'">照合用</button>
-        <button type="button" class="specialist-system-button specialist-needs-review" onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color: #ffc107; color: #000;">要確認</button>
+        <button type="button" class="specialist-system-button" onclick="goToSpecialistPage()" style="background-color: #007bff; color: white; padding: 10px 20px; font-size: 1.1em; border-radius: 5px; cursor: pointer;">専門画面へ進む</button>
       </nav>
-      <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
+      
+      <script>
+      function goToSpecialistPage() {
+          // 現在選択されているアイテムがなければエラー
+          if (typeof selectedIndex === 'undefined' || selectedIndex < 0 || !items || !items[selectedIndex]) {
+              alert('書類を選択してください。');
+              return;
+          }
+
+          // 最新のデータを画面から回収（保存用関数を再利用）
+          const payload = collectSortingDraftPayload();
+          const code = payload.draft.analysis_system_code;
+
+          if (!code) {
+              alert('専門解析先が決定されていません。Stage1(共通仕分け)を実行してください。');
+              return;
+          }
+
+          // analysis_system_code に基づいた遷移先マップ
+          const routes = {
+              'invoice_payable': './payment-document-specialist-invoice-payable.html',
+              'receipt_evidence': '/receipts/receipt-list.html',
+              'tax_public': './payment-document-specialist-tax-public.html',
+              'card_statement': './payment-document-specialist-card-statement.html',
+              'utility_communication': './payment-document-specialist-utility-communication.html',
+              'contract_insurance_lease': './payment-document-specialist-contract-insurance-lease.html',
+              'delivery_note': './payment-document-specialist-delivery-note.html', // 該当HTMLがあれば
+              'needs_review': './payment-document-specialist-needs-review.html'
+          };
+
+          const targetUrl = routes[code];
+          
+          if (targetUrl) {
+              window.location.href = targetUrl + "?id=" + items[selectedIndex].id;
+          } else {
+              alert('未定義の専門解析先です: ' + code);
+          }
+      }
+      </script>
+      <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_FIXED_END -->
 <span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
     </header>
 
@@ -7933,6 +7965,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 

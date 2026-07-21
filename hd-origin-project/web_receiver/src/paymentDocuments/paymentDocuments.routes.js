@@ -4251,40 +4251,51 @@ function buildPaymentDocumentClassificationPrompt(ocrText) {
 }
 
 function buildPaymentDocumentDetailPrompt(ocrText, classification, group, labels) {
-return [
-    "【Stage2 共通基本情報】",
+  const summary = classification && classification.ai_summary ? classification.ai_summary : {};
+
+  return [
+    "あなたは日本の中小企業向けAIです。画像は見ず、OCR本文だけを根拠に支払書類の【汎用的な下書き（Stage2）】を作成してください。",
+    "※注意: この段階では会計仕訳や税率計算、未払登録の可否など、高度な専門判断は行いません。",
+    "書類の文脈（会計、契約、通知など）を理解し、そこに書かれている「ありのままの事実（基本情報）」だけを整理して返してください。",
     "",
-    "次の10項目だけをOCR本文から抽出してください。",
+    "分類結果（Stage1）:",
+    "document_type_code=" + String(classification.document_type_code || ""),
+    "payment_destination_code=" + String(classification.payment_destination_code || ""),
+    "accounting_category_code=" + String(classification.accounting_category_code || ""),
+    "payable_kind_code=" + String(classification.payable_kind_code || ""),
+    "document_group=" + String(group || ""),
+    "document_kind=" + String(summary.document_kind || ""),
+    "reason=" + String(summary.reason || ""),
     "",
-    "1. document_number: 書類番号",
-    "2. reference_number: 参照番号",
-    "3. issuer_name: 発行者名称",
-    "4. issuer_registration_number: 発行者登録番号",
-    "5. issuer_postal_code: 発行者郵便番号",
-    "6. issuer_address: 発行者住所",
-    "7. issuer_phone: 発行者電話番号",
-    "8. recipient_name: 宛先名称",
-    "9. recipient_code: 宛先コード",
-    "10. document_date: 書類日付",
+    "絶対ルール:",
+    "- 画像を見た前提の判断は禁止。",
+    "- OCR本文にない情報を作らない。推測して補完しない。",
+    "- 金額はカンマを除いた数値だけ。通貨記号は入れない。",
+    "- 「お釣り」や「預り金」を支払金額や消費税額と混同しないこと。",
+    "- 日付は YYYY-MM-DD 形式にできる場合のみ変換する。",
+    "- 該当する記載がない項目は、必ず空文字（\"\"）または null にする。",
     "",
-    "OCR本文に存在しない値は空文字にしてください。",
-    "推測、計算、逆算、補完は禁止です。",
-    "",
-    "金額、税額、支払期限、支払方法、明細、銀行口座、",
-    "契約内容、専門固有項目はStage2では解析しません。",
+    "【抽出する汎用メタ情報】",
+    "vendor_name: 書類の発行元、または支払先となる会社名・店舗名",
+    "issue_date: 書類の発行日、または取引日",
+    "due_date: 支払期限、または納期限（あれば）",
+    "invoice_number: 請求書番号、領収書番号、管理番号、お客様番号など、書類を特定する識別番号",
+    "total_amount: 書類の「最終的な合計金額」（お釣り・預り金を含めない、実際の請求・支払額）",
+    "tax_amount: 明記されている消費税額の合計（あれば）",
+    "summary: この書類が何であるか、何を買ったのかを短く要約（例: 「事務用品購入」「7月分電気料金」など）",
+    "memo: 特記事項、または人間が確認すべき不明点・警告事項",
     "",
     "返すJSON形式:",
     "{",
-    '  "document_number": "",',
-    '  "reference_number": "",',
-    '  "issuer_name": "",',
-    '  "issuer_registration_number": "",',
-    '  "issuer_postal_code": "",',
-    '  "issuer_address": "",',
-    '  "issuer_phone": "",',
-    '  "recipient_name": "",',
-    '  "recipient_code": "",',
-    '  "document_date": "",',
+    '  "vendor_name": "",',
+    '  "issue_date": "",',
+    '  "due_date": "",',
+    '  "invoice_number": "",',
+    '  "total_amount": null,',
+    '  "tax_amount": null,',
+    '  "currency": "JPY",',
+    '  "summary": "",',
+    '  "memo": "",',
     '  "warnings": []',
     "}",
     "",
@@ -4493,436 +4504,43 @@ async function createTwoStepAiDraftFromOcrText(ocrText) {
   const detail = detailResponse.parsed && typeof detailResponse.parsed === "object" ? detailResponse.parsed : {};
   const detailFields = detail.fields && typeof detail.fields === "object" ? detail.fields : {};
 
-  
-  const stage1Fields = {
-    "会社":
-      classification.company_label ||
-      classification.company_name ||
-      classification.company_code ||
-      "",
-
-    "文書種別":
-      classification.document_type_label ||
-      classification.document_type_name ||
-      classification.document_type_code ||
-      "",
-
-    "証憑種別":
-      classification.source_type_label ||
-      classification.source_type_name ||
-      classification.source_type_code ||
-      "",
-
-    "処理先":
-      classification.payment_destination_label ||
-      classification.payment_destination_name ||
-      classification.payment_destination_code ||
-      "",
-
-    "会計区分":
-      classification.accounting_category_label ||
-      classification.accounting_category_name ||
-      classification.accounting_category_code ||
-      "",
-
-    "専門解析先":
-      classification.analysis_system_label ||
-      classification.analysis_system_name ||
-      classification.analysis_system_code ||
-      "",
-
-    "信頼度":
-      classification.ai_confidence_label ||
-      classification.confidence_label ||
-      classification.analysis_system_confidence ||
-      classification.confidence ||
-      "",
-
-    "判定理由":
-      classification.analysis_system_reason ||
-      classification.ai_reason ||
-      classification.review_reason ||
-      classification.reason ||
-      "",
-
-    "要確認":
-      classification.needs_review === true
-        ? "true"
-        : "false"
-  };
-
-  const stage2Fields = {
-    "書類番号":
-      detail.document_number || "",
-
-    "参照番号":
-      detail.reference_number || "",
-
-    "発行者名称":
-      detail.issuer_name || "",
-
-    "発行者登録番号":
-      detail.issuer_registration_number || "",
-
-    "発行者郵便番号":
-      detail.issuer_postal_code || "",
-
-    "発行者住所":
-      detail.issuer_address || "",
-
-    "発行者電話番号":
-      detail.issuer_phone || "",
-
-    "宛先名称":
-      detail.recipient_name || "",
-
-    "宛先コード":
-      detail.recipient_code || "",
-
-    "書類日付":
-      detail.document_date || ""
-  };
-
   const mergedRaw = {
-    company_code:
-      classification.company_code || "",
-
-    company_label:
-      classification.company_label ||
-      classification.company_name ||
-      "",
-
-    document_type_code:
-      classification.document_type_code || "",
-
-    document_type_label:
-      classification.document_type_label ||
-      classification.document_type_name ||
-      "",
-
-    source_type_code:
-      classification.source_type_code || "",
-
-    source_type_label:
-      classification.source_type_label ||
-      classification.source_type_name ||
-      "",
-
-    payment_destination_code:
-      classification.payment_destination_code ||
-      "",
-
-    payment_destination_label:
-      classification.payment_destination_label ||
-      classification.payment_destination_name ||
-      "",
-
-    accounting_category_code:
-      classification.accounting_category_code ||
-      "",
-
-    accounting_category_label:
-      classification.accounting_category_label ||
-      classification.accounting_category_name ||
-      "",
-
-    analysis_system_code:
-      classification.analysis_system_code ||
-      "",
-
-    analysis_system_label:
-      classification.analysis_system_label ||
-      classification.analysis_system_name ||
-      "",
-
-    analysis_system_reason:
-      classification.analysis_system_reason ||
-      classification.ai_reason ||
-      classification.review_reason ||
-      classification.reason ||
-      "",
-
-    analysis_system_confidence:
-      classification.analysis_system_confidence ||
-      classification.ai_confidence ||
-      classification.confidence ||
-      "",
-
-    ai_confidence:
-      classification.ai_confidence ||
-      classification.confidence ||
-      "",
-
-    ai_confidence_label:
-      classification.ai_confidence_label ||
-      classification.confidence_label ||
-      "",
-
-    ai_reason:
-      classification.ai_reason ||
-      classification.review_reason ||
-      classification.reason ||
-      "",
-
-    review_reason:
-      classification.review_reason ||
-      classification.ai_reason ||
-      classification.reason ||
-      "",
-
-    needs_review:
-      classification.needs_review === true,
-
-    specialist_route_code:
-      classification.analysis_system_code ||
-      "",
-
-    specialist_route_label:
-      classification.analysis_system_label ||
-      classification.analysis_system_name ||
-      "",
-
-    document_group:
-      classification.analysis_system_code ||
-      "",
-
-    document_number:
-      detail.document_number || "",
-
-    reference_number:
-      detail.reference_number || "",
-
-    issuer_name:
-      detail.issuer_name || "",
-
-    issuer_registration_number:
-      detail.issuer_registration_number || "",
-
-    issuer_postal_code:
-      detail.issuer_postal_code || "",
-
-    issuer_address:
-      detail.issuer_address || "",
-
-    issuer_phone:
-      detail.issuer_phone || "",
-
-    recipient_name:
-      detail.recipient_name || "",
-
-    recipient_code:
-      detail.recipient_code || "",
-
-    document_date:
-      detail.document_date || "",
-
-    vendor_name:
-      detail.issuer_name || "",
-
-    issue_date:
-      detail.document_date || "",
-
-    invoice_number:
-      detail.document_number || "",
-
-    fields:
-      stage2Fields,
-
-    stage1_fields:
-      stage1Fields,
-
-    stage2_fields:
-      stage2Fields,
-
+    ...detail,
+    document_type_code: classification.document_type_code,
+    payment_destination_code: classification.payment_destination_code,
+    accounting_category_code: classification.accounting_category_code,
+    analysis_system_code: classification.analysis_system_code,
+    analysis_system_label: classification.analysis_system_label,
+    analysis_system_reason: classification.analysis_system_reason,
+    analysis_system_confidence: classification.analysis_system_confidence,
+    specialist_route_code: classification.specialist_route_code,
+    specialist_route_label: classification.specialist_route_label,
+    payable_kind_code: classification.payable_kind_code,
+    source_type_code: classification.source_type_code,
+    ai_summary: classification.ai_summary,
+    
+    // AIはStage2で日本語ラベル(fields)を作らない。サーバー側で基本情報をセットする。
+    fields: {
+      "発行元": detail.vendor_name || "",
+      "支払先": detail.vendor_name || "",
+      "発行日": detail.issue_date || "",
+      "支払期限・納期限": detail.due_date || "",
+      "合計金額": detail.total_amount || "",
+      "請求・支払金額": detail.total_amount || "",
+      "消費税額": detail.tax_amount || "",
+      "摘要": detail.summary || "",
+      "管理番号": detail.invoice_number || ""
+    },
     warnings: [
-      ...(
-        Array.isArray(classification.warnings)
-          ? classification.warnings
-          : []
-      ),
-      ...(
-        Array.isArray(detail.warnings)
-          ? detail.warnings
-          : []
-      )
+      ...(Array.isArray(classification.warnings) ? classification.warnings : []),
+      ...(Array.isArray(detail.warnings) ? detail.warnings : [])
     ]
   };
 
-  const draft =
-    normalizeAiDraftCandidate(mergedRaw);
-
-  draft.company_code =
-    mergedRaw.company_code;
-
-  draft.company_label =
-    mergedRaw.company_label;
-
-  draft.document_type_code =
-    mergedRaw.document_type_code;
-
-  draft.document_type_label =
-    mergedRaw.document_type_label;
-
-  draft.source_type_code =
-    mergedRaw.source_type_code;
-
-  draft.source_type_label =
-    mergedRaw.source_type_label;
-
-  draft.payment_destination_code =
-    mergedRaw.payment_destination_code;
-
-  draft.payment_destination_label =
-    mergedRaw.payment_destination_label;
-
-  draft.accounting_category_code =
-    mergedRaw.accounting_category_code;
-
-  draft.accounting_category_label =
-    mergedRaw.accounting_category_label;
-
-  draft.analysis_system_code =
-    mergedRaw.analysis_system_code;
-
-  draft.analysis_system_label =
-    mergedRaw.analysis_system_label;
-
-  draft.analysis_system_reason =
-    mergedRaw.analysis_system_reason;
-
-  draft.analysis_system_confidence =
-    mergedRaw.analysis_system_confidence;
-
-  draft.needs_review =
-    mergedRaw.needs_review;
-
-  draft.document_number =
-    mergedRaw.document_number;
-
-  draft.reference_number =
-    mergedRaw.reference_number;
-
-  draft.issuer_name =
-    mergedRaw.issuer_name;
-
-  draft.issuer_registration_number =
-    mergedRaw.issuer_registration_number;
-
-  draft.issuer_postal_code =
-    mergedRaw.issuer_postal_code;
-
-  draft.issuer_address =
-    mergedRaw.issuer_address;
-
-  draft.issuer_phone =
-    mergedRaw.issuer_phone;
-
-  draft.recipient_name =
-    mergedRaw.recipient_name;
-
-  draft.recipient_code =
-    mergedRaw.recipient_code;
-
-  draft.document_date =
-    mergedRaw.document_date;
-
-  draft.vendor_name =
-    mergedRaw.vendor_name;
-
-  draft.issue_date =
-    mergedRaw.issue_date;
-
-  draft.invoice_number =
-    mergedRaw.invoice_number;
-
-  draft.fields =
-    stage2Fields;
-
-  draft.stage1_fields =
-    stage1Fields;
-
-  draft.stage2_fields =
-    stage2Fields;
-
-  draft.document_group =
-    mergedRaw.document_group;
-
-  draft.visible_field_labels = [
-    "会社",
-    "文書種別",
-    "証憑種別",
-    "処理先",
-    "会計区分",
-    "専門解析先",
-    "信頼度",
-    "判定理由",
-    "要確認",
-    "書類番号",
-    "参照番号",
-    "発行者名称",
-    "発行者登録番号",
-    "発行者郵便番号",
-    "発行者住所",
-    "発行者電話番号",
-    "宛先名称",
-    "宛先コード",
-    "書類日付"
-  ];
-
-  /*
-    Stage3項目をStage2結果へ混入させない。
-  */
-  for (const key of [
-    "due_date",
-    "payment_date",
-    "period_start",
-    "period_end",
-    "subtotal_amount",
-    "tax_amount",
-    "total_amount",
-    "paid_amount",
-    "currency",
-    "currency_code",
-    "tax_included_flag",
-    "payment_method",
-    "summary",
-    "memo",
-    "line_items",
-    "line_items_json",
-    "bank_name",
-    "bank_branch_name",
-    "bank_account_type",
-    "bank_account_number",
-    "bank_account_holder",
-    "withholding_tax_amount",
-    "payable_kind_code",
-    "payable_kind_label"
-  ]) {
-    delete draft[key];
-  }
+  const draft = normalizeAiDraftCandidate(mergedRaw);
 
   // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
-  draft.visible_field_labels = [
-      "会社",
-      "文書種別",
-      "証憑種別",
-      "処理先",
-      "会計区分",
-      "専門解析先",
-      "信頼度",
-      "判定理由",
-      "要確認",
-      "書類番号",
-      "参照番号",
-      "発行者名称",
-      "発行者登録番号",
-      "発行者郵便番号",
-      "発行者住所",
-      "発行者電話番号",
-      "宛先名称",
-      "宛先コード",
-      "書類日付"
-    ];
+  draft.visible_field_labels = visibleLabels;
   draft.document_group = String(
     draft.document_group || ""
   ).trim();
@@ -5322,46 +4940,26 @@ function paymentDocumentSortCompactOcrText(ocrText) {
 }
 
 function buildPaymentDocumentSortPrompt(ocrText) {
-return [
-    "【Stage1 共通仕分け】",
-    "",
-    "OCR本文から、Stage1の仕分けだけを行ってください。",
-    "",
-    "AIが判断するもの:",
-    "・会社",
-    "・文書種別",
-    "・処理先",
-    "・会計区分",
-    "・専門解析先",
-    "・analysis_system_code",
-    "・信頼度",
-    "・判定理由",
-    "・要確認かどうか",
-    "",
-    "source_type_codeは取込データ種類をシステムが設定します。",
-    "OCR本文から推測したり上書きしないでください。",
-    "",
-    "Stage1では書類番号、発行者、宛先、日付、金額、税額、",
-    "支払期限、明細、契約内容、専門固有項目を解析しません。",
-    "",
-    "payable_kind_codeや未払種別を追加しないでください。",
-    "",
-    "返すJSON形式:",
-    "{",
-    '  "company_code": "",',
-    '  "document_type_code": "",',
-    '  "payment_destination_code": "",',
-    '  "accounting_category_code": "",',
-    '  "analysis_system_code": "",',
-    '  "confidence": "",',
-    '  "reason": "",',
-    '  "needs_review": false,',
-    '  "warnings": []',
-    "}",
+  return [
+    "支払書類の1回目仕分けだけを行ってください。",
+    "詳細項目抽出はしないでください。",
+    "金額・番号・口座・住所・明細の抽出は禁止です。",
+    "ただし発行日だけは例外として、OCR本文と書類全体の文脈からAIが解析してください。",
+    "発行日を確定できた場合は、issue_date と fields の「発行日」の両方へ同じYYYY-MM-DD形式で返してください。",
+    "発行日を確定できない場合は推測せず、issue_date と fields の「発行日」を空文字にしてください。",
+    "返すのは書類区分、処理先、専門解析行き先、信頼度、要確認理由に加えて、支払対象、未払登録対象、経費登録対象、税金・公的支払、公共料金・通信費、契約・保険・リースです。",
+    "詳細項目抽出は禁止ですが、登録対象の候補判断は1回目仕分けで返してください。",
+    "payment_target / payable_target / expense_target / tax_public / public_utility / contract_insurance_lease は ai_summary に入れてください。",
+    "payable_target と expense_target は排他ではありません。両方が候補になる場合があります。",
+    "payment_destination_code=expense や 処理先=経費管理 だけを理由に payable_target=対象外 にしないでください。",
+    "公共料金・通信費カテゴリの業務ルールとして、電気料金・水道料金・ガス料金・通信費・インターネット料金・電話料金などの請求/通知/料金明細は、支払済み証憑として分類されない限り payable_target=候補 としてください。",
+    "公共料金・通信費カテゴリでは、expense_target=候補 と payable_target=候補 は同時に成立します。",
+    "公共料金・通信費カテゴリで、領収書・支払済み証憑・カード明細照合用ではない場合、payment_destination_code=expense でも payable_target=候補 としてください。",
+
     "",
     "OCR本文:",
     "------------------------------",
-    String(ocrText || "").slice(0, 12000),
+    paymentDocumentSortCompactOcrText(ocrText),
     "------------------------------"
   ].join("\n");
 }
@@ -5484,419 +5082,210 @@ function paymentDocumentDefaultExpenseTargetForSort(destinationCode, documentTyp
 /* HD_ORIGIN_NO_POST_ANALYSIS_SYSTEM_FIX_GPT00_20260709: analysis_system_* の後付け推測補完ブロックを撤去。AI返却値・人間修正値のみ扱う。 */
 /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
 function normalizePaymentDocumentSortCandidate(value) {
-const raw =
-    value &&
-    typeof value === "object" &&
-    !Array.isArray(value)
-      ? value
-      : {};
-
+  const raw = value && typeof value === "object" ? value : {};
   const source =
-    raw.draft &&
-    typeof raw.draft === "object"
-      ? raw.draft
-      : raw.sorting &&
-        typeof raw.sorting === "object"
-        ? raw.sorting
-        : raw.classification &&
-          typeof raw.classification === "object"
-          ? raw.classification
-          : raw;
+    raw.draft && typeof raw.draft === "object" ? raw.draft :
+    raw.sorting && typeof raw.sorting === "object" ? raw.sorting :
+    raw.classification && typeof raw.classification === "object" ? raw.classification :
+    raw;
 
   const aiSummary =
-    source.ai_summary &&
-    typeof source.ai_summary === "object"
-      ? source.ai_summary
-      : source.aiSummary &&
-        typeof source.aiSummary === "object"
-        ? source.aiSummary
-        : {};
+    source.ai_summary && typeof source.ai_summary === "object" ? source.ai_summary :
+    source.aiSummary && typeof source.aiSummary === "object" ? source.aiSummary :
+    raw.ai_summary && typeof raw.ai_summary === "object" ? raw.ai_summary :
+    raw.aiSummary && typeof raw.aiSummary === "object" ? raw.aiSummary :
+    {};
+
+  const fields = source.fields && typeof source.fields === "object" ? source.fields : {};
 
   function firstText() {
-    for (const candidate of arguments) {
-      const result =
-        paymentDocumentSortText(candidate);
-
-      if (result) {
-        return result;
-      }
+    for (const value of arguments) {
+      const text = paymentDocumentSortText(value);
+      if (text) return text;
     }
 
     return "";
   }
 
-  function confidenceInfo(value, labelValue) {
-    const rawValue =
-      value === null ||
-      value === undefined
-        ? ""
-        : value;
+  function normalizeConfidence(rawConfidence, rawLabel) {
+    let confidence = paymentDocumentSortText(rawConfidence || "").toLowerCase();
+    let label = paymentDocumentSortText(rawLabel || "");
 
-    const numberValue =
-      Number(rawValue);
+    if (confidence === "高") confidence = "high";
+    if (confidence === "中") confidence = "medium";
+    if (confidence === "低") confidence = "low";
 
-    let code = "";
-    let label =
-      firstText(labelValue);
+    if (label === "high") label = "高";
+    if (label === "medium") label = "中";
+    if (label === "low") label = "低";
 
-    if (
-      Number.isFinite(numberValue) &&
-      numberValue >= 0 &&
-      numberValue <= 1
-    ) {
-      if (numberValue >= 0.85) {
-        code = "high";
-      } else if (numberValue >= 0.6) {
-        code = "medium";
-      } else {
-        code = "low";
-      }
-    } else {
-      const normalized =
-        firstText(rawValue)
-          .toLowerCase();
-
-      if (
-        normalized === "high" ||
-        normalized === "高" ||
-        normalized === "高い"
-      ) {
-        code = "high";
-      }
-
-      if (
-        normalized === "medium" ||
-        normalized === "中" ||
-        normalized === "中程度"
-      ) {
-        code = "medium";
-      }
-
-      if (
-        normalized === "low" ||
-        normalized === "低" ||
-        normalized === "低い"
-      ) {
-        code = "low";
-      }
+    if (!["high", "medium", "low"].includes(confidence)) {
+      if (label === "高") confidence = "high";
+      else if (label === "低") confidence = "low";
+      else confidence = "medium";
     }
 
     if (!label) {
-      if (code === "high") {
-        label = "高";
-      } else if (code === "medium") {
-        label = "中";
-      } else if (code === "low") {
-        label = "低";
-      }
+      label = confidence === "high" ? "高" : confidence === "low" ? "低" : "中";
     }
 
-    return {
-      value:
-        Number.isFinite(numberValue) &&
-        numberValue >= 0 &&
-        numberValue <= 1
-          ? numberValue
-          : code,
-
-      code,
-      label
-    };
+    return { confidence, label };
   }
 
-  const companyCode =
-    firstText(
-      source.company_code,
-      source.companyCode,
-      aiSummary.company_code
-    );
+  const accountingCategoryCode = firstText(
+    source.accounting_category_code,
+    source.accountingCategoryCode,
+    aiSummary.accounting_category_code,
+    aiSummary.accountingCategoryCode
+  );
 
-  const companyLabel =
-    firstText(
-      source.company_label,
-      source.company_name,
-      source.companyLabel,
-      source.companyName,
-      aiSummary.company_label,
-      aiSummary.company_name
-    );
+  const accountingCategoryLabel = firstText(
+    source.accounting_category_label,
+    source.accountingCategoryLabel,
+    source.accounting_category_name,
+    aiSummary.accounting_category_label,
+    aiSummary.accountingCategoryLabel,
+    aiSummary.accounting_category,
+    aiSummary.accountingCategory,
+    fields["会計区分"]
+  );
 
-  const documentTypeCode =
-    firstText(
-      source.document_type_code,
-      source.documentTypeCode,
-      aiSummary.document_type_code
-    );
+  const paymentDestinationCode = firstText(
+    source.payment_destination_code,
+    source.paymentDestinationCode,
+    aiSummary.payment_destination_code,
+    aiSummary.paymentDestinationCode,
+    aiSummary.destination_code,
+    aiSummary.destinationCode
+  );
 
-  const documentTypeLabel =
-    firstText(
-      source.document_type_label,
-      source.document_type_name,
-      source.documentTypeLabel,
-      source.documentTypeName,
-      aiSummary.document_type_label,
-      aiSummary.document_type_name
-    );
+  const paymentDestinationLabel = firstText(
+    source.payment_destination_label,
+    source.paymentDestinationLabel,
+    source.payment_destination_name,
+    aiSummary.payment_destination_label,
+    aiSummary.paymentDestinationLabel,
+    aiSummary.destination_label,
+    aiSummary.destinationLabel,
+    aiSummary.destination,
+    fields["処理先"]
+  );
 
-  const sourceTypeCode =
-    firstText(
-      source.source_type_code,
-      source.sourceTypeCode
-    );
+  const issueDate = firstText(
+    source.issue_date,
+    source.issueDate,
+    aiSummary.issue_date,
+    aiSummary.issueDate,
+    fields["発行日"]
+  );
 
-  const sourceTypeLabel =
-    firstText(
-      source.source_type_label,
-      source.source_type_name,
-      source.sourceTypeLabel,
-      source.sourceTypeName
-    );
+  const analysisSystemCode = firstText(
+    source.analysis_system_code,
+    source.analysisSystemCode,
+    aiSummary.analysis_system_code,
+    aiSummary.analysisSystemCode,
+    source.specialist_route_code
+  );
 
-  const destinationCode =
-    firstText(
-      source.payment_destination_code,
-      source.paymentDestinationCode,
-      aiSummary.payment_destination_code
-    );
+  const analysisSystemLabel = firstText(
+    source.analysis_system_label,
+    source.analysisSystemLabel,
+    aiSummary.analysis_system_label,
+    aiSummary.analysisSystemLabel,
+    aiSummary.analysis_system,
+    aiSummary.analysisSystem,
+    source.specialist_route_label
+  );
 
-  const destinationLabel =
-    firstText(
-      source.payment_destination_label,
-      source.payment_destination_name,
-      source.paymentDestinationLabel,
-      source.paymentDestinationName,
-      aiSummary.payment_destination_label,
-      aiSummary.destination
-    );
+  const analysisSystemReason = firstText(
+    source.analysis_system_reason,
+    source.analysisSystemReason,
+    aiSummary.analysis_system_reason,
+    aiSummary.analysisSystemReason
+  );
 
-  const accountingCode =
-    firstText(
-      source.accounting_category_code,
-      source.accountingCategoryCode,
-      aiSummary.accounting_category_code
-    );
+  const analysisSystemConfidence = firstText(
+    source.analysis_system_confidence,
+    source.analysisSystemConfidence,
+    aiSummary.analysis_system_confidence,
+    aiSummary.analysisSystemConfidence
+  );
 
-  const accountingLabel =
-    firstText(
-      source.accounting_category_label,
-      source.accounting_category_name,
-      source.accountingCategoryLabel,
-      source.accountingCategoryName,
-      aiSummary.accounting_category_label,
-      aiSummary.accounting_category
-    );
+  const confidenceInfo = normalizeConfidence(
+    firstText(source.ai_confidence, source.confidence, source.confidence_level, aiSummary.ai_confidence),
+    firstText(source.ai_confidence_label, source.confidence_label, aiSummary.ai_confidence_label, aiSummary.confidence_label, fields["信頼度"])
+  );
 
-  const analysisSystemCode =
-    firstText(
-      source.analysis_system_code,
-      source.analysisSystemCode,
-      aiSummary.analysis_system_code
-    );
-
-  const analysisSystemLabel =
-    firstText(
-      source.analysis_system_label,
-      source.analysis_system_name,
-      source.analysisSystemLabel,
-      source.analysisSystemName,
-      aiSummary.analysis_system_label,
-      aiSummary.analysis_system
-    );
-
-  const reason =
-    firstText(
-      source.analysis_system_reason,
-      source.ai_reason,
-      source.review_reason,
-      source.reason,
-      aiSummary.analysis_system_reason,
-      aiSummary.reason
-    );
-
-  const confidence =
-    confidenceInfo(
-      source.analysis_system_confidence ??
-      source.ai_confidence ??
-      source.confidence,
-      source.ai_confidence_label ??
-      source.confidence_label ??
-      aiSummary.confidence_label
-    );
+  const aiReason = firstText(
+    source.ai_reason,
+    source.reason,
+    source.review_reason,
+    aiSummary.reason,
+    fields["理由"]
+  );
 
   const needsReview =
     source.needs_review === true ||
     source.needsReview === true ||
-    confidence.code === "low" ||
-    analysisSystemCode === "needs_review";
+    confidenceInfo.confidence === "low" ||
+    analysisSystemCode === "needs_review" ||
+    paymentDestinationCode === "needs_review" ||
+    accountingCategoryCode === "needs_review";
 
-  const warnings =
-    Array.isArray(source.warnings)
-      ? source.warnings
-      : Array.isArray(raw.warnings)
-        ? raw.warnings
-        : [];
+  const warnings = Array.isArray(source.warnings)
+    ? source.warnings
+    : Array.isArray(raw.warnings)
+      ? raw.warnings
+      : [];
 
-  const stage1Fields = {
-    "会社":
-      companyLabel || companyCode,
-
-    "文書種別":
-      documentTypeLabel || documentTypeCode,
-
-    "証憑種別":
-      sourceTypeLabel || sourceTypeCode,
-
-    "処理先":
-      destinationLabel || destinationCode,
-
-    "会計区分":
-      accountingLabel || accountingCode,
-
-    "専門解析先":
-      analysisSystemLabel || analysisSystemCode,
-
-    "信頼度":
-      confidence.label || confidence.code,
-
-    "判定理由":
-      reason,
-
-    "要確認":
-      needsReview ? "true" : "false"
-  };
+  const visibleFieldLabels = ["会計区分", "専門解析先", "発行日", "信頼度", "理由"];
 
   return {
-    company_code:
-      companyCode,
+    accounting_category_code: accountingCategoryCode,
+    accounting_category_label: accountingCategoryLabel,
+    payment_destination_code: paymentDestinationCode,
+    payment_destination_label: paymentDestinationLabel,
+    issue_date: issueDate,
 
-    company_label:
-      companyLabel,
+    ai_confidence: confidenceInfo.confidence,
+    ai_confidence_label: confidenceInfo.label,
+    confidence: confidenceInfo.confidence,
+    confidence_label: confidenceInfo.label,
+    ai_reason: aiReason,
+    review_reason: aiReason,
 
-    document_type_code:
-      documentTypeCode,
+    analysis_system_code: analysisSystemCode,
+    analysis_system_label: analysisSystemLabel,
+    analysis_system_reason: analysisSystemReason,
+    analysis_system_confidence: analysisSystemConfidence,
 
-    document_type_label:
-      documentTypeLabel,
-
-    source_type_code:
-      sourceTypeCode,
-
-    source_type_label:
-      sourceTypeLabel,
-
-    payment_destination_code:
-      destinationCode,
-
-    payment_destination_label:
-      destinationLabel,
-
-    accounting_category_code:
-      accountingCode,
-
-    accounting_category_label:
-      accountingLabel,
-
-    analysis_system_code:
-      analysisSystemCode,
-
-    analysis_system_label:
-      analysisSystemLabel,
-
-    analysis_system_reason:
-      reason,
-
-    analysis_system_confidence:
-      confidence.value,
-
-    ai_confidence:
-      confidence.value,
-
-    ai_confidence_label:
-      confidence.label,
-
-    confidence:
-      confidence.value,
-
-    confidence_label:
-      confidence.label,
-
-    ai_reason:
-      reason,
-
-    review_reason:
-      reason,
-
-    needs_review:
-      needsReview,
-
+    needs_review: needsReview,
     warnings,
+    visible_field_labels: visibleFieldLabels,
 
-    fields:
-      stage1Fields,
-
-    stage1_fields:
-      stage1Fields,
-
-    visible_field_labels: [
-      "会社",
-      "文書種別",
-      "証憑種別",
-      "処理先",
-      "会計区分",
-      "専門解析先",
-      "信頼度",
-      "判定理由",
-      "要確認"
-    ],
-
-    document_group:
-      analysisSystemCode,
+    fields: {
+      "会計区分": accountingCategoryLabel || accountingCategoryCode,
+      "専門解析先": analysisSystemLabel || analysisSystemCode,
+      "発行日": issueDate,
+      "信頼度": confidenceInfo.label,
+      "理由": aiReason
+    },
 
     ai_summary: {
-      company_code:
-        companyCode,
-
-      company_label:
-        companyLabel,
-
-      document_type_code:
-        documentTypeCode,
-
-      document_type_label:
-        documentTypeLabel,
-
-      source_type_code:
-        sourceTypeCode,
-
-      source_type_label:
-        sourceTypeLabel,
-
-      payment_destination_code:
-        destinationCode,
-
-      payment_destination_label:
-        destinationLabel,
-
-      accounting_category_code:
-        accountingCode,
-
-      accounting_category_label:
-        accountingLabel,
-
-      analysis_system_code:
-        analysisSystemCode,
-
-      analysis_system_label:
-        analysisSystemLabel,
-
-      confidence_label:
-        confidence.label,
-
-      reason:
-        reason,
-
-      needs_review:
-        needsReview
+      accounting_category: accountingCategoryLabel || accountingCategoryCode,
+      accounting_category_code: accountingCategoryCode,
+      accounting_category_label: accountingCategoryLabel,
+      destination: paymentDestinationLabel || paymentDestinationCode,
+      payment_destination_code: paymentDestinationCode,
+      payment_destination_label: paymentDestinationLabel,
+      issue_date: issueDate,
+      confidence_label: confidenceInfo.label,
+      reason: aiReason,
+      analysis_system_code: analysisSystemCode,
+      analysis_system: analysisSystemLabel,
+      analysis_system_label: analysisSystemLabel,
+      analysis_system_reason: analysisSystemReason,
+      analysis_system_confidence: analysisSystemConfidence
     }
   };
 }
@@ -10213,28 +9602,6 @@ async function handlePaymentDocumentRoutes(req, res) {
         const baseSort = baseDraft.sortResult || {};
 
         const aiDraft = latestSortingDraft ? Object.assign({}, baseSort, {
-          /* HD_ORIGIN_STAGE12_REVIEW_FIELDS_20260721 */
-          fields:
-            baseDraft.visibleFields ||
-            baseDraft.visible_fields ||
-            baseSort.fields ||
-            {},
-
-          stage1_fields:
-            baseSort.stage1_fields ||
-            {},
-
-          stage2_fields:
-            baseSort.stage2_fields ||
-            baseDraft.visibleFields ||
-            baseDraft.visible_fields ||
-            baseSort.fields ||
-            {},
-
-          visible_field_labels:
-            Array.isArray(baseSort.visible_field_labels)
-              ? baseSort.visible_field_labels
-              : [],
           document_type_code: baseDraft.documentTypeCode || baseSort.document_type_code || "",
           document_type_name: baseDraft.documentTypeLabel || baseSort.document_type_name || baseSort.document_type_label || "",
           document_type_label: baseDraft.documentTypeLabel || baseSort.document_type_label || baseSort.document_type_name || "",
@@ -10270,35 +9637,21 @@ async function handlePaymentDocumentRoutes(req, res) {
           needs_review: !!(baseDraft.needsReview || baseSort.needs_review)
         }) : null;
 
-        const visibleFieldLabels =
-          latestSortingDraft
-            ? (
-                Array.isArray(baseSort.visible_field_labels) &&
-                baseSort.visible_field_labels.length > 0
-                  ? baseSort.visible_field_labels
-                  : [
-                      "会社",
-                      "文書種別",
-                      "証憑種別",
-                      "処理先",
-                      "会計区分",
-                      "専門解析先",
-                      "信頼度",
-                      "判定理由",
-                      "要確認",
-                      "書類番号",
-                      "参照番号",
-                      "発行者名称",
-                      "発行者登録番号",
-                      "発行者郵便番号",
-                      "発行者住所",
-                      "発行者電話番号",
-                      "宛先名称",
-                      "宛先コード",
-                      "書類日付"
-                    ]
-              )
-            : [];
+        const visibleFieldLabels = latestSortingDraft ? [
+          "書類区分",
+          "処理先",
+          "会計区分",
+          "未払種別",
+          "専門ルート",
+          "支払対象",
+          "未払登録対象",
+          "経費登録対象",
+          "税金・公的支払",
+          "公共料金・通信費",
+          "契約・保険・リース",
+          "AI信頼度",
+          "AI判定理由"
+        ] : [];
 
         return {
           source: "database-review-items",
