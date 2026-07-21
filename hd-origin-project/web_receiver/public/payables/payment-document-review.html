@@ -4125,31 +4125,21 @@ async function runSelectedAiDrafts() {
     setInitialAiOnlyView();
     fillDraftFromItem(item);
     
-    // DB専用review-itemsの保存済み下書きがあれば、単品仕分けと同じ項目表示へ戻す
+    // DBに保存されている過去のデータを items の __aiDraft としてメモリに復元する
+    if (item.latestSortingDraft && !item.__aiDraft) {
+        const pastSortResult = item.latestSortingDraft.sortResult || item.latestSortingDraft.visibleFields || {};
+        // 過去の保存データがあれば、それを AIの解析結果と同じ形式として扱う
+        item.__aiDraft = Object.assign({}, pastSortResult, { fields: item.latestSortingDraft.visibleFields || pastSortResult.fields || {} });
+    }
+
     if (item && item.__aiDraft) {
-      if (typeof applySortingOnlyDraftToForm === "function") {
-        applySortingOnlyDraftToForm(item.__aiDraft);
-      } else if (typeof applyAiDraftToFormHardDebug === "function") {
+      // 画面の日本語ラベル専用の復元関数に、AIの生データ（または保存されていた過去データ）を渡す
+      if (typeof applyAiDraftToFormHardDebug === "function") {
         applyAiDraftToFormHardDebug(item.__aiDraft);
       }
 
-      // 過去に保存された fields 情報の復元
-      if (item.latestSortingDraft) {
-          const pastFields = item.latestSortingDraft.visibleFields || item.latestSortingDraft.sortResult || {};
-          // 画面に適用する
-          applyAiFieldMap(pastFields);
-          
-          // 明示的なマッピング
-          setInputValue('[name="vendor_name"], #vendorName', pastFields.vendor_name || pastFields.draftVendorName || "");
-          setInputValue('[name="total_amount"], #totalAmount', pastFields.total_amount || pastFields.draftTotalAmount || "");
-          setInputValue('[name="tax_amount"], #taxAmount', pastFields.tax_amount || pastFields.draftTaxAmount || "");
-          setInputValue('[name="summary"], #summary', pastFields.summary || pastFields.draftSummary || "");
-          setInputValue('[name="invoice_number"], #invoiceNumber', pastFields.invoice_number || pastFields.draftInvoiceNo || "");
-          setInputValue('[name="issue_date"], #issueDate', pastFields.issue_date || pastFields.draftIssueDate || "");
-      }
-
       if (typeof showVisibleFieldsOnly === "function") {
-        showVisibleFieldsOnly(item.__visibleFieldLabels || []);
+        showVisibleFieldsOnly(item.__visibleFieldLabels || item.latestSortingDraft.__visibleFieldLabels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"]);
       }
     }
 
@@ -5759,19 +5749,16 @@ const directNames = [
     const destinationLabel = controlLabel("draftAiDestination");
     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
 
-    // --- 画面上の全入力値を網羅的に回収する ---
-    const extractedFields = {};
-    document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
-      const name = el.name || el.id;
-      if (name && el.type !== "hidden") {
-        extractedFields[name] = el.value || "";
-      }
-    });
+    // メモリ上の最新のAI解析結果を取得
+    let currentDraft = {};
+    if (typeof selectedIndex !== 'undefined' && items && items[selectedIndex] && items[selectedIndex].__aiDraft) {
+        currentDraft = items[selectedIndex].__aiDraft;
+    }
 
     const payload = {
       paymentDocumentOcrImportId: ocrId,
 
-      issue_date: controlValue("draftIssueDate") || extractedFields["issue_date"] || extractedFields["draftIssueDate"],
+      issue_date: controlValue("draftIssueDate") || currentDraft.issue_date || "",
       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
       document_type_label: documentTypeLabel,
@@ -5784,14 +5771,6 @@ const directNames = [
       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
       accounting_category_label: accountingCategoryLabel,
 
-      // --- 詳細項目のルート展開 ---
-      vendor_name: extractedFields["vendor_name"] || extractedFields["draftVendorName"] || "",
-      total_amount: numericOrNull(extractedFields["total_amount"] || extractedFields["draftTotalAmount"]),
-      tax_amount: numericOrNull(extractedFields["tax_amount"] || extractedFields["draftTaxAmount"]),
-      invoice_number: extractedFields["invoice_number"] || extractedFields["draftInvoiceNo"] || "",
-      summary: extractedFields["summary"] || extractedFields["draftSummary"] || "",
-      memo: extractedFields["memo"] || extractedFields["draftMemo"] || "payment-document-review 画面から下書き保存",
-
       analysis_system_code: selectedOptionCode("draftAnalysisSystemLabel", controlLabel("draftAnalysisSystemLabel")) || controlValue("draftAnalysisSystemCode"),
       analysis_system_label: controlLabel("draftAnalysisSystemLabel"),
 
@@ -5802,36 +5781,15 @@ const directNames = [
 
       display_rotation: getDisplayRotation(),
 
-      ai_summary: {
-        document_kind: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
-        document_kind_label: documentTypeLabel,
-        destination: selectedOptionCode("draftAiDestination", destinationLabel),
-        destination_label: destinationLabel,
-        reason: controlValue("draftAiReason")
-      },
+      memo: controlValue("draftMemo") || "payment-document-review 画面から下書き保存",
 
-      visibleFields: Object.assign({}, extractedFields, {
-         analysis_system_code: selectedOptionCode("draftAnalysisSystemLabel", controlLabel("draftAnalysisSystemLabel")) || controlValue("draftAnalysisSystemCode"),
-         analysis_system_label: controlLabel("draftAnalysisSystemLabel"),
-         reason: controlValue("draftAiReason")
-      }),
-
-      fields: extractedFields,
-
-      sortResult: {
-        document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
-        document_type_label: documentTypeLabel,
-        payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
-        payment_destination_label: destinationLabel,
-        accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
-        accounting_category_label: accountingCategoryLabel,
-        analysis_system_code: selectedOptionCode("draftAnalysisSystemLabel", controlLabel("draftAnalysisSystemLabel")) || controlValue("draftAnalysisSystemCode"),
-        analysis_system_label: controlLabel("draftAnalysisSystemLabel"),
-        needs_review:
-          controlLabel("draftAiDestination").includes("要確認") ||
-          controlLabel("draftAccountingCategory").includes("要確認") ||
-          controlValue("draftAiConfidence").includes("低")
-      }
+      // AIが作成した生のdraft（fieldsやsummaryを含む）をそのまま保存JSONに渡す
+      sortResult: currentDraft,
+      aiDraft: currentDraft,
+      draft: currentDraft,
+      
+      visibleFields: currentDraft.fields || {},
+      fields: currentDraft.fields || {}
     };
 
     return payload;
@@ -7455,6 +7413,7 @@ const directNames = [
 
 </body>
 </html>
+
 
 
 

@@ -4096,20 +4096,20 @@ function paymentDocumentAiGroupFromDraft(draft) {
     d.analysis_system_code || ""
   ).trim().toLowerCase();
 
-  if (analysisSystemCode === "invoice_payable_analysis") return "invoice";
-  if (analysisSystemCode === "receipt_evidence_analysis") return "receipt";
-  if (analysisSystemCode === "tax_public_analysis") return "tax";
+  if (analysisSystemCode === "invoice_payable") return "invoice";
+  if (analysisSystemCode === "receipt_evidence") return "receipt";
+  if (analysisSystemCode === "tax_public") return "tax";
   if (
-    analysisSystemCode === "card_statement_analysis" ||
-    analysisSystemCode === "card_payment_analysis"
+    analysisSystemCode === "card_statement" ||
+    analysisSystemCode === "card_payment"
   ) return "card";
-  if (analysisSystemCode === "utility_communication_analysis") return "utility";
-  if (analysisSystemCode === "contract_insurance_lease_analysis") return "contract";
+  if (analysisSystemCode === "utility_communication") return "utility";
+  if (analysisSystemCode === "contract_insurance_lease") return "contract";
   if (
-    analysisSystemCode === "reference_check_analysis" ||
-    analysisSystemCode === "delivery_support_analysis"
+    analysisSystemCode === "delivery_note" ||
+    analysisSystemCode === "delivery_note"
   ) return "reference";
-  if (analysisSystemCode === "needs_review_analysis") return "other";
+  if (analysisSystemCode === "needs_review") return "other";
 
   const text = [
     d.document_type_code,
@@ -7126,7 +7126,7 @@ function hdOriginCilBuildRecord(body, ocrRow, latestSortingDraftId) {
     contract_insurance_lease_kind_code: cilKind.code,
     contract_insurance_lease_kind_label: cilKind.label,
 
-    analysis_system_code: hdOriginCilText(body.analysis_system_code || draft.analysis_system_code || "contract_insurance_lease_analysis"),
+    analysis_system_code: hdOriginCilText(body.analysis_system_code || draft.analysis_system_code || "contract_insurance_lease"),
     analysis_system_label: hdOriginCilText(body.analysis_system_label || draft.analysis_system_label || "契約・保険・リース解析システム"),
     analysis_system_reason: hdOriginCilText(body.analysis_system_reason || draft.analysis_system_reason || aiSummary.reason),
     analysis_system_confidence: hdOriginCilText(body.analysis_system_confidence || draft.analysis_system_confidence || draft.ai_confidence || aiSummary.confidence_label),
@@ -8448,28 +8448,28 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const definitions = {
         invoice_payable: {
-          analysisSystemCode: "invoice_payable_analysis"
+          analysisSystemCode: "invoice_payable"
         },
         tax_public: {
-          analysisSystemCode: "tax_public_analysis"
+          analysisSystemCode: "tax_public"
         },
         utility_communication: {
-          analysisSystemCode: "utility_communication_analysis"
+          analysisSystemCode: "utility_communication"
         },
         contract_insurance_lease: {
-          analysisSystemCode: "contract_insurance_lease_analysis"
+          analysisSystemCode: "contract_insurance_lease"
         },
         receipt_evidence: {
-          analysisSystemCode: "receipt_evidence_analysis"
+          analysisSystemCode: "receipt_evidence"
         },
         card_statement: {
-          analysisSystemCode: "card_statement_analysis"
+          analysisSystemCode: "card_statement"
         },
         reference_check: {
-          analysisSystemCode: "reference_check_analysis"
+          analysisSystemCode: "delivery_note"
         },
         needs_review: {
-          analysisSystemCode: "needs_review_analysis"
+          analysisSystemCode: "needs_review"
         }
       };
 
@@ -10800,22 +10800,22 @@ async function handlePaymentDocumentRoutes(req, res) {
       const specialistRouteDefinitions = {
         invoice_payable: {
           routeLabel: "請求・未払系解析",
-          analysisSystemCode: "invoice_payable_analysis",
+          analysisSystemCode: "invoice_payable",
           analysisSystemLabel: "請求・未払系専門解析システム"
         },
         tax_public: {
           routeLabel: "税金・公的支払解析",
-          analysisSystemCode: "tax_public_analysis",
+          analysisSystemCode: "tax_public",
           analysisSystemLabel: "税金・公的支払専門解析システム"
         },
         utility_communication: {
           routeLabel: "公共料金・通信費解析",
-          analysisSystemCode: "utility_communication_analysis",
+          analysisSystemCode: "utility_communication",
           analysisSystemLabel: "公共料金・通信費専門解析システム"
         },
         contract_insurance_lease: {
           routeLabel: "契約・保険・リース解析",
-          analysisSystemCode: "contract_insurance_lease_analysis",
+          analysisSystemCode: "contract_insurance_lease",
           analysisSystemLabel: "契約・保険・リース専門解析システム"
         }
       };
@@ -11330,6 +11330,7 @@ HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 禁止:
 機械の誤り対策として、人間確認を通常業務へ戻すこと。
 */
+
 
 
 

@@ -112,16 +112,15 @@ const MASTER_DEFS = {
     nameColumn: "payment_destination_name",
     extraColumns: ["payment_destination_code"]
   },
-  analysis_systems: {
+    analysis_systems: {
     type: "analysis_systems",
     label: "専門解析先",
-    table: "expenses.analysis_systems",
-    idColumn: "analysis_system_id",
-    nameColumn: "analysis_system_name",
+    table: "accounting.payment_document_specialist_analyses",
+    idColumn: "specialist_analysis_id",
+    nameColumn: "specialist_analysis_name",
     extraColumns: [
-      "analysis_system_code",
+      "specialist_analysis_code",
       "description",
-      "specialist_route_code",
       "destination_url"
     ]
   },
@@ -438,5 +437,6 @@ module.exports = {
   updateMaster,
   disableMaster
 };
+
 
 
