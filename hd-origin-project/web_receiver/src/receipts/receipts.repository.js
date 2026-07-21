@@ -54,35 +54,23 @@ async function listImports(limit = 100, offset = 0, options = {}) {
 
 async function getImportById(id) {
   const result = await pool.query(
-    `
-    SELECT
+    
+    SELECT 
       payment_document_ocr_import_id AS id,
-      upload_id,
-      wix_item_id,
-      wix_image_url,
-      local_image_file_name,
-      local_image_path,
-      image_hash_sha256,
-      image_size_bytes,
-      original_file_name,
-      captured_at_jst,
-      imported_at_jst,
-      import_batch_id,
-      ocr_provider,
-      ocr_raw_text,
-      ocr_line_count,
-      ocr_word_count,
-      status,
-      created_at,
-      updated_at
+      *
     FROM accounting.payment_document_ocr_imports
     WHERE payment_document_ocr_import_id = $1
     LIMIT 1
-    `,
+    ,
     [id]
   );
-
-  return result.rows[0] || null;
+  
+  const row = result.rows[0] || null;
+  // AIが求める名前に合わせるための安全処理
+  if (row && !row.ocr_raw_text && row.ocr_text) {
+      row.ocr_raw_text = row.ocr_text;
+  }
+  return row;
 }
 
 
@@ -992,53 +980,23 @@ async function listImports(limit = 100, offset = 0) {
 
 async function getImportById(id) {
   const result = await pool.query(
-    `
-    SELECT
+    
+    SELECT 
       payment_document_ocr_import_id AS id,
-      upload_id,
-      wix_item_id,
-      wix_image_url,
-      local_image_file_name,
-      local_image_path,
-      image_hash_sha256,
-      image_size_bytes,
-      original_file_name,
-      captured_at_jst,
-      imported_at_jst,
-      import_batch_id,
-      ocr_provider,
-      ocr_raw_text,
-      ocr_line_count,
-      ocr_word_count,
-      status,
-      created_at,
-      updated_at,
-      NULL::date AS receipt_date,
-      ''::text AS vendor_name,
-      NULL::numeric AS total_amount,
-      NULL::numeric AS tax_amount,
-      ''::text AS invoice_number,
-      NULL::integer AS payment_method_id,
-      ''::text AS payment_method_name,
-      NULL::integer AS target_person_id,
-      ''::text AS target_person,
-      NULL::integer AS purpose_id,
-      ''::text AS purpose,
-      NULL::integer AS project_id,
-      ''::text AS project_name,
-      NULL::integer AS department_id,
-      ''::text AS department_name,
-      ''::text AS evidence_type,
-      ''::text AS evidence_memo,
-      ''::text AS summary
+      *
     FROM accounting.payment_document_ocr_imports
     WHERE payment_document_ocr_import_id = $1
     LIMIT 1
-    `,
+    ,
     [id]
   );
-
-  return result.rows[0] || null;
+  
+  const row = result.rows[0] || null;
+  // AIが求める名前に合わせるための安全処理
+  if (row && !row.ocr_raw_text && row.ocr_text) {
+      row.ocr_raw_text = row.ocr_text;
+  }
+  return row;
 }
 
 async function getImportByImageHashSha256(hash) {
@@ -3263,6 +3221,7 @@ async function getSavedReceiptById(receiptId) {
 module.exports.listSavedReceipts = listSavedReceipts;
 module.exports.getSavedReceiptById = getSavedReceiptById;
 /* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_END */
+
 
 
 

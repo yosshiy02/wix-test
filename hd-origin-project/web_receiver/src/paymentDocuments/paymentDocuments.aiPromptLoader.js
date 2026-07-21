@@ -254,10 +254,16 @@ function buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema) {
 
 async function selectPaymentDocumentPromptFiles(context = {}) {
   const stageCode = getStageCode(context);
+
+  if (stageCode === "stage1") {
+    const masters = await loadStage1CandidateMasters();
+    return [buildStage1CandidateMasterPrompt(masters)];
+  }
+
   const compositionCode = getCompositionCode(context);
   const promptTexts = await loadCompositionPromptTexts(compositionCode);
 
-  if (stageCode === "stage1" || stageCode === "stage2") {
+  if (stageCode === "stage2") {
     const candidateMasters = await loadActiveCandidateMasters();
     promptTexts.push(buildCandidateMasterPrompt(candidateMasters));
     return promptTexts;
