@@ -264,8 +264,6 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
   const promptTexts = await loadCompositionPromptTexts(compositionCode);
 
   if (stageCode === "stage2") {
-    const candidateMasters = await loadActiveCandidateMasters();
-    promptTexts.push(buildCandidateMasterPrompt(candidateMasters));
     return promptTexts;
   }
 

@@ -4732,6 +4732,28 @@ async function resolvePaymentDocumentSourceTypeCode(row) {
   return resolvedCode;
 }
 
+function normalizeStage2CommonFieldsCandidate(value) {
+  const source =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : {};
+
+  const text = key => String(source[key] || "").trim();
+
+  return {
+    document_number: text("document_number"),
+    reference_number: text("reference_number"),
+    issuer_name: text("issuer_name"),
+    issuer_registration_number: text("issuer_registration_number"),
+    issuer_postal_code: text("issuer_postal_code"),
+    issuer_address: text("issuer_address"),
+    issuer_phone: text("issuer_phone"),
+    recipient_name: text("recipient_name"),
+    recipient_code: text("recipient_code"),
+    document_date: text("document_date")
+  };
+}
+
 async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
   const sourceTypeCode = String(
     context && context.source_type_code || ""
