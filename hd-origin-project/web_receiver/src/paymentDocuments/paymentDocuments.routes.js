@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const config = require("../config");
@@ -2041,6 +2041,20 @@ function normalizeAiDraftCandidate(value) {
     payable_kind_code: String(draft.payable_kind_code || "").trim(),
     source_type_code: String(draft.source_type_code || "").trim(),
 
+    // --- ここから追加: AIが返した重要なシステム情報を消失させずに維持する ---
+    analysis_system_code: String(draft.analysis_system_code || "").trim(),
+    analysis_system_label: String(draft.analysis_system_label || "").trim(),
+    analysis_system_reason: String(draft.analysis_system_reason || "").trim(),
+    analysis_system_confidence: String(draft.analysis_system_confidence || "").trim(),
+    specialist_route_code: String(draft.specialist_route_code || "").trim(),
+    specialist_route_label: String(draft.specialist_route_label || "").trim(),
+    
+    ai_summary: draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {},
+    fields: draft.fields && typeof draft.fields === "object" ? draft.fields : {},
+    visible_field_labels: Array.isArray(draft.visible_field_labels) ? draft.visible_field_labels : [],
+    document_group: String(draft.document_group || "").trim(),
+    // --- 追加ここまで ---
+
     vendor_name: String(draft.vendor_name || "").trim(),
     issue_date: String(draft.issue_date || "").trim(),
     due_date: String(draft.due_date || "").trim(),
@@ -2511,90 +2525,44 @@ function normalizePaymentDestinationCodeFromText(value) {
 /* PAYMENT_DOCUMENT_AI_CODE_NORMALIZE_20260707_END */
 function normalizeAiDraftCandidate(value) {
   const draft = value && typeof value === "object" ? value : {};
-  const fields = draft.fields && typeof draft.fields === "object" ? draft.fields : {};
 
   return {
-    document_type_code: normalizeAiValueText(draft.document_type_code || normalizePaymentDocumentTypeCodeFromText(fields["書類種別"] || fields["書類区分"] || (draft.ai_summary && draft.ai_summary.document_kind))),
-    payment_destination_code: normalizeAiValueText(draft.payment_destination_code || normalizePaymentDestinationCodeFromText(fields["処理先"] || (draft.ai_summary && draft.ai_summary.destination))),
-    accounting_category_code: normalizeAiValueText(draft.accounting_category_code),
-    analysis_system_code: normalizeAiValueText(
-      draft.analysis_system_code ||
-      draft.analysisSystemCode ||
-      (draft.ai_summary && draft.ai_summary.analysis_system_code)
-    ),
+    document_type_code: String(draft.document_type_code || "").trim(),
+    payment_destination_code: String(draft.payment_destination_code || "").trim(),
+    accounting_category_code: String(draft.accounting_category_code || "").trim(),
+    payable_kind_code: String(draft.payable_kind_code || "").trim(),
+    source_type_code: String(draft.source_type_code || "").trim(),
 
-    analysis_system_label: normalizeAiValueText(
-      draft.analysis_system_label ||
-      draft.analysis_system ||
-      draft.analysisSystemLabel ||
-      (draft.ai_summary && (
-        draft.ai_summary.analysis_system_label ||
-        draft.ai_summary.analysis_system
-      ))
-    ),
+    // --- ここから追加: AIが返した重要なシステム情報を消失させずに維持する ---
+    analysis_system_code: String(draft.analysis_system_code || "").trim(),
+    analysis_system_label: String(draft.analysis_system_label || "").trim(),
+    analysis_system_reason: String(draft.analysis_system_reason || "").trim(),
+    analysis_system_confidence: String(draft.analysis_system_confidence || "").trim(),
+    specialist_route_code: String(draft.specialist_route_code || "").trim(),
+    specialist_route_label: String(draft.specialist_route_label || "").trim(),
+    
+    ai_summary: draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {},
+    fields: draft.fields && typeof draft.fields === "object" ? draft.fields : {},
+    visible_field_labels: Array.isArray(draft.visible_field_labels) ? draft.visible_field_labels : [],
+    document_group: String(draft.document_group || "").trim(),
+    // --- 追加ここまで ---
 
-    analysis_system_reason: normalizeAiValueText(
-      draft.analysis_system_reason ||
-      draft.analysisSystemReason ||
-      draft.reason ||
-      draft.review_reason ||
-      (draft.ai_summary && (
-        draft.ai_summary.analysis_system_reason ||
-        draft.ai_summary.reason
-      ))
-    ),
+    vendor_name: String(draft.vendor_name || "").trim(),
+    issue_date: String(draft.issue_date || "").trim(),
+    due_date: String(draft.due_date || "").trim(),
+    invoice_number: String(draft.invoice_number || "").trim(),
 
-    analysis_system_confidence: normalizeAiValueText(
-      draft.analysis_system_confidence ||
-      draft.analysisSystemConfidence ||
-      draft.confidence_label ||
-      draft.ai_confidence ||
-      (draft.ai_summary && (
-        draft.ai_summary.analysis_system_confidence ||
-        draft.ai_summary.confidence_label
-      ))
-    ),
-
-    specialist_route_code: normalizeAiValueText(
-      draft.specialist_route_code ||
-      draft.specialistRouteCode
-    ),
-
-    specialist_route_label: normalizeAiValueText(
-      draft.specialist_route_label ||
-      draft.specialistRouteLabel
-    ),
-
-    payable_kind_code: normalizeAiValueText(draft.payable_kind_code),
-    source_type_code: normalizeAiValueText(draft.source_type_code),
-
-    vendor_name: normalizeAiValueText(draft.vendor_name || fields["支払先"] || fields["発行元"]),
-    issue_date: normalizeAiValueText(draft.issue_date || fields["発行日"] || fields["書類日付"] || fields["請求日"]),
-    due_date: normalizeAiValueText(draft.due_date || fields["支払期限・納期限"]),
-    invoice_number: normalizeAiValueText(draft.invoice_number || fields["請求書番号"]),
     total_amount: draft.total_amount === null || draft.total_amount === undefined || draft.total_amount === ""
       ? null
-      : Number(String(draft.total_amount).replace(/[￥¥,\s]/g, "")),
+      : Number(draft.total_amount),
+
     tax_amount: draft.tax_amount === null || draft.tax_amount === undefined || draft.tax_amount === ""
       ? null
-      : Number(String(draft.tax_amount).replace(/[￥¥,\s]/g, "")),
-    currency: normalizeAiValueText(draft.currency || "JPY"),
-    summary: normalizeAiValueText(draft.summary || fields["摘要"]),
-    memo: normalizeAiValueText(draft.memo || fields["社内メモ"]),
+      : Number(draft.tax_amount),
 
-    ai_summary: {
-      document_kind: normalizeAiValueText(draft.ai_summary && draft.ai_summary.document_kind || fields["書類区分"] || fields["書類種別"] || draft.document_type_code || ""),
-      destination: normalizeAiValueText(draft.ai_summary && draft.ai_summary.destination || ""),
-      payment_target: normalizeAiValueText(draft.ai_summary && draft.ai_summary.payment_target || ""),
-      payable_target: normalizeAiValueText(draft.ai_summary && draft.ai_summary.payable_target || ""),
-      expense_target: normalizeAiValueText(draft.ai_summary && draft.ai_summary.expense_target || ""),
-      tax_public: normalizeAiValueText(draft.ai_summary && draft.ai_summary.tax_public || ""),
-      contract_insurance_lease: normalizeAiValueText(draft.ai_summary && draft.ai_summary.contract_insurance_lease || ""),
-      confidence_label: normalizeAiValueText(draft.ai_summary && draft.ai_summary.confidence_label || ""),
-      reason: normalizeAiValueText(draft.ai_summary && draft.ai_summary.reason || "")
-    },
-
-    fields: fields,
+    currency: String(draft.currency || "JPY").trim(),
+    summary: String(draft.summary || "").trim(),
+    memo: String(draft.memo || "").trim(),
 
     confidence: {
       document_type: Number(draft.confidence && draft.confidence.document_type || 0),
@@ -4297,7 +4265,7 @@ function buildPaymentDocumentClassificationPrompt(ocrText) {
     "accounts_payable, unpaid, accrued_expense, card_payable, other",
     "",
     "analysis_system_code候補:",
-    "invoice_payable_analysis, receipt_evidence_analysis, tax_public_analysis, card_statement_analysis, utility_communication_analysis, contract_insurance_lease_analysis, reference_check_analysis, needs_review_analysis",
+    "invoice_payable, receipt_evidence, tax_public, card_statement, utility_communication, contract_insurance_lease, delivery_note, needs_review",
     "",
     "返すJSON形式:",
     "{",
@@ -11412,4 +11380,5 @@ HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 禁止:
 機械の誤り対策として、人間確認を通常業務へ戻すこと。
 */
+
 
