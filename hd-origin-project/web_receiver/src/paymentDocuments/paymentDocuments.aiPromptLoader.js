@@ -260,12 +260,12 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
     return [buildStage1CandidateMasterPrompt(masters)];
   }
 
+  if (stageCode === "stage2") {
+    return [];
+  }
+
   const compositionCode = getCompositionCode(context);
   const promptTexts = await loadCompositionPromptTexts(compositionCode);
-
-  if (stageCode === "stage2") {
-    return promptTexts;
-  }
 
   const specialistAnalysisCode = getSpecialistAnalysisCode(context);
   if (!specialistAnalysisCode) throw new Error("Stage3の専門解析コードを特定できません。");

@@ -4199,7 +4199,7 @@ function buildPaymentDocumentClassificationPrompt(ocrText) {
     "- accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
     "- analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
     "- 選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
-    "- analysis_system_codeへ末尾_analysisを付けない。",
+
     "- payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
     "- analysis_system_reasonは必ず具体的に返す。",
     "- analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
@@ -4738,7 +4738,14 @@ function normalizeStage2CommonFieldsCandidate(value) {
       ? value
       : {};
 
-  const text = key => String(source[key] || "").trim();
+  const fields =
+    source.stage2_fields &&
+    typeof source.stage2_fields === "object" &&
+    !Array.isArray(source.stage2_fields)
+      ? source.stage2_fields
+      : source;
+
+  const text = key => String(fields[key] || "").trim();
 
   return {
     document_number: text("document_number"),
@@ -4750,7 +4757,10 @@ function normalizeStage2CommonFieldsCandidate(value) {
     issuer_phone: text("issuer_phone"),
     recipient_name: text("recipient_name"),
     recipient_code: text("recipient_code"),
-    document_date: text("document_date")
+    document_date: text("document_date"),
+    warnings: Array.isArray(source.warnings)
+      ? source.warnings.map(item => String(item || "").trim()).filter(Boolean)
+      : []
   };
 }
 
@@ -4792,16 +4802,24 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
   await validateStage1MasterCodes(
     classification
   );
-
-  const group = paymentDocumentAiGroupFromDraft(classification);
-  const visibleLabels = paymentDocumentAiVisibleFieldLabels(group);
+  const visibleLabels = [
+    "document_number",
+    "reference_number",
+    "issuer_name",
+    "issuer_registration_number",
+    "issuer_postal_code",
+    "issuer_address",
+    "issuer_phone",
+    "recipient_name",
+    "recipient_code",
+    "document_date"
+  ];
 
   const detailPrompt = await appendPaymentDocumentExternalPrompt(
-    buildPaymentDocumentDetailPrompt(ocrText, classification, group, visibleLabels),
+    buildPaymentDocumentDetailPrompt(ocrText, classification),
     await selectPaymentDocumentPromptFiles({
       ocrText,
       draft: classification,
-      group,
       phase: "detail"
     })
   );
@@ -4818,50 +4836,31 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
     detailResponse.parsed
   );
 
-  const mergedRaw = {
-    ...detail,
+  const { warnings: detailWarnings, ...stage2Fields } = detail;
+
+  const draft = {
+    ...stage2Fields,
+    company_code: classification.company_code,
     document_type_code: classification.document_type_code,
     payment_destination_code: classification.payment_destination_code,
     accounting_category_code: classification.accounting_category_code,
     analysis_system_code: classification.analysis_system_code,
-    analysis_system_label: classification.analysis_system_label,
     analysis_system_reason: classification.analysis_system_reason,
     analysis_system_confidence: classification.analysis_system_confidence,
-    specialist_route_code: classification.specialist_route_code,
-    specialist_route_label: classification.specialist_route_label,
-    payable_kind_code: classification.payable_kind_code,
+    needs_review: classification.needs_review,
     source_type_code: classification.source_type_code,
-    ai_summary: classification.ai_summary,
-    
-    // AIはStage2で日本語ラベル(fields)を作らない。サーバー側で基本情報をセットする。
-    fields: {
-      "発行元": detail.vendor_name || "",
-      "支払先": detail.vendor_name || "",
-      "発行日": detail.issue_date || "",
-      "支払期限・納期限": detail.due_date || "",
-      "合計金額": detail.total_amount || "",
-      "請求・支払金額": detail.total_amount || "",
-      "消費税額": detail.tax_amount || "",
-      "摘要": detail.summary || "",
-      "管理番号": detail.invoice_number || ""
-    },
+    fields: { ...stage2Fields },
     warnings: [
       ...(Array.isArray(classification.warnings) ? classification.warnings : []),
-      ...(Array.isArray(detail.warnings) ? detail.warnings : [])
+      ...(Array.isArray(detailWarnings) ? detailWarnings : [])
     ]
   };
 
-  const draft = normalizeAiDraftCandidate(mergedRaw);
-
   // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
   draft.visible_field_labels = visibleLabels;
-  draft.document_group = String(
-    draft.document_group || ""
-  ).trim();
   return {
     draft,
     classification,
-    document_group: draft.document_group || group,
     visible_field_labels: draft.visible_field_labels || visibleLabels,
     display_mode: "visible_fields_only",
     prompt_rule_files: {
@@ -4872,7 +4871,6 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
       detail: await selectPaymentDocumentPromptFiles({
         ocrText,
         draft: classification,
-        group,
         phase: "detail"
       })
     },
@@ -6688,6 +6686,10 @@ function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
   return {
     issue_date: (() => {
       const value =
+        body.document_date ??
+        body.documentDate ??
+        draft.document_date ??
+        draft.documentDate ??
         body.issue_date ??
         body.issueDate ??
         draft.issue_date ??
@@ -6705,28 +6707,40 @@ function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
     human_check_status: hdOriginSortingDraftText(body.humanCheckStatus || body.human_check_status || "unchecked"),
 
     document_type_id: hdOriginSortingDraftNumberOrNull(body.documentTypeId || body.document_type_id || draft.document_type_id),
-    document_type_code: hdOriginSortingDraftText(body.documentTypeCode || body.document_type_code || draft.document_type_code || draft.document_kind || aiSummary.document_kind),
-    document_type_label: hdOriginSortingDraftText(body.documentTypeLabel || body.document_type_label || draft.document_type_label || draft.document_kind_label || aiSummary.document_kind_label),
+    document_type_code: hdOriginSortingDraftText(draft.document_type_code || body.document_type_code),
+    document_type_label: hdOriginSortingDraftText(
+      draft.document_type_label || body.document_type_label
+    ),
 
     payment_destination_id: hdOriginSortingDraftNumberOrNull(body.paymentDestinationId || body.payment_destination_id || draft.payment_destination_id),
-    payment_destination_code: hdOriginSortingDraftText(body.paymentDestinationCode || body.payment_destination_code || draft.payment_destination_code || aiSummary.destination),
-    payment_destination_label: hdOriginSortingDraftText(body.paymentDestinationLabel || body.payment_destination_label || draft.payment_destination_label || aiSummary.destination_label),
+    payment_destination_code: hdOriginSortingDraftText(
+      draft.payment_destination_code || body.payment_destination_code
+    ),
+    payment_destination_label: hdOriginSortingDraftText(
+      draft.payment_destination_label || body.payment_destination_label
+    ),
 
     accounting_category_id: hdOriginSortingDraftNumberOrNull(body.accountingCategoryId || body.accounting_category_id || draft.accounting_category_id),
-    accounting_category_code: hdOriginSortingDraftText(body.accountingCategoryCode || body.accounting_category_code || draft.accounting_category_code),
-    accounting_category_label: hdOriginSortingDraftText(body.accountingCategoryLabel || body.accounting_category_label || draft.accounting_category_label),
+    accounting_category_code: hdOriginSortingDraftText(
+      draft.accounting_category_code || body.accounting_category_code
+    ),
+    accounting_category_label: hdOriginSortingDraftText(
+      draft.accounting_category_label || body.accounting_category_label
+    ),
 
-    payable_kind_id: hdOriginSortingDraftNumberOrNull(body.payableKindId || body.payable_kind_id || draft.payable_kind_id),
-    payable_kind_code: hdOriginSortingDraftText(body.payableKindCode || body.payable_kind_code || draft.payable_kind_code),
-    payable_kind_label: hdOriginSortingDraftText(body.payableKindLabel || body.payable_kind_label || draft.payable_kind_label),
+    payable_kind_id: null,
+    payable_kind_code: "",
+    payable_kind_label: "",
 
-    specialist_route_code: hdOriginSortingDraftText(body.specialistRouteCode || body.specialist_route_code || draft.specialist_route_code || root.document_group),
-    specialist_route_label: hdOriginSortingDraftText(body.specialistRouteLabel || body.specialist_route_label || draft.specialist_route_label),
+    specialist_route_code: "",
+    specialist_route_label: "",
 
-    analysis_system_code: hdOriginSortingDraftText(body.analysisSystemCode || body.analysis_system_code || draft.analysis_system_code || root.analysis_system_code || aiSummary.analysis_system_code),
-    analysis_system_label: hdOriginSortingDraftText(body.analysisSystemLabel || body.analysis_system_label || draft.analysis_system_label || root.analysis_system_label || aiSummary.analysis_system_label || aiSummary.analysis_system),
-    analysis_system_reason: hdOriginSortingDraftText(body.analysisSystemReason || body.analysis_system_reason || draft.analysis_system_reason || root.analysis_system_reason || aiSummary.analysis_system_reason),
-    analysis_system_confidence: hdOriginSortingDraftText(body.analysisSystemConfidence || body.analysis_system_confidence || draft.analysis_system_confidence || root.analysis_system_confidence || aiSummary.analysis_system_confidence),
+    analysis_system_code: hdOriginSortingDraftText(
+      draft.analysis_system_code || body.analysis_system_code
+    ),
+    analysis_system_label: hdOriginSortingDraftText(draft.analysis_system_label || body.analysis_system_label),
+    analysis_system_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    analysis_system_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
 
     payment_target_label: hdOriginSortingDraftText(body.paymentTargetLabel || body.payment_target_label || aiSummary.payment_target),
     payable_target_label: hdOriginSortingDraftText(body.payableTargetLabel || body.payable_target_label || aiSummary.payable_target),
@@ -6735,11 +6749,20 @@ function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
     public_utility_label: hdOriginSortingDraftText(body.publicUtilityLabel || body.public_utility_label || aiSummary.public_utility),
     contract_insurance_lease_label: hdOriginSortingDraftText(body.contractInsuranceLeaseLabel || body.contract_insurance_lease_label || aiSummary.contract_insurance_lease),
 
-    ai_confidence: hdOriginSortingDraftText(body.aiConfidence || body.ai_confidence || draft.ai_confidence || draft.confidence),
-    ai_confidence_label: hdOriginSortingDraftText(body.aiConfidenceLabel || body.ai_confidence_label || draft.ai_confidence_label || draft.confidence_label || aiSummary.confidence_label),
-    ai_reason: hdOriginSortingDraftText(body.aiReason || body.ai_reason || draft.ai_reason || draft.reason || aiSummary.reason),
-    review_reason: hdOriginSortingDraftText(body.reviewReason || body.review_reason || draft.review_reason || root.review_reason || aiSummary.reason),
-    needs_review: !!(body.needsReview || body.needs_review || draft.needs_review || root.needs_review),
+    ai_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
+    ai_confidence_label: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
+    ai_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    review_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    needs_review:
+      typeof body.needs_review === "boolean"
+        ? body.needs_review
+        : typeof body.needsReview === "boolean"
+          ? body.needsReview
+          : typeof draft.needs_review === "boolean"
+            ? draft.needs_review
+            : typeof root.needs_review === "boolean"
+              ? root.needs_review
+              : false,
 
     ai_summary_json: aiSummary,
     sort_result_json: hdOriginSortingDraftJson(body.sortResult || body.sort_result || body.sorting || root, {}),

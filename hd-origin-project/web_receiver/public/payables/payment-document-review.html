@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -2547,11 +2547,7 @@ function setDocumentPreview(item) {
         data.draft.visible_field_labels =
           preservedVisibleFieldLabels;
 
-        data.draft.document_group =
-          data.document_group ||
-          data.draft.document_group ||
-          data.draft.analysis_system_code ||
-          "";
+
       }
       /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_END */
       const appliedCount = applyAiDraftToFormHardDebug(data.draft) + applyAiFieldMap(data.draft.fields || {});
@@ -5936,14 +5932,7 @@ const directNames = [
         : null;
     }
 
-    const documentTypeCode = firstText(
-      currentDraft.document_type_code,
-      currentFields["書類区分"],
-      selectedOptionCode(
-        "draftAiDocumentKind",
-        meaningfulControlLabel("draftAiDocumentKind")
-      )
-    );
+    const documentTypeCode = firstText(currentDraft.document_type_code);
 
     const documentTypeMaster =
       masterRowForCode(
@@ -5951,71 +5940,22 @@ const directNames = [
         documentTypeCode
       );
 
-    const documentTypeLabel = firstText(
-      currentDraft.document_type_label,
-      currentDraft.document_type_name,
-      masterName(documentTypeMaster),
-      meaningfulControlLabel("draftAiDocumentKind"),
-      aiSummary.document_kind,
-      currentFields["書類名"],
-      currentFields["証憑区分"],
-      documentTypeCode
-    );
+    const documentTypeLabel = firstText(currentDraft.document_type_label);
 
-    const payableKindCode = firstText(
-      currentDraft.payable_kind_code,
-      selectedOptionCode(
-        "draftPayableKind",
-        meaningfulControlLabel("draftPayableKind")
-      ),
-      currentFields["未払種別"]
-    );
+    const payableKindCode = "";
+    const payableKindMaster = null;
+    const payableKindLabel = "";
 
-    const payableKindMaster =
-      masterRowForCode(
-        "payable_kinds",
-        payableKindCode
-      );
+    const destinationLabel = firstText(currentDraft.payment_destination_label);
 
-    const payableKindLabel = firstText(
-      currentDraft.payable_kind_label,
-      currentDraft.payable_kind_name,
-      masterName(payableKindMaster),
-      meaningfulControlLabel("draftPayableKind"),
-      currentFields["未払種別"],
-      payableKindCode
-    );
-
-    const destinationLabel = firstText(
-      meaningfulControlLabel("draftAiDestination"),
-      meaningfulControlLabel("draftDestination"),
-      currentDraft.payment_destination_label,
-      aiSummary.destination
-    );
-
-    const accountingCategoryLabel = firstText(
-      meaningfulControlLabel("draftAccountingCategory"),
-      currentDraft.accounting_category_label,
-      currentFields["会計区分"]
-    );
+    const accountingCategoryLabel = firstText(currentDraft.accounting_category_label);
 
     const analysisSystemCode = firstText(
-      selectedOptionCode(
-        "draftAnalysisSystemLabel",
-        meaningfulControlLabel("draftAnalysisSystemLabel")
-      ),
-      controlValue("draftAnalysisSystemCode"),
       currentDraft.analysis_system_code,
       aiSummary.analysis_system_code
     );
 
-    const analysisSystemLabel = firstText(
-      meaningfulControlLabel("draftAnalysisSystemLabel"),
-      currentDraft.analysis_system_label,
-      aiSummary.analysis_system_label,
-      aiSummary.analysis_system,
-      analysisSystemCode
-    );
+    const analysisSystemLabel = firstText(currentDraft.analysis_system_label);
 
     const visibleFieldLabels =
       selectedItem &&
@@ -6027,15 +5967,7 @@ const directNames = [
               : []
           );
 
-    const documentGroup = firstText(
-      selectedItem
-        ? selectedItem.__documentGroup
-        : "",
-      currentDraft.document_group,
-      analysisSystemCode
-    );
-
-    const saveDraft = Object.assign(
+const saveDraft = Object.assign(
       {},
       currentDraft,
       {
@@ -6049,67 +5981,22 @@ const directNames = [
 
         analysis_system_code: analysisSystemCode,
         analysis_system_label: analysisSystemLabel,
-
-        document_group: documentGroup,
         visible_field_labels: visibleFieldLabels
       }
     );
 
-    const fieldVendor = firstText(
-      currentFields["支払先"],
-      currentFields["発行元"]
-    );
-
-    if (fieldVendor) {
-      saveDraft.vendor_name = fieldVendor;
-    }
 
     const fieldIssueDate = firstText(
-      currentFields["発行日"],
-      currentFields["書類日付"],
-      currentFields["取引日・利用日"]
+      currentFields.document_date,
+      currentDraft.document_date
     );
 
     if (fieldIssueDate) {
       saveDraft.issue_date = fieldIssueDate;
     }
 
-    const fieldInvoiceNumber = firstText(
-      currentFields["請求書番号"],
-      currentFields["領収書番号"]
-    );
 
-    if (fieldInvoiceNumber) {
-      saveDraft.invoice_number = fieldInvoiceNumber;
-    }
 
-    const fieldSummary = firstText(
-      currentFields["摘要"]
-    );
-
-    if (fieldSummary) {
-      saveDraft.summary = fieldSummary;
-    }
-
-    const fieldTotalAmount = numberFromField(
-      firstText(
-        currentFields["合計金額"],
-        currentFields["請求・支払金額"],
-        currentFields["税込金額"]
-      )
-    );
-
-    if (fieldTotalAmount !== null) {
-      saveDraft.total_amount = fieldTotalAmount;
-    }
-
-    const fieldTaxAmount = numberFromField(
-      currentFields["消費税額"]
-    );
-
-    if (fieldTaxAmount !== null) {
-      saveDraft.tax_amount = fieldTaxAmount;
-    }
 
     const confidenceText = firstText(
       controlValue("draftAiConfidence"),
@@ -6119,21 +6006,12 @@ const directNames = [
       aiSummary.confidence_label
     ).toLowerCase();
 
-    const needsReview =
-      currentDraft.needs_review === true ||
-      analysisSystemCode === "needs_review" ||
-      confidenceText === "low" ||
-      confidenceText.includes("低") ||
-      destinationLabel.includes("要確認") ||
-      accountingCategoryLabel.includes("要確認");
+    const needsReview = currentDraft.needs_review === true;
 
     return {
       paymentDocumentOcrImportId: ocrId,
 
-      issue_date: firstText(
-        controlValue("draftIssueDate"),
-        saveDraft.issue_date
-      ),
+      issue_date: saveDraft.issue_date || null,
 
       document_type_id:
         masterId(documentTypeMaster) ||
@@ -6145,53 +6023,21 @@ const directNames = [
       document_type_label:
         documentTypeLabel,
 
-      payment_destination_id:
-        numericOrNull(
-          controlValue("draftAiDestination") ||
-          controlValue("draftDestination") ||
-          currentDraft.payment_destination_id
-        ),
+      payment_destination_id: null,
 
-      payment_destination_code:
-        firstText(
-          selectedOptionCode(
-            "draftAiDestination",
-            destinationLabel
-          ),
-          selectedOptionCode(
-            "draftDestination",
-            destinationLabel
-          ),
-          currentDraft.payment_destination_code
-        ),
+      payment_destination_code: currentDraft.payment_destination_code,
 
       payment_destination_label:
         destinationLabel,
 
-      accounting_category_id:
-        numericOrNull(
-          controlValue("draftAccountingCategory") ||
-          currentDraft.accounting_category_id
-        ),
+      accounting_category_id: null,
 
-      accounting_category_code:
-        firstText(
-          selectedOptionCode(
-            "draftAccountingCategory",
-            accountingCategoryLabel
-          ),
-          currentDraft.accounting_category_code
-        ),
+      accounting_category_code: currentDraft.accounting_category_code,
 
       accounting_category_label:
         accountingCategoryLabel,
 
-      payable_kind_id:
-        masterId(payableKindMaster) ||
-        numericOrNull(
-          controlValue("draftPayableKind") ||
-          currentDraft.payable_kind_id
-        ),
+      payable_kind_id: null,
 
       payable_kind_code:
         payableKindCode,
@@ -6199,17 +6045,8 @@ const directNames = [
       payable_kind_label:
         payableKindLabel,
 
-      specialist_route_code:
-        firstText(
-          currentDraft.specialist_route_code,
-          analysisSystemCode
-        ),
-
-      specialist_route_label:
-        firstText(
-          currentDraft.specialist_route_label,
-          analysisSystemLabel
-        ),
+      specialist_route_code: "",
+      specialist_route_label: "",
 
       analysis_system_code:
         analysisSystemCode,
@@ -6217,17 +6054,9 @@ const directNames = [
       analysis_system_label:
         analysisSystemLabel,
 
-      analysis_system_reason:
-        firstText(
-          controlValue("draftAnalysisSystemReason"),
-          currentDraft.analysis_system_reason
-        ),
+      analysis_system_reason: currentDraft.analysis_system_reason,
 
-      analysis_system_confidence:
-        firstText(
-          controlValue("draftAnalysisSystemConfidence"),
-          currentDraft.analysis_system_confidence
-        ),
+      analysis_system_confidence: currentDraft.analysis_system_confidence,
 
       payment_target_label:
         firstText(aiSummary.payment_target),
