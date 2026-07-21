@@ -455,15 +455,24 @@ function writeProjectStatus() {
 
   appendSection(
     lines,
-    "基礎解析 現在の重点",
+    "Stage1・Stage2 現在の確定内容",
     [
-      "- Stage1はanalysis_system_code、analysis_system_label、reason、confidenceを返す。",
-      "- Stage2はStage1結果を保持したまま詳細fieldsを返す。",
-      "- normalize処理とStage1・Stage2結合処理でanalysis_system情報を消さない。",
-      "- vendor_name、金額、税、住所、電話番号、明細等を画面とDBへ反映する。",
-      "- AI返却値、画面値、DB保存値の3つが一致することを確認する。",
-      "- 表示項目数だけで成功判定しない。",
-      "- AI解析成功とDB保存成功を別々に確認する。"
+      "- 今完成させるのはStage2までとする。",
+      "- Stage3は各専門解析で専門項目を解析する。現在のStage1・Stage2修正ではStage3へ触らない。",
+      "- Stage1は共通仕分けだけを行う。",
+      "- Stage1では、会社、文書種別、処理先、会計区分、専門解析先、analysis_system_code、信頼度、判定理由、要確認を返す。",
+      "- 証憑種別は取込データ種類からシステムが保持する情報を使用し、AIやJavaScriptで推測しない。",
+      "- Stage1の会社、文書種別、処理先、会計区分、専門解析先は、DBマスタ候補を提示されたAIだけが決定する。",
+      "- Node.jsはDBマスタ候補の提示、返却スキーマ・型・候補内コードの検証、保存だけを行う。",
+      "- Node.js、SQL、HTML、固定値、キーワード判定、既定値、後付け補正でAIの分類を変更しない。",
+      "- analysis_system_codeを専門解析先の正規キーとし、返却後に別コードへ変換しない。",
+      "- Stage2はOCR本文から基本10項目だけを抽出する。",
+      "- Stage2基本10項目は、document_number、reference_number、issuer_name、issuer_registration_number、issuer_postal_code、issuer_address、issuer_phone、recipient_name、recipient_code、document_dateとする。",
+      "- Stage2では金額、税額、支払期限、支払日、支払方法、明細、契約内容、専門項目を解析しない。",
+      "- Stage2はStage1の仕分け結果を変更・再判定しない。",
+      "- normalize処理とStage1・Stage2結合処理で、AIが返したanalysis_system_code、信頼度、判定理由、要確認を消去・補完・上書きしない。",
+      "- AI返却値、画面表示値、DB保存値の3つが一致することを確認する。",
+      "- AI解析成功とDB保存成功を別々に確認し、表示項目数だけで成功判定しない。"
     ]
   );
 
