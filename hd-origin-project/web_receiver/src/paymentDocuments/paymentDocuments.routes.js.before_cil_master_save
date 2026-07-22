@@ -7834,62 +7834,6 @@ async function hdOriginSaveContractInsuranceLeaseDraft(body) {
 
     const record = hdOriginCilBuildRecord(body, ocrRow, latestSortingDraftId);
 
-    const fields = hdOriginCilFirstObject(
-      body.specialistFields, body.specialist_fields,
-      body.fields, body.visibleFields, body.visible_fields,
-      body.draft && body.draft.fields
-    );
-
-    const kindName = hdOriginCilText(
-      record.contract_insurance_lease_kind_label ||
-      hdOriginCilField(fields, "契約・保険・リース")
-    );
-
-    if (kindName) {
-      const r = await client.query(`
-        SELECT contract_insurance_lease_kind_id,
-               contract_insurance_lease_kind_code,
-               contract_insurance_lease_kind_name
-        FROM expenses.contract_insurance_lease_kinds
-        WHERE is_active = TRUE
-          AND (contract_insurance_lease_kind_name = $1
-            OR contract_insurance_lease_kind_code = $1)
-        LIMIT 1
-      `,[kindName]);
-
-      if (r.rows[0]) {
-        record.contract_insurance_lease_kind_id =
-          r.rows[0].contract_insurance_lease_kind_id;
-        record.contract_insurance_lease_kind_code =
-          r.rows[0].contract_insurance_lease_kind_code;
-        record.contract_insurance_lease_kind_label =
-          r.rows[0].contract_insurance_lease_kind_name;
-      }
-    }
-
-    const paymentName = hdOriginCilText(
-      record.payment_method_label ||
-      hdOriginCilField(fields, "支払方法")
-    );
-
-    if (paymentName) {
-      const r = await client.query(`
-        SELECT payment_method_id,
-               payment_method_code,
-               method_name
-        FROM expenses.payment_methods
-        WHERE is_active = TRUE
-          AND (method_name = $1 OR payment_method_code = $1)
-        LIMIT 1
-      `,[paymentName]);
-
-      if (r.rows[0]) {
-        record.payment_method_id = r.rows[0].payment_method_id;
-        record.payment_method_code = r.rows[0].payment_method_code;
-        record.payment_method_label = r.rows[0].method_name;
-      }
-    }
-
     /*
       共通専門解析結果と契約専門下書きを結ぶ。
       DB列が存在する場合だけ、既存の動的INSERT処理で保存される。

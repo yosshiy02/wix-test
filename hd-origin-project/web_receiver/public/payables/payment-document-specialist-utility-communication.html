@@ -611,67 +611,22 @@
         </section>
 
         <section class="draft-section">
-          <div class="draft-section-title">書類別追加情報</div>
+          <div class="draft-section-title">公共料金・通信費情報</div>
           <div class="form-grid">
-            <label>
-              税目
-              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
+            <label>お客様番号
+              <input class="draft-field" id="draftUtilityCustomerNo" data-analysis-item-code="customer_number">
             </label>
-            <label>
-              納付先
-              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
+            <label>供給地点番号
+              <input class="draft-field" id="draftSupplyPointNumber" data-analysis-item-code="supply_point_number">
             </label>
-            <label>
-              年度
-              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
+            <label>検針日
+              <input class="draft-field" id="draftMeterReadingDate" type="date" data-analysis-item-code="meter_reading_date">
             </label>
-            <label>
-              期別
-              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
+            <label>使用量
+              <input class="draft-field" id="draftUsageAmount" inputmode="decimal" data-analysis-item-code="usage_quantity">
             </label>
-            <label>
-              公共料金お客様番号
-              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              使用期間
-              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
-            </label>
-            <label>
-              使用量
-              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
-            </label>
-            <label>
-              保険種類
-              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
-            </label>
-            <label>
-              リース物件
-              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
-            </label>
-            <label>
-              支払回数
-              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
-            </label>
-            <label>
-              メール件名
-              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
-            </label>
-            <label>
-              メール送信者
-              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
-            </label>
-            <label>
-              メール受信日時
-              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
-            </label>
-            <label>
-              添付ファイル名
-              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
-            </label>
-            <label>
-              ダウンロード日
-              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
+            <label>使用量単位
+              <input class="draft-field" id="draftUsageUnit" data-analysis-item-code="usage_unit" placeholder="例：kWh / ㎥ / GB">
             </label>
           </div>
         </section>
@@ -1422,9 +1377,11 @@ function setDocumentPreview(item) {
     if (setById("draftTaxPaymentDestination", fields["納付先"])) appliedCount++;
     if (setById("draftFiscalYear", fields["年度"])) appliedCount++;
     if (setById("draftPeriodName", fields["期別"])) appliedCount++;
-    if (setById("draftUtilityCustomerNumber", fields["公共料金お客様番号"])) appliedCount++;
-    if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
-    if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
+    if (setById("draftUtilityCustomerNo", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"])) appliedCount++;
+    if (setById("draftSupplyPointNumber", fields["supply_point_number"] || fields["供給地点番号"])) appliedCount++;
+    if (setById("draftMeterReadingDate", fields["meter_reading_date"] || fields["検針日"])) appliedCount++;
+    if (setById("draftUsageAmount", fields["usage_quantity"] ?? fields["使用量"])) appliedCount++;
+    if (setById("draftUsageUnit", fields["usage_unit"] || fields["使用量単位"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
     if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
@@ -1820,9 +1777,11 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
-    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
+    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
+    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
+    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
+    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
@@ -2505,9 +2464,11 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
-    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
+    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
+    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
+    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
+    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
