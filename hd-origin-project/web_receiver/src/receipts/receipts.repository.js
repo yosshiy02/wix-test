@@ -1336,6 +1336,70 @@ if (module.exports && typeof module.exports.getReceiptMasterOptions === "functio
   };
 }
 /* RECEIPT_ACCOUNT_TITLES_MASTER_OPTIONS_20260705_END */
+/* RECEIPT_SUMMARY_MASTER_OPTIONS_20260722_START */
+/*
+  /api/receipts/master-options に摘要マスタ receiptSummaries を追加する。
+  既存のマスタ返却内容は変更せず、摘要候補だけ追加する。
+*/
+const __receiptSummaryMasterOptionsPool =
+  (typeof pool !== "undefined" && pool && pool.query)
+    ? pool
+    : require("../db");
+
+async function __getReceiptSummariesForMasterOptions() {
+  const result = await __receiptSummaryMasterOptionsPool.query(`
+    SELECT
+      receipt_summary_id,
+      receipt_summary_code,
+      receipt_summary_name,
+      description,
+      account_title_hint,
+      sort_order
+    FROM expenses.receipt_summaries
+    WHERE is_active = TRUE
+    ORDER BY sort_order, receipt_summary_id
+  `);
+
+  return result.rows.map((row) => ({
+    receipt_summary_id: row.receipt_summary_id,
+    receipt_summary_code: row.receipt_summary_code,
+    receipt_summary_name: row.receipt_summary_name,
+    description: row.description,
+    account_title_hint: row.account_title_hint,
+    sort_order: row.sort_order,
+
+    receiptSummaryId: row.receipt_summary_id,
+    receiptSummaryCode: row.receipt_summary_code,
+    receiptSummaryName: row.receipt_summary_name,
+    accountTitleHint: row.account_title_hint
+  }));
+}
+
+if (
+  module.exports &&
+  typeof module.exports.getReceiptMasterOptions === "function"
+) {
+  const __baseGetReceiptMasterOptionsWithSummaries =
+    module.exports.getReceiptMasterOptions;
+
+  module.exports.getReceiptMasterOptions =
+    async function getReceiptMasterOptionsWithSummaries() {
+      const data =
+        await __baseGetReceiptMasterOptionsWithSummaries.apply(
+          this,
+          arguments
+        );
+
+      const receiptSummaries =
+        await __getReceiptSummariesForMasterOptions();
+
+      return {
+        ...data,
+        receiptSummaries
+      };
+    };
+}
+/* RECEIPT_SUMMARY_MASTER_OPTIONS_20260722_END */
 
 /* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_START */
 /*

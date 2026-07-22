@@ -1016,7 +1016,24 @@
               中途解約可否
               <select class="draft-field master-select" id="draftEarlyCancellation" data-master-type="early_cancellation_types" data-master-label="中途解約可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
+                        <div class="span2"><strong>保険専用項目</strong></div>
             <label>
+              保険会社
+              <input class="draft-field" id="draftInsuranceCompanyName">
+            </label>
+            <label>
+              保険証券番号・契約番号
+              <input class="draft-field" id="draftInsurancePolicyNumber">
+            </label>
+            <label>
+              被保険者・被保険物件
+              <input class="draft-field" id="draftInsuredPersonName">
+            </label>
+            <label>
+              保険料
+              <input class="draft-field" id="draftPremiumAmount" type="number" min="0" step="0.01">
+            </label>
+<label>
               リース開始日
               <input class="draft-field" id="draftLeaseStartDate" type="date">
             </label>
@@ -2976,6 +2993,192 @@ function setDocumentPreview(item) {
     };
   }
   /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_END */
+
+  /* HD_ORIGIN_GPT2_CIL_SPECIALIST_RESULT_RESTORE_20260722_START */
+  window.__cilSpecialistResultsByOcrId =
+    window.__cilSpecialistResultsByOcrId ||
+    new Map();
+
+  function hdOriginCilResultOcrId(item, data) {
+    const value =
+      (typeof ocrImportIdOf === "function"
+        ? ocrImportIdOf(item)
+        : "") ||
+      (data && (
+        data.paymentDocumentOcrImportId ||
+        data.payment_document_ocr_import_id ||
+        data.ocrImportId ||
+        data.ocr_import_id
+      ));
+
+    const id = Number(value);
+
+    return Number.isInteger(id) && id > 0
+      ? String(id)
+      : "";
+  }
+
+  function hdOriginCilRememberSpecialistResult(item, data) {
+    if (!data || typeof data !== "object") {
+      return;
+    }
+
+    const ocrId =
+      hdOriginCilResultOcrId(item, data);
+
+    if (ocrId) {
+      window.__cilSpecialistResultsByOcrId.set(
+        ocrId,
+        data
+      );
+    }
+
+    if (item) {
+      item.__cilSpecialistResult = data;
+      item.__aiRawResult = data;
+
+      const specialist =
+        data.specialist &&
+        typeof data.specialist === "object"
+          ? data.specialist
+          : data;
+
+      item.__aiDraft =
+        specialist.draft &&
+        typeof specialist.draft === "object"
+          ? specialist.draft
+          : data.draft || {};
+
+      item.__visibleFieldLabels =
+        specialist.visible_field_labels ||
+        data.visible_field_labels ||
+        [];
+    }
+  }
+
+  function hdOriginCilRestoreSpecialistResult(item) {
+    const ocrId =
+      hdOriginCilResultOcrId(item, null);
+
+    const data =
+      (ocrId &&
+        window.__cilSpecialistResultsByOcrId.get(ocrId)) ||
+      (item && item.__cilSpecialistResult) ||
+      null;
+
+    if (!data) {
+      return false;
+    }
+
+    const specialist =
+      data.specialist &&
+      typeof data.specialist === "object"
+        ? data.specialist
+        : data;
+
+    const draft =
+      specialist.draft &&
+      typeof specialist.draft === "object"
+        ? specialist.draft
+        : data.draft || {};
+
+    const labels =
+      specialist.visible_field_labels ||
+      data.visible_field_labels ||
+      draft.visible_field_labels ||
+      [];
+
+    function applyResult() {
+      if (
+        typeof applyAiDraftToFormHardDebug ===
+        "function"
+      ) {
+        applyAiDraftToFormHardDebug(draft);
+      hdOriginCilApplyInsuranceFields(draft);
+      }
+
+      if (
+        typeof showVisibleFieldsOnly ===
+        "function"
+      ) {
+        showVisibleFieldsOnly(labels);
+      }
+
+      if (
+        typeof cilSetLeaseItemLinesFromAi ===
+        "function"
+      ) {
+        cilSetLeaseItemLinesFromAi(data);
+      }
+    }
+
+    applyResult();
+    setTimeout(applyResult, 0);
+
+    return true;
+  }
+  /* HD_ORIGIN_GPT2_CIL_SPECIALIST_RESULT_RESTORE_20260722_END */
+
+
+  /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_START */
+  function hdOriginCilInsuranceNumber(value) {
+    const text = String(value ?? "")
+      .replace(/[円￥¥,，\s]/g, "");
+
+    if (!text) {
+      return "";
+    }
+
+    const number = Number(text);
+
+    return Number.isFinite(number)
+      ? String(number)
+      : "";
+  }
+
+  function hdOriginCilApplyInsuranceFields(draft) {
+    const fields =
+      draft &&
+      draft.fields &&
+      typeof draft.fields === "object"
+        ? draft.fields
+        : {};
+
+    const setValue = (id, value) => {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.value =
+          value === null || value === undefined
+            ? ""
+            : String(value);
+      }
+    };
+
+    setValue(
+      "draftInsuranceCompanyName",
+      fields["保険会社"] || ""
+    );
+
+    setValue(
+      "draftInsurancePolicyNumber",
+      fields["保険証券番号・契約番号"] || ""
+    );
+
+    setValue(
+      "draftInsuredPersonName",
+      fields["被保険者・被保険物件"] || ""
+    );
+
+    setValue(
+      "draftPremiumAmount",
+      hdOriginCilInsuranceNumber(
+        fields["保険料"]
+      )
+    );
+  }
+  /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_END */
+
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -3714,6 +3917,7 @@ function setDocumentPreview(item) {
     item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
+      hdOriginCilRememberSpecialistResult(item, data);
       cilSetLeaseItemLinesFromAi(data);
   };
 
@@ -4202,8 +4406,9 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
+    const hdOriginCilRestoredSpecialist = hdOriginCilRestoreSpecialistResult(item);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
-    if (item && item.__aiDraft) {
+    if (!hdOriginCilRestoredSpecialist && item && item.__aiDraft) {
       if (typeof applySortingOnlyDraftToForm === "function") {
         applySortingOnlyDraftToForm(item.__aiDraft);
       } else if (typeof applyAiDraftToFormHardDebug === "function") {
