@@ -630,6 +630,16 @@
             </label>
           </div>
         </section>
+        <section id="utilityLineItemsPanel" class="draft-section utility-line-items-panel">
+          <div class="draft-section-title">
+            <span>料金明細</span>
+            <button type="button" id="utilityLineItemsOpenButton">明細内訳</button>
+          </div>
+          <div class="utility-line-items-summary">
+            <strong>明細内訳</strong>
+            <span id="utilityLineItemsCount">現在 0 行</span>
+          </div>
+        </section>
 
         <section class="draft-section">
           <div class="draft-section-title">要確認</div>
@@ -6926,7 +6936,40 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
-</body>
+
+<div id="utilityLineItemsModal" class="utility-line-modal" aria-hidden="true">
+  <div class="utility-line-modal-window" role="dialog" aria-modal="true"
+       aria-labelledby="utilityLineItemsModalTitle">
+    <div class="utility-line-modal-head">
+      <h3 id="utilityLineItemsModalTitle">公共料金・通信費 明細内訳</h3>
+      <button type="button" id="utilityLineItemsCloseButton">閉じる</button>
+    </div>
+    <div class="utility-line-modal-actions">
+      <button type="button" id="utilityLineItemAddButton">明細行追加</button>
+    </div>
+    <div class="utility-line-modal-body">
+      <table class="utility-line-modal-table">
+        <thead>
+          <tr>
+            <th>項目名</th>
+            <th>説明</th>
+            <th>使用量</th>
+            <th>単位</th>
+            <th>単価</th>
+            <th>小計</th>
+            <th>税区分</th>
+            <th>税率</th>
+            <th>税額</th>
+            <th>合計</th>
+            <th>元記載</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="utilityLineItemsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div></body>
 </html>
 
 

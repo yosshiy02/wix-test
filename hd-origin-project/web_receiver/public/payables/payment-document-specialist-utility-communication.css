@@ -1,4 +1,4 @@
-﻿* {
+* {
   box-sizing: border-box;
 }
 
@@ -1977,3 +1977,98 @@ input.sorting-check[type="checkbox"] {
 }
 /* HD_ORIGIN_SPECIALIST_PASTEL_HEADER_20260708_END */
 
+/* GPT3_UTILITY_LINE_ITEMS_MODAL_START */
+
+.utility-line-items-panel .draft-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.utility-line-items-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: #f3f9ff;
+  border: 0.0625rem solid #b7d8f5;
+  border-radius: 0.45rem;
+}
+
+.utility-line-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.65);
+  box-sizing: border-box;
+}
+
+.utility-line-modal.open {
+  display: flex;
+}
+
+.utility-line-modal-window {
+  display: flex;
+  flex-direction: column;
+  width: min(96vw, 86rem);
+  max-height: 90vh;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 0.65rem;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.35);
+}
+
+.utility-line-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  background: #c7e3ff;
+  border-bottom: 0.125rem solid #7fb6e8;
+}
+
+.utility-line-modal-head h3 {
+  margin: 0;
+}
+
+.utility-line-modal-actions {
+  padding: 0.6rem 0.8rem;
+  background: #f6fbff;
+  border-bottom: 0.0625rem solid #d8e8f7;
+}
+
+.utility-line-modal-body {
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.utility-line-modal-table {
+  width: 100%;
+  min-width: 82rem;
+  border-collapse: collapse;
+}
+
+.utility-line-modal-table th,
+.utility-line-modal-table td {
+  padding: 0.35rem;
+  border: 0.0625rem solid #d5dce3;
+  vertical-align: top;
+}
+
+.utility-line-modal-table input,
+.utility-line-modal-table select,
+.utility-line-modal-table textarea {
+  width: 100%;
+  min-width: 5rem;
+  box-sizing: border-box;
+  font-size: 0.8125rem;
+}
+
+/* GPT3_UTILITY_LINE_ITEMS_MODAL_END */
