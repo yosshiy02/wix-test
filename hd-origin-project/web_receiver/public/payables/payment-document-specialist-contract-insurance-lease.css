@@ -1977,3 +1977,225 @@ input.sorting-check[type="checkbox"] {
 }
 /* HD_ORIGIN_SPECIALIST_PASTEL_HEADER_20260708_END */
 
+
+
+/* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_CSS_20260722_START */
+.cil-lease-items-panel {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 0.0625rem solid var(--line, #d9dee7);
+  border-radius: 0.75rem;
+  background: var(--panel, #fff);
+}
+
+.cil-lease-items-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.cil-lease-items-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.cil-lease-items-header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  opacity: 0.72;
+}
+
+.cil-lease-items-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 0 0 auto;
+}
+
+.cil-lease-items-count {
+  min-width: 3rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999rem;
+  background: #eef2f7;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cil-lease-item-add-button,
+.cil-line-save-button {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: #1f5fae;
+  color: #fff;
+}
+
+.cil-lease-items-empty {
+  padding: 1rem;
+  border: 0.0625rem dashed #c8d0dc;
+  border-radius: 0.6rem;
+  text-align: center;
+  font-size: 0.86rem;
+  opacity: 0.72;
+}
+
+.cil-lease-items-table-wrap {
+  overflow-x: auto;
+}
+
+.cil-lease-items-table {
+  width: 100%;
+  min-width: 62rem;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.cil-lease-items-table th,
+.cil-lease-items-table td {
+  padding: 0.65rem;
+  border-bottom: 0.0625rem solid #e1e5ec;
+  text-align: left;
+  vertical-align: top;
+}
+
+.cil-lease-items-table th {
+  white-space: nowrap;
+  background: #f5f7fa;
+}
+
+.cil-line-row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.cil-line-row-actions button,
+.cil-line-cancel-button {
+  border: 0.0625rem solid #bdc7d4;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cil-line-row-actions .cil-line-delete-button {
+  border-color: #d78b8b;
+  color: #a22626;
+}
+
+.cil-lease-item-modal[hidden] {
+  display: none;
+}
+
+.cil-lease-item-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.cil-lease-item-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 24 38 / 58%);
+}
+
+.cil-lease-item-modal-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(58rem, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 0.8rem;
+  background: #fff;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 30%);
+}
+
+.cil-lease-item-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  border-bottom: 0.0625rem solid #dfe4eb;
+  background: #fff;
+}
+
+.cil-lease-item-modal-header h3 {
+  margin: 0;
+}
+
+.cil-lease-item-modal-close {
+  border: 0;
+  background: transparent;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.cil-lease-item-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.cil-lease-item-form-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cil-lease-item-form-grid input,
+.cil-lease-item-form-grid select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.55rem;
+  border: 0.0625rem solid #bdc7d4;
+  border-radius: 0.45rem;
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+}
+
+.cil-lease-item-form-grid .cil-line-wide {
+  grid-column: span 2;
+}
+
+.cil-lease-item-modal-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem;
+  border-top: 0.0625rem solid #dfe4eb;
+  background: #fff;
+}
+
+@media (max-width: 52rem) {
+  .cil-lease-items-header {
+    flex-direction: column;
+  }
+
+  .cil-lease-item-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cil-lease-item-form-grid .cil-line-wide {
+    grid-column: auto;
+  }
+}
+/* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_CSS_20260722_END */

@@ -10066,6 +10066,11 @@ async function handlePaymentDocumentRoutes(req, res) {
           d.tax_public_label AS d_tax_public_label,
           d.public_utility_label AS d_public_utility_label,
           d.contract_insurance_lease_label AS d_contract_insurance_lease_label,
+        /* HD_ORIGIN_GPT2_REVIEW_ITEMS_ANALYSIS_SYSTEM_CODE_20260722_SELECT */
+        d.analysis_system_code AS d_analysis_system_code,
+        d.analysis_system_label AS d_analysis_system_label,
+        d.analysis_system_reason AS d_analysis_system_reason,
+        d.analysis_system_confidence AS d_analysis_system_confidence,
 
           d.ai_confidence AS d_ai_confidence,
           d.ai_confidence_label AS d_ai_confidence_label,
@@ -10120,6 +10125,25 @@ async function handlePaymentDocumentRoutes(req, res) {
           taxPublicLabel: row.d_tax_public_label,
           publicUtilityLabel: row.d_public_utility_label,
           contractInsuranceLeaseLabel: row.d_contract_insurance_lease_label,
+
+          /* HD_ORIGIN_GPT2_REVIEW_ITEMS_ANALYSIS_SYSTEM_CODE_20260722_DRAFT */
+          analysisSystemCode:
+            row.d_analysis_system_code || "",
+          analysisSystemLabel:
+            row.d_analysis_system_label || "",
+          analysisSystemReason:
+            row.d_analysis_system_reason || "",
+          analysisSystemConfidence:
+            row.d_analysis_system_confidence || "",
+
+          analysis_system_code:
+            row.d_analysis_system_code || "",
+          analysis_system_label:
+            row.d_analysis_system_label || "",
+          analysis_system_reason:
+            row.d_analysis_system_reason || "",
+          analysis_system_confidence:
+            row.d_analysis_system_confidence || "",
 
           aiConfidence: row.d_ai_confidence,
           aiConfidenceLabel: row.d_ai_confidence_label,

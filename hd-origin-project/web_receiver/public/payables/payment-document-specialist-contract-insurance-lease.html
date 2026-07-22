@@ -741,6 +741,253 @@
               リース物件区分
               <select class="draft-field master-select" id="draftLeaseItemCategory" data-master-type="lease_item_categories" data-master-label="リース物件区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
+
+            <!-- HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_20260722_START -->
+            <section
+              class="cil-lease-items-panel"
+              id="cilLeaseItemsPanel"
+            >
+              <div class="cil-lease-items-header">
+                <div>
+                  <h3>リース物件明細</h3>
+                  <p>
+                    OCR解析された物件を、物件単位で確認・修正します。
+                  </p>
+                </div>
+
+                <div class="cil-lease-items-header-actions">
+                  <span
+                    class="cil-lease-items-count"
+                    id="cilLeaseItemsCount"
+                  >0件</span>
+
+                  <button
+                    type="button"
+                    class="cil-lease-item-add-button"
+                    id="cilLeaseItemAddButton"
+                  >
+                    物件を追加
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="cil-lease-items-empty"
+                id="cilLeaseItemsEmpty"
+              >
+                リース物件明細はありません。
+              </div>
+
+              <div
+                class="cil-lease-items-table-wrap"
+                id="cilLeaseItemsTableWrap"
+                hidden
+              >
+                <table class="cil-lease-items-table">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>物件区分</th>
+                      <th>物件名</th>
+                      <th>メーカー・型番</th>
+                      <th>数量</th>
+                      <th>リース期間</th>
+                      <th>月額</th>
+                      <th>所在地</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cilLeaseItemsBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <div
+              class="cil-lease-item-modal"
+              id="cilLeaseItemModal"
+              hidden
+              aria-hidden="true"
+            >
+              <div
+                class="cil-lease-item-modal-backdrop"
+                data-cil-modal-close="1"
+              ></div>
+
+              <section
+                class="cil-lease-item-modal-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cilLeaseItemModalTitle"
+              >
+                <header class="cil-lease-item-modal-header">
+                  <h3 id="cilLeaseItemModalTitle">
+                    リース物件明細
+                  </h3>
+
+                  <button
+                    type="button"
+                    class="cil-lease-item-modal-close"
+                    id="cilLeaseItemModalClose"
+                    aria-label="閉じる"
+                  >
+                    ×
+                  </button>
+                </header>
+
+                <form id="cilLeaseItemForm">
+                  <div class="cil-lease-item-form-grid">
+                    <label>
+                      物件区分
+                      <select id="cilLineCategory">
+                        <option value="">選択</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      物件名
+                      <input
+                        id="cilLineItemName"
+                        required
+                        placeholder="例：デジタル複合機"
+                      >
+                    </label>
+
+                    <label>
+                      メーカー
+                      <input id="cilLineManufacturer">
+                    </label>
+
+                    <label>
+                      型番
+                      <input id="cilLineModelNumber">
+                    </label>
+
+                    <label>
+                      製造番号
+                      <input id="cilLineSerialNumber">
+                    </label>
+
+                    <label>
+                      数量
+                      <input
+                        id="cilLineQuantity"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                      >
+                    </label>
+
+                    <label>
+                      単位
+                      <input
+                        id="cilLineUnitName"
+                        placeholder="例：台"
+                      >
+                    </label>
+
+                    <label>
+                      リース開始日
+                      <input
+                        id="cilLineStartDate"
+                        type="date"
+                      >
+                    </label>
+
+                    <label>
+                      リース終了日
+                      <input
+                        id="cilLineEndDate"
+                        type="date"
+                      >
+                    </label>
+
+                    <label>
+                      リース期間（月）
+                      <input
+                        id="cilLinePeriodMonths"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label class="cil-line-wide">
+                      物件所在地
+                      <input id="cilLineLocation">
+                    </label>
+
+                    <label>
+                      月額リース料
+                      <input
+                        id="cilLineMonthlyAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      リース総額
+                      <input
+                        id="cilLineTotalAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      残価
+                      <input
+                        id="cilLineResidualAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      残価保証額
+                      <input
+                        id="cilLineResidualGuarantee"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      AI信頼度
+                      <input
+                        id="cilLineAiConfidence"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                      >
+                    </label>
+                  </div>
+
+                  <footer class="cil-lease-item-modal-footer">
+                    <button
+                      type="button"
+                      class="cil-line-cancel-button"
+                      id="cilLeaseItemCancelButton"
+                    >
+                      キャンセル
+                    </button>
+
+                    <button
+                      type="submit"
+                      class="cil-line-save-button"
+                    >
+                      明細へ反映
+                    </button>
+                  </footer>
+                </form>
+              </section>
+            </div>
+            <!-- HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_20260722_END -->
             <label>
               支払回数
               <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
@@ -3467,6 +3714,7 @@ function setDocumentPreview(item) {
     item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
+      cilSetLeaseItemLinesFromAi(data);
   };
 
   window.runAiDraftForItemIndex = async function(index, options = {}) {
@@ -3719,6 +3967,83 @@ function setDocumentPreview(item) {
       );
     });
   };
+
+  /* HD_ORIGIN_GPT2_CIL_RECURSIVE_ANALYSIS_CODE_FILTER_20260722_START */
+  window.hdOriginContractInsuranceLeaseSpecialistFilter =
+    function (allItems) {
+      const expectedCode =
+        "contract_insurance_lease_analysis";
+
+      function containsExpectedAnalysisSystemCode(source) {
+        if (
+          !source ||
+          typeof source !== "object"
+        ) {
+          return false;
+        }
+
+        const queue = [{
+          value: source,
+          depth: 0
+        }];
+
+        const visited = new WeakSet();
+
+        while (queue.length) {
+          const entry = queue.shift();
+          const value = entry.value;
+
+          if (
+            !value ||
+            typeof value !== "object" ||
+            visited.has(value)
+          ) {
+            continue;
+          }
+
+          visited.add(value);
+
+          const candidates = [
+            value.analysis_system_code,
+            value.analysisSystemCode
+          ]
+            .map(code => String(code || "").trim())
+            .filter(Boolean);
+
+          if (candidates.includes(expectedCode)) {
+            return true;
+          }
+
+          if (entry.depth >= 8) {
+            continue;
+          }
+
+          for (const child of Object.values(value)) {
+            if (
+              child &&
+              typeof child === "object"
+            ) {
+              queue.push({
+                value: child,
+                depth: entry.depth + 1
+              });
+            }
+          }
+        }
+
+        return false;
+      }
+
+      return (
+        Array.isArray(allItems)
+          ? allItems
+          : []
+      ).filter(function (item) {
+        return containsExpectedAnalysisSystemCode(item);
+      });
+    };
+  /* HD_ORIGIN_GPT2_CIL_RECURSIVE_ANALYSIS_CODE_FILTER_20260722_END */
+
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -5547,7 +5872,221 @@ function setDocumentPreview(item) {
     };
   }
 
+
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_START */
+
+
+  function hdOriginCilSavedSortingDraftId(source) {
+
+
+    const keys = [
+
+
+      "paymentDocumentSortingDraftId",
+
+
+      "payment_document_sorting_draft_id",
+
+
+      "sortingDraftId",
+
+
+      "sorting_draft_id",
+
+
+      "draftId",
+
+
+      "draft_id"
+
+
+    ];
+
+
+
+    const queue = [
+
+
+      {
+
+
+        value: source,
+
+
+        depth: 0
+
+
+      }
+
+
+    ];
+
+
+
+    const visited = new WeakSet();
+
+
+
+    while (queue.length) {
+
+
+      const entry = queue.shift();
+
+
+      const value = entry.value;
+
+
+
+      if (
+
+
+        !value ||
+
+
+        typeof value !== "object" ||
+
+
+        Array.isArray(value) ||
+
+
+        visited.has(value)
+
+
+      ) {
+
+
+        continue;
+
+
+      }
+
+
+
+      visited.add(value);
+
+
+
+      for (const key of keys) {
+
+
+        const id = Number(value[key]);
+
+
+
+        if (
+
+
+          Number.isInteger(id) &&
+
+
+          id > 0
+
+
+        ) {
+
+
+          return id;
+
+
+        }
+
+
+      }
+
+
+
+      if (entry.depth >= 4) {
+
+
+        continue;
+
+
+      }
+
+
+
+      for (const child of Object.values(value)) {
+
+
+        if (
+
+
+          child &&
+
+
+          typeof child === "object" &&
+
+
+          !Array.isArray(child)
+
+
+        ) {
+
+
+          queue.push({
+
+
+            value: child,
+
+
+            depth: entry.depth + 1
+
+
+          });
+
+
+        }
+
+
+      }
+
+
+    }
+
+
+
+    return null;
+
+
+  }
+
+
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_END */
+
+
+
   async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved, analysisResult) {
+  const cilSingleLeaseItemLines =
+    cilLeaseItemLinesForPayload(
+      analysisResult
+    );
+
+  if (
+    analysisResult &&
+    typeof analysisResult === "object"
+  ) {
+    analysisResult = Object.assign(
+      {},
+      analysisResult,
+      {
+        lease_item_lines:
+          cilSingleLeaseItemLines,
+        specialist: Object.assign(
+          {},
+          analysisResult.specialist &&
+          typeof analysisResult.specialist ===
+            "object"
+            ? analysisResult.specialist
+            : {},
+          {
+            lease_item_lines:
+              cilSingleLeaseItemLines
+          }
+        )
+      }
+    );
+  }
+
     const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
     const payload = {
       paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
@@ -6018,7 +6557,8 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     return {
       paymentDocumentOcrImportId: Number(id),
       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      rawResult: result,
+      lease_item_lines: cilLeaseItemLinesForPayload(result),
+    rawResult: result,
       specialist: firstObject(
         result.specialist,
         result.result && result.result.specialist
@@ -7335,6 +7875,989 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 })();
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
+
+  <script>
+  /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_JS_20260722_START */
+  let cilLeaseItemLines = [];
+  let cilLeaseItemEditIndex = -1;
+  let cilLeaseItemActiveOcrId = "";
+  const cilLeaseItemLinesByOcrId = new Map();
+
+  function cilLineText(value) {
+    return String(
+      value === null || value === undefined
+        ? ""
+        : value
+    ).trim();
+  }
+
+  function cilLineNumber(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return null;
+    }
+
+    const number = Number(
+      String(value).replace(/[,円￥\s]/g, "")
+    );
+
+    return Number.isFinite(number)
+      ? number
+      : null;
+  }
+
+  function cilLineEscape(value) {
+    return cilLineText(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function cilNormalizeLeaseItemLine(source) {
+    const line =
+      source &&
+      typeof source === "object" &&
+      !Array.isArray(source)
+        ? source
+        : {};
+
+    return {
+      lease_item_category_code: cilLineText(
+        line.lease_item_category_code ||
+        line.category_code ||
+        line["物件区分コード"]
+      ),
+      lease_item_category_name: cilLineText(
+        line.lease_item_category_name ||
+        line.category_name ||
+        line["物件区分"] ||
+        line["リース物件区分"]
+      ),
+      item_name: cilLineText(
+        line.item_name ||
+        line["物件名"] ||
+        line["リース物件"]
+      ),
+      manufacturer_name: cilLineText(
+        line.manufacturer_name ||
+        line["メーカー"]
+      ),
+      model_number: cilLineText(
+        line.model_number ||
+        line["型番"]
+      ),
+      serial_number: cilLineText(
+        line.serial_number ||
+        line["製造番号"]
+      ),
+      quantity: cilLineNumber(
+        line.quantity ||
+        line["数量"]
+      ),
+      unit_name: cilLineText(
+        line.unit_name ||
+        line["単位"]
+      ),
+      lease_start_date: cilLineText(
+        line.lease_start_date ||
+        line["リース開始日"]
+      ),
+      lease_end_date: cilLineText(
+        line.lease_end_date ||
+        line["リース終了日"]
+      ),
+      lease_period_months: cilLineNumber(
+        line.lease_period_months ||
+        line["リース期間"]
+      ),
+      item_location: cilLineText(
+        line.item_location ||
+        line["物件所在地"]
+      ),
+      monthly_lease_amount: cilLineNumber(
+        line.monthly_lease_amount ||
+        line["月額リース料"]
+      ),
+      lease_total_amount: cilLineNumber(
+        line.lease_total_amount ||
+        line["リース総額"]
+      ),
+      residual_value_amount: cilLineNumber(
+        line.residual_value_amount ||
+        line["残価"]
+      ),
+      residual_value_guarantee_amount:
+        cilLineNumber(
+          line.residual_value_guarantee_amount ||
+          line["残価保証額"]
+        ),
+      ai_confidence: cilLineNumber(
+        line.ai_confidence ||
+        line["AI信頼度"]
+      )
+    };
+  }
+
+  function cilFindLeaseItemArray(source) {
+    if (
+      !source ||
+      typeof source !== "object"
+    ) {
+      return null;
+    }
+
+    const queue = [{
+      value: source,
+      depth: 0
+    }];
+
+    const visited = new WeakSet();
+    let checked = 0;
+
+    while (queue.length && checked < 150) {
+      const entry = queue.shift();
+      const value = entry.value;
+      const depth = entry.depth;
+
+      if (
+        !value ||
+        typeof value !== "object"
+      ) {
+        continue;
+      }
+
+      if (visited.has(value)) {
+        continue;
+      }
+
+      visited.add(value);
+      checked++;
+
+      if (Array.isArray(value.lease_item_lines)) {
+        return value.lease_item_lines;
+      }
+
+      if (Array.isArray(value.leaseItemLines)) {
+        return value.leaseItemLines;
+      }
+
+      if (depth >= 6) {
+        continue;
+      }
+
+      for (const child of Object.values(value)) {
+        if (
+          child &&
+          typeof child === "object"
+        ) {
+          queue.push({
+            value: child,
+            depth: depth + 1
+          });
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function cilFindOcrId(source) {
+    if (
+      !source ||
+      typeof source !== "object"
+    ) {
+      return "";
+    }
+
+    const queue = [{
+      value: source,
+      depth: 0
+    }];
+
+    const visited = new WeakSet();
+    const keys = [
+      "paymentDocumentOcrImportId",
+      "payment_document_ocr_import_id",
+      "ocrImportId",
+      "ocr_import_id",
+      "selectedOcrImportId"
+    ];
+
+    while (queue.length) {
+      const entry = queue.shift();
+      const value = entry.value;
+
+      if (
+        !value ||
+        typeof value !== "object" ||
+        visited.has(value)
+      ) {
+        continue;
+      }
+
+      visited.add(value);
+
+      for (const key of keys) {
+        const id = Number(value[key]);
+
+        if (
+          Number.isInteger(id) &&
+          id > 0
+        ) {
+          return String(id);
+        }
+      }
+
+      if (entry.depth >= 4) {
+        continue;
+      }
+
+      for (const child of Object.values(value)) {
+        if (
+          child &&
+          typeof child === "object"
+        ) {
+          queue.push({
+            value: child,
+            depth: entry.depth + 1
+          });
+        }
+      }
+    }
+
+    return "";
+  }
+
+  function cilCurrentSelectedItem() {
+    try {
+      if (
+        typeof selectedItem !== "undefined" &&
+        selectedItem
+      ) {
+        return selectedItem;
+      }
+    } catch (error) {
+    }
+
+    try {
+      if (
+        typeof items !== "undefined" &&
+        Array.isArray(items) &&
+        typeof selectedIndex === "number" &&
+        items[selectedIndex]
+      ) {
+        return items[selectedIndex];
+      }
+    } catch (error) {
+    }
+
+    return null;
+  }
+
+  function cilCurrentOcrId() {
+    return (
+      cilFindOcrId(cilCurrentSelectedItem()) ||
+      cilLeaseItemActiveOcrId ||
+      ""
+    );
+  }
+
+  function cilCloneLeaseItemLines(lines) {
+    return (Array.isArray(lines) ? lines : [])
+      .map(cilNormalizeLeaseItemLine)
+      .filter(line => line.item_name);
+  }
+
+  function cilStoreCurrentLeaseItemLines() {
+    const ocrId = cilCurrentOcrId();
+
+    if (ocrId) {
+      cilLeaseItemLinesByOcrId.set(
+        ocrId,
+        cilCloneLeaseItemLines(
+          cilLeaseItemLines
+        )
+      );
+    }
+  }
+
+  function cilSetLeaseItemLines(lines, ocrId) {
+    cilLeaseItemLines =
+      cilCloneLeaseItemLines(lines);
+
+    if (ocrId) {
+      cilLeaseItemActiveOcrId =
+        String(ocrId);
+
+      cilLeaseItemLinesByOcrId.set(
+        String(ocrId),
+        cilCloneLeaseItemLines(
+          cilLeaseItemLines
+        )
+      );
+    }
+
+    cilRenderLeaseItemLines();
+  }
+
+  function cilSetLeaseItemLinesFromAi(source) {
+    const lines =
+      cilFindLeaseItemArray(source);
+
+    if (!Array.isArray(lines)) {
+      return;
+    }
+
+    const ocrId =
+      cilFindOcrId(source) ||
+      cilCurrentOcrId();
+
+    cilSetLeaseItemLines(
+      lines,
+      ocrId
+    );
+  }
+
+  function cilLeaseItemLinesForPayload(source) {
+    const sourceId =
+      cilFindOcrId(source);
+
+    if (
+      sourceId &&
+      cilLeaseItemLinesByOcrId.has(sourceId)
+    ) {
+      return cilCloneLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(sourceId)
+      );
+    }
+
+    const currentId = cilCurrentOcrId();
+
+    if (
+      currentId &&
+      cilLeaseItemLinesByOcrId.has(currentId) &&
+      (!sourceId || sourceId === currentId)
+    ) {
+      return cilCloneLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(currentId)
+      );
+    }
+
+    const sourceLines =
+      cilFindLeaseItemArray(source);
+
+    return cilCloneLeaseItemLines(
+      sourceLines || []
+    );
+  }
+
+  function cilFormatAmount(value) {
+    const number = cilLineNumber(value);
+
+    if (number === null) {
+      return "";
+    }
+
+    return number.toLocaleString("ja-JP") + "円";
+  }
+
+  function cilRenderLeaseItemLines() {
+    const body =
+      document.getElementById(
+        "cilLeaseItemsBody"
+      );
+
+    const empty =
+      document.getElementById(
+        "cilLeaseItemsEmpty"
+      );
+
+    const wrap =
+      document.getElementById(
+        "cilLeaseItemsTableWrap"
+      );
+
+    const count =
+      document.getElementById(
+        "cilLeaseItemsCount"
+      );
+
+    if (!body || !empty || !wrap || !count) {
+      return;
+    }
+
+    count.textContent =
+      cilLeaseItemLines.length + "件";
+
+    empty.hidden =
+      cilLeaseItemLines.length > 0;
+
+    wrap.hidden =
+      cilLeaseItemLines.length === 0;
+
+    body.innerHTML =
+      cilLeaseItemLines
+        .map((line, index) => {
+          const model = [
+            line.manufacturer_name,
+            line.model_number,
+            line.serial_number
+          ].filter(Boolean).join(" / ");
+
+          const quantity = [
+            line.quantity,
+            line.unit_name
+          ].filter(value =>
+            value !== null &&
+            value !== ""
+          ).join("");
+
+          const period = [
+            line.lease_start_date,
+            line.lease_end_date
+          ].filter(Boolean).join(" ～ ");
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                ${cilLineEscape(
+                  line.lease_item_category_name ||
+                  line.lease_item_category_code
+                )}
+              </td>
+              <td>
+                <strong>
+                  ${cilLineEscape(line.item_name)}
+                </strong>
+              </td>
+              <td>${cilLineEscape(model)}</td>
+              <td>${cilLineEscape(quantity)}</td>
+              <td>${cilLineEscape(period)}</td>
+              <td>
+                ${cilLineEscape(
+                  cilFormatAmount(
+                    line.monthly_lease_amount
+                  )
+                )}
+              </td>
+              <td>
+                ${cilLineEscape(
+                  line.item_location
+                )}
+              </td>
+              <td>
+                <div class="cil-line-row-actions">
+                  <button
+                    type="button"
+                    data-cil-line-edit="${index}"
+                  >
+                    修正
+                  </button>
+                  <button
+                    type="button"
+                    data-cil-line-delete="${index}"
+                    class="cil-line-delete-button"
+                  >
+                    削除
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+  }
+
+  function cilCopyCategoryOptions() {
+    const source =
+      document.getElementById(
+        "draftLeaseItemCategory"
+      );
+
+    const target =
+      document.getElementById(
+        "cilLineCategory"
+      );
+
+    if (!target) {
+      return;
+    }
+
+    const oldValue = target.value;
+
+    target.replaceChildren();
+
+    const empty =
+      document.createElement("option");
+
+    empty.value = "";
+    empty.textContent = "物件区分を選択";
+    target.appendChild(empty);
+
+    if (source) {
+      for (const option of source.options) {
+        if (!option.value) {
+          continue;
+        }
+
+        target.appendChild(
+          option.cloneNode(true)
+        );
+      }
+    }
+
+    target.value = oldValue;
+  }
+
+  function cilSetInput(id, value) {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.value =
+        value === null ||
+        value === undefined
+          ? ""
+          : String(value);
+    }
+  }
+
+  function cilGetInput(id) {
+    const element =
+      document.getElementById(id);
+
+    return element
+      ? element.value
+      : "";
+  }
+
+  function cilOpenLeaseItemModal(index) {
+    const modal =
+      document.getElementById(
+        "cilLeaseItemModal"
+      );
+
+    if (!modal) {
+      return;
+    }
+
+    cilCopyCategoryOptions();
+
+    cilLeaseItemEditIndex =
+      Number.isInteger(index)
+        ? index
+        : -1;
+
+    const line =
+      cilLeaseItemEditIndex >= 0
+        ? cilLeaseItemLines[
+            cilLeaseItemEditIndex
+          ]
+        : {};
+
+    cilSetInput(
+      "cilLineCategory",
+      line.lease_item_category_code
+    );
+    cilSetInput(
+      "cilLineItemName",
+      line.item_name
+    );
+    cilSetInput(
+      "cilLineManufacturer",
+      line.manufacturer_name
+    );
+    cilSetInput(
+      "cilLineModelNumber",
+      line.model_number
+    );
+    cilSetInput(
+      "cilLineSerialNumber",
+      line.serial_number
+    );
+    cilSetInput(
+      "cilLineQuantity",
+      line.quantity
+    );
+    cilSetInput(
+      "cilLineUnitName",
+      line.unit_name
+    );
+    cilSetInput(
+      "cilLineStartDate",
+      line.lease_start_date
+    );
+    cilSetInput(
+      "cilLineEndDate",
+      line.lease_end_date
+    );
+    cilSetInput(
+      "cilLinePeriodMonths",
+      line.lease_period_months
+    );
+    cilSetInput(
+      "cilLineLocation",
+      line.item_location
+    );
+    cilSetInput(
+      "cilLineMonthlyAmount",
+      line.monthly_lease_amount
+    );
+    cilSetInput(
+      "cilLineTotalAmount",
+      line.lease_total_amount
+    );
+    cilSetInput(
+      "cilLineResidualAmount",
+      line.residual_value_amount
+    );
+    cilSetInput(
+      "cilLineResidualGuarantee",
+      line.residual_value_guarantee_amount
+    );
+    cilSetInput(
+      "cilLineAiConfidence",
+      line.ai_confidence
+    );
+
+    modal.hidden = false;
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    const nameInput =
+      document.getElementById(
+        "cilLineItemName"
+      );
+
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }
+
+  function cilCloseLeaseItemModal() {
+    const modal =
+      document.getElementById(
+        "cilLeaseItemModal"
+      );
+
+    if (!modal) {
+      return;
+    }
+
+    modal.hidden = true;
+    modal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    cilLeaseItemEditIndex = -1;
+  }
+
+  function cilReadLeaseItemForm() {
+    const category =
+      document.getElementById(
+        "cilLineCategory"
+      );
+
+    const option =
+      category &&
+      category.selectedIndex >= 0
+        ? category.options[
+            category.selectedIndex
+          ]
+        : null;
+
+    return cilNormalizeLeaseItemLine({
+      lease_item_category_code:
+        category ? category.value : "",
+      lease_item_category_name:
+        option ? option.textContent : "",
+      item_name:
+        cilGetInput("cilLineItemName"),
+      manufacturer_name:
+        cilGetInput("cilLineManufacturer"),
+      model_number:
+        cilGetInput("cilLineModelNumber"),
+      serial_number:
+        cilGetInput("cilLineSerialNumber"),
+      quantity:
+        cilGetInput("cilLineQuantity"),
+      unit_name:
+        cilGetInput("cilLineUnitName"),
+      lease_start_date:
+        cilGetInput("cilLineStartDate"),
+      lease_end_date:
+        cilGetInput("cilLineEndDate"),
+      lease_period_months:
+        cilGetInput("cilLinePeriodMonths"),
+      item_location:
+        cilGetInput("cilLineLocation"),
+      monthly_lease_amount:
+        cilGetInput("cilLineMonthlyAmount"),
+      lease_total_amount:
+        cilGetInput("cilLineTotalAmount"),
+      residual_value_amount:
+        cilGetInput("cilLineResidualAmount"),
+      residual_value_guarantee_amount:
+        cilGetInput(
+          "cilLineResidualGuarantee"
+        ),
+      ai_confidence:
+        cilGetInput(
+          "cilLineAiConfidence"
+        )
+    });
+  }
+
+  function cilSyncLeaseItemLinesFromCurrentItem(
+    force
+  ) {
+    const item =
+      cilCurrentSelectedItem();
+
+    const ocrId =
+      cilFindOcrId(item);
+
+    if (
+      !force &&
+      String(ocrId || "") ===
+        String(cilLeaseItemActiveOcrId || "")
+    ) {
+      return;
+    }
+
+    cilLeaseItemActiveOcrId =
+      String(ocrId || "");
+
+    if (
+      ocrId &&
+      cilLeaseItemLinesByOcrId.has(ocrId)
+    ) {
+      cilSetLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(ocrId),
+        ocrId
+      );
+      return;
+    }
+
+    const lines =
+      cilFindLeaseItemArray(item);
+
+    cilSetLeaseItemLines(
+      Array.isArray(lines) ? lines : [],
+      ocrId
+    );
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      const addButton =
+        document.getElementById(
+          "cilLeaseItemAddButton"
+        );
+
+      const closeButton =
+        document.getElementById(
+          "cilLeaseItemModalClose"
+        );
+
+      const cancelButton =
+        document.getElementById(
+          "cilLeaseItemCancelButton"
+        );
+
+      const form =
+        document.getElementById(
+          "cilLeaseItemForm"
+        );
+
+      const body =
+        document.getElementById(
+          "cilLeaseItemsBody"
+        );
+
+      const modal =
+        document.getElementById(
+          "cilLeaseItemModal"
+        );
+
+      if (addButton) {
+        addButton.addEventListener(
+          "click",
+          () => cilOpenLeaseItemModal(-1)
+        );
+      }
+
+      if (closeButton) {
+        closeButton.addEventListener(
+          "click",
+          cilCloseLeaseItemModal
+        );
+      }
+
+      if (cancelButton) {
+        cancelButton.addEventListener(
+          "click",
+          cilCloseLeaseItemModal
+        );
+      }
+
+      if (modal) {
+        modal.addEventListener(
+          "click",
+          event => {
+            if (
+              event.target &&
+              event.target.dataset &&
+              event.target.dataset
+                .cilModalClose === "1"
+            ) {
+              cilCloseLeaseItemModal();
+            }
+          }
+        );
+      }
+
+      if (body) {
+        body.addEventListener(
+          "click",
+          event => {
+            const edit =
+              event.target.closest(
+                "[data-cil-line-edit]"
+              );
+
+            if (edit) {
+              cilOpenLeaseItemModal(
+                Number(
+                  edit.dataset.cilLineEdit
+                )
+              );
+              return;
+            }
+
+            const remove =
+              event.target.closest(
+                "[data-cil-line-delete]"
+              );
+
+            if (!remove) {
+              return;
+            }
+
+            const index =
+              Number(
+                remove.dataset
+                  .cilLineDelete
+              );
+
+            if (
+              !Number.isInteger(index) ||
+              !cilLeaseItemLines[index]
+            ) {
+              return;
+            }
+
+            if (
+              !confirm(
+                "このリース物件明細を削除しますか？"
+              )
+            ) {
+              return;
+            }
+
+            cilLeaseItemLines.splice(
+              index,
+              1
+            );
+
+            cilStoreCurrentLeaseItemLines();
+            cilRenderLeaseItemLines();
+          }
+        );
+      }
+
+      if (form) {
+        form.addEventListener(
+          "submit",
+          event => {
+            event.preventDefault();
+
+            const line =
+              cilReadLeaseItemForm();
+
+            if (!line.item_name) {
+              alert(
+                "物件名を入力してください。"
+              );
+              return;
+            }
+
+            if (
+              cilLeaseItemEditIndex >= 0 &&
+              cilLeaseItemLines[
+                cilLeaseItemEditIndex
+              ]
+            ) {
+              cilLeaseItemLines[
+                cilLeaseItemEditIndex
+              ] = line;
+            }
+            else {
+              cilLeaseItemLines.push(line);
+            }
+
+            cilStoreCurrentLeaseItemLines();
+            cilRenderLeaseItemLines();
+            cilCloseLeaseItemModal();
+          }
+        );
+      }
+
+      document.addEventListener(
+        "click",
+        event => {
+          if (
+            event.target &&
+            event.target.closest &&
+            event.target.closest(
+              "#cilLeaseItemsPanel, #cilLeaseItemModal"
+            )
+          ) {
+            return;
+          }
+
+          setTimeout(
+            () =>
+              cilSyncLeaseItemLinesFromCurrentItem(
+                false
+              ),
+            0
+          );
+        },
+        true
+      );
+
+      setTimeout(
+        () =>
+          cilSyncLeaseItemLinesFromCurrentItem(
+            true
+          ),
+        0
+      );
+    }
+  );
+  /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_JS_20260722_END */
+  </script>
 </body>
 </html>
 

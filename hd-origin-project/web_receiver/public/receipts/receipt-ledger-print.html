@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -971,7 +971,7 @@ body.receipt-ledger-print-pro-page .cell-pre {
       const tableHtml = rows.length
         ? [
             '<table class="detail-table">',
-            '<thead><tr><th>品名</th><th>数量</th><th>単価</th><th>金額</th><th>税区分</th><th>税処理</th><th>メモ</th></tr></thead>',
+            '<thead><tr><th>品名</th><th>数量</th><th>単価</th><th>金額</th><th>税額</th><th>税区分</th><th>税処理</th><th>メモ</th></tr></thead>',
             '<tbody>',
             rows.map((row) => [
               '<tr>',
@@ -979,6 +979,13 @@ body.receipt-ledger-print-pro-page .cell-pre {
               '<td>' + esc(row.quantity || "") + '</td>',
               '<td>' + esc(yen(row.unit_price)) + '</td>',
               '<td>' + esc(yen(row.amount)) + '</td>',
+              '<td>' + (
+                (row.tax_amount ?? row.taxAmount) === null ||
+                (row.tax_amount ?? row.taxAmount) === undefined ||
+                (row.tax_amount ?? row.taxAmount) === ""
+                  ? ""
+                  : esc(yen(row.tax_amount ?? row.taxAmount))
+              ) + '</td>',
               '<td>' + esc(row.tax_category_name || "") + '</td>',
               '<td>' + esc(row.tax_treatment_name || "") + '</td>',
               '<td>' + esc(row.note || "") + '</td>',

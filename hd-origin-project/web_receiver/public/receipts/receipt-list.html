@@ -5,6 +5,30 @@
   <title>レシート読取確認</title>
   
   <link rel="stylesheet" href="./receipt-list.css">
+  <!-- RECEIPT_LIST_NAVIGATION_ARROWS_STYLE_START -->
+  <style>
+    .receipt-list-navigation-buttons {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.25rem;
+    }
+
+    .receipt-list-navigation-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      min-width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 0.45rem;
+      font-size: 0.8rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+  </style>
+  <!-- RECEIPT_LIST_NAVIGATION_ARROWS_STYLE_END -->
 </head>
 <body class="receipt-specialist-page">
   <header class="top receipt-system-top">
@@ -73,6 +97,23 @@
       <div class="panel-title">
         <span>レシート</span>
         <button onclick="loadList()">再読込</button>
+        <button type="button" onclick="selectAllReceiptChecks()">全選択</button>
+        <span class="receipt-list-navigation-buttons">
+          <button
+            type="button"
+            class="receipt-list-navigation-button"
+            onclick="selectPreviousReceipt()"
+            title="前のレシート"
+            aria-label="前のレシート"
+          >◀</button>
+          <button
+            type="button"
+            class="receipt-list-navigation-button"
+            onclick="selectNextReceipt()"
+            title="次のレシート"
+            aria-label="次のレシート"
+          >▶</button>
+        </span>
       </div>
       <div id="list" class="scroll">読込中...</div>
     </section>
@@ -314,6 +355,73 @@
       }
     }
 
+    function selectAllReceiptChecks() {
+      const checkboxes = Array.from(
+        document.querySelectorAll("#list .receipt-ai-check")
+      );
+
+      checkboxes.forEach((checkbox) => {
+        const id = Number(
+          checkbox && checkbox.dataset
+            ? checkbox.dataset.receiptId
+            : ""
+        );
+
+        if (!Number.isFinite(id) || id <= 0) {
+          return;
+        }
+
+        checkbox.checked = true;
+        selectedBulkReceiptIds.add(id);
+      });
+    }
+
+    function receiptListNavigationItemId(item) {
+      return Number(
+        item &&
+        (
+          item.paymentDocumentOcrImportId ||
+          item.payment_document_ocr_import_id ||
+          item.id
+        )
+      );
+    }
+
+    function selectReceiptByOffset(offset) {
+      const ids = (currentItems || [])
+        .map(receiptListNavigationItemId)
+        .filter((id) => Number.isFinite(id) && id > 0);
+
+      if (!ids.length) {
+        return;
+      }
+
+      const currentIndex = ids.findIndex(
+        (id) => Number(id) === Number(selectedId)
+      );
+
+      let nextIndex;
+
+      if (currentIndex < 0) {
+        nextIndex = offset < 0
+          ? ids.length - 1
+          : 0;
+      } else {
+        nextIndex =
+          (currentIndex + offset + ids.length) %
+          ids.length;
+      }
+
+      loadDetail(ids[nextIndex]);
+    }
+
+    function selectPreviousReceipt() {
+      selectReceiptByOffset(-1);
+    }
+
+    function selectNextReceipt() {
+      selectReceiptByOffset(1);
+    }
     function esc(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -1743,16 +1851,57 @@ totalAmount: cleanNumber(getInput("totalAmount")),
           }
 
           try {
-            const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id) + "/analyze", {
-              method: "POST"
+            const bridgeRes = await fetch(
+              "/api/receipts/payment-document-ocr-imports/" +
+              encodeURIComponent(id) +
+              "/bridge",
+              { method: "POST" }
+            );
+
+            const bridgeData = await bridgeRes.json().catch(() => {
+              return { ok: false, error: "JSON読込失敗" };
             });
+
+            if (
+              !bridgeRes.ok ||
+              !bridgeData.ok ||
+              !bridgeData.receiptImportId
+            ) {
+              throw new Error(
+                bridgeData.error ||
+                ("入口接続失敗 OCR ID " + id)
+              );
+            }
+
+            const receiptImportId = Number(
+              bridgeData.receiptImportId
+            );
+
+            if (
+              !Number.isFinite(receiptImportId) ||
+              receiptImportId <= 0
+            ) {
+              throw new Error(
+                "レシート取込IDが不正です。OCR ID " + id
+              );
+            }
+
+            const res = await fetch(
+              "/api/receipts/imports/" +
+              encodeURIComponent(receiptImportId) +
+              "/analyze",
+              { method: "POST" }
+            );
 
             const data = await res.json().catch(() => {
               return { ok: false, error: "JSON読込失敗" };
             });
 
             if (!res.ok || !data.ok) {
-              throw new Error(data.error || ("AI解析失敗 ID " + id));
+              throw new Error(
+                data.error ||
+                ("AI解析失敗 OCR ID " + id)
+              );
             }
 
             success++;
