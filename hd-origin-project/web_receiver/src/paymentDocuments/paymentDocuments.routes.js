@@ -4939,6 +4939,28 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
     throw error;
   }
 
+  /* HD_ORIGIN_GPT2_CIL_AI_MASTER_CONTEXT_20260722_START */
+  let specialistMasterOptions = {};
+
+  if (analysisSystemCode === "contract_insurance_lease_analysis") {
+    const leaseItemCategoryResult = await db.query(`
+      SELECT
+        lease_item_category_code,
+        lease_item_category_name
+      FROM expenses.lease_item_categories
+      WHERE is_active = TRUE
+      ORDER BY sort_order, lease_item_category_id
+    `);
+
+    specialistMasterOptions = {
+      lease_item_categories: leaseItemCategoryResult.rows.map(row => ({
+        code: String(row.lease_item_category_code || "").trim(),
+        label: String(row.lease_item_category_name || "").trim()
+      }))
+    };
+  }
+  /* HD_ORIGIN_GPT2_CIL_AI_MASTER_CONTEXT_20260722_END */
+
   const specialistContext = {
     phase: "specialist",
     specialist_route_code: specialistRouteCode,
@@ -4946,6 +4968,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
     analysis_system_code: analysisSystemCode,
     analysis_system_label: analysisSystemLabel,
     group: String(context.group || "").trim(),
+    master_options: specialistMasterOptions,
     draft: hdOriginAiOnlyObject(
       context.draft ||
       context.classification
@@ -7739,7 +7762,184 @@ async function hdOriginSaveContractInsuranceLeaseDraft(body) {
         created_at
     `, values);
 
-    await client.query("COMMIT");
+    
+    /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_LINES_SAVE_20260722_START */
+    const leaseItemLineCandidates = [
+      body.lease_item_lines,
+      body.leaseItemLines,
+      body.specialist && body.specialist.lease_item_lines,
+      body.rawResult && body.rawResult.lease_item_lines,
+      body.rawResult &&
+        body.rawResult.specialist &&
+        body.rawResult.specialist.lease_item_lines,
+      body.raw_result &&
+        body.raw_result.specialist &&
+        body.raw_result.specialist.lease_item_lines
+    ];
+
+    const leaseItemLines =
+      leaseItemLineCandidates.find(Array.isArray) || [];
+
+    if (leaseItemLines.length > 0) {
+      const parentResult = await client.query(`
+        SELECT contract_insurance_lease_draft_id
+        FROM accounting.payment_document_contract_insurance_lease_drafts
+        WHERE payment_document_ocr_import_id = $1
+          AND is_current = TRUE
+        ORDER BY contract_insurance_lease_draft_id DESC
+        LIMIT 1
+      `, [ocrImportId]);
+
+      if (!parentResult.rows.length) {
+        throw new Error(
+          "保存直後の契約・保険・リース親下書きを取得できません。"
+        );
+      }
+
+      const parentDraftId =
+        parentResult.rows[0].contract_insurance_lease_draft_id;
+
+      const categoryResult = await client.query(`
+        SELECT
+          lease_item_category_id,
+          lease_item_category_code,
+          lease_item_category_name
+        FROM expenses.lease_item_categories
+        WHERE is_active = TRUE
+        ORDER BY sort_order, lease_item_category_id
+      `);
+
+      const categoryRows = categoryResult.rows;
+      const categoryByCode = new Map(
+        categoryRows.map(row => [
+          String(row.lease_item_category_code || "").trim(),
+          row
+        ])
+      );
+
+      const needsReviewCategory =
+        categoryByCode.get("needs_review");
+
+      if (!needsReviewCategory) {
+        throw new Error(
+          "リース物件区分マスタのneeds_reviewがありません。"
+        );
+      }
+
+      for (
+        let index = 0;
+        index < leaseItemLines.length;
+        index++
+      ) {
+        const line = hdOriginAiOnlyObject(
+          leaseItemLines[index]
+        );
+
+        const itemName = hdOriginCilText(
+          line.item_name ||
+          line["物件名"] ||
+          line["リース物件"]
+        );
+
+        if (!itemName) {
+          continue;
+        }
+
+        const requestedCode = hdOriginCilText(
+          line.lease_item_category_code
+        );
+
+        const requestedName = hdOriginCilText(
+          line.lease_item_category_name
+        );
+
+        let category =
+          categoryByCode.get(requestedCode) || null;
+
+        if (!category && requestedName) {
+          category =
+            categoryRows.find(row =>
+              String(
+                row.lease_item_category_name || ""
+              ).trim() === requestedName
+            ) || null;
+        }
+
+        if (!category) {
+          category = needsReviewCategory;
+        }
+
+        await client.query(`
+          INSERT INTO
+            accounting.payment_document_contract_insurance_lease_item_lines
+          (
+            contract_insurance_lease_draft_id,
+            lease_item_category_id,
+            lease_item_category_code,
+            lease_item_category_name,
+            item_name,
+            manufacturer_name,
+            model_number,
+            serial_number,
+            quantity,
+            unit_name,
+            lease_start_date,
+            lease_end_date,
+            lease_period_months,
+            item_location,
+            monthly_lease_amount,
+            lease_total_amount,
+            residual_value_amount,
+            residual_value_guarantee_amount,
+            ai_confidence,
+            sort_order
+          )
+          VALUES
+          (
+            $1, $2, $3, $4, $5,
+            $6, $7, $8, $9, $10,
+            $11, $12, $13, $14, $15,
+            $16, $17, $18, $19, $20
+          )
+        `, [
+          parentDraftId,
+          category.lease_item_category_id,
+          category.lease_item_category_code,
+          category.lease_item_category_name,
+          itemName,
+          hdOriginCilText(line.manufacturer_name),
+          hdOriginCilText(line.model_number),
+          hdOriginCilText(line.serial_number),
+          hdOriginCilNumberOrNull(line.quantity),
+          hdOriginCilText(line.unit_name),
+          hdOriginCilDateOrNull(line.lease_start_date),
+          hdOriginCilDateOrNull(line.lease_end_date),
+          hdOriginCilNumberOrNull(
+            line.lease_period_months
+          ),
+          hdOriginCilText(line.item_location),
+          hdOriginCilNumberOrNull(
+            line.monthly_lease_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.lease_total_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.residual_value_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.residual_value_guarantee_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.ai_confidence
+          ),
+          index + 1
+        ]);
+      }
+    }
+    /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_LINES_SAVE_20260722_END */
+
+await client.query("COMMIT");
 
     const row = insertResult.rows[0];
 

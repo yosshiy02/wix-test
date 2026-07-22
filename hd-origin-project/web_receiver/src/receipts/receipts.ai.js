@@ -232,6 +232,7 @@ function normalizeLineItems(value) {
     quantity: normalizeNumber(line.quantity),
     unitPrice: normalizeInteger(line.unitPrice),
     amount: normalizeInteger(line.amount),
+    taxAmount: normalizeInteger(line.taxAmount ?? line.tax_amount),
     taxRate: String(line.taxRate || ""),
     taxTreatmentName: String(line.taxTreatmentName || line.tax_treatment_name || line.taxTreatment || line.tax_treatment || ""),
     memo: String(line.memo || "")
@@ -240,6 +241,7 @@ function normalizeLineItems(value) {
       line.quantity !== null ||
       line.unitPrice !== null ||
       line.amount !== null ||
+      line.taxAmount !== null ||
       line.taxRate ||
       line.memo;
   });
@@ -373,7 +375,10 @@ async function analyzeReceiptImport(receiptImport) {
 
     "【明細ごとの税処理ルール】",
     "lineItems[].taxTreatmentName は、レシート全体の taxTreatmentName や税内訳から一括補完しないでください。",
-    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
+    "lineItems[].taxAmount は、その明細行に税額が明示印字されている場合だけ、印字額を数値で返してください。",
+    "明細行に税額の明示印字がない場合、lineItems[].taxAmount は必ず null にしてください。",
+    "明細金額と税率から税額を計算、四捨五入、按分、推計、または合計合わせしてはいけません。",
+    "レシート全体または税率別の消費税額を、各明細の taxAmount へ転記してはいけません。",    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
     "taxTreatmentName は税処理マスタ候補にある名称と一致するものを選んでください。",
     "明細ごとの根拠がない場合は、空文字または不明にしてください。",
     "",    "返すJSON形式:",
@@ -407,6 +412,7 @@ async function analyzeReceiptImport(receiptImport) {
     "      \"quantity\": 1,",
     "      \"unitPrice\": 0,",
     "      \"amount\": 0,",
+    "      \"taxAmount\": null,",
     "      \"taxRate\": \"10%/8%/不明\",",
     "      \"taxTreatmentName\": \"税込・内税/税抜・外税/非課税/不課税/対象外/不明\",",
     "      \"memo\": \"\"",
@@ -941,7 +947,10 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "",
     "【明細ごとの税処理ルール】",
     "lineItems[].taxTreatmentName は、レシート全体の taxTreatmentName や税内訳から一括補完しないでください。",
-    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
+    "lineItems[].taxAmount は、その明細行に税額が明示印字されている場合だけ、印字額を数値で返してください。",
+    "明細行に税額の明示印字がない場合、lineItems[].taxAmount は必ず null にしてください。",
+    "明細金額と税率から税額を計算、四捨五入、按分、推計、または合計合わせしてはいけません。",
+    "レシート全体または税率別の消費税額を、各明細の taxAmount へ転記してはいけません。",    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
     "taxTreatmentName は税処理マスタ候補にある名称と一致するものを選んでください。",
     "明細ごとの根拠がない場合は、空文字または不明にしてください。",
     "",    "返すJSON形式:",
@@ -984,6 +993,7 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "      \"quantity\": 1,",
     "      \"unitPrice\": 0,",
     "      \"amount\": 0,",
+    "      \"taxAmount\": null,",
     "      \"taxRate\": \"10%/8%/不明\",",
     "      \"taxTreatmentName\": \"税込・内税/税抜・外税/非課税/不課税/対象外/不明\",",
     "      \"memo\": \"\"",
