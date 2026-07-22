@@ -5547,11 +5547,21 @@ function setDocumentPreview(item) {
     };
   }
 
-  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved) {
+  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved, analysisResult) {
     const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
     const payload = {
       paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      rawResult:
+        analysisResult && typeof analysisResult === "object"
+          ? analysisResult
+          : {},
+      specialist:
+        analysisResult &&
+        analysisResult.specialist &&
+        typeof analysisResult.specialist === "object"
+          ? analysisResult.specialist
+          : {},
       draft: sortingPayload,
       sortResult: sortingPayload.sortResult || {},
       ai_summary: sortingPayload.ai_summary || {},
@@ -5693,7 +5703,7 @@ function setDocumentPreview(item) {
       throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
-    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json);
+    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json, analysisResult);
 
     return {
       ...json,
@@ -6008,6 +6018,11 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     return {
       paymentDocumentOcrImportId: Number(id),
       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      rawResult: result,
+      specialist: firstObject(
+        result.specialist,
+        result.result && result.result.specialist
+      ),
       draft,
       sortResult: root,
       ai_summary: aiSummary,

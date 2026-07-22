@@ -1,4 +1,4 @@
-﻿const pool = require("../db");
+const pool = require("../db");
 
 const MASTER_DEFS = {
   account_titles: {
@@ -219,6 +219,14 @@ const MASTER_DEFS = {
     idColumn: "evidence_type_id",
     nameColumn: "evidence_type_name",
     extraColumns: ["evidence_type_code"]
+  },
+  lease_item_categories: {
+    type: "lease_item_categories",
+    label: "リース物件区分",
+    table: "expenses.lease_item_categories",
+    idColumn: "lease_item_category_id",
+    nameColumn: "lease_item_category_name",
+    extraColumns: ["lease_item_category_code"]
   }
 };
 

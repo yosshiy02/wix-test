@@ -1584,6 +1584,10 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
         __receiptNew6FirstDefined(row.amount, row.price, row.total)
       );
 
+      const taxAmount = __receiptNew6ToNumberOrNull(
+        __receiptNew6FirstDefined(row.taxAmount, row.tax_amount)
+      );
+
       const taxCategoryId = __receiptNew6ToNumberOrNull(
         __receiptNew6FirstDefined(row.taxCategoryId, row.tax_category_id)
       );
@@ -1601,6 +1605,7 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
         quantity !== null ||
         unitPrice !== null ||
         amount !== null ||
+        taxAmount !== null ||
         taxCategoryId !== null ||
         taxTreatmentId !== null ||
         note;
@@ -1618,11 +1623,12 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
           quantity,
           unit_price,
           amount,
+          tax_amount,
           tax_category_id,
           tax_treatment_id,
           note
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
         )
         RETURNING *
         `,
@@ -1633,6 +1639,7 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
           quantity,
           unitPrice,
           amount,
+          taxAmount,
           taxCategoryId,
           taxTreatmentId,
           note
@@ -1874,6 +1881,9 @@ async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
       unit_price: row.unit_price,
       amount: row.amount,
 
+      taxAmount: row.tax_amount,
+      tax_amount: row.tax_amount,
+
       taxCategoryId: row.tax_category_id,
       tax_category_id: row.tax_category_id,
 
@@ -1999,6 +2009,9 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
       amount: row.amount,
       total: row.amount,
       price: row.amount,
+
+      tax_amount: row.tax_amount,
+      taxAmount: row.tax_amount,
 
       tax_category_id: row.tax_category_id,
       taxCategoryId: row.tax_category_id,
@@ -2641,6 +2654,9 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
       total: row.amount,
       price: row.amount,
 
+      tax_amount: row.tax_amount,
+      taxAmount: row.tax_amount,
+
       tax_category_id: row.tax_category_id,
       taxCategoryId: row.tax_category_id,
       tax_category_name: row.tax_category_name || "",
@@ -3009,6 +3025,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
           quantity,
           unit_price,
           amount,
+          tax_amount,
           tax_category_id,
           tax_treatment_id,
           note,
@@ -3017,7 +3034,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         )
         VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8,
-          $9, $10,
+          $9, $10, $11,
           NOW(), NOW()
         )
         `,
@@ -3029,6 +3046,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
           breakdown.quantity,
           breakdown.unit_price,
           breakdown.amount,
+          breakdown.tax_amount,
           breakdown.tax_category_id,
           breakdown.tax_treatment_id,
           breakdown.note
