@@ -259,7 +259,7 @@
             </label>
             <label>
               契約・保険・リース
-              <select class="draft-field master-select" id="draftAiContractFlag" data-master-type="contract_insurance_lease_kinds" data-master-label="契約・保険・リース" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftAiContractFlag" data-master-type="contract_insurance_lease_kinds" data-master-label="契約・保険・リース"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               AI信頼度
@@ -609,10 +609,7 @@
               会計区分
               <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
             </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
+            
             <label>
               未払種別
               <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
@@ -633,10 +630,7 @@
               インボイス区分
               <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
             </label>
-            <label>
-              支払方法マスタ
-              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
+            
             <label>
               対象者
               <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
@@ -2110,13 +2104,11 @@ function setDocumentPreview(item) {
 
     // 会計・管理
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
-    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
     put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
     put("draftTargetPerson", "対象者", fields["対象者"]);
     put("draftPurpose", "目的", fields["目的"]);
     put("draftProject", "案件", fields["案件"]);
@@ -2587,7 +2579,7 @@ function setDocumentPreview(item) {
       if (norm.includes("web") || norm.includes("ウェブ")) return "web_statement";
     }
 
-    if (type === "payment_destinations" || id === "draftAiDestination" || id === "draftDestination" || labelNorm.includes("処理先")) {
+    if (type === "payment_destinations" || id === "draftAiDestination" || labelNorm.includes("処理先")) {
       if (norm.includes("税") || norm.includes("公的") || norm.includes("納付")) return "tax_public";
       if (norm.includes("リース") || norm.includes("保険") || norm.includes("契約")) return "contract_insurance_lease";
       if (norm.includes("カード")) return "card_payable";
@@ -2811,13 +2803,11 @@ function setDocumentPreview(item) {
     put("draftQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
 
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
-    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
     put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
     put("draftTargetPerson", "対象者", fields["対象者"]);
     put("draftPurpose", "目的", fields["目的"]);
     put("draftProject", "案件", fields["案件"]);
@@ -3181,15 +3171,66 @@ function setDocumentPreview(item) {
   /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_END */
 
 
+  
+  
   /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_START */
-  function hdOriginCilApplyKindSelection(draft) {
+  function hdOriginCilNormalizeKind(value) {
+    return String(value ?? "").trim();
+  }
+
+  function hdOriginCilApplyPendingKindSelection() {
     const select =
       document.getElementById("draftAiContractFlag");
 
-    if (!select) {
+    const label =
+      hdOriginCilNormalizeKind(
+        window.__hdOriginCilPendingKindLabel
+      );
+
+    if (!select || !label) {
+      return false;
+    }
+
+    const option = Array.from(select.options || []).find(item => {
+      return (
+        hdOriginCilNormalizeKind(item.textContent) === label ||
+        hdOriginCilNormalizeKind(item.dataset.name) === label ||
+        hdOriginCilNormalizeKind(item.dataset.code) === label ||
+        hdOriginCilNormalizeKind(item.dataset.masterName) === label ||
+        hdOriginCilNormalizeKind(item.dataset.masterCode) === label
+      );
+    });
+
+    if (!option) {
+      return false;
+    }
+
+    select.value = option.value;
+    return true;
+  }
+
+  function hdOriginCilInstallKindObserver() {
+    const select =
+      document.getElementById("draftAiContractFlag");
+
+    if (!select || select.__hdOriginKindObserverInstalled) {
       return;
     }
 
+    select.__hdOriginKindObserverInstalled = true;
+
+    const observer = new MutationObserver(() => {
+      queueMicrotask(
+        hdOriginCilApplyPendingKindSelection
+      );
+    });
+
+    observer.observe(select, {
+      childList: true
+    });
+  }
+
+  function hdOriginCilApplyKindSelection(draft) {
     const fields =
       draft &&
       draft.fields &&
@@ -3204,34 +3245,33 @@ function setDocumentPreview(item) {
         ? draft.ai_summary
         : {};
 
-    const aiLabel = String(
-      fields["契約・保険・リース"] ||
-      summary.contract_insurance_lease ||
-      ""
-    ).trim();
+    const label =
+      hdOriginCilNormalizeKind(
+        fields["契約・保険・リース"] ||
+        summary.contract_insurance_lease
+      );
 
-    if (!aiLabel) {
+    if (!label) {
       return;
     }
 
-    const option = Array.from(select.options).find(
-      item =>
-        String(item.textContent || "").trim() === aiLabel ||
-        String(item.dataset.label || "").trim() === aiLabel
+    window.__hdOriginCilPendingKindLabel = label;
+
+    hdOriginCilInstallKindObserver();
+    hdOriginCilApplyPendingKindSelection();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      hdOriginCilInstallKindObserver
     );
-
-    if (option) {
-      select.value = option.value;
-    }
-
-    const wrapper = select.closest("label");
-
-    if (wrapper) {
-      wrapper.hidden = false;
-      wrapper.style.display = "";
-    }
+  } else {
+    hdOriginCilInstallKindObserver();
   }
   /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_END */
+
+
 
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
@@ -4424,7 +4464,6 @@ function setDocumentPreview(item) {
     updateCompactEvidenceInfo(item);
 
     setDraftValue("draftAiDocumentKind", item.documentType || "");
-    setDraftValue("draftDestination", item.destination || "");
     setDraftValue("draftAiDestination", item.destination || "");
     setDraftValue("draftIssuer", item.vendorName || "");
     setDraftValue("draftVendorName", item.vendorName || "");
@@ -4519,14 +4558,12 @@ function setDocumentPreview(item) {
   const DRAFT_MASTER_FIELDS = [
     { id: "draftAiDocumentKind", type: "document_types", label: "書類区分" },
     { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
-    { id: "draftDestination", type: "payment_destinations", label: "処理先" },
     { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
     { id: "draftPayableKind", type: "payable_kinds", label: "未払種別" },
 
     { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
     { id: "draftVendorMasterCandidate", type: "vendors", label: "支払先" },
     { id: "draftPaymentMethod", type: "payment_methods", label: "支払方法" },
-    { id: "draftPaymentMethodMaster", type: "payment_methods", label: "支払方法" },
     { id: "draftAccountTitle", type: "account_titles", label: "勘定科目" },
     { id: "draftTaxCategory", type: "tax_categories", label: "税区分" },
     { id: "draftInvoiceType", type: "invoice_types", label: "インボイス区分" },
@@ -5747,8 +5784,6 @@ function setDocumentPreview(item) {
     count += window.hdOriginSetControlValueLoose("draftAiReason", d.review_reason || s.reason || d.reason || "");
 
     count += window.hdOriginSetControlValueLoose("draftAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
-    count += window.hdOriginSetControlValueLoose("draftDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
-
     window.__lastAiDraftAppliedCount = count;
 
     return count;
@@ -6033,9 +6068,9 @@ function setDocumentPreview(item) {
       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
       document_type_label: documentTypeLabel,
 
-      payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
-      payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
-      payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+      payment_destination_id: numericOrNull(controlValue("draftAiDestination")),
+      payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
+      payment_destination_label: destinationLabel,
 
       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),

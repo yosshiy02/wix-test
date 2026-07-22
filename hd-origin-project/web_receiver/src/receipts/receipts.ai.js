@@ -630,9 +630,11 @@ function formatReceiptAiMasterHints(masters) {
   }
 
   lines.push("");
-  lines.push("【摘要候補】");
-  lines.push("summary は次の摘要候補の名称から必ず1つ選び、名称を一字一句そのまま返してください。");
-  lines.push("候補にない摘要名を新しく作ってはいけません。確定できない場合は「要確認」を選んでください。");
+  lines.push("【摘要分類候補】");
+  lines.push("receiptSummaryId と receiptSummaryName は、次の摘要分類候補から必ず1組を選んでください。");
+  lines.push("receiptSummaryId は候補のID、receiptSummaryName は同じ候補の名称を一字一句そのまま返してください。");
+  lines.push("候補にない分類を新しく作ってはいけません。分類を確定できない場合は「要確認」のIDと名称を選んでください。");
+  lines.push("summary は摘要分類名ではありません。OCR本文から確認できる実際の取引内容を短い自由文で返してください。");
 
   for (const item of masters.receiptSummaries || []) {
     const notes = [];
@@ -803,91 +805,79 @@ function resolveReceiptAiPurpose(parsed, masterHints) {
   };
 }
 /* RECEIPT_AI_SUMMARY_MASTER_20260722_START */
-function resolveReceiptAiSummary(parsed, masterHints) {
+/* RECEIPT_AI_SUMMARY_SEPARATION_20260722_START */
+function resolveReceiptAiSummaryClassification(
+  parsed,
+  masterHints
+) {
   const summaries =
     masterHints &&
     Array.isArray(masterHints.receiptSummaries)
       ? masterHints.receiptSummaries
       : [];
 
+  const rawId = normalizeNullableInteger(
+    parsed &&
+    (
+      parsed.receiptSummaryId ||
+      parsed.receipt_summary_id
+    )
+  );
+
   const rawName = String(
-    parsed && parsed.summary
-      ? parsed.summary
+    parsed &&
+    (
+      parsed.receiptSummaryName ||
+      parsed.receipt_summary_name
+    )
+      ? (
+          parsed.receiptSummaryName ||
+          parsed.receipt_summary_name
+        )
       : ""
   ).trim();
 
-  if (rawName) {
-    const exact = summaries.find(
-      (row) =>
-        String(
-          row.receipt_summary_name || ""
-        ).trim() === rawName
-    );
-
-    if (exact) {
-      return {
-        id: Number(exact.receipt_summary_id),
-        code: String(
-          exact.receipt_summary_code || ""
-        ).trim(),
-        name: String(
-          exact.receipt_summary_name || ""
-        ).trim(),
-        fallback: false
-      };
-    }
-
-    const normalizedRaw =
-      normalizeReceiptAiMasterName(rawName);
-
-    const normalized = summaries.find(
-      (row) =>
-        normalizeReceiptAiMasterName(
-          row.receipt_summary_name
-        ) === normalizedRaw
-    );
-
-    if (normalized) {
-      return {
-        id: Number(normalized.receipt_summary_id),
-        code: String(
-          normalized.receipt_summary_code || ""
-        ).trim(),
-        name: String(
-          normalized.receipt_summary_name || ""
-        ).trim(),
-        fallback: false
-      };
-    }
+  if (
+    rawId === null ||
+    !rawName
+  ) {
+    return {
+      id: null,
+      code: "",
+      name: "",
+      valid: false
+    };
   }
 
-  const needsReview = summaries.find(
+  const exactPair = summaries.find(
     (row) =>
+      Number(row.receipt_summary_id) === rawId &&
       String(
         row.receipt_summary_name || ""
-      ).trim() === "要確認"
+      ).trim() === rawName
   );
 
-  if (needsReview) {
+  if (!exactPair) {
     return {
-      id: Number(needsReview.receipt_summary_id),
-      code: String(
-        needsReview.receipt_summary_code || ""
-      ).trim(),
-      name: String(
-        needsReview.receipt_summary_name || ""
-      ).trim(),
-      fallback: true
+      id: null,
+      code: "",
+      name: "",
+      valid: false
     };
   }
 
   return {
-    id: null,
-    code: "",
-    name: "",
-    fallback: true
+    id: Number(exactPair.receipt_summary_id),
+    code: String(
+      exactPair.receipt_summary_code || ""
+    ).trim(),
+    name: String(
+      exactPair.receipt_summary_name || ""
+    ).trim(),
+    valid: true
   };
 }
+/* RECEIPT_AI_SUMMARY_SEPARATION_20260722_END */
 /* RECEIPT_AI_SUMMARY_MASTER_20260722_END */
 analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receiptImport) {
   const env = readDotEnv();
@@ -916,10 +906,12 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "少額の社内使用物品は、候補にあれば勘定科目「消耗品費」＋目的「消耗品購入」を優先してください。",
     "目的「備品購入」は什器・設備・長期使用物など備品性が明確な場合だけ使ってください。",
     "目的「その他業務」は該当目的がない場合の最終候補にしてください。",
-    "summary は摘要候補一覧から最も適切な名称を1つ選び、その名称を一字一句そのまま返してください。",
-    "摘要候補にない名称、商品名を組み合わせた名称、独自の言い換えを作ってはいけません。",
-    "証憑だけでは摘要を決められない場合は、摘要候補の「要確認」を選んでください。",
-    "会議、接待、出張、対象者などの具体的な事情は、摘要名へ付け足さず、目的欄または必要な場合だけmemoへ書いてください。",
+    "receiptSummaryId と receiptSummaryName は、摘要分類候補一覧から最も適切な1組を選び、IDと名称を候補どおり返してください。",
+    "摘要分類候補にない分類名、独自の分類名、候補と異なるID・名称の組合せを作ってはいけません。",
+    "証憑だけでは摘要分類を決められない場合は、摘要分類候補の「要確認」のIDと名称を選んでください。",
+    "summary は摘要分類とは別です。OCR本文から確認できる商品・サービス・取引内容を、帳簿で内容を確認できる短い自由文として返してください。",
+    "summaryへ会議、接待、出張、対象者などOCRにない利用事情を推測で追加してはいけません。",
+    "summaryにも分類候補名を機械的にコピーせず、証憑から確認できる取引事実を書いてください。",
     "memo は任意です。注意・確認・補足が必要な場合だけ書いてください。通常の少額消耗品や、内容が明細・摘要で分かる支出では空欄にしてください。",
     "【商談より出張先打合せを優先するルール】",
     "大阪府外 + 飲食 + 夕方/夜 + 会議費/打合せ/商談文脈の場合は、「商談」よりも「出張先打合せ」を優先してください。",
@@ -1086,7 +1078,59 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "レシート全体または税率別の消費税額を、各明細の taxAmount へ転記してはいけません。",    "各明細行ごとに、明細周辺の税区分・税率・内税/外税/非課税/不課税/対象外などを読んで個別判断してください。",
     "taxTreatmentName は税処理マスタ候補にある名称と一致するものを選んでください。",
     "明細ごとの根拠がない場合は、空文字または不明にしてください。",
-    "",    "返すJSON形式:",
+    "",    /* RECEIPT_AI_FUEL_PAYMENT_METHOD_RULE_20260722_START */
+    "",
+    "【支払方法の証拠優先ルール】",
+    "paymentMethodName は、実際に使用された決済方法がOCR本文に明示されている場合だけ返してください。",
+    "「楽天カード会員」「カード会員」「現金会員」「ポイントカード」「会員価格」「会員番号」「ポイント番号」は、会員区分・価格区分・ポイント情報であり、支払方法の確定根拠ではありません。",
+    "会員名やカードブランド名が印字されているだけで、クレジットカード払いと判断してはいけません。",
+    "「お預り」「預り」「預かり」と「お釣り」「釣銭」「おつり」が金額とともに印字され、クレジット決済・電子決済の明確な完了表記がない場合は、現金を優先候補にしてください。",
+    "クレジットカードは「クレジット売上」「カード支払」「カード決済」「ご利用カード」「承認番号」「VISA」「Mastercard」「JCB」など、実際のカード決済を示す表記がある場合だけ候補にしてください。",
+    "ただし、カード名やブランド名だけで、承認番号・カード支払・クレジット売上等がない場合はクレジットカードへ確定しないでください。",
+    "現金とカードの証拠が矛盾する場合、paymentMethodName は「不明」とし、矛盾内容をmemoへ簡潔に記載してください。",
+    "ガソリンスタンドのレシートでは、「楽天カード会員」と「現金会員」が同時に印字される場合があります。これは支払方法ではなく会員・単価区分の可能性があるため、実際の預り金、釣銭、カード決済完了表記を優先してください。",
+    /* RECEIPT_AI_FUEL_PAYMENT_METHOD_RULE_20260722_END */
+
+    /* RECEIPT_AI_BANK_TRANSFER_RULE_20260722_START */
+    "",
+    "【銀行振込明細・複合取引ルール】",
+    "銀行振込の利用明細では、「お振込金額」と「手数料」を別の取引内訳として扱ってください。",
+    "totalAmount は、証憑に印字された実際の口座減少額または取引合計額を優先してください。振込金額と手数料が別記され、合計額が明記されていない場合は、両方の印字額をlineItemsへ分けたうえで、合計との関係をmemoへ記載してください。",
+    "lineItemsには、振込元本を「振込金額」、振込手数料を「振込手数料」として別行で保存してください。",
+    "振込元本を振込手数料として扱ってはいけません。",
+    "振込金額と手数料を含む証憑全体に対し、accountTitleNameを「支払手数料」と確定してはいけません。",
+    "証憑全体が複数の会計内容を含み、単一の勘定科目では表現できない場合は、accountTitleIdとaccountTitleNameを空欄にし、複合取引であることをmemoへ記載してください。",
+    "振込先名や銀行名だけから、振込元本の勘定科目を推測してはいけません。",
+    "振込先が税理士、仕入先、従業員、役員などに見える場合でも、OCR本文に取引目的や請求内容が明記されていなければ、勘定科目と目的を推測してはいけません。",
+    "",
+    "【目的の推測禁止ルール】",
+    "purposeIdとpurposeNameは、証憑本文に利用目的、会議、出張、交通、備品購入、消耗品購入などが明記されている場合だけ候補を返してください。",
+    "店舗名、振込先名、商品名、支払方法、勘定科目、金額、日付から目的を推測してはいけません。",
+    "OCR本文に目的の明示がない場合は、purposeIdとpurposeNameを空欄にしてください。",
+    "根拠がないのに「会議」「交通移動」「その他業務」などの目的を選んではいけません。",
+    "目的が人間確認を必要とする場合は、目的欄へ仮の値を入れず、memoへ「目的要確認」と記載してください。",
+    "",
+    "【銀行振込明細の摘要ルール】",
+    "summaryは証憑から確認できる取引内容を短く表してください。",
+    "目的が不明な銀行振込明細では、「会議費支払」「交通費支払」など、根拠のない用途を摘要へ入れてはいけません。",
+    "振込元本と手数料を含む場合は、「銀行振込実行」など事実に限定し、必要な金額内訳はlineItemsとmemoへ記載してください。",
+    /* RECEIPT_AI_BANK_TRANSFER_RULE_20260722_END */
+
+    /* RECEIPT_AI_ACCOUNT_TITLE_EVIDENCE_RULE_20260722_START */
+    "",
+    "【勘定科目の証拠優先ルール】",
+    "accountTitleIdとaccountTitleNameは、OCR本文だけで会計上の利用目的まで確認できる場合に限って候補を返してください。",
+    "店舗名、業種、商品名、購入金額、支払方法だけから勘定科目を推測してはいけません。",
+    "食品、飲料、弁当、菓子、軽食、外食の証憑だけでは、会議費、交際費、福利厚生費、旅費交通費、消耗品費のいずれかを確定できません。",
+    "コンビニで購入したことだけを理由に消耗品費へ分類してはいけません。",
+    "飲食物を購入したことだけを理由に会議費へ分類してはいけません。",
+    "飲食店を利用したことだけを理由に会議費または交際費へ分類してはいけません。",
+    "会議用、来客用、接待、従業員用、出張中などの利用事情がOCR本文または解析へ渡された明示情報にない場合は、accountTitleIdとaccountTitleNameを空欄にしてください。",
+    "勘定科目を決めるために利用目的の確認が必要な場合は、仮の勘定科目を選ばず、memoへ「勘定科目要確認」と記載してください。",
+    "OCRから確認できる商品内容はlineItemsとsummaryへ事実として保持し、会計上の利用目的と混同しないでください。",
+    /* RECEIPT_AI_ACCOUNT_TITLE_EVIDENCE_RULE_20260722_END */
+
+    "返すJSON形式:",
     "{",
     "  \"transactionDate\": \"YYYY-MM-DD または null\",",
     "  \"vendorName\": \"店名\",",
@@ -1116,7 +1160,9 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "  \"evidenceTypeId\": null,",
     "  \"evidenceTypeName\": \"証憑区分候補名または空文字\",",
     "  \"evidenceMemo\": \"証憑に関する注意があれば短く\",",
-    "  \"summary\": \"摘要候補一覧に存在する名称を一字一句そのまま\",",
+    "  \"receiptSummaryId\": null,",
+    "  \"receiptSummaryName\": \"摘要分類候補一覧に存在する名称を一字一句そのまま\",",
+    "  \"summary\": \"OCR本文から確認できる取引内容を表す短い自由文\",",
     "  \"memo\": \"注意点・伝票番号・注文番号など\",",
     "  \"accountTitleName\": \"勘定科目候補名または空文字\",",
     "  \"confidence\": 0.70,",
@@ -1180,7 +1226,7 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
   const outputText = extractOutputText(responseJson);
   const parsed = parseJsonLoose(outputText);
   const resolvedPurpose = resolveReceiptAiPurpose(parsed, masterHints);
-  const resolvedSummary = resolveReceiptAiSummary(parsed, masterHints);
+  const resolvedSummaryClassification = resolveReceiptAiSummaryClassification(parsed, masterHints);
   const resolvedAccountTitle = resolveReceiptAiAccountTitle(parsed, masterHints);
 
   return {
@@ -1206,7 +1252,9 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     evidenceTypeId: normalizeNullableInteger(parsed.evidenceTypeId || parsed.evidence_type_id),
     evidenceTypeName: parsed.evidenceTypeName || parsed.evidence_type_name || "",
     evidenceMemo: parsed.evidenceMemo || parsed.evidence_memo || "",
-    summary: resolvedSummary.name,
+    receiptSummaryId: resolvedSummaryClassification.id,
+    receiptSummaryName: resolvedSummaryClassification.name,
+    summary: parsed.summary || "",
     memo: parsed.memo || "",
     confidence: normalizeReceiptAiConfidenceForDraft(parsed.confidence),
     lineItems: normalizeLineItems(parsed.lineItems),
@@ -1220,10 +1268,20 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
         paymentMethodCount: (masterHints.paymentMethods || []).length,
         purposeCount: (masterHints.purposes || []).length,
         receiptSummaryCount: (masterHints.receiptSummaries || []).length,
-        resolvedReceiptSummaryId: resolvedSummary.id,
-        resolvedReceiptSummaryCode: resolvedSummary.code,
-        resolvedReceiptSummaryName: resolvedSummary.name,
-        receiptSummaryFallback: resolvedSummary.fallback,
+        returnedReceiptSummaryId: normalizeNullableInteger(
+          parsed.receiptSummaryId ||
+          parsed.receipt_summary_id
+        ),
+        returnedReceiptSummaryName: String(
+          parsed.receiptSummaryName ||
+          parsed.receipt_summary_name ||
+          ""
+        ).trim(),
+        validatedReceiptSummaryId: resolvedSummaryClassification.id,
+        validatedReceiptSummaryCode: resolvedSummaryClassification.code,
+        validatedReceiptSummaryName: resolvedSummaryClassification.name,
+        receiptSummaryMasterPairValid: resolvedSummaryClassification.valid,
+        returnedSummaryText: parsed.summary || "",
         taxTreatmentCount: (masterHints.taxTreatments || []).length,
         resolvedPurposeId: resolvedPurpose.id,
         resolvedPurposeName: resolvedPurpose.name,
