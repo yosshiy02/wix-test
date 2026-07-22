@@ -3174,102 +3174,86 @@ function setDocumentPreview(item) {
   
   
   /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_START */
-  function hdOriginCilNormalizeKind(value) {
-    return String(value ?? "").trim();
-  }
+  async function hdOriginCilLoadKindMaster() {
+    const select = document.getElementById("draftAiContractFlag");
+    if (!select || select.__cilLoading) return;
 
-  function hdOriginCilApplyPendingKindSelection() {
-    const select =
-      document.getElementById("draftAiContractFlag");
+    select.__cilLoading = true;
 
-    const label =
-      hdOriginCilNormalizeKind(
-        window.__hdOriginCilPendingKindLabel
+    try {
+      const res = await fetch(
+        "/api/masters?type=contract_insurance_lease_kinds",
+        { cache: "no-store" }
       );
 
-    if (!select || !label) {
-      return false;
-    }
+      const data = await res.json();
+      const rows = data.rows || data.items || [];
 
-    const option = Array.from(select.options || []).find(item => {
-      return (
-        hdOriginCilNormalizeKind(item.textContent) === label ||
-        hdOriginCilNormalizeKind(item.dataset.name) === label ||
-        hdOriginCilNormalizeKind(item.dataset.code) === label ||
-        hdOriginCilNormalizeKind(item.dataset.masterName) === label ||
-        hdOriginCilNormalizeKind(item.dataset.masterCode) === label
+      select.innerHTML =
+        '<option value="">契約・保険・リースを選択</option>';
+
+      rows.forEach(row => {
+        const option = document.createElement("option");
+        option.value =
+          row.contract_insurance_lease_kind_id || row.id || "";
+        option.textContent =
+          row.contract_insurance_lease_kind_name || row.name || "";
+        option.dataset.code =
+          row.contract_insurance_lease_kind_code || "";
+        select.appendChild(option);
+      });
+
+      select.classList.remove("master-empty", "master-missing");
+
+      const label = String(
+        window.__hdOriginCilPendingKindLabel || ""
+      ).trim();
+
+      const match = Array.from(select.options).find(option =>
+        option.textContent.trim() === label ||
+        option.dataset.code === label
       );
-    });
 
-    if (!option) {
-      return false;
+      if (match) select.value = match.value;
+    } finally {
+      select.__cilLoading = false;
     }
-
-    select.value = option.value;
-    return true;
-  }
-
-  function hdOriginCilInstallKindObserver() {
-    const select =
-      document.getElementById("draftAiContractFlag");
-
-    if (!select || select.__hdOriginKindObserverInstalled) {
-      return;
-    }
-
-    select.__hdOriginKindObserverInstalled = true;
-
-    const observer = new MutationObserver(() => {
-      queueMicrotask(
-        hdOriginCilApplyPendingKindSelection
-      );
-    });
-
-    observer.observe(select, {
-      childList: true
-    });
   }
 
   function hdOriginCilApplyKindSelection(draft) {
-    const fields =
-      draft &&
-      draft.fields &&
-      typeof draft.fields === "object"
-        ? draft.fields
-        : {};
+    const fields = draft?.fields || {};
+    const summary = draft?.ai_summary || {};
 
-    const summary =
-      draft &&
-      draft.ai_summary &&
-      typeof draft.ai_summary === "object"
-        ? draft.ai_summary
-        : {};
+    window.__hdOriginCilPendingKindLabel = String(
+      fields["契約・保険・リース"] ||
+      summary.contract_insurance_lease ||
+      ""
+    ).trim();
 
-    const label =
-      hdOriginCilNormalizeKind(
-        fields["契約・保険・リース"] ||
-        summary.contract_insurance_lease
-      );
+    hdOriginCilLoadKindMaster();
+  }
 
-    if (!label) {
-      return;
-    }
+  function hdOriginCilWatchKindMaster() {
+    const select = document.getElementById("draftAiContractFlag");
+    if (!select || select.__cilWatching) return;
 
-    window.__hdOriginCilPendingKindLabel = label;
+    select.__cilWatching = true;
 
-    hdOriginCilInstallKindObserver();
-    hdOriginCilApplyPendingKindSelection();
+    new MutationObserver(() => {
+      if (select.options.length < 7) {
+        hdOriginCilLoadKindMaster();
+      }
+    }).observe(select, { childList: true });
+
+    hdOriginCilLoadKindMaster();
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      hdOriginCilInstallKindObserver
-    );
+    document.addEventListener("DOMContentLoaded", hdOriginCilWatchKindMaster);
   } else {
-    hdOriginCilInstallKindObserver();
+    hdOriginCilWatchKindMaster();
   }
-  /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_END */
+/* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_END */
 
 
 
