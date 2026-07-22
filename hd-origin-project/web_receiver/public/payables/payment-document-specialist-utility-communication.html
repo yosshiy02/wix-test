@@ -5514,6 +5514,35 @@ function setDocumentPreview(item) {
       throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
+    const currentFields = {
+      customer_number: textValue(byId("draftUtilityCustomerNo")?.value),
+      supply_point_number: textValue(byId("draftSupplyPointNumber")?.value),
+      meter_reading_date: textValue(byId("draftMeterReadingDate")?.value),
+      usage_quantity: textValue(byId("draftUsageAmount")?.value),
+      usage_unit: textValue(byId("draftUsageUnit")?.value)
+    };
+
+    const specialistRes = await fetch("/api/payment-documents/utility-communication-drafts/save", {
+      method: "POST",
+      headers: {"Content-Type":"application/json; charset=utf-8"},
+      body: JSON.stringify({
+        paymentDocumentOcrImportId: json.paymentDocumentOcrImportId || payload.paymentDocumentOcrImportId,
+        paymentDocumentSortingDraftId: json.paymentDocumentSortingDraftId,
+        specialistAnalysisId: json.specialistAnalysisId,
+        fields: currentFields,
+        visibleFields: currentFields,
+        humanCorrections: currentFields,
+        rawResult: analysisResult,
+        warnings: payload.warnings || []
+      })
+    });
+
+    const specialistJson = await specialistRes.json().catch(function(){return {};});
+    if (!specialistRes.ok || !specialistJson.ok) {
+      throw new Error(specialistJson.error || "公共料金専門下書き保存に失敗しました。");
+    }
+
+    json.utilityCommunicationDraftId = specialistJson.utilityCommunicationDraftId;
     return json;
   }
 
