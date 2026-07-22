@@ -3,16 +3,104 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公共料金・通信費専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-utility-communication.css">
+  <title>契約・保険・リース専門解析システム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-specialist-contract-insurance-lease.css">
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_contract-insurance-lease-ledger_START -->
+<style>
+  .hd-ledger-form-menu {
+    width: min(1380px, calc(100% - 32px));
+    margin: 16px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 26px;
+    border: 1px solid rgba(35,48,76,.12);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 10px 28px rgba(32,44,72,.08);
+    font-family: "Yu Gothic", "YuGothic", "Meiryo", system-ui, sans-serif;
+  }
+  .hd-ledger-form-menu-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #172033;
+  }
+  .hd-ledger-form-menu-title strong {
+    font-size: 18px;
+  }
+  .hd-ledger-form-menu-title span {
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .hd-ledger-form-menu-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .hd-ledger-form-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    text-decoration: none !important;
+    font-size: 16px;
+    letter-spacing: .02em;
+    font-weight: 900;
+    border: 1px solid transparent;
+    box-shadow: 0 12px 22px rgba(32,44,72,.12);
+  }
+  .hd-ledger-form-menu-button.single {
+    background: #172033;
+    color: #fff !important;
+  }
+  .hd-ledger-form-menu-button.report {
+    background: #eaf0ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.20);
+    border-width: 2px;
+  }
+  @media (max-width:720px){
+    .hd-ledger-form-menu {
+      width: calc(100% - 20px);
+      align-items: stretch;
+      flex-direction: column;
+    }
+    .hd-ledger-form-menu-buttons {
+      justify-content: stretch;
+    }
+    .hd-ledger-form-menu-button {
+      width: 100%;
+    }
+  }
+</style>
+<!-- GPT00_LEDGER_FORM_MENU_STYLE_contract-insurance-lease-ledger_END -->
   <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
-<body class="specialist-utility-communication-page" data-specialist-route-code="utility_communication">
-<!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
-<!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+<body class="specialist-contract-insurance-lease-page" data-specialist-route-code="contract_insurance_lease">
+<!-- GPT00_LEDGER_FORM_MENU_contract-insurance-lease-ledger_START -->
+<div class="hd-ledger-form-menu">
+  <div class="hd-ledger-form-menu-title">
+    <strong>契約・保険・リース 表示形式</strong>
+    <span>単票形式は通常画面、帳面形式は一覧・集計・印刷用です。</span>
+  </div>
+  <div class="hd-ledger-form-menu-buttons">
+    <a class="hd-ledger-form-menu-button single" href="/payables/payment-document-specialist-contract-insurance-lease.html">単票形式</a>
+    <a class="hd-ledger-form-menu-button report" href="/ledgers/reports/contract-insurance-lease-ledger-report.html">帳面形式</a>
+  </div>
+</div>
+<!-- GPT00_LEDGER_FORM_MENU_contract-insurance-lease-ledger_END -->
+
+<!-- HD_ORIGIN_GPT2_CIL_SPECIALIST_COMMON_SAVE_API_20260710 : contract-insurance-lease save endpoint connected to specialist-analysis-results/save -->
+<!-- HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>公共料金・通信費専門解析システム</h1>
+      <h1>契約・保険・リース専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
@@ -37,10 +125,10 @@
                 data-base-label="税金・公的支払"
                 onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払（0）</button>
         <button type="button"
-                class="specialist-system-button specialist-contract"
-                data-analysis-system-code="contract_insurance_lease_analysis"
-                data-base-label="契約・保険・リース"
-                onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース（0）</button>
+                class="specialist-system-button specialist-utility"
+                data-analysis-system-code="utility_communication_analysis"
+                data-base-label="公共料金・通信費"
+                onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
         <button type="button"
                 class="specialist-system-button specialist-card"
                 data-analysis-system-code="card_statement_analysis"
@@ -58,12 +146,12 @@
                 onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで公共料金・通信費へ送った書類を、公共料金・通信費として専門解析する画面です。</span>
+<span class="muted">1回目仕分けで契約・保険・リースへ送った書類を、契約・保険・リースとして専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>公共料金・通信費 対象書類</span>
+        <span>契約・保険・リース 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
@@ -104,7 +192,7 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>公共料金・通信費 解析確認</span>
+        <span>契約・保険・リース 解析確認</span>
         <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
 <div class="specialist-panel-actions">
   <div class="specialist-record-controls" aria-label="専門解析レコード移動">
@@ -143,7 +231,7 @@
 
             <div class="draft-form-scroll">
         <section class="draft-section">
-          <div class="draft-section-title">公共料金・通信費 解析サマリー</div>
+          <div class="draft-section-title">契約・保険・リース 解析サマリー</div>
           <div class="form-grid">
             <label>
               書類区分
@@ -171,7 +259,7 @@
             </label>
             <label>
               契約・保険・リース
-              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
+              <select class="draft-field master-select" id="draftAiContractFlag" data-master-type="contract_insurance_lease_kinds" data-master-label="契約・保険・リース"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               AI信頼度
@@ -453,7 +541,7 @@
             </label>
             <label>
               支払状態
-              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
+              <select class="draft-field master-select" id="draftPaymentStatus" data-master-type="payment_statuses" data-master-label="支払状態" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               振込先銀行
@@ -521,10 +609,7 @@
               会計区分
               <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
             </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
+            
             <label>
               未払種別
               <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
@@ -545,10 +630,7 @@
               インボイス区分
               <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
             </label>
-            <label>
-              支払方法マスタ
-              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
+            
             <label>
               対象者
               <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
@@ -571,11 +653,11 @@
             </label>
             <label>
               会社負担可否
-              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
+              <select class="draft-field master-select" id="draftCompanyBurden" data-master-type="company_burden_types" data-master-label="会社負担可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               個人負担混在
-              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
+              <select class="draft-field master-select" id="draftMixedPersonalFlag" data-master-type="personal_mix_flags" data-master-label="個人負担混在" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               立替
@@ -587,11 +669,11 @@
             </label>
             <label>
               未払登録
-              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
+              <select class="draft-field master-select" id="draftPayableRegistrationFlag" data-master-type="payable_registration_types" data-master-label="未払登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               買掛登録
-              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
+              <select class="draft-field master-select" id="draftAccountsPayableFlag" data-master-type="accounts_payable_registration_types" data-master-label="買掛登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label class="span2">
               社内メモ
@@ -611,22 +693,387 @@
         </section>
 
         <section class="draft-section">
-          <div class="draft-section-title">公共料金・通信費情報</div>
+          <div class="draft-section-title">書類別追加情報</div>
           <div class="form-grid">
-            <label>お客様番号
-              <input class="draft-field" id="draftUtilityCustomerNo" data-analysis-item-code="customer_number">
+            <label>
+              税目
+              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
             </label>
-            <label>供給地点番号
-              <input class="draft-field" id="draftSupplyPointNumber" data-analysis-item-code="supply_point_number">
+            <label>
+              納付先
+              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
             </label>
-            <label>検針日
-              <input class="draft-field" id="draftMeterReadingDate" type="date" data-analysis-item-code="meter_reading_date">
+            <label>
+              年度
+              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
             </label>
-            <label>使用量
-              <input class="draft-field" id="draftUsageAmount" inputmode="decimal" data-analysis-item-code="usage_quantity">
+            <label>
+              期別
+              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
             </label>
-            <label>使用量単位
-              <input class="draft-field" id="draftUsageUnit" data-analysis-item-code="usage_unit" placeholder="例：kWh / ㎥ / GB">
+            <label>
+              公共料金お客様番号
+              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
+            </label>
+            <label>
+              使用期間
+              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
+            </label>
+            <label>
+              使用量
+              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
+            </label>
+            <label>
+              保険種類
+              <select class="draft-field master-select" id="draftInsuranceType" data-master-type="insurance_types" data-master-label="保険種類" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              リース物件
+              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
+            </label>
+            <label>
+              リース物件区分
+              <select class="draft-field master-select" id="draftLeaseItemCategory" data-master-type="lease_item_categories" data-master-label="リース物件区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+
+            <!-- HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_20260722_START -->
+            <section
+              class="cil-lease-items-panel"
+              id="cilLeaseItemsPanel"
+            >
+              <div class="cil-lease-items-header">
+                <div>
+                  <h3>リース物件明細</h3>
+                  <p>
+                    OCR解析された物件を、物件単位で確認・修正します。
+                  </p>
+                </div>
+
+                <div class="cil-lease-items-header-actions">
+                  <span
+                    class="cil-lease-items-count"
+                    id="cilLeaseItemsCount"
+                  >0件</span>
+
+                  <button
+                    type="button"
+                    class="cil-lease-item-add-button"
+                    id="cilLeaseItemAddButton"
+                  >
+                    物件を追加
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="cil-lease-items-empty"
+                id="cilLeaseItemsEmpty"
+              >
+                リース物件明細はありません。
+              </div>
+
+              <div
+                class="cil-lease-items-table-wrap"
+                id="cilLeaseItemsTableWrap"
+                hidden
+              >
+                <table class="cil-lease-items-table">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>物件区分</th>
+                      <th>物件名</th>
+                      <th>メーカー・型番</th>
+                      <th>数量</th>
+                      <th>リース期間</th>
+                      <th>月額</th>
+                      <th>所在地</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cilLeaseItemsBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <div
+              class="cil-lease-item-modal"
+              id="cilLeaseItemModal"
+              hidden
+              aria-hidden="true"
+            >
+              <div
+                class="cil-lease-item-modal-backdrop"
+                data-cil-modal-close="1"
+              ></div>
+
+              <section
+                class="cil-lease-item-modal-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cilLeaseItemModalTitle"
+              >
+                <header class="cil-lease-item-modal-header">
+                  <h3 id="cilLeaseItemModalTitle">
+                    リース物件明細
+                  </h3>
+
+                  <button
+                    type="button"
+                    class="cil-lease-item-modal-close"
+                    id="cilLeaseItemModalClose"
+                    aria-label="閉じる"
+                  >
+                    ×
+                  </button>
+                </header>
+
+                <form id="cilLeaseItemForm">
+                  <div class="cil-lease-item-form-grid">
+                    <label>
+                      物件区分
+                      <select id="cilLineCategory">
+                        <option value="">選択</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      物件名
+                      <input
+                        id="cilLineItemName"
+                        required
+                        placeholder="例：デジタル複合機"
+                      >
+                    </label>
+
+                    <label>
+                      メーカー
+                      <input id="cilLineManufacturer">
+                    </label>
+
+                    <label>
+                      型番
+                      <input id="cilLineModelNumber">
+                    </label>
+
+                    <label>
+                      製造番号
+                      <input id="cilLineSerialNumber">
+                    </label>
+
+                    <label>
+                      数量
+                      <input
+                        id="cilLineQuantity"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                      >
+                    </label>
+
+                    <label>
+                      単位
+                      <input
+                        id="cilLineUnitName"
+                        placeholder="例：台"
+                      >
+                    </label>
+
+                    <label>
+                      リース開始日
+                      <input
+                        id="cilLineStartDate"
+                        type="date"
+                      >
+                    </label>
+
+                    <label>
+                      リース終了日
+                      <input
+                        id="cilLineEndDate"
+                        type="date"
+                      >
+                    </label>
+
+                    <label>
+                      リース期間（月）
+                      <input
+                        id="cilLinePeriodMonths"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label class="cil-line-wide">
+                      物件所在地
+                      <input id="cilLineLocation">
+                    </label>
+
+                    <label>
+                      月額リース料
+                      <input
+                        id="cilLineMonthlyAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      リース総額
+                      <input
+                        id="cilLineTotalAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      残価
+                      <input
+                        id="cilLineResidualAmount"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      残価保証額
+                      <input
+                        id="cilLineResidualGuarantee"
+                        type="number"
+                        min="0"
+                        step="1"
+                      >
+                    </label>
+
+                    <label>
+                      AI信頼度
+                      <input
+                        id="cilLineAiConfidence"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                      >
+                    </label>
+                  </div>
+
+                  <footer class="cil-lease-item-modal-footer">
+                    <button
+                      type="button"
+                      class="cil-line-cancel-button"
+                      id="cilLeaseItemCancelButton"
+                    >
+                      キャンセル
+                    </button>
+
+                    <button
+                      type="submit"
+                      class="cil-line-save-button"
+                    >
+                      明細へ反映
+                    </button>
+                  </footer>
+                </form>
+              </section>
+            </div>
+            <!-- HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_20260722_END -->
+            <label>
+              支払回数
+              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
+            </label>
+            <label>
+              支払周期
+              <select class="draft-field master-select" id="draftPaymentCycle" data-master-type="payment_cycles" data-master-label="支払周期" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              契約種別
+              <select class="draft-field master-select" id="draftContractType" data-master-type="contract_types" data-master-label="契約種別" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              契約ステータス
+              <select class="draft-field master-select" id="draftContractStatus" data-master-type="contract_statuses" data-master-label="契約ステータス" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              自動更新有無
+              <select class="draft-field master-select" id="draftAutoRenewal" data-master-type="auto_renewal_types" data-master-label="自動更新有無" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              所有権移転区分
+              <select class="draft-field master-select" id="draftOwnershipTransfer" data-master-type="ownership_transfer_types" data-master-label="所有権移転区分" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              中途解約可否
+              <select class="draft-field master-select" id="draftEarlyCancellation" data-master-type="early_cancellation_types" data-master-label="中途解約可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+            </label>
+                        <div class="span2"><strong>保険専用項目</strong></div>
+            <label>
+              保険会社
+              <input class="draft-field" id="draftInsuranceCompanyName">
+            </label>
+            <label>
+              保険証券番号・契約番号
+              <input class="draft-field" id="draftInsurancePolicyNumber">
+            </label>
+            <label>
+              被保険者・被保険物件
+              <input class="draft-field" id="draftInsuredPersonName">
+            </label>
+            <label>
+              保険料
+              <input class="draft-field" id="draftPremiumAmount" type="number" min="0" step="0.01">
+            </label>
+<label>
+              リース開始日
+              <input class="draft-field" id="draftLeaseStartDate" type="date">
+            </label>
+            <label>
+              リース終了日
+              <input class="draft-field" id="draftLeaseEndDate" type="date">
+            </label>
+            <label>
+              リース期間（月）
+              <input class="draft-field" id="draftLeasePeriodMonths" type="number" min="0" step="1">
+            </label>
+            <label>
+              物件所在地
+              <input class="draft-field" id="draftLeaseItemLocation" placeholder="例：大阪本社 2階">
+            </label>
+            <label>
+              残価保証額
+              <input class="draft-field" id="draftResidualValueGuaranteeAmount" type="number" min="0" step="0.01">
+            </label>
+            <label class="span2">
+              更新条件
+              <textarea class="draft-field" id="draftRenewalTerms"></textarea>
+            </label>
+            <label class="span2">
+              解約条件
+              <textarea class="draft-field" id="draftCancellationTerms"></textarea>
+            </label>
+            <label>
+              メール件名
+              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
+            </label>
+            <label>
+              メール送信者
+              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
+            </label>
+            <label>
+              メール受信日時
+              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
+            </label>
+            <label>
+              添付ファイル名
+              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
+            </label>
+            <label>
+              ダウンロード日
+              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
             </label>
           </div>
         </section>
@@ -679,131 +1126,6 @@
 </section>
   </div>
 
-<script>
-/* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_START */
-(function () {
-  "use strict";
-
-  if (window.__hdOriginSpecialistFetchContextInstalled) {
-    return;
-  }
-
-  window.__hdOriginSpecialistFetchContextInstalled = true;
-
-  const originalFetch = window.fetch.bind(window);
-
-  const routeDefinitions = {
-    invoice_payable: {
-      specialist_route_label: "請求・未払系解析",
-      analysis_system_code: "invoice_payable_analysis",
-      analysis_system_label: "請求・未払系専門解析システム"
-    },
-    tax_public: {
-      specialist_route_label: "税金・公的支払解析",
-      analysis_system_code: "tax_public_analysis",
-      analysis_system_label: "税金・公的支払専門解析システム"
-    },
-    utility_communication: {
-      specialist_route_label: "公共料金・通信費解析",
-      analysis_system_code: "utility_communication_analysis",
-      analysis_system_label: "公共料金・通信費専門解析システム"
-    },
-    contract_insurance_lease: {
-      specialist_route_label: "契約・保険・リース解析",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysis_system_label: "契約・保険・リース専門解析システム"
-    }
-  };
-
-  window.fetch = function (input, init) {
-    const requestUrl = String(
-      input && input.url ? input.url : input || ""
-    );
-
-    if (
-      !requestUrl.includes(
-        "/api/payment-documents/ai-specialist/"
-      )
-    ) {
-      return originalFetch(input, init);
-    }
-
-    const routeCode = String(
-      document.body &&
-      document.body.dataset &&
-      document.body.dataset.specialistRouteCode
-        ? document.body.dataset.specialistRouteCode
-        : ""
-    ).trim();
-
-    const definition = routeDefinitions[routeCode];
-
-    if (!definition) {
-      return Promise.reject(
-        new Error(
-          "専門解析画面のdata-specialist-route-codeが不正です: " +
-          routeCode
-        )
-      );
-    }
-
-    const nextInit = Object.assign({}, init || {});
-
-    nextInit.method = nextInit.method || "POST";
-
-    nextInit.headers = Object.assign(
-      {},
-      nextInit.headers || {},
-      {
-        "Content-Type": "application/json"
-      }
-    );
-
-    let requestBody = {};
-
-    if (
-      typeof nextInit.body === "string" &&
-      nextInit.body.trim()
-    ) {
-      try {
-        const parsed = JSON.parse(nextInit.body);
-
-        if (
-          parsed &&
-          typeof parsed === "object" &&
-          !Array.isArray(parsed)
-        ) {
-          requestBody = parsed;
-        }
-      } catch (error) {
-        return Promise.reject(
-          new Error(
-            "専門解析リクエスト本文がJSONではありません。"
-          )
-        );
-      }
-    }
-
-    nextInit.body = JSON.stringify({
-      ...requestBody,
-      specialist_route_code: routeCode,
-      specialist_route_label:
-        requestBody.specialist_route_label ||
-        definition.specialist_route_label,
-      analysis_system_code:
-        requestBody.analysis_system_code ||
-        definition.analysis_system_code,
-      analysis_system_label:
-        requestBody.analysis_system_label ||
-        definition.analysis_system_label,
-      group: routeCode
-    });
-
-    return originalFetch(input, nextInit);
-  };
-})();
-/* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_END */
-</script>
 <script>
   let items = [];
   let selectedIndex = -1;
@@ -1264,7 +1586,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // 公共料金・通信費 解析サマリー
+    // 契約・保険・リース 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1377,14 +1699,26 @@ function setDocumentPreview(item) {
     if (setById("draftTaxPaymentDestination", fields["納付先"])) appliedCount++;
     if (setById("draftFiscalYear", fields["年度"])) appliedCount++;
     if (setById("draftPeriodName", fields["期別"])) appliedCount++;
-    if (setById("draftUtilityCustomerNo", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"])) appliedCount++;
-    if (setById("draftSupplyPointNumber", fields["supply_point_number"] || fields["供給地点番号"])) appliedCount++;
-    if (setById("draftMeterReadingDate", fields["meter_reading_date"] || fields["検針日"])) appliedCount++;
-    if (setById("draftUsageAmount", fields["usage_quantity"] ?? fields["使用量"])) appliedCount++;
-    if (setById("draftUsageUnit", fields["usage_unit"] || fields["使用量単位"])) appliedCount++;
+    if (setById("draftUtilityCustomerNumber", fields["公共料金お客様番号"])) appliedCount++;
+    if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
+    if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
-    if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
+    if (setById("draftLeaseItemName", fields["リース物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
+    if (setById("draftLeaseItemCategory", fields["リース物件区分"])) appliedCount++;
+    if (setById("draftPaymentCycle", fields["支払周期"])) appliedCount++;
+    if (setById("draftContractType", fields["契約種別"])) appliedCount++;
+    if (setById("draftContractStatus", fields["契約ステータス"])) appliedCount++;
+    if (setById("draftAutoRenewal", fields["自動更新有無"])) appliedCount++;
+    if (setById("draftOwnershipTransfer", fields["所有権移転区分"])) appliedCount++;
+    if (setById("draftEarlyCancellation", fields["中途解約可否"])) appliedCount++;
+    if (setById("draftLeaseStartDate", fields["リース開始日"])) appliedCount++;
+    if (setById("draftLeaseEndDate", fields["リース終了日"])) appliedCount++;
+    if (setById("draftLeasePeriodMonths", fields["リース期間"])) appliedCount++;
+    if (setById("draftLeaseItemLocation", fields["物件所在地"])) appliedCount++;
+    if (setById("draftResidualValueGuaranteeAmount", fields["残価保証額"])) appliedCount++;
+    if (setById("draftRenewalTerms", fields["更新条件"])) appliedCount++;
+    if (setById("draftCancellationTerms", fields["解約条件"])) appliedCount++;
     if (setById("draftMailSubject", fields["メール件名"])) appliedCount++;
     if (setById("draftMailFrom", fields["メール送信者"])) appliedCount++;
     if (setById("draftMailReceivedAt", fields["メール受信日時"])) appliedCount++;
@@ -1651,7 +1985,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // 公共料金・通信費 解析サマリー
+    // 契約・保険・リース 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -1659,9 +1993,30 @@ function setDocumentPreview(item) {
     put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
     put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
     put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
-    put("draftAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
+    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_START
+    // 後追い判定ではなく、AIが既に出した値を右側フォームへ写すだけ。
+    const hdCilFormDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
+    const hdCilFormSummaryForReason = (typeof summary !== "undefined" && summary && typeof summary === "object") ? summary : {};
+    const hdCilFormFieldsForReason = (typeof fields !== "undefined" && fields && typeof fields === "object") ? fields : {};
 
+    put("draftAiConfidence", "AI信頼度",
+      hdCilFormDraftForReason.analysis_system_confidence ||
+      hdCilFormSummaryForReason.confidence_label ||
+      hdCilFormFieldsForReason["AI信頼度"] ||
+      hdCilFormDraftForReason.ai_confidence_label ||
+      hdCilFormDraftForReason.confidence_label ||
+      hdCilFormDraftForReason.ai_confidence ||
+      hdCilFormDraftForReason.confidence
+    );
+    put("draftAiReason", "AI判定理由",
+      hdCilFormDraftForReason.analysis_system_reason ||
+      hdCilFormSummaryForReason.reason ||
+      hdCilFormFieldsForReason["AI判定理由"] ||
+      hdCilFormDraftForReason.review_reason ||
+      hdCilFormDraftForReason.ai_reason ||
+      hdCilFormDraftForReason.reason
+    );
+    // HD_ORIGIN_GPT2_CIL_FORM_MAPPING_RETRY_20260709_END
     // 基本情報
     put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
     put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
@@ -1749,13 +2104,11 @@ function setDocumentPreview(item) {
 
     // 会計・管理
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
-    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
     put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
     put("draftTargetPerson", "対象者", fields["対象者"]);
     put("draftPurpose", "目的", fields["目的"]);
     put("draftProject", "案件", fields["案件"]);
@@ -1777,14 +2130,26 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
-    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
-    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
-    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
-    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
+    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
+    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
+    put("draftUsageAmount", "使用量", fields["使用量"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
+    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
+    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
+    put("draftContractType", "契約種別", fields["契約種別"]);
+    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
+    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
+    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
+    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
+    put("draftLeaseStartDate", "リース開始日", fields["リース開始日"]);
+    put("draftLeaseEndDate", "リース終了日", fields["リース終了日"]);
+    put("draftLeasePeriodMonths", "リース期間", fields["リース期間"]);
+    put("draftLeaseItemLocation", "物件所在地", fields["物件所在地"]);
+    put("draftResidualValueGuaranteeAmount", "残価保証額", fields["残価保証額"]);
+    put("draftRenewalTerms", "更新条件", fields["更新条件"]);
+    put("draftCancellationTerms", "解約条件", fields["解約条件"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2214,7 +2579,7 @@ function setDocumentPreview(item) {
       if (norm.includes("web") || norm.includes("ウェブ")) return "web_statement";
     }
 
-    if (type === "payment_destinations" || id === "draftAiDestination" || id === "draftDestination" || labelNorm.includes("処理先")) {
+    if (type === "payment_destinations" || id === "draftAiDestination" || labelNorm.includes("処理先")) {
       if (norm.includes("税") || norm.includes("公的") || norm.includes("納付")) return "tax_public";
       if (norm.includes("リース") || norm.includes("保険") || norm.includes("契約")) return "contract_insurance_lease";
       if (norm.includes("カード")) return "card_payable";
@@ -2438,13 +2803,11 @@ function setDocumentPreview(item) {
     put("draftQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
 
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
-    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
     put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
     put("draftTargetPerson", "対象者", fields["対象者"]);
     put("draftPurpose", "目的", fields["目的"]);
     put("draftProject", "案件", fields["案件"]);
@@ -2464,14 +2827,26 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
-    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
-    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
-    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
-    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
+    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
+    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
+    put("draftUsageAmount", "使用量", fields["使用量"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
+    put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
+    put("draftPaymentCycle", "支払周期", fields["支払周期"]);
+    put("draftContractType", "契約種別", fields["契約種別"]);
+    put("draftContractStatus", "契約ステータス", fields["契約ステータス"]);
+    put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
+    put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
+    put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
+    put("draftLeaseStartDate", "リース開始日", fields["リース開始日"]);
+    put("draftLeaseEndDate", "リース終了日", fields["リース終了日"]);
+    put("draftLeasePeriodMonths", "リース期間", fields["リース期間"]);
+    put("draftLeaseItemLocation", "物件所在地", fields["物件所在地"]);
+    put("draftResidualValueGuaranteeAmount", "残価保証額", fields["残価保証額"]);
+    put("draftRenewalTerms", "更新条件", fields["更新条件"]);
+    put("draftCancellationTerms", "解約条件", fields["解約条件"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2566,7 +2941,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("公共料金・通信費 解析サマリー")) {
+      if (titleText === normalizeLabelText("契約・保険・リース 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2596,6 +2971,292 @@ function setDocumentPreview(item) {
     });
   }
 /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_START */
+  function contractInsuranceLeaseSpecialistRequestBody() {
+    return {
+      phase: "specialist",
+      specialist_route_code: "contract_insurance_lease",
+      specialist_route_label: "契約・保険・リース解析",
+      analysis_system_code: "contract_insurance_lease_analysis",
+      analysis_system_label: "契約・保険・リース解析システム",
+      group: "contract_insurance_lease"
+    };
+  }
+  /* GPT2_CONTRACT_INSURANCE_LEASE_SPECIALIST_CONTEXT_BODY_20260709_END */
+
+  /* HD_ORIGIN_GPT2_CIL_SPECIALIST_RESULT_RESTORE_20260722_START */
+  window.__cilSpecialistResultsByOcrId =
+    window.__cilSpecialistResultsByOcrId ||
+    new Map();
+
+  function hdOriginCilResultOcrId(item, data) {
+    const value =
+      (typeof ocrImportIdOf === "function"
+        ? ocrImportIdOf(item)
+        : "") ||
+      (data && (
+        data.paymentDocumentOcrImportId ||
+        data.payment_document_ocr_import_id ||
+        data.ocrImportId ||
+        data.ocr_import_id
+      ));
+
+    const id = Number(value);
+
+    return Number.isInteger(id) && id > 0
+      ? String(id)
+      : "";
+  }
+
+  function hdOriginCilRememberSpecialistResult(item, data) {
+    if (!data || typeof data !== "object") {
+      return;
+    }
+
+    const ocrId =
+      hdOriginCilResultOcrId(item, data);
+
+    if (ocrId) {
+      window.__cilSpecialistResultsByOcrId.set(
+        ocrId,
+        data
+      );
+    }
+
+    if (item) {
+      item.__cilSpecialistResult = data;
+      item.__aiRawResult = data;
+
+      const specialist =
+        data.specialist &&
+        typeof data.specialist === "object"
+          ? data.specialist
+          : data;
+
+      item.__aiDraft =
+        specialist.draft &&
+        typeof specialist.draft === "object"
+          ? specialist.draft
+          : data.draft || {};
+
+      item.__visibleFieldLabels =
+        specialist.visible_field_labels ||
+        data.visible_field_labels ||
+        [];
+    }
+  }
+
+  function hdOriginCilRestoreSpecialistResult(item) {
+    const ocrId =
+      hdOriginCilResultOcrId(item, null);
+
+    const data =
+      (ocrId &&
+        window.__cilSpecialistResultsByOcrId.get(ocrId)) ||
+      (item && item.__cilSpecialistResult) ||
+      null;
+
+    if (!data) {
+      return false;
+    }
+
+    const specialist =
+      data.specialist &&
+      typeof data.specialist === "object"
+        ? data.specialist
+        : data;
+
+    const draft =
+      specialist.draft &&
+      typeof specialist.draft === "object"
+        ? specialist.draft
+        : data.draft || {};
+
+    const labels =
+      specialist.visible_field_labels ||
+      data.visible_field_labels ||
+      draft.visible_field_labels ||
+      [];
+
+    function applyResult() {
+      if (
+        typeof applyAiDraftToFormHardDebug ===
+        "function"
+      ) {
+        applyAiDraftToFormHardDebug(draft);
+      hdOriginCilApplyKindSelection(draft);
+      hdOriginCilApplyInsuranceFields(draft);
+      }
+
+      if (
+        typeof showVisibleFieldsOnly ===
+        "function"
+      ) {
+        showVisibleFieldsOnly(labels);
+      }
+
+      if (
+        typeof cilSetLeaseItemLinesFromAi ===
+        "function"
+      ) {
+        cilSetLeaseItemLinesFromAi(data);
+      }
+    }
+
+    applyResult();
+    setTimeout(applyResult, 0);
+
+    return true;
+  }
+  /* HD_ORIGIN_GPT2_CIL_SPECIALIST_RESULT_RESTORE_20260722_END */
+
+
+  /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_START */
+  function hdOriginCilInsuranceNumber(value) {
+    const text = String(value ?? "")
+      .replace(/[円￥¥,，\s]/g, "");
+
+    if (!text) {
+      return "";
+    }
+
+    const number = Number(text);
+
+    return Number.isFinite(number)
+      ? String(number)
+      : "";
+  }
+
+  function hdOriginCilApplyInsuranceFields(draft) {
+    const fields =
+      draft &&
+      draft.fields &&
+      typeof draft.fields === "object"
+        ? draft.fields
+        : {};
+
+    const setValue = (id, value) => {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.value =
+          value === null || value === undefined
+            ? ""
+            : String(value);
+      }
+    };
+
+    setValue(
+      "draftInsuranceCompanyName",
+      fields["保険会社"] || ""
+    );
+
+    setValue(
+      "draftInsurancePolicyNumber",
+      fields["保険証券番号・契約番号"] || ""
+    );
+
+    setValue(
+      "draftInsuredPersonName",
+      fields["被保険者・被保険物件"] || ""
+    );
+
+    setValue(
+      "draftPremiumAmount",
+      hdOriginCilInsuranceNumber(
+        fields["保険料"]
+      )
+    );
+  }
+  /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_END */
+
+
+  
+  
+  /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_START */
+  async function hdOriginCilLoadKindMaster() {
+    const select = document.getElementById("draftAiContractFlag");
+    if (!select || select.__cilLoading) return;
+
+    select.__cilLoading = true;
+
+    try {
+      const res = await fetch(
+        "/api/masters?type=contract_insurance_lease_kinds",
+        { cache: "no-store" }
+      );
+
+      const data = await res.json();
+      const rows = data.rows || data.items || [];
+
+      select.innerHTML =
+        '<option value="">契約・保険・リースを選択</option>';
+
+      rows.forEach(row => {
+        const option = document.createElement("option");
+        option.value =
+          row.contract_insurance_lease_kind_id || row.id || "";
+        option.textContent =
+          row.contract_insurance_lease_kind_name || row.name || "";
+        option.dataset.code =
+          row.contract_insurance_lease_kind_code || "";
+        select.appendChild(option);
+      });
+
+      select.classList.remove("master-empty", "master-missing");
+
+      const label = String(
+        window.__hdOriginCilPendingKindLabel || ""
+      ).trim();
+
+      const match = Array.from(select.options).find(option =>
+        option.textContent.trim() === label ||
+        option.dataset.code === label
+      );
+
+      if (match) select.value = match.value;
+    } finally {
+      select.__cilLoading = false;
+    }
+  }
+
+  function hdOriginCilApplyKindSelection(draft) {
+    const fields = draft?.fields || {};
+    const summary = draft?.ai_summary || {};
+
+    window.__hdOriginCilPendingKindLabel = String(
+      fields["契約・保険・リース"] ||
+      summary.contract_insurance_lease ||
+      ""
+    ).trim();
+
+    hdOriginCilLoadKindMaster();
+  }
+
+  function hdOriginCilWatchKindMaster() {
+    const select = document.getElementById("draftAiContractFlag");
+    if (!select || select.__cilWatching) return;
+
+    select.__cilWatching = true;
+
+    new MutationObserver(() => {
+      if (select.options.length < 7) {
+        hdOriginCilLoadKindMaster();
+      }
+    }).observe(select, { childList: true });
+
+    hdOriginCilLoadKindMaster();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", hdOriginCilWatchKindMaster);
+  } else {
+    hdOriginCilWatchKindMaster();
+  }
+/* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_END */
+
+
+
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -2604,7 +3265,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("公共料金・通信費の専門解析を実行しています。画像は送信しません。");
+    showResult("契約・保険・リースの専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2624,7 +3285,7 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "公共料金・通信費の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "契約・保険・リースの専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
@@ -2839,15 +3500,13 @@ function setDocumentPreview(item) {
 
     if (!list) return;
 
-    if (
-      typeof window.renderSortingList === "function"
-    ) {
-      window.renderSortingList();
-      return;
+    if (typeof window.renderSortingList === "function" && window.renderSortingList !== renderSortingList) {
+      return window.renderSortingList();
     }
 
     updateSelectedSortingSummary();
   }
+
   async function runAiDraftForItemIndex(index, options = {}) {
     if (!Array.isArray(items) || index < 0 || index >= items.length) {
       showResult("解析する書類が見つかりません。");
@@ -2868,7 +3527,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\n公共料金・通信費の専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n契約・保険・リースの専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -2877,6 +3536,8 @@ function setDocumentPreview(item) {
         headers: {
           "Content-Type": "application/json"
         }
+      ,
+        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
@@ -3334,6 +3995,8 @@ function setDocumentPreview(item) {
     item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
+      hdOriginCilRememberSpecialistResult(item, data);
+      cilSetLeaseItemLinesFromAi(data);
   };
 
   window.runAiDraftForItemIndex = async function(index, options = {}) {
@@ -3356,7 +4019,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、公共料金・通信費の専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、契約・保険・リースの専門解析をしています。");
     }
 
     try {
@@ -3365,6 +4028,8 @@ function setDocumentPreview(item) {
         headers: {
           "Content-Type": "application/json"
         }
+      ,
+        body: JSON.stringify(contractInsuranceLeaseSpecialistRequestBody())
       });
 
       const data = await res.json();
@@ -3501,9 +4166,9 @@ function setDocumentPreview(item) {
     );
   };
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
-/* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
-  window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
-    const expectedAnalysisSystemCode = "utility_communication_analysis";
+/* HD_ORIGIN_SPECIALIST_CONTRACT_INSURANCE_LEASE_FILTER_GPT2_AFTER_20260708_START */
+  window.hdOriginContractInsuranceLeaseSpecialistFilter = function(allItems) {
+    const expectedAnalysisSystemCode = "contract_insurance_lease_analysis";
 
     function textValue(value) {
       return String(value || "").trim();
@@ -3584,6 +4249,83 @@ function setDocumentPreview(item) {
       );
     });
   };
+
+  /* HD_ORIGIN_GPT2_CIL_RECURSIVE_ANALYSIS_CODE_FILTER_20260722_START */
+  window.hdOriginContractInsuranceLeaseSpecialistFilter =
+    function (allItems) {
+      const expectedCode =
+        "contract_insurance_lease_analysis";
+
+      function containsExpectedAnalysisSystemCode(source) {
+        if (
+          !source ||
+          typeof source !== "object"
+        ) {
+          return false;
+        }
+
+        const queue = [{
+          value: source,
+          depth: 0
+        }];
+
+        const visited = new WeakSet();
+
+        while (queue.length) {
+          const entry = queue.shift();
+          const value = entry.value;
+
+          if (
+            !value ||
+            typeof value !== "object" ||
+            visited.has(value)
+          ) {
+            continue;
+          }
+
+          visited.add(value);
+
+          const candidates = [
+            value.analysis_system_code,
+            value.analysisSystemCode
+          ]
+            .map(code => String(code || "").trim())
+            .filter(Boolean);
+
+          if (candidates.includes(expectedCode)) {
+            return true;
+          }
+
+          if (entry.depth >= 8) {
+            continue;
+          }
+
+          for (const child of Object.values(value)) {
+            if (
+              child &&
+              typeof child === "object"
+            ) {
+              queue.push({
+                value: child,
+                depth: entry.depth + 1
+              });
+            }
+          }
+        }
+
+        return false;
+      }
+
+      return (
+        Array.isArray(allItems)
+          ? allItems
+          : []
+      ).filter(function (item) {
+        return containsExpectedAnalysisSystemCode(item);
+      });
+    };
+  /* HD_ORIGIN_GPT2_CIL_RECURSIVE_ANALYSIS_CODE_FILTER_20260722_END */
+
   async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
@@ -3606,13 +4348,13 @@ function setDocumentPreview(item) {
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
+      items = window.hdOriginContractInsuranceLeaseSpecialistFilter(allItems);
 
       summary.textContent =
-        "公共料金・通信費専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "契約・保険・リース専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">公共料金・通信費の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">契約・保険・リースの対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -3706,7 +4448,6 @@ function setDocumentPreview(item) {
     updateCompactEvidenceInfo(item);
 
     setDraftValue("draftAiDocumentKind", item.documentType || "");
-    setDraftValue("draftDestination", item.destination || "");
     setDraftValue("draftAiDestination", item.destination || "");
     setDraftValue("draftIssuer", item.vendorName || "");
     setDraftValue("draftVendorName", item.vendorName || "");
@@ -3742,8 +4483,9 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
+    const hdOriginCilRestoredSpecialist = hdOriginCilRestoreSpecialistResult(item);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
-    if (item && item.__aiDraft) {
+    if (!hdOriginCilRestoredSpecialist && item && item.__aiDraft) {
       if (typeof applySortingOnlyDraftToForm === "function") {
         applySortingOnlyDraftToForm(item.__aiDraft);
       } else if (typeof applyAiDraftToFormHardDebug === "function") {
@@ -3800,14 +4542,12 @@ function setDocumentPreview(item) {
   const DRAFT_MASTER_FIELDS = [
     { id: "draftAiDocumentKind", type: "document_types", label: "書類区分" },
     { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
-    { id: "draftDestination", type: "payment_destinations", label: "処理先" },
     { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
     { id: "draftPayableKind", type: "payable_kinds", label: "未払種別" },
 
     { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
     { id: "draftVendorMasterCandidate", type: "vendors", label: "支払先" },
     { id: "draftPaymentMethod", type: "payment_methods", label: "支払方法" },
-    { id: "draftPaymentMethodMaster", type: "payment_methods", label: "支払方法" },
     { id: "draftAccountTitle", type: "account_titles", label: "勘定科目" },
     { id: "draftTaxCategory", type: "tax_categories", label: "税区分" },
     { id: "draftInvoiceType", type: "invoice_types", label: "インボイス区分" },
@@ -4682,6 +5422,7 @@ function setDocumentPreview(item) {
       '  <div class="hd-analyze-busy-main">',
       '    <div class="hd-analyze-busy-title" id="hdAnalyzeBusyTitle">仕分け中です</div>',
       '    <div class="hd-analyze-busy-sub" id="hdAnalyzeBusySub">AIが仕分け候補を作成しています。</div>',
+      '    <button type="button" id="hdAnalyzeCancelButton" class="light">途中でキャンセル</button>',
       '    <div class="hd-analyze-progress">',
       '      <div class="hd-analyze-progress-bar" id="hdAnalyzeProgressBar"></div>',
       '    </div>',
@@ -5028,8 +5769,6 @@ function setDocumentPreview(item) {
     count += window.hdOriginSetControlValueLoose("draftAiReason", d.review_reason || s.reason || d.reason || "");
 
     count += window.hdOriginSetControlValueLoose("draftAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
-    count += window.hdOriginSetControlValueLoose("draftDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
-
     window.__lastAiDraftAppliedCount = count;
 
     return count;
@@ -5314,9 +6053,9 @@ function setDocumentPreview(item) {
       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
       document_type_label: documentTypeLabel,
 
-      payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
-      payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
-      payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+      payment_destination_id: numericOrNull(controlValue("draftAiDestination")),
+      payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
+      payment_destination_label: destinationLabel,
 
       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
@@ -5400,6 +6139,275 @@ function setDocumentPreview(item) {
     return payload;
   }
 
+  function collectContractInsuranceLeaseCurrentFieldsForSave() {
+    return {
+      "リース開始日": controlValue("draftLeaseStartDate"),
+      "リース終了日": controlValue("draftLeaseEndDate"),
+      "リース期間": controlValue("draftLeasePeriodMonths"),
+      "物件所在地": controlValue("draftLeaseItemLocation"),
+      "残価保証額": controlValue("draftResidualValueGuaranteeAmount"),
+      "更新条件": controlValue("draftRenewalTerms"),
+      "解約条件": controlValue("draftCancellationTerms")
+    };
+  }
+
+
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_START */
+
+
+  function hdOriginCilSavedSortingDraftId(source) {
+
+
+    const keys = [
+
+
+      "paymentDocumentSortingDraftId",
+
+
+      "payment_document_sorting_draft_id",
+
+
+      "sortingDraftId",
+
+
+      "sorting_draft_id",
+
+
+      "draftId",
+
+
+      "draft_id"
+
+
+    ];
+
+
+
+    const queue = [
+
+
+      {
+
+
+        value: source,
+
+
+        depth: 0
+
+
+      }
+
+
+    ];
+
+
+
+    const visited = new WeakSet();
+
+
+
+    while (queue.length) {
+
+
+      const entry = queue.shift();
+
+
+      const value = entry.value;
+
+
+
+      if (
+
+
+        !value ||
+
+
+        typeof value !== "object" ||
+
+
+        Array.isArray(value) ||
+
+
+        visited.has(value)
+
+
+      ) {
+
+
+        continue;
+
+
+      }
+
+
+
+      visited.add(value);
+
+
+
+      for (const key of keys) {
+
+
+        const id = Number(value[key]);
+
+
+
+        if (
+
+
+          Number.isInteger(id) &&
+
+
+          id > 0
+
+
+        ) {
+
+
+          return id;
+
+
+        }
+
+
+      }
+
+
+
+      if (entry.depth >= 4) {
+
+
+        continue;
+
+
+      }
+
+
+
+      for (const child of Object.values(value)) {
+
+
+        if (
+
+
+          child &&
+
+
+          typeof child === "object" &&
+
+
+          !Array.isArray(child)
+
+
+        ) {
+
+
+          queue.push({
+
+
+            value: child,
+
+
+            depth: entry.depth + 1
+
+
+          });
+
+
+        }
+
+
+      }
+
+
+    }
+
+
+
+    return null;
+
+
+  }
+
+
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_END */
+
+
+
+  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved, analysisResult) {
+  const cilSingleLeaseItemLines =
+    cilLeaseItemLinesForPayload(
+      analysisResult
+    );
+
+  if (
+    analysisResult &&
+    typeof analysisResult === "object"
+  ) {
+    analysisResult = Object.assign(
+      {},
+      analysisResult,
+      {
+        lease_item_lines:
+          cilSingleLeaseItemLines,
+        specialist: Object.assign(
+          {},
+          analysisResult.specialist &&
+          typeof analysisResult.specialist ===
+            "object"
+            ? analysisResult.specialist
+            : {},
+          {
+            lease_item_lines:
+              cilSingleLeaseItemLines
+          }
+        )
+      }
+    );
+  }
+
+    const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
+    const payload = {
+      paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
+      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      rawResult:
+        analysisResult && typeof analysisResult === "object"
+          ? analysisResult
+          : {},
+      specialist:
+        analysisResult &&
+        analysisResult.specialist &&
+        typeof analysisResult.specialist === "object"
+          ? analysisResult.specialist
+          : {},
+      draft: sortingPayload,
+      sortResult: sortingPayload.sortResult || {},
+      ai_summary: sortingPayload.ai_summary || {},
+      fields: currentFields,
+      visibleFields: currentFields,
+      warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
+      memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
+    };
+
+    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
+    }
+
+    return json;
+  }
+
   async function saveSortingDraftFromReviewPage(context) {
     const payload = collectSortingDraftPayload(context);
 
@@ -5437,8 +6445,6 @@ function setDocumentPreview(item) {
     payload.analysis_system_code =
       payload.analysis_system_code ||
       payload.analysisSystemCode ||
-      analysisResult.analysis_system_code ||
-      analysisResult.analysisSystemCode ||
       analysisDraft.analysis_system_code ||
       analysisDraft.analysisSystemCode ||
       analysisRoot.analysis_system_code ||
@@ -5451,6 +6457,7 @@ function setDocumentPreview(item) {
       window.__hdOriginSpecialistActiveAnalysisSystemCode =
         payload.analysis_system_code;
     }
+
     payload.analysis_system_label =
       payload.analysis_system_label ||
       payload.analysisSystemLabel ||
@@ -5498,7 +6505,7 @@ function setDocumentPreview(item) {
       analysisRoot.specialist_route_label ||
       "";
 
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5511,39 +6518,23 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(json.error || "下書き保存に失敗しました。");
+      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
-    const currentFields = {
-      customer_number: textValue(byId("draftUtilityCustomerNo")?.value),
-      supply_point_number: textValue(byId("draftSupplyPointNumber")?.value),
-      meter_reading_date: textValue(byId("draftMeterReadingDate")?.value),
-      usage_quantity: textValue(byId("draftUsageAmount")?.value),
-      usage_unit: textValue(byId("draftUsageUnit")?.value)
+    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json, analysisResult);
+
+    return {
+      ...json,
+      contractInsuranceLeaseDraftId:
+        specialistJson.specialistAnalysisId ||
+        specialistJson.specialist_analysis_id ||
+        specialistJson.latestSpecialistAnalysisId ||
+        specialistJson.contractInsuranceLeaseDraftId ||
+        specialistJson.paymentDocumentContractInsuranceLeaseDraftId ||
+        specialistJson.contract_insurance_lease_draft_id ||
+        "",
+      contractInsuranceLeaseDraft: specialistJson
     };
-
-    const specialistRes = await fetch("/api/payment-documents/utility-communication-drafts/save", {
-      method: "POST",
-      headers: {"Content-Type":"application/json; charset=utf-8"},
-      body: JSON.stringify({
-        paymentDocumentOcrImportId: json.paymentDocumentOcrImportId || payload.paymentDocumentOcrImportId,
-        paymentDocumentSortingDraftId: json.paymentDocumentSortingDraftId,
-        specialistAnalysisId: json.specialistAnalysisId,
-        fields: currentFields,
-        visibleFields: currentFields,
-        humanCorrections: currentFields,
-        rawResult: analysisResult,
-        warnings: payload.warnings || []
-      })
-    });
-
-    const specialistJson = await specialistRes.json().catch(function(){return {};});
-    if (!specialistRes.ok || !specialistJson.ok) {
-      throw new Error(specialistJson.error || "公共料金専門下書き保存に失敗しました。");
-    }
-
-    json.utilityCommunicationDraftId = specialistJson.utilityCommunicationDraftId;
-    return json;
   }
 
   function looksLikeDraftSaveButton(el) {
@@ -5591,7 +6582,7 @@ function setDocumentPreview(item) {
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
+      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け下書きID: " + (result.paymentDocumentSortingDraftId || "") + "\n専門下書きID: " + (result.contractInsuranceLeaseDraftId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -5649,7 +6640,7 @@ function setDocumentPreview(item) {
 
   function aiSortIdFromUrl(url) {
     const path = String(url || "").split("?")[0];
-    const match = path.match(/\/api\/payment-documents\/ai-sort\/([0-9]+)/);
+    const match = path.match(/\/api\/payment-documents\/(?:ai-sort|ai-specialist)\/([0-9]+)/);
 
     if (!match) return 0;
 
@@ -5782,7 +6773,7 @@ function setDocumentPreview(item) {
   }
 
   async function postSortingDraft(payload) {
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -5795,41 +6786,91 @@ function setDocumentPreview(item) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(json.error || "下書き保存に失敗しました。");
+      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
-    const fields =
-      payload.specialistFields ||
-      payload.specialist_fields ||
-      payload.fields ||
-      payload.visibleFields ||
-      payload.visible_fields ||
-      {};
-
-    const utilityRes = await fetch("/api/payment-documents/utility-communication-drafts/save", {
-      method: "POST",
-      headers: {"Content-Type":"application/json; charset=utf-8"},
-      body: JSON.stringify({
-        paymentDocumentOcrImportId: json.paymentDocumentOcrImportId || payload.paymentDocumentOcrImportId,
-        paymentDocumentSortingDraftId: json.paymentDocumentSortingDraftId,
-        specialistAnalysisId: json.specialistAnalysisId,
-        fields: fields,
-        visibleFields: payload.visibleFields || payload.visible_fields || fields,
-        humanCorrections: {},
-        rawResult: payload.rawResult || payload.raw_result || payload,
-        warnings: Array.isArray(payload.warnings) ? payload.warnings : []
-      })
-    });
-
-    const utilityJson = await utilityRes.json().catch(function(){return {};});
-    if (!utilityRes.ok || !utilityJson.ok) {
-      throw new Error(utilityJson.error || "公共料金専門下書き保存に失敗しました。");
-    }
-
-    json.utilityCommunicationDraftId = utilityJson.utilityCommunicationDraftId;
     return json;
   }
 
+    // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_START
+  // 後追い判定ではなく、保存APIの返却ID表記ゆれを吸収するだけ。
+  function hdOriginCilSavedSortingDraftId(saved) {
+    if (!saved || typeof saved !== "object") return "";
+
+    return saved.paymentDocumentSortingDraftId ||
+      saved.payment_document_sorting_draft_id ||
+      saved.sortingDraftId ||
+      saved.sorting_draft_id ||
+      saved.draftId ||
+      saved.draft_id ||
+      saved.id ||
+      "";
+  }
+
+  function hdOriginCilSaveErrorMessage(prefix, res, json, payload) {
+    const status = res && res.status ? "HTTP " + res.status : "";
+    const error = json && json.error ? json.error : "";
+    const id = payload && (
+      payload.paymentDocumentOcrImportId ||
+      payload.payment_document_ocr_import_id ||
+      payload.ocrImportId ||
+      payload.id ||
+      ""
+    );
+
+    return [
+      prefix || "保存に失敗しました。",
+      status,
+      id ? "OCR取込ID=" + id : "",
+      error
+    ].filter(Boolean).join(" / ");
+  }
+  // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_END
+function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sortingSaved) {
+    const result = firstObject(cached);
+    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result);
+    const draft = firstObject(result.draft, root.draft, root.sorting, root.classification, root);
+    const fields = firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields, sortingPayload.visibleFields, sortingPayload.visible_fields, sortingPayload.fields);
+    const aiSummary = firstObject(draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary, sortingPayload.ai_summary);
+
+    return {
+      paymentDocumentOcrImportId: Number(id),
+      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      lease_item_lines: cilLeaseItemLinesForPayload(result),
+    rawResult: result,
+      specialist: firstObject(
+        result.specialist,
+        result.result && result.result.specialist
+      ),
+      draft,
+      sortResult: root,
+      ai_summary: aiSummary,
+      fields,
+      visibleFields: fields,
+      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+      memo: "契約・保険・リース専門画面のまとめて保存から専門下書き保存"
+    };
+  }
+
+  async function postContractInsuranceLeaseDraft(payload) {
+    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
+    }
+
+    return json;
+  }
   async function bulkSaveSortingDrafts() {
     let ids = getSelectedOcrIds();
 
@@ -5858,10 +6899,13 @@ function setDocumentPreview(item) {
       try {
         const payload = buildPayloadFromCachedResult(id, cached);
         const saved = await postSortingDraft(payload);
+        const specialistPayload = buildContractInsuranceLeaseDraftPayload(id, cached, payload, saved);
+        const specialistSaved = await postContractInsuranceLeaseDraft(specialistPayload);
 
         ok.push({
           id,
-          draftId: saved.paymentDocumentSortingDraftId || ""
+          sortingDraftId: saved.paymentDocumentSortingDraftId || "",
+          specialistDraftId: specialistSaved.contractInsuranceLeaseDraftId || ""
         });
       } catch (err) {
         ng.push({
@@ -6095,9 +7139,43 @@ function setDocumentPreview(item) {
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
     pushField(fields, section, "公共料金・通信費", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
-    pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
+    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_START
+    // 後追い判定ではなく、AIが既に出した値を固定欄へ写すだけ。
+    const hdCilDraftForReason = (typeof draft !== "undefined" && draft && typeof draft === "object") ? draft : {};
+    const hdCilRawForReason = (typeof raw !== "undefined" && raw && typeof raw === "object") ? raw : {};
+    const hdCilSummaryForReason = (hdCilDraftForReason.ai_summary && typeof hdCilDraftForReason.ai_summary === "object") ? hdCilDraftForReason.ai_summary : {};
+    const hdCilDraftFieldsForReason = (hdCilDraftForReason.fields && typeof hdCilDraftForReason.fields === "object") ? hdCilDraftForReason.fields : {};
+
+    const hdCilConfidenceValue =
+      hdCilDraftForReason.analysis_system_confidence ||
+      hdCilDraftForReason.confidence_label ||
+      hdCilDraftForReason.ai_confidence_label ||
+      hdCilDraftForReason.ai_confidence ||
+      hdCilDraftForReason.confidence ||
+      hdCilSummaryForReason.confidence_label ||
+      hdCilDraftFieldsForReason["AI信頼度"] ||
+      hdCilRawForReason.analysis_system_confidence ||
+      hdCilRawForReason.confidence_label ||
+      hdCilRawForReason.confidence ||
+      "";
+
+    const hdCilReasonValue =
+      hdCilDraftForReason.analysis_system_reason ||
+      hdCilDraftForReason.review_reason ||
+      hdCilDraftForReason.ai_reason ||
+      hdCilDraftForReason.reason ||
+      hdCilSummaryForReason.reason ||
+      hdCilDraftFieldsForReason["AI判定理由"] ||
+      hdCilRawForReason.analysis_system_reason ||
+      hdCilRawForReason.review_reason ||
+      hdCilRawForReason.ai_reason ||
+      hdCilRawForReason.reason ||
+      "";
+
+    pushField(fields, section, "AI信頼度", "confidence", hdCilConfidenceValue);
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
-    pushField(fields, section, "AI判定理由", "review_reason", draft.review_reason || draft.ai_reason || draft.reason || raw.review_reason || raw.ai_reason || raw.reason || "");
+    pushField(fields, section, "AI判定理由", "review_reason", hdCilReasonValue);
+    // HD_ORIGIN_GPT2_CIL_PUSHFIELD_MAPPING_RETRY_20260709_END
   }
 
   function pushObject(fields, section, obj) {
@@ -6326,6 +7404,156 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
+<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_START -->
+<script>
+(function () {
+  const EXTRA_MASTER_CONFIG = {
+    contract_insurance_lease_kinds: {
+      id: "contract_insurance_lease_kind_id",
+      code: "contract_insurance_lease_kind_code",
+      name: "contract_insurance_lease_kind_name"
+    },
+    insurance_types: {
+      id: "insurance_type_id",
+      code: "insurance_type_code",
+      name: "insurance_type_name"
+    },
+    lease_item_categories: {
+      id: "lease_item_category_id",
+      code: "lease_item_category_code",
+      name: "lease_item_category_name"
+    },
+    contract_types: {
+      id: "contract_type_id",
+      code: "contract_type_code",
+      name: "contract_type_name"
+    },
+    contract_statuses: {
+      id: "contract_status_id",
+      code: "contract_status_code",
+      name: "contract_status_name"
+    },
+    payment_statuses: {
+      id: "payment_status_id",
+      code: "payment_status_code",
+      name: "payment_status_name"
+    },
+    payment_cycles: {
+      id: "payment_cycle_id",
+      code: "payment_cycle_code",
+      name: "payment_cycle_name"
+    },
+    company_burden_types: {
+      id: "company_burden_type_id",
+      code: "company_burden_type_code",
+      name: "company_burden_type_name"
+    },
+    personal_mix_flags: {
+      id: "personal_mix_flag_id",
+      code: "personal_mix_flag_code",
+      name: "personal_mix_flag_name"
+    },
+    payable_registration_types: {
+      id: "payable_registration_type_id",
+      code: "payable_registration_type_code",
+      name: "payable_registration_type_name"
+    },
+    accounts_payable_registration_types: {
+      id: "accounts_payable_registration_type_id",
+      code: "accounts_payable_registration_type_code",
+      name: "accounts_payable_registration_type_name"
+    },
+    auto_renewal_types: {
+      id: "auto_renewal_type_id",
+      code: "auto_renewal_type_code",
+      name: "auto_renewal_type_name"
+    },
+    ownership_transfer_types: {
+      id: "ownership_transfer_type_id",
+      code: "ownership_transfer_type_code",
+      name: "ownership_transfer_type_name"
+    },
+    early_cancellation_types: {
+      id: "early_cancellation_type_id",
+      code: "early_cancellation_type_code",
+      name: "early_cancellation_type_name"
+    }
+  };
+
+  function normalize(value) {
+    return String(value || "").trim();
+  }
+
+  function populateOne(select, masters) {
+    const key = select.getAttribute("data-master-type");
+    const config = EXTRA_MASTER_CONFIG[key];
+
+    if (!config) return;
+
+    const rows = Array.isArray(masters[key]) ? masters[key] : [];
+    const current = normalize(select.value);
+
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "選択してください";
+    select.appendChild(empty);
+
+    rows.forEach(row => {
+      const code = normalize(row[config.code]);
+      const name = normalize(row[config.name]);
+      const id = normalize(row[config.id]);
+
+      const option = document.createElement("option");
+      option.value = code || name || id;
+      option.textContent = name || code || id;
+      option.dataset.masterId = id;
+      option.dataset.masterCode = code;
+      option.dataset.masterName = name;
+      select.appendChild(option);
+    });
+
+    if (current) {
+      const matched = Array.from(select.options).find(option => {
+        return normalize(option.value) === current ||
+          normalize(option.textContent) === current ||
+          normalize(option.dataset.masterCode) === current ||
+          normalize(option.dataset.masterName) === current ||
+          normalize(option.dataset.masterId) === current;
+      });
+
+      if (matched) {
+        select.value = matched.value;
+      }
+    }
+  }
+
+  async function loadExtraMasters() {
+    const targets = Array.from(document.querySelectorAll('select[data-gpt2-extra-master="1"][data-master-type]'));
+
+    if (!targets.length) return;
+
+    try {
+      const res = await fetch("/api/expenses/masters", { cache: "no-store" });
+      const masters = await res.json();
+
+      targets.forEach(select => populateOne(select, masters || {}));
+    } catch (error) {
+      console.error("[GPT2] 契約・保険・リース追加マスタ読込エラー", error);
+    }
+  }
+
+  window.hdOriginLoadContractInsuranceLeaseExtraMasters = loadExtraMasters;
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadExtraMasters);
+  } else {
+    loadExtraMasters();
+  }
+})();
+</script>
+<!-- HD_ORIGIN_GPT2_CONTRACT_INSURANCE_LEASE_EXTRA_MASTER_SELECTS_20260708_END -->
 <!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_START -->
 <script>
 (function () {
@@ -6926,8 +8154,1042 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
+
+  <script>
+  /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_JS_20260722_START */
+  let cilLeaseItemLines = [];
+  let cilLeaseItemEditIndex = -1;
+  let cilLeaseItemActiveOcrId = "";
+  const cilLeaseItemLinesByOcrId = new Map();
+
+  function cilLineText(value) {
+    return String(
+      value === null || value === undefined
+        ? ""
+        : value
+    ).trim();
+  }
+
+  function cilLineNumber(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return null;
+    }
+
+    const number = Number(
+      String(value).replace(/[,円￥\s]/g, "")
+    );
+
+    return Number.isFinite(number)
+      ? number
+      : null;
+  }
+
+  function cilLineEscape(value) {
+    return cilLineText(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function cilNormalizeLeaseItemLine(source) {
+    const line =
+      source &&
+      typeof source === "object" &&
+      !Array.isArray(source)
+        ? source
+        : {};
+
+    return {
+      lease_item_category_code: cilLineText(
+        line.lease_item_category_code ||
+        line.category_code ||
+        line["物件区分コード"]
+      ),
+      lease_item_category_name: cilLineText(
+        line.lease_item_category_name ||
+        line.category_name ||
+        line["物件区分"] ||
+        line["リース物件区分"]
+      ),
+      item_name: cilLineText(
+        line.item_name ||
+        line["物件名"] ||
+        line["リース物件"]
+      ),
+      manufacturer_name: cilLineText(
+        line.manufacturer_name ||
+        line["メーカー"]
+      ),
+      model_number: cilLineText(
+        line.model_number ||
+        line["型番"]
+      ),
+      serial_number: cilLineText(
+        line.serial_number ||
+        line["製造番号"]
+      ),
+      quantity: cilLineNumber(
+        line.quantity ||
+        line["数量"]
+      ),
+      unit_name: cilLineText(
+        line.unit_name ||
+        line["単位"]
+      ),
+      lease_start_date: cilLineText(
+        line.lease_start_date ||
+        line["リース開始日"]
+      ),
+      lease_end_date: cilLineText(
+        line.lease_end_date ||
+        line["リース終了日"]
+      ),
+      lease_period_months: cilLineNumber(
+        line.lease_period_months ||
+        line["リース期間"]
+      ),
+      item_location: cilLineText(
+        line.item_location ||
+        line["物件所在地"]
+      ),
+      monthly_lease_amount: cilLineNumber(
+        line.monthly_lease_amount ||
+        line["月額リース料"]
+      ),
+      lease_total_amount: cilLineNumber(
+        line.lease_total_amount ||
+        line["リース総額"]
+      ),
+      residual_value_amount: cilLineNumber(
+        line.residual_value_amount ||
+        line["残価"]
+      ),
+      residual_value_guarantee_amount:
+        cilLineNumber(
+          line.residual_value_guarantee_amount ||
+          line["残価保証額"]
+        ),
+      ai_confidence: cilLineNumber(
+        line.ai_confidence ||
+        line["AI信頼度"]
+      )
+    };
+  }
+
+  function cilFindLeaseItemArray(source) {
+    if (
+      !source ||
+      typeof source !== "object"
+    ) {
+      return null;
+    }
+
+    const queue = [{
+      value: source,
+      depth: 0
+    }];
+
+    const visited = new WeakSet();
+    let checked = 0;
+
+    while (queue.length && checked < 150) {
+      const entry = queue.shift();
+      const value = entry.value;
+      const depth = entry.depth;
+
+      if (
+        !value ||
+        typeof value !== "object"
+      ) {
+        continue;
+      }
+
+      if (visited.has(value)) {
+        continue;
+      }
+
+      visited.add(value);
+      checked++;
+
+      if (Array.isArray(value.lease_item_lines)) {
+        return value.lease_item_lines;
+      }
+
+      if (Array.isArray(value.leaseItemLines)) {
+        return value.leaseItemLines;
+      }
+
+      if (depth >= 6) {
+        continue;
+      }
+
+      for (const child of Object.values(value)) {
+        if (
+          child &&
+          typeof child === "object"
+        ) {
+          queue.push({
+            value: child,
+            depth: depth + 1
+          });
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function cilFindOcrId(source) {
+    if (
+      !source ||
+      typeof source !== "object"
+    ) {
+      return "";
+    }
+
+    const queue = [{
+      value: source,
+      depth: 0
+    }];
+
+    const visited = new WeakSet();
+    const keys = [
+      "paymentDocumentOcrImportId",
+      "payment_document_ocr_import_id",
+      "ocrImportId",
+      "ocr_import_id",
+      "selectedOcrImportId"
+    ];
+
+    while (queue.length) {
+      const entry = queue.shift();
+      const value = entry.value;
+
+      if (
+        !value ||
+        typeof value !== "object" ||
+        visited.has(value)
+      ) {
+        continue;
+      }
+
+      visited.add(value);
+
+      for (const key of keys) {
+        const id = Number(value[key]);
+
+        if (
+          Number.isInteger(id) &&
+          id > 0
+        ) {
+          return String(id);
+        }
+      }
+
+      if (entry.depth >= 4) {
+        continue;
+      }
+
+      for (const child of Object.values(value)) {
+        if (
+          child &&
+          typeof child === "object"
+        ) {
+          queue.push({
+            value: child,
+            depth: entry.depth + 1
+          });
+        }
+      }
+    }
+
+    return "";
+  }
+
+  function cilCurrentSelectedItem() {
+    try {
+      if (
+        typeof selectedItem !== "undefined" &&
+        selectedItem
+      ) {
+        return selectedItem;
+      }
+    } catch (error) {
+    }
+
+    try {
+      if (
+        typeof items !== "undefined" &&
+        Array.isArray(items) &&
+        typeof selectedIndex === "number" &&
+        items[selectedIndex]
+      ) {
+        return items[selectedIndex];
+      }
+    } catch (error) {
+    }
+
+    return null;
+  }
+
+  function cilCurrentOcrId() {
+    return (
+      cilFindOcrId(cilCurrentSelectedItem()) ||
+      cilLeaseItemActiveOcrId ||
+      ""
+    );
+  }
+
+  function cilCloneLeaseItemLines(lines) {
+    return (Array.isArray(lines) ? lines : [])
+      .map(cilNormalizeLeaseItemLine)
+      .filter(line => line.item_name);
+  }
+
+  function cilStoreCurrentLeaseItemLines() {
+    const ocrId = cilCurrentOcrId();
+
+    if (ocrId) {
+      cilLeaseItemLinesByOcrId.set(
+        ocrId,
+        cilCloneLeaseItemLines(
+          cilLeaseItemLines
+        )
+      );
+    }
+  }
+
+  function cilSetLeaseItemLines(lines, ocrId) {
+    cilLeaseItemLines =
+      cilCloneLeaseItemLines(lines);
+
+    if (ocrId) {
+      cilLeaseItemActiveOcrId =
+        String(ocrId);
+
+      cilLeaseItemLinesByOcrId.set(
+        String(ocrId),
+        cilCloneLeaseItemLines(
+          cilLeaseItemLines
+        )
+      );
+    }
+
+    cilRenderLeaseItemLines();
+  }
+
+  function cilSetLeaseItemLinesFromAi(source) {
+    const lines =
+      cilFindLeaseItemArray(source);
+
+    if (!Array.isArray(lines)) {
+      return;
+    }
+
+    const ocrId =
+      cilFindOcrId(source) ||
+      cilCurrentOcrId();
+
+    cilSetLeaseItemLines(
+      lines,
+      ocrId
+    );
+  }
+
+  function cilLeaseItemLinesForPayload(source) {
+    const sourceId =
+      cilFindOcrId(source);
+
+    if (
+      sourceId &&
+      cilLeaseItemLinesByOcrId.has(sourceId)
+    ) {
+      return cilCloneLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(sourceId)
+      );
+    }
+
+    const currentId = cilCurrentOcrId();
+
+    if (
+      currentId &&
+      cilLeaseItemLinesByOcrId.has(currentId) &&
+      (!sourceId || sourceId === currentId)
+    ) {
+      return cilCloneLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(currentId)
+      );
+    }
+
+    const sourceLines =
+      cilFindLeaseItemArray(source);
+
+    return cilCloneLeaseItemLines(
+      sourceLines || []
+    );
+  }
+
+  function cilFormatAmount(value) {
+    const number = cilLineNumber(value);
+
+    if (number === null) {
+      return "";
+    }
+
+    return number.toLocaleString("ja-JP") + "円";
+  }
+
+  function cilRenderLeaseItemLines() {
+    const body =
+      document.getElementById(
+        "cilLeaseItemsBody"
+      );
+
+    const empty =
+      document.getElementById(
+        "cilLeaseItemsEmpty"
+      );
+
+    const wrap =
+      document.getElementById(
+        "cilLeaseItemsTableWrap"
+      );
+
+    const count =
+      document.getElementById(
+        "cilLeaseItemsCount"
+      );
+
+    if (!body || !empty || !wrap || !count) {
+      return;
+    }
+
+    count.textContent =
+      cilLeaseItemLines.length + "件";
+
+    empty.hidden =
+      cilLeaseItemLines.length > 0;
+
+    wrap.hidden =
+      cilLeaseItemLines.length === 0;
+
+    body.innerHTML =
+      cilLeaseItemLines
+        .map((line, index) => {
+          const model = [
+            line.manufacturer_name,
+            line.model_number,
+            line.serial_number
+          ].filter(Boolean).join(" / ");
+
+          const quantity = [
+            line.quantity,
+            line.unit_name
+          ].filter(value =>
+            value !== null &&
+            value !== ""
+          ).join("");
+
+          const period = [
+            line.lease_start_date,
+            line.lease_end_date
+          ].filter(Boolean).join(" ～ ");
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                ${cilLineEscape(
+                  line.lease_item_category_name ||
+                  line.lease_item_category_code
+                )}
+              </td>
+              <td>
+                <strong>
+                  ${cilLineEscape(line.item_name)}
+                </strong>
+              </td>
+              <td>${cilLineEscape(model)}</td>
+              <td>${cilLineEscape(quantity)}</td>
+              <td>${cilLineEscape(period)}</td>
+              <td>
+                ${cilLineEscape(
+                  cilFormatAmount(
+                    line.monthly_lease_amount
+                  )
+                )}
+              </td>
+              <td>
+                ${cilLineEscape(
+                  line.item_location
+                )}
+              </td>
+              <td>
+                <div class="cil-line-row-actions">
+                  <button
+                    type="button"
+                    data-cil-line-edit="${index}"
+                  >
+                    修正
+                  </button>
+                  <button
+                    type="button"
+                    data-cil-line-delete="${index}"
+                    class="cil-line-delete-button"
+                  >
+                    削除
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+  }
+
+  function cilCopyCategoryOptions() {
+    const source =
+      document.getElementById(
+        "draftLeaseItemCategory"
+      );
+
+    const target =
+      document.getElementById(
+        "cilLineCategory"
+      );
+
+    if (!target) {
+      return;
+    }
+
+    const oldValue = target.value;
+
+    target.replaceChildren();
+
+    const empty =
+      document.createElement("option");
+
+    empty.value = "";
+    empty.textContent = "物件区分を選択";
+    target.appendChild(empty);
+
+    if (source) {
+      for (const option of source.options) {
+        if (!option.value) {
+          continue;
+        }
+
+        target.appendChild(
+          option.cloneNode(true)
+        );
+      }
+    }
+
+    target.value = oldValue;
+  }
+
+  function cilSetInput(id, value) {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.value =
+        value === null ||
+        value === undefined
+          ? ""
+          : String(value);
+    }
+  }
+
+  function cilGetInput(id) {
+    const element =
+      document.getElementById(id);
+
+    return element
+      ? element.value
+      : "";
+  }
+
+  function cilOpenLeaseItemModal(index) {
+    const modal =
+      document.getElementById(
+        "cilLeaseItemModal"
+      );
+
+    if (!modal) {
+      return;
+    }
+
+    cilCopyCategoryOptions();
+
+    cilLeaseItemEditIndex =
+      Number.isInteger(index)
+        ? index
+        : -1;
+
+    const line =
+      cilLeaseItemEditIndex >= 0
+        ? cilLeaseItemLines[
+            cilLeaseItemEditIndex
+          ]
+        : {};
+
+    cilSetInput(
+      "cilLineCategory",
+      line.lease_item_category_code
+    );
+    cilSetInput(
+      "cilLineItemName",
+      line.item_name
+    );
+    cilSetInput(
+      "cilLineManufacturer",
+      line.manufacturer_name
+    );
+    cilSetInput(
+      "cilLineModelNumber",
+      line.model_number
+    );
+    cilSetInput(
+      "cilLineSerialNumber",
+      line.serial_number
+    );
+    cilSetInput(
+      "cilLineQuantity",
+      line.quantity
+    );
+    cilSetInput(
+      "cilLineUnitName",
+      line.unit_name
+    );
+    cilSetInput(
+      "cilLineStartDate",
+      line.lease_start_date
+    );
+    cilSetInput(
+      "cilLineEndDate",
+      line.lease_end_date
+    );
+    cilSetInput(
+      "cilLinePeriodMonths",
+      line.lease_period_months
+    );
+    cilSetInput(
+      "cilLineLocation",
+      line.item_location
+    );
+    cilSetInput(
+      "cilLineMonthlyAmount",
+      line.monthly_lease_amount
+    );
+    cilSetInput(
+      "cilLineTotalAmount",
+      line.lease_total_amount
+    );
+    cilSetInput(
+      "cilLineResidualAmount",
+      line.residual_value_amount
+    );
+    cilSetInput(
+      "cilLineResidualGuarantee",
+      line.residual_value_guarantee_amount
+    );
+    cilSetInput(
+      "cilLineAiConfidence",
+      line.ai_confidence
+    );
+
+    modal.hidden = false;
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    const nameInput =
+      document.getElementById(
+        "cilLineItemName"
+      );
+
+    if (nameInput) {
+      nameInput.focus();
+    }
+  }
+
+  function cilCloseLeaseItemModal() {
+    const modal =
+      document.getElementById(
+        "cilLeaseItemModal"
+      );
+
+    if (!modal) {
+      return;
+    }
+
+    modal.hidden = true;
+    modal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    cilLeaseItemEditIndex = -1;
+  }
+
+  function cilReadLeaseItemForm() {
+    const category =
+      document.getElementById(
+        "cilLineCategory"
+      );
+
+    const option =
+      category &&
+      category.selectedIndex >= 0
+        ? category.options[
+            category.selectedIndex
+          ]
+        : null;
+
+    return cilNormalizeLeaseItemLine({
+      lease_item_category_code:
+        category ? category.value : "",
+      lease_item_category_name:
+        option ? option.textContent : "",
+      item_name:
+        cilGetInput("cilLineItemName"),
+      manufacturer_name:
+        cilGetInput("cilLineManufacturer"),
+      model_number:
+        cilGetInput("cilLineModelNumber"),
+      serial_number:
+        cilGetInput("cilLineSerialNumber"),
+      quantity:
+        cilGetInput("cilLineQuantity"),
+      unit_name:
+        cilGetInput("cilLineUnitName"),
+      lease_start_date:
+        cilGetInput("cilLineStartDate"),
+      lease_end_date:
+        cilGetInput("cilLineEndDate"),
+      lease_period_months:
+        cilGetInput("cilLinePeriodMonths"),
+      item_location:
+        cilGetInput("cilLineLocation"),
+      monthly_lease_amount:
+        cilGetInput("cilLineMonthlyAmount"),
+      lease_total_amount:
+        cilGetInput("cilLineTotalAmount"),
+      residual_value_amount:
+        cilGetInput("cilLineResidualAmount"),
+      residual_value_guarantee_amount:
+        cilGetInput(
+          "cilLineResidualGuarantee"
+        ),
+      ai_confidence:
+        cilGetInput(
+          "cilLineAiConfidence"
+        )
+    });
+  }
+
+  function cilSyncLeaseItemLinesFromCurrentItem(
+    force
+  ) {
+    const item =
+      cilCurrentSelectedItem();
+
+    const ocrId =
+      cilFindOcrId(item);
+
+    if (
+      !force &&
+      String(ocrId || "") ===
+        String(cilLeaseItemActiveOcrId || "")
+    ) {
+      return;
+    }
+
+    cilLeaseItemActiveOcrId =
+      String(ocrId || "");
+
+    if (
+      ocrId &&
+      cilLeaseItemLinesByOcrId.has(ocrId)
+    ) {
+      cilSetLeaseItemLines(
+        cilLeaseItemLinesByOcrId.get(ocrId),
+        ocrId
+      );
+      return;
+    }
+
+    const lines =
+      cilFindLeaseItemArray(item);
+
+    cilSetLeaseItemLines(
+      Array.isArray(lines) ? lines : [],
+      ocrId
+    );
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      const addButton =
+        document.getElementById(
+          "cilLeaseItemAddButton"
+        );
+
+      const closeButton =
+        document.getElementById(
+          "cilLeaseItemModalClose"
+        );
+
+      const cancelButton =
+        document.getElementById(
+          "cilLeaseItemCancelButton"
+        );
+
+      const form =
+        document.getElementById(
+          "cilLeaseItemForm"
+        );
+
+      const body =
+        document.getElementById(
+          "cilLeaseItemsBody"
+        );
+
+      const modal =
+        document.getElementById(
+          "cilLeaseItemModal"
+        );
+
+      if (addButton) {
+        addButton.addEventListener(
+          "click",
+          () => cilOpenLeaseItemModal(-1)
+        );
+      }
+
+      if (closeButton) {
+        closeButton.addEventListener(
+          "click",
+          cilCloseLeaseItemModal
+        );
+      }
+
+      if (cancelButton) {
+        cancelButton.addEventListener(
+          "click",
+          cilCloseLeaseItemModal
+        );
+      }
+
+      if (modal) {
+        modal.addEventListener(
+          "click",
+          event => {
+            if (
+              event.target &&
+              event.target.dataset &&
+              event.target.dataset
+                .cilModalClose === "1"
+            ) {
+              cilCloseLeaseItemModal();
+            }
+          }
+        );
+      }
+
+      if (body) {
+        body.addEventListener(
+          "click",
+          event => {
+            const edit =
+              event.target.closest(
+                "[data-cil-line-edit]"
+              );
+
+            if (edit) {
+              cilOpenLeaseItemModal(
+                Number(
+                  edit.dataset.cilLineEdit
+                )
+              );
+              return;
+            }
+
+            const remove =
+              event.target.closest(
+                "[data-cil-line-delete]"
+              );
+
+            if (!remove) {
+              return;
+            }
+
+            const index =
+              Number(
+                remove.dataset
+                  .cilLineDelete
+              );
+
+            if (
+              !Number.isInteger(index) ||
+              !cilLeaseItemLines[index]
+            ) {
+              return;
+            }
+
+            if (
+              !confirm(
+                "このリース物件明細を削除しますか？"
+              )
+            ) {
+              return;
+            }
+
+            cilLeaseItemLines.splice(
+              index,
+              1
+            );
+
+            cilStoreCurrentLeaseItemLines();
+            cilRenderLeaseItemLines();
+          }
+        );
+      }
+
+      if (form) {
+        form.addEventListener(
+          "submit",
+          event => {
+            event.preventDefault();
+
+            const line =
+              cilReadLeaseItemForm();
+
+            if (!line.item_name) {
+              alert(
+                "物件名を入力してください。"
+              );
+              return;
+            }
+
+            if (
+              cilLeaseItemEditIndex >= 0 &&
+              cilLeaseItemLines[
+                cilLeaseItemEditIndex
+              ]
+            ) {
+              cilLeaseItemLines[
+                cilLeaseItemEditIndex
+              ] = line;
+            }
+            else {
+              cilLeaseItemLines.push(line);
+            }
+
+            cilStoreCurrentLeaseItemLines();
+            cilRenderLeaseItemLines();
+            cilCloseLeaseItemModal();
+          }
+        );
+      }
+
+      document.addEventListener(
+        "click",
+        event => {
+          if (
+            event.target &&
+            event.target.closest &&
+            event.target.closest(
+              "#cilLeaseItemsPanel, #cilLeaseItemModal"
+            )
+          ) {
+            return;
+          }
+
+          setTimeout(
+            () =>
+              cilSyncLeaseItemLinesFromCurrentItem(
+                false
+              ),
+            0
+          );
+        },
+        true
+      );
+
+      setTimeout(
+        () =>
+          cilSyncLeaseItemLinesFromCurrentItem(
+            true
+          ),
+        0
+      );
+    }
+  );
+  /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_JS_20260722_END */
+  </script>
+<script>
+/* HD_ORIGIN_CIL_BULK_CANCEL_20260722 */
+(() => {
+  const originalFetch = window.fetch.bind(window);
+  let bulkMode = false;
+  let cancelled = false;
+  let controller = null;
+
+  window.fetch = function(input, options = {}) {
+    const url = typeof input === "string" ? input : String(input?.url || "");
+    const method = String(options.method || "GET").toUpperCase();
+    const target = bulkMode && method === "POST" && url.includes("/api/payment-documents/");
+
+    if (!target) return originalFetch(input, options);
+    if (cancelled) return Promise.reject(new DOMException("解析をキャンセルしました", "AbortError"));
+
+    controller = new AbortController();
+
+    return originalFetch(input, {
+      ...options,
+      signal: controller.signal
+    }).finally(() => {
+      controller = null;
+    });
+  };
+
+  document.addEventListener("click", event => {
+    if (event.target.closest(".sorting-bulk-analyze")) {
+      bulkMode = true;
+      cancelled = false;
+      return;
+    }
+
+    const button = event.target.closest("#hdAnalyzeCancelButton");
+    if (!button) return;
+
+    cancelled = true;
+    controller?.abort();
+    button.disabled = true;
+
+    const title = document.getElementById("hdAnalyzeBusyTitle");
+    const sub = document.getElementById("hdAnalyzeBusySub");
+
+    if (title) title.textContent = "キャンセルしました";
+    if (sub) sub.textContent = "まとめて専門解析を中断しました。";
+  });
+})();
+</script>
 </body>
 </html>
+
+
+
 
 
 

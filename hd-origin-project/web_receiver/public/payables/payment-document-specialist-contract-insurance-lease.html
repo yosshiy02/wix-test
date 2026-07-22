@@ -3478,12 +3478,24 @@ function setDocumentPreview(item) {
       if (id) checkedOcrImportIds.add(id);
     });
 
+    if (window.__hdOriginCilBulkCancelled) {
+      renderSortingList();
+      showResult("まとめて専門解析を途中でキャンセルしました。");
+      return;
+    }
+
     renderSortingList();
     updateSelectedSortingSummary();
   }
 
   function clearSortingSelection() {
     checkedOcrImportIds.clear();
+    if (window.__hdOriginCilBulkCancelled) {
+      renderSortingList();
+      showResult("まとめて専門解析を途中でキャンセルしました。");
+      return;
+    }
+
     renderSortingList();
     updateSelectedSortingSummary();
   }
@@ -3557,7 +3569,13 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(item.__visibleFieldLabels);
       window.__lastAiDraftAppliedCount = appliedCount;
 
+      if (window.__hdOriginCilBulkCancelled) {
       renderSortingList();
+      showResult("まとめて専門解析を途中でキャンセルしました。");
+      return;
+    }
+
+    renderSortingList();
 
       if (!options.silent) {
         showResult({
@@ -3592,11 +3610,13 @@ function setDocumentPreview(item) {
       return;
     }
 
+    window.__hdOriginCilBulkCancelled = false;
     const results = [];
     let success = 0;
     let failed = 0;
 
     for (let i = 0; i < indexes.length; i++) {
+      if (window.__hdOriginCilBulkCancelled) break;
       const index = indexes[i];
       const item = items[index];
       const name = item ? (item.originalFileName || item.fileName || ("No." + (index + 1))) : ("No." + (index + 1));
@@ -3604,6 +3624,7 @@ function setDocumentPreview(item) {
       showResult("まとめて専門解析中: " + (i + 1) + " / " + indexes.length + "\n" + name);
 
       const result = await runAiDraftForItemIndex(index, { silent: true });
+      if (window.__hdOriginCilBulkCancelled) break;
 
       results.push(result);
 
@@ -3612,6 +3633,12 @@ function setDocumentPreview(item) {
       } else {
         failed++;
       }
+    }
+
+    if (window.__hdOriginCilBulkCancelled) {
+      renderSortingList();
+      showResult("まとめて専門解析を途中でキャンセルしました。");
+      return;
     }
 
     renderSortingList();
@@ -4114,12 +4141,14 @@ function setDocumentPreview(item) {
       return;
     }
 
+    window.__hdOriginCilBulkCancelled = false;
     const results = [];
     let success = 0;
     let failed = 0;
     let review = 0;
 
     for (let i = 0; i < indexes.length; i++) {
+      if (window.__hdOriginCilBulkCancelled) break;
       const index = indexes[i];
       const item = items[index] || {};
       const name = item.originalFileName || item.fileName || ("No." + (index + 1));
@@ -5422,6 +5451,7 @@ function setDocumentPreview(item) {
       '  <div class="hd-analyze-busy-main">',
       '    <div class="hd-analyze-busy-title" id="hdAnalyzeBusyTitle">仕分け中です</div>',
       '    <div class="hd-analyze-busy-sub" id="hdAnalyzeBusySub">AIが仕分け候補を作成しています。</div>',
+      '    <button type="button" id="hdAnalyzeCancelButton" class="light">途中でキャンセル</button>',
       '    <div class="hd-analyze-progress">',
       '      <div class="hd-analyze-progress-bar" id="hdAnalyzeProgressBar"></div>',
       '    </div>',
@@ -9136,6 +9166,55 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   );
   /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_UI_JS_20260722_END */
   </script>
+<script>
+/* HD_ORIGIN_CIL_BULK_CANCEL_20260722 */
+(() => {
+  const originalFetch = window.fetch.bind(window);
+  let bulkMode = false;
+  let cancelled = false;
+  let controller = null;
+
+  window.fetch = function(input, options = {}) {
+    const url = typeof input === "string" ? input : String(input?.url || "");
+    const method = String(options.method || "GET").toUpperCase();
+    const target = bulkMode && method === "POST" && url.includes("/api/payment-documents/");
+
+    if (!target) return originalFetch(input, options);
+    if (cancelled) return Promise.reject(new DOMException("解析をキャンセルしました", "AbortError"));
+
+    controller = new AbortController();
+
+    return originalFetch(input, {
+      ...options,
+      signal: controller.signal
+    }).finally(() => {
+      controller = null;
+    });
+  };
+
+  document.addEventListener("click", event => {
+    if (event.target.closest(".sorting-bulk-analyze")) {
+      bulkMode = true;
+      cancelled = false;
+      return;
+    }
+
+    const button = event.target.closest("#hdAnalyzeCancelButton");
+    if (!button) return;
+
+    cancelled = true;
+    window.__hdOriginCilBulkCancelled = true;
+    controller?.abort();
+    button.disabled = true;
+
+    const title = document.getElementById("hdAnalyzeBusyTitle");
+    const sub = document.getElementById("hdAnalyzeBusySub");
+
+    if (title) title.textContent = "キャンセルしました";
+    if (sub) sub.textContent = "まとめて専門解析を中断しました。";
+  });
+})();
+</script>
 </body>
 </html>
 
