@@ -11588,24 +11588,7 @@ async function handlePaymentDocumentRoutes(req, res) {
     }
     return true;
   }
-  /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_ROUTE_20260708_START */
-  if (req.method === "POST" && urlPath === "/api/payment-documents/contract-insurance-lease-drafts/save") {
-    try {
-      const body = await readBody(req);
-      const saved = await hdOriginSaveContractInsuranceLeaseDraft(body);
-
-      sendJson(res, 200, saved);
-    } catch (err) {
-      sendJson(res, err.statusCode || 500, {
-        ok: false,
-        error: err.message || String(err)
-      });
-    }
-
-    return true;
-  }
-  /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_ROUTE_20260708_END */
-  if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
+    if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
     try {
       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-specialist/", ""));
       const id = Number(idText);
