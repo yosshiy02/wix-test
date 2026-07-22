@@ -5535,15 +5535,28 @@ function setDocumentPreview(item) {
     return payload;
   }
 
+  function collectContractInsuranceLeaseCurrentFieldsForSave() {
+    return {
+      "リース開始日": controlValue("draftLeaseStartDate"),
+      "リース終了日": controlValue("draftLeaseEndDate"),
+      "リース期間": controlValue("draftLeasePeriodMonths"),
+      "物件所在地": controlValue("draftLeaseItemLocation"),
+      "残価保証額": controlValue("draftResidualValueGuaranteeAmount"),
+      "更新条件": controlValue("draftRenewalTerms"),
+      "解約条件": controlValue("draftCancellationTerms")
+    };
+  }
+
   async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved) {
+    const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
     const payload = {
       paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
       draft: sortingPayload,
       sortResult: sortingPayload.sortResult || {},
       ai_summary: sortingPayload.ai_summary || {},
-      fields: sortingPayload.visibleFields || {},
-      visibleFields: sortingPayload.visibleFields || {},
+      fields: currentFields,
+      visibleFields: currentFields,
       warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
       memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
     };

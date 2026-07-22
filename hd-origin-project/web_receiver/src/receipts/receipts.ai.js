@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const pool = require("../db");
 
@@ -910,6 +910,11 @@ analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receip
     "summary に品名を書く場合、その品名は必ず lineItems にも入れてください。",
     "数量、単価、金額がOCR本文から読める場合は必ず入れてください。",
     "合計金額・税額・小計・クレジット計・預り金・釣銭だけを明細として扱わないでください。",
+    "totalAmount は実際の支払合計です。預り金・お預り金・受取金額・釣銭・お釣りを totalAmount にしてはいけません。",
+    "計・合計・お支払額がある場合は、その金額を totalAmount としてください。",
+    "預り金とお釣りがある場合は、預り金からお釣りを引いた金額が計・合計と一致するか検算してください。",
+    "taxAmount は消費税・内消費税等の金額です。預り金・釣銭・お釣りを taxAmount にしてはいけません。",
+    "預り金とお釣りが記載され、他の支払方法が明記されていない場合は、支払方法候補から現金を選んでください。",
     "読める品名が1つでもある場合、lineItems を空配列にしてはいけません。",
     "",
     "【明細ごとの税処理ルール】",
