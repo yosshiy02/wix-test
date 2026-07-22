@@ -1,4 +1,4 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const config = require("../config");
@@ -1283,6 +1283,32 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
 
+  /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_API_20260722_START */
+  const bridgeMatch = pathname.match(
+    /^\/api\/receipts\/payment-document-ocr-imports\/(\d+)\/bridge$/
+  );
+
+  if (req.method === "POST" && bridgeMatch) {
+    try {
+      const paymentDocumentOcrImportId = Number(bridgeMatch[1]);
+      const receiptImport =
+        await ensureReceiptImportForPaymentDocumentOcrId(paymentDocumentOcrImportId);
+
+      sendJson(res, 200, {
+        ok: true,
+        paymentDocumentOcrImportId,
+        receiptImportId: receiptImport.id
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+
+    return true;
+  }
+  /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_API_20260722_END */
   const analyzeMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)\/analyze$/);
 
   if (req.method === "POST" && analyzeMatch) {
@@ -1612,27 +1638,35 @@ module.exports = {
 };
 
 
+/* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_ROUTE_20260722_START */
+async function ensureReceiptImportForPaymentDocumentOcrId(ocrImportId) {
+  const row = await repo.getPaymentDocumentOcrImportForReceiptBridge(ocrImportId);
 
+  if (!row) {
+    throw new Error("支払書類OCRデータが見つかりません。");
+  }
 
+  const existing = await repo.getImportByImageHashSha256(row.sha256);
 
+  if (existing) {
+    return existing;
+  }
 
+  const root = config.paymentDocumentRoot ||
+    path.join(config.projectRoot, "storage", "payment-documents");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  return repo.createLocalImport({
+    uploadId: "payment-document-" + row.payment_document_ocr_import_id,
+    localImageFileName: row.saved_file_name,
+    localImagePath: path.resolve(root, row.saved_relative_path),
+    imageHashSha256: row.sha256,
+    imageSizeBytes: row.size_bytes,
+    originalFileName: row.original_file_name,
+    importBatchId: "payment-document",
+    ocrProvider: row.ocr_provider,
+    ocrRawText: row.ocr_raw_text,
+    ocrLineCount: String(row.ocr_raw_text || "").split(/\r?\n/).filter(Boolean).length,
+    ocrWordCount: String(row.ocr_raw_text || "").trim().split(/\s+/).filter(Boolean).length
+  });
+}
+/* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_ROUTE_20260722_END */

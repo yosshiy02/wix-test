@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
@@ -22,16 +22,45 @@
   </div>
 
   <div class="receipt-header-nav-row">
-    <nav class="specialist-system-nav" aria-label="専門解析システム">
-      <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='/payables/payment-document-specialist-invoice-payable.html'">請求・未払</button>
-      <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='/payables/payment-document-specialist-tax-public.html'">税金・公的</button>
-      <button type="button" class="specialist-system-button specialist-card" onclick="location.href='/payables/payment-document-specialist-card-statement.html'">カード・決済</button>
-      <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='/payables/payment-document-specialist-utility-communication.html'">公共・通信</button>
-      <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='/payables/payment-document-specialist-contract-insurance-lease.html'">契約・保険</button>
-      <button type="button" class="specialist-system-button specialist-delivery" onclick="location.href='/payables/payment-document-specialist-reference-check.html'">納品書・照合</button>
-      <button type="button" class="specialist-system-button specialist-review" onclick="location.href='/payables/payment-document-specialist-needs-review.html'">要確認</button>
-      <button type="button" class="light specialist-system-back-button" onclick="location.href='/payables/payment-document-review.html'">仕分け画面へ</button>
-    </nav>
+          <nav class="specialist-system-nav"
+           aria-label="専門解析システム"
+           style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+        <button type="button"
+                class="specialist-system-button specialist-invoice"
+                data-analysis-system-code="invoice_payable_analysis"
+                data-base-label="請求・未払系"
+                onclick="location.href='/payables/payment-document-specialist-invoice-payable.html'">請求・未払系（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-tax"
+                data-analysis-system-code="tax_public_analysis"
+                data-base-label="税金・公的支払"
+                onclick="location.href='/payables/payment-document-specialist-tax-public.html'">税金・公的支払（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-contract"
+                data-analysis-system-code="contract_insurance_lease_analysis"
+                data-base-label="契約・保険・リース"
+                onclick="location.href='/payables/payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-utility"
+                data-analysis-system-code="utility_communication_analysis"
+                data-base-label="公共料金・通信費"
+                onclick="location.href='/payables/payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-card"
+                data-analysis-system-code="card_statement_analysis"
+                data-base-label="カード明細"
+                onclick="location.href='/payables/payment-document-specialist-card-statement.html'">カード明細（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-reference"
+                data-analysis-system-code="delivery_note_analysis"
+                data-base-label="照合用"
+                onclick="location.href='/payables/payment-document-specialist-reference-check.html'">照合用（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-needs-review"
+                data-analysis-system-code="needs_review_analysis"
+                data-base-label="要確認"
+                onclick="location.href='/payables/payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
+      </nav>
   </div>
 
   <div class="receipt-header-note muted">
@@ -372,7 +401,7 @@
       }
     }
     function receiptSpecialistFilter(allItems) {
-      const expectedAnalysisSystemCode = "receipt_evidence";
+      const expectedAnalysisSystemCode = "receipt_evidence_analysis";
       function textValue(value) { return String(value || "").trim(); }
       function objectValue(value) { return (value && typeof value === "object" && !Array.isArray(value)) ? value : {}; }
 
@@ -3885,6 +3914,208 @@ loadList();
 </script>
 <!-- RECEIPT_CONFIRM_REQUIRED_FILL_20260705_END -->
   <script src="/hd-origin-exit-guard.js?v=20260706"></script>
+<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_START -->
+<script>
+(function () {
+  "use strict";
+
+  const reviewItemsUrl = "/api/payment-documents/review-items";
+  let refreshTimer = null;
+  let refreshRunning = false;
+
+  function objectValue(value) {
+    return value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+        ? value
+        : {};
+  }
+
+  function analysisSystemCodeOf(item) {
+    const source = objectValue(item);
+
+    const latest = objectValue(
+      source.latestSortingDraft ||
+      source.latest_sorting_draft
+    );
+
+    const saved = objectValue(
+      source.__savedSortingDraft ||
+      source.savedSortingDraft ||
+      source.sortingDraft ||
+      source.sorting_draft
+    );
+
+    const draft = objectValue(
+      source.__aiDraft ||
+      source.aiDraft ||
+      source.draft
+    );
+
+    const sortResult = objectValue(
+      source.sortResult ||
+      source.sort_result
+    );
+
+    const candidates = [
+      latest.analysisSystemCode,
+      latest.analysis_system_code,
+
+      saved.analysisSystemCode,
+      saved.analysis_system_code,
+
+      draft.analysisSystemCode,
+      draft.analysis_system_code,
+
+      sortResult.analysisSystemCode,
+      sortResult.analysis_system_code,
+
+      source.analysisSystemCode,
+      source.analysis_system_code
+    ];
+
+    for (const candidate of candidates) {
+      const code = String(candidate || "").trim();
+
+      if (code) {
+        return code;
+      }
+    }
+
+    return "";
+  }
+
+  function applySpecialistNavigationCounts(items) {
+    const counts = Object.create(null);
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      const code = analysisSystemCodeOf(item);
+
+      if (!code) {
+        return;
+      }
+
+      counts[code] = (counts[code] || 0) + 1;
+    });
+
+    document.querySelectorAll(
+      ".specialist-system-nav " +
+      ".specialist-system-button[data-analysis-system-code]"
+    ).forEach(function (button) {
+      const code = String(
+        button.dataset.analysisSystemCode || ""
+      ).trim();
+
+      const label = String(
+        button.dataset.baseLabel ||
+        button.textContent ||
+        ""
+      )
+        .replace(/\s*（\d+）\s*$/, "")
+        .trim();
+
+      button.dataset.baseLabel = label;
+      button.textContent =
+        label + "（" + (counts[code] || 0) + "）";
+    });
+  }
+
+  async function refreshSpecialistNavigationCounts() {
+    if (refreshRunning) {
+      return;
+    }
+
+    refreshRunning = true;
+
+    try {
+      const response = await fetch(reviewItemsUrl, {
+        cache: "no-store"
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error || "専門画面件数の取得に失敗しました。"
+        );
+      }
+
+      applySpecialistNavigationCounts(data.items || []);
+    }
+    catch (error) {
+      console.warn(
+        "専門画面件数更新失敗:",
+        error
+      );
+    }
+    finally {
+      refreshRunning = false;
+    }
+  }
+
+  function scheduleSpecialistNavigationCounts() {
+    window.clearTimeout(refreshTimer);
+
+    refreshTimer = window.setTimeout(function () {
+      refreshSpecialistNavigationCounts();
+    }, 250);
+  }
+
+  function startSpecialistNavigationCounts() {
+    refreshSpecialistNavigationCounts();
+
+    const list = document.getElementById("list");
+
+    if (list) {
+      const observer = new MutationObserver(function () {
+        scheduleSpecialistNavigationCounts();
+      });
+
+      observer.observe(list, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    const originalLoadItems = window.loadItems;
+
+    if (
+      typeof originalLoadItems === "function" &&
+      !originalLoadItems.__specialistCountWrapped
+    ) {
+      const wrappedLoadItems = async function () {
+        try {
+          return await originalLoadItems.apply(
+            this,
+            arguments
+          );
+        }
+        finally {
+          scheduleSpecialistNavigationCounts();
+        }
+      };
+
+      wrappedLoadItems.__specialistCountWrapped = true;
+      window.loadItems = wrappedLoadItems;
+    }
+  }
+
+  window.refreshSpecialistNavigationCounts =
+    refreshSpecialistNavigationCounts;
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      startSpecialistNavigationCounts,
+      { once: true }
+    );
+  }
+  else {
+    startSpecialistNavigationCounts();
+  }
+})();
+</script>
+<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>
 </html>
 

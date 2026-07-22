@@ -1,4 +1,4 @@
-﻿const pool = require("../db");
+const pool = require("../db");
 
 /* RECEIPT_HIDE_SAVED_IMPORTS_20260705_START */
 async function listImports(limit = 100, offset = 0, options = {}) {
@@ -3265,5 +3265,31 @@ module.exports.getSavedReceiptById = getSavedReceiptById;
 /* RECEIPT_SAVED_LEDGER_REPOSITORY_20260705_END */
 
 
+/* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_REPOSITORY_20260722_START */
+async function getPaymentDocumentOcrImportForReceiptBridge(id) {
+  const result = await pool.query(
+    `
+    SELECT
+      payment_document_ocr_import_id,
+      original_file_name,
+      saved_file_name,
+      saved_relative_path,
+      sha256,
+      size_bytes,
+      ocr_provider,
+      ocr_raw_text,
+      ocr_text_length
+    FROM accounting.payment_document_ocr_imports
+    WHERE payment_document_ocr_import_id = $1
+      AND deleted_at IS NULL
+    LIMIT 1
+    `,
+    [Number(id)]
+  );
 
+  return result.rows[0] || null;
+}
 
+module.exports.getPaymentDocumentOcrImportForReceiptBridge =
+  getPaymentDocumentOcrImportForReceiptBridge;
+/* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_REPOSITORY_20260722_END */

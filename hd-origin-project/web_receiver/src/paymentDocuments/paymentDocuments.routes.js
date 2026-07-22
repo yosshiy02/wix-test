@@ -4687,12 +4687,6 @@ async function resolvePaymentDocumentSourceTypeCode(row) {
   if (activeCodes.has(sourceType)) {
     resolvedCode = sourceType;
   } else if (
-    sourceType === "scan_inbox" ||
-    sourceType === "scan" ||
-    sourceType === "image_upload"
-  ) {
-    resolvedCode = "scan_upload";
-  } else if (
     sourceType.includes("mail")
   ) {
     resolvedCode = "mail_saved";
@@ -4709,6 +4703,9 @@ async function resolvePaymentDocumentSourceTypeCode(row) {
   ) {
     resolvedCode = "pdf_upload";
   } else if (
+    sourceType === "scan_inbox" ||
+    sourceType === "scan" ||
+    sourceType === "image_upload" ||
     mimeType.startsWith("image/")
   ) {
     resolvedCode = "scan_upload";
@@ -10169,9 +10166,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         root.analysisSystemCode,
         root.analysis_system_code,
         draft.analysis_system_code,
-        draft.specialist_route_code,
         sortResult.analysis_system_code,
-        sortResult.specialist_route_code,
         aiSummary.analysis_system_code
       );
 
@@ -10582,12 +10577,9 @@ async function handlePaymentDocumentRoutes(req, res) {
         root.analysisSystemCode,
         root.analysis_system_code,
         draft.analysis_system_code,
-        draft.specialist_route_code,
         sortResult.analysis_system_code,
-        sortResult.specialist_route_code,
         aiSummary.analysis_system_code,
         sortingRow.analysis_system_code,
-        sortingRow.specialist_route_code
       );
 
       if (!analysisSystemCode) {

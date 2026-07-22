@@ -38,15 +38,49 @@
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
-      <nav class="specialist-system-nav" aria-label="専門解析システム">
-        <button type="button" class="specialist-system-button specialist-invoice" onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系</button>
-        <button type="button" class="specialist-system-button specialist-receipt" onclick="location.href='/receipts/receipt-list.html'">レシート・領収書</button>
-        <button type="button" class="specialist-system-button specialist-tax" onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払</button>
-        <button type="button" class="specialist-system-button specialist-contract" onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース</button>
-        <button type="button" class="specialist-system-button specialist-utility" onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費</button>
-        <button type="button" class="specialist-system-button specialist-card" onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細</button>
-        <button type="button" class="specialist-system-button specialist-reference" onclick="location.href='./payment-document-specialist-reference-check.html'">照合用</button>
-        <button type="button" class="specialist-system-button specialist-needs-review" onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color: #ffc107; color: #000;">要確認</button>
+            <nav class="specialist-system-nav"
+           aria-label="専門解析システム"
+           style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+        <button type="button"
+                class="specialist-system-button specialist-invoice"
+                data-analysis-system-code="invoice_payable_analysis"
+                data-base-label="請求・未払系"
+                onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-receipt"
+                data-analysis-system-code="receipt_evidence_analysis"
+                data-base-label="レシート・領収書"
+                onclick="location.href='/receipts/receipt-list.html'">レシート・領収書（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-tax"
+                data-analysis-system-code="tax_public_analysis"
+                data-base-label="税金・公的支払"
+                onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-contract"
+                data-analysis-system-code="contract_insurance_lease_analysis"
+                data-base-label="契約・保険・リース"
+                onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-utility"
+                data-analysis-system-code="utility_communication_analysis"
+                data-base-label="公共料金・通信費"
+                onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-card"
+                data-analysis-system-code="card_statement_analysis"
+                data-base-label="カード明細"
+                onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-reference"
+                data-analysis-system-code="delivery_note_analysis"
+                data-base-label="照合用"
+                onclick="location.href='./payment-document-specialist-reference-check.html'">照合用（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-needs-review"
+                data-analysis-system-code="needs_review_analysis"
+                data-base-label="要確認"
+                onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
 <span class="muted">OCR済み書類をAI候補と人間判断で仕分ける画面です。</span>
@@ -203,7 +237,19 @@
               書類名
               <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
             </label>
-            <label>
+                          <label>
+                書類番号
+                <input class="draft-field" id="draftDocumentNumber">
+              </label>
+              <label>
+                参照番号
+                <input class="draft-field" id="draftReferenceNumber">
+              </label>
+              <label>
+                発行元郵便番号
+                <input class="draft-field" id="draftIssuerPostalCode">
+              </label>
+<label>
               発行元
               <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
             </label>
@@ -215,6 +261,10 @@
               宛名
               <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
             </label>
+              <label>
+                宛先コード
+                <input class="draft-field" id="draftRecipientCode">
+              </label>
             <label>
               会社名
               <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
@@ -525,10 +575,7 @@
               処理先
               <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
-            <label>
-              未払種別
-              <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
-            </label>
+            
             <label>
               支払先マスタ候補
               <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
@@ -1177,7 +1224,6 @@ function setDocumentPreview(item) {
     // マスタselect。コード優先。
     if (setById("draftPaymentDestination", draft.payment_destination_code || fields["処理先"])) appliedCount++;
     if (setById("draftAccountingCategory", draft.accounting_category_code || fields["会計区分"])) appliedCount++;
-    if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
     // AI判定サマリー
@@ -1664,7 +1710,6 @@ function setDocumentPreview(item) {
     // 会計・管理
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
     put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
@@ -2261,6 +2306,7 @@ function setDocumentPreview(item) {
 
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
+    put("draftPaymentSourceType", "取込媒体", draft.source_type_code || fields["入手元区分"]);
     put("draftAnalysisSystemLabel", "専門解析先", draft.analysis_system_code || draft.analysis_system_label || fields["専門解析先"] || summary.analysis_system);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
     put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
@@ -2272,15 +2318,19 @@ function setDocumentPreview(item) {
 
     put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
     put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
-    put("draftIssuer", "発行元", fields["発行元"] || draft.vendor_name);
+    put("draftDocumentNumber", "書類番号", fields.document_number);
+    put("draftReferenceNumber", "参照番号", fields.reference_number);
+    put("draftIssuer", "発行元", fields.issuer_name || fields["発行元"] || draft.vendor_name);
     put("draftVendorName", "支払先", fields["支払先"] || draft.vendor_name);
-    put("draftRecipient", "宛名", fields["宛名"]);
+    put("draftRecipient", "宛名", fields.recipient_name || fields["宛名"]);
+    put("draftRecipientCode", "宛先コード", fields.recipient_code);
     put("draftCompanyName", "会社名", fields["会社名"]);
     put("draftPersonName", "個人名", fields["個人名"]);
     put("draftDepartmentName", "部署名", fields["部署名"]);
     put("draftContactName", "担当者名", fields["担当者名"]);
-    put("draftAddress", "住所", fields["住所"]);
-    put("draftPhone", "電話番号", fields["電話番号"]);
+    put("draftIssuerPostalCode", "発行元郵便番号", fields.issuer_postal_code);
+    put("draftAddress", "住所", fields.issuer_address || fields["住所"]);
+    put("draftPhone", "電話番号", fields.issuer_phone || fields["電話番号"]);
     put("draftEmail", "メール", fields["メール"]);
     put("draftWebsite", "Webサイト", fields["Webサイト"]);
 
@@ -2294,7 +2344,7 @@ function setDocumentPreview(item) {
     put("draftMemberNo", "会員番号", fields["会員番号"]);
     put("draftOrderNo", "注文番号", fields["注文番号"]);
     put("draftTransactionNo", "取引番号", fields["取引番号"]);
-    put("draftRegistrationNo", "登録番号", fields["登録番号"]);
+    put("draftRegistrationNo", "登録番号", fields.issuer_registration_number || fields["登録番号"]);
     put("draftCorporateNo", "法人番号", fields["法人番号"]);
     put("draftCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
 
@@ -2352,7 +2402,6 @@ function setDocumentPreview(item) {
 
     put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
     put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
-    put("draftPayableKind", "未払種別", draft.payable_kind_code || fields["未払種別"]);
     put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
     put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
     put("draftTaxCategory", "税区分", fields["税区分"]);
@@ -3887,7 +3936,7 @@ async function runSelectedAiDrafts() {
     );
   };
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
-  async function loadItems() {
+async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
 
@@ -3910,6 +3959,7 @@ async function runSelectedAiDrafts() {
 
       const allItems = data.items || [];
       items = allItems;
+      ensureSpecialistButtonCountObserver();
 
       window.setTimeout(() => {
         if (Array.isArray(items) && items.length > 0 && selectedIndex < 0) {
@@ -4184,7 +4234,6 @@ async function runSelectedAiDrafts() {
     { id: "draftDestination", type: "payment_destinations", label: "処理先" },
     { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
     { id: "draftPaymentSourceType", type: "payment_source_types", label: "取込媒体" },
-    { id: "draftPayableKind", type: "payable_kinds", label: "未払種別" },
 
     { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
     { id: "draftVendorMasterCandidate", type: "vendors", label: "支払先" },
@@ -6027,6 +6076,17 @@ const saveDraft = Object.assign(
     );
 
 
+      /* STAGE2_10_FIELDS_SAVE_20260722 */
+      saveDraft.fields.document_number = controlValue("draftDocumentNumber");
+      saveDraft.fields.reference_number = controlValue("draftReferenceNumber");
+      saveDraft.fields.issuer_name = controlValue("draftIssuer");
+      saveDraft.fields.issuer_registration_number = controlValue("draftRegistrationNo");
+      saveDraft.fields.issuer_postal_code = controlValue("draftIssuerPostalCode");
+      saveDraft.fields.issuer_address = controlValue("draftAddress");
+      saveDraft.fields.issuer_phone = controlValue("draftPhone");
+      saveDraft.fields.recipient_name = controlValue("draftRecipient");
+      saveDraft.fields.recipient_code = controlValue("draftRecipientCode");
+      saveDraft.fields.document_date = controlValue("draftIssueDate");
     const fieldIssueDate = firstText(
       currentFields.document_date,
       currentDraft.document_date
@@ -7527,20 +7587,11 @@ const saveDraft = Object.assign(
     pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || masterName(masterRowForCode("document_types", draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "")) || draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI仕分け", "処理先", "paymentDestinationLabel", draft.paymentDestinationLabel || draft.payment_destination_label || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI仕分け", "会計区分", "accountingCategoryLabel", draft.accountingCategoryLabel || draft.accounting_category_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / AI仕分け", "未払種別", "payableKindLabel", draft.payableKindLabel || draft.payable_kind_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / AI仕分け", "専門ルート", "specialistRouteLabel", draft.specialistRouteLabel || draft.specialist_route_label || "", "database_latest_sorting_draft");
 
     pushField(fields, base + " / 解析システム", "解析システムコード", "analysisSystemCode", draft.analysisSystemCode || draft.analysis_system_code || sortResultObject.analysis_system_code || visibleFieldsObject.analysis_system_code || aiSummaryObject.analysis_system_code || "", "database_latest_sorting_draft");
     pushField(fields, base + " / 解析システム", "解析システム", "analysisSystemLabel", draft.analysisSystemLabel || draft.analysis_system_label || sortResultObject.analysis_system_label || visibleFieldsObject.analysis_system_label || aiSummaryObject.analysis_system_label || aiSummaryObject.analysis_system || "", "database_latest_sorting_draft");
     pushField(fields, base + " / 解析システム", "解析システム信頼度", "analysisSystemConfidence", draft.analysisSystemConfidence || draft.analysis_system_confidence || sortResultObject.analysis_system_confidence || visibleFieldsObject.analysis_system_confidence || aiSummaryObject.analysis_system_confidence || "", "database_latest_sorting_draft");
     pushField(fields, base + " / 解析システム", "解析システム判定理由", "analysisSystemReason", draft.analysisSystemReason || draft.analysis_system_reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || aiSummaryObject.analysis_system_reason || "", "database_latest_sorting_draft");
-
-    pushField(fields, base + " / 登録対象", "支払対象", "paymentTargetLabel", draft.paymentTargetLabel || draft.payment_target_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / 登録対象", "未払登録対象", "payableTargetLabel", draft.payableTargetLabel || draft.payable_target_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / 登録対象", "経費登録対象", "expenseTargetLabel", draft.expenseTargetLabel || draft.expense_target_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / 登録対象", "税金・公的支払", "taxPublicLabel", draft.taxPublicLabel || draft.tax_public_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / 登録対象", "公共料金・通信費", "publicUtilityLabel", draft.publicUtilityLabel || draft.public_utility_label || "", "database_latest_sorting_draft");
-    pushField(fields, base + " / 登録対象", "契約・保険・リース", "contractInsuranceLeaseLabel", draft.contractInsuranceLeaseLabel || draft.contract_insurance_lease_label || "", "database_latest_sorting_draft");
 
     pushField(fields, base + " / AI判断", "AI信頼度", "aiConfidenceLabel", draft.aiConfidenceLabel || draft.ai_confidence_label || draft.aiConfidence || draft.ai_confidence || "", "database_latest_sorting_draft");
     pushField(fields, base + " / AI判断", "AI判定理由", "aiReason", draft.aiReason || draft.ai_reason || draft.reviewReason || draft.review_reason || aiSummaryObject.reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || "", "database_latest_sorting_draft");
@@ -7801,6 +7852,208 @@ const saveDraft = Object.assign(
 </script>
 <!-- HD_ORIGIN_VISIBLE_MEMO_DB_LATEST_GPT00_20260709_END -->
 
+<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_START -->
+<script>
+(function () {
+  "use strict";
+
+  const reviewItemsUrl = "/api/payment-documents/review-items";
+  let refreshTimer = null;
+  let refreshRunning = false;
+
+  function objectValue(value) {
+    return value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+        ? value
+        : {};
+  }
+
+  function analysisSystemCodeOf(item) {
+    const source = objectValue(item);
+
+    const latest = objectValue(
+      source.latestSortingDraft ||
+      source.latest_sorting_draft
+    );
+
+    const saved = objectValue(
+      source.__savedSortingDraft ||
+      source.savedSortingDraft ||
+      source.sortingDraft ||
+      source.sorting_draft
+    );
+
+    const draft = objectValue(
+      source.__aiDraft ||
+      source.aiDraft ||
+      source.draft
+    );
+
+    const sortResult = objectValue(
+      source.sortResult ||
+      source.sort_result
+    );
+
+    const candidates = [
+      latest.analysisSystemCode,
+      latest.analysis_system_code,
+
+      saved.analysisSystemCode,
+      saved.analysis_system_code,
+
+      draft.analysisSystemCode,
+      draft.analysis_system_code,
+
+      sortResult.analysisSystemCode,
+      sortResult.analysis_system_code,
+
+      source.analysisSystemCode,
+      source.analysis_system_code
+    ];
+
+    for (const candidate of candidates) {
+      const code = String(candidate || "").trim();
+
+      if (code) {
+        return code;
+      }
+    }
+
+    return "";
+  }
+
+  function applySpecialistNavigationCounts(items) {
+    const counts = Object.create(null);
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      const code = analysisSystemCodeOf(item);
+
+      if (!code) {
+        return;
+      }
+
+      counts[code] = (counts[code] || 0) + 1;
+    });
+
+    document.querySelectorAll(
+      ".specialist-system-nav " +
+      ".specialist-system-button[data-analysis-system-code]"
+    ).forEach(function (button) {
+      const code = String(
+        button.dataset.analysisSystemCode || ""
+      ).trim();
+
+      const label = String(
+        button.dataset.baseLabel ||
+        button.textContent ||
+        ""
+      )
+        .replace(/\s*（\d+）\s*$/, "")
+        .trim();
+
+      button.dataset.baseLabel = label;
+      button.textContent =
+        label + "（" + (counts[code] || 0) + "）";
+    });
+  }
+
+  async function refreshSpecialistNavigationCounts() {
+    if (refreshRunning) {
+      return;
+    }
+
+    refreshRunning = true;
+
+    try {
+      const response = await fetch(reviewItemsUrl, {
+        cache: "no-store"
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error || "専門画面件数の取得に失敗しました。"
+        );
+      }
+
+      applySpecialistNavigationCounts(data.items || []);
+    }
+    catch (error) {
+      console.warn(
+        "専門画面件数更新失敗:",
+        error
+      );
+    }
+    finally {
+      refreshRunning = false;
+    }
+  }
+
+  function scheduleSpecialistNavigationCounts() {
+    window.clearTimeout(refreshTimer);
+
+    refreshTimer = window.setTimeout(function () {
+      refreshSpecialistNavigationCounts();
+    }, 250);
+  }
+
+  function startSpecialistNavigationCounts() {
+    refreshSpecialistNavigationCounts();
+
+    const list = document.getElementById("list");
+
+    if (list) {
+      const observer = new MutationObserver(function () {
+        scheduleSpecialistNavigationCounts();
+      });
+
+      observer.observe(list, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    const originalLoadItems = window.loadItems;
+
+    if (
+      typeof originalLoadItems === "function" &&
+      !originalLoadItems.__specialistCountWrapped
+    ) {
+      const wrappedLoadItems = async function () {
+        try {
+          return await originalLoadItems.apply(
+            this,
+            arguments
+          );
+        }
+        finally {
+          scheduleSpecialistNavigationCounts();
+        }
+      };
+
+      wrappedLoadItems.__specialistCountWrapped = true;
+      window.loadItems = wrappedLoadItems;
+    }
+  }
+
+  window.refreshSpecialistNavigationCounts =
+    refreshSpecialistNavigationCounts;
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      startSpecialistNavigationCounts,
+      { once: true }
+    );
+  }
+  else {
+    startSpecialistNavigationCounts();
+  }
+})();
+</script>
+<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>
 </html>
 
