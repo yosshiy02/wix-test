@@ -220,6 +220,14 @@ const MASTER_DEFS = {
     nameColumn: "evidence_type_name",
     extraColumns: ["evidence_type_code"]
   },
+  contract_insurance_lease_kinds: {
+    type: "contract_insurance_lease_kinds",
+    label: "契約・保険・リース",
+    table: "expenses.contract_insurance_lease_kinds",
+    idColumn: "contract_insurance_lease_kind_id",
+    nameColumn: "contract_insurance_lease_kind_name",
+    extraColumns: ["contract_insurance_lease_kind_code"]
+  },
   lease_item_categories: {
     type: "lease_item_categories",
     label: "リース物件区分",

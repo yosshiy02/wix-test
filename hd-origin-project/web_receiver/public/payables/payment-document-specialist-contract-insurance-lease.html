@@ -3094,6 +3094,7 @@ function setDocumentPreview(item) {
         "function"
       ) {
         applyAiDraftToFormHardDebug(draft);
+      hdOriginCilApplyKindSelection(draft);
       hdOriginCilApplyInsuranceFields(draft);
       }
 
@@ -3178,6 +3179,59 @@ function setDocumentPreview(item) {
     );
   }
   /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_END */
+
+
+  /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_START */
+  function hdOriginCilApplyKindSelection(draft) {
+    const select =
+      document.getElementById("draftAiContractFlag");
+
+    if (!select) {
+      return;
+    }
+
+    const fields =
+      draft &&
+      draft.fields &&
+      typeof draft.fields === "object"
+        ? draft.fields
+        : {};
+
+    const summary =
+      draft &&
+      draft.ai_summary &&
+      typeof draft.ai_summary === "object"
+        ? draft.ai_summary
+        : {};
+
+    const aiLabel = String(
+      fields["契約・保険・リース"] ||
+      summary.contract_insurance_lease ||
+      ""
+    ).trim();
+
+    if (!aiLabel) {
+      return;
+    }
+
+    const option = Array.from(select.options).find(
+      item =>
+        String(item.textContent || "").trim() === aiLabel ||
+        String(item.dataset.label || "").trim() === aiLabel
+    );
+
+    if (option) {
+      select.value = option.value;
+    }
+
+    const wrapper = select.closest("label");
+
+    if (wrapper) {
+      wrapper.hidden = false;
+      wrapper.style.display = "";
+    }
+  }
+  /* HD_ORIGIN_GPT2_CIL_KIND_REFLECTION_20260722_END */
 
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();

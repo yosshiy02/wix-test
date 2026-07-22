@@ -4413,6 +4413,413 @@ loadList();
 })();
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
+<script>
+/* RECEIPT_SUMMARY_MASTER_REFRESH_FIX_20260722_START */
+(function () {
+  if (
+    window.receiptSummaryMasterRefreshFixInstalled
+  ) {
+    return;
+  }
+
+  window.receiptSummaryMasterRefreshFixInstalled =
+    true;
+
+  function refreshReceiptSummaryMasterSelect() {
+    const select =
+      document.getElementById("summary");
+
+    if (
+      !select ||
+      typeof receiptSummaryOptionsHtml !== "function"
+    ) {
+      return;
+    }
+
+    const currentValue =
+      String(select.value || "").trim();
+
+    select.innerHTML =
+      receiptSummaryOptionsHtml(currentValue);
+
+    select.value = currentValue;
+  }
+
+  window.refreshReceiptSummaryMasterSelect =
+    refreshReceiptSummaryMasterSelect;
+
+  if (
+    typeof loadReceiptMasterOptions === "function" &&
+    !loadReceiptMasterOptions.__summaryRefreshWrapped
+  ) {
+    const originalLoadReceiptMasterOptions =
+      loadReceiptMasterOptions;
+
+    const wrappedLoadReceiptMasterOptions =
+      async function () {
+        const result =
+          await originalLoadReceiptMasterOptions.apply(
+            this,
+            arguments
+          );
+
+        refreshReceiptSummaryMasterSelect();
+
+        return result;
+      };
+
+    wrappedLoadReceiptMasterOptions
+      .__summaryRefreshWrapped = true;
+
+    loadReceiptMasterOptions =
+      wrappedLoadReceiptMasterOptions;
+
+    window.loadReceiptMasterOptions =
+      wrappedLoadReceiptMasterOptions;
+  }
+
+  if (
+    typeof renderForm === "function" &&
+    !renderForm.__summaryRefreshWrapped
+  ) {
+    const originalRenderForm = renderForm;
+
+    const wrappedRenderForm = function () {
+      const result =
+        originalRenderForm.apply(
+          this,
+          arguments
+        );
+
+      if (
+        typeof loadReceiptMasterOptions ===
+        "function"
+      ) {
+        Promise.resolve(
+          loadReceiptMasterOptions()
+        )
+          .then(
+            refreshReceiptSummaryMasterSelect
+          )
+          .catch(
+            refreshReceiptSummaryMasterSelect
+          );
+      } else {
+        setTimeout(
+          refreshReceiptSummaryMasterSelect,
+          0
+        );
+      }
+
+      return result;
+    };
+
+    wrappedRenderForm.__summaryRefreshWrapped =
+      true;
+
+    renderForm = wrappedRenderForm;
+    window.renderForm = wrappedRenderForm;
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+      if (
+        typeof loadReceiptMasterOptions ===
+        "function"
+      ) {
+        Promise.resolve(
+          loadReceiptMasterOptions()
+        )
+          .then(
+            refreshReceiptSummaryMasterSelect
+          )
+          .catch(
+            refreshReceiptSummaryMasterSelect
+          );
+      } else {
+        refreshReceiptSummaryMasterSelect();
+      }
+    }
+  );
+})();
+/* RECEIPT_SUMMARY_MASTER_REFRESH_FIX_20260722_END */
+</script>
+<script>
+/* RECEIPT_SUMMARY_DIRECT_API_LOAD_20260722_START */
+(function () {
+  if (
+    window.receiptSummaryDirectApiLoadInstalled
+  ) {
+    return;
+  }
+
+  window.receiptSummaryDirectApiLoadInstalled =
+    true;
+
+  let receiptSummaryDirectRows = null;
+  let receiptSummaryDirectLoading = null;
+
+  function summaryDirectEscape(value) {
+    return String(
+      value === null || value === undefined
+        ? ""
+        : value
+    )
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  async function loadReceiptSummaryRowsDirect() {
+    if (
+      Array.isArray(receiptSummaryDirectRows) &&
+      receiptSummaryDirectRows.length
+    ) {
+      return receiptSummaryDirectRows;
+    }
+
+    if (receiptSummaryDirectLoading) {
+      return receiptSummaryDirectLoading;
+    }
+
+    receiptSummaryDirectLoading =
+      fetch(
+        "/api/receipts/master-options",
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Accept":
+              "application/json"
+          }
+        }
+      )
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error(
+              "摘要マスタ取得失敗 HTTP " +
+              response.status
+            );
+          }
+
+          return response.json();
+        })
+        .then(function (data) {
+          const rows =
+            data &&
+            Array.isArray(data.receiptSummaries)
+              ? data.receiptSummaries
+              : [];
+
+          if (rows.length !== 70) {
+            throw new Error(
+              "摘要マスタ件数異常 ACTUAL=" +
+              rows.length
+            );
+          }
+
+          receiptSummaryDirectRows = rows;
+
+          return rows;
+        })
+        .finally(function () {
+          receiptSummaryDirectLoading = null;
+        });
+
+    return receiptSummaryDirectLoading;
+  }
+
+  function applyReceiptSummaryRowsDirect(
+    select,
+    rows
+  ) {
+    if (!select || !Array.isArray(rows)) {
+      return;
+    }
+
+    const currentValue =
+      String(select.value || "").trim();
+
+    let currentMatched = false;
+
+    const options = [
+      '<option value="">摘要を選択してください</option>'
+    ];
+
+    for (const row of rows) {
+      const name = String(
+        row.receipt_summary_name ||
+        row.receiptSummaryName ||
+        ""
+      ).trim();
+
+      if (!name) {
+        continue;
+      }
+
+      const selected =
+        name === currentValue;
+
+      if (selected) {
+        currentMatched = true;
+      }
+
+      const description = String(
+        row.description || ""
+      ).trim();
+
+      const accountTitleHint = String(
+        row.account_title_hint ||
+        row.accountTitleHint ||
+        ""
+      ).trim();
+
+      const titleParts = [];
+
+      if (description) {
+        titleParts.push(description);
+      }
+
+      if (accountTitleHint) {
+        titleParts.push(
+          "関連勘定科目候補: " +
+          accountTitleHint
+        );
+      }
+
+      options.push(
+        '<option value="' +
+        summaryDirectEscape(name) +
+        '"' +
+        (selected ? " selected" : "") +
+        (titleParts.length
+          ? ' title="' +
+            summaryDirectEscape(
+              titleParts.join(" / ")
+            ) +
+            '"'
+          : "") +
+        ">" +
+        summaryDirectEscape(name) +
+        "</option>"
+      );
+    }
+
+    if (
+      currentValue &&
+      !currentMatched
+    ) {
+      options.splice(
+        1,
+        0,
+        '<option value="' +
+        summaryDirectEscape(currentValue) +
+        '" selected>' +
+        "現在値（旧データ）: " +
+        summaryDirectEscape(currentValue) +
+        "</option>"
+      );
+    }
+
+    select.innerHTML =
+      options.join("");
+
+    if (currentValue) {
+      select.value = currentValue;
+    }
+
+    select.dataset.summaryMasterLoaded =
+      "70";
+  }
+
+  async function refreshReceiptSummaryDirect() {
+    const select =
+      document.getElementById("summary");
+
+    if (!select) {
+      return;
+    }
+
+    try {
+      const rows =
+        await loadReceiptSummaryRowsDirect();
+
+      applyReceiptSummaryRowsDirect(
+        select,
+        rows
+      );
+    } catch (error) {
+      console.error(
+        "摘要マスタ直接読込失敗",
+        error
+      );
+
+      select.dataset.summaryMasterLoaded =
+        "failed";
+    }
+  }
+
+  window.refreshReceiptSummaryDirect =
+    refreshReceiptSummaryDirect;
+
+  const observer = new MutationObserver(
+    function () {
+      const select =
+        document.getElementById("summary");
+
+      if (
+        select &&
+        select.dataset.summaryMasterLoaded !==
+          "70"
+      ) {
+        refreshReceiptSummaryDirect();
+      }
+    }
+  );
+
+  function startReceiptSummaryObserver() {
+    const formArea =
+      document.getElementById("formArea");
+
+    if (formArea) {
+      observer.observe(
+        formArea,
+        {
+          childList: true,
+          subtree: true
+        }
+      );
+    }
+
+    refreshReceiptSummaryDirect();
+  }
+
+  if (
+    document.readyState === "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      startReceiptSummaryObserver
+    );
+  } else {
+    startReceiptSummaryObserver();
+  }
+
+  document.addEventListener(
+    "click",
+    function () {
+      setTimeout(
+        refreshReceiptSummaryDirect,
+        0
+      );
+    }
+  );
+})();
+/* RECEIPT_SUMMARY_DIRECT_API_LOAD_20260722_END */
+</script>
 </body>
 </html>
 
