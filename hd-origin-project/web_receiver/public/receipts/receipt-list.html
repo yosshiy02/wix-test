@@ -498,7 +498,33 @@
 
       await loadReceiptMasterOptions();
       
-      const drafts = item.__aiDraft ? [item.__aiDraft] : [];
+      let drafts = item.__aiDraft ? [item.__aiDraft] : [];
+
+      try {
+        const resolveRes = await fetch(
+          "/api/receipts/payment-document-ocr-imports/" +
+          encodeURIComponent(id) +
+          "/receipt-import"
+        );
+
+        const resolveData = await resolveRes.json();
+
+        if (resolveRes.ok && resolveData.ok && resolveData.receiptImportId) {
+          const detailRes = await fetch(
+            "/api/receipts/imports/" +
+            encodeURIComponent(resolveData.receiptImportId)
+          );
+
+          const detailData = await detailRes.json();
+
+          if (detailRes.ok && detailData.ok && Array.isArray(detailData.aiDrafts)) {
+            drafts = detailData.aiDrafts;
+          }
+        }
+      } catch (error) {
+        console.error("receipt draft bridge read failed", error);
+      }
+
       renderForm(item, drafts);
     }
     function receiptExtractTimeText(value) {

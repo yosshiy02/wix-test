@@ -770,6 +770,34 @@
               <select class="draft-field master-select" id="draftEarlyCancellation" data-master-type="early_cancellation_types" data-master-label="中途解約可否" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
+              リース開始日
+              <input class="draft-field" id="draftLeaseStartDate" type="date">
+            </label>
+            <label>
+              リース終了日
+              <input class="draft-field" id="draftLeaseEndDate" type="date">
+            </label>
+            <label>
+              リース期間（月）
+              <input class="draft-field" id="draftLeasePeriodMonths" type="number" min="0" step="1">
+            </label>
+            <label>
+              物件所在地
+              <input class="draft-field" id="draftLeaseItemLocation" placeholder="例：大阪本社 2階">
+            </label>
+            <label>
+              残価保証額
+              <input class="draft-field" id="draftResidualValueGuaranteeAmount" type="number" min="0" step="0.01">
+            </label>
+            <label class="span2">
+              更新条件
+              <textarea class="draft-field" id="draftRenewalTerms"></textarea>
+            </label>
+            <label class="span2">
+              解約条件
+              <textarea class="draft-field" id="draftCancellationTerms"></textarea>
+            </label>
+            <label>
               メール件名
               <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
             </label>
@@ -1426,6 +1454,13 @@ function setDocumentPreview(item) {
     if (setById("draftAutoRenewal", fields["自動更新有無"])) appliedCount++;
     if (setById("draftOwnershipTransfer", fields["所有権移転区分"])) appliedCount++;
     if (setById("draftEarlyCancellation", fields["中途解約可否"])) appliedCount++;
+    if (setById("draftLeaseStartDate", fields["リース開始日"])) appliedCount++;
+    if (setById("draftLeaseEndDate", fields["リース終了日"])) appliedCount++;
+    if (setById("draftLeasePeriodMonths", fields["リース期間"])) appliedCount++;
+    if (setById("draftLeaseItemLocation", fields["物件所在地"])) appliedCount++;
+    if (setById("draftResidualValueGuaranteeAmount", fields["残価保証額"])) appliedCount++;
+    if (setById("draftRenewalTerms", fields["更新条件"])) appliedCount++;
+    if (setById("draftCancellationTerms", fields["解約条件"])) appliedCount++;
     if (setById("draftMailSubject", fields["メール件名"])) appliedCount++;
     if (setById("draftMailFrom", fields["メール送信者"])) appliedCount++;
     if (setById("draftMailReceivedAt", fields["メール受信日時"])) appliedCount++;
@@ -1852,6 +1887,13 @@ function setDocumentPreview(item) {
     put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
     put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
     put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
+    put("draftLeaseStartDate", "リース開始日", fields["リース開始日"]);
+    put("draftLeaseEndDate", "リース終了日", fields["リース終了日"]);
+    put("draftLeasePeriodMonths", "リース期間", fields["リース期間"]);
+    put("draftLeaseItemLocation", "物件所在地", fields["物件所在地"]);
+    put("draftResidualValueGuaranteeAmount", "残価保証額", fields["残価保証額"]);
+    put("draftRenewalTerms", "更新条件", fields["更新条件"]);
+    put("draftCancellationTerms", "解約条件", fields["解約条件"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
@@ -2544,6 +2586,13 @@ function setDocumentPreview(item) {
     put("draftAutoRenewal", "自動更新有無", fields["自動更新有無"]);
     put("draftOwnershipTransfer", "所有権移転区分", fields["所有権移転区分"]);
     put("draftEarlyCancellation", "中途解約可否", fields["中途解約可否"]);
+    put("draftLeaseStartDate", "リース開始日", fields["リース開始日"]);
+    put("draftLeaseEndDate", "リース終了日", fields["リース終了日"]);
+    put("draftLeasePeriodMonths", "リース期間", fields["リース期間"]);
+    put("draftLeaseItemLocation", "物件所在地", fields["物件所在地"]);
+    put("draftResidualValueGuaranteeAmount", "残価保証額", fields["残価保証額"]);
+    put("draftRenewalTerms", "更新条件", fields["更新条件"]);
+    put("draftCancellationTerms", "解約条件", fields["解約条件"]);
     put("draftEmailSubject", "メール件名", fields["メール件名"]);
     put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
     put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
