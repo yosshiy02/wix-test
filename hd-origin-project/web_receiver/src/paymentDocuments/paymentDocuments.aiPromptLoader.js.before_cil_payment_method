@@ -276,26 +276,6 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
   ]);
 
   promptTexts.push(buildCandidateMasterPrompt(candidateMasters));
-  /* HD_ORIGIN_CIL_PAYMENT_METHOD_AI_20260722 */
-  if (specialistAnalysisCode === "contract_insurance_lease") {
-    const paymentMethods = await queryRows(
-      `SELECT payment_method_id, payment_method_code,
-              method_name AS payment_method_name
-       FROM expenses.payment_methods
-       WHERE is_active = true
-       ORDER BY sort_order, payment_method_id`
-    );
-  
-    promptTexts.push([
-      "【支払方法マスタ候補】",
-      JSON.stringify(paymentMethods, null, 2),
-      "OCR本文から支払方法を判断する。",
-      "fields[\"支払方法\"]には候補のpayment_method_nameを完全一致で返す。",
-      "OCRの口座振替が同じ意味なら、マスタ名称の口座引落を返す。",
-      "判断不能なら空欄にしてwarningsへ理由を書く。"
-    ].join("\n"));
-  }
-  
   promptTexts.push(buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema));
   return promptTexts;
 }

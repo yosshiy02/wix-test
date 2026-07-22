@@ -7629,6 +7629,163 @@ function hdOriginCilBuildRecord(body, ocrRow, latestSortingDraftId) {
   };
 }
 
+async function hdOriginSaveUtilityCommunicationDraft(body) {
+  const ocrId = Number(
+    body.paymentDocumentOcrImportId ||
+    body.payment_document_ocr_import_id ||
+    body.ocrImportId ||
+    body.id
+  );
+
+  if (!Number.isInteger(ocrId) || ocrId < 1) {
+    const err = new Error("不正なOCR取込IDです。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const ocr = await client.query(`
+      SELECT latest_sorting_draft_id
+      FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
+        AND deleted_at IS NULL
+    `, [ocrId]);
+
+    if (!ocr.rows.length) {
+      const err = new Error("OCR取込データが見つかりません。");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const fields = hdOriginCilFirstObject(
+      body.specialistFields,
+      body.specialist_fields,
+      body.fields,
+      body.visibleFields,
+      body.visible_fields,
+      {}
+    );
+
+    const root = hdOriginCilFirstObject(
+      body.rawResult,
+      body.raw_result,
+      body
+    );
+
+    const aiSummary = hdOriginCilFirstObject(
+      body.aiSummary,
+      body.ai_summary,
+      {}
+    );
+
+    const field = (code, ...labels) =>
+      fields[code] ?? hdOriginCilField(fields, ...labels);
+
+    const sortingId =
+      hdOriginCilNumberOrNull(
+        body.paymentDocumentSortingDraftId ||
+        body.payment_document_sorting_draft_id
+      ) ||
+      hdOriginCilNumberOrNull(
+        ocr.rows[0].latest_sorting_draft_id
+      );
+
+    const version = await client.query(`
+      SELECT COALESCE(MAX(draft_version), 0) + 1 AS next_version
+      FROM accounting.payment_document_utility_communication_drafts
+      WHERE payment_document_ocr_import_id = $1
+    `, [ocrId]);
+
+    await client.query(`
+      UPDATE accounting.payment_document_utility_communication_drafts
+      SET is_current = FALSE, updated_at = now()
+      WHERE payment_document_ocr_import_id = $1
+        AND is_current = TRUE
+        AND deleted_at IS NULL
+    `, [ocrId]);
+
+    const saved = await client.query(`
+      INSERT INTO accounting.payment_document_utility_communication_drafts (
+        payment_document_ocr_import_id,
+        payment_document_sorting_draft_id,
+        specialist_analysis_id,
+        draft_no,
+        draft_version,
+        customer_number,
+        supply_point_number,
+        meter_reading_date,
+        usage_quantity,
+        usage_unit,
+        specialist_fields_json,
+        ai_summary_json,
+        ai_raw_json,
+        visible_fields_json,
+        human_corrections_json,
+        warnings_json,
+        created_by_page,
+        created_by,
+        updated_by
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+        $11::jsonb,$12::jsonb,$13::jsonb,
+        $14::jsonb,$15::jsonb,$16::jsonb,
+        $17,$18,$19
+      )
+      RETURNING utility_communication_draft_id
+    `, [
+      ocrId,
+      sortingId,
+      hdOriginCilNumberOrNull(
+        body.specialistAnalysisId ||
+        body.specialist_analysis_id
+      ),
+      "UCD-" + ocrId + "-" + Date.now(),
+      Number(version.rows[0].next_version),
+      hdOriginCilText(
+        field("customer_number","お客様番号","公共料金お客様番号")
+      ),
+      hdOriginCilText(
+        field("supply_point_number","供給地点番号")
+      ),
+      hdOriginCilDateOrNull(
+        field("meter_reading_date","検針日")
+      ),
+      hdOriginCilNumberOrNull(
+        field("usage_quantity","使用量")
+      ),
+      hdOriginCilText(
+        field("usage_unit","使用量単位")
+      ),
+      JSON.stringify(fields),
+      JSON.stringify(aiSummary),
+      JSON.stringify(root),
+      JSON.stringify(body.visibleFields || body.visible_fields || fields),
+      JSON.stringify(body.humanCorrections || body.human_corrections || {}),
+      JSON.stringify(Array.isArray(body.warnings) ? body.warnings : []),
+      "payment-document-specialist-utility-communication.html",
+      "system",
+      "system"
+    ]);
+
+    await client.query("COMMIT");
+
+    return {
+      ok: true,
+      utilityCommunicationDraftId:
+        saved.rows[0].utility_communication_draft_id
+    };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 async function hdOriginSaveContractInsuranceLeaseDraft(body) {
   const ocrImportId = Number(
     body.paymentDocumentOcrImportId ||
