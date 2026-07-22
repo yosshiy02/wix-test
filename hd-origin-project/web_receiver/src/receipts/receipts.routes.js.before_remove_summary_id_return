@@ -1258,6 +1258,8 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
           isSettled: detail.is_settled,
 
           summary: detail.summary,
+          receipt_summary_id: detail.receipt_summary_id,
+          receiptSummaryId: detail.receipt_summary_id,
           memo: detail.memo,
 
           account_title_id: detail.account_title_id,

@@ -950,6 +950,134 @@ const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
     }
     /* RECEIPT_SETTLED_CHECKBOX_20260705_END */
 
+/* RECEIPT_SUMMARY_MASTER_SELECT_20260722_START */
+function receiptSummaryOptionsHtml(currentValue) {
+  const value = String(
+    currentValue === null || currentValue === undefined
+      ? ""
+      : currentValue
+  ).trim();
+
+  const rows =
+    receiptMasterOptions &&
+    Array.isArray(receiptMasterOptions.receiptSummaries)
+      ? receiptMasterOptions.receiptSummaries
+      : [];
+
+  const options = [
+    '<option value="">摘要を選択してください</option>'
+  ];
+
+  let matched = false;
+
+  for (const row of rows) {
+    const name = String(
+      row.receipt_summary_name ||
+      row.receiptSummaryName ||
+      ""
+    ).trim();
+
+    if (!name) {
+      continue;
+    }
+
+    const selected = name === value;
+
+    if (selected) {
+      matched = true;
+    }
+
+    const description = String(
+      row.description || ""
+    ).trim();
+
+    const accountTitleHint = String(
+      row.account_title_hint ||
+      row.accountTitleHint ||
+      ""
+    ).trim();
+
+    const titleParts = [];
+
+    if (description) {
+      titleParts.push(description);
+    }
+
+    if (accountTitleHint) {
+      titleParts.push(
+        "関連勘定科目候補: " + accountTitleHint
+      );
+    }
+
+    const title = titleParts.join(" / ");
+
+    options.push(
+      '<option value="' +
+      esc(name) +
+      '"' +
+      (selected ? ' selected' : '') +
+      (title
+        ? ' title="' + esc(title) + '"'
+        : '') +
+      '>' +
+      esc(name) +
+      '</option>'
+    );
+  }
+
+  /*
+    過去データにマスタ外の摘要がある場合は、
+    勝手に「要確認」へ変更せず現在値を保持する。
+  */
+  if (value && !matched) {
+    options.splice(
+      1,
+      0,
+      '<option value="' +
+      esc(value) +
+      '" selected>' +
+      '現在値（旧データ）: ' +
+      esc(value) +
+      '</option>'
+    );
+  }
+
+  return options.join("");
+}
+/* RECEIPT_SUMMARY_MASTER_SELECT_20260722_END */
+function receiptSummaryIdOptionsHtml(currentId) {
+  const value = String(currentId || "").trim();
+  const rows = Array.isArray(receiptMasterOptions?.receiptSummaries)
+    ? receiptMasterOptions.receiptSummaries
+    : [];
+
+  const options = ['<option value="">摘要分類を選択してください</option>'];
+
+  for (const row of rows) {
+    const id = String(
+      row.receipt_summary_id ||
+      row.receiptSummaryId ||
+      ""
+    ).trim();
+
+    const name = String(
+      row.receipt_summary_name ||
+      row.receiptSummaryName ||
+      ""
+    ).trim();
+
+    if (!id || !name) continue;
+
+    options.push(
+      '<option value="' + esc(id) + '"' +
+      (id === value ? ' selected' : '') +
+      '>' + esc(name) + '</option>'
+    );
+  }
+
+  return options.join("");
+}
+
 function renderForm(item, drafts) {
       currentDraft = drafts[0] || null;
 
@@ -1782,6 +1910,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         evidenceMemo: draft.evidence_memo || raw.evidenceMemo || raw.evidence_memo || "",
         accountTitleName: draft.account_title_name || "",
         invoiceNumber: draft.invoice_number || raw.invoiceNumber || raw.invoice_number || "",
+        receiptSummaryId: draft.receipt_summary_id || draft.receiptSummaryId || null,
         summary: draft.summary || "",
         memo: draft.memo || "",
         confidence: cleanNumber(draft.confidence),
@@ -3793,6 +3922,7 @@ loadList();
         lines.push("");
 
         lines.push("【摘要・メモ】");
+        lines.push(receiptCopyLine("摘要分類", document.getElementById("receiptSummaryId")?.selectedOptions?.[0]?.textContent || ""));
         lines.push(receiptCopyLine("摘要", receiptCopyGetInput("summary")));
         lines.push(receiptCopyLine("メモ", receiptCopyGetInput("memo")));
         lines.push(receiptCopyLine("信頼度", receiptCopyGetInput("confidence")));

@@ -6850,6 +6850,31 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
 
   const payload = hdOriginBuildSortingDraftSavePayload(body, ocrRow);
 
+  /* HD_ORIGIN_CIL_PREVIOUS_SPECIALIST_LINK */
+  const previousSpecialistResult = await client.query(`
+    SELECT
+      specialist_route_code,
+      specialist_route_label,
+      analysis_system_code,
+      analysis_system_label,
+      analysis_system_reason,
+      analysis_system_confidence,
+      specialist_analysis_status,
+      latest_specialist_analysis_id,
+      specialist_analyzed_at,
+      specialist_saved_at
+    FROM accounting.payment_document_sorting_drafts
+    WHERE payment_document_ocr_import_id = $1
+      AND is_current = TRUE
+      AND deleted_at IS NULL
+    ORDER BY payment_document_sorting_draft_id DESC
+    LIMIT 1
+    FOR UPDATE
+  `, [payload.payment_document_ocr_import_id]);
+
+  const previousSpecialist =
+    previousSpecialistResult.rows[0] || null;
+
     await client.query(`
       UPDATE accounting.payment_document_sorting_drafts
       SET
@@ -7026,6 +7051,56 @@ async function hdOriginSavePaymentDocumentSortingDraft(body) {
     payload.updated_by,
     payload.issue_date
   ]);
+
+    const savedSortingDraftId = Number(
+      result.rows[0] &&
+      result.rows[0].payment_document_sorting_draft_id
+    );
+
+    if (
+      savedSortingDraftId &&
+      previousSpecialist &&
+      previousSpecialist.analysis_system_code
+    ) {
+      await client.query(`
+        UPDATE accounting.payment_document_sorting_drafts
+        SET
+          specialist_route_code =
+            COALESCE(NULLIF(specialist_route_code, ''), $2),
+          specialist_route_label =
+            COALESCE(NULLIF(specialist_route_label, ''), $3),
+          analysis_system_code =
+            COALESCE(NULLIF(analysis_system_code, ''), $4),
+          analysis_system_label =
+            COALESCE(NULLIF(analysis_system_label, ''), $5),
+          analysis_system_reason =
+            COALESCE(NULLIF(analysis_system_reason, ''), $6),
+          analysis_system_confidence =
+            COALESCE(NULLIF(analysis_system_confidence, ''), $7),
+          specialist_analysis_status =
+            COALESCE(NULLIF(specialist_analysis_status, ''), $8),
+          latest_specialist_analysis_id =
+            COALESCE(latest_specialist_analysis_id, $9),
+          specialist_analyzed_at =
+            COALESCE(specialist_analyzed_at, $10),
+          specialist_saved_at =
+            COALESCE(specialist_saved_at, $11),
+          specialist_error_text = NULL
+        WHERE payment_document_sorting_draft_id = $1
+      `, [
+        savedSortingDraftId,
+        previousSpecialist.specialist_route_code,
+        previousSpecialist.specialist_route_label,
+        previousSpecialist.analysis_system_code,
+        previousSpecialist.analysis_system_label,
+        previousSpecialist.analysis_system_reason,
+        previousSpecialist.analysis_system_confidence,
+        previousSpecialist.specialist_analysis_status,
+        previousSpecialist.latest_specialist_analysis_id,
+        previousSpecialist.specialist_analyzed_at,
+        previousSpecialist.specialist_saved_at
+      ]);
+    }
 
     await client.query("COMMIT");
 
@@ -7772,6 +7847,62 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
       "system"
     ]);
 
+    /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_START */
+    const utilityDraftId =
+      saved.rows[0].utility_communication_draft_id;
+
+    const lineItems =
+      Array.isArray(body.lineItems) ? body.lineItems :
+      Array.isArray(body.line_items) ? body.line_items :
+      Array.isArray(fields.line_items) ? fields.line_items :
+      Array.isArray(fields.lineItems) ? fields.lineItems :
+      [];
+
+    for (let index = 0; index < lineItems.length; index += 1) {
+      const line =
+        lineItems[index] && typeof lineItems[index] === "object"
+          ? lineItems[index]
+          : {};
+
+      await client.query(`
+        INSERT INTO accounting.payment_document_utility_communication_line_items (
+          utility_communication_draft_id,
+          line_no,
+          item_name,
+          description,
+          usage_quantity,
+          usage_unit,
+          unit_price,
+          subtotal_amount,
+          tax_category_id,
+          tax_rate,
+          tax_amount,
+          total_amount,
+          source_text,
+          raw_item_json
+        )
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,
+          $8,$9,$10,$11,$12,$13,$14::jsonb
+        )
+      `, [
+        utilityDraftId,
+        Number(line.line_no || line.lineNo || index + 1),
+        hdOriginCilText(line.item_name || line.name),
+        hdOriginCilText(line.description),
+        hdOriginCilNumberOrNull(line.usage_quantity ?? line.quantity),
+        hdOriginCilText(line.usage_unit || line.unit),
+        hdOriginCilNumberOrNull(line.unit_price ?? line.unitPrice),
+        hdOriginCilNumberOrNull(line.subtotal_amount ?? line.amount),
+        hdOriginCilNumberOrNull(line.tax_category_id ?? line.taxCategoryId),
+        hdOriginCilNumberOrNull(line.tax_rate ?? line.taxRate),
+        hdOriginCilNumberOrNull(line.tax_amount ?? line.taxAmount),
+        hdOriginCilNumberOrNull(line.total_amount ?? line.totalAmount),
+        hdOriginCilText(line.source_text ?? line.memo),
+        JSON.stringify(line)
+      ]);
+    }
+    /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_END */
     await client.query("COMMIT");
 
     return {

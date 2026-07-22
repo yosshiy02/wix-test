@@ -5543,6 +5543,11 @@ function setDocumentPreview(item) {
         visibleFields: currentFields,
         humanCorrections: currentFields,
         rawResult: analysisResult,
+        /* GPT3_UTILITY_SINGLE_LINE_ITEMS_PAYLOAD */
+        lineItems:
+          typeof window.hdOriginGetUtilityLineItems === "function"
+            ? window.hdOriginGetUtilityLineItems()
+            : [],
         warnings: payload.warnings || []
       })
     });
@@ -5749,6 +5754,17 @@ function setDocumentPreview(item) {
     const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.aiDraft, result);
     const draft = firstObject(result.draft, result.aiDraft, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
     const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
+    /* GPT3_UTILITY_BULK_LINE_ITEMS_PAYLOAD */
+    const lineItems = [
+      result.line_items,
+      result.lineItems,
+      draft.line_items,
+      draft.lineItems,
+      root.line_items,
+      root.lineItems,
+      draft.specialist_fields && draft.specialist_fields.line_items,
+      draft.specialistFields && draft.specialistFields.lineItems
+    ].find(Array.isArray) || [];
 
     return {
       paymentDocumentOcrImportId: id,
@@ -5783,7 +5799,8 @@ function setDocumentPreview(item) {
 
       ai_summary: aiSummary,
       sortResult: root,
-      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+      lineItems: lineItems,
       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
 
       display_rotation: 0,
@@ -5827,6 +5844,12 @@ function setDocumentPreview(item) {
         visibleFields: payload.visibleFields || payload.visible_fields || fields,
         humanCorrections: {},
         rawResult: payload.rawResult || payload.raw_result || payload,
+        lineItems:
+          Array.isArray(payload.lineItems)
+            ? payload.lineItems
+            : Array.isArray(payload.line_items)
+              ? payload.line_items
+              : [],
         warnings: Array.isArray(payload.warnings) ? payload.warnings : []
       })
     });
@@ -6969,7 +6992,221 @@ function setDocumentPreview(item) {
       </table>
     </div>
   </div>
-</div></body>
+</div><script>
+/* GPT3_UTILITY_LINE_ITEMS_JS_START */
+(function () {
+  "use strict";
+
+  const rows = [];
+  const byId = id => document.getElementById(id);
+  const esc = value => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  function taxOptions(selected) {
+    const masters = typeof getDraftMasterRows === "function"
+      ? getDraftMasterRows("tax_categories").filter(row => row && row.is_active !== false)
+      : [];
+
+    let html = '<option value="">税区分を選択</option>';
+
+    for (const row of masters) {
+      const value = masterRowValue(row);
+      const name = masterRowName(row);
+      const label = masterRowLabel(row);
+      const rate = row.tax_rate ?? "";
+
+      html += '<option value="' + esc(value) +
+        '" data-name="' + esc(name) +
+        '" data-rate="' + esc(rate) + '"' +
+        (String(selected || "") === String(value) ? " selected" : "") +
+        ">" + esc(label) + "</option>";
+    }
+
+    return html;
+  }
+
+  function input(index, field, value, type) {
+    return '<input data-index="' + index +
+      '" data-field="' + field +
+      '" type="' + (type || "text") +
+      '" step="any" value="' + esc(value) + '">';
+  }
+
+  function render() {
+    const body = byId("utilityLineItemsTableBody");
+    const count = byId("utilityLineItemsCount");
+
+    if (count) count.textContent = "現在 " + rows.length + " 行";
+    if (!body) return;
+
+    body.innerHTML = rows.map((row, index) => `
+      <tr>
+        <td>${input(index,"item_name",row.item_name)}</td>
+        <td>${input(index,"description",row.description)}</td>
+        <td>${input(index,"usage_quantity",row.usage_quantity,"number")}</td>
+        <td>${input(index,"usage_unit",row.usage_unit)}</td>
+        <td>${input(index,"unit_price",row.unit_price,"number")}</td>
+        <td>${input(index,"subtotal_amount",row.subtotal_amount,"number")}</td>
+        <td>
+          <select data-index="${index}" data-field="tax_category_id">
+            ${taxOptions(row.tax_category_id)}
+          </select>
+        </td>
+        <td>${input(index,"tax_rate",row.tax_rate,"number")}</td>
+        <td>${input(index,"tax_amount",row.tax_amount,"number")}</td>
+        <td>${input(index,"total_amount",row.total_amount,"number")}</td>
+        <td>${input(index,"source_text",row.source_text)}</td>
+        <td><button type="button" class="danger" data-remove="${index}">削除</button></td>
+      </tr>
+    `).join("");
+  }
+
+  function open() {
+    const modal = byId("utilityLineItemsModal");
+    if (!modal) return;
+    render();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function close() {
+    const modal = byId("utilityLineItemsModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function add() {
+    rows.push({
+      item_name: "",
+      description: "",
+      usage_quantity: "",
+      usage_unit: "",
+      unit_price: "",
+      subtotal_amount: "",
+      tax_category_id: "",
+      tax_category_label: "",
+      tax_rate: "",
+      tax_amount: "",
+      total_amount: "",
+      source_text: ""
+    });
+    render();
+  }
+
+  const body = byId("utilityLineItemsTableBody");
+
+  body?.addEventListener("input", event => {
+    const target = event.target;
+    const index = Number(target.dataset.index);
+    const field = target.dataset.field;
+
+    if (rows[index] && field) rows[index][field] = target.value;
+  });
+
+  body?.addEventListener("change", event => {
+    const target = event.target;
+    const index = Number(target.dataset.index);
+
+    if (!rows[index] || target.dataset.field !== "tax_category_id") return;
+
+    const option = target.selectedOptions[0];
+    rows[index].tax_category_id = target.value;
+    rows[index].tax_category_label = option?.dataset.name || "";
+    rows[index].tax_rate = option?.dataset.rate || rows[index].tax_rate || "";
+    render();
+  });
+
+  body?.addEventListener("click", event => {
+    const button = event.target.closest("[data-remove]");
+    if (!button) return;
+    rows.splice(Number(button.dataset.remove), 1);
+    render();
+  });
+
+  byId("utilityLineItemsOpenButton")?.addEventListener("click", open);
+  byId("utilityLineItemsCloseButton")?.addEventListener("click", close);
+  byId("utilityLineItemAddButton")?.addEventListener("click", add);
+
+  byId("utilityLineItemsModal")?.addEventListener("click", event => {
+    if (event.target.id === "utilityLineItemsModal") close();
+  });
+
+  window.hdOriginGetUtilityLineItems = () => rows.map(row => ({ ...row }));
+  window.hdOriginSetUtilityLineItems = value => {
+    rows.splice(0, rows.length, ...(Array.isArray(value) ? value : []));
+    render();
+  };
+
+  render();
+})();
+/* GPT3_UTILITY_LINE_ITEMS_JS_END */
+</script>
+<script>
+/* GPT3_UTILITY_AI_LINE_ITEMS_START */
+(function () {
+  "use strict";
+
+  function lineItemsOf(draft) {
+    const root = draft && typeof draft === "object" ? draft : {};
+    const fields = root.specialist_fields || root.specialistFields || root.fields || {};
+
+    return [
+      root.line_items,
+      root.lineItems,
+      fields.line_items,
+      fields.lineItems
+    ].find(Array.isArray) || [];
+  }
+
+  function applyLines(draft) {
+    if (typeof window.hdOriginSetUtilityLineItems !== "function") return;
+
+    const rows = lineItemsOf(draft).map((line, index) => ({
+      line_no: line.line_no ?? index + 1,
+      item_name: line.item_name ?? line.name ?? "",
+      description: line.description ?? "",
+      usage_quantity: line.usage_quantity ?? line.quantity ?? "",
+      usage_unit: line.usage_unit ?? line.unit ?? "",
+      unit_price: line.unit_price ?? line.unitPrice ?? "",
+      subtotal_amount: line.subtotal_amount ?? line.amount ?? "",
+      tax_category_id: line.tax_category_id ?? "",
+      tax_category_code: line.tax_category_code ?? "",
+      tax_category_label: line.tax_category_label ?? "",
+      tax_rate: line.tax_rate ?? line.taxRate ?? "",
+      tax_amount: line.tax_amount ?? line.taxAmount ?? "",
+      total_amount: line.total_amount ?? "",
+      source_text: line.source_text ?? line.memo ?? ""
+    }));
+
+    window.hdOriginSetUtilityLineItems(rows);
+  }
+
+  function wrap(name) {
+    const original = window[name];
+    if (typeof original !== "function" || original.__utilityLinesWrapped) return;
+
+    const wrapped = function (draft) {
+      const result = original.apply(this, arguments);
+      applyLines(draft);
+      return result;
+    };
+
+    wrapped.__utilityLinesWrapped = true;
+    window[name] = wrapped;
+  }
+
+  wrap("applyAiDraftToFormHardDebug");
+  wrap("applySortingOnlyDraftToForm");
+
+  window.hdOriginApplyUtilityLineItems = applyLines;
+})();
+/* GPT3_UTILITY_AI_LINE_ITEMS_END */
+</script>
+</body>
 </html>
 
 
