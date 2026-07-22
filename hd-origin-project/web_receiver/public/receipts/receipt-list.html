@@ -1535,28 +1535,46 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       await loadList();
     }
 
-    async function analyzeReceipt(id) {
+    async function analyzeReceipt(paymentDocumentOcrImportId) {
       if (!(await receiptConfirm("AI解析を実行しますか？", "AI解析確認"))) return;
 
       const formArea = document.getElementById("formArea");
       formArea.insertAdjacentHTML("afterbegin", '<div class="block"><div class="block-body">AI解析中...</div></div>');
 
-      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id) + "/analyze", {
-        method: "POST"
-      });
+      const bridgeRes = await fetch(
+        "/api/receipts/payment-document-ocr-imports/" +
+        encodeURIComponent(paymentDocumentOcrImportId) +
+        "/bridge",
+        { method: "POST" }
+      );
 
-      const data = await res.json();
+      const bridgeData = await bridgeRes.json();
 
-      if (!data.ok) {
-        alert("AI解析失敗: " + (data.error || ""));
-        await loadDetail(id);
+      if (!bridgeRes.ok || !bridgeData.ok || !bridgeData.receiptImportId) {
+        alert("入口接続失敗: " + (bridgeData.error || ""));
+        await loadDetail(paymentDocumentOcrImportId);
         return;
       }
 
-      await loadDetail(id);
+      const receiptImportId = bridgeData.receiptImportId;
+
+      const res = await fetch(
+        "/api/receipts/imports/" +
+        encodeURIComponent(receiptImportId) +
+        "/analyze",
+        { method: "POST" }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        alert("AI解析失敗: " + (data.error || ""));
+        await loadDetail(paymentDocumentOcrImportId);
+        return;
+      }
+
+      await loadDetail(paymentDocumentOcrImportId);
     }
-
-
     /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_START */
 
     function getSelectedBulkReceiptIdsInListOrder() {

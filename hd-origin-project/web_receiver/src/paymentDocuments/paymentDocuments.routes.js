@@ -7575,6 +7575,13 @@ function hdOriginCilBuildRecord(body, ocrRow, latestSortingDraftId) {
     early_cancellation_code: earlyCancellation.code,
     early_cancellation_label: earlyCancellation.label,
     residual_value_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価")),
+    lease_start_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース開始日")),
+    lease_end_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース終了日")),
+    lease_period_months: hdOriginCilNumberOrNull(hdOriginCilField(fields, "リース期間")),
+    lease_item_location: hdOriginCilText(hdOriginCilField(fields, "物件所在地")),
+    residual_value_guarantee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価保証額")),
+    renewal_terms: hdOriginCilText(hdOriginCilField(fields, "更新条件")),
+    cancellation_terms: hdOriginCilText(hdOriginCilField(fields, "解約条件")),
 
     contract_type_code: contractType.code,
     contract_type_label: contractType.label,

@@ -1283,6 +1283,47 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
 
+  /* RECEIPT_PAYMENT_DOCUMENT_READONLY_RESOLVER_20260722_START */
+  const receiptImportResolveMatch = pathname.match(
+    /^\/api\/receipts\/payment-document-ocr-imports\/(\d+)\/receipt-import$/
+  );
+
+  if (req.method === "GET" && receiptImportResolveMatch) {
+    try {
+      const paymentDocumentOcrImportId = Number(receiptImportResolveMatch[1]);
+
+      const row =
+        await repo.getPaymentDocumentOcrImportForReceiptBridge(
+          paymentDocumentOcrImportId
+        );
+
+      if (!row) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "支払書類OCRデータが見つかりません。"
+        });
+
+        return true;
+      }
+
+      const receiptImport =
+        await repo.getImportByImageHashSha256(row.sha256);
+
+      sendJson(res, 200, {
+        ok: true,
+        paymentDocumentOcrImportId,
+        receiptImportId: receiptImport ? receiptImport.id : null
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+
+    return true;
+  }
+  /* RECEIPT_PAYMENT_DOCUMENT_READONLY_RESOLVER_20260722_END */
   /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_API_20260722_START */
   const bridgeMatch = pathname.match(
     /^\/api\/receipts\/payment-document-ocr-imports\/(\d+)\/bridge$/
