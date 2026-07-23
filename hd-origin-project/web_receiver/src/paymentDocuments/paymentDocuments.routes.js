@@ -11580,7 +11580,126 @@ async function handlePaymentDocumentRoutes(req, res) {
     }
     return true;
   }
-    /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_START */
+      /* HD_ORIGIN_UTILITY_LEDGER_GET_API_20260723_START */
+  if (
+    req.method === "GET" &&
+    urlPath ===
+      "/api/payment-documents/utility-communication/list"
+  ) {
+    try {
+      const result = await db.query(`
+        SELECT
+          d.utility_communication_draft_id,
+          d.payment_document_ocr_import_id,
+          d.payment_document_sorting_draft_id,
+          d.specialist_analysis_id,
+          d.draft_no,
+          d.draft_version,
+          d.customer_number,
+          d.supply_point_number,
+          d.meter_reading_date,
+          d.usage_quantity,
+          d.usage_unit,
+          d.specialist_fields_json,
+          d.visible_fields_json,
+          d.warnings_json,
+          d.created_at,
+          d.updated_at,
+
+          o.original_file_name,
+          o.saved_file_name,
+
+          s.analysis_system_code,
+          s.analysis_system_label,
+          s.ai_confidence,
+          s.ai_reason,
+
+          COALESCE((
+            SELECT jsonb_agg(
+              jsonb_build_object(
+                'utility_communication_line_item_id',
+                  li.utility_communication_line_item_id,
+                'line_no',
+                  li.line_no,
+                'item_name',
+                  li.item_name,
+                'description',
+                  li.description,
+                'usage_quantity',
+                  li.usage_quantity,
+                'usage_unit',
+                  li.usage_unit,
+                'unit_price',
+                  li.unit_price,
+                'subtotal_amount',
+                  li.subtotal_amount,
+                'tax_category_id',
+                  li.tax_category_id,
+                'tax_category_label',
+                  tc.tax_name,
+                'tax_rate',
+                  li.tax_rate,
+                'tax_amount',
+                  li.tax_amount,
+                'total_amount',
+                  li.total_amount,
+                'source_text',
+                  li.source_text,
+                'raw_item_json',
+                  li.raw_item_json
+              )
+              ORDER BY
+                li.line_no,
+                li.utility_communication_line_item_id
+            )
+            FROM
+              accounting.payment_document_utility_communication_line_items li
+            LEFT JOIN
+              expenses.tax_categories tc
+              ON tc.tax_category_id = li.tax_category_id
+            WHERE
+              li.utility_communication_draft_id =
+                d.utility_communication_draft_id
+          ), '[]'::jsonb) AS line_items
+
+        FROM
+          accounting.payment_document_utility_communication_drafts d
+
+        LEFT JOIN
+          accounting.payment_document_ocr_imports o
+          ON o.payment_document_ocr_import_id =
+             d.payment_document_ocr_import_id
+
+        LEFT JOIN
+          accounting.payment_document_specialist_analysis_results s
+          ON s.specialist_analysis_id =
+             d.specialist_analysis_id
+
+        WHERE
+          d.is_current = TRUE
+          AND d.deleted_at IS NULL
+
+        ORDER BY
+          d.created_at DESC,
+          d.utility_communication_draft_id DESC
+      `);
+
+      sendJson(res, 200, {
+        ok: true,
+        count: result.rowCount,
+        rows: result.rows
+      });
+    } catch (err) {
+      sendJson(res, 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_UTILITY_LEDGER_GET_API_20260723_END */
+/* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_START */
   /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_START */
   if (
     req.method === "POST" &&

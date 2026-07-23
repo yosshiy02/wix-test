@@ -3391,3 +3391,255 @@ async function getPaymentDocumentOcrImportForReceiptBridge(id) {
 module.exports.getPaymentDocumentOcrImportForReceiptBridge =
   getPaymentDocumentOcrImportForReceiptBridge;
 /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_REPOSITORY_20260722_END */
+
+/* RECEIPT_ONE_TIME_DUPLICATE_DRAFT_CLONE_20260723_START */
+/*
+  今回1回限りの全件本保存用。
+  同一画像に複数のOCR IDが存在する場合、
+  最新の解析下書き一式を同じreceipt_import_id内へ複製する。
+
+  AI再解析は行わない。
+  元下書き・元本保存データは変更しない。
+*/
+async function cloneLatestReceiptDraftForImport(receiptImportId) {
+  const importId = Number(receiptImportId);
+
+  if (!Number.isFinite(importId) || importId <= 0) {
+    throw new Error("receipt_import_id が不正です。");
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const sourceDraftResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_drafts
+      WHERE receipt_import_id = $1
+      ORDER BY draft_receipt_id DESC
+      LIMIT 1
+      FOR SHARE
+      `,
+      [importId]
+    );
+
+    const sourceDraft = sourceDraftResult.rows[0] || null;
+
+    if (!sourceDraft) {
+      throw new Error(
+        "複製元のレシート下書きがありません。receipt_import_id=" +
+        importId
+      );
+    }
+
+    const newDraftResult = await client.query(
+      `
+      INSERT INTO accounting.receipt_drafts (
+        receipt_import_id,
+        receipt_name,
+        receipt_image_path,
+        receipt_imported_at,
+        image_hash_sha256,
+        draft_status,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        $1, $2, $3, $4, $5,
+        '下書き',
+        NOW(),
+        NOW()
+      )
+      RETURNING *
+      `,
+      [
+        importId,
+        sourceDraft.receipt_name,
+        sourceDraft.receipt_image_path,
+        sourceDraft.receipt_imported_at,
+        sourceDraft.image_hash_sha256
+      ]
+    );
+
+    const newDraft = newDraftResult.rows[0];
+
+    const sourceDetailsResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_draft_details
+      WHERE draft_receipt_id = $1
+      ORDER BY draft_receipt_detail_id
+      `,
+      [sourceDraft.draft_receipt_id]
+    );
+
+    if (!sourceDetailsResult.rows.length) {
+      throw new Error(
+        "複製元のレシート下書き明細がありません。draft_receipt_id=" +
+        sourceDraft.draft_receipt_id
+      );
+    }
+
+    const detailIdMap = new Map();
+
+    for (const sourceDetail of sourceDetailsResult.rows) {
+      const newDetailResult = await client.query(
+        `
+        INSERT INTO accounting.receipt_draft_details (
+          draft_receipt_id,
+          receipt_import_id,
+          transaction_date,
+          receipt_time_text,
+          vendor_name,
+          vendor_address,
+          vendor_phone,
+          payment_method_id,
+          total_amount,
+          tax_total_amount,
+          invoice_number,
+          invoice_type_id,
+          evidence_type_id,
+          evidence_memo,
+          target_person_id,
+          is_settled,
+          summary,
+          memo,
+          account_title_id,
+          purpose_id,
+          project_id,
+          department_id,
+          ocr_raw_text,
+          ai_confidence,
+          receipt_summary_id,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7,
+          $8, $9, $10, $11, $12, $13,
+          $14, $15, $16, $17, $18,
+          $19, $20, $21, $22, $23,
+          $24, $25,
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+        `,
+        [
+          newDraft.draft_receipt_id,
+          importId,
+          sourceDetail.transaction_date,
+          sourceDetail.receipt_time_text,
+          sourceDetail.vendor_name,
+          sourceDetail.vendor_address,
+          sourceDetail.vendor_phone,
+          sourceDetail.payment_method_id,
+          sourceDetail.total_amount,
+          sourceDetail.tax_total_amount,
+          sourceDetail.invoice_number,
+          sourceDetail.invoice_type_id,
+          sourceDetail.evidence_type_id,
+          sourceDetail.evidence_memo,
+          sourceDetail.target_person_id,
+          sourceDetail.is_settled,
+          sourceDetail.summary,
+          sourceDetail.memo,
+          sourceDetail.account_title_id,
+          sourceDetail.purpose_id,
+          sourceDetail.project_id,
+          sourceDetail.department_id,
+          sourceDetail.ocr_raw_text,
+          sourceDetail.ai_confidence,
+          sourceDetail.receipt_summary_id
+        ]
+      );
+
+      const newDetail = newDetailResult.rows[0];
+
+      detailIdMap.set(
+        Number(sourceDetail.draft_receipt_detail_id),
+        Number(newDetail.draft_receipt_detail_id)
+      );
+    }
+
+    const sourceBreakdownsResult = await client.query(
+      `
+      SELECT *
+      FROM accounting.receipt_draft_detail_breakdowns
+      WHERE draft_receipt_id = $1
+      ORDER BY draft_receipt_detail_breakdown_id
+      `,
+      [sourceDraft.draft_receipt_id]
+    );
+
+    for (const sourceBreakdown of sourceBreakdownsResult.rows) {
+      const newDetailId = detailIdMap.get(
+        Number(sourceBreakdown.draft_receipt_detail_id)
+      );
+
+      if (!newDetailId) {
+        throw new Error(
+          "複製先の下書き明細IDが見つかりません。source_breakdown_id=" +
+          sourceBreakdown.draft_receipt_detail_breakdown_id
+        );
+      }
+
+      await client.query(
+        `
+        INSERT INTO accounting.receipt_draft_detail_breakdowns (
+          draft_receipt_id,
+          draft_receipt_detail_id,
+          item_name,
+          quantity,
+          unit_price,
+          amount,
+          tax_amount,
+          tax_category_id,
+          tax_treatment_id,
+          note,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6,
+          $7, $8, $9, $10,
+          NOW(),
+          NOW()
+        )
+        `,
+        [
+          newDraft.draft_receipt_id,
+          newDetailId,
+          sourceBreakdown.item_name,
+          sourceBreakdown.quantity,
+          sourceBreakdown.unit_price,
+          sourceBreakdown.amount,
+          sourceBreakdown.tax_amount,
+          sourceBreakdown.tax_category_id,
+          sourceBreakdown.tax_treatment_id,
+          sourceBreakdown.note
+        ]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      ...newDraft,
+      source_draft_receipt_id: sourceDraft.draft_receipt_id,
+      copied_detail_count: sourceDetailsResult.rows.length,
+      copied_breakdown_count: sourceBreakdownsResult.rows.length
+    };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports.cloneLatestReceiptDraftForImport =
+  cloneLatestReceiptDraftForImport;
+/* RECEIPT_ONE_TIME_DUPLICATE_DRAFT_CLONE_20260723_END */

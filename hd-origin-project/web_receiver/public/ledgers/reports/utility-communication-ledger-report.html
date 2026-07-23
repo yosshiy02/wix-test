@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>公共料金・通信費 帳面 | HD Origin</title>
+  <link rel="stylesheet" href="/ledgers/reports/utility-communication-ledger-report.css">
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <p>HD Origin Project</p>
+      <h1>公共料金・通信費帳面</h1>
+    </div>
+
+    <nav>
+      <a href="/payables/payment-document-specialist-utility-communication.html">解析画面へ</a>
+      <a class="active" href="/ledgers/reports/utility-communication-ledger-report.html">帳面画面</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="summary">
+      <div>
+        登録件数
+        <strong id="recordCount">－</strong>
+      </div>
+
+      <div>
+        明細件数
+        <strong id="lineItemCount">－</strong>
+      </div>
+
+      <div>
+        税抜合計
+        <strong id="subtotalAmount">－</strong>
+      </div>
+
+      <div>
+        請求合計
+        <strong id="totalAmount">－</strong>
+      </div>
+    </section>
+
+    <p id="loadStatus">帳面データを読み込んでいます。</p>
+
+    <section class="ledger">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>元ファイル</th>
+            <th>お客様番号</th>
+            <th>供給地点番号</th>
+            <th>検針日</th>
+            <th>使用量</th>
+            <th>明細数</th>
+            <th>税抜金額</th>
+            <th>消費税額</th>
+            <th>請求合計</th>
+            <th>明細</th>
+          </tr>
+        </thead>
+
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="/ledgers/reports/utility-communication-ledger-report.js"></script>
+</body>
+</html>

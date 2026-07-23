@@ -1326,6 +1326,175 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
   /* RECEIPT_PAYMENT_DOCUMENT_READONLY_RESOLVER_20260722_END */
+  /* RECEIPT_ONE_TIME_OCR_BULK_POST_20260723_START */
+  /*
+    今回1回だけ、画面で選択したOCR ID件数を正として本保存する。
+    同じreceipt_import_idが2回目以降に現れた場合、
+    解析済み下書きを複製してから本保存する。
+  */
+  if (
+    req.method === "POST" &&
+    pathname ===
+      "/api/receipts/payment-document-ocr-imports/one-time-bulk-post"
+  ) {
+    try {
+      const body = await readJsonBody(req);
+
+      const rawIds =
+        Array.isArray(body.paymentDocumentOcrImportIds)
+          ? body.paymentDocumentOcrImportIds
+          : Array.isArray(body.payment_document_ocr_import_ids)
+            ? body.payment_document_ocr_import_ids
+            : Array.isArray(body.ids)
+              ? body.ids
+              : [];
+
+      const ocrIds = Array.from(
+        new Set(
+          rawIds
+            .map((id) => Number(id))
+            .filter((id) => Number.isFinite(id) && id > 0)
+        )
+      );
+
+      if (!ocrIds.length) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "本保存するOCRデータが選択されていません。"
+        });
+
+        return true;
+      }
+
+      const usedReceiptImportCounts = new Map();
+      const results = [];
+
+      let success = 0;
+      let alreadySaved = 0;
+      let failed = 0;
+      let cloned = 0;
+
+      for (const ocrId of ocrIds) {
+        try {
+          const ocrRow =
+            await repo.getPaymentDocumentOcrImportForReceiptBridge(
+              ocrId
+            );
+
+          if (!ocrRow) {
+            throw new Error(
+              "支払書類OCRデータが見つかりません。OCR ID=" +
+              ocrId
+            );
+          }
+
+          const receiptImport =
+            await repo.getImportByImageHashSha256(
+              ocrRow.sha256
+            );
+
+          if (!receiptImport) {
+            throw new Error(
+              "対応するレシート取込データがありません。OCR ID=" +
+              ocrId
+            );
+          }
+
+          const receiptImportId =
+            Number(receiptImport.id);
+
+          const usedCount =
+            usedReceiptImportCounts.get(receiptImportId) || 0;
+
+          let clonedDraft = null;
+
+          if (usedCount > 0) {
+            clonedDraft =
+              await repo.cloneLatestReceiptDraftForImport(
+                receiptImportId
+              );
+
+            cloned++;
+          }
+
+          usedReceiptImportCounts.set(
+            receiptImportId,
+            usedCount + 1
+          );
+
+          const saved =
+            await repo.postReceiptDraftByImportId(
+              receiptImportId,
+              {
+                mode: "one_time_ocr_bulk",
+                paymentDocumentOcrImportId: ocrId
+              }
+            );
+
+          const result = {
+            ...(saved || {}),
+            payment_document_ocr_import_id: ocrId,
+            paymentDocumentOcrImportId: ocrId,
+            receipt_import_id: receiptImportId,
+            receiptImportId: receiptImportId,
+            cloned_draft_receipt_id:
+              clonedDraft
+                ? clonedDraft.draft_receipt_id
+                : null
+          };
+
+          results.push(result);
+
+          if (
+            result.ok &&
+            result.already_saved
+          ) {
+            alreadySaved++;
+          } else if (result.ok) {
+            success++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          failed++;
+
+          results.push({
+            ok: false,
+            payment_document_ocr_import_id: ocrId,
+            paymentDocumentOcrImportId: ocrId,
+            reason: "exception",
+            message: error.message || String(error)
+          });
+        }
+      }
+
+      sendJson(res, 200, {
+        ok: failed === 0,
+        one_time_ocr_bulk_post: true,
+        message: "今回限りのOCR単位本保存が完了しました。",
+        summary: {
+          total: ocrIds.length,
+          success,
+          already_saved: alreadySaved,
+          failed,
+          cloned
+        },
+        results
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error:
+          error.message ||
+          "今回限りのまとめて本保存に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+  /* RECEIPT_ONE_TIME_OCR_BULK_POST_20260723_END */
   /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_API_20260722_START */
   const bridgeMatch = pathname.match(
     /^\/api\/receipts\/payment-document-ocr-imports\/(\d+)\/bridge$/

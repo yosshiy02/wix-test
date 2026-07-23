@@ -1197,8 +1197,8 @@ if (await handleCalendarWorkflowRoutes(req, res)) return;
 /* GPT2_CALENDAR_WORKFLOW_OPENAI_HANDLER_20260715_END */
       if (await handleMasterRoutes(req, res)) return;
       if (await handleItemsRoutes(req, res)) return;
-      if (await handleBackupRoutes(req, res)) return;
-      if (await handleProjectBackupRoutes(req, res)) return;
+      if (await handleBackupRoutes(req, res) || res.headersSent || res.writableEnded) return;
+      if (await handleProjectBackupRoutes(req, res) || res.headersSent || res.writableEnded) return;
       if (await handleExpenseRoutes(req, res)) return;
       /* PAYMENT_DOCUMENT_ROUTE_HANDLER_20260707_START */
       if (await handlePaymentDocumentRoutes(req, res)) return;
@@ -1212,12 +1212,22 @@ if (await handleCalendarWorkflowRoutes(req, res)) return;
       if (await handleReceiptRoutes(req, res)) return;
       if (await handleAppRoutes(req, res)) return;
 
+      if (res.headersSent || res.writableEnded) return;
       return sendJson(res, 404, { ok: false, error: "API not found" });
     }
 
     serveStatic(req, res);
   } catch (err) {
     console.error(err);
+
+    if (res.headersSent || res.writableEnded) {
+      console.error(
+        "[HTTP_RESPONSE_ALREADY_SENT] 二重レスポンスを停止しました:",
+        err.message
+      );
+      return;
+    }
+
     sendJson(res, err.statusCode || 500, {
       ok: false,
       error: err.message,

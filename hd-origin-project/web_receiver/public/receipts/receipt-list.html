@@ -2089,7 +2089,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       }
     }
 
-    async function bulkPostReceiptImports(ids) {
+    async function bulkPostReceiptImportsNormal(ids) {
       const ocrIds = Array.isArray(ids)
         ? ids
             .map((id) => Number(id))
@@ -2168,6 +2168,80 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       return data;
     }
 
+    /* RECEIPT_ONE_TIME_12_BULK_POST_20260723_START */
+    async function bulkPostReceiptImports(ids) {
+      const oneTimeStorageKey =
+        "HD_RECEIPT_ONE_TIME_12_BULK_POST_20260723";
+
+      const oneTimeAlreadyUsed =
+        localStorage.getItem(oneTimeStorageKey) === "done";
+
+      if (oneTimeAlreadyUsed) {
+        return bulkPostReceiptImportsNormal(ids);
+      }
+
+      const ocrIds = Array.isArray(ids)
+        ? ids
+            .map((id) => Number(id))
+            .filter(
+              (id) =>
+                Number.isFinite(id) &&
+                id > 0
+            )
+        : [];
+
+      if (!ocrIds.length) {
+        throw new Error(
+          "本保存するOCRデータがありません。"
+        );
+      }
+
+      const res = await fetch(
+        "/api/receipts/payment-document-ocr-imports/one-time-bulk-post",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({
+            paymentDocumentOcrImportIds: ocrIds
+          })
+        }
+      );
+
+      const data = await res.json().catch(() => {
+        return {
+          ok: false,
+          error: "JSON読込失敗"
+        };
+      });
+
+      if (!res.ok) {
+        throw new Error(
+          data.error ||
+          "今回限りの本保存APIが失敗しました。"
+        );
+      }
+
+      const failedCount = Number(
+        data &&
+        data.summary &&
+        data.summary.failed !== undefined
+          ? data.summary.failed
+          : 0
+      );
+
+      if (failedCount === 0) {
+        localStorage.setItem(
+          oneTimeStorageKey,
+          "done"
+        );
+      }
+
+      return data;
+    }
+    /* RECEIPT_ONE_TIME_12_BULK_POST_20260723_END */
     function buildBulkPostResultText(data) {
       const summary = data.summary || {};
       const results = Array.isArray(data.results) ? data.results : [];

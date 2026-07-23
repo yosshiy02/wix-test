@@ -4071,29 +4071,7 @@ function setDocumentPreview(item) {
 
       if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
 
-      if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
-        try {
-          await window.hdOriginSpecialistAutoSaveNow("analysis", { ocrImportId: id, item: item, analysisResult: data });
-        } catch (saveError) {
-          const saveMessage =
-            saveError && saveError.message
-              ? saveError.message
-              : String(saveError);
-
-          showResult(
-            "専門解析には成功しましたが、DB自動保存に失敗しました。\n" +
-            saveMessage
-          );
-
-          return {
-            ok: false,
-            analysisOk: true,
-            saveOk: false,
-            name,
-            error: saveMessage
-          };
-        }
-      }
+      // 再解析結果は人間確認後の明示保存まで台帳へ保存しない。
 
       if (typeof showVisibleFieldsOnly === "function") {
         showVisibleFieldsOnly(item.__visibleFieldLabels || []);
