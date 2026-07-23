@@ -212,35 +212,181 @@ function buildPropertySchema(row) {
 async function buildSpecialistJsonSchema(specialistAnalysisCode) {
   const rows = await queryRows(
     `SELECT
-      sai.is_required, sai.is_recommended, sai.confidence_threshold, sai.extraction_instruction,
-      ai.analysis_item_code, ai.analysis_item_name, ai.description AS analysis_item_description,
-      ai.max_length, ai.decimal_places, ai.is_multiple, adt.json_type_code
+      sai.is_required, sai.is_recommended,
+      sai.confidence_threshold, sai.extraction_instruction,
+      ai.analysis_item_id,
+      ai.analysis_item_code, ai.analysis_item_name,
+      ai.description AS analysis_item_description,
+      ai.max_length, ai.decimal_places,
+      ai.is_multiple, adt.json_type_code
      FROM accounting.payment_document_specialist_analyses AS psa
-     INNER JOIN accounting.specialist_analysis_items AS sai ON sai.specialist_analysis_id = psa.specialist_analysis_id
-     INNER JOIN accounting.analysis_items AS ai ON ai.analysis_item_id = sai.analysis_item_id
-     INNER JOIN accounting.analysis_data_types AS adt ON adt.analysis_data_type_id = ai.analysis_data_type_id
-     WHERE psa.specialist_analysis_code = $1 AND psa.is_active = true AND sai.is_active = true AND ai.is_active = true AND adt.is_active = true
-     ORDER BY sai.display_order, ai.display_order, ai.analysis_item_id`,
+     INNER JOIN accounting.specialist_analysis_items AS sai
+       ON sai.specialist_analysis_id = psa.specialist_analysis_id
+     INNER JOIN accounting.analysis_items AS ai
+       ON ai.analysis_item_id = sai.analysis_item_id
+     INNER JOIN accounting.analysis_data_types AS adt
+       ON adt.analysis_data_type_id = ai.analysis_data_type_id
+     WHERE psa.specialist_analysis_code = $1
+       AND psa.is_active = true
+       AND sai.is_active = true
+       AND ai.is_active = true
+       AND adt.is_active = true
+     ORDER BY
+       sai.display_order,
+       ai.display_order,
+       ai.analysis_item_id`,
     [specialistAnalysisCode]
   );
 
-  if (rows.length === 0) throw new Error(`専門解析項目がありません。 specialist_analysis_code=${specialistAnalysisCode}`);
+  if (rows.length === 0) {
+    throw new Error(
+      `専門解析項目がありません。 specialist_analysis_code=${specialistAnalysisCode}`
+    );
+  }
+
+  const parentAnalysisItemIds = rows
+    .map(row => Number(row.analysis_item_id))
+    .filter(value => Number.isInteger(value) && value > 0);
+
+  const childRows = parentAnalysisItemIds.length > 0
+    ? await queryRows(
+        `SELECT
+          aicp.parent_analysis_item_id,
+          aicp.is_required,
+          false AS is_recommended,
+          NULL::numeric AS confidence_threshold,
+          aicp.extraction_instruction,
+          child.analysis_item_id,
+          child.analysis_item_code,
+          child.analysis_item_name,
+          child.description AS analysis_item_description,
+          child.max_length,
+          child.decimal_places,
+          child.is_multiple,
+          adt.json_type_code
+         FROM accounting.analysis_item_child_properties AS aicp
+         INNER JOIN accounting.analysis_items AS child
+           ON child.analysis_item_id = aicp.child_analysis_item_id
+         INNER JOIN accounting.analysis_data_types AS adt
+           ON adt.analysis_data_type_id = child.analysis_data_type_id
+         WHERE aicp.parent_analysis_item_id = ANY($1::bigint[])
+           AND aicp.is_active = true
+           AND child.is_active = true
+           AND adt.is_active = true
+         ORDER BY
+           aicp.parent_analysis_item_id,
+           aicp.display_order,
+           child.analysis_item_id`,
+        [parentAnalysisItemIds]
+      )
+    : [];
+
+  const childRowsByParent = new Map();
+
+  for (const childRow of childRows) {
+    const parentId = String(
+      childRow.parent_analysis_item_id || ""
+    );
+
+    if (!childRowsByParent.has(parentId)) {
+      childRowsByParent.set(parentId, []);
+    }
+
+    childRowsByParent.get(parentId).push(childRow);
+  }
 
   const properties = {};
   const required = [];
 
   for (const row of rows) {
-    const itemCode = normalizeText(row.analysis_item_code);
-    if (!itemCode) throw new Error("解析項目コードが空です。");
-    if (properties[itemCode]) throw new Error(`解析項目コードが重複しています。 ${itemCode}`);
-    properties[itemCode] = buildPropertySchema(row);
-    if (row.is_required === true) required.push(itemCode);
+    const itemCode = normalizeText(
+      row.analysis_item_code
+    );
+
+    if (!itemCode) {
+      throw new Error(
+        "解析項目コードが空です。"
+      );
+    }
+
+    if (properties[itemCode]) {
+      throw new Error(
+        `解析項目コードが重複しています。 ${itemCode}`
+      );
+    }
+
+    const propertySchema = buildPropertySchema(row);
+    const parentId = String(row.analysis_item_id || "");
+    const childDefinitions =
+      childRowsByParent.get(parentId) || [];
+
+    if (
+      propertySchema.type === "array" &&
+      childDefinitions.length > 0
+    ) {
+      const childProperties = {};
+      const childRequired = [];
+
+      for (const childRow of childDefinitions) {
+        const childCode = normalizeText(
+          childRow.analysis_item_code
+        );
+
+        if (!childCode) {
+          throw new Error(
+            `子解析項目コードが空です。 parent=${itemCode}`
+          );
+        }
+
+        if (childProperties[childCode]) {
+          throw new Error(
+            `子解析項目コードが重複しています。 parent=${itemCode} child=${childCode}`
+          );
+        }
+
+        childProperties[childCode] =
+          buildPropertySchema(childRow);
+
+        if (childRow.is_required === true) {
+          childRequired.push(childCode);
+        }
+      }
+
+      const itemSchema = {
+        type: "object",
+        additionalProperties: false,
+        properties: childProperties
+      };
+
+      if (childRequired.length > 0) {
+        itemSchema.required = childRequired;
+      }
+
+      propertySchema.items = itemSchema;
+    }
+
+    properties[itemCode] = propertySchema;
+
+    if (row.is_required === true) {
+      required.push(itemCode);
+    }
   }
 
-  const schema = { type: "object", additionalProperties: false, properties };
-  if (required.length > 0) schema.required = required;
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties
+  };
 
-  return { name: `payment_document_${specialistAnalysisCode}`, strict: true, schema };
+  if (required.length > 0) {
+    schema.required = required;
+  }
+
+  return {
+    name: `payment_document_${specialistAnalysisCode}`,
+    strict: true,
+    schema
+  };
 }
 
 function buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema) {

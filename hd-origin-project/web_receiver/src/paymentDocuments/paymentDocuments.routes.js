@@ -11578,7 +11578,76 @@ async function handlePaymentDocumentRoutes(req, res) {
     }
     return true;
   }
-    if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
+    /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_START */
+  if (
+    req.method === "GET" &&
+    urlPath === "/api/payment-documents/contract-insurance-lease/list"
+  ) {
+    try {
+      const result = await db.query(`
+        SELECT
+          d.contract_insurance_lease_draft_id,
+          d.payment_document_ocr_import_id,
+          d.payment_document_sorting_draft_id,
+          d.specialist_analysis_id,
+          d.draft_no,
+          d.draft_status,
+          d.human_check_status,
+          d.original_file_name,
+          d.saved_file_name,
+          d.document_type_code,
+          d.document_type_label,
+          d.contract_insurance_lease_kind_code,
+          d.contract_insurance_lease_kind_label,
+          d.lease_company_name,
+          d.contractor_name,
+          d.contract_start_date,
+          d.contract_end_date,
+          d.monthly_amount,
+          d.currency,
+          d.lease_item_name,
+          d.monthly_lease_amount,
+          d.ai_confidence,
+          d.ai_reason,
+          d.review_reason,
+          d.specialist_fields_json,
+          d.visible_fields_json,
+          d.warnings_json,
+          d.created_at,
+          d.updated_at,
+          COALESCE((
+            SELECT jsonb_agg(
+              to_jsonb(l)
+              ORDER BY l.sort_order, l.lease_item_line_id
+            )
+            FROM accounting.payment_document_contract_insurance_lease_item_lines l
+            WHERE l.contract_insurance_lease_draft_id =
+                  d.contract_insurance_lease_draft_id
+          ), '[]'::jsonb) AS lease_item_lines
+        FROM accounting.payment_document_contract_insurance_lease_drafts d
+        WHERE d.is_current = TRUE
+          AND d.deleted_at IS NULL
+        ORDER BY
+          d.contract_start_date DESC NULLS LAST,
+          d.contract_insurance_lease_draft_id DESC
+      `);
+
+      sendJson(res, 200, {
+        ok: true,
+        count: result.rowCount,
+        rows: result.rows
+      });
+    } catch (err) {
+      sendJson(res, 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_END */
+  if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
     try {
       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-specialist/", ""));
       const id = Number(idText);

@@ -1336,8 +1336,77 @@ if (module.exports && typeof module.exports.getReceiptMasterOptions === "functio
   };
 }
 /* RECEIPT_ACCOUNT_TITLES_MASTER_OPTIONS_20260705_END */
+/* RECEIPT_SUMMARY_MASTER_OPTIONS_20260722_START */
+/*
+  /api/receipts/master-options に摘要マスタ receiptSummaries を追加する。
+  既存のマスタ返却内容は変更せず、摘要候補だけ追加する。
+*/
+const __receiptSummaryMasterOptionsPool =
+  (typeof pool !== "undefined" && pool && pool.query)
+    ? pool
+    : require("../db");
 
+async function __getReceiptSummariesForMasterOptions() {
+  const result = await __receiptSummaryMasterOptionsPool.query(`
+    SELECT
+      receipt_summary_id,
+      receipt_summary_code,
+      receipt_summary_name,
+      description,
+      account_title_hint,
+      sort_order
+    FROM expenses.receipt_summaries
+    WHERE is_active = TRUE
+    ORDER BY sort_order, receipt_summary_id
+  `);
 
+  return result.rows.map((row) => ({
+    receipt_summary_id: row.receipt_summary_id,
+    receipt_summary_code: row.receipt_summary_code,
+    receipt_summary_name: row.receipt_summary_name,
+    description: row.description,
+    account_title_hint: row.account_title_hint,
+    sort_order: row.sort_order,
+
+    receiptSummaryId: row.receipt_summary_id,
+    receiptSummaryCode: row.receipt_summary_code,
+    receiptSummaryName: row.receipt_summary_name,
+    accountTitleHint: row.account_title_hint
+  }));
+}
+
+if (
+  module.exports &&
+  typeof module.exports.getReceiptMasterOptions === "function"
+) {
+  const __baseGetReceiptMasterOptionsWithSummaries =
+    module.exports.getReceiptMasterOptions;
+
+  module.exports.getReceiptMasterOptions =
+    async function getReceiptMasterOptionsWithSummaries() {
+      const data =
+        await __baseGetReceiptMasterOptionsWithSummaries.apply(
+          this,
+          arguments
+        );
+
+      const receiptSummaries =
+        await __getReceiptSummariesForMasterOptions();
+
+      return {
+        ...data,
+        receiptSummaries
+      };
+    };
+}
+/* RECEIPT_SUMMARY_MASTER_OPTIONS_20260722_END */
+
+/* RECEIPT_SUMMARY_ID_REPOSITORY_SAVE_20260722_START */
+/*
+  receipt_summary_id を摘要本文 summary とは別に保存する。
+  AI後の補正は行わず、AIまたは人間が選択したマスタIDをそのまま保存する。
+*/
+/* RECEIPT_SUMMARY_ID_REPOSITORY_SAVE_20260722_END */
 /* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_START */
 /*
   新レシートDB 6テーブル用 repository 関数。
@@ -1489,7 +1558,8 @@ async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, d
       project_id,
       department_id,
 
-      ocr_raw_text
+      ocr_raw_text,
+      receipt_summary_id
     ) VALUES (
       $1, $2,
       $3, $4,
@@ -1501,7 +1571,8 @@ async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, d
       $15,
       $16, $17,
       $18, $19, $20, $21,
-      $22
+      $22,
+      $23
     )
     RETURNING *
     `,
@@ -1537,7 +1608,8 @@ async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, d
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.projectId, draft.project_id)),
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.departmentId, draft.department_id)),
 
-      __receiptNew6Text(__receiptNew6FirstDefined(draft.ocrRawText, draft.ocr_raw_text, importItem.ocr_raw_text))
+      __receiptNew6Text(__receiptNew6FirstDefined(draft.ocrRawText, draft.ocr_raw_text, importItem.ocr_raw_text)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.receiptSummaryId, draft.receipt_summary_id))
     ]
   );
 
@@ -1766,6 +1838,7 @@ async function updateReceiptDraftDetail(id, patch) {
       project_id = $20,
       department_id = $21,
 
+      receipt_summary_id = $22,
       updated_at = CURRENT_TIMESTAMP
     WHERE draft_receipt_detail_id = $1
     RETURNING *
@@ -1800,7 +1873,8 @@ async function updateReceiptDraftDetail(id, patch) {
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.accountTitleId, patch.account_title_id)),
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.purposeId, patch.purpose_id)),
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.projectId, patch.project_id)),
-      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.departmentId, patch.department_id))
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.departmentId, patch.department_id)),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(patch.receiptSummaryId, patch.receipt_summary_id))
     ]
   );
 
@@ -2473,7 +2547,8 @@ async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receip
       department_id,
 
       ocr_raw_text,
-      ai_confidence
+      ai_confidence,
+      receipt_summary_id
     ) VALUES (
       $1, $2,
       $3, $4,
@@ -2485,7 +2560,8 @@ async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receip
       $15,
       $16, $17,
       $18, $19, $20, $21,
-      $22, $23
+      $22, $23,
+      $24
     )
     RETURNING *
     `,
@@ -2522,7 +2598,8 @@ async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receip
       __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.departmentId, draft.department_id)),
 
       __receiptNew6Text(__receiptNew6FirstDefined(draft.ocrRawText, draft.ocr_raw_text, importItem.ocr_raw_text)),
-      __receiptNew6PickConfidence(draft || {})
+      __receiptNew6PickConfidence(draft || {}),
+      __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(draft.receiptSummaryId, draft.receipt_summary_id))
     ]
   );
 
@@ -2956,12 +3033,13 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
           department_id,
           ocr_raw_text,
           created_at,
-          updated_at
+          updated_at,
+          receipt_summary_id
         )
         VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8,
           $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, NOW(), NOW()
+          $16, $17, $18, $19, $20, $21, $22, $23,$24, NOW(), NOW()
         )
         RETURNING *
         `,
@@ -2988,7 +3066,8 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
           detail.purpose_id,
           detail.project_id,
           detail.department_id,
-          detail.ocr_raw_text
+          detail.ocr_raw_text,
+          __receiptNew6ToNumberOrNull(__receiptNew6FirstDefined(detail.receiptSummaryId, detail.receipt_summary_id))
         ]
       );
 
