@@ -5763,6 +5763,11 @@ function setDocumentPreview(item) {
 
     let count = 0;
 
+    /* HD_ORIGIN_CIL_INSURANCE_COMMON_REFLECTION */
+    if (typeof hdOriginCilApplyInsuranceFields === "function") {
+      hdOriginCilApplyInsuranceFields(d);
+    }
+
     count += window.hdOriginSetControlValueLoose("draftAiDocumentKind", d.document_type_code || d.document_type_label || d.document_type_name, d.document_type_label || d.document_type_name || s.document_kind);
     count += window.hdOriginSetControlValueLoose("draftAiDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
