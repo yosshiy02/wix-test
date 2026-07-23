@@ -444,6 +444,29 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
     ].join("\n"));
   }
   
+  /* HD_ORIGIN_UTILITY_TAX_CATEGORY_AI_20260723 */
+  if (specialistAnalysisCode === "utility_communication") {
+    const taxCategories = await queryRows(
+      `SELECT
+         tax_category_id,
+         tax_name AS tax_category_label,
+         tax_rate
+       FROM expenses.tax_categories
+       WHERE is_active = true
+       ORDER BY sort_order, tax_category_id`
+    );
+
+    promptTexts.push([
+      "【税区分マスタ候補】",
+      JSON.stringify(taxCategories, null, 2),
+      "各料金明細の税区分は、この候補一覧からAIがOCR本文全体を見て判断してください。",
+      "line_items[].tax_category_idには、選択した候補のtax_category_idを整数で返してください。",
+      "line_items[].tax_category_labelには、同じ候補のtax_category_labelを完全一致で返してください。",
+      "line_items[].tax_rateには、OCR本文に税率が印字されている場合だけ数値を返してください。",
+      "候補を判断できない場合はtax_category_idをnull、tax_category_labelを空欄にし、推測しないでください。",
+      "明細税額はOCR本文に実際に印字されている場合だけ返し、独自計算や按分をしないでください。"
+    ].join("\n"));
+  }
   promptTexts.push(buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema));
   return promptTexts;
 }

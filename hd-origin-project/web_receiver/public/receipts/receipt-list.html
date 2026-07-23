@@ -949,6 +949,144 @@ const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
       }
     }
     /* RECEIPT_SETTLED_CHECKBOX_20260705_END */
+/* RECEIPT_SUMMARY_MASTER_SELECT_20260723_START */
+function receiptSummaryMasterRows() {
+  if (
+    !receiptMasterOptions ||
+    !Array.isArray(receiptMasterOptions.receiptSummaries)
+  ) {
+    return [];
+  }
+
+  return receiptMasterOptions.receiptSummaries;
+}
+
+function receiptSummaryMasterId(row) {
+  if (!row) return null;
+
+  return (
+    row.receipt_summary_id ??
+    row.receiptSummaryId ??
+    row.id ??
+    null
+  );
+}
+
+function receiptSummaryMasterName(row) {
+  if (!row) return "";
+
+  return String(
+    row.receipt_summary_name ??
+    row.receiptSummaryName ??
+    row.summary_name ??
+    row.name ??
+    ""
+  ).trim();
+}
+
+function receiptSummaryOptionsHtml(draft) {
+  const raw =
+    draft &&
+    draft.ai_raw_json &&
+    typeof draft.ai_raw_json === "object"
+      ? draft.ai_raw_json
+      : {};
+
+  const currentId =
+    draft.receipt_summary_id ??
+    draft.receiptSummaryId ??
+    raw.receiptSummaryId ??
+    raw.receipt_summary_id ??
+    null;
+
+  const currentName = String(
+    draft.summary ??
+    draft.receipt_summary_name ??
+    draft.receiptSummaryName ??
+    raw.receiptSummaryName ??
+    raw.receipt_summary_name ??
+    ""
+  ).trim();
+
+  const options = [
+    '<option value="">選択してください</option>'
+  ];
+
+  for (const row of receiptSummaryMasterRows()) {
+    const id = receiptSummaryMasterId(row);
+    const name = receiptSummaryMasterName(row);
+
+    if (
+      id === null ||
+      id === undefined ||
+      !name
+    ) {
+      continue;
+    }
+
+    const selectedById =
+      currentId !== null &&
+      currentId !== undefined &&
+      String(id) === String(currentId);
+
+    const selectedByName =
+      (
+        currentId === null ||
+        currentId === undefined ||
+        currentId === ""
+      ) &&
+      currentName &&
+      name === currentName;
+
+    const selected =
+      selectedById ||
+      selectedByName
+        ? " selected"
+        : "";
+
+    options.push(
+      '<option value="' +
+      esc(name) +
+      '" data-receipt-summary-id="' +
+      esc(String(id)) +
+      '"' +
+      selected +
+      ">" +
+      esc(name) +
+      "</option>"
+    );
+  }
+
+  return options.join("");
+}
+
+function getReceiptSummarySelectedId() {
+  const select = document.getElementById("summary");
+
+  if (
+    !select ||
+    select.selectedIndex < 0
+  ) {
+    return null;
+  }
+
+  const option = select.options[select.selectedIndex];
+
+  if (
+    !option ||
+    !option.dataset ||
+    !option.dataset.receiptSummaryId
+  ) {
+    return null;
+  }
+
+  const id = Number(option.dataset.receiptSummaryId);
+
+  return Number.isFinite(id)
+    ? id
+    : null;
+}
+/* RECEIPT_SUMMARY_MASTER_SELECT_20260723_END */
 
 function renderForm(item, drafts) {
       currentDraft = drafts[0] || null;
@@ -1037,7 +1175,7 @@ document.getElementById("formArea").innerHTML = `
 
                     <div class="receipt-summary-field" style="grid-column: 2 / 3 !important; grid-row: 1 !important; order: 2 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>摘要</label>
-                      <input id="summary" value="${esc(currentDraft.summary || "")}">
+                      <select id="summary">${receiptSummaryOptionsHtml(currentDraft)}</select>
                     </div>
 
                     <div class="receipt-memo-field" style="grid-column: 1 / 3 !important; grid-row: 2 !important; order: 3 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
@@ -1355,7 +1493,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         evidenceMemo: getInput("evidenceMemo"),
         accountTitleName: getInput("accountTitleName"),
         invoiceNumber: getInput("invoiceNumber"),
-        summary: getInput("summary"),
+        summary: getInput("summary"),
+        receiptSummaryId: getReceiptSummarySelectedId(),
         memo: getInput("memo"),
         confidence: cleanNumber(getInput("confidence")),
         status: "draft",
@@ -1782,7 +1921,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         evidenceMemo: draft.evidence_memo || raw.evidenceMemo || raw.evidence_memo || "",
         accountTitleName: draft.account_title_name || "",
         invoiceNumber: draft.invoice_number || raw.invoiceNumber || raw.invoice_number || "",
-        summary: draft.summary || "",
+        summary: draft.summary || "",
+        receiptSummaryId: draft.receipt_summary_id || raw.receiptSummaryId || raw.receipt_summary_id || null,
         memo: draft.memo || "",
         confidence: cleanNumber(draft.confidence),
         status: "draft",
@@ -3358,6 +3498,7 @@ loadList();
         paymentMethods: data.paymentMethods || [],
         targetPeople: data.targetPeople || [],
         purposes: data.purposes || [],
+        receiptSummaries: data.receiptSummaries || data.receipt_summaries || [],
         projects: data.projects || [],
         departments: data.departments || [],
         invoiceTypes: data.invoiceTypes || [],
