@@ -821,68 +821,100 @@ function resolveReceiptAiSummaryClassification(
       ? masterHints.receiptSummaries
       : [];
 
-  const rawId = normalizeNullableInteger(
+  const source =
     parsed &&
-    (
-      parsed.receiptSummaryId ||
-      parsed.receipt_summary_id
-    )
+    typeof parsed === "object"
+      ? parsed
+      : {};
+
+  const rawId = normalizeNullableInteger(
+    source.receiptSummaryId ??
+    source.receipt_summary_id ??
+    null
   );
 
-  const rawName = String(
-    parsed &&
-    (
-      parsed.receiptSummaryName ||
-      parsed.receipt_summary_name
-    )
-      ? (
-          parsed.receiptSummaryName ||
-          parsed.receipt_summary_name
-        )
-      : ""
-  ).trim();
+  const rawNames = [
+    source.receiptSummaryName,
+    source.receipt_summary_name,
+    source.summary
+  ]
+    .map((value) => String(value || "").trim())
+    .filter((value, index, values) => {
+      return value && values.indexOf(value) === index;
+    });
 
-  if (
-    rawId === null ||
-    !rawName
-  ) {
+  function resolved(row) {
     return {
-      id: null,
-      code: "",
-      name: "",
-      valid: false
+      id: Number(row.receipt_summary_id),
+      code: String(
+        row.receipt_summary_code || ""
+      ).trim(),
+      name: String(
+        row.receipt_summary_name || ""
+      ).trim(),
+      valid: true
     };
   }
 
-  const exactPair = summaries.find(
-    (row) =>
-      Number(row.receipt_summary_id) === rawId &&
-      String(
-        row.receipt_summary_name || ""
-      ).trim() === rawName
-  );
+  /*
+    AIが摘要マスタIDを返した場合は、
+    DBマスタに実在するIDを最優先で採用する。
+    名称はAI文字列ではなくマスタの正規名称を使用する。
+  */
+  if (rawId !== null) {
+    const byId = summaries.find((row) => {
+      return (
+        Number(row.receipt_summary_id) ===
+        Number(rawId)
+      );
+    });
 
-  if (!exactPair) {
-    return {
-      id: null,
-      code: "",
-      name: "",
-      valid: false
-    };
+    if (byId) {
+      return resolved(byId);
+    }
+  }
+
+  /*
+    AIがIDを省略して名称だけ返した場合は、
+    receiptSummaryName または summary が
+    摘要マスタ名称と一致したときだけ採用する。
+  */
+  for (const rawName of rawNames) {
+    const exact = summaries.find((row) => {
+      return (
+        String(
+          row.receipt_summary_name || ""
+        ).trim() === rawName
+      );
+    });
+
+    if (exact) {
+      return resolved(exact);
+    }
+
+    const normalizedName =
+      normalizeReceiptAiMasterName(rawName);
+
+    const normalized = summaries.find((row) => {
+      return (
+        normalizeReceiptAiMasterName(
+          row.receipt_summary_name
+        ) === normalizedName
+      );
+    });
+
+    if (normalized) {
+      return resolved(normalized);
+    }
   }
 
   return {
-    id: Number(exactPair.receipt_summary_id),
-    code: String(
-      exactPair.receipt_summary_code || ""
-    ).trim(),
-    name: String(
-      exactPair.receipt_summary_name || ""
-    ).trim(),
-    valid: true
+    id: null,
+    code: "",
+    name: "",
+    valid: false
   };
-}
-/* RECEIPT_AI_SUMMARY_SEPARATION_20260722_END */
+}/* RECEIPT_AI_SUMMARY_SEPARATION_20260722_END */
 /* RECEIPT_AI_SUMMARY_MASTER_20260722_END */
 analyzeReceiptImport = async function analyzeReceiptImportWithMasterHints(receiptImport) {
   const env = readDotEnv();

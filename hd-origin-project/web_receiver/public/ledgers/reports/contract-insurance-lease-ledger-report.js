@@ -132,7 +132,7 @@ function render(rows) {
 
   if (!rows.length) {
     body.innerHTML=
-      '<tr class="empty"><td colspan="12">登録済みデータはありません。</td></tr>';
+      '<tr class="empty"><td colspan="13">登録済みデータはありません。</td></tr>';
     return;
   }
 
@@ -229,12 +229,15 @@ function render(rows) {
             '<td><button type="button" class="detail-toggle" '+
         'data-detail-target="'+escapeHtml(detailId)+'" '+
         'aria-expanded="false">明細</button></td>'+
-      "<td>"+escapeHtml(row.original_file_name)+"</td>"+
+            "<td>"+escapeHtml(row.original_file_name)+"</td>"+
+      '<td><a class="edit-link" href="/payables/payment-document-specialist-contract-insurance-lease.html?ocr_import_id='+
+        encodeURIComponent(text(row.payment_document_ocr_import_id))+
+        '&from=cil-ledger">修正</a></td>'+
       "</tr>";
 
     const detail=
       '<tr id="'+escapeHtml(detailId)+'" class="detail-row" hidden>'+
-        '<td colspan="12">'+
+        '<td colspan="13">'+
           renderDetailTree(row,lines)+
         "</td>"+
       "</tr>";
