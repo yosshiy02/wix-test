@@ -11163,15 +11163,10 @@ async function handlePaymentDocumentRoutes(req, res) {
       ) || "\u672A\u78BA\u8A8D";
 
       await client.query(`
-        UPDATE accounting.payment_document_specialist_analysis_results
-        SET
-          is_current = FALSE,
-          updated_at = now()
-        WHERE payment_document_sorting_draft_id = $1
+        DELETE FROM accounting.payment_document_specialist_analysis_results
+        WHERE payment_document_ocr_import_id = $1
           AND analysis_system_code = $2
-          AND is_current = TRUE
-          AND deleted_at IS NULL
-      `, [sortingDraftId, analysisSystemCode]);
+      `, [ocrImportId, analysisSystemCode]);
 
       const inserted = await client.query(`
         INSERT INTO accounting.payment_document_specialist_analysis_results (

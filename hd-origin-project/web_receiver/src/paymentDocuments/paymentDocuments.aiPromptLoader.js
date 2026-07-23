@@ -245,9 +245,11 @@ async function buildSpecialistJsonSchema(specialistAnalysisCode) {
 
 function buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema) {
   return [
-    "【PostgreSQLマスタから動的生成した専門解析JSON Schema】",
+    "【PostgreSQLマスタから動的生成した専門解析 fields JSON Schema】",
     `専門解析コード: ${specialistAnalysisCode}`,
-    "回答は、以下のJSON Schemaに適合するJSONとして生成してください。",
+    "以下のJSON Schemaは、返却JSON全体ではなく draft.fields の構造だけを定義します。",
+    "返却JSON全体は、共通プロンプトで指定した draft・visible_field_labels・warnings の形式を維持してください。",
+    "draft.fields は以下のJSON Schemaに適合させてください。",
     JSON.stringify(jsonSchema, null, 2)
   ].join("\n");
 }
