@@ -7973,13 +7973,8 @@ async function hdOriginSaveContractInsuranceLeaseDraft(body) {
       );
 
     await client.query(`
-      UPDATE accounting.payment_document_contract_insurance_lease_drafts
-      SET
-        is_current = FALSE,
-        updated_at = now()
+      DELETE FROM accounting.payment_document_contract_insurance_lease_drafts
       WHERE payment_document_ocr_import_id = $1
-        AND is_current = TRUE
-        AND deleted_at IS NULL
     `, [ocrImportId]);
 
     const colResult = await client.query(`

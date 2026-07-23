@@ -250,7 +250,7 @@ function buildSpecialistSchemaPrompt(specialistAnalysisCode, jsonSchema) {
     "以下のJSON Schemaは、返却JSON全体ではなく draft.fields の構造だけを定義します。",
     "返却JSON全体は、共通プロンプトで指定した draft・visible_field_labels・warnings の形式を維持してください。",
     "draft.fields は以下のJSON Schemaに適合させてください。",
-    JSON.stringify(jsonSchema, null, 2)
+    JSON.stringify(jsonSchema.schema, null, 2)
   ].join("\n");
 }
 
