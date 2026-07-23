@@ -7667,7 +7667,73 @@ function setDocumentPreview(item) {
         );
       }
 
-      applySpecialistNavigationCounts(data.items || []);
+            /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_START */
+      const countSourceItems=Array.isArray(data.items)
+        ? data.items
+        : [];
+
+      let countVisibleItems=countSourceItems;
+
+      try {
+        const cilResponse=await fetch(
+          "/api/payment-documents/contract-insurance-lease/list",
+          { cache:"no-store" }
+        );
+
+        if (cilResponse.ok) {
+          const cilData=await cilResponse.json();
+
+          const cilRows=Array.isArray(cilData)
+            ? cilData
+            : Array.isArray(cilData.items)
+              ? cilData.items
+              : Array.isArray(cilData.rows)
+                ? cilData.rows
+                : [];
+
+          const savedCilIds=new Set(
+            cilRows
+              .map(function (row) {
+                return Number(
+                  row.payment_document_ocr_import_id ||
+                  row.paymentDocumentOcrImportId ||
+                  row.ocrImportId ||
+                  row.id ||
+                  0
+                );
+              })
+              .filter(function (id) {
+                return Number.isInteger(id) && id > 0;
+              })
+          );
+
+          countVisibleItems=countSourceItems.filter(function (item) {
+            const id=Number(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.ocrImportId ||
+              item.ocr_import_id ||
+              item.id ||
+              0
+            );
+
+            const code=analysisSystemCodeOf(item);
+
+            return !(
+              code==="contract_insurance_lease_analysis" &&
+              savedCilIds.has(id)
+            );
+          });
+        }
+      } catch (error) {
+        console.warn(
+          "契約・保険・リース保存済み件数の除外に失敗しました。",
+          error
+        );
+      }
+
+      applySpecialistNavigationCounts(countVisibleItems);
+      /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_END */
     }
     catch (error) {
       console.warn(

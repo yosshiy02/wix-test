@@ -4963,6 +4963,8 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
 
   const specialistContext = {
     phase: "specialist",
+    /* HD_ORIGIN_SPECIALIST_ANALYSIS_CODE_CONTEXT_20260723 */
+    specialist_analysis_code: specialistRouteCode,
     specialist_route_code: specialistRouteCode,
     specialist_route_label: specialistRouteLabel,
     analysis_system_code: analysisSystemCode,
@@ -11579,6 +11581,102 @@ async function handlePaymentDocumentRoutes(req, res) {
     return true;
   }
     /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_START */
+  /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_START */
+  if (
+    req.method === "POST" &&
+    urlPath ===
+      "/api/payment-documents/contract-insurance-lease/return-to-analysis"
+  ) {
+    try {
+      const body = await readBody(req);
+
+      const ocrImportId = Number(
+        body.paymentDocumentOcrImportId ||
+        body.payment_document_ocr_import_id ||
+        body.ocrImportId ||
+        body.id ||
+        0
+      );
+
+      if (!Number.isInteger(ocrImportId) || ocrImportId < 1) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "OCR取込IDが不正です。"
+        });
+        return;
+      }
+
+      const client = await db.connect();
+
+      try {
+        await client.query("BEGIN");
+
+        const cilDeleted = await client.query(
+          `
+            DELETE FROM
+              accounting.payment_document_contract_insurance_lease_drafts
+            WHERE payment_document_ocr_import_id = $1
+            RETURNING contract_insurance_lease_draft_id
+          `,
+          [ocrImportId]
+        );
+
+        const specialistDeleted = await client.query(
+          `
+            DELETE FROM
+              accounting.payment_document_specialist_analysis_results
+            WHERE payment_document_ocr_import_id = $1
+              AND analysis_system_code =
+                'contract_insurance_lease_analysis'
+            RETURNING specialist_analysis_id
+          `,
+          [ocrImportId]
+        );
+
+        await client.query(
+          `
+            UPDATE accounting.payment_document_sorting_drafts
+            SET
+              latest_specialist_analysis_id = NULL,
+              specialist_analysis_status = NULL,
+              specialist_analyzed_at = NULL,
+              specialist_saved_at = NULL,
+              specialist_error_text = NULL
+            WHERE payment_document_ocr_import_id = $1
+          `,
+          [ocrImportId]
+        );
+
+        await client.query("COMMIT");
+
+        sendJson(res, 200, {
+          ok: true,
+          paymentDocumentOcrImportId: ocrImportId,
+          deletedCilDraftCount: cilDeleted.rowCount,
+          deletedSpecialistResultCount:
+            specialistDeleted.rowCount
+        });
+        return;
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error(
+        "contract-insurance-lease return-to-analysis failed:",
+        error
+      );
+
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message
+      });
+      return;
+    }
+  }
+  /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_END */
   if (
     req.method === "GET" &&
     urlPath === "/api/payment-documents/contract-insurance-lease/list"

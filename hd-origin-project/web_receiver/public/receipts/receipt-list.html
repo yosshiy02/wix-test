@@ -2090,13 +2090,70 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     }
 
     async function bulkPostReceiptImports(ids) {
+      const ocrIds = Array.isArray(ids)
+        ? ids
+            .map((id) => Number(id))
+            .filter((id) => Number.isFinite(id) && id > 0)
+        : [];
+
+      const receiptImportIds = [];
+
+      for (const ocrId of ocrIds) {
+        const resolveRes = await fetch(
+          "/api/receipts/payment-document-ocr-imports/" +
+          encodeURIComponent(ocrId) +
+          "/receipt-import",
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+        const resolveData = await resolveRes.json().catch(() => {
+          return {
+            ok: false,
+            error: "JSON読込失敗"
+          };
+        });
+
+        const receiptImportId = Number(
+          resolveData.receiptImportId ||
+          resolveData.receipt_import_id ||
+          0
+        );
+
+        if (
+          !resolveRes.ok ||
+          !resolveData.ok ||
+          !Number.isFinite(receiptImportId) ||
+          receiptImportId <= 0
+        ) {
+          throw new Error(
+            "レシート取込IDを取得できません。OCR ID " +
+            ocrId +
+            ": " +
+            (resolveData.error || "対応する取込データがありません。")
+          );
+        }
+
+        if (!receiptImportIds.includes(receiptImportId)) {
+          receiptImportIds.push(receiptImportId);
+        }
+      }
+
+      if (!receiptImportIds.length) {
+        throw new Error("本保存対象のレシート取込IDがありません。");
+      }
+
       const res = await fetch("/api/receipts/imports/bulk-post", {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8"
         },
         body: JSON.stringify({
-          receiptImportIds: ids
+          receiptImportIds: receiptImportIds
         })
       });
 

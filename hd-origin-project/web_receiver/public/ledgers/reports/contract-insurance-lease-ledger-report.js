@@ -230,9 +230,9 @@ function render(rows) {
         'data-detail-target="'+escapeHtml(detailId)+'" '+
         'aria-expanded="false">明細</button></td>'+
             "<td>"+escapeHtml(row.original_file_name)+"</td>"+
-      '<td><a class="edit-link" href="/payables/payment-document-specialist-contract-insurance-lease.html?ocr_import_id='+
-        encodeURIComponent(text(row.payment_document_ocr_import_id))+
-        '&from=cil-ledger">修正</a></td>'+
+      '<td><button type="button" class="edit-link ledger-edit-button" data-ocr-import-id="'+
+        escapeHtml(text(row.payment_document_ocr_import_id))+
+        '">修正</button></td>'+
       "</tr>";
 
     const detail=
@@ -263,6 +263,64 @@ function render(rows) {
     });
   });
 }
+/* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_START */
+async function returnLedgerItemToAnalysis(ocrImportId,button) {
+  const id=Number(ocrImportId);
+
+  if (!Number.isInteger(id) || id < 1) {
+    throw new Error("OCR取込IDを確認できません。");
+  }
+
+  button.disabled=true;
+
+  try {
+    const response=await fetch(
+      "/api/payment-documents/contract-insurance-lease/return-to-analysis",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          paymentDocumentOcrImportId:id
+        })
+      }
+    );
+
+    const json=await response.json().catch(function () {
+      return {};
+    });
+
+    if (!response.ok || !json.ok) {
+      throw new Error(
+        json.error ||
+        "台帳から解析画面へ戻せませんでした。"
+      );
+    }
+
+    location.href=
+      "/payables/payment-document-specialist-contract-insurance-lease.html";
+  } catch (error) {
+    button.disabled=false;
+    throw error;
+  }
+}
+
+document.addEventListener("click",function (event) {
+  const button=event.target.closest(".ledger-edit-button");
+
+  if (!button) {
+    return;
+  }
+
+  returnLedgerItemToAnalysis(
+    button.dataset.ocrImportId,
+    button
+  ).catch(function (error) {
+    window.alert(error.message);
+  });
+});
+/* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_END */
 async function main() {
   const status=document.getElementById("loadStatus");
 
