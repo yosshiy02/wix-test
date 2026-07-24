@@ -1620,7 +1620,7 @@ function setDocumentPreview(item) {
     if (setById("draftNoticeNumber", fields["通知書番号"])) appliedCount++;
     if (setById("draftManagementNumber", fields["管理番号"])) appliedCount++;
     if (setById("draftCustomerNumber", fields["お客様番号"])) appliedCount++;
-    if (setById("draftContractNumber", fields["契約番号"])) appliedCount++;
+    if (setById("draftContractNo", fields["契約番号"])) appliedCount++;
     if (setById("draftMemberNumber", fields["会員番号"])) appliedCount++;
     if (setById("draftOrderNumber", fields["注文番号"])) appliedCount++;
     if (setById("draftTransactionNumber", fields["取引番号"])) appliedCount++;
@@ -3173,7 +3173,10 @@ function setDocumentPreview(item) {
 
     setValue(
       "draftInsurancePolicyNumber",
-      fields["保険証券番号・契約番号"] || ""
+      fields["保険証券番号・契約番号"] ||
+      fields["保険証券番号"] ||
+      fields["契約番号"] ||
+      ""
     );
 
     /* HD_ORIGIN_CIL_ITEM_FIELD_REFLECTION */

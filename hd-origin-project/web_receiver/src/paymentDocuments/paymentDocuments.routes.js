@@ -11922,8 +11922,6 @@ async function handlePaymentDocumentRoutes(req, res) {
               r.analysis_system_label,
               r.ai_confidence,
               r.ai_reason,
-              r.draft_json,
-              r.visible_field_labels_json,
               r.warnings_json
                 AS specialist_warnings_json,
               r.raw_result_json
@@ -12022,16 +12020,12 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const savedDraft =
         Object.keys(
-          objectOrEmpty(row.draft_json)
+          objectOrEmpty(rawResult.draft)
         ).length
-          ? objectOrEmpty(row.draft_json)
-          : Object.keys(
-              objectOrEmpty(rawResult.draft)
-            ).length
-            ? objectOrEmpty(rawResult.draft)
-            : objectOrEmpty(
-                rawSpecialist.draft
-              );
+          ? objectOrEmpty(rawResult.draft)
+          : objectOrEmpty(
+              rawSpecialist.draft
+            );
 
       const specialistFields =
         objectOrEmpty(
@@ -12050,22 +12044,18 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const visibleFieldLabels =
         Array.isArray(
-          row.visible_field_labels_json
+          rawResult.visible_field_labels
         )
-          ? row.visible_field_labels_json
+          ? rawResult.visible_field_labels
           : Array.isArray(
-              rawResult.visible_field_labels
+              rawSpecialist.visible_field_labels
             )
-            ? rawResult.visible_field_labels
+            ? rawSpecialist.visible_field_labels
             : Array.isArray(
-                rawSpecialist.visible_field_labels
+                savedDraft.visible_field_labels
               )
-              ? rawSpecialist.visible_field_labels
-              : Array.isArray(
-                  savedDraft.visible_field_labels
-                )
-                ? savedDraft.visible_field_labels
-                : [];
+              ? savedDraft.visible_field_labels
+              : [];
 
       const warnings =
         Array.isArray(
