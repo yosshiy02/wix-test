@@ -11909,7 +11909,7 @@ async function handlePaymentDocumentRoutes(req, res) {
   }
   /* HD_ORIGIN_UTILITY_LEDGER_GET_API_20260723_END */
 /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_START */
-  /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_START */
+    /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_START */
   if (
     req.method === "POST" &&
     urlPath ===
@@ -11926,12 +11926,16 @@ async function handlePaymentDocumentRoutes(req, res) {
         0
       );
 
-      if (!Number.isInteger(ocrImportId) || ocrImportId < 1) {
+      if (
+        !Number.isInteger(ocrImportId) ||
+        ocrImportId < 1
+      ) {
         sendJson(res, 400, {
           ok: false,
           error: "OCR取込IDが不正です。"
         });
-        return;
+
+        return true;
       }
 
       const client = await db.connect();
@@ -11939,59 +11943,135 @@ async function handlePaymentDocumentRoutes(req, res) {
       try {
         await client.query("BEGIN");
 
-        const cilDeleted = await client.query(
+        /*
+          台帳から解析一覧へ移動する。
+          保存内容・専門解析結果・リース明細は削除しない。
+        */
+        const cilMoved = await client.query(
           `
-            DELETE FROM
+            UPDATE
               accounting.payment_document_contract_insurance_lease_drafts
-            WHERE payment_document_ocr_import_id = $1
-            RETURNING contract_insurance_lease_draft_id
-          `,
-          [ocrImportId]
-        );
-
-        const specialistDeleted = await client.query(
-          `
-            DELETE FROM
-              accounting.payment_document_specialist_analysis_results
-            WHERE payment_document_ocr_import_id = $1
-              AND analysis_system_code =
-                'contract_insurance_lease_analysis'
-            RETURNING specialist_analysis_id
-          `,
-          [ocrImportId]
-        );
-
-        await client.query(
-          `
-            UPDATE accounting.payment_document_sorting_drafts
             SET
-              latest_specialist_analysis_id = NULL,
-              specialist_analysis_status = NULL,
-              specialist_analyzed_at = NULL,
-              specialist_saved_at = NULL,
-              specialist_error_text = NULL
-            WHERE payment_document_ocr_import_id = $1
+              draft_status =
+                'returned_to_analysis'
+            WHERE
+              payment_document_ocr_import_id = $1
+              AND is_current = TRUE
+              AND deleted_at IS NULL
+            RETURNING
+              contract_insurance_lease_draft_id,
+              payment_document_ocr_import_id,
+              payment_document_sorting_draft_id,
+              specialist_analysis_id
           `,
           [ocrImportId]
         );
+
+        if (!cilMoved.rows.length) {
+          await client.query("ROLLBACK");
+
+          sendJson(res, 404, {
+            ok: false,
+            error:
+              "台帳上の契約・保険・リース保存データが見つかりません。"
+          });
+
+          return true;
+        }
+
+        const movedRow =
+          cilMoved.rows[0];
+
+        let specialistResultCount = 0;
+
+        if (
+          movedRow.specialist_analysis_id
+        ) {
+          const specialistMoved =
+            await client.query(
+              `
+                UPDATE
+                  accounting.payment_document_specialist_analysis_results
+                SET
+                  specialist_analysis_status =
+                    'returned_to_analysis'
+                WHERE
+                  specialist_analysis_id = $1
+                RETURNING
+                  specialist_analysis_id
+              `,
+              [
+                movedRow
+                  .specialist_analysis_id
+              ]
+            );
+
+          specialistResultCount =
+            specialistMoved.rowCount;
+        }
+
+        let sortingDraftCount = 0;
+
+        if (
+          movedRow
+            .payment_document_sorting_draft_id
+        ) {
+          const sortingMoved =
+            await client.query(
+              `
+                UPDATE
+                  accounting.payment_document_sorting_drafts
+                SET
+                  specialist_analysis_status =
+                    'returned_to_analysis',
+                  specialist_saved_at = NULL
+                WHERE
+                  payment_document_sorting_draft_id = $1
+                RETURNING
+                  payment_document_sorting_draft_id
+              `,
+              [
+                movedRow
+                  .payment_document_sorting_draft_id
+              ]
+            );
+
+          sortingDraftCount =
+            sortingMoved.rowCount;
+        }
 
         await client.query("COMMIT");
 
         sendJson(res, 200, {
           ok: true,
-          paymentDocumentOcrImportId: ocrImportId,
-          deletedCilDraftCount: cilDeleted.rowCount,
-          deletedSpecialistResultCount:
-            specialistDeleted.rowCount
+
+          paymentDocumentOcrImportId:
+            ocrImportId,
+
+          moveStatus:
+            "returned_to_analysis",
+
+          movedCilDraftCount:
+            cilMoved.rowCount,
+
+          movedSpecialistResultCount:
+            specialistResultCount,
+
+          movedSortingDraftCount:
+            sortingDraftCount
         });
-        return;
-      } catch (error) {
+
+        return true;
+      }
+      catch (error) {
         await client.query("ROLLBACK");
         throw error;
-      } finally {
+      }
+      finally {
         client.release();
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(
         "contract-insurance-lease return-to-analysis failed:",
         error
@@ -11999,9 +12079,12 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       sendJson(res, 500, {
         ok: false,
-        error: error.message
+        error:
+          error.message ||
+          String(error)
       });
-      return;
+
+      return true;
     }
   }
   /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_ROUTE_20260723_END */
@@ -12053,6 +12136,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         FROM accounting.payment_document_contract_insurance_lease_drafts d
         WHERE d.is_current = TRUE
           AND d.deleted_at IS NULL
+          AND COALESCE(d.draft_status, '') <> 'returned_to_analysis'
         ORDER BY
           d.contract_start_date DESC NULLS LAST,
           d.contract_insurance_lease_draft_id DESC

@@ -4504,7 +4504,109 @@ function setDocumentPreview(item) {
     };
   /* HD_ORIGIN_GPT2_CIL_RECURSIVE_ANALYSIS_CODE_FILTER_20260722_END */
 
-  async function loadItems() {
+    /* HD_ORIGIN_CIL_QUEUE_STATE_20260724_START */
+  function hdOriginCilQueueStatus(item) {
+    const source =
+      item &&
+      typeof item === "object"
+        ? item
+        : {};
+
+    const latest =
+      source.latestSortingDraft &&
+      typeof source.latestSortingDraft ===
+        "object"
+        ? source.latestSortingDraft
+        : (
+            source.latest_sorting_draft &&
+            typeof source.latest_sorting_draft ===
+              "object"
+              ? source.latest_sorting_draft
+              : {}
+          );
+
+    const candidates = [
+      source.specialistAnalysisStatus,
+      source.specialist_analysis_status,
+
+      latest.specialistAnalysisStatus,
+      latest.specialist_analysis_status
+    ];
+
+    for (const candidate of candidates) {
+      const status =
+        String(
+          candidate === null ||
+          candidate === undefined
+            ? ""
+            : candidate
+        )
+          .trim()
+          .toLowerCase();
+
+      if (status) {
+        return status;
+      }
+    }
+
+    return "";
+  }
+
+  function hdOriginCilIsInAnalysisQueue(item) {
+    const status =
+      hdOriginCilQueueStatus(item);
+
+    if (
+      status === "returned_to_analysis" ||
+      status === "reopened" ||
+      status === "修正中" ||
+      status === "要修正"
+    ) {
+      return true;
+    }
+
+    if (
+      status === "specialist_draft_saved" ||
+      status === "saved" ||
+      status === "completed" ||
+      status === "complete" ||
+      status === "confirmed" ||
+      status === "保存済み" ||
+      status === "確定"
+    ) {
+      return false;
+    }
+
+    const source =
+      item &&
+      typeof item === "object"
+        ? item
+        : {};
+
+    const latest =
+      source.latestSortingDraft &&
+      typeof source.latestSortingDraft ===
+        "object"
+        ? source.latestSortingDraft
+        : (
+            source.latest_sorting_draft &&
+            typeof source.latest_sorting_draft ===
+              "object"
+              ? source.latest_sorting_draft
+              : {}
+          );
+
+    const savedAt =
+      source.specialistSavedAt ||
+      source.specialist_saved_at ||
+      latest.specialistSavedAt ||
+      latest.specialist_saved_at ||
+      "";
+
+    return !String(savedAt || "").trim();
+  }
+  /* HD_ORIGIN_CIL_QUEUE_STATE_20260724_END */
+async function loadItems() {
     const summary = document.getElementById("summary");
     const list = document.getElementById("list");
 
@@ -4526,7 +4628,16 @@ function setDocumentPreview(item) {
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginContractInsuranceLeaseSpecialistFilter(allItems);
+            const routedItems =
+        window
+          .hdOriginContractInsuranceLeaseSpecialistFilter(
+            allItems
+          );
+
+      items =
+        routedItems.filter(
+          hdOriginCilIsInAnalysisQueue
+        );
 
       summary.textContent =
         "契約・保険・リース専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
@@ -8093,7 +8204,30 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
       button.dataset.saving = "1";
       button.textContent = "まとめて保存中...";
 
-      const result = await bulkSaveSortingDrafts();
+            /* HD_ORIGIN_CIL_BULK_SAVE_QUEUE_REFRESH_20260724 */
+      window.__hdOriginCilBulkSaveRunning =
+        true;
+
+      let result;
+
+      try {
+        result =
+          await bulkSaveSortingDrafts();
+      }
+      finally {
+        window.__hdOriginCilBulkSaveRunning =
+          false;
+      }
+
+      if (
+        result &&
+        Array.isArray(result.ok) &&
+        result.ok.length > 0 &&
+        typeof window.loadItems ===
+          "function"
+      ) {
+        await window.loadItems();
+      }
 
       button.textContent = "まとめて保存";
 
@@ -9162,7 +9296,19 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
         return;
       }
 
-      counts[code] = (counts[code] || 0) + 1;
+            /* HD_ORIGIN_CIL_NAV_QUEUE_COUNT_20260724 */
+      if (
+        code ===
+          "contract_insurance_lease_analysis" &&
+        typeof hdOriginCilIsInAnalysisQueue ===
+          "function" &&
+        !hdOriginCilIsInAnalysisQueue(item)
+      ) {
+        return;
+      }
+
+      counts[code] =
+        (counts[code] || 0) + 1;
     });
 
     document.querySelectorAll(
@@ -10316,6 +10462,98 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 })();
 </script>
   <script src="/payables/payment-document-specialist-contract-insurance-lease-open-from-ledger.js"></script>
+<!-- HD_ORIGIN_CIL_QUEUE_REFRESH_AFTER_SAVE_20260724_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (
+    window
+      .__hdOriginCilQueueRefreshAfterSaveInstalled
+  ) {
+    return;
+  }
+
+  window
+    .__hdOriginCilQueueRefreshAfterSaveInstalled =
+      true;
+
+  function installSaveRefresh() {
+    const original =
+      window
+        .hdOriginSaveSortingDraftFromReviewPage;
+
+    if (
+      typeof original !== "function"
+    ) {
+      return false;
+    }
+
+    if (
+      original
+        .__hdOriginCilQueueRefreshWrapped
+    ) {
+      return true;
+    }
+
+    const wrapped =
+      async function () {
+        const result =
+          await original.apply(
+            this,
+            arguments
+          );
+
+        if (
+          !window
+            .__hdOriginCilBulkSaveRunning &&
+          (
+            !result ||
+            result.ok !== false
+          ) &&
+          typeof window.loadItems ===
+            "function"
+        ) {
+          await window.loadItems();
+        }
+
+        return result;
+      };
+
+    wrapped
+      .__hdOriginCilQueueRefreshWrapped =
+        true;
+
+    window
+      .hdOriginSaveSortingDraftFromReviewPage =
+        wrapped;
+
+    return true;
+  }
+
+  if (!installSaveRefresh()) {
+    let retry = 0;
+
+    const timer =
+      window.setInterval(
+        function () {
+          retry++;
+
+          if (
+            installSaveRefresh() ||
+            retry >= 30
+          ) {
+            window.clearInterval(
+              timer
+            );
+          }
+        },
+        250
+      );
+  }
+})();
+</script>
+<!-- HD_ORIGIN_CIL_QUEUE_REFRESH_AFTER_SAVE_20260724_END -->
 </body>
 </html>
 

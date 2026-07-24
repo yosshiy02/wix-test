@@ -263,33 +263,110 @@ function render(rows) {
     });
   });
 }
-/* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_START */
-/* HD_ORIGIN_CIL_LEDGER_ANALYSIS_SCREEN_LINK_20260724_START */
-function openContractInsuranceLeaseAnalysisScreen(button) {
-  if (button) {
-    button.disabled=true;
+
+/* HD_ORIGIN_CIL_LEDGER_MOVE_TO_ANALYSIS_20260724_START */
+async function moveContractInsuranceLeaseToAnalysis(
+  ocrImportId,
+  button
+) {
+  const id = Number(ocrImportId);
+
+  if (
+    !Number.isInteger(id) ||
+    id < 1
+  ) {
+    throw new Error(
+      "OCR取込IDを確認できません。"
+    );
   }
 
-  location.href=
-    "/payables/payment-document-specialist-contract-insurance-lease.html";
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/payment-documents/" +
+      "contract-insurance-lease/" +
+      "return-to-analysis",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          Accept:
+            "application/json"
+        },
+
+        credentials:
+          "same-origin",
+
+        body: JSON.stringify({
+          paymentDocumentOcrImportId:
+            id
+        })
+      }
+    );
+
+    const payload =
+      await response.json().catch(
+        function () {
+          return {};
+        }
+      );
+
+    if (
+      !response.ok ||
+      !payload.ok
+    ) {
+      throw new Error(
+        payload.error ||
+        "台帳から解析一覧へ移動できませんでした。"
+      );
+    }
+
+    location.href =
+      "/payables/" +
+      "payment-document-specialist-" +
+      "contract-insurance-lease.html";
+  }
+  catch (error) {
+    if (button) {
+      button.disabled = false;
+    }
+
+    throw error;
+  }
 }
 
-document.addEventListener("click",function(event) {
-  const button=
-    event.target.closest(".ledger-edit-button");
+document.addEventListener(
+  "click",
+  function (event) {
+    const button =
+      event.target.closest(
+        ".ledger-edit-button"
+      );
 
-  if (!button) {
-    return;
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+
+    moveContractInsuranceLeaseToAnalysis(
+      button.dataset.ocrImportId,
+      button
+    ).catch(function (error) {
+      window.alert(
+        error.message ||
+        String(error)
+      );
+    });
   }
-
-  event.preventDefault();
-
-  openContractInsuranceLeaseAnalysisScreen(
-    button
-  );
-});
-/* HD_ORIGIN_CIL_LEDGER_ANALYSIS_SCREEN_LINK_20260724_END */
-/* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_END */
+);
+/* HD_ORIGIN_CIL_LEDGER_MOVE_TO_ANALYSIS_20260724_END */
 async function main() {
   const status=document.getElementById("loadStatus");
 

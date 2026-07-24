@@ -568,7 +568,7 @@ tbody tr.is-clickable:focus {
 
 .report-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 110px 110px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: end;
   margin-top: 22px;
@@ -579,14 +579,6 @@ tbody tr.is-clickable:focus {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.7;
-}
-
-.approval-box {
-  display: grid;
-  place-items: center;
-  min-height: 66px;
-  border: 1px solid var(--line-dark);
-  font-size: 12px;
 }
 
 @media (max-width: 1200px) {
@@ -716,12 +708,7 @@ tbody tr.is-clickable:focus {
   }
 
   .report-footer {
-    grid-template-columns: 1fr 72px 72px;
+    grid-template-columns: 1fr;
     margin-top: 10px;
-  }
-
-  .approval-box {
-    min-height: 42px;
-    font-size: 9px;
   }
 }

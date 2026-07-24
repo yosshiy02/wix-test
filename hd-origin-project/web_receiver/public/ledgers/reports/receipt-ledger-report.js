@@ -899,51 +899,29 @@ async function toggleLedgerDetail(
   }
 }
 
+function appendDetailButtonCell(tr, row) {
+  const td = document.createElement("td");
+  const button = document.createElement("button");
+
+  td.className = "ledger-actions";
+
+  button.type = "button";
+  button.className =
+    "ledger-action-button ledger-detail-button";
+  button.textContent = "明細";
+  button.setAttribute("aria-expanded", "false");
+
+  button.addEventListener("click", function (event) {
+    event.stopPropagation();
+    toggleLedgerDetail(button, tr, row);
+  });
+
+  td.appendChild(button);
+  tr.appendChild(td);
+}
 function appendActionCell(tr, row) {
   const td = document.createElement("td");
   const buttonBox = document.createElement("div");
-  const detailButton = document.createElement("button");
-  const editButton = document.createElement("button");
-
-  td.className = "ledger-actions";
-  buttonBox.className = "ledger-action-buttons";
-
-  detailButton.type = "button";
-  detailButton.className =
-    "ledger-action-button ledger-detail-button";
-  detailButton.textContent = "明細";
-  detailButton.setAttribute(
-    "aria-expanded",
-    "false"
-  );
-
-  detailButton.addEventListener(
-    "click",
-    function (event) {
-      event.stopPropagation();
-
-      toggleLedgerDetail(
-        detailButton,
-        tr,
-        row
-      );
-    }
-  );
-
-  editButton.type = "button";
-  editButton.className =
-    "ledger-action-button ledger-edit-button";
-  editButton.textContent = "編集";
-
-  editButton.addEventListener(
-    "click",
-    function (event) {
-      event.stopPropagation();
-      openAnalysis(row);
-    }
-  );
-
-  buttonBox.appendChild(detailButton);
   buttonBox.appendChild(editButton);
   td.appendChild(buttonBox);
   tr.appendChild(td);
@@ -999,6 +977,19 @@ appendTextCell(
       tr,
       row.summary
     );
+    appendTextCell(
+      tr,
+      yen(row.total_amount),
+      "cell-money"
+    );
+
+    appendTextCell(
+      tr,
+      yen(row.tax_total_amount),
+      "cell-money"
+    );
+
+    appendDetailButtonCell(tr, row);
 
     appendTextCell(
       tr,
@@ -1025,17 +1016,6 @@ appendTextCell(
       row.invoice_type_name
     );
 
-    appendTextCell(
-      tr,
-      yen(row.total_amount),
-      "cell-money"
-    );
-
-    appendTextCell(
-      tr,
-      yen(row.tax_total_amount),
-      "cell-money"
-    );
 
     const statusCell = document.createElement("td");
     statusCell.className = "cell-center";

@@ -2336,6 +2336,74 @@
             item.__aiRawResult =
               data;
 
+            /* GPT3_UTILITY_ANALYZE_DIRECT_RENDER_START */
+            item.__aiDraft =
+              draftOf(
+                item,
+                data
+              );
+
+            item.__visibleFieldLabels =
+              visibleLabelsOf(
+                item,
+                data
+              );
+
+            item.__utilityUnsavedAiResult =
+              true;
+
+            let isCurrentUtilityItem =
+              false;
+
+            try {
+              isCurrentUtilityItem =
+                utilityItems()[selectedIndex] ===
+                item;
+            }
+            catch (error) {
+              isCurrentUtilityItem =
+                false;
+            }
+
+            if (isCurrentUtilityItem) {
+              if (
+                typeof window.hdOriginApplyUtilityDedicatedDraft ===
+                  "function"
+              ) {
+                window.hdOriginApplyUtilityDedicatedDraft(
+                  item.__aiDraft
+                );
+              }
+
+              if (
+                typeof window.hdOriginApplyUtilityCommunicationFields ===
+                  "function"
+              ) {
+                window.hdOriginApplyUtilityCommunicationFields(
+                  item.__aiDraft
+                );
+              }
+
+              if (
+                typeof window.hdOriginApplyUtilityLineItems ===
+                  "function"
+              ) {
+                window.hdOriginApplyUtilityLineItems(
+                  data
+                );
+              }
+
+              if (
+                typeof showVisibleFieldsOnly ===
+                  "function"
+              ) {
+                showVisibleFieldsOnly(
+                  item.__visibleFieldLabels || []
+                );
+              }
+            }
+            /* GPT3_UTILITY_ANALYZE_DIRECT_RENDER_END */
+
             item.__aiDraft =
               data.draft || {};
 
@@ -3752,3 +3820,4 @@
   );
 })();
 /* GPT3_UTILITY_COMMUNICATION_FIELD_MAPPING_END */
+

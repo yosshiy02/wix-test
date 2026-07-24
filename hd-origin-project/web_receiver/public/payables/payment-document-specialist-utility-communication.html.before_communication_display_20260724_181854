@@ -3801,26 +3801,7 @@ function setDocumentPreview(item) {
 
       window.applySortingAiResultToItem(item, data);
 
-      let appliedCount = 0;
-
-      if (typeof window.hdOriginApplyUtilityDedicatedDraft === "function") {
-        window.hdOriginApplyUtilityDedicatedDraft(item.__aiDraft);
-      }
-
-      if (typeof window.hdOriginApplyUtilityCommunicationFields === "function") {
-        appliedCount =
-          window.hdOriginApplyUtilityCommunicationFields(item.__aiDraft) || 0;
-      }
-
-      if (typeof window.hdOriginApplyUtilityLineItems === "function") {
-        window.hdOriginApplyUtilityLineItems(data);
-      }
-
-      if (typeof showVisibleFieldsOnly === "function") {
-        showVisibleFieldsOnly(item.__visibleFieldLabels || []);
-      }
-
-      window.__lastAiDraftAppliedCount = appliedCount;
+      if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
 
       if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
         try {
