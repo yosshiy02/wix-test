@@ -3090,6 +3090,10 @@ function setDocumentPreview(item) {
       return false;
     }
 
+    if (item) {
+      item.__specialistAnalyzed = true;
+    }
+
     const specialist =
       data.specialist &&
       typeof data.specialist === "object"
@@ -3832,6 +3836,79 @@ function setDocumentPreview(item) {
     return "";
   };
 
+  /* HD_ORIGIN_CIL_SPECIALIST_ANALYZED_FLAG_UNIFIED */
+  window.hdOriginCilHasSpecialistAnalysis = function(item) {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+
+    if (item.__specialistAnalyzed === true) {
+      return true;
+    }
+
+    if (
+      item.__cilSpecialistResult &&
+      typeof item.__cilSpecialistResult === "object"
+    ) {
+      return true;
+    }
+
+    const ocrId = String(
+      typeof window.ocrImportIdOf === "function"
+        ? (window.ocrImportIdOf(item) || "")
+        : (
+            item.paymentDocumentOcrImportId ||
+            item.payment_document_ocr_import_id ||
+            ""
+          )
+    );
+
+    if (
+      ocrId &&
+      window.__cilSpecialistResultsByOcrId &&
+      window.__cilSpecialistResultsByOcrId.has(ocrId)
+    ) {
+      return true;
+    }
+
+    const specialistId =
+      item.latestSpecialistAnalysisId ||
+      item.latest_specialist_analysis_id ||
+      item.specialistAnalysisId ||
+      item.specialist_analysis_id ||
+      "";
+
+    if (String(specialistId || "").trim()) {
+      return true;
+    }
+
+    const analyzedAt =
+      item.specialistAnalyzedAt ||
+      item.specialist_analyzed_at ||
+      item.specialistSavedAt ||
+      item.specialist_saved_at ||
+      "";
+
+    if (String(analyzedAt || "").trim()) {
+      return true;
+    }
+
+    const status = String(
+      item.specialistAnalysisStatus ||
+      item.specialist_analysis_status ||
+      item.specialistStatus ||
+      item.specialist_status ||
+      ""
+    ).trim().toLowerCase();
+
+    return !!(
+      status &&
+      status !== "未解析" &&
+      status !== "not_analyzed" &&
+      status !== "pending"
+    );
+  };
+
   window.buildSortingVisual = function(item) {
     const draft = item && item.__aiDraft ? item.__aiDraft : {};
     const group = window.firstText(item && item.__documentGroup, draft.document_group, draft.documentGroup);
@@ -3910,7 +3987,7 @@ function setDocumentPreview(item) {
     }
 
     return {
-      analyzed: !!(item && item.__aiDraft),
+      analyzed: window.hdOriginCilHasSpecialistAnalysis(item),
       theme,
       rowClass: "visual-row-" + theme,
       kindClass: "visual-chip visual-kind visual-chip-" + window.detectSortingTheme(kindRaw || group),
@@ -3934,8 +4011,8 @@ function setDocumentPreview(item) {
     window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
     window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
 
-    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
-    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+    const analyzedCount = (items || []).filter(item => window.hdOriginCilHasSpecialistAnalysis(item)).length;
+    const reviewCount = (items || []).filter(item => window.hdOriginCilHasSpecialistAnalysis(item) && window.buildSortingVisual(item).needsReview).length;
 
     summary.textContent =
       "選択: " + window.__checkedOcrImportIds.size + "件" +
@@ -7074,61 +7151,45 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
   }
 
   function hdOriginCilExistingBulkResult(item) {
-    if (!item || typeof item !== "object") {
+    if (
+      !window.hdOriginCilHasSpecialistAnalysis(item)
+    ) {
       return null;
     }
 
-    const remembered =
+    if (
       item.__cilSpecialistResult &&
       typeof item.__cilSpecialistResult === "object"
-        ? item.__cilSpecialistResult
-        : null;
-
-    if (
-      remembered &&
-      hdOriginCilExistingAnalysisHasSpecialistField(remembered, 0)
     ) {
-      return remembered;
+      return item.__cilSpecialistResult;
     }
 
-    const raw =
+    if (
       item.__aiRawResult &&
       typeof item.__aiRawResult === "object"
-        ? item.__aiRawResult
-        : null;
-
-    if (
-      raw &&
-      hdOriginCilExistingAnalysisHasSpecialistField(raw, 0)
     ) {
-      return raw;
+      return item.__aiRawResult;
     }
 
-    const draft =
-      item.__aiDraft &&
-      typeof item.__aiDraft === "object"
-        ? item.__aiDraft
-        : null;
-
     if (
-      !draft ||
-      !hdOriginCilExistingAnalysisHasSpecialistField(draft, 0)
+      !item.__aiDraft ||
+      typeof item.__aiDraft !== "object"
     ) {
       return null;
     }
 
     return {
       ok: true,
-      source: "existing_specialist_analysis",
+      source: "specialist_analyzed_item",
       paymentDocumentOcrImportId:
-        typeof ocrImportIdOf === "function"
-          ? ocrImportIdOf(item)
+        typeof window.ocrImportIdOf === "function"
+          ? window.ocrImportIdOf(item)
           : (
               item.paymentDocumentOcrImportId ||
               item.payment_document_ocr_import_id ||
               ""
             ),
-      draft: draft,
+      draft: item.__aiDraft,
       visible_field_labels:
         item.__visibleFieldLabels || [],
       document_group:

@@ -10381,7 +10381,108 @@ async function handlePaymentDocumentRoutes(req, res) {
         LIMIT 500
       `);
 
+      /* HD_ORIGIN_CIL_REVIEW_ITEMS_SPECIALIST_RESULT_20260724 */
+      const specialistResult = await db.query(`
+        SELECT DISTINCT ON (
+          payment_document_ocr_import_id
+        )
+          specialist_analysis_id,
+          payment_document_ocr_import_id,
+          payment_document_sorting_draft_id,
+          analysis_system_code,
+          analysis_system_label,
+          specialist_analysis_status,
+          ai_confidence,
+          ai_reason,
+          warnings_json,
+          raw_result_json,
+          human_confirm_status,
+          human_memo,
+          created_at,
+          updated_at
+        FROM
+          accounting.payment_document_specialist_analysis_results
+        WHERE
+          is_current = TRUE
+          AND deleted_at IS NULL
+          AND analysis_system_code =
+            'contract_insurance_lease_analysis'
+        ORDER BY
+          payment_document_ocr_import_id,
+          specialist_analysis_id DESC
+      `);
+
+      const specialistByOcrId = new Map(
+        specialistResult.rows.map(function (row) {
+          return [
+            String(row.payment_document_ocr_import_id),
+            row
+          ];
+        })
+      );
+
       const items = result.rows.map(row => {
+        const latestSpecialistRow =
+          specialistByOcrId.get(
+            String(row.payment_document_ocr_import_id)
+          ) || null;
+
+        const latestSpecialistRaw =
+          latestSpecialistRow &&
+          latestSpecialistRow.raw_result_json &&
+          typeof latestSpecialistRow.raw_result_json === "object" &&
+          !Array.isArray(
+            latestSpecialistRow.raw_result_json
+          )
+            ? latestSpecialistRow.raw_result_json
+            : {};
+
+        const latestSpecialistNested =
+          latestSpecialistRaw.specialist &&
+          typeof latestSpecialistRaw.specialist === "object" &&
+          !Array.isArray(
+            latestSpecialistRaw.specialist
+          )
+            ? latestSpecialistRaw.specialist
+            : {};
+
+        const latestSpecialistDraft =
+          latestSpecialistNested.draft &&
+          typeof latestSpecialistNested.draft === "object" &&
+          !Array.isArray(
+            latestSpecialistNested.draft
+          )
+            ? latestSpecialistNested.draft
+            : (
+                latestSpecialistRaw.draft &&
+                typeof latestSpecialistRaw.draft === "object" &&
+                !Array.isArray(
+                  latestSpecialistRaw.draft
+                )
+                  ? latestSpecialistRaw.draft
+                  : null
+              );
+
+        const latestSpecialistVisibleLabels =
+          Array.isArray(
+            latestSpecialistNested.visible_field_labels
+          )
+            ? latestSpecialistNested.visible_field_labels
+            : (
+                Array.isArray(
+                  latestSpecialistRaw.visible_field_labels
+                )
+                  ? latestSpecialistRaw.visible_field_labels
+                  : (
+                      latestSpecialistDraft &&
+                      Array.isArray(
+                        latestSpecialistDraft.visible_field_labels
+                      )
+                        ? latestSpecialistDraft.visible_field_labels
+                        : []
+                    )
+              );
+
         const latestSortingDraft = row.d_id ? {
           paymentDocumentSortingDraftId: row.d_id,
           paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
@@ -10556,6 +10657,114 @@ async function handlePaymentDocumentRoutes(req, res) {
             draft: aiDraft,
             visible_field_labels: visibleFieldLabels
           } : null,
+
+          latestSpecialistAnalysisId:
+            latestSpecialistRow
+              ? latestSpecialistRow.specialist_analysis_id
+              : null,
+
+          specialistAnalysisStatus:
+            latestSpecialistRow
+              ? latestSpecialistRow.specialist_analysis_status
+              : "未解析",
+
+          specialistAnalyzedAt:
+            latestSpecialistRow
+              ? (
+                  latestSpecialistRow.updated_at ||
+                  latestSpecialistRow.created_at
+                )
+              : null,
+
+          __specialistAnalyzed:
+            !!latestSpecialistRow,
+
+          __cilSpecialistResult:
+            latestSpecialistRow
+              ? {
+                  ...latestSpecialistRaw,
+                  ok: true,
+                  source:
+                    "db_current_specialist_analysis",
+                  paymentDocumentOcrImportId:
+                    latestSpecialistRow
+                      .payment_document_ocr_import_id,
+                  paymentDocumentSortingDraftId:
+                    latestSpecialistRow
+                      .payment_document_sorting_draft_id,
+                  specialistAnalysisId:
+                    latestSpecialistRow
+                      .specialist_analysis_id,
+                  analysisSystemCode:
+                    latestSpecialistRow
+                      .analysis_system_code,
+                  analysisSystemLabel:
+                    latestSpecialistRow
+                      .analysis_system_label,
+                  specialistAnalysisStatus:
+                    latestSpecialistRow
+                      .specialist_analysis_status
+                }
+              : null,
+
+          __aiDraft:
+            latestSpecialistDraft || aiDraft,
+
+          __visibleFieldLabels:
+            latestSpecialistRow
+              ? latestSpecialistVisibleLabels
+              : visibleFieldLabels,
+
+          __documentGroup:
+            latestSpecialistRow
+              ? (
+                  latestSpecialistRaw.document_group ||
+                  (
+                    latestSpecialistDraft &&
+                    latestSpecialistDraft.document_group
+                  ) ||
+                  "contract_insurance_lease"
+                )
+              : (
+                  latestSortingDraft
+                    ? (
+                        latestSortingDraft.specialistRouteCode ||
+                        latestSortingDraft.paymentDestinationCode ||
+                        latestSortingDraft.documentTypeCode ||
+                        ""
+                      )
+                    : ""
+                ),
+
+          __aiRawResult:
+            latestSpecialistRow
+              ? {
+                  ...latestSpecialistRaw,
+                  ok: true,
+                  source:
+                    "db_current_specialist_analysis",
+                  paymentDocumentOcrImportId:
+                    latestSpecialistRow
+                      .payment_document_ocr_import_id,
+                  paymentDocumentSortingDraftId:
+                    latestSpecialistRow
+                      .payment_document_sorting_draft_id,
+                  specialistAnalysisId:
+                    latestSpecialistRow
+                      .specialist_analysis_id
+                }
+              : (
+                  latestSortingDraft
+                    ? {
+                        ok: true,
+                        source:
+                          "db_latest_sorting_draft",
+                        draft: aiDraft,
+                        visible_field_labels:
+                          visibleFieldLabels
+                      }
+                    : null
+                ),
 
           createdAt: row.created_at,
           updatedAt: row.updated_at

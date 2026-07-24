@@ -142,516 +142,754 @@
       </div>
 
             <div class="draft-form-scroll">
-        <section class="draft-section">
-          <div class="draft-section-title">公共料金・通信費 解析サマリー</div>
-          <div class="form-grid">
-            <label>
-              書類区分
-              <select class="draft-field master-select" id="draftAiDocumentKind" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払対象
-              <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
-            </label>
-            <label>
-              未払登録対象
-              <input class="draft-field" id="draftAiUnpaidFlag" placeholder="例：登録する / しない / 要確認">
-            </label>
-            <label>
-              経費登録対象
-              <input class="draft-field" id="draftAiExpenseFlag" placeholder="例：経費 / 立替 / 対象外">
-            </label>
-            <label>
-              税金・公的支払
-              <input class="draft-field" id="draftAiTaxPublicFlag" placeholder="例：税金 / 社保 / 公共料金 / 対象外">
-            </label>
-            <label>
-              契約・保険・リース
-              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
-            </label>
-            <label>
-              AI信頼度
-              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
-            </label>
-            <label class="span2">
-              AI判定理由
-              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：OCR本文内に請求金額、支払期限、振込先があるため請求書と判断。"></textarea>
-            </label>
-          </div>
-        </section>
+        <!-- GPT3_UTILITY_DEDICATED_SCREEN_START -->
+<section class="draft-section utility-dedicated-section utility-screen-intro">
+  <div class="draft-section-title utility-title-row">
+    <div>
+      <strong>公共料金・通信費 専門解析</strong>
+      <span>
+        電気、ガス、水道、固定電話、携帯電話、インターネット、
+        通信回線、クラウド・SaaS利用料等に対応します。
+      </span>
+    </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">基本情報</div>
-          <div class="form-grid">
-                        <label>
-              証憑区分
-              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              書類名
-              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
-            </label>
-            <label>
-              発行元
-              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
-            </label>
-            <label>
-              支払先
-              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
-            </label>
-            <label>
-              宛名
-              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
-            </label>
-            <label>
-              会社名
-              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
-            </label>
-            <label>
-              個人名
-              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
-            </label>
-            <label>
-              部署名
-              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
-            </label>
-            <label>
-              担当者名
-              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
-            </label>
-            <label class="span2">
-              住所
-              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
-            </label>
-            <label>
-              電話番号
-              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
-            </label>
-            <label>
-              メール
-              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
-            </label>
-            <label class="span2">
-              Webサイト
-              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
-            </label>
-          </div>
-        </section>
+    <button type="button" id="utilityShowAllFieldsButton"
+            class="utility-show-all-button"
+            aria-pressed="false">
+      全項目を表示
+    </button>
+  </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">番号・識別情報</div>
-          <div class="form-grid">
-            <label>
-              請求書番号
-              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
-            </label>
-            <label>
-              領収書番号
-              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
-            </label>
-            <label>
-              納付番号
-              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
-            </label>
-            <label>
-              通知書番号
-              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
-            </label>
-            <label>
-              管理番号
-              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
-            </label>
-            <label>
-              お客様番号
-              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              契約番号
-              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
-            </label>
-            <label>
-              会員番号
-              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
-            </label>
-            <label>
-              注文番号
-              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
-            </label>
-            <label>
-              取引番号
-              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
-            </label>
-            <label>
-              登録番号
-              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
-            </label>
-            <label>
-              法人番号
-              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
-            </label>
-            <label>
-              カード番号下4桁
-              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
-            </label>
-          </div>
-        </section>
+  <p class="utility-guidance">
+    AIがOCR本文から確認できた項目だけを通常表示します。
+    OCRに存在しない値は作成せず、料金明細は証憑の記載単位で保存します。
+  </p>
+</section>
 
-        <section class="draft-section">
-          <div class="draft-section-title">日付・期限</div>
-          <div class="form-grid">
-            <label>
-              書類日付
-              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              発行日
-              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              請求日
-              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              取引日・利用日
-              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              納品日
-              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              締日
-              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
-            </label>
-            <label>
-              支払期限・納期限
-              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
-            </label>
-            <label>
-              支払予定日
-              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
-            </label>
-            <label>
-              引落日
-              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
-            </label>
-            <label>
-              決済日
-              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
-            </label>
-            <label>
-              対象開始日
-              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
-            </label>
-            <label>
-              対象終了日
-              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
-            </label>
-            <label>
-              契約開始日
-              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
-            </label>
-            <label>
-              契約終了日
-              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
-            </label>
-            <label>
-              更新日
-              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
-            </label>
-          </div>
-        </section>
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">サービス・契約情報</div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">金額・税</div>
-          <div class="form-grid">
-            <label>
-              請求・支払金額
-              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              合計金額
-              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              税込金額
-              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
-            </label>
-            <label>
-              税抜金額
-              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
-            </label>
-            <label>
-              消費税額
-              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
-            </label>
-            <label>
-              10%対象金額
-              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
-            </label>
-            <label>
-              10%消費税
-              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
-            </label>
-            <label>
-              8%対象金額
-              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
-            </label>
-            <label>
-              8%消費税
-              <input class="draft-field" id="draftTax8" placeholder="例：800">
-            </label>
-            <label>
-              非課税・不課税
-              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
-            </label>
-            <label>
-              源泉徴収額
-              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
-            </label>
-            <label>
-              手数料
-              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
-            </label>
-            <label>
-              延滞金
-              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
-            </label>
-            <label>
-              値引・割引
-              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
-            </label>
-            <label>
-              前回残高
-              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
-            </label>
-            <label>
-              今回利用額
-              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              入金額
-              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
-            </label>
-            <label>
-              未払残高
-              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
-            </label>
-          </div>
-        </section>
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="document_type_code,document_type_label">
+      書類区分
+      <select class="draft-field master-select"
+              id="draftAiDocumentKind"
+              data-analysis-item-code="document_type_label"
+              data-analysis-code-target="document_type_code">
+        <option value="">未選択</option>
+     >
 
-        <section class="draft-section">
-          <div class="draft-section-title">支払情報</div>
-          <div class="form-grid">
-            <label>
-              支払方法
-              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払状態
-              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
-            </label>
-            <label>
-              振込先銀行
-              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
-            </label>
-            <label>
-              銀行コード
-              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
-            </label>
-            <label>
-              支店名
-              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
-            </label>
-            <label>
-              支店コード
-              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
-            </label>
-            <label>
-              口座種別
-              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
-            </label>
-            <label>
-              口座番号
-              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
-            </label>
-            <label class="span2">
-              口座名義
-              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
-            </label>
-            <label>
-              引落銀行
-              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
-            </label>
-            <label>
-              カード会社
-              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
-            </label>
-            <label>
-              カード名
-              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
-            </label>
-            <label>
-              決済サービス
-              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
-            </label>
-            <label>
-              コンビニ支払番号
-              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
-            </label>
-            <label>
-              バーコード番号
-              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
-            </label>
-            <label>
-              QR決済情報
-              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
-            </label>
-          </div>
-        </section>
+    <button type="button" id="utilityShowAllFieldsButton"
+            class="utility-show-all-button"
+            aria-pressed="false">
+      全項目を表示
+    </button>
+  </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">会計・管理</div>
-          <div class="form-grid">
-            <label>
-              会計区分
-              <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              未払種別
-              <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払先マスタ候補
-              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              勘定科目
-              <select class="draft-field master-select" id="draftAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              税区分
-              <select class="draft-field master-select" id="draftTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              インボイス区分
-              <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払方法マスタ
-              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              対象者
-              <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              目的
-              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              案件
-              <select class="draft-field master-select" id="draftProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              部門
-              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label class="span2">
-              摘要
-              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
-            </label>
-            <label>
-              会社負担可否
-              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
-            </label>
-            <label>
-              個人負担混在
-              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
-            </label>
-            <label>
-              立替
-              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
-            </label>
-            <label>
-              精算
-              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
-            </label>
-            <label>
-              未払登録
-              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
-            </label>
-            <label>
-              買掛登録
-              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
-            </label>
-            <label class="span2">
-              社内メモ
-              <textarea class="draft-field small-textarea" id="draftMemo" placeholder="社内メモ"></textarea>
-            </label>
-          </div>
-        </section>
+  <p class="utility-guidance">
+    AIがOCR本文から確認できた項目だけを通常表示します。
+    OCRに存在しない値は作成せず、料金明細は証憑の記載単位で保存します。
+  </p>
+</section>
 
-        <section class="draft-section">
-          <div class="draft-section-title">明細</div>
-          <div class="form-grid">
-            <label class="span2">
-              明細候補
-              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
-            </label>
-          </div>
-        </section>
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">サービス・契約情報</div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">公共料金・通信費情報</div>
-          <div class="form-grid">
-            <label>お客様番号
-              <input class="draft-field" id="draftUtilityCustomerNo" data-analysis-item-code="customer_number">
-            </label>
-            <label>供給地点番号
-              <input class="draft-field" id="draftSupplyPointNumber" data-analysis-item-code="supply_point_number">
-            </label>
-            <label>検針日
-              <input class="draft-field" id="draftMeterReadingDate" type="date" data-analysis-item-code="meter_reading_date">
-            </label>
-            <label>使用量
-              <input class="draft-field" id="draftUsageAmount" inputmode="decimal" data-analysis-item-code="usage_quantity">
-            </label>
-            <label>使用量単位
-              <input class="draft-field" id="draftUsageUnit" data-analysis-item-code="usage_unit" placeholder="例：kWh / ㎥ / GB">
-            </label>
-          </div>
-        </section>
-        <section id="utilityLineItemsPanel" class="draft-section utility-line-items-panel">
-          <div class="draft-section-title">
-            <span>料金明細</span>
-            <button type="button" id="utilityLineItemsOpenButton">明細内訳</button>
-          </div>
-          <div class="utility-line-items-summary">
-            <strong>明細内訳</strong>
-            <span id="utilityLineItemsCount">現在 0 行</span>
-          </div>
-        </section>
+  <div class="form-grid utility-dedicated-grid">
+    <label class </select>
+      <input type="hidden"
+             id="draftUtilityDocumentTypeCode"
+             data-analysis-item-code="document_type_code">
+    </label>
 
-        <section class="draft-section">
-          <div class="draft-section-title">要確認</div>
-          <div class="form-grid">
-            <label class="span2">
-              要確認メモ
-              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
-            </label>
-          </div>
-        </section>
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="document_title">
+      書類名・明細名
+      <input class="draft-field"
+             id="draftDocumentTitle"
+             data-analysis-item-code="document_title">
+    </label>
 
-                <details class="compact-evidence-details" id="compactEvidenceInfo">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="provider_name">
+      供給会社・通信会社
+      <input class="draft-field"
+             id="draftVendorName"
+             data-analysis-item-code="provider_name">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="provider_code">
+      供給会社コード
+      <input class="draft-field"
+             id="draftUtilityProviderCode"
+             data-analysis-item-code="provider_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="service_type_code,service_type_label">
+      サービス種別
+      <input class="draft-field"
+             id="draftUtilityServiceTypeLabel"
+             data-analysis-item-code="service_type_label"
+             placeholder="例：電気、ガス、水道、携帯電話、光回線">
+      <input type="hidden"
+             id="draftUtilityServiceTypeCode"
+             data-analysis-item-code="service_type_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="customer_number">
+      お客様番号
+      <input class="draft-field"
+             id="draftUtilityCustomerNo"
+             data-analysis-item-code="customer_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="contract_number">
+      契約番号
+      <input class="draft-field"
+             id="draftContractNo"
+             data-analysis-item-code="contract_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="supply_point_number">
+      供給地点番号
+      <input class="draft-field"
+             id="draftSupplyPointNumber"
+             data-analysis-item-code="supply_point_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="meter_number">
+      メーター番号
+      <input class="draft-field"
+             id="draftUtilityMeterNumber"
+             data-analysis-item-code="meter_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="line_number">
+      回線番号
+      <input class="draft-field"
+             id="draftUtilityLineNumber"
+             data-analysis-item-code="line_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="telephone_number">
+      電話番号
+      <input class="draft-field"
+             id="draftPhone"
+             data-analysis-item-code="telephone_number">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="account_name">
+      契約名義・アカウント名
+      <input class="draft-field"
+             id="draftUtilityAccountName"
+             data-analysis-item-code="account_name">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="service_address">
+      利用場所・供給先住所
+      <input class="draft-field"
+             id="draftUtilityServiceAddress"
+             data-analysis-item-code="service_address">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="billing_address">
+      請求先住所
+      <input class="draft-field"
+             id="draftUtilityBillingAddress"
+             data-analysis-item-code="billing_address">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">請求日・利用期間</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="issue_date">
+      発行日
+      <input class="draft-field"
+             id="draftIssueDate"
+             type="date"
+             data-analysis-item-code="issue_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="billing_date">
+      請求日
+      <input class="draft-field"
+             id="draftBillingDate"
+             type="date"
+             data-analysis-item-code="billing_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_period_start">
+      利用期間開始
+      <input class="draft-field"
+             id="draftServicePeriodStart"
+             type="date"
+             data-analysis-item-code="usage_period_start">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_period_end">
+      利用期間終了
+      <input class="draft-field"
+             id="draftServicePeriodEnd"
+             type="date"
+             data-analysis-item-code="usage_period_end">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="meter_reading_date">
+      検針日
+      <input class="draft-field"
+             id="draftMeterReadingDate"
+             type="date"
+             data-analysis-item-code="meter_reading_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="due_date">
+      支払期限
+      <input class="draft-field"
+             id="draftDueDate"
+             type="date"
+             data-analysis-item-code="due_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="scheduled_withdrawal_date">
+      口座振替予定日
+      <input class="draft-field"
+             id="draftWithdrawalDate"
+             type="date"
+             data-analysis-item-code="scheduled_withdrawal_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_date">
+      支払日
+      <input class="draft-field"
+             id="draftPaymentPlanDate"
+             type="date"
+             data-analysis-item-code="payment_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="download_date">
+      ダウンロード日
+      <input class="draft-field"
+             id="draftUtilityDownloadDate"
+             type="date"
+             data-analysis-item-code="download_date">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">使用量・契約プラン</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_quantity">
+      使用量
+      <input class="draft-field"
+             id="draftUsageAmount"
+             inputmode="decimal"
+             data-analysis-item-code="usage_quantity">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_unit">
+      使用量単位
+      <input class="draft-field"
+             id="draftUsageUnit"
+             data-analysis-item-code="usage_unit"
+             placeholder="例：kWh、m³、GB、回線">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="previous_meter_value">
+      前回指示数
+      <input class="draft-field"
+             id="draftUtilityPreviousMeterValue"
+             inputmode="decimal"
+             data-analysis-item-code="previous_meter_value">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="current_meter_value">
+      今回指示数
+      <input class="draft-field"
+             id="draftUtilityCurrentMeterValue"
+             inputmode="decimal"
+             data-analysis-item-code="current_meter_value">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="contract_capacity">
+      契約容量・契約回線
+      <input class="draft-field"
+             id="draftUtilityContractCapacity"
+             data-analysis-item-code="contract_capacity">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="plan_name">
+      料金プラン
+      <input class="draft-field"
+             id="draftUtilityPlanName"
+             data-analysis-item-code="plan_name">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">請求金額</div>
+
+  <div class="form-grid utility-dedicated-grid utility-amount-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="base_charge">
+      基本料金
+      <input class="draft-field"
+             id="draftUtilityBaseCharge"
+             inputmode="decimal"
+             data-analysis-item-code="base_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_charge">
+      従量・使用料金
+      <input class="draft-field"
+             id="draftUtilityUsageCharge"
+             inputmode="decimal"
+             data-analysis-item-code="usage_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="option_charge">
+      オプション料金
+      <input class="draft-field"
+             id="draftUtilityOptionCharge"
+             inputmode="decimal"
+             data-analysis-item-code="option_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="fuel_adjustment_amount">
+      燃料費調整額
+      <input class="draft-field"
+             id="draftUtilityFuelAdjustmentAmount"
+             inputmode="decimal"
+             data-analysis-item-code="fuel_adjustment_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="renewable_energy_amount">
+      再エネ賦課金
+      <input class="draft-field"
+             id="draftUtilityRenewableEnergyAmount"
+             inputmode="decimal"
+             data-analysis-item-code="renewable_energy_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="discount_amount">
+      割引額
+      <input class="draft-field"
+             id="draftDiscountAmount"
+             inputmode="decimal"
+             data-analysis-item-code="discount_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="adjustment_amount">
+      調整額
+      <input class="draft-field"
+             id="draftUtilityAdjustmentAmount"
+             inputmode="decimal"
+             data-analysis-item-code="adjustment_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="subtotal_amount">
+      小計
+      <input class="draft-field"
+             id="draftAmountExTax"
+             inputmode="decimal"
+             data-analysis-item-code="subtotal_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="tax_amount">
+      記載消費税額
+      <input class="draft-field"
+             id="draftTaxAmount"
+             inputmode="decimal"
+             data-analysis-item-code="tax_amount">
+    </label>
+
+    <label class="utility-dedicated-field utility-primary-amount"
+           data-utility-field-codes="total_amount">
+      請求合計
+      <input class="draft-field"
+             id="draftTotalAmount"
+             inputmode="decimal"
+             data-analysis-item-code="total_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="paid_amount">
+      支払済金額
+      <input class="draft-field"
+             id="draftPaidAmount"
+             inputmode="decimal"
+             data-analysis-item-code="paid_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="unpaid_balance">
+      未払残高
+      <input class="draft-field"
+             id="draftBalanceAmount"
+             inputmode="decimal"
+             data-analysis-item-code="unpaid_balance">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="currency">
+      通貨
+      <input class="draft-field"
+             id="draftUtilityCurrency"
+             data-analysis-item-code="currency">
+    </label>
+  </div>
+</section>
+
+<section id="utilityLineItemsPanel"
+         class="draft-section utility-dedicated-section utility-line-items-panel"
+         data-utility-section
+         data-utility-field-codes="line_items">
+  <div class="draft-section-title utility-title-row">
+    <div>
+      <strong>料金明細</strong>
+      <span>
+        基本料金、従量料金、通話料、通信料、端末代、
+        燃料費調整額、再エネ賦課金、割引、税額等を行単位で保存します。
+      </span>
+    </div>
+
+    <button type="button"
+            id="utilityLineItemsOpenButton">
+      明細内訳を開く
+    </button>
+  </div>
+
+  <div class="utility-line-items-summary">
+    <strong>証憑記載の料金明細</strong>
+    <span id="utilityLineItemsCount">現在 0 行</span>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">支払情報</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_status_code,payment_status_label">
+      支払状態
+      <input class="draft-field"
+             id="draftPaymentStatus"
+             data-analysis-item-code="payment_status_label">
+      <input type="hidden"
+             id="draftUtilityPaymentStatusCode"
+             data-analysis-item-code="payment_status_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_method_code,payment_method_label">
+      支払方法
+      <select class="draft-field master-select"
+              id="draftPaymentMethodMaster"
+              data-analysis-item-code="payment_method_label"
+              data-analysis-code-target="payment_method_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPaymentMethodCode"
+             data-analysis-item-code="payment_method_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="bank_name">
+      引落金融機関
+      <input class="draft-field"
+             id="draftBankName"
+             data-analysis-item-code="bank_name">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="bank_account_masked">
+      引落口座表示
+      <input class="draft-field"
+             id="draftUtilityBankAccountMasked"
+             data-analysis-item-code="bank_account_masked">
+    </label>
+
+    <label class="utility-dedicated-field utility-checkbox-field"
+           data-utility-field-codes="recurring_payment_flag">
+      <span>継続支払</span>
+      <input class="draft-field"
+             id="draftUtilityRecurringPaymentFlag"
+             type="checkbox"
+             data-analysis-item-code="recurring_payment_flag">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payable_target">
+      未払登録対象
+      <input class="draft-field"
+             id="draftUtilityPayableTarget"
+             data-analysis-item-code="payable_target">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="expense_target">
+      経費登録対象
+      <input class="draft-field"
+             id="draftUtilityExpenseTarget"
+             data-analysis-item-code="expense_target">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">会計候補</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_destination_code,payment_destination_label">
+      処理先
+      <select class="draft-field master-select"
+              id="draftAiDestination"
+              data-analysis-item-code="payment_destination_label"
+              data-analysis-code-target="payment_destination_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPaymentDestinationCode"
+             data-analysis-item-code="payment_destination_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="accounting_category_code,accounting_category_label">
+      会計区分
+      <select class="draft-field master-select"
+              id="draftAccountingCategory"
+              data-analysis-item-code="accounting_category_label"
+              data-analysis-code-target="accounting_category_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityAccountingCategoryCode"
+             data-analysis-item-code="accounting_category_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payable_kind_code,payable_kind_label">
+      未払種別
+      <select class="draft-field master-select"
+              id="draftPayableKind"
+              data-analysis-item-code="payable_kind_label"
+              data-analysis-code-target="payable_kind_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPayableKindCode"
+             data-analysis-item-code="payable_kind_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="account_code,account_label">
+      勘定科目候補
+      <select class="draft-field master-select"
+              id="draftAccountTitle"
+              data-analysis-item-code="account_label"
+              data-analysis-code-target="account_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityAccountCode"
+             data-analysis-item-code="account_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="tax_category_code,tax_category_label">
+      税区分候補
+      <select class="draft-field master-select"
+              id="draftTaxCategory"
+              data-analysis-item-code="tax_category_label"
+              data-analysis-code-target="tax_category_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityTaxCategoryCode"
+             data-analysis-item-code="tax_category_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="department_code,department_label">
+      部門候補
+      <select class="draft-field master-select"
+              id="draftDepartment"
+              data-analysis-item-code="department_label"
+              data-analysis-code-target="department_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityDepartmentCode"
+             data-analysis-item-code="department_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="project_code,project_label">
+      プロジェクト候補
+      <select class="draft-field master-select"
+              id="draftProject"
+              data-analysis-item-code="project_label"
+              data-analysis-code-target="project_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityProjectCode"
+             data-analysis-item-code="project_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="purpose_code,purpose_label">
+      用途候補
+      <select class="draft-field master-select"
+              id="draftPurpose"
+              data-analysis-item-code="purpose_label"
+              data-analysis-code-target="purpose_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPurposeCode"
+             data-analysis-item-code="purpose_code">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">電子証憑情報</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="email_subject">
+      メール件名
+      <input class="draft-field"
+             id="draftEmailSubject"
+             data-analysis-item-code="email_subject">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="email_from">
+      メール送信者
+      <input class="draft-field"
+             id="draftEmailFrom"
+             data-analysis-item-code="email_from">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="email_received_at">
+      メール受信日時
+      <input class="draft-field"
+             id="draftUtilityEmailReceivedAt"
+             type="datetime-local"
+             data-analysis-item-code="email_received_at">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="attachment_file_name">
+      添付ファイル名
+      <input class="draft-field"
+             id="draftUtilityAttachmentFileName"
+             data-analysis-item-code="attachment_file_name">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">確認事項</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="duplicate_risk">
+      重複リスク
+      <input class="draft-field"
+             id="draftUtilityDuplicateRisk"
+             data-analysis-item-code="duplicate_risk">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="ai_confidence">
+      AI信頼度
+      <input class="draft-field"
+             id="draftAiConfidence"
+             data-analysis-item-code="ai_confidence">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="confirmation_notes">
+      人間確認事項
+      <textarea class="draft-field"
+                id="draftUtilityConfirmationNotes"
+                data-analysis-item-code="confirmation_notes"></textarea>
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="ai_reason">
+      AI解析理由
+      <textarea class="draft-field"
+                id="draftAiReason"
+                data-analysis-item-code="ai_reason"></textarea>
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="warnings">
+      要確認・警告
+      <textarea class="draft-field"
+                id="draftWarnings"
+                data-analysis-item-code="warnings"></textarea>
+    </label>
+  </div>
+</section>
+<!-- GPT3_UTILITY_DEDICATED_SCREEN_END -->
+<details class="compact-evidence-details" id="compactEvidenceInfo">
           <summary>証憑情報（必要最低限）</summary>
           <div class="compact-evidence-grid">
             <div>
@@ -7517,6 +7755,7 @@ function setDocumentPreview(item) {
 })();
 /* GPT3_UTILITY_AI_LINE_ITEMS_END */
 </script>
+  <script src="/payables/payment-document-specialist-utility-communication-dedicated.js"></script>
 </body>
 </html>
 

@@ -1,72 +1,65 @@
 "use strict";
 
+/* GPT3_UTILITY_LEDGER_FULL_REBUILD_START */
 const ENDPOINT =
   "/api/payment-documents/utility-communication/list";
 
 function text(value) {
-  return value === null || value === undefined
-    ? ""
-    : String(value);
+  return value === null ||
+    value === undefined
+      ? ""
+      : String(value);
 }
 
 function escapeHtml(value) {
-  return text(value).replace(/[&<>"']/g, function (character) {
-    return {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[character];
-  });
-}
-
-function number(value) {
-  if (value === null || value === undefined || value === "") {
-    return 0;
-  }
-
-  const parsed = Number(
-    String(value).replace(/[^\d.-]/g, "")
+  return text(value).replace(
+    /[&<>"']/g,
+    function (character) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[character];
+    }
   );
-
-  return Number.isFinite(parsed)
-    ? parsed
-    : 0;
 }
 
-function money(value) {
-  if (value === null || value === undefined || value === "") {
-    return "";
+function first() {
+  for (const value of arguments) {
+    if (
+      value !== null &&
+      value !== undefined &&
+      value !== ""
+    ) {
+      return value;
+    }
   }
 
-  const parsed = number(value);
-
-  return parsed.toLocaleString("ja-JP") + "円";
+  return "";
 }
 
-function date(value) {
-  const source = text(value).slice(0, 10);
-
-  return source
-    ? source.replace(/-/g, "/")
-    : "";
-}
-
-function field(row, code) {
+function field(row, name) {
   const sources = [
     row.visible_fields_json,
-    row.specialist_fields_json
+    row.specialist_fields_json,
+    row.fields,
+    row.draft_json &&
+      row.draft_json.fields
   ];
 
   for (const source of sources) {
     if (
       source &&
-      source[code] !== null &&
-      source[code] !== undefined &&
-      source[code] !== ""
+      typeof source === "object" &&
+      !Array.isArray(source) &&
+      Object.prototype.hasOwnProperty.call(
+        source,
+        name
+      )
     ) {
-      return source[code];
+      return source[name];
     }
   }
 
@@ -74,162 +67,366 @@ function field(row, code) {
 }
 
 function lineItems(row) {
-  return Array.isArray(row.line_items)
-    ? row.line_items
-    : [];
+  const candidates = [
+    row.line_items,
+    field(row, "line_items")
+  ];
+
+  return (
+    candidates.find(Array.isArray) ||
+    []
+  );
 }
 
-function sumLines(lines, propertyName) {
-  return lines.reduce(function (sum, line) {
-    return sum + number(line[propertyName]);
-  }, 0);
+function numeric(value) {
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : 0;
 }
 
-function usageText(row) {
-  const quantity =
-    row.usage_quantity ||
-    field(row, "usage_quantity");
-
-  const unit =
-    row.usage_unit ||
-    field(row, "usage_unit");
-
+function money(value) {
   if (
-    quantity === null ||
-    quantity === undefined ||
-    quantity === ""
+    value === null ||
+    value === undefined ||
+    value === ""
   ) {
     return "";
   }
 
-  return text(quantity) + text(unit);
+  return numeric(value).toLocaleString(
+    "ja-JP"
+  ) + "円";
 }
 
-function taxRate(value) {
-  if (value === null || value === undefined || value === "") {
+function date(value) {
+  const source =
+    text(value);
+
+  return source
+    ? source.slice(0, 10)
+    : "";
+}
+
+function period(row) {
+  const start =
+    date(
+      field(
+        row,
+        "usage_period_start"
+      )
+    );
+
+  const end =
+    date(
+      field(
+        row,
+        "usage_period_end"
+      )
+    );
+
+  if (start && end) {
+    return start + " ～ " + end;
+  }
+
+  return first(
+    start,
+    end
+  );
+}
+
+function usage(row) {
+  const quantity =
+    first(
+      row.usage_quantity,
+      field(
+        row,
+        "usage_quantity"
+      )
+    );
+
+  const unit =
+    first(
+      row.usage_unit,
+      field(
+        row,
+        "usage_unit"
+      )
+    );
+
+  if (
+    quantity === "" &&
+    unit === ""
+  ) {
     return "";
   }
 
-  const parsed = number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return text(value);
-  }
-
-  return (
-    parsed <= 1
-      ? parsed * 100
-      : parsed
-  ).toLocaleString("ja-JP") + "%";
+  return [
+    quantity,
+    unit
+  ].filter(function (value) {
+    return value !== "";
+  }).join(" ");
 }
 
-function detailField(label, value, className) {
-  if (value === null || value === undefined || value === "") {
-    return "";
-  }
+function sumLines(lines, key) {
+  return lines.reduce(
+    function (sum, line) {
+      return sum +
+        numeric(line[key]);
+    },
+    0
+  );
+}
 
-  return (
-    '<div class="detail-field ' +
-    escapeHtml(className || "") +
-    '">' +
-      "<strong>" +
-        escapeHtml(label) +
-      "</strong>" +
-      "<span>" +
-        escapeHtml(value) +
-      "</span>" +
-    "</div>"
+function setText(ids, value) {
+  for (const id of ids) {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.textContent =
+        value;
+
+      return;
+    }
+  }
+}
+
+function updateSummary(rows) {
+  const lines =
+    rows.reduce(
+      function (all, row) {
+        return all.concat(
+          lineItems(row)
+        );
+      },
+      []
+    );
+
+  const subtotal =
+    lines.reduce(
+      function (sum, line) {
+        return sum +
+          numeric(
+            line.subtotal_amount
+          );
+      },
+      0
+    );
+
+  const total =
+    rows.reduce(
+      function (sum, row) {
+        const rowLines =
+          lineItems(row);
+
+        const value =
+          first(
+            field(
+              row,
+              "total_amount"
+            ),
+            rowLines.length
+              ? sumLines(
+                  rowLines,
+                  "total_amount"
+                )
+              : ""
+          );
+
+        return sum +
+          numeric(value);
+      },
+      0
+    );
+
+  setText(
+    [
+      "recordCount",
+      "registeredCount"
+    ],
+    rows.length.toLocaleString("ja-JP")
+  );
+
+  setText(
+    [
+      "lineItemCount",
+      "detailCount"
+    ],
+    lines.length.toLocaleString("ja-JP")
+  );
+
+  setText(
+    [
+      "subtotalAmount",
+      "subtotalTotal"
+    ],
+    money(subtotal)
+  );
+
+  setText(
+    [
+      "totalAmount",
+      "totalTotal"
+    ],
+    money(total)
   );
 }
 
 function renderDetails(lines) {
   if (!lines.length) {
-    return '<p>料金明細は登録されていません。</p>';
+    return (
+      '<p class="utility-ledger-empty-detail">' +
+      "料金明細は登録されていません。" +
+      "</p>"
+    );
   }
 
   return (
-    '<div class="detail-list">' +
-    lines.map(function (line, index) {
-      const usage =
-        line.usage_quantity !== null &&
-        line.usage_quantity !== undefined &&
-        line.usage_quantity !== ""
-          ? text(line.usage_quantity) +
-            text(line.usage_unit)
-          : "";
+    '<div class="utility-ledger-detail-wrap">' +
+      '<table class="utility-ledger-detail-table">' +
+        "<thead>" +
+          "<tr>" +
+            "<th>No.</th>" +
+            "<th>料金項目</th>" +
+            "<th>説明</th>" +
+            "<th>使用量</th>" +
+            "<th>単価</th>" +
+            "<th>小計</th>" +
+            "<th>税区分</th>" +
+            "<th>税率</th>" +
+            "<th>記載税額</th>" +
+            "<th>合計</th>" +
+            "<th>OCR根拠</th>" +
+          "</tr>" +
+        "</thead>" +
+        "<tbody>" +
+          lines.map(function (line, index) {
+            const usageText = [
+              first(
+                line.usage_quantity,
+                ""
+              ),
+              first(
+                line.usage_unit,
+                ""
+              )
+            ].filter(function (value) {
+              return value !== "";
+            }).join(" ");
 
-      const title =
-        line.item_name ||
-        "明細 " + text(index + 1);
+            const taxRate =
+              line.tax_rate === null ||
+              line.tax_rate === undefined ||
+              line.tax_rate === ""
+                ? ""
+                : (
+                    numeric(
+                      line.tax_rate
+                    ) *
+                    100
+                  ).toLocaleString(
+                    "ja-JP"
+                  ) + "%";
 
-      return (
-        '<article class="detail-item">' +
-          "<h3>" +
-            escapeHtml(title) +
-          "</h3>" +
-
-          '<div class="detail-grid">' +
-            detailField(
-              "説明",
-              line.description
-            ) +
-
-            detailField(
-              "使用量",
-              usage
-            ) +
-
-            detailField(
-              "単価",
-              money(line.unit_price)
-            ) +
-
-            detailField(
-              "税抜金額",
-              money(line.subtotal_amount)
-            ) +
-
-            detailField(
-              "税区分",
-              line.tax_category_label
-            ) +
-
-            detailField(
-              "税率",
-              taxRate(line.tax_rate)
-            ) +
-
-            detailField(
-              "消費税額",
-              money(line.tax_amount)
-            ) +
-
-            detailField(
-              "合計金額",
-              money(line.total_amount)
-            ) +
-
-            detailField(
-              "OCR根拠",
-              line.source_text,
-              "source-text"
-            ) +
-          "</div>" +
-        "</article>"
-      );
-    }).join("") +
+            return (
+              "<tr>" +
+                "<td>" +
+                  escapeHtml(
+                    first(
+                      line.line_no,
+                      index + 1
+                    )
+                  ) +
+                "</td>" +
+                "<td>" +
+                  escapeHtml(
+                    line.item_name
+                  ) +
+                "</td>" +
+                "<td>" +
+                  escapeHtml(
+                    line.description
+                  ) +
+                "</td>" +
+                "<td>" +
+                  escapeHtml(
+                    usageText
+                  ) +
+                "</td>" +
+                '<td class="money">' +
+                  escapeHtml(
+                    money(
+                      line.unit_price
+                    )
+                  ) +
+                "</td>" +
+                '<td class="money">' +
+                  escapeHtml(
+                    money(
+                      line.subtotal_amount
+                    )
+                  ) +
+                "</td>" +
+                "<td>" +
+                  escapeHtml(
+                    first(
+                      line.tax_category_label,
+                      line.raw_item_json &&
+                        line.raw_item_json.tax_category_label
+                    )
+                  ) +
+                "</td>" +
+                "<td>" +
+                  escapeHtml(
+                    taxRate
+                  ) +
+                "</td>" +
+                '<td class="money">' +
+                  escapeHtml(
+                    money(
+                      line.tax_amount
+                    )
+                  ) +
+                "</td>" +
+                '<td class="money">' +
+                  escapeHtml(
+                    money(
+                      line.total_amount
+                    )
+                  ) +
+                "</td>" +
+                '<td class="source-text">' +
+                  escapeHtml(
+                    line.source_text
+                  ) +
+                "</td>" +
+              "</tr>"
+            );
+          }).join("") +
+        "</tbody>" +
+      "</table>" +
     "</div>"
   );
 }
 
 function render(rows) {
   const body =
-    document.getElementById("ledgerBody");
+    document.getElementById(
+      "ledgerBody"
+    );
+
+  if (!body) {
+    return;
+  }
 
   if (!rows.length) {
     body.innerHTML =
       '<tr class="empty">' +
-        '<td colspan="11">' +
+        '<td colspan="14">' +
           "登録済みデータはありません。" +
         "</td>" +
       "</tr>";
@@ -237,121 +434,229 @@ function render(rows) {
     return;
   }
 
-  body.innerHTML = rows.map(function (row, index) {
-    const lines = lineItems(row);
-    /* GPT3_UTILITY_LEDGER_EDIT_BUTTON_START */
-    const ocrImportId =
-      Number(
-        row.payment_document_ocr_import_id ||
-        row.paymentDocumentOcrImportId ||
-        row.ocr_import_id ||
-        row.ocrImportId ||
-        0
-      ) || 0;
-    /* GPT3_UTILITY_LEDGER_EDIT_BUTTON_END */
+  body.innerHTML =
+    rows.map(function (row, index) {
+      const lines =
+        lineItems(row);
 
-    const subtotal =
-      sumLines(lines, "subtotal_amount");
+      const subtotal =
+        first(
+          field(
+            row,
+            "subtotal_amount"
+          ),
+          lines.length
+            ? sumLines(
+                lines,
+                "subtotal_amount"
+              )
+            : ""
+        );
 
-    const taxAmount =
-      sumLines(lines, "tax_amount");
+      const taxAmount =
+        first(
+          field(
+            row,
+            "tax_amount"
+          ),
+          lines.length
+            ? sumLines(
+                lines,
+                "tax_amount"
+              )
+            : ""
+        );
 
-    const total =
-      sumLines(lines, "total_amount");
+      const total =
+        first(
+          field(
+            row,
+            "total_amount"
+          ),
+          lines.length
+            ? sumLines(
+                lines,
+                "total_amount"
+              )
+            : ""
+        );
 
-    const detailId =
-      "utility-detail-" +
-      text(row.utility_communication_draft_id);
+      const detailId =
+        "utility-detail-" +
+        text(
+          row.utility_communication_draft_id
+        );
 
-    const mainRow =
-      "<tr>" +
-        "<td>" +
-          escapeHtml(index + 1) +
-        "</td>" +
+      const ocrImportId =
+        first(
+          row.payment_document_ocr_import_id,
+          row.paymentDocumentOcrImportId
+        );
 
-        "<td>" +
-          escapeHtml(
-            row.original_file_name ||
-            row.saved_file_name
-          ) +
-        "</td>" +
+      const service =
+        first(
+          field(
+            row,
+            "service_type_label"
+          ),
+          field(
+            row,
+            "document_type_label"
+          )
+        );
 
-        "<td>" +
-          escapeHtml(
-            row.customer_number ||
-            field(row, "customer_number")
-          ) +
-        "</td>" +
+      const provider =
+        first(
+          field(
+            row,
+            "provider_name"
+          ),
+          row.provider_name
+        );
 
-        "<td>" +
-          escapeHtml(
-            row.supply_point_number ||
-            field(row, "supply_point_number")
-          ) +
-        "</td>" +
+      const account =
+        field(
+          row,
+          "account_name"
+        );
 
-        "<td>" +
-          escapeHtml(
-            date(
-              row.meter_reading_date ||
-              field(row, "meter_reading_date")
+      const billingDate =
+        date(
+          first(
+            field(
+              row,
+              "billing_date"
+            ),
+            field(
+              row,
+              "issue_date"
             )
-          ) +
-        "</td>" +
+          )
+        );
 
-        "<td>" +
-          escapeHtml(usageText(row)) +
-        "</td>" +
+      const fileName =
+        first(
+          row.original_file_name,
+          row.saved_file_name
+        );
 
-        '<td class="money">' +
-          escapeHtml(lines.length) +
-        "</td>" +
+      const mainRow =
+        "<tr>" +
+          "<td>" +
+            escapeHtml(index + 1) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(service) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(provider) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(account) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(billingDate) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(
+              period(row)
+            ) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(
+              usage(row)
+            ) +
+          "</td>" +
+          '<td class="money">' +
+            escapeHtml(
+              lines.length
+            ) +
+          "</td>" +
+          '<td class="money">' +
+            escapeHtml(
+              money(subtotal)
+            ) +
+          "</td>" +
+          '<td class="money">' +
+            escapeHtml(
+              money(taxAmount)
+            ) +
+          "</td>" +
+          '<td class="money">' +
+            escapeHtml(
+              money(total)
+            ) +
+          "</td>" +
+          "<td>" +
+            escapeHtml(fileName) +
+          "</td>" +
+          "<td>" +
+            '<button type="button" ' +
+              'class="detail-toggle" ' +
+              'data-detail-target="' +
+              escapeHtml(detailId) +
+              '" ' +
+              'aria-expanded="false">' +
+              "明細" +
+            "</button>" +
+          "</td>" +
+          "<td>" +
+            '<button type="button" ' +
+              'class="utility-edit-open" ' +
+              'data-ocr-import-id="' +
+              escapeHtml(ocrImportId) +
+              '">' +
+              "修正" +
+            "</button>" +
+          "</td>" +
+        "</tr>";
 
-        '<td class="money">' +
-          escapeHtml(money(subtotal)) +
-        "</td>" +
+      const detailRow =
+        '<tr id="' +
+          escapeHtml(detailId) +
+          '" class="detail-row" hidden>' +
+          '<td colspan="14">' +
+            renderDetails(lines) +
+          "</td>" +
+        "</tr>";
 
-        '<td class="money">' +
-          escapeHtml(money(taxAmount)) +
-        "</td>" +
+      return (
+        mainRow +
+        detailRow
+      );
+    }).join("");
 
-        '<td class="money">' +
-          escapeHtml(money(total)) +
-        "</td>" +
+  body.querySelectorAll(
+    ".detail-toggle"
+  ).forEach(function (button) {
+    button.addEventListener(
+      "click",
+      function () {
+        const target =
+          document.getElementById(
+            button.dataset.detailTarget
+          );
 
-        "<td>" +
-          '<button type="button" ' +
-            'class="detail-toggle" ' +
-            'data-detail-target="' +
-            escapeHtml(detailId) +
-            '" ' +
-            'aria-expanded="false">' +
-            "明細" +
-          "</button>" +
-          '<button type="button" ' +
-            'class="utility-edit-open" ' +
-            'data-ocr-import-id="' +
-            escapeHtml(ocrImportId) +
-            '">' +
-            "修正" +
-          "</button>" +
-        "</td>" +
-      "</tr>";
+        if (!target) {
+          return;
+        }
 
-    const detailRow =
-      '<tr id="' +
-        escapeHtml(detailId) +
-        '" class="detail-row" hidden>' +
+        const opening =
+          target.hidden;
 
-        '<td colspan="11">' +
-          renderDetails(lines) +
-        "</td>" +
-      "</tr>";
+        target.hidden =
+          !opening;
 
-    return mainRow + detailRow;
-  }).join("");
+        button.setAttribute(
+          "aria-expanded",
+          opening
+            ? "true"
+            : "false"
+        );
+      }
+    );
+  });
 
-    /* GPT3_UTILITY_LEDGER_EDIT_LISTENER_START */
   body.querySelectorAll(
     ".utility-edit-open"
   ).forEach(function (button) {
@@ -377,92 +682,26 @@ function render(rows) {
       }
     );
   });
-  /* GPT3_UTILITY_LEDGER_EDIT_LISTENER_END */
-
-  body.querySelectorAll(
-    ".detail-toggle"
-  ).forEach(function (button) {
-    button.addEventListener(
-      "click",
-      function () {
-        const target =
-          document.getElementById(
-            button.dataset.detailTarget
-          );
-
-        if (!target) {
-          return;
-        }
-
-        const opening =
-          target.hidden;
-
-        target.hidden =
-          !opening;
-
-        button.setAttribute(
-          "aria-expanded",
-          opening ? "true" : "false"
-        );
-
-        button.textContent =
-          opening ? "閉じる" : "明細";
-      }
-    );
-  });
-}
-
-function updateSummary(rows) {
-  const allLines =
-    rows.flatMap(lineItems);
-
-  const subtotal =
-    sumLines(
-      allLines,
-      "subtotal_amount"
-    );
-
-  const total =
-    sumLines(
-      allLines,
-      "total_amount"
-    );
-
-  document.getElementById(
-    "recordCount"
-  ).textContent =
-    rows.length.toLocaleString("ja-JP");
-
-  document.getElementById(
-    "lineItemCount"
-  ).textContent =
-    allLines.length.toLocaleString("ja-JP");
-
-  document.getElementById(
-    "subtotalAmount"
-  ).textContent =
-    money(subtotal) || "0円";
-
-  document.getElementById(
-    "totalAmount"
-  ).textContent =
-    money(total) || "0円";
 }
 
 async function main() {
   const status =
-    document.getElementById("loadStatus");
+    document.getElementById(
+      "loadStatus"
+    ) ||
+    document.getElementById(
+      "status"
+    );
 
   try {
     const response =
       await fetch(
         ENDPOINT,
         {
+          cache: "no-store",
           headers: {
             Accept: "application/json"
-          },
-          credentials: "same-origin",
-          cache: "no-store"
+          }
         }
       );
 
@@ -475,7 +714,7 @@ async function main() {
     ) {
       throw new Error(
         payload.error ||
-        response.statusText
+        "公共料金・通信費帳面を読み込めません。"
       );
     }
 
@@ -487,20 +726,31 @@ async function main() {
     updateSummary(rows);
     render(rows);
 
-    status.textContent =
-      rows.length +
-      "件を表示しています。";
+    if (status) {
+      status.classList.remove(
+        "error"
+      );
+
+      status.textContent =
+        rows.length +
+        "件を表示しています。";
+    }
   }
   catch (error) {
-    status.classList.add("error");
-
-    status.textContent =
-      "読み込みエラー: " +
-      error.message;
-
     updateSummary([]);
     render([]);
+
+    if (status) {
+      status.classList.add(
+        "error"
+      );
+
+      status.textContent =
+        "読み込みエラー: " +
+        error.message;
+    }
   }
 }
 
 main();
+/* GPT3_UTILITY_LEDGER_FULL_REBUILD_END */

@@ -2072,3 +2072,136 @@ input.sorting-check[type="checkbox"] {
 }
 
 /* GPT3_UTILITY_LINE_ITEMS_MODAL_END */
+
+/* GPT3_UTILITY_DEDICATED_SCREEN_CSS_START */
+.specialist-utility-communication-page .utility-screen-intro {
+  border: 0.0625rem solid #a9c9e8;
+  background: #f5faff;
+}
+
+.specialist-utility-communication-page .utility-title-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.specialist-utility-communication-page .utility-title-row > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.specialist-utility-communication-page .utility-title-row span {
+  color: #526477;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.specialist-utility-communication-page .utility-guidance {
+  margin: 0.75rem 0 0;
+  color: #40566d;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.specialist-utility-communication-page .utility-show-all-button {
+  flex: 0 0 auto;
+  min-width: 8rem;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  border: 0.0625rem solid #86acd0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #214b70;
+  font-weight: 800;
+}
+
+.specialist-utility-communication-page .utility-show-all-button[aria-pressed="true"] {
+  background: #214b70;
+  color: #ffffff;
+}
+
+.specialist-utility-communication-page .utility-dedicated-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.specialist-utility-communication-page .utility-dedicated-field {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.specialist-utility-communication-page .utility-dedicated-field[hidden] {
+  display: none !important;
+}
+
+.specialist-utility-communication-page .utility-dedicated-field input,
+.specialist-utility-communication-page .utility-dedicated-field select,
+.specialist-utility-communication-page .utility-dedicated-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.specialist-utility-communication-page .utility-dedicated-field textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.specialist-utility-communication-page .utility-primary-amount input {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.specialist-utility-communication-page .utility-checkbox-field {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 0.0625rem solid #d4dde6;
+  border-radius: 0.45rem;
+}
+
+.specialist-utility-communication-page .utility-checkbox-field input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.specialist-utility-communication-page .utility-dedicated-section.utility-section-empty {
+  display: none;
+}
+
+.specialist-utility-communication-page .utility-line-items-panel {
+  border: 0.0625rem solid #9fc5e8;
+  background: #f4f9fe;
+}
+
+.specialist-utility-communication-page .utility-line-items-summary {
+  margin-top: 0.65rem;
+}
+
+@media (max-width: 72rem) {
+  .specialist-utility-communication-page .utility-dedicated-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .specialist-utility-communication-page .utility-dedicated-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .specialist-utility-communication-page .utility-dedicated-field.span2 {
+    grid-column: auto;
+  }
+
+  .specialist-utility-communication-page .utility-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .specialist-utility-communication-page .utility-show-all-button {
+    width: 100%;
+  }
+}
+/* GPT3_UTILITY_DEDICATED_SCREEN_CSS_END */
