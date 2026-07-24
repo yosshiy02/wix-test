@@ -97,16 +97,6 @@ function receiptOcrId(row) {
     : null;
 }
 
-function managementNumber(row) {
-  const id = Number(row.receipt_id || 0);
-
-  if (!Number.isFinite(id) || id <= 0) {
-    return "";
-  }
-
-  return "R-" + String(id).padStart(6, "0");
-}
-
 function appendTextCell(
   tr,
   value,
@@ -792,7 +782,7 @@ function insertReceiptDetailRow(
   const detailCell = document.createElement("td");
 
   detailRow.className = "ledger-detail-row";
-  detailCell.colSpan = 14;
+  detailCell.colSpan = 13;
 
   detailCell.appendChild(
     createReceiptDetailContent(fullReceipt)
@@ -816,7 +806,7 @@ function insertReceiptDetailError(
   detailRow.className =
     "ledger-detail-row ledger-detail-error-row";
 
-  detailCell.colSpan = 14;
+  detailCell.colSpan = 13;
   detailCell.className = "ledger-detail-error";
   detailCell.textContent = message;
 
@@ -959,85 +949,6 @@ function appendActionCell(tr, row) {
   tr.appendChild(td);
 }
 
-function receiptTimeButtonText(value) {
-  const fullText = textValue(value).trim();
-
-  if (!fullText) {
-    return "";
-  }
-
-  const match = fullText.match(
-    /^(\d{1,2}):(\d{2})/
-  );
-
-  if (match) {
-    return match[1].padStart(2, "0") +
-      ":" +
-      match[2];
-  }
-
-  return fullText;
-}
-
-function appendDateTimeCell(tr, row) {
-  const td = document.createElement("td");
-  const dateTextElement =
-    document.createElement("div");
-
-  td.className =
-    "cell-center ledger-date-time-cell";
-
-  dateTextElement.className =
-    "ledger-date-text";
-
-  dateTextElement.textContent =
-    dateValue(row.transaction_date);
-
-  td.appendChild(dateTextElement);
-
-  const fullTime = textValue(
-    row.receipt_time_text
-  ).trim();
-
-  if (fullTime) {
-    const timeButton =
-      document.createElement("button");
-
-    timeButton.type = "button";
-    timeButton.className =
-      "ledger-time-button";
-
-    timeButton.textContent =
-      receiptTimeButtonText(fullTime);
-
-    timeButton.title =
-      "レシート時刻：" + fullTime;
-
-    timeButton.setAttribute(
-      "aria-label",
-      "レシート時刻 " + fullTime
-    );
-
-    timeButton.addEventListener(
-      "click",
-      function (event) {
-        event.stopPropagation();
-      }
-    );
-
-    timeButton.addEventListener(
-      "keydown",
-      function (event) {
-        event.stopPropagation();
-      }
-    );
-
-    td.appendChild(timeButton);
-  }
-
-  tr.appendChild(td);
-}
-
 function renderRows(rows) {
   const tbody = byId("detailBody");
 
@@ -1073,20 +984,11 @@ function renderRows(rows) {
         }
       );
     }
-
-    const managementCell = appendTextCell(
+appendTextCell(
       tr,
-      managementNumber(row),
+      dateValue(row.transaction_date),
       "cell-center"
     );
-
-    if (ocrId) {
-      managementCell.classList.add(
-        "management-link"
-      );
-    }
-
-    appendDateTimeCell(tr, row);
 
     appendTextCell(
       tr,

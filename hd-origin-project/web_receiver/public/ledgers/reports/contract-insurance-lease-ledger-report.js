@@ -264,44 +264,31 @@ function render(rows) {
   });
 }
 /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_START */
-/* HD_ORIGIN_CIL_LEDGER_SAFE_EDIT_LINK_20260724_START */
-function openLedgerItemForEdit(ocrImportId, button) {
-  const id = Number(ocrImportId);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw new Error("OCR取込IDを確認できません。");
-  }
-
+/* HD_ORIGIN_CIL_LEDGER_ANALYSIS_SCREEN_LINK_20260724_START */
+function openContractInsuranceLeaseAnalysisScreen(button) {
   if (button) {
-    button.disabled = true;
+    button.disabled=true;
   }
 
-  location.href =
-    "/payables/payment-document-specialist-contract-insurance-lease.html" +
-    "?ocr_import_id=" +
-    encodeURIComponent(String(id));
+  location.href=
+    "/payables/payment-document-specialist-contract-insurance-lease.html";
 }
 
-document.addEventListener("click", function (event) {
-  const button =
+document.addEventListener("click",function(event) {
+  const button=
     event.target.closest(".ledger-edit-button");
 
   if (!button) {
     return;
   }
 
-  try {
-    openLedgerItemForEdit(
-      button.dataset.ocrImportId,
-      button
-    );
-  }
-  catch (error) {
-    button.disabled = false;
-    window.alert(error.message);
-  }
+  event.preventDefault();
+
+  openContractInsuranceLeaseAnalysisScreen(
+    button
+  );
 });
-/* HD_ORIGIN_CIL_LEDGER_SAFE_EDIT_LINK_20260724_END */
+/* HD_ORIGIN_CIL_LEDGER_ANALYSIS_SCREEN_LINK_20260724_END */
 /* HD_ORIGIN_CIL_RETURN_TO_ANALYSIS_CLIENT_20260723_END */
 async function main() {
   const status=document.getElementById("loadStatus");

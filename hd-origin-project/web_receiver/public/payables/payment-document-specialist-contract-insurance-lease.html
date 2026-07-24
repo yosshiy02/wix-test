@@ -4754,6 +4754,21 @@ function setDocumentPreview(item) {
     setBottomOcrText(ocrValue);
 
     showResult("原本画像とOCR本文を読み込みました。");
+    /* HD_ORIGIN_CIL_SELECTION_SAVED_RELOAD_CALL_20260724_START */
+    hdOriginCilReloadSavedForSelectedItem(
+      item,
+      index
+    ).catch(function (error) {
+      showResult(
+        "保存済みデータ再表示エラー: " +
+        (
+          error && error.message
+            ? error.message
+            : String(error)
+        )
+      );
+    });
+    /* HD_ORIGIN_CIL_SELECTION_SAVED_RELOAD_CALL_20260724_END */
   }
 
   function showPlanned(name) {
@@ -5662,7 +5677,132 @@ function setDocumentPreview(item) {
     );
   }
 
-  async function hdOriginCilReloadSavedFromQuery() {
+    /* HD_ORIGIN_CIL_SELECTION_SAVED_RELOAD_HELPER_20260724_START */
+  let hdOriginCilSavedSelectionRequestNo = 0;
+
+  async function hdOriginCilReloadSavedForSelectedItem(
+    item,
+    index
+  ) {
+    const ocrId = Number(
+      hdOriginCilResultOcrId(item, null)
+    );
+
+    if (
+      !Number.isInteger(ocrId) ||
+      ocrId < 1
+    ) {
+      return false;
+    }
+
+    const cacheKey = String(ocrId);
+
+    if (
+      window.__cilSpecialistResultsByOcrId &&
+      window.__cilSpecialistResultsByOcrId.has(
+        cacheKey
+      )
+    ) {
+      return true;
+    }
+
+    const requestNo =
+      ++hdOriginCilSavedSelectionRequestNo;
+
+    if (
+      typeof window
+        .hdOriginLoadContractInsuranceLeaseExtraMasters ===
+      "function"
+    ) {
+      await window
+        .hdOriginLoadContractInsuranceLeaseExtraMasters();
+    }
+
+    const response = await fetch(
+      "/api/payment-documents/" +
+      "contract-insurance-lease/saved/" +
+      encodeURIComponent(String(ocrId)),
+      {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    );
+
+    const payload =
+      await response.json().catch(
+        function () {
+          return {};
+        }
+      );
+
+    if (
+      requestNo !==
+      hdOriginCilSavedSelectionRequestNo
+    ) {
+      return false;
+    }
+
+    if (
+      selectedIndex !== index ||
+      !Array.isArray(items) ||
+      items[index] !== item
+    ) {
+      return false;
+    }
+
+    if (response.status === 404) {
+      return false;
+    }
+
+    if (
+      !response.ok ||
+      !payload.ok ||
+      !payload.saved
+    ) {
+      throw new Error(
+        payload.error ||
+        "保存済み契約・保険・リースデータを読み込めません。"
+      );
+    }
+
+    const restored =
+      hdOriginCilBuildSavedResult(
+        ocrId,
+        payload.saved
+      );
+
+    hdOriginCilRememberSpecialistResult(
+      item,
+      restored
+    );
+
+    item.specialistAnalysisId =
+      payload.saved.specialist_analysis_id ||
+      item.specialistAnalysisId ||
+      "";
+
+    item.specialist_analysis_id =
+      payload.saved.specialist_analysis_id ||
+      item.specialist_analysis_id ||
+      "";
+
+    item.__specialistAnalyzed = true;
+    item.__aiAnalyzed = true;
+
+    hdOriginCilRestoreSpecialistResult(
+      item
+    );
+
+    showResult(
+      "保存済み契約・保険・リースデータを再表示しました。"
+    );
+
+    return true;
+  }
+  /* HD_ORIGIN_CIL_SELECTION_SAVED_RELOAD_HELPER_20260724_END */
+async function hdOriginCilReloadSavedFromQuery() {
     const ocrId =
       hdOriginCilQueryOcrId();
 

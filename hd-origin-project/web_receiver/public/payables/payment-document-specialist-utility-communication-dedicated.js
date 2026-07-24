@@ -3228,3 +3228,527 @@
   );
 })();
 /* GPT3_UTILITY_COMMUNICATION_DISPLAY_COMPAT_V3_END */
+
+/* GPT3_UTILITY_COMMUNICATION_FIELD_MAPPING_START */
+(function () {
+  "use strict";
+
+  if (
+    window.__hdOriginUtilityCommunicationFieldMappingInstalled
+  ) {
+    return;
+  }
+
+  window.__hdOriginUtilityCommunicationFieldMappingInstalled =
+    true;
+
+  function objectValue(value) {
+    return (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    )
+      ? value
+      : {};
+  }
+
+  function firstValue() {
+    for (
+      let index = 0;
+      index < arguments.length;
+      index++
+    ) {
+      const value =
+        arguments[index];
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        return value;
+      }
+    }
+
+    return "";
+  }
+
+  function textValue(value) {
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return "";
+    }
+
+    return String(value);
+  }
+
+  function fieldsFromDraft(draft) {
+    const source =
+      objectValue(draft);
+
+    return objectValue(
+      firstValue(
+        source.fields,
+        source.specialist_fields,
+        source.specialistFields
+      )
+    );
+  }
+
+  function setSelectValue(
+    control,
+    value,
+    alternateValue
+  ) {
+    const wanted =
+      textValue(value).trim();
+
+    const alternate =
+      textValue(alternateValue).trim();
+
+    const options =
+      Array.from(
+        control.options || []
+      );
+
+    const matched =
+      options.find(function (option) {
+        const optionValue =
+          textValue(
+            option.value
+          ).trim();
+
+        const optionText =
+          textValue(
+            option.textContent
+          ).trim();
+
+        const optionCode =
+          textValue(
+            option.dataset &&
+            (
+              option.dataset.code ||
+              option.dataset.analysisCode ||
+              option.dataset.masterCode
+            )
+          ).trim();
+
+        return (
+          (
+            wanted &&
+            (
+              optionValue === wanted ||
+              optionText === wanted ||
+              optionCode === wanted
+            )
+          ) ||
+          (
+            alternate &&
+            (
+              optionValue === alternate ||
+              optionText === alternate ||
+              optionCode === alternate
+            )
+          )
+        );
+      });
+
+    if (matched) {
+      control.value =
+        matched.value;
+
+      control.dispatchEvent(
+        new Event(
+          "change",
+          {
+            bubbles:
+              true
+          }
+        )
+      );
+
+      return true;
+    }
+
+    return false;
+  }
+
+  function setControlValue(
+    control,
+    value,
+    alternateValue
+  ) {
+    if (!control) {
+      return false;
+    }
+
+    if (
+      control.tagName === "SELECT"
+    ) {
+      return setSelectValue(
+        control,
+        value,
+        alternateValue
+      );
+    }
+
+    if (
+      control.type === "checkbox"
+    ) {
+      control.checked =
+        value === true ||
+        value === 1 ||
+        value === "1" ||
+        value === "true" ||
+        value === "あり";
+
+      control.dispatchEvent(
+        new Event(
+          "change",
+          {
+            bubbles:
+              true
+          }
+        )
+      );
+
+      return true;
+    }
+
+    let nextValue =
+      textValue(value);
+
+    if (
+      control.type === "datetime-local" &&
+      nextValue
+    ) {
+      nextValue =
+        nextValue
+          .replace(
+            " ",
+            "T"
+          )
+          .replace(
+            /Z$/,
+            ""
+          )
+          .slice(
+            0,
+            16
+          );
+    }
+
+    control.value =
+      nextValue;
+
+    control.dispatchEvent(
+      new Event(
+        "input",
+        {
+          bubbles:
+            true
+        }
+      )
+    );
+
+    control.dispatchEvent(
+      new Event(
+        "change",
+        {
+          bubbles:
+            true
+        }
+      )
+    );
+
+    return true;
+  }
+
+  function showMappedControl(control) {
+    if (!control) {
+      return;
+    }
+
+    const label =
+      control.closest("label");
+
+    if (label) {
+      label.classList.remove(
+        "ai-field-hidden"
+      );
+
+      label.style.display =
+        "";
+    }
+
+    const section =
+      control.closest(
+        ".draft-section, [data-utility-section]"
+      );
+
+    if (section) {
+      section.classList.remove(
+        "ai-section-hidden"
+      );
+
+      section.style.display =
+        "";
+    }
+  }
+
+  function valueForCode(
+    code,
+    fields,
+    draft
+  ) {
+    const source =
+      objectValue(draft);
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        fields,
+        code
+      )
+    ) {
+      return fields[code];
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        source,
+        code
+      )
+    ) {
+      return source[code];
+    }
+
+    return "";
+  }
+
+  function applyCommunicationFields(draft) {
+    const source =
+      objectValue(draft);
+
+    const fields =
+      fieldsFromDraft(source);
+
+    const controls =
+      Array.from(
+        document.querySelectorAll(
+          "[data-analysis-item-code]"
+        )
+      );
+
+    let appliedCount = 0;
+
+    controls.forEach(
+      function (control) {
+        const code =
+          textValue(
+            control.getAttribute(
+              "data-analysis-item-code"
+            )
+          ).trim();
+
+        if (!code) {
+          return;
+        }
+
+        const value =
+          valueForCode(
+            code,
+            fields,
+            source
+          );
+
+        if (
+          value === "" ||
+          value === null ||
+          value === undefined
+        ) {
+          return;
+        }
+
+        let alternateValue =
+          "";
+
+        if (
+          code.endsWith("_label")
+        ) {
+          const codeName =
+            code.replace(
+              /_label$/,
+              "_code"
+            );
+
+          alternateValue =
+            valueForCode(
+              codeName,
+              fields,
+              source
+            );
+        }
+        else if (
+          code.endsWith("_code")
+        ) {
+          const labelName =
+            code.replace(
+              /_code$/,
+              "_label"
+            );
+
+          alternateValue =
+            valueForCode(
+              labelName,
+              fields,
+              source
+            );
+        }
+
+        if (
+          setControlValue(
+            control,
+            value,
+            alternateValue
+          )
+        ) {
+          showMappedControl(
+            control
+          );
+
+          appliedCount++;
+        }
+      }
+    );
+
+    const warnings =
+      Array.isArray(source.warnings)
+        ? source.warnings
+        : [];
+
+    const warningControl =
+      document.getElementById(
+        "draftWarnings"
+      );
+
+    if (
+      warningControl &&
+      warnings.length
+    ) {
+      warningControl.value =
+        warnings.join("\n");
+
+      showMappedControl(
+        warningControl
+      );
+
+      appliedCount++;
+    }
+
+    window.__hdOriginUtilityCommunicationMappingLast = {
+      ok:
+        true,
+
+      appliedCount:
+        appliedCount,
+
+      fieldCodes:
+        Object.keys(fields),
+
+      mappedValues: {
+        email_from:
+          fields.email_from || "",
+
+        email_subject:
+          fields.email_subject || "",
+
+        email_received_at:
+          fields.email_received_at || "",
+
+        usage_period:
+          fields.usage_period || "",
+
+        total_amount:
+          fields.total_amount ?? "",
+
+        currency:
+          fields.currency || "",
+
+        payment_method_code:
+          fields.payment_method_code || "",
+
+        payment_method_label:
+          fields.payment_method_label || ""
+      }
+    };
+
+    return appliedCount;
+  }
+
+  function installMappingWrapper() {
+    const original =
+      window.hdOriginApplyUtilityDedicatedDraft;
+
+    if (
+      typeof original !== "function" ||
+      original.__utilityCommunicationFieldMappingWrapped
+    ) {
+      return false;
+    }
+
+    const wrapped =
+      function (draft) {
+        const result =
+          original.apply(
+            this,
+            arguments
+          );
+
+        applyCommunicationFields(
+          draft
+        );
+
+        return result;
+      };
+
+    wrapped.__utilityCommunicationFieldMappingWrapped =
+      true;
+
+    window.hdOriginApplyUtilityDedicatedDraft =
+      wrapped;
+
+    return true;
+  }
+
+  window.hdOriginApplyUtilityCommunicationFields =
+    applyCommunicationFields;
+
+  installMappingWrapper();
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    installMappingWrapper,
+    {
+      once:
+        true
+    }
+  );
+
+  setTimeout(
+    installMappingWrapper,
+    0
+  );
+
+  setTimeout(
+    installMappingWrapper,
+    250
+  );
+
+  setTimeout(
+    installMappingWrapper,
+    1000
+  );
+})();
+/* GPT3_UTILITY_COMMUNICATION_FIELD_MAPPING_END */
