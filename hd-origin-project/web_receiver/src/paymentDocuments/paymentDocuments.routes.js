@@ -11864,6 +11864,302 @@ async function handlePaymentDocumentRoutes(req, res) {
     return true;
   }
   /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_END */
+  /* GPT3_UTILITY_SAVED_RELOAD_API_START */
+  if (
+    req.method === "GET" &&
+    urlPath.startsWith(
+      "/api/payment-documents/utility-communication/saved/"
+    )
+  ) {
+    try {
+      const prefix =
+        "/api/payment-documents/utility-communication/saved/";
+
+      const idText =
+        decodeURIComponent(
+          urlPath.slice(prefix.length)
+        );
+
+      const ocrId =
+        Number(idText);
+
+      if (
+        !Number.isInteger(ocrId) ||
+        ocrId < 1
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "不正なOCR取込IDです。"
+        });
+
+        return true;
+      }
+
+      const savedResult =
+        await db.query(
+          `
+            SELECT
+              d.utility_communication_draft_id,
+              d.payment_document_ocr_import_id,
+              d.payment_document_sorting_draft_id,
+              d.specialist_analysis_id,
+              d.draft_no,
+              d.draft_version,
+
+              d.customer_number,
+              d.supply_point_number,
+              d.meter_reading_date,
+              d.usage_quantity,
+              d.usage_unit,
+
+              d.specialist_fields_json,
+              d.ai_raw_json,
+              d.visible_fields_json,
+              d.warnings_json
+                AS utility_warnings_json,
+
+              r.analysis_system_code,
+              r.analysis_system_label,
+              r.ai_confidence,
+              r.ai_reason,
+              r.draft_json,
+              r.visible_field_labels_json,
+              r.warnings_json
+                AS specialist_warnings_json,
+              r.raw_result_json
+
+            FROM
+              accounting.payment_document_utility_communication_drafts d
+
+            LEFT JOIN
+              accounting.payment_document_specialist_analysis_results r
+              ON r.specialist_analysis_id =
+                 d.specialist_analysis_id
+
+            WHERE
+              d.payment_document_ocr_import_id = $1
+              AND d.is_current = TRUE
+              AND d.deleted_at IS NULL
+
+            ORDER BY
+              d.draft_version DESC,
+              d.utility_communication_draft_id DESC
+
+            LIMIT 1
+          `,
+          [ocrId]
+        );
+
+      if (!savedResult.rows.length) {
+        sendJson(res, 404, {
+          ok: false,
+          error:
+            "保存済み公共料金・通信費データがありません。",
+          paymentDocumentOcrImportId:
+            ocrId
+        });
+
+        return true;
+      }
+
+      const lineResult =
+        await db.query(
+          `
+            SELECT
+              utility_communication_line_item_id,
+              utility_communication_draft_id,
+              line_no,
+              item_name,
+              description,
+              usage_quantity,
+              usage_unit,
+              unit_price,
+              subtotal_amount,
+              tax_rate,
+              tax_category_id,
+              tax_category_label,
+              tax_amount,
+              total_amount,
+              source_text,
+              raw_item_json
+
+            FROM
+              accounting.payment_document_utility_communication_line_items
+
+            WHERE
+              utility_communication_draft_id = $1
+
+            ORDER BY
+              line_no,
+              utility_communication_line_item_id
+          `,
+          [
+            savedResult.rows[0]
+              .utility_communication_draft_id
+          ]
+        );
+
+      const row =
+        savedResult.rows[0];
+
+      const objectOrEmpty =
+        value =>
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value)
+            ? value
+            : {};
+
+      const rawResult =
+        objectOrEmpty(
+          row.raw_result_json
+        );
+
+      const rawSpecialist =
+        objectOrEmpty(
+          rawResult.specialist
+        );
+
+      const savedDraft =
+        Object.keys(
+          objectOrEmpty(row.draft_json)
+        ).length
+          ? objectOrEmpty(row.draft_json)
+          : Object.keys(
+              objectOrEmpty(rawResult.draft)
+            ).length
+            ? objectOrEmpty(rawResult.draft)
+            : objectOrEmpty(
+                rawSpecialist.draft
+              );
+
+      const specialistFields =
+        objectOrEmpty(
+          row.specialist_fields_json
+        );
+
+      const lineItems =
+        lineResult.rows;
+
+      const fields = {
+        ...objectOrEmpty(savedDraft.fields),
+        ...specialistFields,
+        line_items:
+          lineItems
+      };
+
+      const visibleFieldLabels =
+        Array.isArray(
+          row.visible_field_labels_json
+        )
+          ? row.visible_field_labels_json
+          : Array.isArray(
+              rawResult.visible_field_labels
+            )
+            ? rawResult.visible_field_labels
+            : Array.isArray(
+                rawSpecialist.visible_field_labels
+              )
+              ? rawSpecialist.visible_field_labels
+              : Array.isArray(
+                  savedDraft.visible_field_labels
+                )
+                ? savedDraft.visible_field_labels
+                : [];
+
+      const warnings =
+        Array.isArray(
+          row.specialist_warnings_json
+        )
+          ? row.specialist_warnings_json
+          : Array.isArray(savedDraft.warnings)
+            ? savedDraft.warnings
+            : Array.isArray(
+                row.utility_warnings_json
+              )
+              ? row.utility_warnings_json
+              : [];
+
+      const draft = {
+        ...savedDraft,
+
+        analysis_system_code:
+          row.analysis_system_code ||
+          savedDraft.analysis_system_code ||
+          "",
+
+        analysis_system_label:
+          row.analysis_system_label ||
+          savedDraft.analysis_system_label ||
+          "",
+
+        analysis_system_reason:
+          row.ai_reason ||
+          savedDraft.analysis_system_reason ||
+          "",
+
+        analysis_system_confidence:
+          row.ai_confidence ||
+          savedDraft.analysis_system_confidence ||
+          "",
+
+        fields,
+        specialist_fields:
+          fields,
+
+        line_items:
+          lineItems,
+
+        visible_field_labels:
+          visibleFieldLabels,
+
+        warnings
+      };
+
+      sendJson(res, 200, {
+        ok: true,
+
+        paymentDocumentOcrImportId:
+          row.payment_document_ocr_import_id,
+
+        paymentDocumentSortingDraftId:
+          row.payment_document_sorting_draft_id,
+
+        specialistAnalysisId:
+          row.specialist_analysis_id,
+
+        utilityCommunicationDraftId:
+          row.utility_communication_draft_id,
+
+        draftVersion:
+          row.draft_version,
+
+        draft,
+        visible_field_labels:
+          visibleFieldLabels,
+        warnings,
+
+        line_items:
+          lineItems,
+
+        source:
+          "saved_utility_communication_database",
+
+        ai_execution:
+          false
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error:
+          error.message ||
+          String(error)
+      });
+    }
+
+    return true;
+  }
+  /* GPT3_UTILITY_SAVED_RELOAD_API_END */
   if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
     try {
       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-specialist/", ""));

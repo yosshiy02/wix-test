@@ -1703,7 +1703,7 @@ function setDocumentPreview(item) {
     if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
     if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
-    if (setById("draftLeaseItemName", fields["リース物件"])) appliedCount++;
+    if (setById("draftLeaseItemName", fields["リース物件"] || fields["物件"] || fields["物件名"] || fields["対象物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
     if (setById("draftLeaseItemCategory", fields["リース物件区分"])) appliedCount++;
     if (setById("draftPaymentCycle", fields["支払周期"])) appliedCount++;
@@ -2134,7 +2134,7 @@ function setDocumentPreview(item) {
     put("draftUsagePeriod", "使用期間", fields["使用期間"]);
     put("draftUsageAmount", "使用量", fields["使用量"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
-    put("draftLeaseItemName", "リース物件", fields["リース物件"]);
+    put("draftLeaseItemName", "リース物件", fields["リース物件"] || fields["物件"] || fields["物件名"] || fields["対象物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
     put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
     put("draftPaymentCycle", "支払周期", fields["支払周期"]);
@@ -2831,7 +2831,7 @@ function setDocumentPreview(item) {
     put("draftUsagePeriod", "使用期間", fields["使用期間"]);
     put("draftUsageAmount", "使用量", fields["使用量"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
-    put("draftLeaseItemName", "リース物件", fields["リース物件"]);
+    put("draftLeaseItemName", "リース物件", fields["リース物件"] || fields["物件"] || fields["物件名"] || fields["対象物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
     put("draftLeaseItemCategory", "リース物件区分", fields["リース物件区分"]);
     put("draftPaymentCycle", "支払周期", fields["支払周期"]);
@@ -2928,6 +2928,22 @@ function setDocumentPreview(item) {
 
   function showVisibleFieldsOnly(visibleLabels) {
     const visibleSet = new Set((Array.isArray(visibleLabels) ? visibleLabels : []).map(item => normalizeLabelText(item)));
+
+    /* HD_ORIGIN_CIL_VISIBLE_LABEL_ALIASES */
+    if (
+      visibleSet.has(normalizeLabelText("物件")) ||
+      visibleSet.has(normalizeLabelText("物件名")) ||
+      visibleSet.has(normalizeLabelText("対象物件"))
+    ) {
+      visibleSet.add(normalizeLabelText("リース物件"));
+    }
+
+    if (
+      visibleSet.has(normalizeLabelText("被保険物件")) ||
+      visibleSet.has(normalizeLabelText("保険対象"))
+    ) {
+      visibleSet.add(normalizeLabelText("被保険者・被保険物件"));
+    }
 
     document.body.classList.remove("ai-analysis-initial");
     document.body.classList.add("ai-analysis-done");
@@ -3128,12 +3144,16 @@ function setDocumentPreview(item) {
   }
 
   function hdOriginCilApplyInsuranceFields(draft) {
-    const fields =
-      draft &&
-      draft.fields &&
-      typeof draft.fields === "object"
-        ? draft.fields
-        : {};
+    /* HD_ORIGIN_CIL_VISIBLE_FIELDS_SOURCE */
+    const fieldSources = [
+      draft && draft.fields,
+      draft && draft.visibleFields,
+      draft && draft.visible_fields
+    ].filter(
+      value => value && typeof value === "object"
+    );
+
+    const fields = Object.assign({}, ...fieldSources);
 
     const setValue = (id, value) => {
       const element = document.getElementById(id);
@@ -3156,9 +3176,23 @@ function setDocumentPreview(item) {
       fields["保険証券番号・契約番号"] || ""
     );
 
+    /* HD_ORIGIN_CIL_ITEM_FIELD_REFLECTION */
+    setValue(
+      "draftLeaseItemName",
+      fields["リース物件"] ||
+      fields["物件"] ||
+      fields["物件名"] ||
+      fields["対象物件"] ||
+      ""
+    );
+
     setValue(
       "draftInsuredPersonName",
-      fields["被保険者・被保険物件"] || ""
+      fields["被保険者・被保険物件"] ||
+      fields["被保険物件"] ||
+      fields["保険対象"] ||
+      fields["被保険者"] ||
+      ""
     );
 
     setValue(
@@ -3167,6 +3201,19 @@ function setDocumentPreview(item) {
         fields["保険料"]
       )
     );
+
+        /* HD_ORIGIN_CIL_PAYMENT_METHOD_REFLECTION */
+        if (typeof setMasterSelectByCodeOrText === "function") {
+          setMasterSelectByCodeOrText(
+            "#draftPaymentMethod",
+            fields["支払方法"] || fields["支払方法マスタ"] || ""
+          );
+        } else {
+          setValue(
+            "draftPaymentMethod",
+            fields["支払方法"] || fields["支払方法マスタ"] || ""
+          );
+        }
   }
   /* HD_ORIGIN_GPT2_CIL_INSURANCE_REFLECTION_20260722_END */
 
