@@ -12073,7 +12073,132 @@ async function handlePaymentDocumentRoutes(req, res) {
     return true;
   }
   /* HD_ORIGIN_CIL_LEDGER_GET_API_20260723_END */
-  /* GPT3_UTILITY_SAVED_RELOAD_API_START */
+    /* HD_ORIGIN_CIL_SAVED_RELOAD_API_20260724_START */
+  if (
+    req.method === "GET" &&
+    urlPath.startsWith(
+      "/api/payment-documents/contract-insurance-lease/saved/"
+    )
+  ) {
+    try {
+      const prefix =
+        "/api/payment-documents/contract-insurance-lease/saved/";
+
+      const idText =
+        decodeURIComponent(
+          urlPath.slice(prefix.length)
+        );
+
+      const ocrId =
+        Number(idText);
+
+      if (
+        !Number.isInteger(ocrId) ||
+        ocrId < 1
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "不正なOCR取込IDです。"
+        });
+
+        return true;
+      }
+
+      const savedResult =
+        await db.query(
+          `
+            SELECT
+              d.*,
+
+              r.analysis_system_code,
+              r.analysis_system_label,
+              r.specialist_analysis_status,
+
+              r.ai_confidence
+                AS specialist_ai_confidence,
+
+              r.ai_reason
+                AS specialist_ai_reason,
+
+              r.warnings_json
+                AS specialist_warnings_json,
+
+              r.raw_result_json
+                AS specialist_raw_result_json,
+
+              COALESCE((
+                SELECT
+                  jsonb_agg(
+                    to_jsonb(l)
+                    ORDER BY
+                      l.sort_order,
+                      l.lease_item_line_id
+                  )
+                FROM
+                  accounting.payment_document_contract_insurance_lease_item_lines l
+                WHERE
+                  l.contract_insurance_lease_draft_id =
+                    d.contract_insurance_lease_draft_id
+              ), '[]'::jsonb)
+                AS lease_item_lines
+
+            FROM
+              accounting.payment_document_contract_insurance_lease_drafts d
+
+            LEFT JOIN
+              accounting.payment_document_specialist_analysis_results r
+              ON r.specialist_analysis_id =
+                 d.specialist_analysis_id
+
+            WHERE
+              d.payment_document_ocr_import_id = $1
+              AND d.is_current = TRUE
+              AND d.deleted_at IS NULL
+
+            ORDER BY
+              d.updated_at DESC NULLS LAST,
+              d.contract_insurance_lease_draft_id DESC
+
+            LIMIT 1
+          `,
+          [ocrId]
+        );
+
+      if (!savedResult.rows.length) {
+        sendJson(res, 404, {
+          ok: false,
+          error:
+            "保存済み契約・保険・リースデータが見つかりません。"
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        paymentDocumentOcrImportId: ocrId,
+        saved: savedResult.rows[0]
+      });
+    }
+    catch (error) {
+      console.error(
+        "contract-insurance-lease saved reload failed:",
+        error
+      );
+
+      sendJson(res, 500, {
+        ok: false,
+        error:
+          error && error.message
+            ? error.message
+            : String(error)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_CIL_SAVED_RELOAD_API_20260724_END */
+/* GPT3_UTILITY_SAVED_RELOAD_API_START */
   if (
     req.method === "GET" &&
     urlPath.startsWith(

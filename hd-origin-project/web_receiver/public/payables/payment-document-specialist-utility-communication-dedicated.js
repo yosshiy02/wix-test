@@ -887,3 +887,2344 @@
   );
 })();
 /* GPT3_UTILITY_DEDICATED_SCREEN_JS_END */
+
+/* GPT3_UTILITY_BULK_ANALYZE_SAVE_FIX_START */
+(function () {
+  "use strict";
+
+  const ANALYSIS_SYSTEM_CODE =
+    "utility_communication_analysis";
+
+  const ANALYSIS_SYSTEM_LABEL =
+    "公共料金・通信費専門解析システム";
+
+  function objectValue(value) {
+    return value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+        ? value
+        : {};
+  }
+
+  function firstValue() {
+    for (
+      let index = 0;
+      index < arguments.length;
+      index++
+    ) {
+      const value =
+        arguments[index];
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        return value;
+      }
+    }
+
+    return "";
+  }
+
+  function textValue(value) {
+    return value === undefined ||
+      value === null
+        ? ""
+        : String(value).trim();
+  }
+
+  function utilityItems() {
+    try {
+      return Array.isArray(items)
+        ? items
+        : [];
+    }
+    catch (error) {
+      return [];
+    }
+  }
+
+  function showReport(value) {
+    if (
+      typeof window.showResult ===
+      "function"
+    ) {
+      window.showResult(value);
+      return;
+    }
+
+    try {
+      if (
+        typeof showResult ===
+        "function"
+      ) {
+        showResult(value);
+        return;
+      }
+    }
+    catch (error) {
+    }
+
+    console.log(value);
+  }
+
+  function renderList() {
+    if (
+      typeof window.renderSortingList ===
+      "function"
+    ) {
+      window.renderSortingList();
+      return;
+    }
+
+    try {
+      if (
+        typeof renderSortingList ===
+        "function"
+      ) {
+        renderSortingList();
+      }
+    }
+    catch (error) {
+    }
+  }
+
+  function ocrIdOf(item) {
+    if (
+      typeof window.ocrImportIdOf ===
+      "function"
+    ) {
+      return Number(
+        window.ocrImportIdOf(item) ||
+        0
+      );
+    }
+
+    const source =
+      objectValue(item);
+
+    return Number(
+      firstValue(
+        source.paymentDocumentOcrImportId,
+        source.payment_document_ocr_import_id,
+        source.ocrImportId,
+        source.ocr_import_id,
+        source.id,
+        0
+      )
+    );
+  }
+
+  function sortingDraftIdOf(item, rawResult) {
+    const source =
+      objectValue(item);
+
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      objectValue(
+        firstValue(
+          raw.draft,
+          source.__aiDraft
+        )
+      );
+
+    const sorting =
+      objectValue(
+        firstValue(
+          source.sortingDraft,
+          source.sorting_draft
+        )
+      );
+
+    return Number(
+      firstValue(
+        source.paymentDocumentSortingDraftId,
+        source.payment_document_sorting_draft_id,
+        source.sortingDraftId,
+        source.sorting_draft_id,
+        source.latestSortingDraftId,
+        source.latest_sorting_draft_id,
+
+        raw.paymentDocumentSortingDraftId,
+        raw.payment_document_sorting_draft_id,
+
+        draft.paymentDocumentSortingDraftId,
+        draft.payment_document_sorting_draft_id,
+
+        sorting.paymentDocumentSortingDraftId,
+        sorting.payment_document_sorting_draft_id,
+        sorting.id,
+        0
+      )
+    );
+  }
+
+  function selectedIndexes() {
+    if (
+      typeof window.selectedSortingIndexes ===
+      "function"
+    ) {
+      const result =
+        window.selectedSortingIndexes();
+
+      if (Array.isArray(result)) {
+        return result;
+      }
+    }
+
+    try {
+      if (
+        typeof selectedSortingIndexes ===
+        "function"
+      ) {
+        const result =
+          selectedSortingIndexes();
+
+        if (Array.isArray(result)) {
+          return result;
+        }
+      }
+    }
+    catch (error) {
+    }
+
+    const checked =
+      window.__checkedOcrImportIds instanceof Set
+        ? window.__checkedOcrImportIds
+        : new Set();
+
+    return utilityItems()
+      .map(function (item, index) {
+        return {
+          index:
+            index,
+
+          id:
+            String(
+              ocrIdOf(item) ||
+              ""
+            )
+        };
+      })
+      .filter(function (row) {
+        return (
+          row.id &&
+          checked.has(row.id)
+        );
+      })
+      .map(function (row) {
+        return row.index;
+      });
+  }
+
+  function itemName(item, index) {
+    const source =
+      objectValue(item);
+
+    return textValue(
+      firstValue(
+        source.originalFileName,
+        source.original_file_name,
+        source.fileName,
+        source.file_name,
+        source.savedFileName,
+        source.saved_file_name,
+        "No." + String(index + 1)
+      )
+    );
+  }
+
+  function rawResultOf(item) {
+    const source =
+      objectValue(item);
+
+    return objectValue(
+      firstValue(
+        source.__aiRawResult,
+        source.aiRawResult,
+        source.ai_raw_result
+      )
+    );
+  }
+
+  function draftOf(item, rawResult) {
+    const source =
+      objectValue(item);
+
+    const raw =
+      objectValue(rawResult);
+
+    return objectValue(
+      firstValue(
+        raw.draft,
+        raw.aiDraft,
+        raw.ai_draft,
+        source.__aiDraft,
+        source.aiDraft,
+        source.ai_draft
+      )
+    );
+  }
+
+  function validFields(value) {
+    return (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      Object.keys(value).length > 0
+    );
+  }
+
+  function fieldsOf(item, rawResult) {
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      draftOf(
+        item,
+        raw
+      );
+
+    const candidates = [
+      draft.fields,
+      draft.specialist_fields,
+      draft.specialistFields,
+
+      raw.fields,
+      raw.specialist_fields,
+      raw.specialistFields
+    ];
+
+    for (const candidate of candidates) {
+      if (validFields(candidate)) {
+        return Object.assign(
+          {},
+          candidate
+        );
+      }
+    }
+
+    const ignored =
+      new Set([
+        "visible_field_labels",
+        "visibleFieldLabels",
+        "warnings",
+        "reason",
+        "ai_reason",
+        "aiReason",
+        "confidence",
+        "ai_confidence",
+        "aiConfidence",
+        "document_group",
+        "documentGroup",
+        "analysis_system_code",
+        "analysisSystemCode",
+        "analysis_system_label",
+        "analysisSystemLabel",
+        "analysis_system_reason",
+        "analysisSystemReason",
+        "analysis_system_confidence",
+        "analysisSystemConfidence",
+        "specialist_route_code",
+        "specialistRouteCode",
+        "specialist_route_label",
+        "specialistRouteLabel",
+        "ai_steps",
+        "aiSteps",
+        "image_used",
+        "imageUsed",
+        "ok",
+        "message",
+        "error"
+      ]);
+
+    const result = {};
+
+    Object.entries(draft).forEach(
+      function (entry) {
+        const key =
+          entry[0];
+
+        const value =
+          entry[1];
+
+        if (
+          !ignored.has(key) &&
+          value !== undefined
+        ) {
+          result[key] =
+            value;
+        }
+      }
+    );
+
+    return result;
+  }
+
+  function visibleLabelsOf(item, rawResult) {
+    const source =
+      objectValue(item);
+
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      draftOf(
+        item,
+        raw
+      );
+
+    return (
+      [
+        raw.visible_field_labels,
+        raw.visibleFieldLabels,
+        draft.visible_field_labels,
+        draft.visibleFieldLabels,
+        source.__visibleFieldLabels
+      ].find(Array.isArray) ||
+      []
+    ).map(String);
+  }
+
+  function warningsOf(item, rawResult) {
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      draftOf(
+        item,
+        raw
+      );
+
+    return (
+      [
+        raw.warnings,
+        draft.warnings
+      ].find(Array.isArray) ||
+      []
+    );
+  }
+
+  function rawLinesOf(item, rawResult, fields) {
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      draftOf(
+        item,
+        raw
+      );
+
+    const fieldObject =
+      objectValue(fields);
+
+    return (
+      [
+        raw.line_items,
+        raw.lineItems,
+
+        draft.line_items,
+        draft.lineItems,
+
+        objectValue(draft.fields).line_items,
+        objectValue(draft.fields).lineItems,
+
+        objectValue(
+          draft.specialist_fields
+        ).line_items,
+
+        objectValue(
+          draft.specialistFields
+        ).lineItems,
+
+        fieldObject.line_items,
+        fieldObject.lineItems
+      ].find(Array.isArray) ||
+      []
+    );
+  }
+
+  function normalizeLines(item, rawResult, fields) {
+    return rawLinesOf(
+      item,
+      rawResult,
+      fields
+    ).map(
+      function (source, index) {
+        const line =
+          objectValue(source);
+
+        return {
+          line_no:
+            Number(
+              firstValue(
+                line.line_no,
+                line.lineNo,
+                index + 1
+              )
+            ),
+
+          item_name:
+            textValue(
+              firstValue(
+                line.item_name,
+                line.itemName,
+                line.name,
+                line.title
+              )
+            ),
+
+          description:
+            textValue(
+              firstValue(
+                line.description,
+                line.detail,
+                line.details
+              )
+            ),
+
+          usage_quantity:
+            firstValue(
+              line.usage_quantity,
+              line.usageQuantity,
+              line.quantity,
+              ""
+            ),
+
+          usage_unit:
+            textValue(
+              firstValue(
+                line.usage_unit,
+                line.usageUnit,
+                line.unit
+              )
+            ),
+
+          unit_price:
+            firstValue(
+              line.unit_price,
+              line.unitPrice,
+              ""
+            ),
+
+          subtotal_amount:
+            firstValue(
+              line.subtotal_amount,
+              line.subtotalAmount,
+              line.amount,
+              ""
+            ),
+
+          tax_category_id:
+            firstValue(
+              line.tax_category_id,
+              line.taxCategoryId,
+              ""
+            ),
+
+          tax_category_code:
+            textValue(
+              firstValue(
+                line.tax_category_code,
+                line.taxCategoryCode
+              )
+            ),
+
+          tax_category_label:
+            textValue(
+              firstValue(
+                line.tax_category_label,
+                line.taxCategoryLabel
+              )
+            ),
+
+          tax_rate:
+            firstValue(
+              line.tax_rate,
+              line.taxRate,
+              ""
+            ),
+
+          tax_amount:
+            firstValue(
+              line.tax_amount,
+              line.taxAmount,
+              ""
+            ),
+
+          total_amount:
+            firstValue(
+              line.total_amount,
+              line.totalAmount,
+              ""
+            ),
+
+          source_text:
+            textValue(
+              firstValue(
+                line.source_text,
+                line.sourceText,
+                line.raw_text,
+                line.rawText,
+                line.original_text,
+                line.originalText
+              )
+            )
+        };
+      }
+    );
+  }
+
+  function validateLines(lines) {
+    if (!lines.length) {
+      throw new Error(
+        "料金明細が0行です。保存しません。"
+      );
+    }
+
+    lines.forEach(
+      function (line, index) {
+        if (!line.item_name) {
+          throw new Error(
+            "料金明細" +
+            String(index + 1) +
+            "行目の料金項目名が空です。"
+          );
+        }
+
+        if (!line.source_text) {
+          throw new Error(
+            "料金明細" +
+            String(index + 1) +
+            "行目のOCR根拠が空です。"
+          );
+        }
+      }
+    );
+  }
+
+  function verifyRawOcrId(item, rawResult) {
+    const expectedId =
+      ocrIdOf(item);
+
+    const raw =
+      objectValue(rawResult);
+
+    const draft =
+      draftOf(
+        item,
+        raw
+      );
+
+    const actualId =
+      Number(
+        firstValue(
+          raw.paymentDocumentOcrImportId,
+          raw.payment_document_ocr_import_id,
+          raw.ocrImportId,
+          raw.ocr_import_id,
+
+          draft.paymentDocumentOcrImportId,
+          draft.payment_document_ocr_import_id,
+          draft.ocrImportId,
+          draft.ocr_import_id,
+          0
+        )
+      );
+
+    if (
+      actualId > 0 &&
+      actualId !== expectedId
+    ) {
+      throw new Error(
+        "AI結果のOCR IDが対象書類と一致しません。" +
+        " 対象=" +
+        String(expectedId) +
+        " AI結果=" +
+        String(actualId)
+      );
+    }
+  }
+
+  function postJsonDirect(url, payload) {
+    return new Promise(
+      function (resolve, reject) {
+        const request =
+          new XMLHttpRequest();
+
+        request.open(
+          "POST",
+          url,
+          true
+        );
+
+        request.setRequestHeader(
+          "Content-Type",
+          "application/json; charset=utf-8"
+        );
+
+        request.setRequestHeader(
+          "Accept",
+          "application/json"
+        );
+
+        request.onreadystatechange =
+          function () {
+            if (request.readyState !== 4) {
+              return;
+            }
+
+            let body = {};
+
+            try {
+              body =
+                request.responseText
+                  ? JSON.parse(
+                      request.responseText
+                    )
+                  : {};
+            }
+            catch (error) {
+              reject(
+                new Error(
+                  "保存APIの応答がJSONではありません。" +
+                  " STATUS=" +
+                  String(request.status)
+                )
+              );
+
+              return;
+            }
+
+            if (
+              request.status < 200 ||
+              request.status >= 300 ||
+              !body.ok
+            ) {
+              reject(
+                new Error(
+                  body.error ||
+                  body.message ||
+                  (
+                    "保存APIに失敗しました。" +
+                    " STATUS=" +
+                    String(request.status)
+                  )
+                )
+              );
+
+              return;
+            }
+
+            resolve(body);
+          };
+
+        request.onerror =
+          function () {
+            reject(
+              new Error(
+                "保存APIとの通信に失敗しました。"
+              )
+            );
+          };
+
+        request.send(
+          JSON.stringify(payload)
+        );
+      }
+    );
+  }
+
+  async function getSaved(id) {
+    const response =
+      await fetch(
+        "/api/payment-documents/utility-communication/saved/" +
+        encodeURIComponent(
+          String(id)
+        ),
+        {
+          cache:
+            "no-store",
+
+          headers: {
+            Accept:
+              "application/json"
+          }
+        }
+      );
+
+    const body =
+      await response.json().catch(
+        function () {
+          return {};
+        }
+      );
+
+    if (
+      !response.ok ||
+      !body.ok
+    ) {
+      throw new Error(
+        body.error ||
+        body.message ||
+        "保存後データを確認できません。"
+      );
+    }
+
+    return body;
+  }
+
+  function savedFieldsOf(saved) {
+    const root =
+      objectValue(saved);
+
+    const draft =
+      objectValue(
+        firstValue(
+          root.draft,
+          root.savedDraft,
+          root.utilityDraft
+        )
+      );
+
+    const candidates = [
+      root.fields,
+      root.specialist_fields,
+      root.specialistFields,
+      draft.fields,
+      draft.specialist_fields,
+      draft.specialistFields
+    ];
+
+    for (const candidate of candidates) {
+      if (validFields(candidate)) {
+        return candidate;
+      }
+    }
+
+    return draft;
+  }
+
+  function savedLinesOf(saved) {
+    const root =
+      objectValue(saved);
+
+    const fields =
+      savedFieldsOf(root);
+
+    return (
+      [
+        root.line_items,
+        root.lineItems,
+        fields.line_items,
+        fields.lineItems
+      ].find(Array.isArray) ||
+      []
+    );
+  }
+
+  function numberKey(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return "";
+    }
+
+    const number =
+      Number(value);
+
+    return Number.isFinite(number)
+      ? String(number)
+      : textValue(value);
+  }
+
+  function lineSignature(line) {
+    const source =
+      objectValue(line);
+
+    return [
+      textValue(
+        firstValue(
+          source.item_name,
+          source.itemName
+        )
+      ),
+
+      numberKey(
+        firstValue(
+          source.subtotal_amount,
+          source.subtotalAmount
+        )
+      ),
+
+      numberKey(
+        firstValue(
+          source.tax_amount,
+          source.taxAmount
+        )
+      ),
+
+      numberKey(
+        firstValue(
+          source.total_amount,
+          source.totalAmount
+        )
+      ),
+
+      textValue(
+        firstValue(
+          source.source_text,
+          source.sourceText
+        )
+      )
+    ].join("|");
+  }
+
+  async function verifySaved(
+    expectedOcrId,
+    expectedFields,
+    expectedLines
+  ) {
+    const saved =
+      await getSaved(
+        expectedOcrId
+      );
+
+    const savedOcrId =
+      Number(
+        firstValue(
+          saved.paymentDocumentOcrImportId,
+          saved.payment_document_ocr_import_id,
+          saved.ocrImportId,
+          saved.ocr_import_id,
+          expectedOcrId
+        )
+      );
+
+    if (savedOcrId !== expectedOcrId) {
+      throw new Error(
+        "保存後のOCR IDが一致しません。"
+      );
+    }
+
+    const savedFields =
+      savedFieldsOf(saved);
+
+    const savedLines =
+      savedLinesOf(saved);
+
+    if (!Object.keys(savedFields).length) {
+      throw new Error(
+        "保存後の専門項目が0件です。"
+      );
+    }
+
+    const missingFields =
+      Object.keys(expectedFields).filter(
+        function (name) {
+          return !Object.prototype.hasOwnProperty.call(
+            savedFields,
+            name
+          );
+        }
+      );
+
+    if (missingFields.length) {
+      throw new Error(
+        "保存後に専門項目が欠落しています。" +
+        " 欠落=" +
+        missingFields.join(",")
+      );
+    }
+
+    if (
+      savedLines.length !==
+      expectedLines.length
+    ) {
+      throw new Error(
+        "保存後の料金明細行数が一致しません。" +
+        " 期待=" +
+        String(expectedLines.length) +
+        " 保存=" +
+        String(savedLines.length)
+      );
+    }
+
+    for (
+      let index = 0;
+      index < expectedLines.length;
+      index++
+    ) {
+      if (
+        lineSignature(expectedLines[index]) !==
+        lineSignature(savedLines[index])
+      ) {
+        throw new Error(
+          "保存後の料金明細がAI結果と一致しません。" +
+          " 行=" +
+          String(index + 1)
+        );
+      }
+    }
+
+    return {
+      specialistAnalysisId:
+        firstValue(
+          saved.specialistAnalysisId,
+          saved.specialist_analysis_id,
+          null
+        ),
+
+      utilityCommunicationDraftId:
+        firstValue(
+          saved.utilityCommunicationDraftId,
+          saved.utility_communication_draft_id,
+          null
+        ),
+
+      fieldNames:
+        Object.keys(savedFields),
+
+      lineItemCount:
+        savedLines.length
+    };
+  }
+
+  async function saveDirectItem(item) {
+    const ocrId =
+      ocrIdOf(item);
+
+    if (!ocrId) {
+      throw new Error(
+        "OCR保存IDがありません。"
+      );
+    }
+
+    const rawResult =
+      rawResultOf(item);
+
+    if (!Object.keys(rawResult).length) {
+      throw new Error(
+        "この書類のAI生結果がありません。" +
+        "先にまとめて専門解析を実行してください。"
+      );
+    }
+
+    verifyRawOcrId(
+      item,
+      rawResult
+    );
+
+    const draft =
+      draftOf(
+        item,
+        rawResult
+      );
+
+    const fields =
+      fieldsOf(
+        item,
+        rawResult
+      );
+
+    if (!Object.keys(fields).length) {
+      throw new Error(
+        "専門AI結果のfieldsが0件です。保存しません。"
+      );
+    }
+
+    const lines =
+      normalizeLines(
+        item,
+        rawResult,
+        fields
+      );
+
+    validateLines(lines);
+
+    const sortingDraftId =
+      sortingDraftIdOf(
+        item,
+        rawResult
+      );
+
+    const commonPayload = {
+      paymentDocumentOcrImportId:
+        ocrId,
+
+      payment_document_ocr_import_id:
+        ocrId,
+
+      analysisSystemCode:
+        ANALYSIS_SYSTEM_CODE,
+
+      analysis_system_code:
+        ANALYSIS_SYSTEM_CODE,
+
+      analysisSystemLabel:
+        ANALYSIS_SYSTEM_LABEL,
+
+      analysis_system_label:
+        ANALYSIS_SYSTEM_LABEL,
+
+      specialistAnalysisStatus:
+        "保存済み",
+
+      specialist_analysis_status:
+        "保存済み",
+
+      humanConfirmStatus:
+        "未確認",
+
+      human_confirm_status:
+        "未確認",
+
+      humanMemo:
+        "公共料金・通信費まとめて保存（AI結果直接保存）",
+
+      human_memo:
+        "公共料金・通信費まとめて保存（AI結果直接保存）",
+
+      draft:
+        draft,
+
+      aiDraft:
+        draft,
+
+      fields:
+        fields,
+
+      specialistFields:
+        fields,
+
+      specialist_fields:
+        fields,
+
+      visibleFields:
+        fields,
+
+      visible_fields:
+        fields,
+
+      visible_field_labels:
+        visibleLabelsOf(
+          item,
+          rawResult
+        ),
+
+      lineItems:
+        lines,
+
+      line_items:
+        lines,
+
+      warnings:
+        warningsOf(
+          item,
+          rawResult
+        ),
+
+      rawResult:
+        rawResult,
+
+      raw_result:
+        rawResult,
+
+      memo:
+        "公共料金・通信費まとめて保存（AI結果直接保存）"
+    };
+
+    if (sortingDraftId > 0) {
+      commonPayload.paymentDocumentSortingDraftId =
+        sortingDraftId;
+
+      commonPayload.payment_document_sorting_draft_id =
+        sortingDraftId;
+    }
+
+    const commonSaved =
+      await postJsonDirect(
+        "/api/payment-documents/specialist-analysis-results/save",
+        commonPayload
+      );
+
+    const specialistAnalysisId =
+      Number(
+        firstValue(
+          commonSaved.specialistAnalysisId,
+          commonSaved.specialist_analysis_id,
+          commonSaved.latestSpecialistAnalysisId,
+          0
+        )
+      );
+
+    if (!specialistAnalysisId) {
+      throw new Error(
+        "共通専門保存後の専門解析IDがありません。"
+      );
+    }
+
+    const returnedOcrId =
+      Number(
+        firstValue(
+          commonSaved.paymentDocumentOcrImportId,
+          commonSaved.payment_document_ocr_import_id,
+          ocrId
+        )
+      );
+
+    if (returnedOcrId !== ocrId) {
+      throw new Error(
+        "共通専門保存後のOCR IDが一致しません。"
+      );
+    }
+
+    const returnedSortingDraftId =
+      Number(
+        firstValue(
+          commonSaved.paymentDocumentSortingDraftId,
+          commonSaved.payment_document_sorting_draft_id,
+          sortingDraftId,
+          0
+        )
+      );
+
+    const utilityPayload = {
+      paymentDocumentOcrImportId:
+        ocrId,
+
+      payment_document_ocr_import_id:
+        ocrId,
+
+      specialistAnalysisId:
+        specialistAnalysisId,
+
+      specialist_analysis_id:
+        specialistAnalysisId,
+
+      fields:
+        fields,
+
+      specialistFields:
+        fields,
+
+      specialist_fields:
+        fields,
+
+      visibleFields:
+        fields,
+
+      visible_fields:
+        fields,
+
+      humanCorrections:
+        {},
+
+      human_corrections:
+        {},
+
+      rawResult:
+        rawResult,
+
+      raw_result:
+        rawResult,
+
+      lineItems:
+        lines,
+
+      line_items:
+        lines,
+
+      warnings:
+        warningsOf(
+          item,
+          rawResult
+        ),
+
+      createdByPage:
+        "payment-document-specialist-utility-communication.html",
+
+      created_by_page:
+        "payment-document-specialist-utility-communication.html"
+    };
+
+    if (returnedSortingDraftId > 0) {
+      utilityPayload.paymentDocumentSortingDraftId =
+        returnedSortingDraftId;
+
+      utilityPayload.payment_document_sorting_draft_id =
+        returnedSortingDraftId;
+    }
+
+    const utilitySaved =
+      await postJsonDirect(
+        "/api/payment-documents/utility-communication-drafts/save",
+        utilityPayload
+      );
+
+    const verified =
+      await verifySaved(
+        ocrId,
+        fields,
+        lines
+      );
+
+    return {
+      ok:
+        true,
+
+      paymentDocumentOcrImportId:
+        ocrId,
+
+      specialistAnalysisId:
+        specialistAnalysisId,
+
+      utilityCommunicationDraftId:
+        firstValue(
+          utilitySaved.utilityCommunicationDraftId,
+          utilitySaved.utility_communication_draft_id,
+          verified.utilityCommunicationDraftId
+        ),
+
+      fieldNames:
+        verified.fieldNames,
+
+      lineItemCount:
+        verified.lineItemCount,
+
+      saveSource:
+        "item.__aiRawResult_direct",
+
+      domRead:
+        false,
+
+      aiExecution:
+        false
+    };
+  }
+
+  /* GPT3_UTILITY_BULK_ANALYZE_ONLY_START */
+  window.runSelectedAiDrafts =
+    async function () {
+      const indexes =
+        selectedIndexes();
+
+      if (!indexes.length) {
+        showReport(
+          "まとめて専門解析する書類にチェックを入れてください。"
+        );
+
+        return;
+      }
+
+      const button =
+        document.querySelector(
+          ".sorting-bulk-analyze"
+        );
+
+      const originalText =
+        button
+          ? button.textContent
+          : "";
+
+      if (button) {
+        button.disabled =
+          true;
+
+        button.textContent =
+          "専門解析中...";
+      }
+
+      const results = [];
+      let success = 0;
+      let failed = 0;
+
+      try {
+        for (
+          let position = 0;
+          position < indexes.length;
+          position++
+        ) {
+          const index =
+            indexes[position];
+
+          const item =
+            utilityItems()[index];
+
+          const ocrId =
+            ocrIdOf(item);
+
+          const name =
+            itemName(
+              item,
+              index
+            );
+
+          showReport(
+            "まとめて専門解析中: " +
+            String(position + 1) +
+            " / " +
+            String(indexes.length) +
+            "\n" +
+            name
+          );
+
+          try {
+            if (!ocrId) {
+              throw new Error(
+                "OCR保存IDがありません。"
+              );
+            }
+
+            const response =
+              await fetch(
+                "/api/payment-documents/ai-specialist/" +
+                encodeURIComponent(
+                  String(ocrId)
+                ),
+                {
+                  method:
+                    "POST",
+
+                  headers: {
+                    "Content-Type":
+                      "application/json"
+                  }
+                }
+              );
+
+            const data =
+              await response.json();
+
+            if (
+              !response.ok ||
+              !data.ok
+            ) {
+              throw new Error(
+                data.error ||
+                data.message ||
+                "専門解析に失敗しました。"
+              );
+            }
+
+            const fields =
+              fieldsOf(
+                item,
+                data
+              );
+
+            if (!Object.keys(fields).length) {
+              throw new Error(
+                "専門AI結果のfieldsが0件です。"
+              );
+            }
+
+            const lines =
+              normalizeLines(
+                item,
+                data,
+                fields
+              );
+
+            validateLines(lines);
+
+            item.__aiRawResult =
+              data;
+
+            item.__aiDraft =
+              data.draft || {};
+
+            item.__visibleFieldLabels =
+              visibleLabelsOf(
+                item,
+                data
+              );
+
+            item.__documentGroup =
+              firstValue(
+                data.document_group,
+                data.documentGroup,
+                ""
+              );
+
+            item.__aiSteps =
+              Array.isArray(data.ai_steps)
+                ? data.ai_steps
+                : [];
+
+            success++;
+
+            results.push({
+              ok:
+                true,
+
+              name:
+                name,
+
+              paymentDocumentOcrImportId:
+                ocrId,
+
+              fieldNames:
+                Object.keys(fields),
+
+              lineItemCount:
+                lines.length,
+
+              databaseSaved:
+                false
+            });
+          }
+          catch (error) {
+            failed++;
+
+            results.push({
+              ok:
+                false,
+
+              name:
+                name,
+
+              paymentDocumentOcrImportId:
+                ocrId || null,
+
+              error:
+                error.message || String(error)
+            });
+          }
+        }
+
+        renderList();
+
+        window.__hdOriginUtilityBulkAnalyzeLast = {
+          ok:
+            failed === 0,
+
+          success:
+            success,
+
+          failed:
+            failed,
+
+          results:
+            results,
+
+          aiExecution:
+            true,
+
+          databaseSave:
+            false,
+
+          completedAt:
+            new Date().toISOString()
+        };
+
+        showReport({
+          ok:
+            failed === 0,
+
+          message:
+            "まとめて専門解析が完了しました。まだDBへ保存していません。",
+
+          success:
+            success,
+
+          failed:
+            failed,
+
+          results:
+            results
+        });
+      }
+      finally {
+        if (button) {
+          button.disabled =
+            false;
+
+          button.textContent =
+            originalText ||
+            "まとめて専門解析";
+        }
+      }
+    };
+  /* GPT3_UTILITY_BULK_ANALYZE_ONLY_END */
+
+  /* GPT3_UTILITY_BULK_SAVE_ONLY_START */
+  window.runSelectedUtilitySaves =
+    async function () {
+      const indexes =
+        selectedIndexes();
+
+      if (!indexes.length) {
+        showReport(
+          "まとめて保存する書類にチェックを入れてください。"
+        );
+
+        return;
+      }
+
+      const button =
+        document.getElementById(
+          "utilityBulkSaveAnalyzedButton"
+        );
+
+      const originalText =
+        button
+          ? button.textContent
+          : "";
+
+      if (button) {
+        button.disabled =
+          true;
+
+        button.textContent =
+          "保存中...";
+      }
+
+      const results = [];
+      let success = 0;
+      let failed = 0;
+
+      try {
+        for (
+          let position = 0;
+          position < indexes.length;
+          position++
+        ) {
+          const index =
+            indexes[position];
+
+          const item =
+            utilityItems()[index];
+
+          const ocrId =
+            ocrIdOf(item);
+
+          const name =
+            itemName(
+              item,
+              index
+            );
+
+          showReport(
+            "まとめて保存中: " +
+            String(position + 1) +
+            " / " +
+            String(indexes.length) +
+            "\n" +
+            name
+          );
+
+          try {
+            const saved =
+              await saveDirectItem(item);
+
+            success++;
+
+            results.push(
+              Object.assign(
+                {
+                  name:
+                    name
+                },
+                saved
+              )
+            );
+          }
+          catch (error) {
+            failed++;
+
+            results.push({
+              ok:
+                false,
+
+              name:
+                name,
+
+              paymentDocumentOcrImportId:
+                ocrId || null,
+
+              error:
+                error.message || String(error)
+            });
+          }
+        }
+
+        renderList();
+
+        window.__hdOriginUtilityBulkSaveLast = {
+          ok:
+            failed === 0,
+
+          success:
+            success,
+
+          failed:
+            failed,
+
+          results:
+            results,
+
+          aiExecution:
+            false,
+
+          databaseSave:
+            true,
+
+          directItemSave:
+            true,
+
+          domRead:
+            false,
+
+          completedAt:
+            new Date().toISOString()
+        };
+
+        showReport({
+          ok:
+            failed === 0,
+
+          message:
+            "まとめて保存が完了しました。各書類のAI結果から直接保存しました。",
+
+          success:
+            success,
+
+          failed:
+            failed,
+
+          directItemSave:
+            true,
+
+          domRead:
+            false,
+
+          results:
+            results
+        });
+      }
+      finally {
+        if (button) {
+          button.disabled =
+            false;
+
+          button.textContent =
+            originalText ||
+            "まとめて保存";
+        }
+      }
+    };
+  /* GPT3_UTILITY_BULK_SAVE_ONLY_END */
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+      const analyzeButton =
+        document.querySelector(
+          ".sorting-bulk-analyze"
+        );
+
+      if (analyzeButton) {
+        analyzeButton.textContent =
+          "まとめて専門解析";
+
+        analyzeButton.title =
+          "選択書類を専門解析します。DB保存は行いません。";
+      }
+
+      const saveButton =
+        document.getElementById(
+          "utilityBulkSaveAnalyzedButton"
+        );
+
+      if (saveButton) {
+        saveButton.textContent =
+          "まとめて保存";
+
+        saveButton.title =
+          "各書類のAI結果を画面を経由せず直接保存します。";
+      }
+    },
+    {
+      once:
+        true
+    }
+  );
+})();
+/* GPT3_UTILITY_BULK_ANALYZE_SAVE_FIX_END */
+
+/* GPT3_UTILITY_COMMUNICATION_DISPLAY_COMPAT_V3_START */
+(function () {
+  "use strict";
+
+  if (
+    window.__hdOriginUtilityCommunicationDisplayCompatV3
+  ) {
+    return;
+  }
+
+  window.__hdOriginUtilityCommunicationDisplayCompatV3 =
+    true;
+
+  function objectValue(value) {
+    return (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    )
+      ? value
+      : {};
+  }
+
+  function firstValue() {
+    for (
+      let index = 0;
+      index < arguments.length;
+      index++
+    ) {
+      const value =
+        arguments[index];
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
+        return value;
+      }
+    }
+
+    return "";
+  }
+
+  function normalizeAiResult(value) {
+    const data =
+      objectValue(value);
+
+    const specialist =
+      objectValue(
+        firstValue(
+          data.specialist,
+          data.specialist_result
+        )
+      );
+
+    const specialistDraft =
+      objectValue(
+        specialist.draft
+      );
+
+    if (Object.keys(specialistDraft).length) {
+      data.draft =
+        specialistDraft;
+    }
+
+    if (
+      Array.isArray(
+        specialist.visible_field_labels
+      )
+    ) {
+      data.visible_field_labels =
+        specialist.visible_field_labels.slice();
+    }
+    else if (
+      Array.isArray(
+        specialist.visibleFieldLabels
+      )
+    ) {
+      data.visible_field_labels =
+        specialist.visibleFieldLabels.slice();
+    }
+
+    if (
+      Array.isArray(
+        specialist.warnings
+      )
+    ) {
+      data.warnings =
+        specialist.warnings.slice();
+    }
+
+    return data;
+  }
+
+  function getItems() {
+    try {
+      return Array.isArray(items)
+        ? items
+        : [];
+    }
+    catch (error) {
+      return [];
+    }
+  }
+
+  function getSelectedItem() {
+    try {
+      return getItems()[selectedIndex] || null;
+    }
+    catch (error) {
+      return null;
+    }
+  }
+
+  function getOcrId(item) {
+    const source =
+      objectValue(item);
+
+    return Number(
+      firstValue(
+        source.paymentDocumentOcrImportId,
+        source.payment_document_ocr_import_id,
+        source.ocrImportId,
+        source.ocr_import_id,
+        source.id,
+        0
+      )
+    );
+  }
+
+  function getDraft(item) {
+    const source =
+      objectValue(item);
+
+    const raw =
+      normalizeAiResult(
+        objectValue(
+          source.__aiRawResult
+        )
+      );
+
+    return objectValue(
+      firstValue(
+        raw.draft,
+        source.__aiDraft
+      )
+    );
+  }
+
+  function getVisibleLabels(item) {
+    const source =
+      objectValue(item);
+
+    const raw =
+      normalizeAiResult(
+        objectValue(
+          source.__aiRawResult
+        )
+      );
+
+    return (
+      [
+        raw.visible_field_labels,
+        raw.visibleFieldLabels,
+        source.__visibleFieldLabels
+      ].find(Array.isArray) ||
+      []
+    );
+  }
+
+  function applyItemToScreen(item) {
+    if (!item) {
+      return false;
+    }
+
+    const draft =
+      getDraft(item);
+
+    const labels =
+      getVisibleLabels(item);
+
+    if (!Object.keys(draft).length) {
+      return false;
+    }
+
+    let appliedCount = 0;
+
+    try {
+      if (
+        typeof applySortingOnlyDraftToForm ===
+        "function"
+      ) {
+        appliedCount =
+          applySortingOnlyDraftToForm(
+            draft
+          ) || 0;
+      }
+      else if (
+        typeof applyAiDraftToFormHardDebug ===
+        "function"
+      ) {
+        appliedCount =
+          applyAiDraftToFormHardDebug(
+            draft
+          ) || 0;
+      }
+    }
+    catch (error) {
+    }
+
+    if (
+      typeof window.hdOriginApplyUtilityDedicatedDraft ===
+      "function"
+    ) {
+      window.hdOriginApplyUtilityDedicatedDraft(
+        draft
+      );
+    }
+
+    if (
+      typeof window.hdOriginApplyUtilityLineItems ===
+      "function"
+    ) {
+      window.hdOriginApplyUtilityLineItems(
+        objectValue(
+          item.__aiRawResult
+        )
+      );
+    }
+
+    try {
+      if (
+        typeof showVisibleFieldsOnly ===
+        "function"
+      ) {
+        showVisibleFieldsOnly(
+          labels
+        );
+      }
+    }
+    catch (error) {
+    }
+
+    window.__hdOriginUtilityCommunicationDisplayLast = {
+      ok:
+        true,
+
+      paymentDocumentOcrImportId:
+        getOcrId(item),
+
+      draftKeys:
+        Object.keys(draft),
+
+      fieldKeys:
+        Object.keys(
+          objectValue(draft.fields)
+        ),
+
+      visibleFieldLabels:
+        labels,
+
+      appliedCount:
+        appliedCount,
+
+      source:
+        "specialist.draft"
+    };
+
+    return true;
+  }
+
+  const originalFetch =
+    window.fetch.bind(window);
+
+  window.fetch =
+    async function (input, init) {
+      const response =
+        await originalFetch(
+          input,
+          init
+        );
+
+      const url =
+        String(
+          input &&
+          input.url
+            ? input.url
+            : input || ""
+        );
+
+      if (
+        !url.includes(
+          "/api/payment-documents/ai-specialist/"
+        )
+      ) {
+        return response;
+      }
+
+      return new Proxy(
+        response,
+        {
+          get:
+            function (target, property) {
+              if (property === "json") {
+                return async function () {
+                  const data =
+                    await target.clone().json();
+
+                  return normalizeAiResult(
+                    data
+                  );
+                };
+              }
+
+              const value =
+                Reflect.get(
+                  target,
+                  property,
+                  target
+                );
+
+              return typeof value === "function"
+                ? value.bind(target)
+                : value;
+            }
+        }
+      );
+    };
+
+  function installAnalyzeWrapper() {
+    const original =
+      window.runSelectedAiDrafts;
+
+    if (
+      typeof original !== "function" ||
+      original.__utilityCommunicationDisplayWrapped
+    ) {
+      return;
+    }
+
+    const wrapped =
+      async function () {
+        const result =
+          await original.apply(
+            this,
+            arguments
+          );
+
+        const last =
+          objectValue(
+            window.__hdOriginUtilityBulkAnalyzeLast
+          );
+
+        const successfulIds =
+          new Set(
+            (
+              Array.isArray(last.results)
+                ? last.results
+                : []
+            )
+              .filter(function (row) {
+                return (
+                  row &&
+                  row.ok === true
+                );
+              })
+              .map(function (row) {
+                return Number(
+                  firstValue(
+                    row.paymentDocumentOcrImportId,
+                    row.payment_document_ocr_import_id,
+                    0
+                  )
+                );
+              })
+              .filter(Boolean)
+          );
+
+        getItems().forEach(
+          function (item) {
+            const id =
+              getOcrId(item);
+
+            if (
+              successfulIds.has(id) &&
+              item.__aiRawResult
+            ) {
+              item.__aiRawResult =
+                normalizeAiResult(
+                  item.__aiRawResult
+                );
+
+              item.__aiDraft =
+                getDraft(item);
+
+              item.__visibleFieldLabels =
+                getVisibleLabels(item);
+
+              item.__utilityUnsavedAiResult =
+                true;
+            }
+          }
+        );
+
+        const current =
+          getSelectedItem();
+
+        if (
+          current &&
+          current.__utilityUnsavedAiResult === true
+        ) {
+          applyItemToScreen(current);
+        }
+
+        return result;
+      };
+
+    wrapped.__utilityCommunicationDisplayWrapped =
+      true;
+
+    window.runSelectedAiDrafts =
+      wrapped;
+  }
+
+  function installRestoreGuard() {
+    const original =
+      window.hdOriginUtilityRestoreSavedResult;
+
+    if (
+      typeof original !== "function" ||
+      original.__utilityCommunicationRestoreGuard
+    ) {
+      return;
+    }
+
+    const wrapped =
+      async function (item, index) {
+        if (
+          item &&
+          item.__utilityUnsavedAiResult === true &&
+          item.__aiRawResult
+        ) {
+          applyItemToScreen(item);
+
+          return {
+            ok:
+              true,
+
+            skippedSavedRestore:
+              true,
+
+            paymentDocumentOcrImportId:
+              getOcrId(item)
+          };
+        }
+
+        return original.apply(
+          this,
+          arguments
+        );
+      };
+
+    wrapped.__utilityCommunicationRestoreGuard =
+      true;
+
+    window.hdOriginUtilityRestoreSavedResult =
+      wrapped;
+  }
+
+  function installSaveWrapper() {
+    const original =
+      window.runSelectedUtilitySaves;
+
+    if (
+      typeof original !== "function" ||
+      original.__utilityCommunicationSaveWrapped
+    ) {
+      return;
+    }
+
+    const wrapped =
+      async function () {
+        const result =
+          await original.apply(
+            this,
+            arguments
+          );
+
+        const last =
+          objectValue(
+            window.__hdOriginUtilityBulkSaveLast
+          );
+
+        const savedIds =
+          new Set(
+            (
+              Array.isArray(last.results)
+                ? last.results
+                : []
+            )
+              .filter(function (row) {
+                return (
+                  row &&
+                  row.ok === true
+                );
+              })
+              .map(function (row) {
+                return Number(
+                  firstValue(
+                    row.paymentDocumentOcrImportId,
+                    row.payment_document_ocr_import_id,
+                    0
+                  )
+                );
+              })
+              .filter(Boolean)
+          );
+
+        getItems().forEach(
+          function (item) {
+            if (
+              savedIds.has(
+                getOcrId(item)
+              )
+            ) {
+              item.__utilityUnsavedAiResult =
+                false;
+            }
+          }
+        );
+
+        return result;
+      };
+
+    wrapped.__utilityCommunicationSaveWrapped =
+      true;
+
+    window.runSelectedUtilitySaves =
+      wrapped;
+  }
+
+  function install() {
+    installAnalyzeWrapper();
+    installRestoreGuard();
+    installSaveWrapper();
+  }
+
+  install();
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    install,
+    {
+      once:
+        true
+    }
+  );
+
+  setTimeout(
+    install,
+    0
+  );
+
+  setTimeout(
+    install,
+    100
+  );
+})();
+/* GPT3_UTILITY_COMMUNICATION_DISPLAY_COMPAT_V3_END */

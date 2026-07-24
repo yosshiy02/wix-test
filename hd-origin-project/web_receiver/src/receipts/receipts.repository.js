@@ -3203,6 +3203,15 @@ async function listSavedReceipts(limit = 100, offset = 0) {
     SELECT
       r.receipt_id,
       r.receipt_import_id,
+      ri.upload_id AS receipt_upload_id,
+      CASE
+        WHEN ri.upload_id ~ '^payment-document-[0-9]+$'
+          THEN substring(
+            ri.upload_id
+            from '([0-9]+)$'
+          )::bigint
+        ELSE NULL
+      END AS payment_document_ocr_import_id,
       r.receipt_name,
       r.receipt_image_path,
       r.saved_status,

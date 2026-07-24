@@ -3184,6 +3184,27 @@ function setDocumentPreview(item) {
       }
     };
 
+    /* HD_ORIGIN_CIL_INSURANCE_TYPE_RESTORE_20260724 */
+    const insuranceTypeValue =
+      fields["保険種類"] ||
+      fields["保険内容"] ||
+      fields["保険種別"] ||
+      "";
+
+    if (
+      typeof setMasterSelectByCodeOrText === "function"
+    ) {
+      setMasterSelectByCodeOrText(
+        "#draftInsuranceType",
+        insuranceTypeValue
+      );
+    } else {
+      setValue(
+        "draftInsuranceType",
+        insuranceTypeValue
+      );
+    }
+
     setValue(
       "draftInsuranceCompanyName",
       fields["保険会社"] || ""
@@ -4625,6 +4646,81 @@ function setDocumentPreview(item) {
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
 
+  /* HD_ORIGIN_CIL_RECORD_SWITCH_DETAIL_RESET_20260724 */
+  function hdOriginCilResetRecordSpecificDetails(item) {
+    const ids = [
+      "draftInsuranceCompanyName",
+      "draftInsurancePolicyNumber",
+      "draftInsuredPersonName",
+      "draftPremiumAmount",
+      "draftInsuranceType",
+
+      "draftLeaseItemName",
+      "draftLeaseItemCategory",
+      "draftLeaseStartDate",
+      "draftLeaseEndDate",
+      "draftLeasePeriodMonths",
+      "draftLeaseItemLocation",
+      "draftResidualValueGuaranteeAmount",
+      "draftRenewalTerms",
+      "draftCancellationTerms",
+
+      "cilLineCategory",
+      "cilLineItemName",
+      "cilLineManufacturer",
+      "cilLineModelNumber",
+      "cilLineSerialNumber",
+      "cilLineQuantity",
+      "cilLineUnit",
+      "cilLineStartDate",
+      "cilLineEndDate",
+      "cilLinePeriodMonths",
+      "cilLineLocation",
+      "cilLineMonthlyAmount",
+      "cilLineTotalAmount",
+      "cilLineResidualAmount",
+      "cilLineResidualGuarantee",
+      "cilLineAiConfidence"
+    ];
+
+    ids.forEach(function (id) {
+      const control = document.getElementById(id);
+
+      if (!control) {
+        return;
+      }
+
+      control.value = "";
+
+      if (
+        control.tagName === "SELECT" &&
+        control.options &&
+        control.options.length
+      ) {
+        control.selectedIndex = 0;
+      }
+    });
+
+    const modal =
+      document.getElementById("cilLeaseItemModal");
+
+    if (modal) {
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    if (
+      typeof cilSetLeaseItemLines === "function"
+    ) {
+      const ocrId =
+        typeof ocrImportIdOf === "function"
+          ? String(ocrImportIdOf(item) || "")
+          : "";
+
+      cilSetLeaseItemLines([], ocrId);
+    }
+  }
+
   function selectItem(index) {
     selectedIndex = index;
     const item = items[index];
@@ -4638,6 +4734,7 @@ function setDocumentPreview(item) {
     resetDocumentPreviewRotation(false);
     setDocumentPreview(item);
     clearDraftFields();
+    hdOriginCilResetRecordSpecificDetails(item);
     setInitialAiOnlyView();
     fillDraftFromItem(item);
     const hdOriginCilRestoredSpecialist = hdOriginCilRestoreSpecialistResult(item);
@@ -5244,10 +5341,451 @@ function setDocumentPreview(item) {
     }
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_EMPTY_STATUS_20260707_END */
+  /* HD_ORIGIN_CIL_FRONTEND_SAVED_RELOAD_20260724_START */
+  function hdOriginCilSavedObject(value) {
+    return (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    )
+      ? value
+      : {};
+  }
+
+  function hdOriginCilSavedText() {
+    for (const value of arguments) {
+      const text = String(
+        value === null || value === undefined
+          ? ""
+          : value
+      ).trim();
+
+      if (text) {
+        return text;
+      }
+    }
+
+    return "";
+  }
+
+  function hdOriginCilSavedSetIfEmpty(
+    fields,
+    label,
+    value
+  ) {
+    if (
+      !fields ||
+      typeof fields !== "object" ||
+      !label
+    ) {
+      return;
+    }
+
+    const current = fields[label];
+
+    if (
+      current !== null &&
+      current !== undefined &&
+      String(current).trim() !== ""
+    ) {
+      return;
+    }
+
+    if (
+      value === null ||
+      value === undefined ||
+      String(value).trim() === ""
+    ) {
+      return;
+    }
+
+    fields[label] = value;
+  }
+
+  function hdOriginCilQueryOcrId() {
+    const params =
+      new URLSearchParams(
+        window.location.search || ""
+      );
+
+    const value =
+      params.get("ocr_import_id") ||
+      params.get(
+        "payment_document_ocr_import_id"
+      ) ||
+      params.get("ocrImportId") ||
+      "";
+
+    const id = Number(value);
+
+    return (
+      Number.isInteger(id) &&
+      id > 0
+    )
+      ? id
+      : 0;
+  }
+
+  function hdOriginCilFindItemIndex(
+    ocrId
+  ) {
+    const wanted =
+      String(ocrId || "");
+
+    return (
+      Array.isArray(items)
+        ? items
+        : []
+    ).findIndex(function (item) {
+      const value =
+        typeof ocrImportIdOf === "function"
+          ? ocrImportIdOf(item)
+          : (
+              item &&
+              (
+                item.paymentDocumentOcrImportId ||
+                item.payment_document_ocr_import_id ||
+                item.ocrImportId ||
+                item.ocr_import_id ||
+                item.id
+              )
+            );
+
+      return String(value || "") === wanted;
+    });
+  }
+
+  function hdOriginCilBuildSavedResult(
+    ocrId,
+    source
+  ) {
+    const saved =
+      hdOriginCilSavedObject(source);
+
+    const specialistFields =
+      hdOriginCilSavedObject(
+        saved.specialist_fields_json
+      );
+
+    const visibleFields =
+      hdOriginCilSavedObject(
+        saved.visible_fields_json
+      );
+
+    const specialistRaw =
+      hdOriginCilSavedObject(
+        saved.specialist_raw_result_json
+      );
+
+    const draftRaw =
+      hdOriginCilSavedObject(
+        saved.ai_raw_json
+      );
+
+    const raw =
+      Object.keys(specialistRaw).length
+        ? specialistRaw
+        : draftRaw;
+
+    const rawSpecialist =
+      hdOriginCilSavedObject(
+        raw.specialist
+      );
+
+    const rawDraft =
+      hdOriginCilSavedObject(
+        rawSpecialist.draft ||
+        raw.draft
+      );
+
+    const fields =
+      Object.assign(
+        {},
+        hdOriginCilSavedObject(
+          rawDraft.fields
+        ),
+        specialistFields
+      );
+
+    /*
+      DBへ保存済みの同一項目を補うだけです。
+      新しい判定・仕分け・後付け推測は行いません。
+    */
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "保険会社",
+      saved.insurance_company_name
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "保険証券番号・契約番号",
+      saved.insurance_policy_no
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "被保険者",
+      saved.insured_name
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "被保険物件",
+      saved.insurance_target
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "保険種類",
+      hdOriginCilSavedText(
+        saved.insurance_type_label,
+        saved.insurance_type_code
+      )
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "保険料",
+      saved.insurance_amount
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "支払方法",
+      hdOriginCilSavedText(
+        saved.payment_method_label,
+        saved.payment_method_code
+      )
+    );
+
+    hdOriginCilSavedSetIfEmpty(
+      fields,
+      "リース物件",
+      saved.lease_item_name
+    );
+
+    const labels =
+      Array.isArray(
+        rawSpecialist.visible_field_labels
+      )
+        ? rawSpecialist.visible_field_labels
+        : (
+            Array.isArray(
+              raw.visible_field_labels
+            )
+              ? raw.visible_field_labels
+              : (
+                  Array.isArray(
+                    rawDraft.visible_field_labels
+                  )
+                    ? rawDraft.visible_field_labels
+                    : Object.keys(visibleFields)
+                )
+          );
+
+    const lines =
+      Array.isArray(
+        saved.lease_item_lines
+      )
+        ? saved.lease_item_lines
+        : [];
+
+    const restoredDraft =
+      Object.assign(
+        {},
+        rawDraft,
+        {
+          fields: fields,
+
+          visibleFields:
+            visibleFields,
+
+          visible_fields:
+            visibleFields,
+
+          ai_summary:
+            hdOriginCilSavedObject(
+              saved.ai_summary_json
+            )
+        }
+      );
+
+    const restoredSpecialist =
+      Object.assign(
+        {},
+        rawSpecialist,
+        {
+          draft:
+            restoredDraft,
+
+          visible_field_labels:
+            labels,
+
+          lease_item_lines:
+            lines
+        }
+      );
+
+    return Object.assign(
+      {},
+      raw,
+      {
+        ok: true,
+
+        paymentDocumentOcrImportId:
+          ocrId,
+
+        payment_document_ocr_import_id:
+          ocrId,
+
+        specialistAnalysisId:
+          saved.specialist_analysis_id ||
+          "",
+
+        specialist_analysis_id:
+          saved.specialist_analysis_id ||
+          "",
+
+        specialist:
+          restoredSpecialist,
+
+        draft:
+          restoredDraft,
+
+        visible_field_labels:
+          labels,
+
+        lease_item_lines:
+          lines
+      }
+    );
+  }
+
+  async function hdOriginCilReloadSavedFromQuery() {
+    const ocrId =
+      hdOriginCilQueryOcrId();
+
+    if (!ocrId) {
+      return;
+    }
+
+    if (
+      typeof window
+        .hdOriginLoadContractInsuranceLeaseExtraMasters ===
+      "function"
+    ) {
+      await window
+        .hdOriginLoadContractInsuranceLeaseExtraMasters();
+    }
+
+    const index =
+      hdOriginCilFindItemIndex(
+        ocrId
+      );
+
+    if (index < 0) {
+      showResult(
+        "指定されたOCR ID " +
+        ocrId +
+        " は契約・保険・リース対象一覧にありません。"
+      );
+
+      return;
+    }
+
+    const response =
+      await fetch(
+        "/api/payment-documents/" +
+        "contract-insurance-lease/saved/" +
+        encodeURIComponent(
+          String(ocrId)
+        ),
+        {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json"
+          }
+        }
+      );
+
+    const payload =
+      await response.json().catch(
+        function () {
+          return {};
+        }
+      );
+
+    if (
+      !response.ok ||
+      !payload.ok ||
+      !payload.saved
+    ) {
+      selectItem(index);
+
+      showResult(
+        payload.error ||
+        "保存済み契約・保険・リースデータがありません。"
+      );
+
+      return;
+    }
+
+    const item =
+      items[index];
+
+    const restored =
+      hdOriginCilBuildSavedResult(
+        ocrId,
+        payload.saved
+      );
+
+    hdOriginCilRememberSpecialistResult(
+      item,
+      restored
+    );
+
+    item.specialistAnalysisId =
+      payload.saved.specialist_analysis_id ||
+      "";
+
+    item.specialist_analysis_id =
+      payload.saved.specialist_analysis_id ||
+      "";
+
+    item.__specialistAnalyzed = true;
+    item.__aiAnalyzed = true;
+
+    selectItem(index);
+
+    showResult(
+      "保存済み契約・保険・リースデータを再表示しました。"
+    );
+  }
+
   async function initPaymentDocumentReview() {
     await loadDraftMasters();
     await loadItems();
+
+    window.setTimeout(
+      function () {
+        hdOriginCilReloadSavedFromQuery()
+          .catch(function (error) {
+            showResult(
+              "保存済みデータ再表示エラー: " +
+              (
+                error &&
+                error.message
+                  ? error.message
+                  : String(error)
+              )
+            );
+          });
+      },
+      0
+    );
   }
+  /* HD_ORIGIN_CIL_FRONTEND_SAVED_RELOAD_20260724_END */
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_END */
   initPaymentDocumentReview();
 </script>
@@ -6346,6 +6884,9 @@ function setDocumentPreview(item) {
       sumLeaseAmount("lease_total_amount");
 
     return {
+            "保険種類": controlValue("draftInsuranceType")
+        ? (controlLabel("draftInsuranceType") || controlValue("draftInsuranceType"))
+        : "",
       "保険会社": controlValue("draftInsuranceCompanyName"),
       "保険証券番号・契約番号": controlValue("draftInsurancePolicyNumber"),
       "契約番号": controlValue("draftInsurancePolicyNumber"),

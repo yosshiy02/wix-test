@@ -69,8 +69,19 @@
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
-        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
-<button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+        <button type="button"
+        class="action-btn action-ai sorting-bulk-analyze"
+        onclick="runSelectedAiDrafts()">
+  まとめて専門解析
+</button>
+
+<button type="button"
+        id="utilityBulkSaveAnalyzedButton"
+        class="btn btn-primary utility-bulk-save-analyzed"
+        onclick="runSelectedUtilitySaves()">
+  まとめて保存
+</button>
+
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
