@@ -1,0 +1,11 @@
+[
+  {
+    "column_name": "current_status",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": "'OCR'::text",
+    "check_definition": "CHECK (((current_status IS NULL) OR (current_status = ANY (ARRAY['OCR'::text, '基礎解析'::text, '専門解析'::text, '台帳'::text]))))",
+    "non_null_record_count": 0,
+    "null_record_count": 23
+  }
+]
