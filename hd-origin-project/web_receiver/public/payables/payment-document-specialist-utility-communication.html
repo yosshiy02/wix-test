@@ -818,15 +818,7 @@
   <div class="draft-section-title">電子証憑情報</div>
 
   <div class="form-grid utility-dedicated-grid">
-        <label class="utility-dedicated-field"
-           data-utility-field-codes="usage_period">
-      利用期間（証憑記載）
-      <input class="draft-field"
-             id="draftUtilityUsagePeriod"
-             data-analysis-item-code="usage_period"
-             placeholder="例：2026年7月分">
-    </label>
-<label class="utility-dedicated-field span2"
+    <label class="utility-dedicated-field span2"
            data-utility-field-codes="email_subject">
       メール件名
       <input class="draft-field"
@@ -3596,168 +3588,11 @@ function setDocumentPreview(item) {
   window.applySortingAiResultToItem = function(item, data) {
     if (!item || !data) return;
 
-    const specialist =
-      data.specialist &&
-      typeof data.specialist === "object" &&
-      !Array.isArray(data.specialist)
-        ? data.specialist
-        : {};
-
-    const specialistResult =
-      data.specialist_result &&
-      typeof data.specialist_result === "object" &&
-      !Array.isArray(data.specialist_result)
-        ? data.specialist_result
-        : {};
-
-    const draft =
-      specialist.draft &&
-      typeof specialist.draft === "object" &&
-      !Array.isArray(specialist.draft)
-        ? specialist.draft
-        : specialistResult.draft &&
-          typeof specialistResult.draft === "object" &&
-          !Array.isArray(specialistResult.draft)
-            ? specialistResult.draft
-            : data.draft &&
-              typeof data.draft === "object" &&
-              !Array.isArray(data.draft)
-                ? data.draft
-                : {};
-
-    const visibleFieldLabels =
-      Array.isArray(specialist.visible_field_labels)
-        ? specialist.visible_field_labels
-        : Array.isArray(specialist.visibleFieldLabels)
-          ? specialist.visibleFieldLabels
-          : Array.isArray(specialistResult.visible_field_labels)
-            ? specialistResult.visible_field_labels
-            : Array.isArray(data.visible_field_labels)
-              ? data.visible_field_labels
-              : Array.isArray(draft.visible_field_labels)
-                ? draft.visible_field_labels
-                : [];
-
-    const warnings =
-      Array.isArray(specialist.warnings)
-        ? specialist.warnings
-        : Array.isArray(specialistResult.warnings)
-          ? specialistResult.warnings
-          : Array.isArray(data.warnings)
-            ? data.warnings
-            : [];
-
-    data.draft =
-      draft;
-
-    data.visible_field_labels =
-      visibleFieldLabels;
-
-    data.warnings =
-      warnings;
-
-    item.__aiDraft =
-      draft;
-
-    item.__visibleFieldLabels =
-      visibleFieldLabels;
-
-    item.__documentGroup =
-      data.document_group ||
-      draft.document_group ||
-      "";
-
-    item.__aiSteps =
-      Array.isArray(data.ai_steps)
-        ? data.ai_steps
-        : [];
-
-    item.__aiRawResult =
-      data;
-
-    item.__utilityUnsavedAiResult =
-      true;
-
-    let isSelectedItem =
-      false;
-
-    try {
-      isSelectedItem =
-        Array.isArray(items) &&
-        selectedIndex >= 0 &&
-        items[selectedIndex] === item;
-    }
-    catch (error) {
-      isSelectedItem =
-        false;
-    }
-
-    if (isSelectedItem) {
-      if (
-        typeof window.hdOriginApplyUtilityDedicatedDraft ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityDedicatedDraft(
-          draft
-        );
-      }
-
-      if (
-        typeof window.hdOriginApplyUtilityCommunicationFields ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityCommunicationFields(
-          draft
-        );
-      }
-
-      if (
-        typeof window.hdOriginApplyUtilityLineItems ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityLineItems(
-          data
-        );
-      }
-
-      if (
-        typeof showVisibleFieldsOnly ===
-          "function"
-      ) {
-        showVisibleFieldsOnly(
-          visibleFieldLabels
-        );
-      }
-    }
-
-    window.__hdOriginUtilityRealAiResultLast = {
-      ok:
-        Object.keys(draft).length > 0,
-
-      selected:
-        isSelectedItem,
-
-      draftKeys:
-        Object.keys(draft),
-
-      fieldKeys:
-        draft.fields &&
-        typeof draft.fields === "object"
-          ? Object.keys(draft.fields)
-          : [],
-
-      visibleFieldLabels:
-        visibleFieldLabels,
-
-      source:
-        specialist.draft &&
-        typeof specialist.draft === "object"
-          ? "data.specialist.draft"
-          : data.draft &&
-            typeof data.draft === "object"
-              ? "data.draft"
-              : "empty"
-    };
+    item.__aiDraft = data.draft || {};
+    item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+    item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+    item.__aiSteps = data.ai_steps || [];
+    item.__aiRawResult = data;
   };
 
   window.runAiDraftForItemIndex = async function(index, options = {}) {
@@ -3801,26 +3636,7 @@ function setDocumentPreview(item) {
 
       window.applySortingAiResultToItem(item, data);
 
-      let appliedCount = 0;
-
-      if (typeof window.hdOriginApplyUtilityDedicatedDraft === "function") {
-        window.hdOriginApplyUtilityDedicatedDraft(item.__aiDraft);
-      }
-
-      if (typeof window.hdOriginApplyUtilityCommunicationFields === "function") {
-        appliedCount =
-          window.hdOriginApplyUtilityCommunicationFields(item.__aiDraft) || 0;
-      }
-
-      if (typeof window.hdOriginApplyUtilityLineItems === "function") {
-        window.hdOriginApplyUtilityLineItems(data);
-      }
-
-      if (typeof showVisibleFieldsOnly === "function") {
-        showVisibleFieldsOnly(item.__visibleFieldLabels || []);
-      }
-
-      window.__lastAiDraftAppliedCount = appliedCount;
+      if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
 
       if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
         try {
@@ -4429,20 +4245,7 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
-    /* GPT3_UTILITY_SELECT_SAVED_RESTORE_GUARD_START */
-    if (
-      !(
-        item &&
-        item.__utilityUnsavedAiResult === true &&
-        item.__aiRawResult
-      )
-    ) {
-      void hdOriginUtilityRestoreSavedResult(
-        item,
-        index
-      );
-    }
-    /* GPT3_UTILITY_SELECT_SAVED_RESTORE_GUARD_END */
+    void hdOriginUtilityRestoreSavedResult(item, index);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
     if (item && item.__aiDraft) {
       if (typeof applySortingOnlyDraftToForm === "function") {
@@ -4451,68 +4254,6 @@ function setDocumentPreview(item) {
         applyAiDraftToFormHardDebug(item.__aiDraft);
       }
 
-      /* GPT3_UTILITY_SELECT_DIRECT_RENDER_START */
-      if (
-        item &&
-        item.__aiDraft &&
-        typeof window.hdOriginApplyUtilityDedicatedDraft ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityDedicatedDraft(
-          item.__aiDraft
-        );
-      }
-
-      if (
-        item &&
-        item.__aiDraft &&
-        typeof window.hdOriginApplyUtilityCommunicationFields ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityCommunicationFields(
-          item.__aiDraft
-        );
-      }
-
-      if (
-        item &&
-        typeof window.hdOriginApplyUtilityLineItems ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityLineItems(
-          item.__aiRawResult ||
-          item.__aiDraft
-        );
-      }
-      /* GPT3_UTILITY_SELECT_DIRECT_RENDER_END */
-      /* GPT3_UTILITY_SAVED_DIRECT_RENDER_START */
-      if (
-        typeof window.hdOriginApplyUtilityDedicatedDraft ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityDedicatedDraft(
-          draft
-        );
-      }
-
-      if (
-        typeof window.hdOriginApplyUtilityCommunicationFields ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityCommunicationFields(
-          draft
-        );
-      }
-
-      if (
-        typeof window.hdOriginApplyUtilityLineItems ===
-          "function"
-      ) {
-        window.hdOriginApplyUtilityLineItems(
-          data
-        );
-      }
-      /* GPT3_UTILITY_SAVED_DIRECT_RENDER_END */
       if (typeof showVisibleFieldsOnly === "function") {
         showVisibleFieldsOnly(item.__visibleFieldLabels || []);
       }
@@ -6552,8 +6293,7 @@ function setDocumentPreview(item) {
 
       ai_summary: aiSummary,
       sortResult: root,
-      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
-
+      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
       lineItems: lineItems,
       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
 
@@ -8029,9 +7769,6 @@ function setDocumentPreview(item) {
   <script src="/payables/payment-document-specialist-utility-communication-dedicated.js"></script>
 </body>
 </html>
-
-
-
 
 
 
