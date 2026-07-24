@@ -123,7 +123,7 @@ HD Origin Project スタート文書
 - Web支払書類フローの原因説明にAccessを持ち出さない。
 
 [生成情報]
-生成日時: 2026/7/24 23:02:23
+生成日時: 2026/7/25 7:52:15
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -260,6 +260,31 @@ hd-origin-project\
 │     ├─ 20260723_003_analysis_item_child_properties.sql
 │     ├─ 20260723_004_utility_tax_category_id_master.sql
 │     └─ README_MIGRATIONS.txt
+├─ GPT00が使う一時ファイルフォルダ\
+│  ├─ after\
+│  │  ├─ evidence_data_reset.after_20260725_072237.json
+│  │  ├─ payment_document_current_statuses.after_20260725_070054.json
+│  │  ├─ payment_document_ocr_imports.current_status.after_20260725_063528.txt
+│  │  └─ restore_recovery_reset.after_20260725_073744.json
+│  ├─ apply\
+│  │  ├─ evidence_data_reset.apply_20260725_072237.txt
+│  │  └─ restore_recovery_reset.apply_20260725_073744.txt
+│  ├─ before\
+│  │  ├─ evidence_data_reset.before_20260725_072237.json
+│  │  ├─ payment_document_current_statuses.before_20260725_070054.json
+│  │  ├─ payment_document_ocr_imports.current_status.before_20260725_063528.txt
+│  │  └─ restore_recovery_reset.before_20260725_073744.json
+│  ├─ memo\
+│  │  ├─ evidence_data_reset.memo_20260725_072237.txt
+│  │  ├─ payment_document_current_status_20260725_063528.txt
+│  │  ├─ payment_document_current_statuses_20260725_070054.txt
+│  │  └─ restore_recovery_reset.memo_20260725_073744.txt
+│  ├─ temp\
+│  └─ undo\
+│     ├─ evidence_data_reset.undo_information_20260725_072237.txt
+│     ├─ restore_recovery_reset.undo_information_20260725_073744.txt
+│     ├─ undo_payment_document_current_status_20260725_063528.ps1
+│     └─ undo_payment_document_current_statuses_20260725_070054.ps1
 ├─ GPT2が使う一時ファイルフォルダ\
 │  ├─ after\
 │  │  ├─ calendar_event_editor_20260716_074031\
@@ -1245,6 +1270,7 @@ hd-origin-project\
 ├─ env_initializer.py
 ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
 ├─ HD_ORIGIN_PC_RULES.txt
+├─ HD_ORIGIN_RESTART_IN_PROGRESS.json
 ├─ HD_ORIGIN_RUNTIME_PATHS.txt
 ├─ MASTER_DATA_COMPLETE_LIST.txt
 ├─ MASTER_DATA_LIST.txt
