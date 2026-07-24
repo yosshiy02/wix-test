@@ -1309,7 +1309,9 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
       }
 
       const receiptImport =
-        await repo.getImportByImageHashSha256(row.sha256);
+        await repo.getImportByUploadId(
+          "payment-document-" + paymentDocumentOcrImportId
+        );
 
       sendJson(res, 200, {
         ok: true,
@@ -1689,7 +1691,12 @@ async function ensureReceiptImportForPaymentDocumentOcrId(ocrImportId) {
     throw new Error("支払書類OCRデータが見つかりません。");
   }
 
-  const existing = await repo.getImportByImageHashSha256(row.sha256);
+  const uploadId =
+    "payment-document-" +
+    row.payment_document_ocr_import_id;
+
+  const existing =
+    await repo.getImportByUploadId(uploadId);
 
   if (existing) {
     return existing;
@@ -1699,7 +1706,7 @@ async function ensureReceiptImportForPaymentDocumentOcrId(ocrImportId) {
     path.join(config.projectRoot, "storage", "payment-documents");
 
   return repo.createLocalImport({
-    uploadId: "payment-document-" + row.payment_document_ocr_import_id,
+    uploadId,
     localImageFileName: row.saved_file_name,
     localImagePath: path.resolve(root, row.saved_relative_path),
     imageHashSha256: row.sha256,

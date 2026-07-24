@@ -3615,6 +3615,15 @@ function setDocumentPreview(item) {
       item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
       item.__aiSteps = data.ai_steps || [];
 
+      /* HD_ORIGIN_CIL_REANALYSIS_MEMORY_UNIFIED */
+      if (typeof hdOriginCilRememberSpecialistResult === "function") {
+        hdOriginCilRememberSpecialistResult(item, data);
+      }
+
+      if (typeof cilSetLeaseItemLinesFromAi === "function") {
+        cilSetLeaseItemLinesFromAi(data);
+      }
+
       const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft);
       showVisibleFieldsOnly(item.__visibleFieldLabels);
       window.__lastAiDraftAppliedCount = appliedCount;
@@ -6202,7 +6211,20 @@ function setDocumentPreview(item) {
   }
 
   function collectContractInsuranceLeaseCurrentFieldsForSave() {
+    /* HD_ORIGIN_CIL_INSURANCE_SAVE_FIELDS */
+    const paymentMethodValue = controlValue("draftPaymentMethod");
+
     return {
+      "保険会社": controlValue("draftInsuranceCompanyName"),
+      "保険証券番号・契約番号": controlValue("draftInsurancePolicyNumber"),
+      "契約番号": controlValue("draftInsurancePolicyNumber"),
+      "被保険者・被保険物件": controlValue("draftInsuredPersonName"),
+      "保険料": controlValue("draftPremiumAmount"),
+      "支払方法": paymentMethodValue
+        ? (controlLabel("draftPaymentMethod") || paymentMethodValue)
+        : ",
+      "リース物件": controlValue("draftLeaseItemName"),
+      "リース物件区分": controlValue("draftLeaseItemCategory"),
       "リース開始日": controlValue("draftLeaseStartDate"),
       "リース終了日": controlValue("draftLeaseEndDate"),
       "リース期間": controlValue("draftLeasePeriodMonths"),

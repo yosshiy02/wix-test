@@ -11975,7 +11975,6 @@ async function handlePaymentDocumentRoutes(req, res) {
               subtotal_amount,
               tax_rate,
               tax_category_id,
-              tax_category_label,
               tax_amount,
               total_amount,
               source_text,
@@ -12033,7 +12032,22 @@ async function handlePaymentDocumentRoutes(req, res) {
         );
 
       const lineItems =
-        lineResult.rows;
+        lineResult.rows.map(row => {
+          const rawItem =
+            row.raw_item_json &&
+            typeof row.raw_item_json === "object" &&
+            !Array.isArray(row.raw_item_json)
+              ? row.raw_item_json
+              : {};
+
+          return {
+            ...row,
+
+            tax_category_label:
+              rawItem.tax_category_label ||
+              ""
+          };
+        });
 
       const fields = {
         ...objectOrEmpty(savedDraft.fields),

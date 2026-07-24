@@ -3392,3 +3392,41 @@ module.exports.getPaymentDocumentOcrImportForReceiptBridge =
   getPaymentDocumentOcrImportForReceiptBridge;
 /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_REPOSITORY_20260722_END */
 
+/* RECEIPT_GET_IMPORT_BY_UPLOAD_ID_20260724_START */
+async function getImportByUploadId(uploadId) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      upload_id,
+      wix_item_id,
+      wix_image_url,
+      local_image_file_name,
+      local_image_path,
+      image_hash_sha256,
+      image_size_bytes,
+      original_file_name,
+      captured_at_jst,
+      imported_at_jst,
+      import_batch_id,
+      ocr_provider,
+      ocr_raw_text,
+      ocr_line_count,
+      ocr_word_count,
+      status,
+      created_at,
+      updated_at
+    FROM accounting.receipt_imports
+    WHERE upload_id = $1
+    ORDER BY id DESC
+    LIMIT 1
+    `,
+    [String(uploadId || "")]
+  );
+
+  return result.rows[0] || null;
+}
+
+module.exports.getImportByUploadId =
+  getImportByUploadId;
+/* RECEIPT_GET_IMPORT_BY_UPLOAD_ID_20260724_END */
