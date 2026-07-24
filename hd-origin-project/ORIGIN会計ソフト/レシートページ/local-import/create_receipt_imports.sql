@@ -1,4 +1,4 @@
-﻿CREATE SCHEMA IF NOT EXISTS accounting;
+CREATE SCHEMA IF NOT EXISTS accounting;
 
 CREATE TABLE IF NOT EXISTS accounting.receipt_imports (
   id BIGSERIAL PRIMARY KEY,
@@ -37,6 +37,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_receipt_imports_wix_item_id
 ON accounting.receipt_imports (wix_item_id)
 WHERE wix_item_id IS NOT NULL;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_receipt_imports_hash
+CREATE INDEX IF NOT EXISTS ix_receipt_imports_hash
 ON accounting.receipt_imports (image_hash_sha256)
 WHERE image_hash_sha256 IS NOT NULL;

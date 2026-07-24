@@ -3629,6 +3629,70 @@ function setDocumentPreview(item) {
 
       window.renderSortingList();
       window.updateSelectedSortingSummary();
+      /* GPT3_UTILITY_URL_AUTO_SELECT_START */
+      const requestedParams =
+        new URLSearchParams(location.search);
+
+      const requestedOcrId =
+        Number(
+          requestedParams.get("ocr_import_id") ||
+          requestedParams.get("ocrImportId") ||
+          requestedParams.get("selectedOcrImportId") ||
+          requestedParams.get("id") ||
+          0
+        );
+
+      if (
+        Number.isInteger(requestedOcrId) &&
+        requestedOcrId > 0
+      ) {
+        const requestedIndex =
+          items.findIndex(function (item) {
+            return Number(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.ocrImportId ||
+              item.ocr_import_id ||
+              item.id ||
+              0
+            ) === requestedOcrId;
+          });
+
+        if (requestedIndex >= 0) {
+          selectItem(requestedIndex);
+
+          const selectedElement =
+            list.querySelectorAll(".item")[requestedIndex];
+
+          if (
+            selectedElement &&
+            typeof selectedElement.scrollIntoView ===
+              "function"
+          ) {
+            selectedElement.scrollIntoView({
+              block: "nearest"
+            });
+          }
+
+          window.__hdOriginUtilityUrlAutoSelectLast = {
+            ok: true,
+            requestedOcrImportId:
+              requestedOcrId,
+            selectedIndex:
+              requestedIndex
+          };
+        }
+        else {
+          window.__hdOriginUtilityUrlAutoSelectLast = {
+            ok: false,
+            requestedOcrImportId:
+              requestedOcrId,
+            reason:
+              "指定されたOCR IDは公共料金・通信費一覧にありません。"
+          };
+        }
+      }
+      /* GPT3_UTILITY_URL_AUTO_SELECT_END */
     } catch (error) {
       summary.textContent = "読込エラー: " + (error.message || String(error));
     }
@@ -3737,6 +3801,186 @@ function setDocumentPreview(item) {
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
 
+  /* GPT3_UTILITY_SAVED_RESULT_RESTORE_START */
+  let hdOriginUtilitySavedRestoreRequestNo = 0;
+
+  function hdOriginUtilitySavedOcrId(item) {
+    if (!item) {
+      return 0;
+    }
+
+    return Number(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.ocr_import_id ||
+      item.id ||
+      0
+    ) || 0;
+  }
+
+  async function hdOriginUtilityRestoreSavedResult(item, index) {
+    const ocrId =
+      hdOriginUtilitySavedOcrId(item);
+
+    if (!ocrId) {
+      return false;
+    }
+
+    const requestNo =
+      ++hdOriginUtilitySavedRestoreRequestNo;
+
+    try {
+      const response =
+        await fetch(
+          "/api/payment-documents/utility-communication/saved/" +
+          encodeURIComponent(String(ocrId)),
+          {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+      if (response.status === 404) {
+        return false;
+      }
+
+      const data =
+        await response.json().catch(function () {
+          return {};
+        });
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          "保存済み公共料金・通信費データの読込に失敗しました。"
+        );
+      }
+
+      if (
+        requestNo !==
+        hdOriginUtilitySavedRestoreRequestNo
+      ) {
+        return false;
+      }
+
+      const currentItem =
+        Array.isArray(items)
+          ? items[index]
+          : null;
+
+      if (
+        !currentItem ||
+        selectedIndex !== index ||
+        hdOriginUtilitySavedOcrId(currentItem) !== ocrId
+      ) {
+        return false;
+      }
+
+      const draft =
+        data.draft &&
+        typeof data.draft === "object"
+          ? data.draft
+          : {};
+
+      const visibleFieldLabels =
+        Array.isArray(data.visible_field_labels)
+          ? data.visible_field_labels
+          : Array.isArray(draft.visible_field_labels)
+            ? draft.visible_field_labels
+            : [];
+
+      currentItem.__aiDraft =
+        draft;
+
+      currentItem.__visibleFieldLabels =
+        visibleFieldLabels;
+
+      currentItem.__aiRawResult =
+        data;
+
+      currentItem.__utilitySavedResultLoaded =
+        true;
+
+      if (
+        typeof applySortingOnlyDraftToForm ===
+        "function"
+      ) {
+        applySortingOnlyDraftToForm(draft);
+      }
+      else if (
+        typeof applyAiDraftToFormHardDebug ===
+        "function"
+      ) {
+        applyAiDraftToFormHardDebug(draft);
+      }
+
+      if (
+        typeof showVisibleFieldsOnly ===
+        "function"
+      ) {
+        showVisibleFieldsOnly(
+          visibleFieldLabels
+        );
+      }
+
+      if (
+        typeof window.hdOriginApplyUtilityLineItems ===
+        "function"
+      ) {
+        window.hdOriginApplyUtilityLineItems(
+          draft
+        );
+      }
+
+      window.__hdOriginUtilitySavedRestoreLast = {
+        ok: true,
+        paymentDocumentOcrImportId:
+          ocrId,
+        specialistAnalysisId:
+          data.specialistAnalysisId || null,
+        utilityCommunicationDraftId:
+          data.utilityCommunicationDraftId || null,
+        lineItemCount:
+          Array.isArray(data.line_items)
+            ? data.line_items.length
+            : 0,
+        aiExecution:
+          false
+      };
+
+      console.log(
+        "HD Origin utility saved result restored:",
+        window.__hdOriginUtilitySavedRestoreLast
+      );
+
+      return true;
+    }
+    catch (error) {
+      window.__hdOriginUtilitySavedRestoreLast = {
+        ok: false,
+        paymentDocumentOcrImportId:
+          ocrId,
+        error:
+          error && error.message
+            ? error.message
+            : String(error),
+        aiExecution:
+          false
+      };
+
+      console.warn(
+        "公共料金・通信費の保存済み結果再表示に失敗しました。",
+        error
+      );
+
+      return false;
+    }
+  }
+  /* GPT3_UTILITY_SAVED_RESULT_RESTORE_END */
   function selectItem(index) {
     selectedIndex = index;
     const item = items[index];
@@ -3752,6 +3996,7 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
+    void hdOriginUtilityRestoreSavedResult(item, index);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
     if (item && item.__aiDraft) {
       if (typeof applySortingOnlyDraftToForm === "function") {

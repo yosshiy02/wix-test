@@ -239,6 +239,16 @@ function render(rows) {
 
   body.innerHTML = rows.map(function (row, index) {
     const lines = lineItems(row);
+    /* GPT3_UTILITY_LEDGER_EDIT_BUTTON_START */
+    const ocrImportId =
+      Number(
+        row.payment_document_ocr_import_id ||
+        row.paymentDocumentOcrImportId ||
+        row.ocr_import_id ||
+        row.ocrImportId ||
+        0
+      ) || 0;
+    /* GPT3_UTILITY_LEDGER_EDIT_BUTTON_END */
 
     const subtotal =
       sumLines(lines, "subtotal_amount");
@@ -318,6 +328,13 @@ function render(rows) {
             'aria-expanded="false">' +
             "明細" +
           "</button>" +
+          '<button type="button" ' +
+            'class="utility-edit-open" ' +
+            'data-ocr-import-id="' +
+            escapeHtml(ocrImportId) +
+            '">' +
+            "修正" +
+          "</button>" +
         "</td>" +
       "</tr>";
 
@@ -333,6 +350,34 @@ function render(rows) {
 
     return mainRow + detailRow;
   }).join("");
+
+    /* GPT3_UTILITY_LEDGER_EDIT_LISTENER_START */
+  body.querySelectorAll(
+    ".utility-edit-open"
+  ).forEach(function (button) {
+    button.addEventListener(
+      "click",
+      function () {
+        const ocrImportId =
+          Number(
+            button.dataset.ocrImportId ||
+            0
+          );
+
+        if (!ocrImportId) {
+          return;
+        }
+
+        location.href =
+          "/payables/payment-document-specialist-utility-communication.html" +
+          "?ocr_import_id=" +
+          encodeURIComponent(
+            String(ocrImportId)
+          );
+      }
+    );
+  });
+  /* GPT3_UTILITY_LEDGER_EDIT_LISTENER_END */
 
   body.querySelectorAll(
     ".detail-toggle"

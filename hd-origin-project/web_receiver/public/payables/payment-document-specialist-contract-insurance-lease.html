@@ -3037,6 +3037,20 @@ function setDocumentPreview(item) {
         ocrId,
         data
       );
+
+      /* HD_ORIGIN_CIL_BULK_ANALYZED_CACHE */
+      window.hdOriginSortingDraftBulkCache =
+        window.hdOriginSortingDraftBulkCache || {};
+
+      window.hdOriginSortingDraftBulkCache[
+        String(ocrId)
+      ]=
+        data;
+
+      if (item) {
+        item.__specialistAnalyzed = true;
+        item.__aiAnalyzed = true;
+      }
     }
 
     if (item) {
@@ -6214,6 +6228,46 @@ function setDocumentPreview(item) {
     /* HD_ORIGIN_CIL_INSURANCE_SAVE_FIELDS */
     const paymentMethodValue = controlValue("draftPaymentMethod");
 
+    /* HD_ORIGIN_CIL_LEASE_AMOUNT_SAVE */
+    const leaseLines =
+      typeof cilLeaseItemLinesForPayload === "function"
+        ? cilLeaseItemLinesForPayload({})
+        : [];
+
+    const sumLeaseAmount = function (key) {
+      let total = 0;
+      let found = false;
+
+      leaseLines.forEach(function (line) {
+        const raw = line && line[key];
+
+        if (
+          raw === null ||
+          raw === undefined ||
+          raw === ""
+        ) {
+          return;
+        }
+
+        const number = Number(
+          String(raw).replace(/[,円￥\s]/g, "")
+        );
+
+        if (Number.isFinite(number)) {
+          total += number;
+          found = true;
+        }
+      });
+
+      return found ? total : "";
+    };
+
+    const monthlyLeaseAmount =
+      sumLeaseAmount("monthly_lease_amount");
+
+    const leaseTotalAmount =
+      sumLeaseAmount("lease_total_amount");
+
     return {
       "保険会社": controlValue("draftInsuranceCompanyName"),
       "保険証券番号・契約番号": controlValue("draftInsurancePolicyNumber"),
@@ -6222,9 +6276,15 @@ function setDocumentPreview(item) {
       "保険料": controlValue("draftPremiumAmount"),
       "支払方法": paymentMethodValue
         ? (controlLabel("draftPaymentMethod") || paymentMethodValue)
-        : ",
+        : "",
       "リース物件": controlValue("draftLeaseItemName"),
       "リース物件区分": controlValue("draftLeaseItemCategory"),
+      ...(monthlyLeaseAmount !== ""
+        ? { "月額リース料": monthlyLeaseAmount }
+        : {}),
+      ...(leaseTotalAmount !== ""
+        ? { "リース総額": leaseTotalAmount }
+        : {}),
       "リース開始日": controlValue("draftLeaseStartDate"),
       "リース終了日": controlValue("draftLeaseEndDate"),
       "リース期間": controlValue("draftLeasePeriodMonths"),
@@ -6920,6 +6980,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     return {
       paymentDocumentOcrImportId: Number(id),
       paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      analysisSystemCode: "contract_insurance_lease_analysis",
+      analysis_system_code: "contract_insurance_lease_analysis",
+      analysisSystemLabel: "契約・保険・リース",
+      analysis_system_label: "契約・保険・リース",
       lease_item_lines: cilLeaseItemLinesForPayload(result),
     rawResult: result,
       specialist: firstObject(
@@ -6955,8 +7019,242 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 
     return json;
   }
+  /* HD_ORIGIN_CIL_BULK_EXISTING_ANALYSIS_FALLBACK */
+  function hdOriginCilExistingAnalysisHasSpecialistField(source, depth) {
+    if (!source || typeof source !== "object") {
+      return false;
+    }
+
+    const currentDepth = Number(depth || 0);
+
+    if (currentDepth > 5) {
+      return false;
+    }
+
+    const specialistKeys = new Set([
+      "保険会社",
+      "保険料",
+      "保険証券番号",
+      "保険証券番号・契約番号",
+      "被保険者・被保険物件",
+      "被保険物件",
+      "リース物件",
+      "物件",
+      "物件名",
+      "月額リース料",
+      "リース総額",
+      "貸主",
+      "借主",
+      "契約期間"
+    ]);
+
+    for (const [key, value] of Object.entries(source)) {
+      if (
+        specialistKeys.has(key) &&
+        value !== null &&
+        value !== undefined &&
+        String(value).trim() !== ""
+      ) {
+        return true;
+      }
+
+      if (
+        value &&
+        typeof value === "object" &&
+        hdOriginCilExistingAnalysisHasSpecialistField(
+          value,
+          currentDepth + 1
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function hdOriginCilExistingBulkResult(item) {
+    if (!item || typeof item !== "object") {
+      return null;
+    }
+
+    const remembered =
+      item.__cilSpecialistResult &&
+      typeof item.__cilSpecialistResult === "object"
+        ? item.__cilSpecialistResult
+        : null;
+
+    if (
+      remembered &&
+      hdOriginCilExistingAnalysisHasSpecialistField(remembered, 0)
+    ) {
+      return remembered;
+    }
+
+    const raw =
+      item.__aiRawResult &&
+      typeof item.__aiRawResult === "object"
+        ? item.__aiRawResult
+        : null;
+
+    if (
+      raw &&
+      hdOriginCilExistingAnalysisHasSpecialistField(raw, 0)
+    ) {
+      return raw;
+    }
+
+    const draft =
+      item.__aiDraft &&
+      typeof item.__aiDraft === "object"
+        ? item.__aiDraft
+        : null;
+
+    if (
+      !draft ||
+      !hdOriginCilExistingAnalysisHasSpecialistField(draft, 0)
+    ) {
+      return null;
+    }
+
+    return {
+      ok: true,
+      source: "existing_specialist_analysis",
+      paymentDocumentOcrImportId:
+        typeof ocrImportIdOf === "function"
+          ? ocrImportIdOf(item)
+          : (
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              ""
+            ),
+      draft: draft,
+      visible_field_labels:
+        item.__visibleFieldLabels || [],
+      document_group:
+        item.__documentGroup || "",
+      ai_steps:
+        item.__aiSteps || []
+    };
+  }
+
+  function hdOriginCilHydrateBulkCacheFromExistingItems(targetIds) {
+    window.hdOriginSortingDraftBulkCache =
+      window.hdOriginSortingDraftBulkCache || {};
+
+    const allowed =
+      Array.isArray(targetIds) && targetIds.length
+        ? new Set(targetIds.map(String))
+        : null;
+
+    let hydrated = 0;
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      const id = String(
+        typeof ocrImportIdOf === "function"
+          ? (ocrImportIdOf(item) || "")
+          : (
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              ""
+            )
+      );
+
+      if (
+        !id ||
+        (allowed && !allowed.has(id)) ||
+        window.hdOriginSortingDraftBulkCache[id]
+      ) {
+        return;
+      }
+
+      const existing =
+        hdOriginCilExistingBulkResult(item);
+
+      if (!existing) {
+        return;
+      }
+
+      window.hdOriginSortingDraftBulkCache[id] =
+        existing;
+
+      item.__specialistAnalyzed = true;
+      item.__aiAnalyzed = true;
+      hydrated++;
+    });
+
+    return hydrated;
+  }
+
+  /* HD_ORIGIN_CIL_BULK_EXISTING_SORTING_DRAFT_REUSE */
+  function hdOriginCilBulkItemByOcrId(id) {
+    const wanted = String(id || "");
+
+    return (Array.isArray(items) ? items : []).find(
+      function (item) {
+        const itemId = String(
+          typeof ocrImportIdOf === "function"
+            ? (ocrImportIdOf(item) || "")
+            : (
+                item && (
+                  item.paymentDocumentOcrImportId ||
+                  item.payment_document_ocr_import_id ||
+                  ""
+                )
+              )
+        );
+
+        return itemId === wanted;
+      }
+    ) || null;
+  }
+
+  function hdOriginCilBulkExistingSortingSaved(id) {
+    const item = hdOriginCilBulkItemByOcrId(id);
+
+    if (!item) {
+      return null;
+    }
+
+    const nested =
+      item.__savedSortingDraft &&
+      typeof item.__savedSortingDraft === "object"
+        ? item.__savedSortingDraft
+        : (
+            item.latestSortingDraft &&
+            typeof item.latestSortingDraft === "object"
+              ? item.latestSortingDraft
+              : null
+          );
+
+    const savedId =
+      item.latestSortingDraftId ||
+      item.latest_sorting_draft_id ||
+      item.paymentDocumentSortingDraftId ||
+      item.payment_document_sorting_draft_id ||
+      (nested
+        ? hdOriginCilSavedSortingDraftId(nested)
+        : "");
+
+    if (!savedId) {
+      return null;
+    }
+
+    return {
+      ok: true,
+      reusedExistingSortingDraft: true,
+      paymentDocumentSortingDraftId: savedId,
+      payment_document_sorting_draft_id: savedId
+    };
+  }
+
   async function bulkSaveSortingDrafts() {
     let ids = getSelectedOcrIds();
+
+    const hydratedExistingCount =
+      hdOriginCilHydrateBulkCacheFromExistingItems(
+        ids.length ? ids : null
+      );
 
     if (ids.length === 0) {
       ids = getIdsFromCache();
@@ -6982,7 +7280,12 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 
       try {
         const payload = buildPayloadFromCachedResult(id, cached);
-        const saved = await postSortingDraft(payload);
+        const existingSortingSaved =
+          hdOriginCilBulkExistingSortingSaved(id);
+
+        const saved =
+          existingSortingSaved ||
+          await postSortingDraft(payload);
         const specialistPayload = buildContractInsuranceLeaseDraftPayload(id, cached, payload, saved);
         const specialistSaved = await postContractInsuranceLeaseDraft(specialistPayload);
 
