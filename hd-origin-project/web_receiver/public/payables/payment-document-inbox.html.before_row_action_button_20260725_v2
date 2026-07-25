@@ -620,13 +620,6 @@
       const displayName = item.originalFileName || item.fileName;
       const checked = selectedFileNames.has(item.fileName) ? "checked" : "";
       const active = index === selectedIndex ? " active" : "";
-      const ocrDone =
-        item.ocrStatus === "ocr_done" ||
-        !!item.ocrRawText ||
-        !!item.ocrTextPreview ||
-        String(item.processStatus || "").toLowerCase() === "ocr_done";
-      const actionLabel = ocrDone ? "修正" : "削除";
-      const actionClass = ocrDone ? "edit-mini" : "delete-mini";
 
       return `
         <div class="item-row">
@@ -638,7 +631,7 @@
             <span class="name">${esc(displayName)}</span>
             <span class="${ocrClass(item)}">${ocrLabel(item)}</span>
           </button>
-          <button class="${actionClass}" onclick="rowFileAction(event, ${index})">${actionLabel}</button>
+          <button class="delete-mini" onclick="deleteItem(event, ${index})">削除</button>
         </div>
       `;
     }).join("");
@@ -868,32 +861,6 @@
     selectedFileNames.delete(item.fileName);
     await loadInbox();
     showResult(data.message || "原本を未OCRへ戻し、INBOXから削除しました。");
-  }
-
-  async function rowFileAction(event, index) {
-    event.stopPropagation();
-
-    const item = items[index];
-
-    if (!item) {
-      showResult("対象書類を確認できません。");
-      return;
-    }
-
-    selectedIndex = index;
-
-    const ocrDone =
-      item.ocrStatus === "ocr_done" ||
-      !!item.ocrRawText ||
-      !!item.ocrTextPreview ||
-      String(item.processStatus || "").toLowerCase() === "ocr_done";
-
-    if (ocrDone) {
-      await selectedFileAction();
-      return;
-    }
-
-    await deleteItem(event, index);
   }
 
   function updateSelectedActionButton(item) {
