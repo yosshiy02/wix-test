@@ -1118,138 +1118,6 @@ function resolveRawReceiptSource(meta) {
   return null;
 }
 
-function resolveRawReceiptDoneSource(meta) {
-  const recordedPath = String(
-    meta.rawSourceDonePath || ""
-  ).trim();
-
-  if (
-    recordedPath &&
-    fs.existsSync(recordedPath) &&
-    fs.statSync(recordedPath).isFile()
-  ) {
-    for (const pair of paymentDocumentRawReceiptDirectoryPairs()) {
-      const doneRoot = path.resolve(pair.destinationDir);
-      const candidate = path.resolve(recordedPath);
-
-      if (
-        candidate !== doneRoot &&
-        candidate.startsWith(doneRoot + path.sep)
-      ) {
-        return {
-          sourcePath: candidate,
-          sourceDir: pair.destinationDir,
-          destinationDir: pair.sourceDir
-        };
-      }
-    }
-  }
-
-  const relativePath = safeRawReceiptRelativePath(
-    meta.rawSourceRelativePath
-  );
-
-  const originalFileName = path.basename(
-    String(
-      meta.rawSourceOriginalFileName ||
-      meta.originalFileName ||
-      ""
-    )
-  );
-
-  for (const pair of paymentDocumentRawReceiptDirectoryPairs()) {
-    if (!fs.existsSync(pair.destinationDir)) {
-      continue;
-    }
-
-    const candidates = [];
-
-    if (relativePath) {
-      candidates.push(
-        path.resolve(pair.destinationDir, relativePath)
-      );
-    }
-
-    if (originalFileName) {
-      candidates.push(
-        path.resolve(pair.destinationDir, originalFileName)
-      );
-    }
-
-    for (const candidate of candidates) {
-      const doneRoot = path.resolve(pair.destinationDir);
-
-      if (
-        candidate !== doneRoot &&
-        candidate.startsWith(doneRoot + path.sep) &&
-        fs.existsSync(candidate) &&
-        fs.statSync(candidate).isFile()
-      ) {
-        return {
-          sourcePath: candidate,
-          sourceDir: pair.destinationDir,
-          destinationDir: pair.sourceDir
-        };
-      }
-    }
-  }
-
-  return null;
-}
-
-function moveRawReceiptBackToPending(meta) {
-  const resolved = resolveRawReceiptDoneSource(meta);
-
-  if (!resolved) {
-    return {
-      status: "not_found",
-      moved: false,
-      sourcePath: "",
-      destinationPath: "",
-      error: "済OCRに該当原本が見つかりません。"
-    };
-  }
-
-  ensureDir(resolved.destinationDir);
-
-  const destinationPath = path.join(
-    resolved.destinationDir,
-    path.basename(resolved.sourcePath)
-  );
-
-  if (fs.existsSync(destinationPath)) {
-    return {
-      status: "destination_exists",
-      moved: false,
-      sourcePath: resolved.sourcePath,
-      destinationPath,
-      error: "未OCRに同名ファイルが既にあります。"
-    };
-  }
-
-  try {
-    moveFileAllowCrossDevice(
-      resolved.sourcePath,
-      destinationPath
-    );
-
-    return {
-      status: "moved",
-      moved: true,
-      sourcePath: resolved.sourcePath,
-      destinationPath,
-      error: ""
-    };
-  } catch (err) {
-    return {
-      status: "move_error",
-      moved: false,
-      sourcePath: resolved.sourcePath,
-      destinationPath,
-      error: err.message || String(err)
-    };
-  }
-}
 function moveRawReceiptToOcrDone(meta) {
   const resolved = resolveRawReceiptSource(meta);
 
@@ -12066,60 +11934,26 @@ specialistAnalysisId:
       const body = await readBody(req);
       const filePath = filePathFromName(body.fileName);
 
-      if (!fs.existsSync(filePath)) {
-        throw new Error("INBOXファイルが見つかりません。");
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
 
       const metaPath = metaPathFor(filePath);
-      const meta = readJsonSafe(metaPath) || {};
-
-      const rawRestore =
-        moveRawReceiptBackToPending(meta);
-
-      if (!rawRestore.moved) {
-        throw new Error(
-          rawRestore.error ||
-          "済OCRから未OCRへの原本移動に失敗しました。"
-        );
-      }
-
-      try {
-        fs.unlinkSync(filePath);
-
-        if (fs.existsSync(metaPath)) {
-          fs.unlinkSync(metaPath);
-        }
-      } catch (deleteError) {
-        try {
-          moveFileAllowCrossDevice(
-            rawRestore.destinationPath,
-            rawRestore.sourcePath
-          );
-        } catch (_) {
-        }
-
-        throw new Error(
-          "INBOX削除に失敗したため、原本移動を取り消しました: " +
-          (deleteError.message || String(deleteError))
-        );
+      if (fs.existsSync(metaPath)) {
+        fs.unlinkSync(metaPath);
       }
 
       sendJson(res, 200, {
         ok: true,
-        message:
-          "原本を済OCRから未OCRへ戻し、INBOXから削除しました。",
-        rawSourcePath: rawRestore.sourcePath,
-        rawPendingPath: rawRestore.destinationPath
+        message: "削除しました。"
       });
     } catch (err) {
-      sendJson(res, 400, {
-        ok: false,
-        error: err.message
-      });
+      sendJson(res, 400, { ok: false, error: err.message });
     }
 
     return true;
   }
+
   if (req.method === "POST" && urlPath === "/api/payment-documents/scan-inbox/update-meta") {
     try {
       const body = await readBody(req);

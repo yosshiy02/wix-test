@@ -53,7 +53,7 @@
 
         <div class="right-action-buttons">
           <button onclick="runCurrentOcr()">この1件をOCR</button>
-          <button id="selectedActionButton" class="danger" onclick="selectedFileAction()">削除</button>
+          <button class="danger" onclick="deleteSelected()">選択ファイル削除</button>
         </div>
 
         <div class="field ocr-field">
@@ -681,7 +681,6 @@
     const ocrAtText = item.ocrAt ? " / " + formatJapanDateTime(item.ocrAt) : "";
     document.getElementById("ocrStatusBox").textContent = "OCR状態：" + ocrLabel(item) + ocrAtText;
     document.getElementById("ocrText").value = item.ocrRawText || item.ocrTextPreview || "";
-    updateSelectedActionButton(item);
     showResult("");
   }
 
@@ -827,24 +826,10 @@
 
     if (!item) return;
 
-    const displayName =
-      item.originalFileName ||
-      item.fileName;
-
-    if (!confirm(
-      "この取込データを削除しますか？\n\n" +
-      displayName
-    )) {
+    if (!confirm("INBOXから削除しますか？\n" + (item.originalFileName || item.fileName))) {
       return;
     }
 
-    if (!confirm(
-      "原本を「済OCR」から「未OCR」へ戻します。\n" +
-      "その後、INBOXの取込データを削除します。\n\n" +
-      "本当に実行しますか？"
-    )) {
-      return;
-    }
     const res = await fetch("/api/payment-documents/scan-inbox/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -860,66 +845,9 @@
 
     selectedFileNames.delete(item.fileName);
     await loadInbox();
-    showResult(data.message || "原本を未OCRへ戻し、INBOXから削除しました。");
+    showResult("INBOXから削除しました。");
   }
 
-  function updateSelectedActionButton(item) {
-    const button = document.getElementById("selectedActionButton");
-    if (!button) return;
-
-    const ocrDone = !!item &&
-      (item.ocrStatus === "ocr_done" || !!item.ocrRawText);
-
-    button.textContent = ocrDone ? "修正" : "削除";
-    button.className = ocrDone ? "secondary" : "danger";
-    button.disabled = !item;
-  }
-
-  async function selectedFileAction() {
-    const item = selectedItem();
-
-    if (!item) {
-      showResult("先に書類を選択してください。");
-      return;
-    }
-
-    const ocrDone =
-      item.ocrStatus === "ocr_done" ||
-      !!item.ocrRawText;
-
-    if (!ocrDone) {
-      await deleteSelected();
-      return;
-    }
-
-    if (!confirm("OCR結果を取り消し、OCR待ちへ戻しますか？")) {
-      return;
-    }
-
-    const res = await fetch(
-      "/api/payment-documents/scan-inbox/reset-ocr",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify({
-          fileName: item.fileName,
-          savedRelativePath: item.savedRelativePath || ""
-        })
-      }
-    );
-
-    const data = await res.json();
-
-    if (!data.ok) {
-      showResult("修正失敗: " + (data.error || "原因不明"));
-      return;
-    }
-
-    await loadInbox();
-    showResult("OCR待ちへ戻しました。");
-  }
   async function deleteSelected() {
     if (selectedIndex < 0) {
       showResult("先に書類を選択してください。");

@@ -827,24 +827,10 @@
 
     if (!item) return;
 
-    const displayName =
-      item.originalFileName ||
-      item.fileName;
-
-    if (!confirm(
-      "この取込データを削除しますか？\n\n" +
-      displayName
-    )) {
+    if (!confirm("INBOXから削除しますか？\n" + (item.originalFileName || item.fileName))) {
       return;
     }
 
-    if (!confirm(
-      "原本を「済OCR」から「未OCR」へ戻します。\n" +
-      "その後、INBOXの取込データを削除します。\n\n" +
-      "本当に実行しますか？"
-    )) {
-      return;
-    }
     const res = await fetch("/api/payment-documents/scan-inbox/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -860,7 +846,7 @@
 
     selectedFileNames.delete(item.fileName);
     await loadInbox();
-    showResult(data.message || "原本を未OCRへ戻し、INBOXから削除しました。");
+    showResult("INBOXから削除しました。");
   }
 
   function updateSelectedActionButton(item) {
