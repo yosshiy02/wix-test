@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>税金・公的支払台帳 | HD Origin</title>
-  <link rel="stylesheet" href="/ledgers/reports/tax-public-ledger-report.css">
+  <title>照合用台帳 | HD Origin</title>
+  <link rel="stylesheet" href="/ledgers/reports/reference-check-ledger-report.css">
 </head>
 <body>
   <header class="page-header">
     <div>
       <p class="eyebrow">HD ORIGIN LEDGER</p>
-      <h1>税金・公的支払台帳</h1>
+      <h1>照合用台帳</h1>
       <p class="page-description">
-        税金、社会保険料、労働保険料その他の公的支払を確認します。
+        請求書、納品書、カード明細、支払情報などの照合対象を確認します。
       </p>
     </div>
 
-    <nav class="header-actions" aria-label="ページ操作">
+    <nav class="header-actions">
       <a class="button secondary"
-         href="/payables/payment-document-specialist-tax-public.html">
+         href="/payables/payment-document-specialist-reference-check.html">
         専門解析へ
       </a>
 
@@ -36,19 +36,19 @@
   </header>
 
   <main>
-    <section class="summary-grid" aria-label="台帳集計">
+    <section class="summary-grid">
       <article class="summary-card">
         <span>登録件数</span>
         <strong id="recordCount">0</strong>
       </article>
 
       <article class="summary-card">
-        <span>納付予定額</span>
-        <strong id="totalAmount">0円</strong>
+        <span>照合済み</span>
+        <strong id="matchedCount">0</strong>
       </article>
 
       <article class="summary-card">
-        <span>要確認</span>
+        <span>未照合・要確認</span>
         <strong id="reviewCount">0</strong>
       </article>
     </section>
@@ -56,7 +56,7 @@
     <section class="ledger-panel">
       <div class="ledger-heading">
         <div>
-          <h2>台帳一覧</h2>
+          <h2>照合対象一覧</h2>
           <p id="ledgerStatus">
             登録済みデータを確認しています。
           </p>
@@ -66,7 +66,7 @@
           <span>検索</span>
           <input type="search"
                  id="ledgerSearch"
-                 placeholder="会社・税目・納付先・管理番号">
+                 placeholder="会社・取引先・番号・照合内容">
         </label>
       </div>
 
@@ -76,12 +76,12 @@
             <tr>
               <th>管理番号</th>
               <th>会社</th>
-              <th>税目・公的支払</th>
-              <th>納付先</th>
-              <th>年度・期別</th>
-              <th>納期限</th>
-              <th class="amount-column">納付額</th>
-              <th>状態</th>
+              <th>書類区分</th>
+              <th>発行元・取引先</th>
+              <th>対象日</th>
+              <th class="amount-column">金額</th>
+              <th>照合状態</th>
+              <th>照合先</th>
               <th class="action-column">明細</th>
               <th class="action-column">その他</th>
               <th class="action-column">編集</th>
@@ -124,6 +124,6 @@
     </section>
   </div>
 
-  <script src="/ledgers/reports/tax-public-ledger-report.js"></script>
+  <script src="/ledgers/reports/reference-check-ledger-report.js"></script>
 </body>
 </html>

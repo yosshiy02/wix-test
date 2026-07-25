@@ -426,7 +426,7 @@ function render(rows) {
   if (!rows.length) {
     body.innerHTML =
       '<tr class="empty">' +
-        '<td colspan="14">' +
+        '<td colspan="15">' +
           "登録済みデータはありません。" +
         "</td>" +
       "</tr>";
@@ -609,13 +609,17 @@ function render(rows) {
               "修正" +
             "</button>" +
           "</td>" +
+      '<td><button type="button" class="ledger-other-button" '+
+        'data-ocr-import-id="'+
+        escapeHtml(text(row.payment_document_ocr_import_id))+
+        '">その他</button></td>'+
         "</tr>";
 
       const detailRow =
         '<tr id="' +
           escapeHtml(detailId) +
           '" class="detail-row" hidden>' +
-          '<td colspan="14">' +
+          '<td colspan="15">' +
             renderDetails(lines) +
           "</td>" +
         "</tr>";
@@ -684,6 +688,65 @@ function render(rows) {
   });
 }
 
+/* HD_ORIGIN_UTILITY_LEDGER_OTHER_BUTTON_20260725_START */
+document.addEventListener(
+  "click",
+  function (event) {
+    const button =
+      event.target.closest(
+        ".ledger-other-button"
+      );
+
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const ocrImportId =
+      String(
+        button.dataset.ocrImportId || ""
+      ).trim();
+
+    if (!ocrImportId) {
+      window.alert(
+        "OCR取込IDを確認できません。"
+      );
+
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "この証憑のOCR取込IDをコピーしますか？\n\n" +
+        "OCR取込ID: " +
+        ocrImportId
+      )
+    ) {
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(ocrImportId)
+      .then(function () {
+        window.alert(
+          "OCR取込IDをコピーしました。\n\n" +
+          ocrImportId
+        );
+      })
+      .catch(function (error) {
+        window.alert(
+          "OCR取込IDをコピーできませんでした。\n\n" +
+          (
+            error && error.message
+              ? error.message
+              : String(error)
+          )
+        );
+      });
+  }
+);
+/* HD_ORIGIN_UTILITY_LEDGER_OTHER_BUTTON_20260725_END */
 async function main() {
   const status =
     document.getElementById(

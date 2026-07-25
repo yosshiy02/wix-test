@@ -9,14 +9,15 @@
 }
 
 body {
+  min-width: 88rem;
   margin: 0;
-  min-width: 70rem;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 1rem;
   padding: 1.4rem 2rem;
   background: #ffffff;
   border-bottom: 1px solid #d9dee5;
@@ -33,12 +34,13 @@ body {
   font-size: 0.8rem;
 }
 
-nav {
+.page-navigation {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
 }
 
-nav a {
+.page-navigation a {
   padding: 0.65rem 1rem;
   color: #344054;
   text-decoration: none;
@@ -47,7 +49,7 @@ nav a {
   border-radius: 0.4rem;
 }
 
-nav a.active {
+.page-navigation a.active {
   color: #ffffff;
   background: #344054;
 }
@@ -58,7 +60,7 @@ main {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(12rem, 1fr));
   gap: 0.8rem;
   margin-bottom: 1rem;
 }
@@ -89,7 +91,7 @@ main {
 
 table {
   width: 100%;
-  min-width: 88rem;
+  min-width: 108rem;
   border-collapse: collapse;
 }
 
@@ -115,7 +117,8 @@ th {
   text-align: center;
 }
 
-.detail-toggle {
+.ledger-button {
+  min-width: 4rem;
   padding: 0.35rem 0.7rem;
   color: #344054;
   cursor: pointer;
@@ -124,7 +127,7 @@ th {
   border-radius: 0.35rem;
 }
 
-.detail-toggle:hover {
+.ledger-button:hover {
   background: #f2f4f7;
 }
 
@@ -133,131 +136,69 @@ th {
 }
 
 .detail-row td {
-  padding: 0.8rem 1.2rem 1rem 3rem;
+  padding: 1rem 1.5rem 1.2rem 3rem;
   background: #f8fafc;
   white-space: normal;
 }
 
-.detail-list {
+.detail-panel {
   display: grid;
+  grid-template-columns: repeat(3, minmax(14rem, 1fr));
   gap: 0.8rem;
 }
 
-.detail-item {
+.detail-block {
   padding: 0.8rem;
   background: #ffffff;
   border: 1px solid #d9dee5;
   border-radius: 0.4rem;
 }
 
-.detail-item h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(10rem, 1fr));
-  gap: 0.5rem 1rem;
-}
-
-.detail-field {
-  min-width: 0;
-}
-
-.detail-field strong {
+.detail-block strong {
   display: block;
-  margin-bottom: 0.15rem;
-  color: #667085;
-  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
 }
 
-.detail-field span {
-  overflow-wrap: anywhere;
-}
-
-.source-text {
+.detail-lines {
   grid-column: 1 / -1;
 }
 
-@media (max-width: 80rem) {
-  .detail-grid {
-    grid-template-columns: repeat(2, minmax(12rem, 1fr));
-  }
-}
-
-/* GPT3_UTILITY_LEDGER_FULL_REBUILD_CSS_START */
-.ledger table {
-  min-width: 100rem;
-}
-
-.utility-edit-open,
-.detail-toggle {
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-  white-space: nowrap;
-  border: 0.0625rem solid #8fa8bf;
-  border-radius: 0.4rem;
-  background: #ffffff;
-  color: #24435f;
-  font-weight: 800;
-}
-
-.utility-edit-open:hover,
-.detail-toggle:hover {
-  background: #eef6fd;
-}
-
-.utility-edit-open {
-  border-color: #6e9cc5;
-  background: #edf6ff;
-}
-
-.utility-ledger-detail-wrap {
-  overflow-x: auto;
-  padding: 0.25rem 0;
-}
-
-.utility-ledger-detail-table {
-  width: 100%;
-  min-width: 95rem;
-  border-collapse: collapse;
-}
-
-.utility-ledger-detail-table th,
-.utility-ledger-detail-table td {
-  padding: 0.55rem 0.65rem;
-  border: 0.0625rem solid #d9e2ea;
-  vertical-align: top;
-}
-
-.utility-ledger-detail-table th {
-  background: #edf4fa;
-}
-
-.utility-ledger-detail-table .source-text {
-  min-width: 22rem;
-  white-space: normal;
-  line-height: 1.55;
-}
-
-.utility-ledger-empty-detail {
+.detail-lines ul {
   margin: 0;
-  padding: 0.75rem;
+  padding-left: 1.2rem;
 }
-/* GPT3_UTILITY_LEDGER_FULL_REBUILD_CSS_END */
 
-/* HD_ORIGIN_UTILITY_LEDGER_OTHER_BUTTON_20260725_START */
-.ledger-other-button {
-  padding: 0.35rem 0.7rem;
-  color: #344054;
+.other-menu-cell {
+  position: relative;
+}
+
+.other-menu {
+  position: absolute;
+  z-index: 10;
+  right: 0.5rem;
+  min-width: 11rem;
+  padding: 0.4rem;
+  background: #ffffff;
+  border: 1px solid #d0d5dd;
+  border-radius: 0.4rem;
+  box-shadow: 0 0.5rem 1.2rem rgba(16, 24, 40, 0.15);
+}
+
+.other-menu[hidden] {
+  display: none;
+}
+
+.other-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  text-align: left;
   cursor: pointer;
   background: #ffffff;
-  border: 1px solid #98a2b3;
-  border-radius: 0.35rem;
+  border: 0;
+  border-radius: 0.25rem;
 }
 
-.ledger-other-button:hover {
+.other-menu button:hover {
   background: #f2f4f7;
 }
-/* HD_ORIGIN_UTILITY_LEDGER_OTHER_BUTTON_20260725_END */

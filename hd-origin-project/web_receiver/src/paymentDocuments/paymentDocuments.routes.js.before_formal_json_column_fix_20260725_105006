@@ -1793,6 +1793,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
         WHEN LOWER(
           COALESCE(
             s.raw_result_json->>'needs_review',
+            s.draft_json->>'needs_review',
             'false'
           )
         ) = 'true'
@@ -1801,20 +1802,9 @@ async function listPaymentDocumentOcrImportsFromDb() {
       END AS needs_review,
       s.warnings_json,
       s.raw_result_json,
-      COALESCE(
-        s.raw_result_json->'draft',
-        '{}'::jsonb
-      ) AS draft_json,
-      COALESCE(
-        s.raw_result_json->'visible_fields',
-        s.raw_result_json->'visibleFields',
-        '{}'::jsonb
-      ) AS visible_fields_json,
-      COALESCE(
-        s.raw_result_json->'visible_field_labels',
-        s.raw_result_json->'visibleFieldLabels',
-        '{}'::jsonb
-      ) AS visible_field_labels_json,
+      s.draft_json,
+      s.visible_fields_json,
+      s.visible_field_labels_json,
       s.created_at AS specialist_created_at,
       s.updated_at AS specialist_updated_at
 
@@ -9839,6 +9829,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         WHEN LOWER(
           COALESCE(
             s.raw_result_json->>'needs_review',
+            s.draft_json->>'needs_review',
             'false'
           )
         ) = 'true'
@@ -9847,20 +9838,9 @@ async function handlePaymentDocumentRoutes(req, res) {
       END AS needs_review,
           s.warnings_json,
           s.raw_result_json,
-          COALESCE(
-        s.raw_result_json->'draft',
-        '{}'::jsonb
-      ) AS draft_json,
-          COALESCE(
-        s.raw_result_json->'visible_fields',
-        s.raw_result_json->'visibleFields',
-        '{}'::jsonb
-      ) AS visible_fields_json,
-          COALESCE(
-        s.raw_result_json->'visible_field_labels',
-        s.raw_result_json->'visibleFieldLabels',
-        '{}'::jsonb
-      ) AS visible_field_labels_json,
+          s.draft_json,
+          s.visible_fields_json,
+          s.visible_field_labels_json,
           s.human_confirm_status,
           s.human_memo,
           s.created_at AS specialist_created_at,

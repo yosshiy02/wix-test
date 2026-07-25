@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>請求・未払台帳 | HD Origin Project</title>
+  <link rel="stylesheet" href="/ledgers/reports/invoice-payable-ledger-report.css">
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <p>HD Origin Project</p>
+      <h1>請求・未払台帳</h1>
+    </div>
+
+    <nav class="page-navigation" aria-label="請求・未払台帳ナビゲーション">
+      <a href="/payables/payment-document-specialist-invoice-payable.html">専門解析へ</a>
+      <a href="/payables/payable-list.html">未払管理へ</a>
+      <a class="active" href="/ledgers/reports/invoice-payable-ledger-report.html">台帳</a>
+      <a href="/">メインページ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="請求・未払集計">
+      <div>
+        登録件数
+        <strong id="recordCount">－</strong>
+      </div>
+
+      <div>
+        下書き
+        <strong id="draftCount">－</strong>
+      </div>
+
+      <div>
+        確定
+        <strong id="confirmedCount">－</strong>
+      </div>
+
+      <div>
+        未払残高
+        <strong id="unpaidTotal">－</strong>
+      </div>
+    </section>
+
+    <p id="loadStatus">台帳データを読み込んでいます。</p>
+
+    <section class="ledger">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>管理番号</th>
+            <th>状態</th>
+            <th>書類区分</th>
+            <th>支払先</th>
+            <th>請求書番号</th>
+            <th>請求日</th>
+            <th>支払期限</th>
+            <th>税込金額</th>
+            <th>支払済額</th>
+            <th>未払残高</th>
+            <th>元ファイル</th>
+            <th>編集</th>
+            <th>明細</th>
+            <th>その他</th>
+          </tr>
+        </thead>
+
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="/ledgers/reports/invoice-payable-ledger-report.js"></script>
+</body>
+</html>
