@@ -1,0 +1,44 @@
+============================================================
+OCR保存・読取内容確認画面 マスタ駆動修正
+============================================================
+STATUS_MASTER=accounting.payment_document_current_statuses
+STATUS_MASTER_UPDATE=NO
+TARGET_TABLE=accounting.payment_document_ocr_imports
+TARGET_FIELD=current_status
+FILE_UPDATE=YES
+DATABASE_UPDATE=YES
+OCR_EXECUTION=NO
+
+CODE_UPDATE=SUCCESS
+SYNTAX_CHECK=SUCCESS
+============================================================
+既存証憑 current_status マスタ駆動更新
+============================================================
+MASTER_UPDATE=NO
+RESOLVED_REVIEW_STATUS=基礎解析待ち
+UPDATED_RECORD_COUNT=7
+REVIEW_DISPLAY_COUNT=7
+
+UPDATED_ID=28 / FILE=2026-07-18 11.11.02.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=29 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=30 / FILE=2026-07-01 21.59.06.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=31 / FILE=2026-07-09 13.35.32.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=32 / FILE=2026-07-06 16.26.05.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=33 / FILE=2026-07-06 07.24.29.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+UPDATED_ID=34 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+
+STATUS_MASTER_UNCHANGED=YES
+DATABASE_UPDATE=SUCCESS
+
+============================================================
+修正完了
+============================================================
+STATUS_MASTER_UPDATE=NO
+STATUS_RESOLUTION=MASTER_DRIVEN
+TARGET_FIELD=current_status
+REVIEW_PAGE=http://localhost:3000/payables/payment-document-review.html
+BEFORE_FILE=G:\GITHUB\wix-test\hd-origin-project\00_GPT\ocr_review_master_driven_fix_20260726_062916\before\paymentDocuments.routes.js
+AFTER_FILE=G:\GITHUB\wix-test\hd-origin-project\00_GPT\ocr_review_master_driven_fix_20260726_062916\after\paymentDocuments.routes.js
+UNDO_CODE=G:\GITHUB\wix-test\hd-origin-project\00_GPT\ocr_review_master_driven_fix_20260726_062916\undo\undo-code.ps1
+UNDO_DATABASE=G:\GITHUB\wix-test\hd-origin-project\00_GPT\ocr_review_master_driven_fix_20260726_062916\undo\undo-existing-current-status.sql
+OVERALL_STATUS=SUCCESS

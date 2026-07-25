@@ -1,0 +1,518 @@
+============================================================
+OCR済 current_status 修正位置・現物抽出
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+
+
+============================================================
+1. saveOneInboxItem関数全体
+============================================================
+  1298: async function saveOneInboxItem(fileName) {
+  1299:   const filePath = filePathFromName(fileName);
+  1300: 
+  1301:   if (!fs.existsSync(filePath)) {
+  1302:     return {
+  1303:       ok: false,
+  1304:       fileName,
+  1305:       status: "missing",
+  1306:       error: "ファイルが見つかりません。"
+  1307:     };
+  1308:   }
+  1309: 
+  1310:   const metaPath = metaPathFor(filePath);
+  1311:   const current = readJsonSafe(metaPath) || {};
+  1312:   const stat = fs.statSync(filePath);
+  1313:   const ocrText = String(
+  1314:     current.ocrRawText ||
+  1315:     current.ocr_raw_text ||
+  1316:     current.ocrText ||
+  1317:     ""
+  1318:   ).trim();
+  1319: 
+  1320:   if (!ocrText) {
+  1321:     return {
+  1322:       ok: false,
+  1323:       fileName,
+  1324:       status: "no_ocr",
+  1325:       originalFileName:
+  1326:         current.originalFileName ||
+  1327:         path.basename(filePath),
+  1328:       error:
+  1329:         "OCR本文が未保存のため、保存できません。"
+  1330:     };
+  1331:   }
+  1332: 
+  1333:   const now = new Date().toISOString();
+  1334: 
+  1335:   const next = {
+  1336:     ...current,
+  1337:     originalFileName:
+  1338:       current.originalFileName ||
+  1339:       path.basename(filePath),
+  1340:     savedFileName:
+  1341:       current.savedFileName ||
+  1342:       path.basename(filePath),
+  1343:     mimeType:
+  1344:       current.mimeType ||
+  1345:       getMimeType(filePath),
+  1346:     sizeBytes:
+  1347:       current.sizeBytes ||
+  1348:       stat.size,
+  1349: 
+  1350:     ocrStatus:
+  1351:       current.ocrStatus ||
+  1352:       "ocr_done",
+  1353:     ocrRawText: ocrText,
+  1354:     ocr_raw_text: ocrText,
+  1355:     ocrText,
+  1356:     ocrTextLength: ocrText.length,
+  1357: 
+  1358:     processStatus: "saved",
+  1359:     savedAt: now,
+  1360:     savedByPage: "payment-document-inbox",
+  1361:     updatedAt: now
+  1362:   };
+  1363: 
+  1364:   let moved = null;
+  1365: 
+  1366:   try {
+  1367:     moved = movePaymentDocumentToSaved(
+  1368:       filePath,
+  1369:       next
+  1370:     );
+  1371: 
+  1372:     const movedFilePath =
+  1373:       safePaymentDocumentFilePathFromRelative(
+  1374:         moved.savedRelativePath
+  1375:       );
+  1376: 
+  1377:     const movedMetaPath =
+  1378:       safePaymentDocumentFilePathFromRelative(
+  1379:         moved.savedMetaRelativePath
+  1380:       );
+  1381: 
+  1382:     const savedMeta =
+  1383:       (
+  1384:         movedMetaPath &&
+  1385:         fs.existsSync(movedMetaPath)
+  1386:       )
+  1387:         ? (
+  1388:             readJsonSafe(movedMetaPath) ||
+  1389:             {}
+  1390:           )
+  1391:         : {};
+  1392: 
+  1393:     const dbMeta = {
+  1394:       ...next,
+  1395:       ...savedMeta,
+  1396:       originalFileName:
+  1397:         moved.originalFileName ||
+  1398:         next.originalFileName,
+  1399:       savedFileName:
+  1400:         moved.fileName ||
+  1401:         next.savedFileName,
+  1402:       savedRelativePath:
+  1403:         moved.savedRelativePath,
+  1404:       savedMetaRelativePath:
+  1405:         moved.savedMetaRelativePath,
+  1406:       savedAt:
+  1407:         moved.savedAt ||
+  1408:         now,
+  1409:       processStatus: "saved",
+  1410:       ocrRawText: ocrText,
+  1411:       ocr_raw_text: ocrText,
+  1412:       ocrText,
+  1413:       ocrTextLength: ocrText.length
+  1414:     };
+  1415: 
+  1416:     const dbRow =
+  1417:       await upsertPaymentDocumentOcrImportWithTransaction(
+  1418:         dbMeta,
+  1419:         moved.fileName
+  1420:       );
+  1421: 
+  1422:     if (
+  1423:       !dbRow ||
+  1424:       !dbRow.payment_document_ocr_import_id
+  1425:     ) {
+  1426:       throw new Error(
+  1427:         "OCR取込DBレコードを作成できませんでした。"
+  1428:       );
+  1429:     }
+  1430: 
+  1431:     const finalMeta = {
+  1432:       ...dbMeta,
+  1433:       dbSaved: true,
+  1434:       paymentDocumentOcrImportId:
+  1435:         dbRow.payment_document_ocr_import_id,
+  1436:       databaseSavedAt:
+  1437:         new Date().toISOString()
+  1438:     };
+  1439: 
+  1440:     if (movedMetaPath) {
+  1441:       writeJson(
+  1442:         movedMetaPath,
+  1443:         finalMeta
+  1444:       );
+  1445:     }
+  1446: 
+  1447:     const rawSourceMove =
+  1448:       moveRawReceiptToOcrDone(finalMeta);
+  1449: 
+  1450:     finalMeta.rawSourceMoveStatus =
+  1451:       rawSourceMove.status;
+  1452:     finalMeta.rawSourceMoved =
+  1453:       rawSourceMove.moved;
+  1454:     finalMeta.rawSourcePath =
+  1455:       rawSourceMove.sourcePath;
+  1456:     finalMeta.rawSourceDonePath =
+  1457:       rawSourceMove.destinationPath;
+  1458:     finalMeta.rawSourceMoveError =
+  1459:       rawSourceMove.error;
+  1460:     finalMeta.rawSourceMovedAt =
+  1461:       rawSourceMove.moved
+  1462:         ? new Date().toISOString()
+  1463:         : "";
+  1464: 
+  1465:     if (movedMetaPath) {
+  1466:       writeJson(
+  1467:         movedMetaPath,
+  1468:         finalMeta
+  1469:       );
+  1470:     }
+  1471: 
+  1472:     return {
+  1473:       ok: true,
+  1474:       fileName: moved.fileName,
+  1475:       originalInboxFileName: fileName,
+  1476:       originalFileName:
+  1477:         moved.originalFileName,
+  1478:       status: "saved",
+  1479:       rawSourceMoveStatus: rawSourceMove.status,
+  1480:       rawSourceMoved: rawSourceMove.moved,
+  1481:       rawSourcePath: rawSourceMove.sourcePath,
+  1482:       rawSourceDonePath: rawSourceMove.destinationPath,
+  1483:       rawSourceMoveError: rawSourceMove.error,
+  1484:       savedAt:
+  1485:         moved.savedAt ||
+  1486:         now,
+  1487:       textLength:
+  1488:         ocrText.length,
+  1489:       savedRelativePath:
+  1490:         moved.savedRelativePath,
+  1491:       savedMetaRelativePath:
+  1492:         moved.savedMetaRelativePath,
+  1493:       dbSaved: true,
+  1494:       paymentDocumentOcrImportId:
+  1495:         dbRow.payment_document_ocr_import_id
+  1496:     };
+  1497:   } catch (err) {
+  1498:     if (moved) {
+  1499:       const movedFilePath =
+  1500:         safePaymentDocumentFilePathFromRelative(
+  1501:           moved.savedRelativePath
+  1502:         );
+  1503: 
+  1504:       const movedMetaPath =
+  1505:         safePaymentDocumentFilePathFromRelative(
+  1506:           moved.savedMetaRelativePath
+  1507:         );
+  1508: 
+  1509:       try {
+  1510:         if (
+  1511:           movedFilePath &&
+  1512:           fs.existsSync(movedFilePath)
+  1513:         ) {
+  1514:           moveFileAllowCrossDevice(
+  1515:             movedFilePath,
+  1516:             filePath
+  1517:           );
+  1518:         }
+  1519: 
+  1520:         if (
+  1521:           movedMetaPath &&
+  1522:           fs.existsSync(movedMetaPath)
+  1523:         ) {
+  1524:           moveFileAllowCrossDevice(
+  1525:             movedMetaPath,
+  1526:             metaPath
+  1527:           );
+  1528:         }
+  1529: 
+  1530:         const restoredMeta =
+  1531:           readJsonSafe(metaPath) ||
+  1532:           next;
+  1533: 
+  1534:         writeJson(
+  1535:           metaPath,
+  1536:           {
+  1537:             ...restoredMeta,
+  1538:             processStatus:
+  1539:               current.processStatus ||
+  1540:               "ocr_done",
+  1541:             saveStatus:
+  1542:               current.saveStatus ||
+  1543:               "",
+  1544:             savedStatus:
+  1545:               current.savedStatus ||
+  1546:               "",
+  1547:             evidenceSaved:
+  1548:               !!current.evidenceSaved,
+  1549:             ocrSaved:
+  1550:               !!current.ocrSaved,
+  1551:             dbSaved: false,
+  1552:             paymentDocumentOcrImportId:
+  1553:               current.paymentDocumentOcrImportId ||
+  1554:               null,
+  1555:             saveError:
+  1556:               err.message ||
+  1557:               String(err),
+  1558:             saveErrorAt:
+
+============================================================
+2. OCR正式保存直前・直後
+============================================================
+  1382:     const savedMeta =
+  1383:       (
+  1384:         movedMetaPath &&
+  1385:         fs.existsSync(movedMetaPath)
+  1386:       )
+  1387:         ? (
+  1388:             readJsonSafe(movedMetaPath) ||
+  1389:             {}
+  1390:           )
+  1391:         : {};
+  1392: 
+  1393:     const dbMeta = {
+  1394:       ...next,
+  1395:       ...savedMeta,
+  1396:       originalFileName:
+  1397:         moved.originalFileName ||
+  1398:         next.originalFileName,
+  1399:       savedFileName:
+  1400:         moved.fileName ||
+  1401:         next.savedFileName,
+  1402:       savedRelativePath:
+  1403:         moved.savedRelativePath,
+  1404:       savedMetaRelativePath:
+  1405:         moved.savedMetaRelativePath,
+  1406:       savedAt:
+  1407:         moved.savedAt ||
+  1408:         now,
+  1409:       processStatus: "saved",
+  1410:       ocrRawText: ocrText,
+  1411:       ocr_raw_text: ocrText,
+  1412:       ocrText,
+  1413:       ocrTextLength: ocrText.length
+  1414:     };
+  1415: 
+  1416:     const dbRow =
+  1417:       await upsertPaymentDocumentOcrImportWithTransaction(
+  1418:         dbMeta,
+  1419:         moved.fileName
+  1420:       );
+  1421: 
+  1422:     if (
+  1423:       !dbRow ||
+  1424:       !dbRow.payment_document_ocr_import_id
+  1425:     ) {
+  1426:       throw new Error(
+  1427:         "OCR取込DBレコードを作成できませんでした。"
+  1428:       );
+  1429:     }
+  1430: 
+  1431:     const finalMeta = {
+  1432:       ...dbMeta,
+  1433:       dbSaved: true,
+  1434:       paymentDocumentOcrImportId:
+  1435:         dbRow.payment_document_ocr_import_id,
+  1436:       databaseSavedAt:
+  1437:         new Date().toISOString()
+  1438:     };
+  1439: 
+  1440:     if (movedMetaPath) {
+  1441:       writeJson(
+  1442:         movedMetaPath,
+  1443:         finalMeta
+  1444:       );
+  1445:     }
+  1446: 
+  1447:     const rawSourceMove =
+  1448:       moveRawReceiptToOcrDone(finalMeta);
+  1449: 
+  1450:     finalMeta.rawSourceMoveStatus =
+  1451:       rawSourceMove.status;
+  1452:     finalMeta.rawSourceMoved =
+  1453:       rawSourceMove.moved;
+  1454:     finalMeta.rawSourcePath =
+  1455:       rawSourceMove.sourcePath;
+  1456:     finalMeta.rawSourceDonePath =
+  1457:       rawSourceMove.destinationPath;
+  1458:     finalMeta.rawSourceMoveError =
+  1459:       rawSourceMove.error;
+  1460:     finalMeta.rawSourceMovedAt =
+  1461:       rawSourceMove.moved
+  1462:         ? new Date().toISOString()
+  1463:         : "";
+  1464: 
+  1465:     if (movedMetaPath) {
+  1466:       writeJson(
+  1467:         movedMetaPath,
+  1468:         finalMeta
+  1469:       );
+  1470:     }
+  1471: 
+  1472:     return {
+  1473:       ok: true,
+  1474:       fileName: moved.fileName,
+  1475:       originalInboxFileName: fileName,
+  1476:       originalFileName:
+  1477:         moved.originalFileName,
+  1478:       status: "saved",
+  1479:       rawSourceMoveStatus: rawSourceMove.status,
+  1480:       rawSourceMoved: rawSourceMove.moved,
+  1481:       rawSourcePath: rawSourceMove.sourcePath,
+  1482:       rawSourceDonePath: rawSourceMove.destinationPath,
+  1483:       rawSourceMoveError: rawSourceMove.error,
+  1484:       savedAt:
+  1485:         moved.savedAt ||
+  1486:         now,
+  1487:       textLength:
+  1488:         ocrText.length,
+  1489:       savedRelativePath:
+  1490:         moved.savedRelativePath,
+  1491:       savedMetaRelativePath:
+  1492:         moved.savedMetaRelativePath,
+  1493:       dbSaved: true,
+  1494:       paymentDocumentOcrImportId:
+  1495:         dbRow.payment_document_ocr_import_id
+  1496:     };
+  1497:   } catch (err) {
+  1498:     if (moved) {
+  1499:       const movedFilePath =
+  1500:         safePaymentDocumentFilePathFromRelative(
+  1501:           moved.savedRelativePath
+  1502:         );
+  1503: 
+  1504:       const movedMetaPath =
+  1505:         safePaymentDocumentFilePathFromRelative(
+  1506:           moved.savedMetaRelativePath
+  1507:         );
+  1508: 
+  1509:       try {
+  1510:         if (
+  1511:           movedFilePath &&
+  1512:           fs.existsSync(movedFilePath)
+  1513:         ) {
+  1514:           moveFileAllowCrossDevice(
+  1515:             movedFilePath,
+  1516:             filePath
+  1517:           );
+
+============================================================
+3. payment-document-review一覧SQL
+============================================================
+  1895:       o.saved_relative_path,
+  1896:       o.saved_meta_relative_path,
+  1897:       o.saved_at,
+  1898:       o.saved_by_page,
+  1899:       o.current_status,
+  1900:       o.latest_specialist_analysis_id,
+  1901:       o.sorted_at,
+  1902:       o.created_at,
+  1903:       o.updated_at,
+  1904: 
+  1905:       s.specialist_analysis_id,
+  1906:       s.analysis_system_code,
+  1907:       s.analysis_system_label,
+  1908:       s.ai_confidence,
+  1909:       s.ai_reason,
+  1910:       CASE
+  1911:         WHEN LOWER(
+  1912:           COALESCE(
+  1913:             s.raw_result_json->>'needs_review',
+  1914:             'false'
+  1915:           )
+  1916:         ) = 'true'
+  1917:           THEN TRUE
+  1918:         ELSE FALSE
+  1919:       END AS needs_review,
+  1920:       s.warnings_json,
+  1921:       s.raw_result_json,
+  1922:       COALESCE(
+  1923:         s.raw_result_json->'draft',
+  1924:         '{}'::jsonb
+  1925:       ) AS draft_json,
+  1926:       COALESCE(
+  1927:         s.raw_result_json->'visible_fields',
+  1928:         s.raw_result_json->'visibleFields',
+  1929:         '{}'::jsonb
+  1930:       ) AS visible_fields_json,
+  1931:       COALESCE(
+  1932:         s.raw_result_json->'visible_field_labels',
+  1933:         s.raw_result_json->'visibleFieldLabels',
+  1934:         '{}'::jsonb
+  1935:       ) AS visible_field_labels_json,
+  1936:       s.created_at AS specialist_created_at,
+  1937:       s.updated_at AS specialist_updated_at
+  1938: 
+  1939:     FROM accounting.payment_document_ocr_imports o
+  1940: 
+  1941:     LEFT JOIN accounting.payment_document_specialist_analysis_results s
+  1942:       ON s.specialist_analysis_id = o.latest_specialist_analysis_id
+  1943:      AND s.is_current = TRUE
+  1944: 
+  1945:     WHERE o.deleted_at IS NULL
+  1946:       AND COALESCE(o.ocr_raw_text, '') <> ''
+  1947: 
+  1948:     ORDER BY
+  1949:       o.sorted_at DESC NULLS LAST,
+  1950:       o.saved_at DESC NULLS LAST,
+  1951:       o.ocr_at DESC NULLS LAST,
+  1952:       o.payment_document_ocr_import_id DESC
+  1953: 
+  1954:     LIMIT 500
+  1955:   `);
+  1956: 
+  1957:   return result.rows.map(row => {
+  1958:     const latestSpecialistAnalysis = row.specialist_analysis_id
+  1959:       ? {
+  1960:           specialistAnalysisId: row.specialist_analysis_id,
+  1961:           paymentDocumentOcrImportId:
+  1962:             row.payment_document_ocr_import_id,
+  1963:           analysisSystemCode: row.analysis_system_code,
+  1964:           analysisSystemLabel: row.analysis_system_label,
+  1965:           aiConfidence: row.ai_confidence,
+  1966:           aiReason: row.ai_reason,
+  1967:           needsReview: !!row.needs_review,
+  1968:           warnings: row.warnings_json || [],
+  1969:           rawResult: row.raw_result_json || {},
+  1970:           draft: row.draft_json || {},
+  1971:           visibleFields: row.visible_fields_json || {},
+  1972:           visibleFieldLabels:
+  1973:             row.visible_field_labels_json || {},
+  1974:           createdAt: row.specialist_created_at,
+  1975:           updatedAt: row.specialist_updated_at
+  1976:         }
+  1977:       : null;
+  1978: 
+  1979:     return {
+  1980:       source: "database",
+  1981:       paymentDocumentOcrImportId:
+  1982:         row.payment_document_ocr_import_id,
+  1983:       imageUrl:
+  1984:         "/api/payment-documents/ocr-imports/file/" +
+  1985:         encodeURIComponent(
+  1986:           String(row.payment_document_ocr_import_id)
+  1987:         ),
+  1988:       fileName:
+  1989:         row.saved_file_name || row.original_file_name,
+  1990:       originalFileName:
+
+SAVE_FUNCTION_LINE=1298
+UPSERT_CALL_LINE=1417
+REVIEW_WHERE_LINE=1945
+OVERALL_STATUS=SUCCESS

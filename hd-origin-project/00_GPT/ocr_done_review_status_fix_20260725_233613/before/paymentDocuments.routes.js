@@ -1428,60 +1428,8 @@ async function saveOneInboxItem(fileName) {
       );
     }
 
-    const reviewStatusResult = await db.query(`
-      WITH ocr_phase AS (
-        SELECT MAX(display_order) AS last_ocr_order
-        FROM accounting.payment_document_current_statuses
-        WHERE is_active = TRUE
-          AND (
-            current_status LIKE 'OCR%'
-            OR COALESCE(description, '') LIKE '%OCR%'
-          )
-      )
-      SELECT current_status
-      FROM accounting.payment_document_current_statuses
-      CROSS JOIN ocr_phase
-      WHERE is_active = TRUE
-        AND is_processing = FALSE
-        AND is_terminal = FALSE
-        AND is_error = FALSE
-        AND display_order > ocr_phase.last_ocr_order
-      ORDER BY display_order
-      LIMIT 1
-    `);
-
-    const reviewCurrentStatus =
-      reviewStatusResult.rows[0]?.current_status;
-
-    if (!reviewCurrentStatus) {
-      throw new Error(
-        "ステータスマスタからOCR後の表示先を解決できませんでした。"
-      );
-    }
-
-    const statusUpdateResult = await db.query(`
-      UPDATE accounting.payment_document_ocr_imports
-      SET
-        current_status = $2,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE payment_document_ocr_import_id = $1
-        AND deleted_at IS NULL
-      RETURNING current_status
-    `, [
-      dbRow.payment_document_ocr_import_id,
-      reviewCurrentStatus
-    ]);
-
-    if (statusUpdateResult.rowCount !== 1) {
-      throw new Error(
-        "OCR取込レコードのcurrent_statusを更新できませんでした。"
-      );
-    }
-
     const finalMeta = {
       ...dbMeta,
-      currentStatus: reviewCurrentStatus,
-      current_status: reviewCurrentStatus,
       dbSaved: true,
       paymentDocumentOcrImportId:
         dbRow.payment_document_ocr_import_id,
@@ -1996,27 +1944,6 @@ async function listPaymentDocumentOcrImportsFromDb() {
 
     WHERE o.deleted_at IS NULL
       AND COALESCE(o.ocr_raw_text, '') <> ''
-      AND o.current_status = (
-        WITH ocr_phase AS (
-          SELECT MAX(display_order) AS last_ocr_order
-          FROM accounting.payment_document_current_statuses
-          WHERE is_active = TRUE
-            AND (
-              current_status LIKE 'OCR%'
-              OR COALESCE(description, '') LIKE '%OCR%'
-            )
-        )
-        SELECT current_status
-        FROM accounting.payment_document_current_statuses
-        CROSS JOIN ocr_phase
-        WHERE is_active = TRUE
-          AND is_processing = FALSE
-          AND is_terminal = FALSE
-          AND is_error = FALSE
-          AND display_order > ocr_phase.last_ocr_order
-        ORDER BY display_order
-        LIMIT 1
-      )
 
     ORDER BY
       o.sorted_at DESC NULLS LAST,
