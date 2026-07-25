@@ -1789,17 +1789,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
       s.analysis_system_label,
       s.ai_confidence,
       s.ai_reason,
-      CASE
-        WHEN LOWER(
-          COALESCE(
-            s.raw_result_json->>'needs_review',
-            s.draft_json->>'needs_review',
-            'false'
-          )
-        ) = 'true'
-          THEN TRUE
-        ELSE FALSE
-      END AS needs_review,
+      s.needs_review,
       s.warnings_json,
       s.raw_result_json,
       s.draft_json,
@@ -9825,17 +9815,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           s.analysis_system_label,
           s.ai_confidence,
           s.ai_reason,
-          CASE
-        WHEN LOWER(
-          COALESCE(
-            s.raw_result_json->>'needs_review',
-            s.draft_json->>'needs_review',
-            'false'
-          )
-        ) = 'true'
-          THEN TRUE
-        ELSE FALSE
-      END AS needs_review,
+          s.needs_review,
           s.warnings_json,
           s.raw_result_json,
           s.draft_json,

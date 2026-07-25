@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS accounting.payment_document_ocr_imports (
   saved_meta_relative_path TEXT NOT NULL DEFAULT '',
   saved_at TIMESTAMPTZ NULL,
   saved_by_page TEXT NOT NULL DEFAULT '',
+
+  draft_status TEXT NOT NULL DEFAULT 'not_started',
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   deleted_at TIMESTAMPTZ NULL
@@ -48,6 +51,10 @@ CREATE INDEX IF NOT EXISTS payment_document_ocr_imports_saved_at_idx
 
 CREATE INDEX IF NOT EXISTS payment_document_ocr_imports_ocr_at_idx
   ON accounting.payment_document_ocr_imports(ocr_at DESC NULLS LAST);
+
+CREATE INDEX IF NOT EXISTS payment_document_ocr_imports_draft_status_idx
+  ON accounting.payment_document_ocr_imports(draft_status)
+  WHERE deleted_at IS NULL;
 
 CREATE OR REPLACE FUNCTION accounting.set_updated_at()
 RETURNS TRIGGER AS $$

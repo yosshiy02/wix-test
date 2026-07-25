@@ -629,11 +629,22 @@ ON CONFLICT (treatment_name) DO UPDATE SET
   }
   /* GPT00_PAYMENT_DOCUMENT_SPECIALIST_BOOTSTRAP_20260711_END */
   /*
-    HD_ORIGIN_CIL_BOOTSTRAP_REMOVED_20260725
+    HD_ORIGIN_CIL_BOOTSTRAP_20260711
 
-    旧CIL下書きmigrationは起動時に実行しない。
-    正式保存先は payment_document_contract_insurance_lease_results。
+    CIL専門DBマイグレーションを起動時に安全適用する。
+    UTF-8 BOMを除去し、既存のrunTargetSql経由で実行する。
   */
+  const cilMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260710_003_contract_insurance_lease_drafts_foundation.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (cilMigrationSql.trim()) {
+    await runTargetSql(cilMigrationSql);
+  }
 
   /*
     HD_ORIGIN_CIL_MASTERS_BOOTSTRAP_20260711
