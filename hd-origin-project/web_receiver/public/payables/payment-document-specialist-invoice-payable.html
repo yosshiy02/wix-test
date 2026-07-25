@@ -3736,9 +3736,10 @@ function setDocumentPreview(item) {
     }
 
     const savedStatus =
-      item.saveStatus ||
-      item.savedStatus ||
-      (item.evidenceSaved || item.ocrSaved ? "保存済み" : "未保存");
+      String(item.processStatus || item.saveStatus || item.savedStatus || "")
+        .toLowerCase() === "saved"
+        ? "保存済み"
+        : "未保存";
 
     const duplicateStatus = item.duplicateOfFileName
       ? "重複元: " + item.duplicateOfFileName
@@ -3771,7 +3772,7 @@ function setDocumentPreview(item) {
     setDraftValue("draftSha256", item.sha256 || "");
     setDraftValue("draftOcrStatus", item.ocrStatus || "");
     setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
-    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
     setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }

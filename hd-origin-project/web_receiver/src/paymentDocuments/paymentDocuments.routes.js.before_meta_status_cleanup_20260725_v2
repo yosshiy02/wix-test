@@ -1224,6 +1224,12 @@ async function saveOneInboxItem(fileName) {
     ocrTextLength: ocrText.length,
 
     processStatus: "saved",
+    saveStatus: "saved",
+    savedStatus: "saved",
+    evidenceSaveStatus: "saved",
+    ocrSaveStatus: "saved",
+    evidenceSaved: true,
+    ocrSaved: true,
     savedAt: now,
     savedByPage: "payment-document-inbox",
     updatedAt: now
@@ -1275,6 +1281,10 @@ async function saveOneInboxItem(fileName) {
         moved.savedAt ||
         now,
       processStatus: "saved",
+      saveStatus: "saved",
+      savedStatus: "saved",
+      evidenceSaved: true,
+      ocrSaved: true,
       ocrRawText: ocrText,
       ocr_raw_text: ocrText,
       ocrText,

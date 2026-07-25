@@ -1,0 +1,265 @@
+============================================================
+銀行取引専門解析 統合保存関数本体確認
+============================================================
+PROGRESS_STATUS=83%
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+TARGET_FUNCTION=hdOriginSavePaymentDocumentSpecialistAnalysisResult
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+
+FUNCTION_STATUS=FOUND
+FUNCTION_LINE_COUNT=242
+FUNCTION_KEY=draft_json COUNT=0
+FUNCTION_KEY=visible_fields_json COUNT=0
+FUNCTION_KEY=visible_field_labels_json COUNT=0
+FUNCTION_KEY=warnings_json COUNT=1
+FUNCTION_KEY=raw_result_json COUNT=2
+FUNCTION_KEY=human_corrections_json COUNT=0
+FUNCTION_KEY=analysis_system_code COUNT=12
+FUNCTION_KEY=payment_document_ocr_import_id COUNT=8
+
+FUNCTION_SOURCE_START
+async function hdOriginSavePaymentDocumentSpecialistAnalysisResult(body) {
+    const root = hdOriginSpecialistFirstObject(body);
+    const draft = hdOriginSpecialistFirstObject(root.draft, root.aiDraft, root.ai_draft, root.sorting, root.classification);
+    const sortResult = hdOriginSpecialistFirstObject(root.sortResult, root.sort_result, root.result, draft.sortResult, draft.sort_result);
+    const aiSummary = hdOriginSpecialistFirstObject(root.ai_summary, root.aiSummary, draft.ai_summary, draft.aiSummary, sortResult.ai_summary, sortResult.aiSummary);
+
+    let ocrImportId = hdOriginSpecialistSaveNumber(
+      root.paymentDocumentOcrImportId ||
+      root.payment_document_ocr_import_id ||
+      root.ocrImportId ||
+      root.ocr_import_id ||
+      root.id
+    );
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      let ocrImportRow = null;
+
+      const fallbackAnalysisSystemCode = hdOriginSpecialistFirstText(
+        root.analysisSystemCode,
+        root.analysis_system_code,
+        draft.analysis_system_code,
+        sortResult.analysis_system_code,
+        aiSummary.analysis_system_code
+      );
+
+      const fallbackAnalysisSystemLabel = hdOriginSpecialistFirstText(
+        root.analysisSystemLabel,
+        root.analysis_system_label,
+        draft.analysis_system_label,
+        draft.specialist_route_label,
+        sortResult.analysis_system_label,
+        sortResult.specialist_route_label,
+        aiSummary.analysis_system_label,
+        aiSummary.analysis_system
+      );
+
+      const fallbackSpecialistRouteCode = hdOriginSpecialistFirstText(
+        root.specialistRouteCode,
+        root.specialist_route_code,
+        draft.specialist_route_code,
+        sortResult.specialist_route_code,
+        fallbackAnalysisSystemCode
+      );
+
+      const fallbackSpecialistRouteLabel = hdOriginSpecialistFirstText(
+        root.specialistRouteLabel,
+        root.specialist_route_label,
+        draft.specialist_route_label,
+        sortResult.specialist_route_label,
+        fallbackAnalysisSystemLabel
+      );
+      if (!ocrImportId) {
+        const err = new Error(
+          "専門解析結果の保存にはOCR取込IDが必要です。"
+        );
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const ocrResult = await client.query(`
+        SELECT
+          payment_document_ocr_import_id,
+          latest_specialist_analysis_id,
+          original_file_name,
+          saved_file_name,
+          saved_relative_path,
+          sha256,
+          ocr_text_length
+        FROM accounting.payment_document_ocr_imports
+        WHERE payment_document_ocr_import_id = $1
+          AND deleted_at IS NULL
+        FOR UPDATE
+      `, [ocrImportId]);
+
+      ocrImportRow = ocrResult.rows[0] || null;
+
+      if (!ocrImportRow) {
+        const err = new Error(
+          "OCR取込レコードが見つかりません。"
+        );
+        err.statusCode = 404;
+        throw err;
+      }
+
+      ocrImportId = Number(
+        ocrImportRow.payment_document_ocr_import_id
+      );
+
+      const analysisSystemCode = hdOriginSpecialistFirstText(
+        root.analysisSystemCode,
+        root.analysis_system_code,
+        draft.analysis_system_code,
+        sortResult.analysis_system_code,
+        aiSummary.analysis_system_code,
+        null,
+      );
+
+      if (!analysisSystemCode) {
+        const err = new Error("analysis_system_code が取得できません。1回目解析の専門解析コードを確認してください。");
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const analysisSystemLabel = hdOriginSpecialistFirstText(
+        root.analysisSystemLabel,
+        root.analysis_system_label,
+        draft.analysis_system_label,
+        draft.specialist_route_label,
+        sortResult.analysis_system_label,
+        sortResult.specialist_route_label,
+        aiSummary.analysis_system_label,
+        aiSummary.analysis_system,
+        null,
+        null
+      );
+
+      const aiConfidence = hdOriginSpecialistSaveNumber(
+        root.aiConfidence ||
+        root.ai_confidence ||
+        draft.ai_confidence ||
+        draft.confidence ||
+        sortResult.ai_confidence ||
+        sortResult.confidence
+      );
+
+      const aiReason = hdOriginSpecialistFirstText(
+        root.aiReason,
+        root.ai_reason,
+        root.reason,
+        draft.ai_reason,
+        draft.reason,
+        sortResult.ai_reason,
+        sortResult.reason,
+        aiSummary.reason
+      );
+
+      const warningsJson = hdOriginSpecialistSaveArray(root.warnings || draft.warnings || sortResult.warnings);
+      const rawResultJson = hdOriginSpecialistSaveObject(
+        root.rawResult ||
+        root.raw_result_json ||
+        root.specialistResult ||
+        root.specialist_result ||
+        root.result ||
+        root
+      );
+
+      const humanMemo = hdOriginSpecialistFirstText(
+        root.humanMemo,
+        root.human_memo,
+        root.memo
+      );
+
+      const specialistStatus = hdOriginSpecialistFirstText(
+        root.specialistAnalysisStatus,
+        root.specialist_analysis_status
+      ) || "\u4FDD\u5B58\u6E08\u307F";
+
+      const humanConfirmStatus = hdOriginSpecialistFirstText(
+        root.humanConfirmStatus,
+        root.human_confirm_status
+      ) || "\u672A\u78BA\u8A8D";
+
+      await client.query(`
+        DELETE FROM accounting.payment_document_specialist_analysis_results
+        WHERE payment_document_ocr_import_id = $1
+          AND analysis_system_code = $2
+      `, [ocrImportId, analysisSystemCode]);
+
+      const inserted = await client.query(`
+        INSERT INTO accounting.payment_document_specialist_analysis_results (
+          payment_document_ocr_import_id,analysis_system_code,
+          analysis_system_label,
+          specialist_analysis_status,
+          ai_confidence,
+          ai_reason,
+          warnings_json,
+          raw_result_json,
+          human_confirm_status,
+          human_memo,
+          is_current,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,TRUE,now(),now()
+        )
+        RETURNING
+          specialist_analysis_id,
+          payment_document_ocr_import_id,analysis_system_code,
+          analysis_system_label,
+          specialist_analysis_status,
+          created_at,
+          updated_at
+      `, [
+        ocrImportId,        analysisSystemCode,
+        analysisSystemLabel,
+        specialistStatus,
+        aiConfidence,
+        aiReason,
+        JSON.stringify(warningsJson),
+        JSON.stringify(rawResultJson),
+        humanConfirmStatus,
+        humanMemo
+      ]);
+
+      const saved = inserted.rows[0];
+      await client.query(`
+        UPDATE accounting.payment_document_ocr_imports
+        SET
+          latest_specialist_analysis_id = $1,
+          current_status = '専門解析',
+          updated_at = now()
+        WHERE payment_document_ocr_import_id = $2
+          AND deleted_at IS NULL
+      `, [
+        saved.specialist_analysis_id,
+        ocrImportId
+      ]);
+await client.query("COMMIT");
+
+      return {
+        saved,
+        paymentDocumentOcrImportId: ocrImportId,
+        specialistAnalysisId: saved.specialist_analysis_id,
+        analysisSystemCode,
+        analysisSystemLabel,
+        specialistAnalysisStatus: specialistStatus
+      };
+    } catch (err) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // 元エラーを優先
+      }
+
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+FUNCTION_SOURCE_END

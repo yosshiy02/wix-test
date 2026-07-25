@@ -1,0 +1,313 @@
+============================================================
+銀行取引専門解析 統合保存API現物確認
+============================================================
+PROGRESS_STATUS=81%
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+TARGET_API=/api/payment-documents/specialist-analysis-results/save
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+
+API_REFERENCE_COUNT=1
+============================================================
+API_REFERENCE_LINE=10489
+============================================================
+LINE=10469:
+LINE=10470:        specialistAnalysisStatus:
+LINE=10471:          specialistSaved.specialistAnalysisStatus,
+LINE=10472:
+LINE=10473:        specialistAnalysis:
+LINE=10474:          specialistSaved.saved,
+LINE=10475:
+LINE=10476:        contractInsuranceLeaseDraft:
+LINE=10477:          cilSaved
+LINE=10478:      });
+LINE=10479:    } catch (err) {
+LINE=10480:      sendJson(res, err.statusCode || 500, {
+LINE=10481:        ok: false,
+LINE=10482:        error: err.message || String(err)
+LINE=10483:      });
+LINE=10484:    }
+LINE=10485:
+LINE=10486:    return true;
+LINE=10487:  }
+LINE=10488:  /* HD_ORIGIN_GPT2_CIL_COMBINED_SAVE_ROUTE_20260710_END */
+LINE=10489:  if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/specialist-analysis-results/save") {
+LINE=10490:    try {
+LINE=10491:      const body = await readBody(req);
+LINE=10492:      const saved = await hdOriginSavePaymentDocumentSpecialistAnalysisResult(body);
+LINE=10493:
+LINE=10494:      sendJson(res, 200, {
+LINE=10495:        ok: true,
+LINE=10496:        message: "専門解析結果を保存しました。",
+LINE=10497:        paymentDocumentOcrImportId: saved.paymentDocumentOcrImportId,
+LINE=10498:        specialistAnalysisId: saved.specialistAnalysisId,
+LINE=10499:        specialist_analysis_id: saved.specialistAnalysisId,
+LINE=10500:        latestSpecialistAnalysisId: saved.specialistAnalysisId,
+LINE=10501:        analysisSystemCode: saved.analysisSystemCode,
+LINE=10502:        analysisSystemLabel: saved.analysisSystemLabel,
+LINE=10503:        specialistAnalysisStatus: saved.specialistAnalysisStatus,
+LINE=10504:        saved: saved.saved
+LINE=10505:      });
+LINE=10506:    } catch (err) {
+LINE=10507:      sendJson(res, err.statusCode || 500, {
+LINE=10508:        ok: false,
+LINE=10509:        error: err.message || String(err)
+LINE=10510:      });
+LINE=10511:    }
+LINE=10512:
+LINE=10513:    return true;
+LINE=10514:  }
+LINE=10515:  /* HD_ORIGIN_GPT2_SPECIALIST_ANALYSIS_RESULT_SAVE_ROUTE_20260710_END */
+LINE=10516:
+LINE=10517:  /* PAYMENT_DOCUMENT_AI_SORT_ONLY_ROUTE_20260707_START */
+LINE=10518:  if (req.method === "POST") {
+LINE=10519:    const sortUrlPath = String(req.url || "").split("?")[0];
+LINE=10520:
+LINE=10521:    if (sortUrlPath.startsWith("/api/payment-documents/ai-sort/")) {
+LINE=10522:      try {
+LINE=10523:        const idText = decodeURIComponent(sortUrlPath.replace("/api/payment-documents/ai-sort/", "")).trim();
+LINE=10524:        const id = Number(idText);
+LINE=10525:
+LINE=10526:        if (!Number.isFinite(id) || id <= 0) {
+LINE=10527:          sendJson(res, 400, {
+LINE=10528:            ok: false,
+LINE=10529:            error: "OCR保存IDが不正です。"
+LINE=10530:          });
+LINE=10531:          return true;
+LINE=10532:        }
+LINE=10533:
+LINE=10534:        const result = await db.query(`
+LINE=10535:          SELECT
+LINE=10536:            payment_document_ocr_import_id,
+LINE=10537:            original_file_name,
+LINE=10538:            saved_file_name,
+LINE=10539:            ocr_raw_text,
+LINE=10540:            ocr_text_length
+LINE=10541:          FROM accounting.payment_document_ocr_imports
+LINE=10542:          WHERE deleted_at IS NULL
+LINE=10543:            AND payment_document_ocr_import_id = $1
+LINE=10544:          LIMIT 1
+LINE=10545:        `, [id]);
+LINE=10546:
+LINE=10547:        const row = result.rows[0];
+LINE=10548:
+LINE=10549:        if (!row) {
+LINE=10550:          sendJson(res, 404, {
+LINE=10551:            ok: false,
+LINE=10552:            error: "OCR保存データが見つかりません。"
+LINE=10553:          });
+LINE=10554:          return true;
+LINE=10555:        }
+LINE=10556:
+LINE=10557:        const ocrText = String(row.ocr_raw_text || "").trim();
+LINE=10558:
+LINE=10559:        if (!ocrText) {
+LINE=10560:          sendJson(res, 400, {
+LINE=10561:            ok: false,
+LINE=10562:            error: "OCR本文が空のため仕分けできません。"
+LINE=10563:          });
+LINE=10564:          return true;
+LINE=10565:        }
+LINE=10566:
+LINE=10567:        let sortResult = hdOriginPolishPaymentDocumentSortResult(await createPaymentDocumentSortFromOcrText(ocrText), ocrText);
+LINE=10568:        
+LINE=10569:        sortResult.draft = sortResult.draft || sortResult.sorting || sortResult.classification || {};
+LINE=10570:        sortResult.classification = sortResult.draft;
+LINE=10571:        sortResult.sorting = sortResult.draft;
+LINE=10572:
+LINE=10573:        sendJson(res, 200, {
+LINE=10574:          ok: true,
+LINE=10575:          mode: "sorting_only",
+LINE=10576:          message: "1回目仕分けのみ完了しました。詳細項目抽出は行っていません。",
+LINE=10577:          paymentDocumentOcrImportId: id,
+LINE=10578:          originalFileName: row.original_file_name || "",
+LINE=10579:          savedFileName: row.saved_file_name || "",
+LINE=10580:          image_used: false,
+LINE=10581:          ...sortResult
+LINE=10582:        });
+LINE=10583:      } catch (err) {
+LINE=10584:        sendJson(res, err.statusCode || 500, {
+LINE=10585:          ok: false,
+LINE=10586:          error: err.message || String(err),
+LINE=10587:          mode: "sorting_only"
+LINE=10588:        });
+LINE=10589:      }
+LINE=10590:
+LINE=10591:      return true;
+LINE=10592:    }
+LINE=10593:  }
+LINE=10594:  /* PAYMENT_DOCUMENT_AI_SORT_ONLY_ROUTE_20260707_END */
+LINE=10595:
+LINE=10596:  const urlObj = new URL(req.url, "http://localhost");
+LINE=10597:  const urlPath = urlObj.pathname;
+LINE=10598:  /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_MEMO_ROUTE_20260707_START */
+LINE=10599:  if (req.method === "POST" && urlPath === "/api/payment-documents/review-visible-fields-memo") {
+LINE=10600:    try {
+LINE=10601:      const body = await readBody(req);
+LINE=10602:      const memoDir = paymentDocumentReviewMemoDir();
+LINE=10603:      const stamp = paymentDocumentReviewMemoStamp();
+LINE=10604:      const memoPath = path.join(memoDir, "00_payment_document_review_visible_fields_" + stamp + ".txt");
+LINE=10605:      const lines = paymentDocumentReviewVisibleFieldsMemoLines(body);
+LINE=10606:
+LINE=10607:      fs.writeFileSync(memoPath, lines.join("\r\n"), "utf8");
+LINE=10608:
+LINE=10609:      const openedNotepad = openPaymentDocumentReviewMemoWithNotepad(memoPath);
+LINE=10610:
+LINE=10611:      sendJson(res, 200, {
+LINE=10612:        ok: true,
+LINE=10613:        message: "表示中項目をmemoへ出しました。",
+LINE=10614:        count: Array.isArray(body.fields) ? body.fields.length : 0,
+LINE=10615:        memoPath,
+LINE=10616:        openedNotepad
+LINE=10617:      });
+LINE=10618:    } catch (err) {
+LINE=10619:      sendJson(res, 500, {
+LINE=10620:        ok: false,
+LINE=10621:        error: err.message || String(err)
+LINE=10622:      });
+LINE=10623:    }
+LINE=10624:
+LINE=10625:    return true;
+LINE=10626:  }
+LINE=10627:  /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_MEMO_ROUTE_20260707_END */
+LINE=10628:
+LINE=10629:
+LINE=10630:  if (req.method === "GET" && urlPath.startsWith("/api/payment-documents/ocr-imports/file/")) {
+LINE=10631:    try {
+LINE=10632:      const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ocr-imports/file/", ""));
+LINE=10633:      const id = Number(idText);
+LINE=10634:
+LINE=10635:      if (!Number.isInteger(id) || id < 1) {
+LINE=10636:        sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
+LINE=10637:        return true;
+LINE=10638:      }
+LINE=10639:
+LINE=10640:      const result = await db.query(`
+LINE=10641:        SELECT
+LINE=10642:          payment_document_ocr_import_id,
+LINE=10643:          saved_relative_path,
+LINE=10644:          saved_meta_relative_path,
+LINE=10645:          saved_file_name,
+LINE=10646:          original_file_name,
+LINE=10647:          mime_type,
+LINE=10648:          source_type
+LINE=10649:        FROM accounting.payment_document_ocr_imports
+LINE=10650:        WHERE payment_document_ocr_import_id = $1
+LINE=10651:          AND deleted_at IS NULL
+LINE=10652:        LIMIT 1
+LINE=10653:      `, [id]);
+LINE=10654:
+LINE=10655:      if (!result.rows.length) {
+LINE=10656:        sendJson(res, 404, { ok: false, error: "OCR取込データが見つかりません。" });
+LINE=10657:        return true;
+LINE=10658:      }
+LINE=10659:
+LINE=10660:      const row = result.rows[0];
+LINE=10661:      const filePath = paymentDocumentFilePathFromOcrImportRow(row);
+LINE=10662:
+LINE=10663:      if (!filePath || !fs.existsSync(filePath)) {
+LINE=10664:        sendJson(res, 404, {
+LINE=10665:          ok: false,
+LINE=10666:          error: "原本ファイルが見つかりません。",
+LINE=10667:          id
+LINE=10668:        });
+LINE=10669:        return true;
+LINE=10670:      }
+LINE=10671:
+LINE=10672:      const mimeType = row.mime_type || getMimeType(filePath);
+LINE=10673:
+LINE=10674:      res.writeHead(200, {
+LINE=10675:        "Content-Type": mimeType,
+LINE=10676:        "Cache-Control": "no-store"
+LINE=10677:      });
+LINE=10678:
+LINE=10679:      fs.createReadStream(filePath).pipe(res);
+LINE=10680:    } catch (err) {
+LINE=10681:      sendJson(res, 500, { ok: false, error: err.message || String(err) });
+LINE=10682:    }
+LINE=10683:
+LINE=10684:    return true;
+LINE=10685:  }
+LINE=10686:  if (req.method === "POST" && urlPath === "/api/payment-documents/utility-communication-drafts/save") {
+LINE=10687:    try {
+LINE=10688:      const body = await readBody(req);
+LINE=10689:      const saved = await hdOriginSaveUtilityCommunicationDraft(body);
+LINE=10690:      sendJson(res, 200, saved);
+LINE=10691:    } catch (err) {
+LINE=10692:      sendJson(res, err.statusCode || 500, {
+LINE=10693:        ok: false,
+LINE=10694:        error: err.message || String(err)
+LINE=10695:      });
+LINE=10696:    }
+LINE=10697:    return true;
+LINE=10698:  }
+LINE=10699:      /* HD_ORIGIN_UTILITY_LEDGER_GET_API_20260723_START */
+LINE=10700:  if (
+LINE=10701:    req.method === "GET" &&
+LINE=10702:    urlPath ===
+LINE=10703:      "/api/payment-documents/utility-communication/list"
+LINE=10704:  ) {
+LINE=10705:    try {
+LINE=10706:      const result = await db.query(`
+LINE=10707:        SELECT
+LINE=10708:          d.utility_communication_result_id,
+LINE=10709:          d.payment_document_ocr_import_id,
+LINE=10710:          d.specialist_analysis_id,
+LINE=10711:          d.result_no,
+LINE=10712:          d.result_version,
+LINE=10713:          d.customer_number,
+LINE=10714:          d.supply_point_number,
+LINE=10715:          d.meter_reading_date,
+LINE=10716:          d.usage_quantity,
+LINE=10717:          d.usage_unit,
+LINE=10718:          d.specialist_fields_json,
+LINE=10719:          d.visible_fields_json,
+LINE=10720:          d.warnings_json,
+LINE=10721:          d.created_at,
+LINE=10722:          d.updated_at,
+LINE=10723:
+LINE=10724:          o.original_file_name,
+LINE=10725:          o.saved_file_name,
+LINE=10726:
+LINE=10727:          s.analysis_system_code,
+LINE=10728:          s.analysis_system_label,
+LINE=10729:          s.ai_confidence,
+LINE=10730:          s.ai_reason,
+LINE=10731:
+LINE=10732:          COALESCE((
+LINE=10733:            SELECT jsonb_agg(
+LINE=10734:              jsonb_build_object(
+LINE=10735:                'utility_communication_line_item_id',
+LINE=10736:                  li.utility_communication_line_item_id,
+LINE=10737:                'line_no',
+LINE=10738:                  li.line_no,
+LINE=10739:                'item_name',
+LINE=10740:                  li.item_name,
+LINE=10741:                'description',
+LINE=10742:                  li.description,
+LINE=10743:                'usage_quantity',
+LINE=10744:                  li.usage_quantity,
+LINE=10745:                'usage_unit',
+LINE=10746:                  li.usage_unit,
+LINE=10747:                'unit_price',
+LINE=10748:                  li.unit_price,
+LINE=10749:                'subtotal_amount',
+
+============================================================
+保存キー参照件数
+============================================================
+KEY=draft_json COUNT=7
+KEY=draftJson COUNT=0
+KEY=visible_fields_json COUNT=13
+KEY=visibleFields COUNT=12
+KEY=visible_field_labels_json COUNT=5
+KEY=visibleFieldLabels COUNT=13
+KEY=warnings_json COUNT=16
+KEY=warnings COUNT=120
+KEY=raw_result_json COUNT=24
+KEY=rawResult COUNT=16
+KEY=human_corrections_json COUNT=4
+KEY=humanCorrections COUNT=3
+KEY=analysis_system_code COUNT=66
+KEY=payment_document_ocr_import_id COUNT=65

@@ -2250,54 +2250,6 @@ function setDocumentPreview(item) {
       appliedCount += aiHardDebugPut(id, label, value, missingControls);
     }
 
-    /* HD_ORIGIN_BANK_TRANSACTION_CODE_MAPPING_START */
-    for (const [fieldCode, value] of Object.entries(fields)) {
-      if (
-        value === null ||
-        value === undefined ||
-        value === ""
-      ) {
-        continue;
-      }
-
-      const escapedFieldCode =
-        window.CSS &&
-        typeof window.CSS.escape === "function"
-          ? window.CSS.escape(String(fieldCode))
-          : String(fieldCode)
-              .replace(/\\/g, "\\\\")
-              .replace(/"/g, '\\"');
-
-      const control = document.querySelector(
-        '[data-analysis-item-code="' +
-        escapedFieldCode +
-        '"]'
-      );
-
-      if (!control) {
-        continue;
-      }
-
-      if (
-        typeof aiHardDebugSetControl ===
-        "function"
-      ) {
-        if (
-          aiHardDebugSetControl(
-            control,
-            fieldCode,
-            value
-          )
-        ) {
-          appliedCount++;
-        }
-      } else {
-        control.value = String(value);
-        appliedCount++;
-      }
-    }
-    /* HD_ORIGIN_BANK_TRANSACTION_CODE_MAPPING_END */
-
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -3655,10 +3607,9 @@ function setDocumentPreview(item) {
     }
 
     const savedStatus =
-      String(item.processStatus || item.saveStatus || item.savedStatus || "")
-        .toLowerCase() === "saved"
-        ? "保存済み"
-        : "未保存";
+      item.saveStatus ||
+      item.savedStatus ||
+      (item.evidenceSaved || item.ocrSaved ? "保存済み" : "未保存");
 
     const duplicateStatus = item.duplicateOfFileName
       ? "重複元: " + item.duplicateOfFileName
@@ -3691,7 +3642,7 @@ function setDocumentPreview(item) {
     setDraftValue("draftSha256", item.sha256 || "");
     setDraftValue("draftOcrStatus", item.ocrStatus || "");
     setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
-    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
     setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
@@ -5368,129 +5319,9 @@ function setDocumentPreview(item) {
 
     return payload;
   }
-  /* HD_ORIGIN_BANK_TRANSACTION_SAVE_PAYLOAD_START */
-  function collectBankTransactionSavePayload() {
-    const controls = Array.from(
-      document.querySelectorAll(
-        ".draft-panel [data-analysis-item-code]"
-      )
-    );
-
-    const fields = {};
-    const visibleFields = [];
-    const visibleFieldLabels = [];
-    const humanCorrections = {};
-
-    controls.forEach(function (control) {
-      if (!control || control.type === "hidden") {
-        return;
-      }
-
-      const analysisItemCode = String(
-        control.getAttribute("data-analysis-item-code") || ""
-      ).trim();
-
-      if (!analysisItemCode) {
-        return;
-      }
-
-      let value = "";
-
-      if (
-        control.type === "checkbox" ||
-        control.type === "radio"
-      ) {
-        value = control.checked
-          ? String(control.value || true)
-          : "";
-      } else {
-        value = String(
-          control.value === undefined ||
-          control.value === null
-            ? ""
-            : control.value
-        );
-      }
-
-      fields[analysisItemCode] = value;
-      humanCorrections[analysisItemCode] = value;
-
-      const labelElement =
-        control.closest("label");
-
-      const labelText = labelElement
-        ? String(
-            labelElement.querySelector(
-              ".draft-label, .field-label, span"
-            )
-              ? labelElement.querySelector(
-                  ".draft-label, .field-label, span"
-                ).textContent
-              : labelElement.textContent
-          ).trim()
-        : analysisItemCode;
-
-      const sectionElement =
-        control.closest(".draft-section");
-
-      const isVisible =
-        !control.hidden &&
-        control.offsetParent !== null &&
-        (
-          !sectionElement ||
-          sectionElement.offsetParent !== null
-        );
-
-      if (isVisible) {
-        visibleFields.push(analysisItemCode);
-
-        if (
-          labelText &&
-          visibleFieldLabels.indexOf(labelText) < 0
-        ) {
-          visibleFieldLabels.push(labelText);
-        }
-      }
-    });
-
-    return {
-      fields: fields,
-      visibleFields: visibleFields,
-      visibleFieldLabels: visibleFieldLabels,
-      humanCorrections: humanCorrections,
-      controlCount: controls.length,
-      fieldCount: Object.keys(fields).length
-    };
-  }
-  /* HD_ORIGIN_BANK_TRANSACTION_SAVE_PAYLOAD_END */
-
 
   async function saveSortingDraftFromReviewPage(context) {
     const payload = collectSortingDraftPayload(context);
-
-    const bankTransactionSavePayload =
-      collectBankTransactionSavePayload();
-
-    payload.draft =
-      payload.draft &&
-      typeof payload.draft === "object"
-        ? payload.draft
-        : {};
-
-    payload.draft.fields =
-      bankTransactionSavePayload.fields;
-
-    payload.visibleFields =
-      bankTransactionSavePayload.visibleFields;
-
-    payload.visibleFieldLabels =
-      bankTransactionSavePayload.visibleFieldLabels;
-
-    payload.humanCorrections =
-      bankTransactionSavePayload.humanCorrections;
-
-    payload.bankTransactionFieldCount =
-      bankTransactionSavePayload.fieldCount;
 
     const analysisResult =
       context && context.analysisResult && typeof context.analysisResult === "object"

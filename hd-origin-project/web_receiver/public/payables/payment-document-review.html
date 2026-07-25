@@ -80,10 +80,7 @@
                 class="specialist-system-button specialist-bank-transaction"
                 data-analysis-system-code="bank_transaction_analysis"
                 data-base-label="銀行取引"
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="銀行取引専門解析画面は次工程で接続します">銀行取引（0）</button>        <button type="button"
+                onclick="location.href='./payment-document-specialist-bank-transaction.html'">銀行取引（0）</button>        <button type="button"
                 class="specialist-system-button specialist-needs-review"
                 data-analysis-system-code="needs_review_analysis"
                 data-base-label="要確認"
@@ -4055,9 +4052,10 @@ async function loadItems() {
     }
 
     const savedStatus =
-      item.saveStatus ||
-      item.savedStatus ||
-      (item.evidenceSaved || item.ocrSaved ? "保存済み" : "未保存");
+      String(item.processStatus || item.saveStatus || item.savedStatus || "")
+        .toLowerCase() === "saved"
+        ? "保存済み"
+        : "未保存";
 
     const duplicateStatus = item.duplicateOfFileName
       ? "重複元: " + item.duplicateOfFileName
@@ -4090,7 +4088,7 @@ async function loadItems() {
     setDraftValue("draftSha256", item.sha256 || "");
     setDraftValue("draftOcrStatus", item.ocrStatus || "");
     setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
-    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
     setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }

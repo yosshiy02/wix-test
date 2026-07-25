@@ -1,0 +1,190 @@
+============================================================
+銀行取引専門解析 実保存・項目収集関数確認
+============================================================
+PROGRESS_STATUS=79%
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-bank-transaction.html
+CONNECTION_MODE=READ_ONLY
+HTML_UPDATE=NO
+CSS_UPDATE=NO
+JS_UPDATE=NO
+DATABASE_UPDATE=NO
+
+============================================================
+FUNCTION=collectVisibleFieldsOnly
+============================================================
+FUNCTION_STATUS=FOUND
+DATA_ANALYSIS_ITEM_CODE_COUNT=0
+QUERY_SELECTOR_ALL_COUNT=1
+VISIBLE_FIELDS_COUNT=0
+DRAFT_REFERENCE_COUNT=3
+SAVE_API_COUNT=0
+FUNCTION_SOURCE_START
+function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+        if (!control || control.type === "hidden") return false;
+
+        var label = control.closest("label") || control;
+        var section = control.closest(".draft-section");
+
+        if (!isElementActuallyVisible(section || label)) return false;
+        if (!isElementActuallyVisible(label)) return false;
+        if (!isElementActuallyVisible(control)) return false;
+
+        return true;
+      });
+
+    return controls.map(function (control, index) {
+      var valueInfo = valueFor(control);
+
+      return {
+        no: index + 1,
+        section: sectionFor(control),
+        label: labelFor(control),
+        id: control.id || "",
+        tagName: control.tagName || "",
+        type: control.type || "",
+        value: valueInfo.value,
+        displayText: valueInfo.displayText,
+        placeholder: control.getAttribute("placeholder") || "",
+        masterType: control.dataset ? (control.dataset.masterType || "") : "",
+        masterLabel: control.dataset ? (control.dataset.masterLabel || "") : ""
+      };
+    });
+  }
+FUNCTION_SOURCE_END
+
+============================================================
+FUNCTION=saveSortingDraftFromReviewPage
+============================================================
+FUNCTION_STATUS=FOUND
+DATA_ANALYSIS_ITEM_CODE_COUNT=0
+QUERY_SELECTOR_ALL_COUNT=0
+VISIBLE_FIELDS_COUNT=0
+DRAFT_REFERENCE_COUNT=3
+SAVE_API_COUNT=1
+FUNCTION_SOURCE_START
+async function saveSortingDraftFromReviewPage(context) {
+    const payload = collectSortingDraftPayload(context);
+
+    const analysisResult =
+      context && context.analysisResult && typeof context.analysisResult === "object"
+        ? context.analysisResult
+        : context && context.item && context.item.__aiRawResult
+          ? context.item.__aiRawResult
+          : {};
+
+    const analysisDraft =
+      analysisResult.draft && typeof analysisResult.draft === "object"
+        ? analysisResult.draft
+        : context && context.item && context.item.__aiDraft
+          ? context.item.__aiDraft
+          : {};
+
+    const analysisRoot =
+      analysisResult.sortResult ||
+      analysisResult.sort_result ||
+      analysisResult.result ||
+      analysisDraft.sortResult ||
+      analysisDraft.sort_result ||
+      analysisDraft;
+
+    const analysisSummary =
+      analysisResult.ai_summary ||
+      analysisResult.aiSummary ||
+      analysisDraft.ai_summary ||
+      analysisDraft.aiSummary ||
+      analysisRoot.ai_summary ||
+      analysisRoot.aiSummary ||
+      {};
+
+    payload.analysis_system_code =
+      payload.analysis_system_code ||
+      payload.analysisSystemCode ||
+      analysisResult.analysis_system_code ||
+      analysisResult.analysisSystemCode ||
+      analysisDraft.analysis_system_code ||
+      analysisDraft.analysisSystemCode ||
+      analysisRoot.analysis_system_code ||
+      analysisRoot.analysisSystemCode ||
+      analysisSummary.analysis_system_code ||
+      window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+      "";
+
+    if (payload.analysis_system_code) {
+      window.__hdOriginSpecialistActiveAnalysisSystemCode =
+        payload.analysis_system_code;
+    }
+    payload.analysis_system_label =
+      payload.analysis_system_label ||
+      payload.analysisSystemLabel ||
+      analysisDraft.analysis_system_label ||
+      analysisDraft.analysisSystemLabel ||
+      analysisRoot.analysis_system_label ||
+      analysisRoot.analysisSystemLabel ||
+      analysisSummary.analysis_system_label ||
+      analysisSummary.analysis_system ||
+      "";
+
+    payload.analysis_system_reason =
+      payload.analysis_system_reason ||
+      payload.analysisSystemReason ||
+      analysisDraft.analysis_system_reason ||
+      analysisDraft.analysisSystemReason ||
+      analysisRoot.analysis_system_reason ||
+      analysisRoot.analysisSystemReason ||
+      analysisSummary.analysis_system_reason ||
+      "";
+
+    payload.analysis_system_confidence =
+      payload.analysis_system_confidence ||
+      payload.analysisSystemConfidence ||
+      analysisDraft.analysis_system_confidence ||
+      analysisDraft.analysisSystemConfidence ||
+      analysisRoot.analysis_system_confidence ||
+      analysisRoot.analysisSystemConfidence ||
+      analysisSummary.analysis_system_confidence ||
+      "";
+
+    payload.specialist_route_code =
+      payload.specialist_route_code ||
+      payload.specialistRouteCode ||
+      analysisDraft.specialist_route_code ||
+      analysisRoot.specialist_route_code ||
+      analysisResult.document_group ||
+      analysisDraft.document_group ||
+      "";
+
+    payload.specialist_route_label =
+      payload.specialist_route_label ||
+      payload.specialistRouteLabel ||
+      analysisDraft.specialist_route_label ||
+      analysisRoot.specialist_route_label ||
+      "";
+
+    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || "下書き保存に失敗しました。");
+    }
+
+    return json;
+  }
+FUNCTION_SOURCE_END
+
+============================================================
+関数接続参照
+============================================================
+LINE=4433:function collectVisibleFieldsOnly() {
+LINE=4524:var fields = collectVisibleFieldsOnly();
+LINE=5553:window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;

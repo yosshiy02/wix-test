@@ -439,16 +439,20 @@ function listInboxItems() {
       };
     })
     .filter(item => {
-      /* PAYMENT_DOCUMENT_PROCESS_STATUS_FILTER_20260725_START */
-      const processStatus = String(
-        item.processStatus ||
-        item.saveStatus ||
-        item.savedStatus ||
-        ""
-      ).toLowerCase();
+      /* PAYMENT_DOCUMENT_HIDE_SAVED_INBOX_20260707_START */
+      const savedStatus = String(item.saveStatus || item.savedStatus || "").toLowerCase();
+      const processStatus = String(item.processStatus || "").toLowerCase();
 
-      return processStatus !== "saved";
-      /* PAYMENT_DOCUMENT_PROCESS_STATUS_FILTER_20260725_END */
+      if (
+        savedStatus === "saved" ||
+        processStatus === "saved" ||
+        (item.evidenceSaved && item.ocrSaved)
+      ) {
+        return false;
+      }
+
+      return true;
+      /* PAYMENT_DOCUMENT_HIDE_SAVED_INBOX_20260707_END */
     })
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
 
@@ -1224,6 +1228,12 @@ async function saveOneInboxItem(fileName) {
     ocrTextLength: ocrText.length,
 
     processStatus: "saved",
+    saveStatus: "saved",
+    savedStatus: "saved",
+    evidenceSaveStatus: "saved",
+    ocrSaveStatus: "saved",
+    evidenceSaved: true,
+    ocrSaved: true,
     savedAt: now,
     savedByPage: "payment-document-inbox",
     updatedAt: now
@@ -1275,6 +1285,10 @@ async function saveOneInboxItem(fileName) {
         moved.savedAt ||
         now,
       processStatus: "saved",
+      saveStatus: "saved",
+      savedStatus: "saved",
+      evidenceSaved: true,
+      ocrSaved: true,
       ocrRawText: ocrText,
       ocr_raw_text: ocrText,
       ocrText,

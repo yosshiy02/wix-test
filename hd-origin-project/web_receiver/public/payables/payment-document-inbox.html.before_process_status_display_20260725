@@ -113,7 +113,7 @@
   }
 
   function ocrLabel(item) {
-    if (String(item.processStatus || item.saveStatus || item.savedStatus || "").toLowerCase() === "saved") return "保存済";
+    if (item.saveStatus === "saved" || item.savedStatus === "saved" || item.evidenceSaved || item.ocrSaved) return "保存済";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "OCR済";
     if (item.ocrStatus === "ocr_error") return "OCR失敗";
     if (item.ocrStatus === "ocr_skipped") return "対象外";
@@ -122,7 +122,7 @@
   }
 
   function ocrClass(item) {
-    if (String(item.processStatus || item.saveStatus || item.savedStatus || "").toLowerCase() === "saved") return "ocr-badge saved";
+    if (item.saveStatus === "saved" || item.savedStatus === "saved" || item.evidenceSaved || item.ocrSaved) return "ocr-badge saved";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "ocr-badge done";
     if (item.ocrStatus === "ocr_error") return "ocr-badge error";
     if (item.ocrStatus === "ocr_skipped") return "ocr-badge skipped";

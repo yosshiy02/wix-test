@@ -1,592 +1,5 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>銀行取引専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-bank-transaction.css">
-  <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
-</head>
-<body class="specialist-bank-transaction-page" data-specialist-route-code="bank_transaction">
-<!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
-<!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
-  <div class="wrap">
-    <header class="top">
-      <h1>銀行取引専門解析システム</h1>
-      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
-      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
-      <button type="button" onclick="location.href='/'">メインページ</button>
-      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
-            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
-            <nav class="specialist-system-nav"
-           aria-label="専門解析システム"
-           style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
-        <button type="button"
-                class="specialist-system-button specialist-invoice"
-                data-analysis-system-code="invoice_payable_analysis"
-                data-base-label="請求・未払系"
-                onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-receipt"
-                data-analysis-system-code="receipt_evidence_analysis"
-                data-base-label="レシート・領収書"
-                onclick="location.href='/receipts/receipt-list.html'">レシート・領収書（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-tax"
-                data-analysis-system-code="tax_public_analysis"
-                data-base-label="税金・公的支払"
-                onclick="location.href='./payment-document-specialist-tax-public.html'">税金・公的支払（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-contract"
-                data-analysis-system-code="contract_insurance_lease_analysis"
-                data-base-label="契約・保険・リース"
-                onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-utility"
-                data-analysis-system-code="utility_communication_analysis"
-                data-base-label="公共料金・通信費"
-                onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-card"
-                data-analysis-system-code="card_statement_analysis"
-                data-base-label="カード明細"
-                onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細（0）</button>
-        <button type="button"
-                class="specialist-system-button specialist-reference"
-                data-analysis-system-code="delivery_note_analysis"
-                data-base-label="照合用"
-                onclick="location.href='./payment-document-specialist-reference-check.html'">照合用（0）</button>
-      </nav>
-      <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで要確認へ送った書類を、要確認として専門解析する画面です。</span>
-    </header>
+"use strict";
 
-    <section class="panel list-panel">
-      <div class="panel-title">
-        <span>要確認 対象書類</span>
-        <button type="button" class="light" onclick="loadItems()">更新</button>
-      </div>
-            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
-        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
-        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
-        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
-<button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
-</div>
-      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
-      <div id="sortingColorLegend" class="sorting-color-legend">
-        <span class="legend-chip legend-invoice">請求・未払系</span>
-        <span class="legend-chip legend-expense">レシート・領収書</span>
-        <span class="legend-chip legend-tax">税金・公的支払</span>
-        <span class="legend-chip legend-contract">契約・保険・リース</span>
-        <span class="legend-chip legend-utility">要確認</span>
-        <span class="legend-chip legend-card">カード</span>
-        <span class="legend-chip legend-reference">照合用</span>
-        <span class="legend-chip legend-review">要確認</span>
-      </div>
-
-<div id="summary" class="summary">読込中...</div>
-      <div id="list" class="list"></div>
-    </section>
-
-    <section class="panel preview-panel">
-      <div class="panel-title preview-title">
-        <span>原本画像プレビュー</span>
-        <div class="preview-rotate-buttons" aria-label="原本画像回転">
-          <button type="button" onclick="rotateDocumentPreview(-90)">左回転</button>
-          <button type="button" onclick="rotateDocumentPreview(90)">右回転</button>
-          <button type="button" onclick="resetDocumentPreviewRotation()">戻す</button>
-        </div>
-      </div>
-      <div id="documentPreview" class="document-preview">
-        左からDB保存済みOCRを選択してください。
-      </div>
-    </section>
-
-    <section class="panel draft-panel">
-      <div class="panel-title">
-        <span>銀行取引 解析確認</span>
-        <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
-<div class="specialist-panel-actions">
-  <div class="specialist-record-controls" aria-label="専門解析レコード移動">
-    <button
-      type="button"
-      id="specialistPreviousRecordButton"
-      class="light specialist-record-arrow"
-      onclick="hdOriginSpecialistMoveRecord(-1)"
-      aria-label="前のレコード"
-      title="前のレコードへ"
-      disabled
-    >◀</button>
-
-    <span
-      id="specialistRecordCounter"
-      class="specialist-record-counter"
-      aria-live="polite"
-    >0 / 0</span>
-
-    <button
-      type="button"
-      id="specialistNextRecordButton"
-      class="light specialist-record-arrow"
-      onclick="hdOriginSpecialistMoveRecord(1)"
-      aria-label="次のレコード"
-      title="次のレコードへ"
-      disabled
-    >▶</button>
-
-    </div>
-
-<button type="button" class="light mini-memo-button" id="visibleFieldsMemoButton">表示</button>
-</div>
-<!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_END -->
-      </div>
-
-            <div class="draft-form-scroll">
-        <!-- HD_ORIGIN_BANK_TRANSACTION_HTML_SHELL_START -->
-
-        <section class="draft-section bank-transaction-section">
-          <div class="draft-section-title">
-            銀行取引 専門解析
-          </div>
-
-          <p>
-            OCR本文に記載された銀行取引情報だけを確認・保存します。
-          </p>
-        </section>
-
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            書類・金融機関情報
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              銀行書類区分
-              <select class="draft-field"
-                      id="draftBankDocumentKind"
-                      data-analysis-item-code="bank_document_kind">
-                <option value="">未選択</option>
-                <option value="bank_transfer_receipt">振込受付書・振込明細票</option>
-                <option value="bank_account_statement">銀行口座取引明細</option>
-                <option value="direct_debit_notice">口座振替・引落通知</option>
-                <option value="bank_deposit_notice">振込入金・入金通知</option>
-                <option value="bank_balance_certificate">残高証明書</option>
-                <option value="bank_fee_interest_notice">銀行手数料・利息通知</option>
-                <option value="loan_repayment_statement">借入・返済明細</option>
-                <option value="bill_check_settlement_notice">手形・小切手決済通知</option>
-              </select>
-            </label>
-
-            <label class="bank-transaction-field">
-              書類番号
-              <input class="draft-field"
-                     id="draftBankDocumentNumber"
-                     data-analysis-item-code="document_number">
-            </label>
-
-            <label class="bank-transaction-field">
-              参照番号
-              <input class="draft-field"
-                     id="draftBankReferenceNumber"
-                     data-analysis-item-code="reference_number">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行受付・取引参照番号
-              <input class="draft-field"
-                     id="draftBankTransactionReference"
-                     data-analysis-item-code="bank_transaction_reference">
-            </label>
-
-            <label class="bank-transaction-field">
-              発行者名称
-              <input class="draft-field"
-                     id="draftBankIssuerName"
-                     data-analysis-item-code="issuer_name">
-            </label>
-
-            <label class="bank-transaction-field">
-              宛先名称
-              <input class="draft-field"
-                     id="draftBankRecipientName"
-                     data-analysis-item-code="recipient_name">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行名
-              <input class="draft-field"
-                     id="draftBankName"
-                     data-analysis-item-code="bank_name">
-            </label>
-
-            <label class="bank-transaction-field">
-              支店名
-              <input class="draft-field"
-                     id="draftBankBranchName"
-                     data-analysis-item-code="bank_branch_name">
-            </label>
-
-            <label class="bank-transaction-field">
-              口座種別
-              <input class="draft-field"
-                     id="draftBankAccountType"
-                     data-analysis-item-code="bank_account_type">
-            </label>
-
-            <label class="bank-transaction-field">
-              口座番号表示
-              <input class="draft-field"
-                     id="draftBankAccountNumberMasked"
-                     data-analysis-item-code="bank_account_number_masked">
-            </label>
-
-            <label class="bank-transaction-field span2">
-              口座名義
-              <input class="draft-field"
-                     id="draftBankAccountHolder"
-                     data-analysis-item-code="bank_account_holder">
-            </label>
-          </div>
-        </section>
-
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            取引日・取引相手
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              入出金区分
-              <select class="draft-field"
-                      id="draftBankTransactionDirection"
-                      data-analysis-item-code="bank_transaction_direction">
-                <option value="">未選択</option>
-                <option value="入金">入金</option>
-                <option value="出金">出金</option>
-                <option value="振替">振替</option>
-                <option value="残高のみ">残高のみ</option>
-                <option value="不明">不明</option>
-              </select>
-            </label>
-
-            <label class="bank-transaction-field">
-              書類日付
-              <input class="draft-field"
-                     id="draftBankDocumentDate"
-                     type="date"
-                     data-analysis-item-code="document_date">
-            </label>
-
-            <label class="bank-transaction-field">
-              支払・引落日
-              <input class="draft-field"
-                     id="draftBankPaymentDate"
-                     type="date"
-                     data-analysis-item-code="payment_date">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行取引日
-              <input class="draft-field"
-                     id="draftBankTransactionDate"
-                     type="date"
-                     data-analysis-item-code="bank_transaction_date">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行起算日
-              <input class="draft-field"
-                     id="draftBankValueDate"
-                     type="date"
-                     data-analysis-item-code="bank_value_date">
-            </label>
-
-            <label class="bank-transaction-field">
-              対象期間開始
-              <input class="draft-field"
-                     id="draftBankPeriodStart"
-                     type="date"
-                     data-analysis-item-code="period_start">
-            </label>
-
-            <label class="bank-transaction-field">
-              対象期間終了
-              <input class="draft-field"
-                     id="draftBankPeriodEnd"
-                     type="date"
-                     data-analysis-item-code="period_end">
-            </label>
-
-            <label class="bank-transaction-field span2">
-              銀行取引相手先
-              <input class="draft-field"
-                     id="draftBankCounterpartyName"
-                     data-analysis-item-code="bank_counterparty_name">
-            </label>
-
-            <label class="bank-transaction-field">
-              支払方法
-              <input class="draft-field"
-                     id="draftBankPaymentMethod"
-                     data-analysis-item-code="payment_method">
-            </label>
-
-            <label class="bank-transaction-field">
-              通貨コード
-              <input class="draft-field"
-                     id="draftBankCurrencyCode"
-                     placeholder="例：JPY"
-                     data-analysis-item-code="currency_code">
-            </label>
-          </div>
-        </section>
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            金額・残高
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              主金額・合計金額
-              <input class="draft-field"
-                     id="draftBankTotalAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="total_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              振込金額
-              <input class="draft-field"
-                     id="draftBankTransferAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_transfer_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行手数料金額
-              <input class="draft-field"
-                     id="draftBankTransferFeeAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_transfer_fee_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              利息金額
-              <input class="draft-field"
-                     id="draftBankInterestAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_interest_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              期首・開始残高
-              <input class="draft-field"
-                     id="draftBankOpeningBalance"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_opening_balance">
-            </label>
-
-            <label class="bank-transaction-field">
-              期末・終了残高
-              <input class="draft-field"
-                     id="draftBankClosingBalance"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_closing_balance">
-            </label>
-
-            <label class="bank-transaction-field">
-              利用可能残高
-              <input class="draft-field"
-                     id="draftBankAvailableBalance"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_available_balance">
-            </label>
-
-            <label class="bank-transaction-field">
-              出金合計
-              <input class="draft-field"
-                     id="draftBankDebitTotal"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_debit_total">
-            </label>
-
-            <label class="bank-transaction-field">
-              入金合計
-              <input class="draft-field"
-                     id="draftBankCreditTotal"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_credit_total">
-            </label>
-          </div>
-        </section>
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            借入・返済
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              借入元本金額
-              <input class="draft-field"
-                     id="draftBankPrincipalAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_principal_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              返済金額
-              <input class="draft-field"
-                     id="draftBankRepaymentAmount"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_repayment_amount">
-            </label>
-
-            <label class="bank-transaction-field">
-              借入残高
-              <input class="draft-field"
-                     id="draftBankLoanBalance"
-                     inputmode="decimal"
-                     data-analysis-item-code="bank_loan_balance">
-            </label>
-          </div>
-        </section>
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            手形・小切手
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              手形・小切手番号
-              <input class="draft-field"
-                     id="draftBankInstrumentNumber"
-                     data-analysis-item-code="bank_instrument_number">
-            </label>
-
-            <label class="bank-transaction-field">
-              手形満期日
-              <input class="draft-field"
-                     id="draftBankMaturityDate"
-                     type="date"
-                     data-analysis-item-code="bank_maturity_date">
-            </label>
-
-            <label class="bank-transaction-field">
-              銀行決済日
-              <input class="draft-field"
-                     id="draftBankSettlementDate"
-                     type="date"
-                     data-analysis-item-code="bank_settlement_date">
-            </label>
-
-            <label class="bank-transaction-field span2">
-              不渡・不能理由
-              <textarea class="draft-field"
-                        id="draftBankDishonorReason"
-                        data-analysis-item-code="bank_dishonor_reason"></textarea>
-            </label>
-          </div>
-        </section>
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            銀行取引明細
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field">
-              銀行取引件数
-              <input class="draft-field"
-                     id="draftBankTransactionCount"
-                     type="number"
-                     min="0"
-                     data-analysis-item-code="bank_transaction_count">
-            </label>
-
-            <label class="bank-transaction-field span2">
-              銀行取引明細JSON
-              <textarea class="draft-field"
-                        id="draftBankTransactionsJson"
-                        spellcheck="false"
-                        data-analysis-item-code="bank_transactions_json"></textarea>
-            </label>
-          </div>
-        </section>
-        <section class="draft-section bank-transaction-section"
-                 data-bank-transaction-section>
-          <div class="draft-section-title">
-            内容要約・備考
-          </div>
-
-          <div class="form-grid bank-transaction-grid">
-            <label class="bank-transaction-field span2">
-              内容要約
-              <textarea class="draft-field"
-                        id="draftBankDescriptionSummary"
-                        data-analysis-item-code="description_summary"></textarea>
-            </label>
-
-            <label class="bank-transaction-field span2">
-              備考
-              <textarea class="draft-field"
-                        id="draftBankNotes"
-                        data-analysis-item-code="notes"></textarea>
-            </label>
-          </div>
-        </section>
-        <input type="hidden"
-               id="draftAnalysisSystemCode"
-               value="bank_transaction_analysis">
-
-        <input type="hidden"
-               id="draftSpecialistAnalysisCode"
-               value="bank_transaction">
-
-<!-- HD_ORIGIN_BANK_TRANSACTION_HTML_SHELL_END -->
-<details class="compact-evidence-details" id="compactEvidenceInfo">
-          <summary>証憑情報（必要最低限）</summary>
-          <div class="compact-evidence-grid">
-            <div>
-              <span>ファイル</span>
-              <strong id="compactEvidenceFileName">未選択</strong>
-            </div>
-            <div>
-              <span>OCR</span>
-              <strong id="compactEvidenceOcrStatus">-</strong>
-            </div>
-            <div>
-              <span>保存</span>
-              <strong id="compactEvidenceSavedStatus">-</strong>
-            </div>
-            <div>
-              <span>重複</span>
-              <strong id="compactEvidenceDuplicateStatus">-</strong>
-            </div>
-          </div>
-        </details>
-</div>
-<div class="button-row action-button-row">
-        
-      </div>
-
-      <details class="ocr-details">
-        <summary>OCR本文</summary>
-        <textarea id="ocrText" readonly placeholder="左からDB保存済みOCRを選択すると、OCR本文がここに表示されます。"></textarea>
-      </details>
-<div id="result" class="result"></div>
-      <div class="bottom-ocr-info-window" id="bottomOcrInfoWindow">
-        <div class="bottom-ocr-info-title">OCR本文情報</div>
-        <textarea id="bottomOcrText" readonly placeholder="左からOCR済み書類を選択すると、OCR本文がここに表示されます。"></textarea>
-      </div>
-</section>
-  </div>
-
-<script>
 /* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_START */
 (function () {
   "use strict";
@@ -715,8 +128,8 @@
   };
 })();
 /* HD_ORIGIN_GPT2_SPECIALIST_FETCH_CONTEXT_20260711_END */
-</script>
-<script>
+
+
   let items = [];
   let selectedIndex = -1;
   let checkedOcrImportIds = new Set();
@@ -3655,10 +3068,9 @@ function setDocumentPreview(item) {
     }
 
     const savedStatus =
-      String(item.processStatus || item.saveStatus || item.savedStatus || "")
-        .toLowerCase() === "saved"
-        ? "保存済み"
-        : "未保存";
+      item.saveStatus ||
+      item.savedStatus ||
+      (item.evidenceSaved || item.ocrSaved ? "保存済み" : "未保存");
 
     const duplicateStatus = item.duplicateOfFileName
       ? "重複元: " + item.duplicateOfFileName
@@ -3691,7 +3103,7 @@ function setDocumentPreview(item) {
     setDraftValue("draftSha256", item.sha256 || "");
     setDraftValue("draftOcrStatus", item.ocrStatus || "");
     setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
-    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedStatus", item.saveStatus || item.savedStatus || "");
     setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
@@ -4322,17 +3734,8 @@ function setDocumentPreview(item) {
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_END */
   initPaymentDocumentReview();
-</script>
-<script src="../hd-origin-exit-guard.js">
 
 
-</script>
-
-
-
-
-<!-- PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_MEMO_STANDALONE_20260707_START -->
-<script>
 (function () {
   function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -4614,11 +4017,8 @@ function setDocumentPreview(item) {
 
   window.exportVisibleFieldsMemoVisibleOnly = exportVisibleFieldsMemoVisibleOnly;
 })();
-</script>
-<!-- PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_MEMO_STANDALONE_20260707_END -->
 
-<!-- HD_ORIGIN_PAYMENT_ANALYZE_BUSY_20260707_START -->
-<script>
+
 (function () {
   window.__hdOriginPaymentAnalyzeBusyInstalled = true;
   window.__hdOriginPaymentBulkBusyRunning = false;
@@ -4928,11 +4328,8 @@ function setDocumentPreview(item) {
     }
   }, 250);
 })();
-</script>
-<!-- HD_ORIGIN_PAYMENT_ANALYZE_BUSY_20260707_END -->
 
-<!-- HD_ORIGIN_PAYMENT_SORTING_ONLY_APPLY_20260707_START -->
-<script>
+
 (function () {
   window.hdOriginSetControlValueLoose = function (id, value, label) {
     const el = document.getElementById(id);
@@ -5004,11 +4401,8 @@ function setDocumentPreview(item) {
     return count;
   };
 })();
-</script>
-<!-- HD_ORIGIN_PAYMENT_SORTING_ONLY_APPLY_20260707_END -->
 
 
-<script>
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_START */
 (function () {
   "use strict";
@@ -5674,8 +5068,8 @@ function setDocumentPreview(item) {
   window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;
 })();
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
-</script>
-<script>
+
+
 /* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */
 (function () {
   "use strict";
@@ -5982,12 +5376,8 @@ function setDocumentPreview(item) {
   window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
 })();
 /* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
-</script>
-<script>
-</script>
 
-<!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
-<script>
+
 (function () {
   "use strict";
 
@@ -6355,10 +5745,8 @@ function setDocumentPreview(item) {
 
   window.exportAllItemsMemo = exportAllItemsMemo;
 })();
-</script>
-<!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_END -->
-<!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_START -->
-<script>
+
+
 (function () {
   "use strict";
 
@@ -6752,12 +6140,8 @@ function setDocumentPreview(item) {
 
   console.log("HD Origin specialist full auto-save installed.");
 })();
-</script>
-<!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
-<script src="./payment-document-specialist-bank-transaction.js"></script>
-<script src="./payment-document-specialist-record-navigation.js"></script>
-<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_START -->
-<script>
+
+
 (function () {
   "use strict";
 
@@ -7022,46 +6406,3 @@ function setDocumentPreview(item) {
     startSpecialistNavigationCounts();
   }
 })();
-</script>
-<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
