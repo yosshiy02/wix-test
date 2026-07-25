@@ -1,0 +1,741 @@
+============================================================
+基礎解析画面 まとめて仕分けボタン効果確認
+============================================================
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+AI_EXECUTION=NO
+STATUS_MASTER_UPDATE=NO
+
+============================================================
+1. ボタン接続
+============================================================
+BULK_SORT_BUTTON_COUNT=1
+<button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+
+============================================================
+2. runSelectedAiDrafts 本体
+============================================================
+async function runSelectedAiDrafts() {
+    const indexes = selectedSortingIndexes();
+
+    if (!indexes.length) {
+      showResult("まとめて仕分けする書類にチェックを入れてください。");
+      return;
+    }
+
+    const results = [];
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      const item = items[index];
+      const name = item ? (item.originalFileName || item.fileName || ("No." + (index + 1))) : ("No." + (index + 1));
+
+      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+
+      const result = await runAiDraftForItemIndex(index, { silent: true });
+
+      results.push(result);
+
+      if (result && result.ok) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+
+    renderSortingList();
+
+    showResult({
+      ok: failed === 0,
+      message: "まとめて仕分けが完了しました。最後に解析した書類を画面へ表示しています。",
+      total: indexes.length,
+      success,
+      failed,
+      results
+    });
+  }
+
+============================================================
+3. 関連関数
+============================================================
+
+----- FUNCTION=selectedSortingIndexes -----
+function selectedSortingIndexes() {
+    return items
+      .map((item, index) => ({ item, index, id: String(ocrImportIdOf(item) || "") }))
+      .filter(row => row.id && checkedOcrImportIds.has(row.id))
+      .map(row => row.index);
+  }
+
+----- FUNCTION=runAiDraftForIndex -----
+FUNCTION_NOT_FOUND
+
+----- FUNCTION=bulkSaveSortingDrafts -----
+async function bulkSaveSortingDrafts() {
+    let ids = getSelectedOcrIds();
+
+    if (ids.length === 0) {
+      ids = getIdsFromCache();
+    }
+
+    if (ids.length === 0) {
+      throw new Error("まとめて保存する対象が見つかりません。先にまとめて仕分けを実行してください。");
+    }
+
+    const ok = [];
+    const ng = [];
+
+    for (const id of ids) {
+      const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+
+      if (!cached) {
+        ng.push({
+          id,
+          error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+        });
+        continue;
+      }
+
+      try {
+        const payload = buildPayloadFromCachedResult(id, cached);
+        const saved = await postSortingDraft(payload);
+
+        ok.push({
+          id,
+          draftId: saved.specialistAnalysisId || ""
+        });
+      } catch (err) {
+        ng.push({
+          id,
+          error: err && err.message ? err.message : String(err)
+        });
+      }
+    }
+
+    return { ok, ng };
+  }
+
+----- FUNCTION=postSortingDraft -----
+async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || "下書き保存に失敗しました。");
+    }
+
+    return json;
+  }
+
+============================================================
+4. runSelectedAiDrafts内の効果判定
+============================================================
+AI_ANALYSIS_CALLED=True
+BULK_SAVE_FUNCTION_CALLED=False
+SAVE_API_DIRECTLY_CALLED=False
+MEMORY_CACHE_UPDATED=False
+LIST_RELOAD_CALLED=False
+
+============================================================
+5. sorting-drafts/save APIルート
+============================================================
+SAVE_ROUTE_MATCH_COUNT=0
+
+============================================================
+6. current_status更新確認
+============================================================
+STATUS_CONTEXT_COUNT=20
+
+----- ROUTES LINE 1434 -----
+      throw new Error(
+        "OCR取込DBレコードを作成できませんでした。"
+      );
+    }
+
+    const reviewStatusResult = await db.query(`
+      WITH ocr_phase AS (
+        SELECT MAX(display_order) AS last_ocr_order
+        FROM accounting.payment_document_current_statuses
+        WHERE is_active = TRUE
+          AND (
+            current_status LIKE 'OCR%'
+            OR COALESCE(description, '') LIKE '%OCR%'
+          )
+      )
+      SELECT current_status
+      FROM accounting.payment_document_current_statuses
+      CROSS JOIN ocr_phase
+      WHERE is_active = TRUE
+        AND is_processing = FALSE
+        AND is_terminal = FALSE
+        AND is_error = FALSE
+        AND display_order > ocr_phase.last_ocr_order
+      ORDER BY display_order
+      LIMIT 1
+    `);
+
+
+----- ROUTES LINE 1437 -----
+    }
+
+    const reviewStatusResult = await db.query(`
+      WITH ocr_phase AS (
+        SELECT MAX(display_order) AS last_ocr_order
+        FROM accounting.payment_document_current_statuses
+        WHERE is_active = TRUE
+          AND (
+            current_status LIKE 'OCR%'
+            OR COALESCE(description, '') LIKE '%OCR%'
+          )
+      )
+      SELECT current_status
+      FROM accounting.payment_document_current_statuses
+      CROSS JOIN ocr_phase
+      WHERE is_active = TRUE
+        AND is_processing = FALSE
+        AND is_terminal = FALSE
+        AND is_error = FALSE
+        AND display_order > ocr_phase.last_ocr_order
+      ORDER BY display_order
+      LIMIT 1
+    `);
+
+    const reviewCurrentStatus =
+      reviewStatusResult.rows[0]?.current_status;
+
+
+----- ROUTES LINE 1441 -----
+        SELECT MAX(display_order) AS last_ocr_order
+        FROM accounting.payment_document_current_statuses
+        WHERE is_active = TRUE
+          AND (
+            current_status LIKE 'OCR%'
+            OR COALESCE(description, '') LIKE '%OCR%'
+          )
+      )
+      SELECT current_status
+      FROM accounting.payment_document_current_statuses
+      CROSS JOIN ocr_phase
+      WHERE is_active = TRUE
+        AND is_processing = FALSE
+        AND is_terminal = FALSE
+        AND is_error = FALSE
+        AND display_order > ocr_phase.last_ocr_order
+      ORDER BY display_order
+      LIMIT 1
+    `);
+
+    const reviewCurrentStatus =
+      reviewStatusResult.rows[0]?.current_status;
+
+    if (!reviewCurrentStatus) {
+      throw new Error(
+        "ステータスマスタからOCR後の表示先を解決できませんでした。"
+      );
+
+----- ROUTES LINE 1442 -----
+        FROM accounting.payment_document_current_statuses
+        WHERE is_active = TRUE
+          AND (
+            current_status LIKE 'OCR%'
+            OR COALESCE(description, '') LIKE '%OCR%'
+          )
+      )
+      SELECT current_status
+      FROM accounting.payment_document_current_statuses
+      CROSS JOIN ocr_phase
+      WHERE is_active = TRUE
+        AND is_processing = FALSE
+        AND is_terminal = FALSE
+        AND is_error = FALSE
+        AND display_order > ocr_phase.last_ocr_order
+      ORDER BY display_order
+      LIMIT 1
+    `);
+
+    const reviewCurrentStatus =
+      reviewStatusResult.rows[0]?.current_status;
+
+    if (!reviewCurrentStatus) {
+      throw new Error(
+        "ステータスマスタからOCR後の表示先を解決できませんでした。"
+      );
+    }
+
+----- ROUTES LINE 1454 -----
+        AND is_terminal = FALSE
+        AND is_error = FALSE
+        AND display_order > ocr_phase.last_ocr_order
+      ORDER BY display_order
+      LIMIT 1
+    `);
+
+    const reviewCurrentStatus =
+      reviewStatusResult.rows[0]?.current_status;
+
+    if (!reviewCurrentStatus) {
+      throw new Error(
+        "ステータスマスタからOCR後の表示先を解決できませんでした。"
+      );
+    }
+
+    const statusUpdateResult = await db.query(`
+      UPDATE accounting.payment_document_ocr_imports
+      SET
+        current_status = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE payment_document_ocr_import_id = $1
+        AND deleted_at IS NULL
+      RETURNING current_status
+    `, [
+      dbRow.payment_document_ocr_import_id,
+      reviewCurrentStatus
+
+----- ROUTES LINE 1465 -----
+      throw new Error(
+        "ステータスマスタからOCR後の表示先を解決できませんでした。"
+      );
+    }
+
+    const statusUpdateResult = await db.query(`
+      UPDATE accounting.payment_document_ocr_imports
+      SET
+        current_status = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE payment_document_ocr_import_id = $1
+        AND deleted_at IS NULL
+      RETURNING current_status
+    `, [
+      dbRow.payment_document_ocr_import_id,
+      reviewCurrentStatus
+    ]);
+
+    if (statusUpdateResult.rowCount !== 1) {
+      throw new Error(
+        "OCR取込レコードのcurrent_statusを更新できませんでした。"
+      );
+    }
+
+    const finalMeta = {
+      ...dbMeta,
+      currentStatus: reviewCurrentStatus,
+
+----- ROUTES LINE 1469 -----
+
+    const statusUpdateResult = await db.query(`
+      UPDATE accounting.payment_document_ocr_imports
+      SET
+        current_status = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE payment_document_ocr_import_id = $1
+        AND deleted_at IS NULL
+      RETURNING current_status
+    `, [
+      dbRow.payment_document_ocr_import_id,
+      reviewCurrentStatus
+    ]);
+
+    if (statusUpdateResult.rowCount !== 1) {
+      throw new Error(
+        "OCR取込レコードのcurrent_statusを更新できませんでした。"
+      );
+    }
+
+    const finalMeta = {
+      ...dbMeta,
+      currentStatus: reviewCurrentStatus,
+      current_status: reviewCurrentStatus,
+      dbSaved: true,
+      paymentDocumentOcrImportId:
+        dbRow.payment_document_ocr_import_id,
+
+----- ROUTES LINE 1477 -----
+      RETURNING current_status
+    `, [
+      dbRow.payment_document_ocr_import_id,
+      reviewCurrentStatus
+    ]);
+
+    if (statusUpdateResult.rowCount !== 1) {
+      throw new Error(
+        "OCR取込レコードのcurrent_statusを更新できませんでした。"
+      );
+    }
+
+    const finalMeta = {
+      ...dbMeta,
+      currentStatus: reviewCurrentStatus,
+      current_status: reviewCurrentStatus,
+      dbSaved: true,
+      paymentDocumentOcrImportId:
+        dbRow.payment_document_ocr_import_id,
+      databaseSavedAt:
+        new Date().toISOString()
+    };
+
+    if (movedMetaPath) {
+      writeJson(
+        movedMetaPath,
+        finalMeta
+
+----- ROUTES LINE 1484 -----
+      throw new Error(
+        "OCR取込レコードのcurrent_statusを更新できませんでした。"
+      );
+    }
+
+    const finalMeta = {
+      ...dbMeta,
+      currentStatus: reviewCurrentStatus,
+      current_status: reviewCurrentStatus,
+      dbSaved: true,
+      paymentDocumentOcrImportId:
+        dbRow.payment_document_ocr_import_id,
+      databaseSavedAt:
+        new Date().toISOString()
+    };
+
+    if (movedMetaPath) {
+      writeJson(
+        movedMetaPath,
+        finalMeta
+      );
+    }
+
+    const rawSourceMove =
+      moveRawReceiptToOcrDone(finalMeta);
+
+    finalMeta.rawSourceMoveStatus =
+
+----- ROUTES LINE 1951 -----
+      o.process_status,
+      o.save_status,
+      o.evidence_saved,
+      o.ocr_saved,
+      o.saved_relative_path,
+      o.saved_meta_relative_path,
+      o.saved_at,
+      o.saved_by_page,
+      o.current_status,
+      o.latest_specialist_analysis_id,
+      o.sorted_at,
+      o.created_at,
+      o.updated_at,
+
+      s.specialist_analysis_id,
+      s.analysis_system_code,
+      s.analysis_system_label,
+      s.ai_confidence,
+      s.ai_reason,
+      CASE
+        WHEN LOWER(
+          COALESCE(
+            s.raw_result_json->>'needs_review',
+            'false'
+          )
+        ) = 'true'
+          THEN TRUE
+
+----- ROUTES LINE 1999 -----
+    FROM accounting.payment_document_ocr_imports o
+
+    LEFT JOIN accounting.payment_document_specialist_analysis_results s
+      ON s.specialist_analysis_id = o.latest_specialist_analysis_id
+     AND s.is_current = TRUE
+
+    WHERE o.deleted_at IS NULL
+      AND COALESCE(o.ocr_raw_text, '') <> ''
+      AND o.current_status = (
+        WITH ocr_phase AS (
+          SELECT MAX(display_order) AS last_ocr_order
+          FROM accounting.payment_document_current_statuses
+          WHERE is_active = TRUE
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
+        )
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+
+----- ROUTES LINE 2002 -----
+      ON s.specialist_analysis_id = o.latest_specialist_analysis_id
+     AND s.is_current = TRUE
+
+    WHERE o.deleted_at IS NULL
+      AND COALESCE(o.ocr_raw_text, '') <> ''
+      AND o.current_status = (
+        WITH ocr_phase AS (
+          SELECT MAX(display_order) AS last_ocr_order
+          FROM accounting.payment_document_current_statuses
+          WHERE is_active = TRUE
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
+        )
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+        LIMIT 1
+      )
+
+
+----- ROUTES LINE 2005 -----
+    WHERE o.deleted_at IS NULL
+      AND COALESCE(o.ocr_raw_text, '') <> ''
+      AND o.current_status = (
+        WITH ocr_phase AS (
+          SELECT MAX(display_order) AS last_ocr_order
+          FROM accounting.payment_document_current_statuses
+          WHERE is_active = TRUE
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
+        )
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+        LIMIT 1
+      )
+
+    ORDER BY
+      o.sorted_at DESC NULLS LAST,
+      o.saved_at DESC NULLS LAST,
+
+----- ROUTES LINE 2009 -----
+          SELECT MAX(display_order) AS last_ocr_order
+          FROM accounting.payment_document_current_statuses
+          WHERE is_active = TRUE
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
+        )
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+        LIMIT 1
+      )
+
+    ORDER BY
+      o.sorted_at DESC NULLS LAST,
+      o.saved_at DESC NULLS LAST,
+      o.ocr_at DESC NULLS LAST,
+      o.payment_document_ocr_import_id DESC
+
+    LIMIT 500
+
+----- ROUTES LINE 2010 -----
+          FROM accounting.payment_document_current_statuses
+          WHERE is_active = TRUE
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
+        )
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+        LIMIT 1
+      )
+
+    ORDER BY
+      o.sorted_at DESC NULLS LAST,
+      o.saved_at DESC NULLS LAST,
+      o.ocr_at DESC NULLS LAST,
+      o.payment_document_ocr_import_id DESC
+
+    LIMIT 500
+  `);
+
+----- ROUTES LINE 2095 -----
+      savedStatus: row.save_status,
+      evidenceSaved: row.evidence_saved,
+      ocrSaved: row.ocr_saved,
+      savedRelativePath: row.saved_relative_path,
+      savedMetaRelativePath:
+        row.saved_meta_relative_path,
+      savedAt: row.saved_at,
+      savedByPage: row.saved_by_page,
+      currentStatus: row.current_status,
+      latestSpecialistAnalysisId:
+        row.latest_specialist_analysis_id,
+      sortedAt: row.sorted_at,
+      latestSpecialistAnalysis,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  });
+}
+/* PAYMENT_DOCUMENT_DB_OCR_IMPORTS_20260707_END */
+/* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_20260707_START */
+function getOpenAiApiKey() {
+  return process.env.OPENAI_API_KEY || "";
+}
+
+function getOpenAiModel() {
+  return process.env.OPENAI_MODEL || "gpt-4.1-mini";
+}
+
+----- ROUTES LINE 10018 -----
+          o.process_status,
+          o.save_status,
+          o.evidence_saved,
+          o.ocr_saved,
+          o.saved_relative_path,
+          o.saved_meta_relative_path,
+          o.saved_at,
+          o.saved_by_page,
+          o.current_status,
+          o.latest_specialist_analysis_id,
+          o.sorted_at,
+          o.created_at,
+          o.updated_at,
+
+          s.specialist_analysis_id,
+          s.analysis_system_code,
+          s.analysis_system_label,
+          s.ai_confidence,
+          s.ai_reason,
+          CASE
+        WHEN LOWER(
+          COALESCE(
+            s.raw_result_json->>'needs_review',
+            'false'
+          )
+        ) = 'true'
+          THEN TRUE
+
+----- ROUTES LINE 10240 -----
+
+          savedAt:
+            row.saved_at,
+
+          savedByPage:
+            row.saved_by_page,
+
+          currentStatus:
+            row.current_status,
+
+          resultStatus:
+            row.current_status,
+
+          sortedAt:
+            row.sorted_at,
+
+          latestSpecialistAnalysisId:
+            row.latest_specialist_analysis_id,
+
+          specialistAnalysisId:
+            row.specialist_analysis_id,
+
+          analysisSystemCode:
+            row.analysis_system_code,
+
+          analysisSystemLabel:
+            row.analysis_system_label,
+
+----- ROUTES LINE 10243 -----
+
+          savedByPage:
+            row.saved_by_page,
+
+          currentStatus:
+            row.current_status,
+
+          resultStatus:
+            row.current_status,
+
+          sortedAt:
+            row.sorted_at,
+
+          latestSpecialistAnalysisId:
+            row.latest_specialist_analysis_id,
+
+          specialistAnalysisId:
+            row.specialist_analysis_id,
+
+          analysisSystemCode:
+            row.analysis_system_code,
+
+          analysisSystemLabel:
+            row.analysis_system_label,
+
+          specialistAnalysisStatus:
+            row.specialist_analysis_id
+
+----- ROUTES LINE 10571 -----
+        humanMemo
+      ]);
+
+      const saved = inserted.rows[0];
+      await client.query(`
+        UPDATE accounting.payment_document_ocr_imports
+        SET
+          latest_specialist_analysis_id = $1,
+          current_status = '専門解析',
+          updated_at = now()
+        WHERE payment_document_ocr_import_id = $2
+          AND deleted_at IS NULL
+      `, [
+        saved.specialist_analysis_id,
+        ocrImportId
+      ]);
+await client.query("COMMIT");
+
+      return {
+        saved,
+        paymentDocumentOcrImportId: ocrImportId,
+        specialistAnalysisId: saved.specialist_analysis_id,
+        analysisSystemCode,
+        analysisSystemLabel,
+        specialistAnalysisStatus: specialistStatus
+      };
+    } catch (err) {
+
+OVERALL_STATUS=SUCCESS

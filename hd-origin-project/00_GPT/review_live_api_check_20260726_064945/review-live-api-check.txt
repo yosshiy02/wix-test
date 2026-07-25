@@ -1,0 +1,2064 @@
+============================================================
+読取内容確認画面 ライブAPI応答確認
+============================================================
+REVIEW_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+BASE_URL=http://localhost:3000
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+
+============================================================
+画面内API候補
+============================================================
+API_CANDIDATE_COUNT=5
+API_PATH=/api/payment-documents/ai-draft/
+API_PATH=/api/payment-documents/review-items
+API_PATH=/api/payment-documents/review-visible-fields-memo
+API_PATH=/api/payment-documents/sorting-drafts/save
+API_PATH=/api/payment-documents/contract-insurance-lease/list
+
+============================================================
+ライブAPI応答
+============================================================
+
+----- API=http://localhost:3000/api/payment-documents/ai-draft/ -----
+HTTP_STATUS=FAILED
+ERROR_TYPE=System.Net.WebException
+ERROR_MESSAGE=リモート サーバーがエラーを返しました: (404) 見つかりません
+
+----- API=http://localhost:3000/api/payment-documents/review-items -----
+HTTP_STATUS=SUCCESS
+RETURNED_ITEM_COUNT=28
+ID=55 / FILE=2026-07-02 14.26.31.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_error
+ID=54 / FILE=2026-07-02 14.26.31.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_error
+ID=53 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_error
+ID=52 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_error
+ID=51 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_error
+ID=50 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=49 / FILE=2026-07-06 07.24.29.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=48 / FILE=2026-07-06 16.26.05.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=47 / FILE=2026-07-09 13.35.32.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=46 / FILE=2026-07-01 21.59.06.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=45 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=44 / FILE=2026-07-18 11.11.02.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=43 / FILE=IMG20260720170141596.jpg / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=42 / FILE=IMG20260720170822767.jpg / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=41 / FILE=IMG20260720170215409.jpg / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=40 / FILE=2026-07-01 22.03.41.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=39 / FILE=2026-07-02 14.26.31.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=38 / FILE=2026-07-02 14.26.31.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=37 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=36 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=35 / FILE=2026-07-03 13.56.30.png / CURRENT_STATUS=OCR待ち / OCR_STATUS=ocr_error
+ID=34 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=33 / FILE=2026-07-06 07.24.29.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=32 / FILE=2026-07-06 16.26.05.pdf / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=31 / FILE=2026-07-09 13.35.32.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=30 / FILE=2026-07-01 21.59.06.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=29 / FILE=2026-07-05 10.37.03.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID=28 / FILE=2026-07-18 11.11.02.png / CURRENT_STATUS=基礎解析待ち / OCR_STATUS=ocr_done
+ID_46_TO_55_RETURNED=46,47,48,49,50,51,52,53,54,55
+ID_46_TO_55_COUNT=10
+
+----- API=http://localhost:3000/api/payment-documents/review-visible-fields-memo -----
+HTTP_STATUS=FAILED
+ERROR_TYPE=System.Net.WebException
+ERROR_MESSAGE=リモート サーバーがエラーを返しました: (404) 見つかりません
+
+----- API=http://localhost:3000/api/payment-documents/sorting-drafts/save -----
+HTTP_STATUS=FAILED
+ERROR_TYPE=System.Net.WebException
+ERROR_MESSAGE=リモート サーバーがエラーを返しました: (404) 見つかりません
+
+----- API=http://localhost:3000/api/payment-documents/contract-insurance-lease/list -----
+HTTP_STATUS=SUCCESS
+RETURNED_ITEM_COUNT=0
+ID_46_TO_55_RETURNED=
+ID_46_TO_55_COUNT=0
+
+============================================================
+画面側フィルター候補
+============================================================
+FILTER_MATCH_COUNT=99
+
+----- HTML LINE 10 -----
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>支払書類仕分けシステム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-review.css">
+
+
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_START -->
+  <style>
+    /*
+     * payment_destinationは保存・内部処理用として保持する。
+     * 人間向け画面には表示しない。
+     */
+
+    label:has(#draftAiDestination),
+    label:has(#draftDestination) {
+      display: none !important;
+    }
+
+    .visual-dest {
+
+----- HTML LINE 19 -----
+     * 人間向け画面には表示しない。
+     */
+
+    label:has(#draftAiDestination),
+    label:has(#draftDestination) {
+      display: none !important;
+    }
+
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+
+----- HTML LINE 23 -----
+    label:has(#draftDestination) {
+      display: none !important;
+    }
+
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類仕分けシステム</h1>
+
+----- HTML LINE 27 -----
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類仕分けシステム</h1>
+      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+
+----- HTML LINE 30 -----
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類仕分けシステム</h1>
+      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+            <nav class="specialist-system-nav"
+           aria-label="専門解析システム"
+
+----- HTML LINE 43 -----
+      <button type="button" onclick="location.href='/'">メインページ</button>
+      <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
+            <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
+            <nav class="specialist-system-nav"
+           aria-label="専門解析システム"
+           style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+        <button type="button"
+                class="specialist-system-button specialist-invoice"
+                data-analysis-system-code="invoice_payable_analysis"
+                data-base-label="請求・未払系"
+                onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-receipt"
+                data-analysis-system-code="receipt_evidence_analysis"
+                data-base-label="レシート・領収書"
+                onclick="location.href='/receipts/receipt-list.html'">レシート・領収書（0）</button>
+        <button type="button"
+                class="specialist-system-button specialist-tax"
+
+----- HTML LINE 98 -----
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <span>仕分け対象書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
+</div>
+      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+      <div id="sortingColorLegend" class="sorting-color-legend">
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+        <span class="legend-chip legend-tax">税金・公的支払</span>
+        <span class="legend-chip legend-contract">契約・保険・リース</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
+
+----- HTML LINE 180 -----
+                      data-master-label="取込媒体">
+                <option value="">マスタ読込中.</option>
+              </select>
+            </label>
+
+            <label hidden aria-hidden="true" data-internal-field="payment-destination">
+              処理先
+              <select class="draft-field master-select"
+                      id="draftAiDestination"
+                      data-master-type="payment_destinations"
+                      data-master-label="処理先">
+                <option value="">マスタ読込中...</option>
+              </select>
+            </label>
+
+            <label>
+              専門解析先
+              <select class="draft-field master-select"
+
+----- HTML LINE 199 -----
+                      data-master-type="analysis_systems"
+                      data-master-label="専門解析先">
+                <option value="">マスタ読込中.</option>
+              </select>
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+              発行日
+              <input class="draft-field"
+
+----- HTML LINE 202 -----
+              </select>
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+              発行日
+              <input class="draft-field"
+                     id="draftIssueDate"
+                     placeholder="例：2026-07-01">
+            </label>
+
+----- HTML LINE 205 -----
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+              発行日
+              <input class="draft-field"
+                     id="draftIssueDate"
+                     placeholder="例：2026-07-01">
+            </label>
+
+            <label>
+              信頼度
+
+----- HTML LINE 578 -----
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">会計・管理</div>
+          <div class="form-grid">
+            <label hidden aria-hidden="true" data-internal-field="payment-destination">
+              処理先
+              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+            </label>
+            
+            <label>
+              支払先マスタ候補
+              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              勘定科目
+              <select class="draft-field master-select" id="draftAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
+            </label>
+
+----- HTML LINE 749 -----
+              <span>ファイル</span>
+              <strong id="compactEvidenceFileName">未選択</strong>
+            </div>
+            <div>
+              <span>OCR</span>
+              <strong id="compactEvidenceOcrStatus">-</strong>
+            </div>
+            <div>
+              <span>保存</span>
+              <strong id="compactEvidenceSavedStatus">-</strong>
+            </div>
+            <div>
+              <span>重複</span>
+              <strong id="compactEvidenceDuplicateStatus">-</strong>
+            </div>
+          </div>
+        </details>
+</div>
+
+----- HTML LINE 826 -----
+
+    result.textContent = message || "";
+  }
+
+  function hasOcr(item) {
+    return !!(item.ocrRawText || item.ocrTextPreview || item.ocrStatus === "ocr_done");
+  }
+
+/* PAYMENT_DOCUMENT_REVIEW_IMAGE_PREVIEW_20260707_START */
+  function documentPreviewUrl(item) {
+    if (!item) return "";
+
+    if (item.imageUrl) {
+      return item.imageUrl;
+    }
+
+    const id = item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+
+
+----- HTML LINE 942 -----
+    const scale = Math.min(
+      box.width / logicalWidth,
+      box.height / logicalHeight
+    );
+
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+
+----- HTML LINE 943 -----
+      box.width / logicalWidth,
+      box.height / logicalHeight
+    );
+
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+
+----- HTML LINE 944 -----
+      box.height / logicalHeight
+    );
+
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+    window.setTimeout(() => {
+
+----- HTML LINE 945 -----
+    );
+
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+    window.setTimeout(() => {
+      applyDocumentPreviewRotation();
+
+----- HTML LINE 947 -----
+    const displayWidth = natural.width * scale;
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+    window.setTimeout(() => {
+      applyDocumentPreviewRotation();
+    }, 0);
+
+
+----- HTML LINE 948 -----
+    const displayHeight = natural.height * scale;
+    const displayWidthPercent = box.width > 0 ? (displayWidth / box.width) * 100 : 100;
+    const displayHeightPercent = box.height > 0 ? (displayHeight / box.height) * 100 : 100;
+
+    target.style.width = Math.max(0, Math.min(100, displayWidthPercent)) + "%";
+    target.style.height = Math.max(0, Math.min(100, displayHeightPercent)) + "%";
+    target.style.maxWidth = "none";
+    target.style.maxHeight = "none";
+    target.style.transform = "rotate(" + rotation + "deg)";
+    target.style.transformOrigin = "center center";
+  }
+
+  function scheduleDocumentPreviewFit() {
+    window.setTimeout(() => {
+      applyDocumentPreviewRotation();
+    }, 0);
+
+    window.setTimeout(() => {
+
+----- HTML LINE 1362 -----
+
+    // 要確認
+    const warningText = [
+      fields["要確認メモ"] || "",
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
+    ].filter(Boolean).join("\n");
+
+    if (setById("draftWarnings", warningText)) appliedCount++;
+
+    // IDが違う/未追加の項目があっても、最後にラベル名でも拾う。
+    if (draft.ai_summary) {
+      for (const [key, value] of Object.entries(draft.ai_summary)) {
+        if (value) {
+          setFieldByLabel(key, value);
+        }
+      }
+    }
+
+
+----- HTML LINE 1430 -----
+      return value.length ? value.map(item => {
+        if (item && typeof item === "object") {
+          return JSON.stringify(item);
+        }
+        return String(item ?? "");
+      }).filter(Boolean).join("\n") : "";
+    }
+
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+
+    return String(value);
+  }
+
+----- HTML LINE 1759 -----
+
+    // 要確認
+    const warningText = [
+      fields["要確認メモ"] || "",
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
+    ].filter(Boolean).join("\n");
+
+    put("draftWarnings", "要確認メモ", warningText);
+
+    // ID不一致の救済。ラベルで探せた項目にも印を入れる。
+    for (const [label, value] of Object.entries(fields)) {
+      setDebugByLabel(label, value);
+    }
+
+    if (missingControls.length) {
+      console.warn("AI連動確認: 見つからない画面項目", missingControls);
+    }
+
+
+----- HTML LINE 1797 -----
+      return value.length ? value.map(item => {
+        if (item && typeof item === "object") {
+          return JSON.stringify(item);
+        }
+        return String(item ?? "");
+      }).filter(Boolean).join("\n") : "";
+    }
+
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+
+    return String(value);
+  }
+
+----- HTML LINE 2093 -----
+
+    const alias = aiSelectAliasCode(label, raw);
+    const candidates = Array.from(new Set([
+      raw,
+      alias
+    ].filter(Boolean)));
+
+    const options = Array.from(control.options || []);
+
+    for (const candidate of candidates) {
+      const candidateNorm = aiSelectNormalizeText(candidate);
+
+      const match = options.find(option => {
+        const optionValue = String(option.value || "").trim();
+        const optionText = String(option.textContent || "").trim();
+        const optionName = String(option.dataset && option.dataset.name || "").trim();
+
+        return (
+
+----- HTML LINE 2233 -----
+      select.value = "";
+      return true;
+    }
+
+    const alias = aiMasterAliasForSelect(select, label, raw);
+    const candidates = Array.from(new Set([raw, alias].filter(Boolean)));
+
+    for (const candidate of candidates) {
+      if (typeof setDraftMasterSelectValue === "function") {
+        setDraftMasterSelectValue(select, candidate);
+        if (String(select.value || "").trim()) {
+          return true;
+        }
+      }
+
+      const candidateNorm = aiNormalizeForMasterMatch(candidate);
+      const match = Array.from(select.options || []).find(option => {
+        return (
+
+----- HTML LINE 2449 -----
+    put("draftDownloadDate", "ダウンロード日", fields["ダウンロード日"]);
+
+    const warningText = [
+      fields["要確認メモ"] || "",
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
+    ].filter(Boolean).join("\n");
+
+    put("draftWarnings", "要確認メモ", warningText);
+
+    window.__lastAiDraftAppliedCount = appliedCount;
+    window.__lastAiDraftMissingControls = missingControls;
+
+    if (missingControls.length) {
+      console.warn("AI連動確認 見つからない項目", missingControls);
+    }
+
+    return appliedCount;
+  }
+
+----- HTML LINE 2509 -----
+  function setInitialAiOnlyView() {
+    document.body.classList.remove("ai-analysis-done");
+    document.body.classList.add("ai-analysis-initial");
+
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "none";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      section.classList.add("ai-section-hidden");
+    });
+
+    showResult("");
+  }
+
+  function showVisibleFieldsOnly(visibleLabels) {
+    const visibleSet = new Set((Array.isArray(visibleLabels) ? visibleLabels : []).map(item => normalizeLabelText(item)));
+
+
+----- HTML LINE 2513 -----
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "none";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      section.classList.add("ai-section-hidden");
+    });
+
+    showResult("");
+  }
+
+  function showVisibleFieldsOnly(visibleLabels) {
+    const visibleSet = new Set((Array.isArray(visibleLabels) ? visibleLabels : []).map(item => normalizeLabelText(item)));
+
+    document.body.classList.remove("ai-analysis-initial");
+    document.body.classList.add("ai-analysis-done");
+
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+
+----- HTML LINE 2526 -----
+
+    document.body.classList.remove("ai-analysis-initial");
+    document.body.classList.add("ai-analysis-done");
+
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      let sectionHasVisibleField = false;
+      const title = section.querySelector(".draft-section-title");
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+      if (section.classList.contains("stage1-sorting-block")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+
+----- HTML LINE 2535 -----
+      let sectionHasVisibleField = false;
+      const title = section.querySelector(".draft-section-title");
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+      if (section.classList.contains("stage1-sorting-block")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+
+----- HTML LINE 2537 -----
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+      if (section.classList.contains("stage1-sorting-block")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+
+----- HTML LINE 2543 -----
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      section.querySelectorAll("label").forEach(label => {
+        const control = label.querySelector("input, select, textarea");
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+        const shouldShow = hasValue || visibleSet.has(labelText);
+
+
+----- HTML LINE 2545 -----
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      section.querySelectorAll("label").forEach(label => {
+        const control = label.querySelector("input, select, textarea");
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+        const shouldShow = hasValue || visibleSet.has(labelText);
+
+        if (shouldShow) {
+          label.classList.remove("ai-field-hidden");
+
+----- HTML LINE 2557 -----
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+        const shouldShow = hasValue || visibleSet.has(labelText);
+
+        if (shouldShow) {
+          label.classList.remove("ai-field-hidden");
+          sectionHasVisibleField = true;
+        } else {
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+
+----- HTML LINE 2560 -----
+
+        if (shouldShow) {
+          label.classList.remove("ai-field-hidden");
+          sectionHasVisibleField = true;
+        } else {
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+/* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  async function runAiDraftFromSelectedOcr() {
+
+----- HTML LINE 2565 -----
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+/* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  async function runAiDraftFromSelectedOcr() {
+    const id = selectedOcrImportId();
+
+    if (!id) {
+      showResult("左リストからDB保存済みOCRを選択してください。");
+      return;
+
+----- HTML LINE 2567 -----
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+/* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  async function runAiDraftFromSelectedOcr() {
+    const id = selectedOcrImportId();
+
+    if (!id) {
+      showResult("左リストからDB保存済みOCRを選択してください。");
+      return;
+    }
+
+
+----- HTML LINE 2595 -----
+      if (!data.ok) {
+        showResult(data);
+        return;
+      }
+      
+      /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_START */
+      const preservedVisibleFieldLabels =
+        Array.isArray(data.visible_field_labels)
+          ? data.visible_field_labels.slice()
+          : (
+              data.draft &&
+              Array.isArray(data.draft.visible_field_labels)
+                ? data.draft.visible_field_labels.slice()
+                : []
+            );
+
+      if (
+        data.draft &&
+
+----- HTML LINE 2616 -----
+        data.draft.visible_field_labels =
+          preservedVisibleFieldLabels;
+
+
+      }
+      /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_END */
+      const appliedCount = applyAiDraftToFormHardDebug(data.draft) + applyAiFieldMap(data.draft.fields || {});
+      
+      if (data.visible_field_labels && data.visible_field_labels.length > 0) {
+        showVisibleFieldsOnly(data.visible_field_labels);
+      }
+      
+      // ★メモリ上の items 配列を更新する（移動して戻った時のデータ消失を防ぐ）
+      if (typeof selectedIndex !== 'undefined' && items && items[selectedIndex]) {
+         items[selectedIndex].__aiDraft = data.draft;
+         items[selectedIndex].__visibleFieldLabels = data.visible_field_labels || [];
+         
+         if (!items[selectedIndex].latestSortingDraft) {
+
+----- HTML LINE 2635 -----
+         }
+         // 画面上の全入力値をかき集めてメモリに保持
+         const currentFormFields = {};
+         document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
+           const name = el.name || el.id;
+           if (name && el.type !== "hidden") {
+             currentFormFields[name] = el.value || "";
+           }
+         });
+         
+         items[selectedIndex].latestSortingDraft.visibleFields = Object.assign(
+             {},
+             currentFormFields,
+             data.draft.fields || {},
+             data.draft
+         );
+      }
+
+
+----- HTML LINE 2827 -----
+
+  function updateSelectedSortingSummary() {
+    const summary = document.getElementById("selectedSortingSummary");
+    if (!summary) return;
+
+    const validIds = new Set(items.map(item => String(ocrImportIdOf(item) || "")).filter(Boolean));
+    checkedOcrImportIds = new Set(Array.from(checkedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    summary.textContent = "選択: " + checkedOcrImportIds.size + "件";
+  }
+
+  function toggleSortingChecked(index, checked) {
+    const item = items[index];
+    const id = String(ocrImportIdOf(item) || "");
+
+    if (!id) {
+      updateSelectedSortingSummary();
+      return;
+
+----- HTML LINE 2828 -----
+  function updateSelectedSortingSummary() {
+    const summary = document.getElementById("selectedSortingSummary");
+    if (!summary) return;
+
+    const validIds = new Set(items.map(item => String(ocrImportIdOf(item) || "")).filter(Boolean));
+    checkedOcrImportIds = new Set(Array.from(checkedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    summary.textContent = "選択: " + checkedOcrImportIds.size + "件";
+  }
+
+  function toggleSortingChecked(index, checked) {
+    const item = items[index];
+    const id = String(ocrImportIdOf(item) || "");
+
+    if (!id) {
+      updateSelectedSortingSummary();
+      return;
+    }
+
+----- HTML LINE 2870 -----
+  }
+
+  function selectedSortingIndexes() {
+    return items
+      .map((item, index) => ({ item, index, id: String(ocrImportIdOf(item) || "") }))
+      .filter(row => row.id && checkedOcrImportIds.has(row.id))
+      .map(row => row.index);
+  }
+
+  function renderSortingList() {
+    const list = document.getElementById("list");
+
+    if (!list) return;
+      renderSortingList();
+      updateSelectedSortingSummary();
+
+    updateSelectedSortingSummary();
+  }
+
+----- HTML LINE 3410 -----
+
+  window.updateSelectedSortingSummary = function() {
+    const summary = document.getElementById("selectedSortingSummary");
+    if (!summary) return;
+
+    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
+    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
+    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+
+    summary.textContent =
+      "選択: " + window.__checkedOcrImportIds.size + "件" +
+      " / 解析済: " + analyzedCount + "件" +
+      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+  };
+
+
+----- HTML LINE 3411 -----
+  window.updateSelectedSortingSummary = function() {
+    const summary = document.getElementById("selectedSortingSummary");
+    if (!summary) return;
+
+    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
+    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
+    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+
+    summary.textContent =
+      "選択: " + window.__checkedOcrImportIds.size + "件" +
+      " / 解析済: " + analyzedCount + "件" +
+      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+  };
+
+  window.toggleSortingChecked = function(index, checked) {
+
+----- HTML LINE 3412 -----
+    const summary = document.getElementById("selectedSortingSummary");
+    if (!summary) return;
+
+    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
+    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
+    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+
+    summary.textContent =
+      "選択: " + window.__checkedOcrImportIds.size + "件" +
+      " / 解析済: " + analyzedCount + "件" +
+      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+  };
+
+  window.toggleSortingChecked = function(index, checked) {
+    const item = items[index];
+
+----- HTML LINE 3414 -----
+
+    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
+    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
+    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+
+    summary.textContent =
+      "選択: " + window.__checkedOcrImportIds.size + "件" +
+      " / 解析済: " + analyzedCount + "件" +
+      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+  };
+
+  window.toggleSortingChecked = function(index, checked) {
+    const item = items[index];
+    const id = String(window.ocrImportIdOf(item) || "");
+
+
+----- HTML LINE 3415 -----
+    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
+    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
+    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
+    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+
+    summary.textContent =
+      "選択: " + window.__checkedOcrImportIds.size + "件" +
+      " / 解析済: " + analyzedCount + "件" +
+      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+  };
+
+  window.toggleSortingChecked = function(index, checked) {
+    const item = items[index];
+    const id = String(window.ocrImportIdOf(item) || "");
+
+    if (!id) {
+
+----- HTML LINE 3496 -----
+  };
+
+  window.selectedSortingIndexes = function() {
+    return (items || [])
+      .map((item, index) => ({ item, index, id: String(window.ocrImportIdOf(item) || "") }))
+      .filter(row => row.id && window.__checkedOcrImportIds.has(row.id))
+      .map(row => row.index);
+  };
+
+  window.renderSortingList = function() {
+    const list = document.getElementById("list");
+
+    if (!list) return;
+
+    list.innerHTML = (items || []).map((item, index) => {
+      const active = index === selectedIndex ? " active" : "";
+      const name = item.originalFileName || item.fileName || "";
+      const time = item.ocrAt ? formatJapanDateTime(item.ocrAt) : "";
+
+----- HTML LINE 3922 -----
+
+    window.__expandedOcrImportIds.clear();
+    window.renderSortingList();
+
+    const grouped = results
+      .filter(row => row && row.ok)
+      .reduce((acc, row) => {
+        const key = row.destination || "未判定";
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+
+    const groupedText = Object.keys(grouped)
+      .map(key => key + ": " + grouped[key] + "件")
+      .join("\n");
+
+    showResult(
+      "まとめて仕分けが完了しました。\n" +
+
+----- HTML LINE 4043 -----
+    el.textContent = text;
+  }
+
+  function resetCompactEvidenceInfo() {
+    setCompactEvidenceText("compactEvidenceFileName", "未選択");
+    setCompactEvidenceText("compactEvidenceOcrStatus", "-");
+    setCompactEvidenceText("compactEvidenceSavedStatus", "-");
+    setCompactEvidenceText("compactEvidenceDuplicateStatus", "-");
+  }
+
+  function updateCompactEvidenceInfo(item) {
+    if (!item) {
+      resetCompactEvidenceInfo();
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    const savedStatus =
+
+----- HTML LINE 4066 -----
+    const duplicateStatus = item.duplicateOfFileName
+      ? "重複元: " + item.duplicateOfFileName
+      : "なし";
+
+    setCompactEvidenceText("compactEvidenceFileName", item.originalFileName || item.fileName || "未選択");
+    setCompactEvidenceText("compactEvidenceOcrStatus", item.ocrStatus || "-");
+    setCompactEvidenceText("compactEvidenceSavedStatus", savedStatus);
+    setCompactEvidenceText("compactEvidenceDuplicateStatus", duplicateStatus);
+  }
+  function fillDraftFromItem(item) {
+    if (!item) return;
+
+    updateCompactEvidenceInfo(item);
+
+    setDraftValue("draftAiDocumentKind", item.documentType || "");
+    setDraftValue("draftDestination", item.destination || "");
+    setDraftValue("draftAiDestination", item.destination || "");
+    setDraftValue("draftIssuer", item.vendorName || "");
+
+----- HTML LINE 4090 -----
+    setDraftValue("draftOriginalFileName", item.originalFileName || "");
+    setDraftValue("draftSavedFileName", item.fileName || "");
+    setDraftValue("draftMimeType", item.mimeType || "");
+    setDraftValue("draftFileSize", formatDraftBytes(item.sizeBytes));
+    setDraftValue("draftSha256", item.sha256 || "");
+    setDraftValue("draftOcrStatus", item.ocrStatus || "");
+    setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
+    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
+    setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
+  }
+
+  /* HD_ORIGIN_RECORD_NAVIGATION_20260712_START */
+  function updateRecordNavigationControls() {
+    const total = Array.isArray(items) ? items.length : 0;
+    const index = Number.isInteger(selectedIndex) ? selectedIndex : -1;
+
+    const previousButton = document.getElementById("previousRecordButton");
+
+----- HTML LINE 4276 -----
+    if (source.masters && Array.isArray(source.masters[type])) {
+      return source.masters[type];
+    }
+
+    if (Array.isArray(source.items)) {
+      return source.items.filter(row => row && row.type === type);
+    }
+
+    if (Array.isArray(source)) {
+      return source.filter(row => row && row.type === type);
+    }
+
+    return [];
+  }
+
+  function masterRowName(row) {
+    if (!row) return "";
+
+
+----- HTML LINE 4280 -----
+    if (Array.isArray(source.items)) {
+      return source.items.filter(row => row && row.type === type);
+    }
+
+    if (Array.isArray(source)) {
+      return source.filter(row => row && row.type === type);
+    }
+
+    return [];
+  }
+
+  function masterRowName(row) {
+    if (!row) return "";
+
+    return String(
+      row.name ||
+      row.account_name ||
+      row.method_name ||
+
+----- HTML LINE 4357 -----
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+
+    const previousValue = select.value;
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+
+----- HTML LINE 4584 -----
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+
+    const previousValue = select.value;
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+
+----- HTML LINE 4712 -----
+
+  async function loadDraftMasters() {
+    const types = Array.from(new Set(
+      DRAFT_MASTER_FIELDS
+        .map(field => field.type)
+        .filter(Boolean)
+    ));
+
+    const nextMasters = {};
+    const errors = [];
+
+    for (const type of types) {
+      try {
+        nextMasters[type] = await fetchDraftMasterRows(type);
+      } catch (error) {
+        nextMasters[type] = [];
+        errors.push(error.message || String(error));
+      }
+
+----- HTML LINE 4747 -----
+  function populateOneMasterSelect(select) {
+    if (!select) return;
+
+    const type = select.dataset.masterType || "";
+    const label = select.dataset.masterLabel || type || "マスタ";
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
+    const previousValue = select.value;
+
+    select.innerHTML = "";
+
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+    select.classList.remove("master-empty");
+
+----- HTML LINE 4812 -----
+
+  async function loadDraftMasters() {
+    const types = Array.from(new Set(
+      DRAFT_MASTER_FIELDS
+        .map(field => field.type)
+        .filter(Boolean)
+    ));
+
+    const nextMasters = {};
+    const nextStatus = {};
+    const errors = [];
+
+    for (const type of types) {
+      try {
+        nextMasters[type] = await fetchDraftMasterRows(type);
+        nextStatus[type] = true;
+      } catch (error) {
+        nextMasters[type] = [];
+
+----- HTML LINE 4882 -----
+  }
+
+  function isElementActuallyVisible(element) {
+    if (!element) return false;
+
+    if (element.closest(".ai-section-hidden")) return false;
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+----- HTML LINE 4883 -----
+
+  function isElementActuallyVisible(element) {
+    if (!element) return false;
+
+    if (element.closest(".ai-section-hidden")) return false;
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+
+----- HTML LINE 4888 -----
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+      if (node === document.body) break;
+
+      node = node.parentElement;
+    }
+
+
+----- HTML LINE 4893 -----
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+      if (node === document.body) break;
+
+      node = node.parentElement;
+    }
+
+    return true;
+  }
+
+  function labelFor(control) {
+    if (!control) return "";
+
+----- HTML LINE 4894 -----
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+      if (node === document.body) break;
+
+      node = node.parentElement;
+    }
+
+    return true;
+  }
+
+  function labelFor(control) {
+    if (!control) return "";
+
+
+----- HTML LINE 4938 -----
+
+  function valueFor(control) {
+    if (!control) {
+      return {
+        value: "",
+        displayText: ""
+      };
+    }
+
+    if (control.tagName === "SELECT") {
+      var option = control.options && control.selectedIndex >= 0
+        ? control.options[control.selectedIndex]
+        : null;
+
+      return {
+        value: String(control.value || ""),
+        displayText: option ? cleanText(option.textContent) : ""
+      };
+
+----- HTML LINE 4949 -----
+        ? control.options[control.selectedIndex]
+        : null;
+
+      return {
+        value: String(control.value || ""),
+        displayText: option ? cleanText(option.textContent) : ""
+      };
+    }
+
+    return {
+      value: control.value === null || control.value === undefined ? "" : String(control.value),
+      displayText: ""
+    };
+  }
+
+  function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+
+----- HTML LINE 4955 -----
+      };
+    }
+
+    return {
+      value: control.value === null || control.value === undefined ? "" : String(control.value),
+      displayText: ""
+    };
+  }
+
+  function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+        if (!control || control.type === "hidden") return false;
+
+        var label = control.closest("label") || control;
+        var section = control.closest(".draft-section");
+
+        if (!isElementActuallyVisible(section || label)) return false;
+
+----- HTML LINE 4961 -----
+    };
+  }
+
+  function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+        if (!control || control.type === "hidden") return false;
+
+        var label = control.closest("label") || control;
+        var section = control.closest(".draft-section");
+
+        if (!isElementActuallyVisible(section || label)) return false;
+        if (!isElementActuallyVisible(label)) return false;
+        if (!isElementActuallyVisible(control)) return false;
+
+        return true;
+      });
+
+
+----- HTML LINE 4962 -----
+  }
+
+  function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+        if (!control || control.type === "hidden") return false;
+
+        var label = control.closest("label") || control;
+        var section = control.closest(".draft-section");
+
+        if (!isElementActuallyVisible(section || label)) return false;
+        if (!isElementActuallyVisible(label)) return false;
+        if (!isElementActuallyVisible(control)) return false;
+
+        return true;
+      });
+
+    return controls.map(function (control, index) {
+
+----- HTML LINE 4985 -----
+        label: labelFor(control),
+        id: control.id || "",
+        tagName: control.tagName || "",
+        type: control.type || "",
+        value: valueInfo.value,
+        displayText: valueInfo.displayText,
+        placeholder: control.getAttribute("placeholder") || "",
+        masterType: control.dataset ? (control.dataset.masterType || "") : "",
+        masterLabel: control.dataset ? (control.dataset.masterLabel || "") : ""
+      };
+    });
+  }
+
+  function safeSelectedIndex() {
+    try {
+      if (typeof selectedIndex === "number") {
+        return selectedIndex;
+      }
+
+----- HTML LINE 5062 -----
+        selectedItem: item ? {
+          paymentDocumentOcrImportId: item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "",
+          originalFileName: item.originalFileName || "",
+          savedFileName: item.savedFileName || item.fileName || "",
+          mimeType: item.mimeType || "",
+          ocrStatus: item.ocrStatus || "",
+          savedAt: item.savedAt || "",
+          updatedAt: item.updatedAt || ""
+        } : null,
+                ocrRawText: item ? String(item.ocrRawText || item.ocr_raw_text || item.ocrText || "") : "",
+        ocrTextLength: item ? Number(item.ocrTextLength || item.ocr_text_length || String(item.ocrRawText || item.ocr_raw_text || item.ocrText || "").length || 0) : 0,sortingAppliedCount: window.__lastAiDraftAppliedCount || 0,
+        aiMissingControls: Array.isArray(window.__lastAiDraftMissingControls) ? window.__lastAiDraftMissingControls : [],
+        fields: fields
+      };
+
+      showResultSafe({
+        ok: true,
+        message: "表示中の項目だけをmemoへ出します。",
+
+----- HTML LINE 5175 -----
+    panel.id = "hdPaymentAnalyzeBusyPanel";
+    panel.className = "hd-analyze-busy-panel";
+    panel.setAttribute("aria-live", "polite");
+    panel.innerHTML = [
+      '<div class="hd-analyze-busy-card">',
+      '  <div class="hd-analyze-spinner" aria-hidden="true"></div>',
+      '  <div class="hd-analyze-busy-main">',
+      '    <div class="hd-analyze-busy-title" id="hdAnalyzeBusyTitle">仕分け中です</div>',
+      '    <div class="hd-analyze-busy-sub" id="hdAnalyzeBusySub">AIが仕分け候補を作成しています。</div>',
+      '    <div class="hd-analyze-progress">',
+      '      <div class="hd-analyze-progress-bar" id="hdAnalyzeProgressBar"></div>',
+      '    </div>',
+      '    <div class="hd-analyze-busy-detail" id="hdAnalyzeBusyDetail">画面を閉じずにお待ちください。</div>',
+      '  </div>',
+      '</div>'
+    ].join("");
+
+    document.body.appendChild(panel);
+
+----- HTML LINE 5768 -----
+      );
+
+      if (Number.isInteger(n) && n > 0) return n;
+    }
+
+    const hiddenSelectors = [
+      "#selectedOcrImportId",
+      "#paymentDocumentOcrImportId",
+      "input[name='selectedOcrImportId']",
+      "input[name='paymentDocumentOcrImportId']",
+      "input[name='payment_document_ocr_import_id']"
+    ];
+
+    for (const selector of hiddenSelectors) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+
+      const n = Number(el.value || el.textContent || el.dataset.value);
+
+----- HTML LINE 5776 -----
+      "input[name='selectedOcrImportId']",
+      "input[name='paymentDocumentOcrImportId']",
+      "input[name='payment_document_ocr_import_id']"
+    ];
+
+    for (const selector of hiddenSelectors) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+
+      const n = Number(el.value || el.textContent || el.dataset.value);
+      if (Number.isInteger(n) && n > 0) return n;
+    }
+
+    const activeSelectors = [
+      "[data-selected-ocr-import-id]",
+      "[data-payment-document-ocr-import-id].selected",
+      "[data-payment-document-ocr-import-id].active",
+      "[data-ocr-import-id].selected",
+
+----- HTML LINE 5823 -----
+    }
+
+    return 0;
+  }
+
+  function getDisplayRotation() {
+    const candidates = [
+      window.paymentDocumentDisplayRotation,
+      window.currentDisplayRotation,
+      window.imageRotation,
+      window.previewRotation
+    ];
+
+    for (const value of candidates) {
+      const n = Number(value);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+
+----- HTML LINE 5825 -----
+    return 0;
+  }
+
+  function getDisplayRotation() {
+    const candidates = [
+      window.paymentDocumentDisplayRotation,
+      window.currentDisplayRotation,
+      window.imageRotation,
+      window.previewRotation
+    ];
+
+    for (const value of candidates) {
+      const n = Number(value);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+    const el = document.querySelector("[data-display-rotation]");
+
+
+----- HTML LINE 5826 -----
+  }
+
+  function getDisplayRotation() {
+    const candidates = [
+      window.paymentDocumentDisplayRotation,
+      window.currentDisplayRotation,
+      window.imageRotation,
+      window.previewRotation
+    ];
+
+    for (const value of candidates) {
+      const n = Number(value);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+    const el = document.querySelector("[data-display-rotation]");
+
+    if (el) {
+
+----- HTML LINE 5836 -----
+    for (const value of candidates) {
+      const n = Number(value);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+    const el = document.querySelector("[data-display-rotation]");
+
+    if (el) {
+      const n = Number(el.dataset.displayRotation);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+    return 0;
+  }
+
+  function collectSortingDraftPayload() {
+    const ocrId = findSelectedOcrImportId();
+
+
+----- HTML LINE 5839 -----
+    }
+
+    const el = document.querySelector("[data-display-rotation]");
+
+    if (el) {
+      const n = Number(el.dataset.displayRotation);
+      if ([0, 90, 180, 270].includes(n)) return n;
+    }
+
+    return 0;
+  }
+
+  function collectSortingDraftPayload() {
+    const ocrId = findSelectedOcrImportId();
+
+    if (!ocrId) {
+      throw new Error("選択中OCR IDが取得できません。");
+    }
+
+----- HTML LINE 6221 -----
+        ),
+
+      needs_review:
+        needsReview,
+
+      display_rotation:
+        getDisplayRotation(),
+
+      memo:
+        controlValue("draftMemo") ||
+        "payment-document-review 画面から下書き保存",
+
+      sortResult:
+        saveDraft,
+
+      aiDraft:
+        saveDraft,
+
+
+----- HTML LINE 6222 -----
+
+      needs_review:
+        needsReview,
+
+      display_rotation:
+        getDisplayRotation(),
+
+      memo:
+        controlValue("draftMemo") ||
+        "payment-document-review 画面から下書き保存",
+
+      sortResult:
+        saveDraft,
+
+      aiDraft:
+        saveDraft,
+
+      draft:
+
+----- HTML LINE 6463 -----
+  }
+
+  function getIdsFromCache() {
+    return Object.keys(window.hdOriginSortingDraftBulkCache || {})
+      .map(numberId)
+      .filter(Boolean);
+  }
+
+  function buildPayloadFromCachedResult(id, cached) {
+    const result = cached && cached.result ? cached.result : cached;
+    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.aiDraft, result);
+    const draft = firstObject(result.draft, result.aiDraft, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
+    const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
+
+    return {
+      paymentDocumentOcrImportId: id,
+
+      document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
+
+----- HTML LINE 6508 -----
+      ai_summary: aiSummary,
+      sortResult: root,
+      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+
+      display_rotation: 0,
+      memo: "まとめて保存ボタンから仕分け下書き保存"
+    };
+  }
+
+  async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+----- HTML LINE 7030 -----
+      no: fields.length + 1,
+      section: section,
+      label: label,
+      id: id || "",
+      value: textOf(value),
+      displayText: "",
+      masterType: "",
+      placeholder: ""
+    });
+  }
+
+  function pushAiSummary(fields, section, draft, raw) {
+    var summary = draft.ai_summary || raw.ai_summary || raw.summary || {};
+
+    pushField(fields, section, "書類区分", "document_type", draft.document_type_label || draft.document_type_code || raw.document_type_label || raw.document_type_code || "");
+    pushField(fields, section, "処理先", "payment_destination", draft.payment_destination_label || draft.payment_destination_code || raw.payment_destination_label || raw.payment_destination_code || "");
+    pushField(fields, section, "専門ルート", "specialist_route", draft.specialist_route_label || draft.specialist_route_code || raw.specialist_route_label || raw.specialist_route_code || raw.document_group || "");
+    pushField(fields, section, "会計候補", "accounting_category", draft.accounting_category_label || draft.accounting_category_code || raw.accounting_category_label || raw.accounting_category_code || "");
+
+----- HTML LINE 7133 -----
+      selectedItem: {
+        paymentDocumentOcrImportId: "ALL",
+        originalFileName: "全件表示: " + list.length + "件",
+        savedFileName: "",
+        mimeType: "",
+        ocrStatus: "全件",
+        savedAt: "",
+        updatedAt: ""
+      },
+      ocrRawText: allOcrParts.join("\n\n"),
+      ocrTextLength: allOcrParts.join("\n\n").length,
+      aiAppliedCount: analyzedCount,
+      sortingAppliedCount: analyzedCount,
+      aiMissingControls: [],
+      fields: fields,
+      allItemCount: list.length,
+      allAnalyzedCount: analyzedCount,
+      allOcrCount: ocrCount
+
+----- HTML LINE 7489 -----
+    );
+  }
+
+  function isVisibleControl(control) {
+    if (!control) return false;
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+
+----- HTML LINE 7490 -----
+  }
+
+  function isVisibleControl(control) {
+    if (!control) return false;
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+----- HTML LINE 7494 -----
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+    return true;
+  }
+
+
+----- HTML LINE 7501 -----
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+    return true;
+  }
+
+  function sectionForControl(control) {
+    var section = control.closest(".draft-section");
+
+    if (!section) return "画面表示中項目";
+
+    var title = section.querySelector(".draft-section-title");
+
+
+----- HTML LINE 7532 -----
+        label: controlLabel(control),
+        id: control.id || "",
+        tagName: control.tagName || "",
+        type: control.type || "",
+        value: textValue(control.value),
+        displayText: optionText(control),
+        placeholder: control.getAttribute("placeholder") || "",
+        masterType: control.dataset ? (control.dataset.masterType || "") : "",
+        masterLabel: control.dataset ? (control.dataset.masterLabel || "") : ""
+      });
+    });
+
+    return fields;
+  }
+
+  function pushField(fields, section, label, id, value, source) {
+    fields.push({
+      no: fields.length + 1,
+
+----- HTML LINE 7552 -----
+      label: label,
+      id: id || "",
+      tagName: "",
+      type: "",
+      value: value === null || value === undefined ? "" : String(value),
+      displayText: value === null || value === undefined ? "" : String(value),
+      placeholder: "",
+      masterType: "",
+      masterLabel: ""
+    });
+  }
+
+  function dbDraftOf(item, fetchedDraft) {
+    return fetchedDraft ||
+      (item && item.latestSortingDraft) ||
+      (item && item.__savedSortingDraft) ||
+      null;
+  }
+
+----- HTML LINE 7679 -----
+      var ocr = itemOcrText(item);
+
+      var payload = {
+        pageTitle: document.title || "",
+        pagePath: location.pathname,
+        displayMode: "visible_plus_db_latest",
+        selectedIndex: getSelectedIndexSafe(),
+        selectedOcrImportId: id,
+        selectedItem: item ? {
+          paymentDocumentOcrImportId: id,
+          originalFileName: itemName(item),
+          savedFileName: item.savedFileName || item.saved_file_name || item.fileName || "",
+          mimeType: item.mimeType || item.mime_type || "",
+          ocrStatus: item.ocrStatus || item.ocr_status || "",
+          savedAt: item.savedAt || item.saved_at || "",
+          updatedAt: item.updatedAt || item.updated_at || ""
+        } : null,
+        ocrRawText: ocr,
+
+----- HTML LINE 7687 -----
+        selectedItem: item ? {
+          paymentDocumentOcrImportId: id,
+          originalFileName: itemName(item),
+          savedFileName: item.savedFileName || item.saved_file_name || item.fileName || "",
+          mimeType: item.mimeType || item.mime_type || "",
+          ocrStatus: item.ocrStatus || item.ocr_status || "",
+          savedAt: item.savedAt || item.saved_at || "",
+          updatedAt: item.updatedAt || item.updated_at || ""
+        } : null,
+        ocrRawText: ocr,
+        ocrTextLength: ocr.length,
+        dbLatestSortingDraftFound: !!dbDraft,
+        screenVisibleFieldCount: screenFields.length,
+        fields: fields
+      };
+
+      var data = await postMemo(payload);
+
+
+----- HTML LINE 7776 -----
+      var allOcrText = allOcrParts.join("\n\n");
+
+      var payload = {
+        pageTitle: document.title || "",
+        pagePath: location.pathname,
+        displayMode: "all_db_latest",
+        selectedIndex: -1,
+        selectedOcrImportId: "ALL_DB_LATEST",
+        selectedItem: {
+          paymentDocumentOcrImportId: "ALL_DB_LATEST",
+          originalFileName: "DB全件表示: " + list.length + "件",
+          savedFileName: "",
+          mimeType: "",
+          ocrStatus: "全件",
+          savedAt: "",
+          updatedAt: ""
+        },
+        ocrRawText: allOcrText,
+
+----- HTML LINE 7784 -----
+        selectedItem: {
+          paymentDocumentOcrImportId: "ALL_DB_LATEST",
+          originalFileName: "DB全件表示: " + list.length + "件",
+          savedFileName: "",
+          mimeType: "",
+          ocrStatus: "全件",
+          savedAt: "",
+          updatedAt: ""
+        },
+        ocrRawText: allOcrText,
+        ocrTextLength: allOcrText.length,
+        allItemCount: list.length,
+        allDbLatestSortingDraftCount: dbDraftCount,
+        allOcrCount: ocrCount,
+        fields: fields
+      };
+
+      var memo = await postMemo(payload);
+
+----- HTML LINE 8024 -----
+                  row.ocrImportId ||
+                  row.id ||
+                  0
+                );
+              })
+              .filter(function (id) {
+                return Number.isInteger(id) && id > 0;
+              })
+          );
+
+          countVisibleItems=countSourceItems.filter(function (item) {
+            const id=Number(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.ocrImportId ||
+              item.ocr_import_id ||
+              item.id ||
+              0
+
+----- HTML LINE 8029 -----
+              .filter(function (id) {
+                return Number.isInteger(id) && id > 0;
+              })
+          );
+
+          countVisibleItems=countSourceItems.filter(function (item) {
+            const id=Number(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.ocrImportId ||
+              item.ocr_import_id ||
+              item.id ||
+              0
+            );
+
+            const code=analysisSystemCodeOf(item);
+
+            return !(
+
+OVERALL_STATUS=SUCCESS

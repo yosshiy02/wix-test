@@ -1,0 +1,1757 @@
+============================================================
+基礎解析画面 まとめて保存ボタン現物確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+MATCH_COUNT=31
+
+----- LINE 101 -----
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <span>仕分け対象書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
+</div>
+      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+      <div id="sortingColorLegend" class="sorting-color-legend">
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+        <span class="legend-chip legend-tax">税金・公的支払</span>
+        <span class="legend-chip legend-contract">契約・保険・リース</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
+        <span class="legend-chip legend-card">カード</span>
+        <span class="legend-chip legend-reference">照合用</span>
+
+----- LINE 102 -----
+      <div class="panel-title">
+        <span>仕分け対象書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
+</div>
+      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+      <div id="sortingColorLegend" class="sorting-color-legend">
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+        <span class="legend-chip legend-tax">税金・公的支払</span>
+        <span class="legend-chip legend-contract">契約・保険・リース</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
+        <span class="legend-chip legend-card">カード</span>
+        <span class="legend-chip legend-reference">照合用</span>
+        <span class="legend-chip legend-review">要確認</span>
+
+----- LINE 3169 -----
+    }
+  }
+
+  
+async function runSelectedAiDrafts() {
+    const indexes = selectedSortingIndexes();
+
+    if (!indexes.length) {
+      showResult("まとめて仕分けする書類にチェックを入れてください。");
+      return;
+    }
+
+    const results = [];
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      const item = items[index];
+      const name = item ? (item.originalFileName || item.fileName || ("No." + (index + 1))) : ("No." + (index + 1));
+
+
+----- LINE 3182 -----
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      const item = items[index];
+      const name = item ? (item.originalFileName || item.fileName || ("No." + (index + 1))) : ("No." + (index + 1));
+
+      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+
+      const result = await runAiDraftForItemIndex(index, { silent: true });
+
+      results.push(result);
+
+      if (result && result.ok) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+
+
+----- LINE 3199 -----
+        failed++;
+      }
+    }
+
+    renderSortingList();
+
+    showResult({
+      ok: failed === 0,
+      message: "まとめて仕分けが完了しました。最後に解析した書類を画面へ表示しています。",
+      total: indexes.length,
+      success,
+      failed,
+      results
+    });
+  }
+/* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_START */
+  window.__checkedOcrImportIds = window.__checkedOcrImportIds || new Set();
+  window.__expandedOcrImportIds = window.__expandedOcrImportIds || new Set();
+
+  window.ocrImportIdOf = function(item) {
+    if (!item) return "";
+
+----- LINE 3889 -----
+      };
+    }
+  };
+
+  window.runSelectedAiDrafts = async function() {
+    const indexes = window.selectedSortingIndexes();
+
+    if (!indexes.length) {
+      showResult("まとめて仕分けする書類にチェックを入れてください。");
+      return;
+    }
+
+    const results = [];
+    let success = 0;
+    let failed = 0;
+    let review = 0;
+
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      const item = items[index] || {};
+      const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+
+----- LINE 3903 -----
+    let failed = 0;
+    let review = 0;
+
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      const item = items[index] || {};
+      const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+
+      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+
+      const result = await window.runAiDraftForItemIndex(index, { silent: true });
+
+      results.push(result);
+
+      if (result && result.ok) {
+        success++;
+        if (result.needsReview) review++;
+      } else {
+        failed++;
+      }
+
+
+----- LINE 3935 -----
+        return acc;
+      }, {});
+
+    const groupedText = Object.keys(grouped)
+      .map(key => key + ": " + grouped[key] + "件")
+      .join("\n");
+
+    showResult(
+      "まとめて仕分けが完了しました。\n" +
+      "対象: " + indexes.length + "件\n" +
+      "成功: " + success + "件\n" +
+      "失敗: " + failed + "件\n" +
+      "要確認: " + review + "件\n\n" +
+      "行き先別:\n" +
+      (groupedText || "なし")
+    );
+  };
+/* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
+async function loadItems() {
+    const summary = document.getElementById("summary");
+    const list = document.getElementById("list");
+
+----- LINE 5285 -----
+        bar.style.width = "0%";
+        bar.classList.remove("indeterminate");
+      }
+    }
+  };
+
+  window.hdPaymentAnalyzeStep = function (current, total, fileName) {
+    window.hdPaymentSetAnalyzeBusy(true, {
+      title: "まとめて仕分け中です",
+      sub: "チェックした書類を順番に仕分けています。",
+      current: current,
+      total: total,
+      fileName: fileName || ""
+    });
+  };
+
+  function parseProgressMessage(message) {
+    const text = textOf(message);
+
+    if (!text) return;
+
+
+----- LINE 5298 -----
+    });
+  };
+
+  function parseProgressMessage(message) {
+    const text = textOf(message);
+
+    if (!text) return;
+
+    if (text.includes("まとめて解析中") || text.includes("まとめて仕分け中")) {
+      const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+      const lines = text.split(/\r?\n/);
+      const fileName = lines.length ? lines[lines.length - 1] : "";
+
+      window.__hdOriginPaymentBulkBusyRunning = true;
+
+      window.hdPaymentSetAnalyzeBusy(true, {
+        title: "まとめて仕分け中です",
+        sub: "選択した書類を1件ずつAI仕分けしています。",
+        current: match ? Number(match[1]) : 0,
+        total: match ? Number(match[2]) : 0,
+        fileName: fileName || ""
+
+----- LINE 5306 -----
+    if (text.includes("まとめて解析中") || text.includes("まとめて仕分け中")) {
+      const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+      const lines = text.split(/\r?\n/);
+      const fileName = lines.length ? lines[lines.length - 1] : "";
+
+      window.__hdOriginPaymentBulkBusyRunning = true;
+
+      window.hdPaymentSetAnalyzeBusy(true, {
+        title: "まとめて仕分け中です",
+        sub: "選択した書類を1件ずつAI仕分けしています。",
+        current: match ? Number(match[1]) : 0,
+        total: match ? Number(match[2]) : 0,
+        fileName: fileName || ""
+      });
+
+      return;
+    }
+
+    if (
+      text.includes("単品解析中") ||
+      text.includes("単品仕分け中") ||
+
+----- LINE 5337 -----
+        detail: "AI応答待ちです。画面を閉じずにお待ちください。"
+      });
+
+      return;
+    }
+
+    if (
+      text.includes("まとめて解析が完了") ||
+      text.includes("まとめて仕分けが完了") ||
+      text.includes("解析が完了") ||
+      text.includes("仕分けが完了") ||
+      text.includes("AI解析失敗") ||
+      text.includes("AI仕分け失敗") ||
+      text.includes("解析する書類が見つかりません") ||
+      text.includes("仕分けする書類が見つかりません") ||
+      text.includes("エラー")
+    ) {
+      if (text.includes("まとめて解析が完了") || text.includes("まとめて仕分けが完了")) {
+        window.__hdOriginPaymentBulkBusyRunning = false;
+      }
+
+
+----- LINE 5346 -----
+      text.includes("解析が完了") ||
+      text.includes("仕分けが完了") ||
+      text.includes("AI解析失敗") ||
+      text.includes("AI仕分け失敗") ||
+      text.includes("解析する書類が見つかりません") ||
+      text.includes("仕分けする書類が見つかりません") ||
+      text.includes("エラー")
+    ) {
+      if (text.includes("まとめて解析が完了") || text.includes("まとめて仕分けが完了")) {
+        window.__hdOriginPaymentBulkBusyRunning = false;
+      }
+
+      window.setTimeout(function () {
+        if (!window.__hdOriginPaymentBulkBusyRunning) {
+          window.hdPaymentSetAnalyzeBusy(false);
+        }
+      }, 900);
+    }
+  }
+
+  function wrapShowResult() {
+
+----- LINE 5397 -----
+    const wrapped = async function () {
+      const isBulk = name === "runSelectedAiDrafts";
+      const wasBulkRunning = window.__hdOriginPaymentBulkBusyRunning;
+
+      if (isBulk) {
+        window.__hdOriginPaymentBulkBusyRunning = true;
+
+        window.hdPaymentSetAnalyzeBusy(true, {
+          title: "まとめて仕分け中です",
+          sub: "選択した書類を順番に仕分けています。",
+          detail: "動いています。画面を閉じずにお待ちください。"
+        });
+      } else if (!window.__hdOriginPaymentBulkBusyRunning) {
+        window.hdPaymentSetAnalyzeBusy(true, {
+          title: "単品仕分け中です",
+          sub: "AIが仕分け候補を作成しています。",
+          detail: "動いています。画面を閉じずにお待ちください。"
+        });
+      }
+
+      try {
+
+----- LINE 6512 -----
+      needs_review: !!(draft.needs_review || root.needs_review),
+
+      ai_summary: aiSummary,
+      sortResult: root,
+      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+
+      display_rotation: 0,
+      memo: "まとめて保存ボタンから仕分け下書き保存"
+    };
+  }
+
+  async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+
+----- LINE 6544 -----
+  async function bulkSaveSortingDrafts() {
+    let ids = getSelectedOcrIds();
+
+    if (ids.length === 0) {
+      ids = getIdsFromCache();
+    }
+
+    if (ids.length === 0) {
+      throw new Error("まとめて保存する対象が見つかりません。先にまとめて仕分けを実行してください。");
+    }
+
+    const ok = [];
+    const ng = [];
+
+    for (const id of ids) {
+      const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+
+      if (!cached) {
+        ng.push({
+          id,
+          error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+
+----- LINE 6588 -----
+  function ensureBulkSaveButton() {
+    if (document.getElementById("bulkSaveSortingDraftButton")) {
+      return document.getElementById("bulkSaveSortingDraftButton");
+    }
+
+    const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
+    const sortButton = buttons.find(function (button) {
+      const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+      return text.includes("まとめて仕分け");
+    });
+
+    if (!sortButton || !sortButton.parentNode) {
+      return null;
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "bulkSaveSortingDraftButton";
+    button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
+    button.textContent = "まとめて保存";
+
+
+----- LINE 6599 -----
+    if (!sortButton || !sortButton.parentNode) {
+      return null;
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "bulkSaveSortingDraftButton";
+    button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
+    button.textContent = "まとめて保存";
+
+    sortButton.insertAdjacentElement("afterend", button);
+
+    return button;
+  }
+
+  document.addEventListener("click", async function (event) {
+    const button = event.target.closest("#bulkSaveSortingDraftButton");
+
+    if (!button) {
+      return;
+    }
+
+----- LINE 6624 -----
+    if (button.dataset.saving === "1") {
+      return;
+    }
+
+    const originalText = button.textContent;
+
+    try {
+      button.dataset.saving = "1";
+      button.textContent = "まとめて保存中...";
+
+      const result = await bulkSaveSortingDrafts();
+
+      button.textContent = "まとめて保存";
+
+      alert(
+        "まとめて保存が完了しました。\n" +
+        "成功: " + result.ok.length + "件\n" +
+        "失敗: " + result.ng.length + "件"
+      );
+
+      if (result.ng.length > 0) {
+
+----- LINE 6628 -----
+    const originalText = button.textContent;
+
+    try {
+      button.dataset.saving = "1";
+      button.textContent = "まとめて保存中...";
+
+      const result = await bulkSaveSortingDrafts();
+
+      button.textContent = "まとめて保存";
+
+      alert(
+        "まとめて保存が完了しました。\n" +
+        "成功: " + result.ok.length + "件\n" +
+        "失敗: " + result.ng.length + "件"
+      );
+
+      if (result.ng.length > 0) {
+        console.warn("HD Origin bulk save draft errors:", result.ng);
+      }
+    } catch (err) {
+      button.textContent = originalText || "まとめて保存";
+
+----- LINE 6631 -----
+      button.dataset.saving = "1";
+      button.textContent = "まとめて保存中...";
+
+      const result = await bulkSaveSortingDrafts();
+
+      button.textContent = "まとめて保存";
+
+      alert(
+        "まとめて保存が完了しました。\n" +
+        "成功: " + result.ok.length + "件\n" +
+        "失敗: " + result.ng.length + "件"
+      );
+
+      if (result.ng.length > 0) {
+        console.warn("HD Origin bulk save draft errors:", result.ng);
+      }
+    } catch (err) {
+      button.textContent = originalText || "まとめて保存";
+
+      alert("まとめて保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
+    } finally {
+
+----- LINE 6640 -----
+        "成功: " + result.ok.length + "件\n" +
+        "失敗: " + result.ng.length + "件"
+      );
+
+      if (result.ng.length > 0) {
+        console.warn("HD Origin bulk save draft errors:", result.ng);
+      }
+    } catch (err) {
+      button.textContent = originalText || "まとめて保存";
+
+      alert("まとめて保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
+    } finally {
+      button.dataset.saving = "0";
+    }
+  }, true);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureBulkSaveButton);
+  } else {
+    ensureBulkSaveButton();
+  }
+
+----- LINE 6642 -----
+      );
+
+      if (result.ng.length > 0) {
+        console.warn("HD Origin bulk save draft errors:", result.ng);
+      }
+    } catch (err) {
+      button.textContent = originalText || "まとめて保存";
+
+      alert("まとめて保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
+    } finally {
+      button.dataset.saving = "0";
+    }
+  }, true);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureBulkSaveButton);
+  } else {
+    ensureBulkSaveButton();
+  }
+
+  window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
+
+----- LINE 6825 -----
+
+    if (button.id === "bulkSaveSortingDraftButton") return true;
+    if (button.classList && button.classList.contains("hd-origin-bulk-save-sorting-draft")) return true;
+
+    var t = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+
+    if (!t) return false;
+
+    return t.includes("まとめて保存") || t.includes("下書き保存");
+  }
+
+  function removeSaveButtons() {
+    Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a")).forEach(function (button) {
+      if (isSaveButton(button)) {
+        button.remove();
+      }
+    });
+  }
+
+  document.addEventListener("input", function (event) {
+    if (isDraftControl(event.target)) {
+
+----- LINE 8134 -----
+    );
+  }
+  else {
+    startSpecialistNavigationCounts();
+  }
+})();
+
+/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
+async function runBulkSaveSortingDrafts() {
+  const button = document.querySelector(".sorting-bulk-save");
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText =
+      button.dataset.originalText ||
+      button.textContent ||
+      "まとめて保存";
+    button.textContent = "保存中...";
+  }
+
+  try {
+
+----- LINE 8135 -----
+  }
+  else {
+    startSpecialistNavigationCounts();
+  }
+})();
+
+/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
+async function runBulkSaveSortingDrafts() {
+  const button = document.querySelector(".sorting-bulk-save");
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText =
+      button.dataset.originalText ||
+      button.textContent ||
+      "まとめて保存";
+    button.textContent = "保存中...";
+  }
+
+  try {
+    const selectedIndexes =
+
+----- LINE 8142 -----
+async function runBulkSaveSortingDrafts() {
+  const button = document.querySelector(".sorting-bulk-save");
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText =
+      button.dataset.originalText ||
+      button.textContent ||
+      "まとめて保存";
+    button.textContent = "保存中...";
+  }
+
+  try {
+    const selectedIndexes =
+      typeof selectedSortingIndexes === "function"
+        ? selectedSortingIndexes()
+        : [];
+
+    if (!selectedIndexes.length) {
+      showResult(
+        "まとめて保存する書類にチェックを入れてください。"
+
+----- LINE 8154 -----
+  try {
+    const selectedIndexes =
+      typeof selectedSortingIndexes === "function"
+        ? selectedSortingIndexes()
+        : [];
+
+    if (!selectedIndexes.length) {
+      showResult(
+        "まとめて保存する書類にチェックを入れてください。"
+      );
+      return;
+    }
+
+    showResult(
+      "まとめて保存中: " +
+      selectedIndexes.length +
+      "件"
+    );
+
+    const result = await bulkSaveSortingDrafts();
+
+
+----- LINE 8160 -----
+    if (!selectedIndexes.length) {
+      showResult(
+        "まとめて保存する書類にチェックを入れてください。"
+      );
+      return;
+    }
+
+    showResult(
+      "まとめて保存中: " +
+      selectedIndexes.length +
+      "件"
+    );
+
+    const result = await bulkSaveSortingDrafts();
+
+    const succeeded =
+      result && Array.isArray(result.ok)
+        ? result.ok
+        : [];
+
+    const failed =
+
+----- LINE 8189 -----
+        ": " +
+        String(row.error || "保存失敗")
+      );
+    }).join("\n");
+
+    showResult({
+      ok: failed.length === 0,
+      message:
+        "まとめて保存が完了しました。",
+      total:
+        succeeded.length + failed.length,
+      success:
+        succeeded.length,
+      failed:
+        failed.length,
+      errors:
+        failedText
+    });
+
+    if (failed.length === 0) {
+      if (
+
+----- LINE 8224 -----
+          ? error.message
+          : String(error)
+    });
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        button.dataset.originalText ||
+        "まとめて保存";
+    }
+  }
+}
+/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_END */
+</script>
+<!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
+</body>
+</html>
+
+
+
+
+
+============================================================
+非表示CSS・DOM条件確認
+============================================================
+HIDDEN_CONTEXT_COUNT=57
+
+----- LINE 19 -----
+     * 人間向け画面には表示しない。
+     */
+
+    label:has(#draftAiDestination),
+    label:has(#draftDestination) {
+      display: none !important;
+    }
+
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+
+----- LINE 23 -----
+    label:has(#draftDestination) {
+      display: none !important;
+    }
+
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+<body>
+  <div class="wrap">
+
+----- LINE 27 -----
+    .visual-dest {
+      display: none !important;
+    }
+
+    .sorting-detail-grid > div:has(.visual-dest) {
+      display: none !important;
+    }
+  </style>
+  <!-- HD_ORIGIN_HIDE_PAYMENT_DESTINATION_DISPLAY_GPT2_20260712_END -->
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>支払書類仕分けシステム</h1>
+      <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
+      <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+
+----- LINE 98 -----
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <span>仕分け対象書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
+</div>
+      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+      <div id="sortingColorLegend" class="sorting-color-legend">
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+
+----- LINE 181 -----
+                      data-master-label="取込媒体">
+                <option value="">マスタ読込中.</option>
+              </select>
+            </label>
+
+            <label hidden aria-hidden="true" data-internal-field="payment-destination">
+              処理先
+              <select class="draft-field master-select"
+                      id="draftAiDestination"
+                      data-master-type="payment_destinations"
+                      data-master-label="処理先">
+                <option value="">マスタ読込中...</option>
+              </select>
+            </label>
+
+            <label>
+
+----- LINE 200 -----
+                      data-master-type="analysis_systems"
+                      data-master-label="専門解析先">
+                <option value="">マスタ読込中.</option>
+              </select>
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+
+----- LINE 203 -----
+              </select>
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+              発行日
+              <input class="draft-field"
+                     id="draftIssueDate"
+
+----- LINE 206 -----
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
+                     type="hidden"
+                     id="draftAnalysisSystemConfidence">
+            </label>
+
+            <label>
+              発行日
+              <input class="draft-field"
+                     id="draftIssueDate"
+                     placeholder="例：2026-07-01">
+            </label>
+
+
+----- LINE 579 -----
+        </section>
+
+        <section class="draft-section">
+          <div class="draft-section-title">会計・管理</div>
+          <div class="form-grid">
+            <label hidden aria-hidden="true" data-internal-field="payment-destination">
+              処理先
+              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+            </label>
+            
+            <label>
+              支払先マスタ候補
+              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+            </label>
+            <label>
+              勘定科目
+
+----- LINE 1168 -----
+  }
+
+  function labelTextOnly(label) {
+    const clone = label.cloneNode(true);
+
+    clone.querySelectorAll("input, select, textarea, option, button").forEach(node => node.remove());
+
+    return normalizeLabelText(clone.textContent);
+  }
+
+  function findControlByLabelText(labelText) {
+    const wanted = normalizeLabelText(labelText);
+
+    if (!wanted) {
+      return null;
+    }
+
+----- LINE 1395 -----
+  function resetAiMasterSelectState(control) {
+    if (!control || !control.classList) {
+      return;
+    }
+
+    control.classList.remove("ai-master-unmatched");
+    delete control.dataset.aiMasterUnmatched;
+    delete control.dataset.aiUnmatchedValue;
+    control.removeAttribute("title");
+
+    Array.from(control.options || []).forEach(option => {
+      if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+        option.remove();
+      }
+    });
+  }
+
+----- LINE 1402 -----
+    delete control.dataset.aiUnmatchedValue;
+    control.removeAttribute("title");
+
+    Array.from(control.options || []).forEach(option => {
+      if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+        option.remove();
+      }
+    });
+  }
+
+  function markAiMasterUnmatched(control, text) {
+    if (!control || !control.classList) {
+      return;
+    }
+
+    control.value = "";
+
+----- LINE 1466 -----
+  function aiDebugMarkControl(control, value) {
+    if (!control || !control.classList) {
+      return;
+    }
+
+    control.classList.remove("ai-filled", "ai-null", "ai-object");
+
+    if (!control.dataset.originalPlaceholder && control.placeholder) {
+      control.dataset.originalPlaceholder = control.placeholder;
+    }
+
+    if (aiDebugIsEmptyValue(value)) {
+      control.classList.add("ai-null");
+      if ("placeholder" in control) {
+        control.placeholder = "";
+      }
+
+----- LINE 1548 -----
+  }
+
+  function labelTextOnly(label) {
+    const clone = label.cloneNode(true);
+
+    clone.querySelectorAll("input, select, textarea, option, button").forEach(node => node.remove());
+
+    return normalizeLabelText(clone.textContent);
+  }
+
+  function findControlByLabelText(labelText) {
+    const wanted = normalizeLabelText(labelText);
+
+    if (!wanted) {
+      return null;
+    }
+
+----- LINE 1833 -----
+  function aiHardDebugMarkControl(control, value) {
+    if (!control || !control.classList) {
+      return;
+    }
+
+    control.classList.remove("ai-filled", "ai-null", "ai-object");
+
+    if (!control.dataset.originalPlaceholder && control.placeholder) {
+      control.dataset.originalPlaceholder = control.placeholder;
+    }
+
+    if (aiHardDebugIsEmptyValue(value)) {
+      control.classList.add("ai-null");
+      if ("placeholder" in control) {
+        control.placeholder = "";
+      }
+
+----- LINE 1862 -----
+  }
+
+  function aiHardDebugLabelTextOnly(label) {
+    const clone = label.cloneNode(true);
+
+    clone.querySelectorAll("input, select, textarea, option, button").forEach(node => node.remove());
+
+    return aiHardDebugNormalizeText(clone.textContent);
+  }
+
+  function aiHardDebugFindControlByLabel(labelText) {
+    const wanted = aiHardDebugNormalizeText(labelText);
+
+    if (!wanted) {
+      return null;
+    }
+
+----- LINE 2051 -----
+  }
+
+  function aiSelectClearOldDebugOptions(control) {
+    Array.from(control.options || []).forEach(option => {
+      if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+        option.remove();
+      }
+    });
+  }
+
+  function aiSelectMarkUnmatched(control, text) {
+    if (!control) return;
+
+    control.value = "";
+    control.classList.add("ai-master-unmatched");
+    control.dataset.aiMasterUnmatched = "1";
+
+----- LINE 2071 -----
+  }
+
+  function aiSelectClearUnmatched(control) {
+    if (!control) return;
+
+    control.classList.remove("ai-master-unmatched");
+    delete control.dataset.aiMasterUnmatched;
+    delete control.dataset.aiUnmatchedValue;
+    control.removeAttribute("title");
+  }
+
+  function aiSetSelectByMasterCode(control, label, value) {
+    if (!control) return false;
+
+    const raw = String(value === null || value === undefined ? "" : value).trim();
+
+
+----- LINE 2219 -----
+
+    const raw = String(value === null || value === undefined ? "" : value).trim();
+
+    Array.from(select.options || []).forEach(option => {
+      if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+        option.remove();
+      }
+    });
+
+    select.classList.remove("ai-master-unmatched");
+    delete select.dataset.aiMasterUnmatched;
+    delete select.dataset.aiUnmatchedValue;
+    select.removeAttribute("title");
+
+    if (!raw) {
+      select.value = "";
+
+----- LINE 2223 -----
+      if (option && option.dataset && option.dataset.aiDebugOption === "1") {
+        option.remove();
+      }
+    });
+
+    select.classList.remove("ai-master-unmatched");
+    delete select.dataset.aiMasterUnmatched;
+    delete select.dataset.aiUnmatchedValue;
+    select.removeAttribute("title");
+
+    if (!raw) {
+      select.value = "";
+      return true;
+    }
+
+    const alias = aiMasterAliasForSelect(select, label, raw);
+
+----- LINE 2506 -----
+
+    return String(control.value || "").trim();
+  }
+
+  function setInitialAiOnlyView() {
+    document.body.classList.remove("ai-analysis-done");
+    document.body.classList.add("ai-analysis-initial");
+
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "none";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      section.classList.add("ai-section-hidden");
+    });
+
+
+----- LINE 2514 -----
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "none";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      section.classList.add("ai-section-hidden");
+    });
+
+    showResult("");
+  }
+
+  function showVisibleFieldsOnly(visibleLabels) {
+    const visibleSet = new Set((Array.isArray(visibleLabels) ? visibleLabels : []).map(item => normalizeLabelText(item)));
+
+    document.body.classList.remove("ai-analysis-initial");
+    document.body.classList.add("ai-analysis-done");
+
+----- LINE 2523 -----
+  }
+
+  function showVisibleFieldsOnly(visibleLabels) {
+    const visibleSet = new Set((Array.isArray(visibleLabels) ? visibleLabels : []).map(item => normalizeLabelText(item)));
+
+    document.body.classList.remove("ai-analysis-initial");
+    document.body.classList.add("ai-analysis-done");
+
+    document.querySelectorAll(".post-ai-action").forEach(button => {
+      button.style.display = "";
+    });
+
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
+      let sectionHasVisibleField = false;
+      const title = section.querySelector(".draft-section-title");
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+----- LINE 2536 -----
+      let sectionHasVisibleField = false;
+      const title = section.querySelector(".draft-section-title");
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+      if (section.classList.contains("stage1-sorting-block")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+
+----- LINE 2538 -----
+      const titleText = normalizeLabelText(title ? title.textContent : "");
+
+      if (section.classList.contains("stage1-sorting-block")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+
+----- LINE 2544 -----
+        });
+        return;
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      section.querySelectorAll("label").forEach(label => {
+        const control = label.querySelector("input, select, textarea");
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+
+----- LINE 2546 -----
+      }
+
+      if (titleText === normalizeLabelText("AI判定サマリー")) {
+        section.classList.remove("ai-section-hidden");
+        section.querySelectorAll("label").forEach(label => {
+          label.classList.remove("ai-field-hidden");
+        });
+        return;
+      }
+
+      section.querySelectorAll("label").forEach(label => {
+        const control = label.querySelector("input, select, textarea");
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+        const shouldShow = hasValue || visibleSet.has(labelText);
+
+
+----- LINE 2558 -----
+        const labelText = normalizeLabelText(getFieldLabelText(control));
+        const hasValue = !!getFieldValue(control);
+        const shouldShow = hasValue || visibleSet.has(labelText);
+
+        if (shouldShow) {
+          label.classList.remove("ai-field-hidden");
+          sectionHasVisibleField = true;
+        } else {
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+
+----- LINE 2561 -----
+
+        if (shouldShow) {
+          label.classList.remove("ai-field-hidden");
+          sectionHasVisibleField = true;
+        } else {
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+
+----- LINE 2566 -----
+          label.classList.add("ai-field-hidden");
+        }
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+/* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  async function runAiDraftFromSelectedOcr() {
+    const id = selectedOcrImportId();
+
+    if (!id) {
+
+----- LINE 2568 -----
+      });
+
+      if (sectionHasVisibleField) {
+        section.classList.remove("ai-section-hidden");
+      } else {
+        section.classList.add("ai-section-hidden");
+      }
+    });
+  }
+/* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  async function runAiDraftFromSelectedOcr() {
+    const id = selectedOcrImportId();
+
+    if (!id) {
+      showResult("左リストからDB保存済みOCRを選択してください。");
+      return;
+
+----- LINE 2636 -----
+         }
+         // 画面上の全入力値をかき集めてメモリに保持
+         const currentFormFields = {};
+         document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
+           const name = el.name || el.id;
+           if (name && el.type !== "hidden") {
+             currentFormFields[name] = el.value || "";
+           }
+         });
+         
+         items[selectedIndex].latestSortingDraft.visibleFields = Object.assign(
+             {},
+             currentFormFields,
+             data.draft.fields || {},
+             data.draft
+         );
+
+----- LINE 4383 -----
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+
+    for (const row of rows) {
+      const name = masterRowName(row);
+      const value = masterRowValue(row);
+      const labelText = masterRowLabel(row);
+
+      if (!name || !value) {
+        continue;
+      }
+
+
+----- LINE 4611 -----
+      scheduleDocumentPreviewFit();
+      return;
+    }
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+
+    for (const row of rows) {
+      const name = masterRowName(row);
+      const value = masterRowValue(row);
+      const labelText = masterRowLabel(row);
+      const code = masterRowCode(row);
+
+      if (!name || !value) {
+        continue;
+      }
+
+----- LINE 4761 -----
+    empty.value = "";
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+    select.classList.remove("master-empty");
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+
+      if (draftMasterLoadStatus[type] === false) {
+        option.textContent = label + "マスタ接続エラー";
+        select.classList.add("master-missing");
+      } else {
+
+----- LINE 4762 -----
+    empty.textContent = label + "を選択";
+    select.appendChild(empty);
+
+    select.disabled = false;
+    select.classList.remove("master-missing");
+    select.classList.remove("master-empty");
+
+    if (!rows.length) {
+      const option = document.createElement("option");
+      option.value = "";
+
+      if (draftMasterLoadStatus[type] === false) {
+        option.textContent = label + "マスタ接続エラー";
+        select.classList.add("master-missing");
+      } else {
+        option.textContent = label + "マスタ未登録（接続済み）";
+
+----- LINE 4885 -----
+  }
+
+  function isElementActuallyVisible(element) {
+    if (!element) return false;
+
+    if (element.closest(".ai-section-hidden")) return false;
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+
+----- LINE 4886 -----
+
+  function isElementActuallyVisible(element) {
+    if (!element) return false;
+
+    if (element.closest(".ai-section-hidden")) return false;
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+
+----- LINE 4891 -----
+    if (element.closest(".ai-field-hidden")) return false;
+
+    var node = element;
+
+    while (node && node.nodeType === 1) {
+      if (node.hidden) return false;
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+      if (node === document.body) break;
+
+      node = node.parentElement;
+
+----- LINE 4897 -----
+
+      var style = window.getComputedStyle(node);
+
+      if (!style) return false;
+      if (style.display === "none") return false;
+      if (style.visibility === "hidden") return false;
+
+      if (node === document.body) break;
+
+      node = node.parentElement;
+    }
+
+    return true;
+  }
+
+  function labelFor(control) {
+
+----- LINE 4919 -----
+    }
+
+    var clone = label.cloneNode(true);
+
+    clone.querySelectorAll("input, select, textarea, button, option").forEach(function (el) {
+      el.remove();
+    });
+
+    return cleanText(clone.textContent) || control.id || control.name || "";
+  }
+
+  function sectionFor(control) {
+    var section = control && control.closest(".draft-section");
+
+    if (!section) {
+      return "未分類";
+
+----- LINE 4965 -----
+  }
+
+  function collectVisibleFieldsOnly() {
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
+      .filter(function (control) {
+        if (!control || control.type === "hidden") return false;
+
+        var label = control.closest("label") || control;
+        var section = control.closest(".draft-section");
+
+        if (!isElementActuallyVisible(section || label)) return false;
+        if (!isElementActuallyVisible(label)) return false;
+        if (!isElementActuallyVisible(control)) return false;
+
+        return true;
+      });
+
+----- LINE 5178 -----
+    panel.id = "hdPaymentAnalyzeBusyPanel";
+    panel.className = "hd-analyze-busy-panel";
+    panel.setAttribute("aria-live", "polite");
+    panel.innerHTML = [
+      '<div class="hd-analyze-busy-card">',
+      '  <div class="hd-analyze-spinner" aria-hidden="true"></div>',
+      '  <div class="hd-analyze-busy-main">',
+      '    <div class="hd-analyze-busy-title" id="hdAnalyzeBusyTitle">仕分け中です</div>',
+      '    <div class="hd-analyze-busy-sub" id="hdAnalyzeBusySub">AIが仕分け候補を作成しています。</div>',
+      '    <div class="hd-analyze-progress">',
+      '      <div class="hd-analyze-progress-bar" id="hdAnalyzeProgressBar"></div>',
+      '    </div>',
+      '    <div class="hd-analyze-busy-detail" id="hdAnalyzeBusyDetail">画面を閉じずにお待ちください。</div>',
+      '  </div>',
+      '</div>'
+    ].join("");
+
+----- LINE 5224 -----
+        if (button.dataset.hdAnalyzeOldDisabled === "1") {
+          button.disabled = true;
+        }
+
+        delete button.dataset.hdAnalyzeOldDisabled;
+        button.classList.remove("hd-analyze-button-disabled");
+      }
+    });
+  }
+
+  window.hdPaymentSetAnalyzeBusy = function (active, options) {
+    const panel = ensureAnalyzeBusyPanel();
+    const opt = options || {};
+
+    const title = document.getElementById("hdAnalyzeBusyTitle");
+    const sub = document.getElementById("hdAnalyzeBusySub");
+
+----- LINE 5263 -----
+
+      if (bar) {
+        if (total > 0 && current > 0) {
+          const percent = Math.max(4, Math.min(100, Math.round((current / total) * 100)));
+          bar.style.width = percent + "%";
+          bar.classList.remove("indeterminate");
+        } else {
+          bar.style.width = "45%";
+          bar.classList.add("indeterminate");
+        }
+      }
+
+      setAnalyzeButtonsDisabled(true);
+    } else {
+      document.body.classList.remove("hd-analyze-busy");
+      panel.classList.remove("visible");
+
+----- LINE 5272 -----
+        }
+      }
+
+      setAnalyzeButtonsDisabled(true);
+    } else {
+      document.body.classList.remove("hd-analyze-busy");
+      panel.classList.remove("visible");
+      setAnalyzeButtonsDisabled(false);
+
+      if (bar) {
+        bar.style.width = "0%";
+        bar.classList.remove("indeterminate");
+      }
+    }
+  };
+
+
+----- LINE 5273 -----
+      }
+
+      setAnalyzeButtonsDisabled(true);
+    } else {
+      document.body.classList.remove("hd-analyze-busy");
+      panel.classList.remove("visible");
+      setAnalyzeButtonsDisabled(false);
+
+      if (bar) {
+        bar.style.width = "0%";
+        bar.classList.remove("indeterminate");
+      }
+    }
+  };
+
+  window.hdPaymentAnalyzeStep = function (current, total, fileName) {
+
+----- LINE 5278 -----
+      panel.classList.remove("visible");
+      setAnalyzeButtonsDisabled(false);
+
+      if (bar) {
+        bar.style.width = "0%";
+        bar.classList.remove("indeterminate");
+      }
+    }
+  };
+
+  window.hdPaymentAnalyzeStep = function (current, total, fileName) {
+    window.hdPaymentSetAnalyzeBusy(true, {
+      title: "まとめて仕分け中です",
+      sub: "チェックした書類を順番に仕分けています。",
+      current: current,
+      total: total,
+
+----- LINE 5771 -----
+      );
+
+      if (Number.isInteger(n) && n > 0) return n;
+    }
+
+    const hiddenSelectors = [
+      "#selectedOcrImportId",
+      "#paymentDocumentOcrImportId",
+      "input[name='selectedOcrImportId']",
+      "input[name='paymentDocumentOcrImportId']",
+      "input[name='payment_document_ocr_import_id']"
+    ];
+
+    for (const selector of hiddenSelectors) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+
+----- LINE 5779 -----
+      "input[name='selectedOcrImportId']",
+      "input[name='paymentDocumentOcrImportId']",
+      "input[name='payment_document_ocr_import_id']"
+    ];
+
+    for (const selector of hiddenSelectors) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+
+      const n = Number(el.value || el.textContent || el.dataset.value);
+      if (Number.isInteger(n) && n > 0) return n;
+    }
+
+    const activeSelectors = [
+      "[data-selected-ocr-import-id]",
+      "[data-payment-document-ocr-import-id].selected",
+
+----- LINE 6831 -----
+  }
+
+  function removeSaveButtons() {
+    Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a")).forEach(function (button) {
+      if (isSaveButton(button)) {
+        button.remove();
+      }
+    });
+  }
+
+  document.addEventListener("input", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+
+----- LINE 7473 -----
+
+    if (label) {
+      var clone = label.cloneNode(true);
+
+      clone.querySelectorAll("input, select, textarea, button").forEach(function (el) {
+        el.remove();
+      });
+
+      var text = textValue(clone.textContent);
+
+      if (text) return text;
+    }
+
+    return textValue(
+      control.getAttribute("aria-label") ||
+      control.getAttribute("placeholder") ||
+
+----- LINE 7492 -----
+    );
+  }
+
+  function isVisibleControl(control) {
+    if (!control) return false;
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+----- LINE 7493 -----
+  }
+
+  function isVisibleControl(control) {
+    if (!control) return false;
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+
+----- LINE 7497 -----
+    if (control.closest(".ai-field-hidden, .ai-section-hidden")) return false;
+    if (control.hidden) return false;
+
+    var style = window.getComputedStyle(control);
+
+    if (!style || style.display === "none" || style.visibility === "hidden") return false;
+
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+    return true;
+
+----- LINE 7504 -----
+    var parent = control.closest("label, .field, .form-field, .draft-section");
+
+    if (parent) {
+      var pstyle = window.getComputedStyle(parent);
+
+      if (pstyle && (pstyle.display === "none" || pstyle.visibility === "hidden")) return false;
+    }
+
+    return true;
+  }
+
+  function sectionForControl(control) {
+    var section = control.closest(".draft-section");
+
+    if (!section) return "画面表示中項目";
+
+
+----- LINE 8135 -----
+  }
+})();
+
+/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
+async function runBulkSaveSortingDrafts() {
+  const button = document.querySelector(".sorting-bulk-save");
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText =
+      button.dataset.originalText ||
+      button.textContent ||
+      "まとめて保存";
+    button.textContent = "保存中...";
+  }
+
+
+VISIBLE_BUTTON_HTML_COUNT=1
+HANDLER_FUNCTION_COUNT=1
+OVERALL_STATUS=SUCCESS

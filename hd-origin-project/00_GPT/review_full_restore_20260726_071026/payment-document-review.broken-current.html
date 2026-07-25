@@ -99,7 +99,6 @@
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
-        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
 <!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
@@ -2871,17 +2870,7 @@ function setDocumentPreview(item) {
       .map(row => row.index);
   }
 
-  function renderSortingList() {
-    const list = document.getElementById("list");
-
-    if (!list) return;
-      renderSortingList();
-      updateSelectedSortingSummary();
-
-    updateSelectedSortingSummary();
-  }
-
-  async function runAiDraftForItemIndex(index, options = {}) {
+async function runAiDraftForItemIndex(index, options = {}) {
     if (
       !Array.isArray(items) ||
       index < 0 ||
@@ -3964,9 +3953,7 @@ async function loadItems() {
 
       const allItems = data.items || [];
       items = allItems;
-      if (typeof ensureSpecialistButtonCountObserver === "function") {
-        ensureSpecialistButtonCountObserver();
-      }
+      ensureSpecialistButtonCountObserver();
 
       window.setTimeout(() => {
         if (Array.isArray(items) && items.length > 0 && selectedIndex < 0) {
@@ -6810,21 +6797,6 @@ const saveDraft = Object.assign(
   }
 
   function isSaveButton(button) {
-    if (
-      button &&
-      button.classList &&
-      button.classList.contains("sorting-bulk-save")
-    ) {
-      return false;
-    }
-
-    if (
-      button &&
-      button.getAttribute &&
-      button.getAttribute("onclick") === "runBulkSaveSortingDrafts()"
-    ) {
-      return false;
-    }
     if (!button) return false;
 
     if (button.id === "bulkSaveSortingDraftButton") return true;
@@ -8141,103 +8113,6 @@ const saveDraft = Object.assign(
     startSpecialistNavigationCounts();
   }
 })();
-
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
-async function runBulkSaveSortingDrafts() {
-  const button = document.querySelector(".sorting-bulk-save");
-
-  if (button) {
-    button.disabled = true;
-    button.dataset.originalText =
-      button.dataset.originalText ||
-      button.textContent ||
-      "まとめて保存";
-    button.textContent = "保存中...";
-  }
-
-  try {
-    const selectedIndexes =
-      typeof selectedSortingIndexes === "function"
-        ? selectedSortingIndexes()
-        : [];
-
-    if (!selectedIndexes.length) {
-      showResult(
-        "まとめて保存する書類にチェックを入れてください。"
-      );
-      return;
-    }
-
-    showResult(
-      "まとめて保存中: " +
-      selectedIndexes.length +
-      "件"
-    );
-
-    const result = await bulkSaveSortingDrafts();
-
-    const succeeded =
-      result && Array.isArray(result.ok)
-        ? result.ok
-        : [];
-
-    const failed =
-      result && Array.isArray(result.ng)
-        ? result.ng
-        : [];
-
-    const failedText = failed.map(function (row) {
-      return (
-        "ID " +
-        String(row.id || "") +
-        ": " +
-        String(row.error || "保存失敗")
-      );
-    }).join("\n");
-
-    showResult({
-      ok: failed.length === 0,
-      message:
-        "まとめて保存が完了しました。",
-      total:
-        succeeded.length + failed.length,
-      success:
-        succeeded.length,
-      failed:
-        failed.length,
-      errors:
-        failedText
-    });
-
-    if (failed.length === 0) {
-      if (
-        typeof clearSortingSelection === "function"
-      ) {
-        clearSortingSelection();
-      }
-
-      if (typeof loadItems === "function") {
-        await loadItems();
-      }
-    }
-  } catch (error) {
-    showResult({
-      ok: false,
-      message:
-        error && error.message
-          ? error.message
-          : String(error)
-    });
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent =
-        button.dataset.originalText ||
-        "まとめて保存";
-    }
-  }
-}
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_END */
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>

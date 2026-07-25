@@ -99,7 +99,6 @@
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
-        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
 <!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
@@ -2871,17 +2870,7 @@ function setDocumentPreview(item) {
       .map(row => row.index);
   }
 
-  function renderSortingList() {
-    const list = document.getElementById("list");
-
-    if (!list) return;
-      renderSortingList();
-      updateSelectedSortingSummary();
-
-    updateSelectedSortingSummary();
-  }
-
-  async function runAiDraftForItemIndex(index, options = {}) {
+async function runAiDraftForItemIndex(index, options = {}) {
     if (
       !Array.isArray(items) ||
       index < 0 ||
@@ -3964,9 +3953,7 @@ async function loadItems() {
 
       const allItems = data.items || [];
       items = allItems;
-      if (typeof ensureSpecialistButtonCountObserver === "function") {
-        ensureSpecialistButtonCountObserver();
-      }
+      ensureSpecialistButtonCountObserver();
 
       window.setTimeout(() => {
         if (Array.isArray(items) && items.length > 0 && selectedIndex < 0) {
@@ -6810,21 +6797,6 @@ const saveDraft = Object.assign(
   }
 
   function isSaveButton(button) {
-    if (
-      button &&
-      button.classList &&
-      button.classList.contains("sorting-bulk-save")
-    ) {
-      return false;
-    }
-
-    if (
-      button &&
-      button.getAttribute &&
-      button.getAttribute("onclick") === "runBulkSaveSortingDrafts()"
-    ) {
-      return false;
-    }
     if (!button) return false;
 
     if (button.id === "bulkSaveSortingDraftButton") return true;
@@ -8142,102 +8114,233 @@ const saveDraft = Object.assign(
   }
 })();
 
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
-async function runBulkSaveSortingDrafts() {
-  const button = document.querySelector(".sorting-bulk-save");
-
-  if (button) {
-    button.disabled = true;
-    button.dataset.originalText =
-      button.dataset.originalText ||
-      button.textContent ||
-      "まとめて保存";
-    button.textContent = "保存中...";
+/* HD_ORIGIN_REVIEW_LIST_FORCE_RENDER_20260726_START */
+(function () {
+  function text(value) {
+    return value === null || value === undefined
+      ? ""
+      : String(value);
   }
 
-  try {
-    const selectedIndexes =
-      typeof selectedSortingIndexes === "function"
-        ? selectedSortingIndexes()
-        : [];
+  function escapeHtml(value) {
+    return text(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 
-    if (!selectedIndexes.length) {
-      showResult(
-        "まとめて保存する書類にチェックを入れてください。"
+  function itemId(item) {
+    return Number(
+      item &&
+      (
+        item.paymentDocumentOcrImportId ||
+        item.payment_document_ocr_import_id ||
+        item.ocrImportId ||
+        item.id
+      )
+    ) || 0;
+  }
+
+  function itemName(item) {
+    return text(
+      item &&
+      (
+        item.originalFileName ||
+        item.original_file_name ||
+        item.savedFileName ||
+        item.saved_file_name ||
+        item.fileName
+      )
+    );
+  }
+
+  function itemStatus(item) {
+    return text(
+      item &&
+      (
+        item.currentStatus ||
+        item.current_status
+      )
+    );
+  }
+
+  function itemOcrStatus(item) {
+    return text(
+      item &&
+      (
+        item.ocrStatus ||
+        item.ocr_status
+      )
+    );
+  }
+
+  window.renderSortingList = function () {
+    var list = document.getElementById("list");
+
+    if (!list) {
+      console.error(
+        "payment-document-review: #listが見つかりません。"
       );
       return;
     }
 
-    showResult(
-      "まとめて保存中: " +
-      selectedIndexes.length +
-      "件"
+    var source = Array.isArray(items) ? items : [];
+
+    if (!source.length) {
+      list.innerHTML =
+        '<div class="empty">' +
+        '表示対象の証憑がありません。' +
+        '</div>';
+      return;
+    }
+
+    list.innerHTML = source.map(function (item, index) {
+      var id = itemId(item);
+      var active =
+        typeof selectedIndex === "number" &&
+        selectedIndex === index
+          ? " active"
+          : "";
+
+      return (
+        '<button type="button"' +
+        ' class="item review-force-item' + active + '"' +
+        ' data-index="' + index + '"' +
+        ' data-payment-document-ocr-import-id="' + id + '"' +
+        ' style="display:block;width:100%;text-align:left;' +
+        'margin:0 0 8px;padding:10px;cursor:pointer;">' +
+          '<strong>' +
+            escapeHtml(itemName(item) || ("証憑ID " + id)) +
+          '</strong>' +
+          '<div style="margin-top:4px;font-size:12px;">' +
+            'ID: ' + escapeHtml(id) +
+            ' / 状態: ' + escapeHtml(itemStatus(item)) +
+            ' / OCR: ' + escapeHtml(itemOcrStatus(item)) +
+          '</div>' +
+        '</button>'
+      );
+    }).join("");
+
+    list.querySelectorAll(".review-force-item").forEach(
+      function (button) {
+        button.addEventListener("click", function () {
+          var index = Number(button.dataset.index);
+
+          if (
+            typeof selectItem === "function" &&
+            Number.isInteger(index)
+          ) {
+            selectItem(index);
+          }
+        });
+      }
     );
 
-    const result = await bulkSaveSortingDrafts();
+    console.log(
+      "payment-document-review: 一覧描画完了",
+      source.length
+    );
+  };
 
-    const succeeded =
-      result && Array.isArray(result.ok)
-        ? result.ok
-        : [];
+  window.loadItems = async function () {
+    var summary = document.getElementById("summary");
+    var list = document.getElementById("list");
 
-    const failed =
-      result && Array.isArray(result.ng)
-        ? result.ng
-        : [];
+    if (summary) {
+      summary.textContent = "読込中...";
+    }
 
-    const failedText = failed.map(function (row) {
-      return (
-        "ID " +
-        String(row.id || "") +
-        ": " +
-        String(row.error || "保存失敗")
+    if (list) {
+      list.innerHTML = "";
+    }
+
+    try {
+      var response = await fetch(
+        "/api/payment-documents/review-items",
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Accept": "application/json"
+          }
+        }
       );
-    }).join("\n");
 
-    showResult({
-      ok: failed.length === 0,
-      message:
-        "まとめて保存が完了しました。",
-      total:
-        succeeded.length + failed.length,
-      success:
-        succeeded.length,
-      failed:
-        failed.length,
-      errors:
-        failedText
-    });
+      var data = await response.json();
 
-    if (failed.length === 0) {
+      if (!response.ok || !data || data.ok === false) {
+        throw new Error(
+          data && data.error
+            ? data.error
+            : "一覧APIの読込に失敗しました。"
+        );
+      }
+
+      items = Array.isArray(data.items)
+        ? data.items
+        : [];
+
+      if (summary) {
+        summary.textContent =
+          "DB保存済みOCR: " + items.length + "件";
+      }
+
+      window.renderSortingList();
+
       if (
-        typeof clearSortingSelection === "function"
+        items.length > 0 &&
+        typeof selectedIndex === "number" &&
+        selectedIndex < 0 &&
+        typeof selectItem === "function"
       ) {
-        clearSortingSelection();
+        window.setTimeout(function () {
+          try {
+            selectItem(0);
+          } catch (error) {
+            console.error(
+              "payment-document-review: 初期選択失敗",
+              error
+            );
+          }
+        }, 0);
       }
 
-      if (typeof loadItems === "function") {
-        await loadItems();
+      console.log(
+        "payment-document-review: API読込完了",
+        items.length
+      );
+    } catch (error) {
+      console.error(
+        "payment-document-review: 一覧読込エラー",
+        error
+      );
+
+      if (summary) {
+        summary.textContent =
+          "読込エラー: " +
+          (error.message || String(error));
+      }
+
+      if (list) {
+        list.innerHTML =
+          '<div class="empty">' +
+          escapeHtml(error.message || String(error)) +
+          '</div>';
       }
     }
-  } catch (error) {
-    showResult({
-      ok: false,
-      message:
-        error && error.message
-          ? error.message
-          : String(error)
-    });
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent =
-        button.dataset.originalText ||
-        "まとめて保存";
-    }
-  }
-}
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_END */
+  };
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+      window.loadItems();
+    },
+    { once: true }
+  );
+})();
+/* HD_ORIGIN_REVIEW_LIST_FORCE_RENDER_20260726_END */
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>

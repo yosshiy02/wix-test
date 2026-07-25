@@ -6810,21 +6810,6 @@ const saveDraft = Object.assign(
   }
 
   function isSaveButton(button) {
-    if (
-      button &&
-      button.classList &&
-      button.classList.contains("sorting-bulk-save")
-    ) {
-      return false;
-    }
-
-    if (
-      button &&
-      button.getAttribute &&
-      button.getAttribute("onclick") === "runBulkSaveSortingDrafts()"
-    ) {
-      return false;
-    }
     if (!button) return false;
 
     if (button.id === "bulkSaveSortingDraftButton") return true;

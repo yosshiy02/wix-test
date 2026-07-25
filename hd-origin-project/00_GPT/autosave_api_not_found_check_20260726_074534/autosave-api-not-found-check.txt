@@ -1,0 +1,2745 @@
+============================================================
+基礎解析画面 自動保存API not found確認
+============================================================
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+============================================================
+1. HTML内の保存API
+============================================================
+HTML_API=/api/payment-documents/ai-draft/
+HTML_API=/api/payment-documents/review-items
+HTML_API=/api/payment-documents/review-visible-fields-memo
+HTML_API=/api/payment-documents/sorting-drafts/save
+HTML_API=/api/payment-documents/contract-insurance-lease/list
+
+============================================================
+2. 自動保存関連コード
+============================================================
+AUTOSAVE_CONTEXT_COUNT=93
+
+----- HTML LINE 103 -----
+        <span>仕分け対象書類</span>
+        <button type="button" class="light" onclick="loadItems()">更新</button>
+      </div>
+            <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+        <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+        <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
+        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
+<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
+</div>
+      <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+      <div id="sortingColorLegend" class="sorting-color-legend">
+        <span class="legend-chip legend-invoice">請求・未払系</span>
+        <span class="legend-chip legend-expense">レシート・領収書</span>
+        <span class="legend-chip legend-tax">税金・公的支払</span>
+        <span class="legend-chip legend-contract">契約・保険・リース</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
+        <span class="legend-chip legend-card">カード</span>
+        <span class="legend-chip legend-reference">照合用</span>
+        <span class="legend-chip legend-review">要確認</span>
+      </div>
+
+<div id="summary" class="summary">読込中...</div>
+      <div id="list" class="list"></div>
+    </section>
+
+    <section class="panel preview-panel">
+
+----- HTML LINE 2584 -----
+    if (!id) {
+      showResult("左リストからDB保存済みOCRを選択してください。");
+      return;
+    }
+
+    showResult("AI基礎解析（1回目・2回目）を実行しています。画像は送信しません。");
+
+    try {
+      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        showResult(data);
+        return;
+      }
+      
+      /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_START */
+      const preservedVisibleFieldLabels =
+        Array.isArray(data.visible_field_labels)
+          ? data.visible_field_labels.slice()
+          : (
+              data.draft &&
+              Array.isArray(data.draft.visible_field_labels)
+
+----- HTML LINE 2654 -----
+         );
+      }
+
+      // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
+      let savedInfo = " (保存に失敗しました)";
+      try {
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+
+----- HTML LINE 2655 -----
+      }
+
+      // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
+      let savedInfo = " (保存に失敗しました)";
+      try {
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+
+----- HTML LINE 2656 -----
+
+      // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
+      let savedInfo = " (保存に失敗しました)";
+      try {
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+        ok: false,
+
+----- HTML LINE 2657 -----
+      // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
+      let savedInfo = " (保存に失敗しました)";
+      try {
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+        ok: false,
+        error: error.message || String(error)
+
+----- HTML LINE 2660 -----
+          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
+              await window.hdOriginSaveSortingDraftFromReviewPage();
+              savedInfo = " (結果を自動保存しました)";
+          } else if (typeof scheduleAutoSave === "function") {
+              scheduleAutoSave("ai");
+              savedInfo = " (自動保存を予約しました)";
+          }
+      } catch (saveErr) {
+          console.error("AI後の自動保存エラー", saveErr);
+      }
+
+      showResult({
+        ok: true,
+        message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
+        image_used: data.image_used,
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || [],
+        ai_steps: data.ai_steps || [],
+        draft: data.draft
+      });
+    } catch (error) {
+      showResult({
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+  }
+
+----- HTML LINE 2942 -----
+        "マスタ駆動AIの1回目解析と" +
+        "2回目解析を実行しています。" +
+        "3回目の専門解析は実行しません。" +
+        "画像は送信しません。"
+      );
+    }
+
+    try {
+      const res = await fetch(
+        "/api/payment-documents/ai-draft/" +
+        encodeURIComponent(id),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        const error =
+          data.error ||
+          data.message ||
+          (
+
+----- HTML LINE 3065 -----
+        );
+      }
+
+      window.__lastAiDraftAppliedCount =
+        appliedCount;
+
+      if (
+        typeof window
+          .hdOriginRunSortingDraftAutoSave
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+
+----- HTML LINE 3069 -----
+        appliedCount;
+
+      if (
+        typeof window
+          .hdOriginRunSortingDraftAutoSave
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+
+----- HTML LINE 3074 -----
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+
+----- HTML LINE 3076 -----
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+----- HTML LINE 3081 -----
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+
+----- HTML LINE 3082 -----
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+        renderSortingList();
+
+----- HTML LINE 3085 -----
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+        renderSortingList();
+      }
+
+      if (!options.silent) {
+
+----- HTML LINE 3086 -----
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+        renderSortingList();
+      }
+
+      if (!options.silent) {
+        showResult({
+
+----- HTML LINE 3087 -----
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        typeof renderSortingList
+        === "function"
+      ) {
+        renderSortingList();
+      }
+
+      if (!options.silent) {
+        showResult({
+          ok: true,
+
+----- HTML LINE 3118 -----
+          fileName: name,
+          ai_steps:
+            item.__aiSteps,
+          document_group:
+            item.__documentGroup,
+          visible_field_labels:
+            item.__visibleFieldLabels,
+          specialistAnalysisId:
+            autoSaved
+              .specialistAnalysisId ||
+            autoSaved
+              .specialist_analysis_id ||
+            null,
+          appliedCount
+        });
+      }
+
+      return {
+        ok: true,
+        name,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        visible_field_labels:
+          item.__visibleFieldLabels,
+        specialistAnalysisId:
+
+----- HTML LINE 3120 -----
+            item.__aiSteps,
+          document_group:
+            item.__documentGroup,
+          visible_field_labels:
+            item.__visibleFieldLabels,
+          specialistAnalysisId:
+            autoSaved
+              .specialistAnalysisId ||
+            autoSaved
+              .specialist_analysis_id ||
+            null,
+          appliedCount
+        });
+      }
+
+      return {
+        ok: true,
+        name,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        visible_field_labels:
+          item.__visibleFieldLabels,
+        specialistAnalysisId:
+          autoSaved
+            .specialistAnalysisId ||
+
+----- HTML LINE 3137 -----
+        name,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        visible_field_labels:
+          item.__visibleFieldLabels,
+        specialistAnalysisId:
+          autoSaved
+            .specialistAnalysisId ||
+          autoSaved
+            .specialist_analysis_id ||
+          null,
+        appliedCount
+      };
+    }
+    catch (error) {
+      const message =
+        error.message ||
+        String(error);
+
+      showResult({
+        ok: false,
+        name,
+        error: message
+      });
+
+
+----- HTML LINE 3139 -----
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        visible_field_labels:
+          item.__visibleFieldLabels,
+        specialistAnalysisId:
+          autoSaved
+            .specialistAnalysisId ||
+          autoSaved
+            .specialist_analysis_id ||
+          null,
+        appliedCount
+      };
+    }
+    catch (error) {
+      const message =
+        error.message ||
+        String(error);
+
+      showResult({
+        ok: false,
+        name,
+        error: message
+      });
+
+      return {
+        ok: false,
+
+----- HTML LINE 3635 -----
+        "マスタ駆動AIの1回目解析と" +
+        "2回目解析を実行しています。" +
+        "3回目の専門解析は実行しません。" +
+        "画像は送信しません。"
+      );
+    }
+
+    try {
+      const res = await fetch(
+        "/api/payment-documents/ai-draft/" +
+        encodeURIComponent(id),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        const error =
+          data.error ||
+          data.message ||
+          (
+
+----- HTML LINE 3763 -----
+        );
+      }
+
+      window.__lastAiDraftAppliedCount =
+        appliedCount;
+
+      if (
+        typeof window
+          .hdOriginRunSortingDraftAutoSave
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+
+----- HTML LINE 3767 -----
+        appliedCount;
+
+      if (
+        typeof window
+          .hdOriginRunSortingDraftAutoSave
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+
+----- HTML LINE 3772 -----
+        !== "function"
+      ) {
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+
+----- HTML LINE 3774 -----
+        throw new Error(
+          "仕分け下書き自動保存関数が" +
+          "見つかりません。"
+        );
+      }
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+----- HTML LINE 3779 -----
+
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+
+----- HTML LINE 3780 -----
+      const autoSaved =
+        await window
+          .hdOriginRunSortingDraftAutoSave(
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+      ) {
+
+----- HTML LINE 3783 -----
+            "ai"
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+      ) {
+        window.__expandedOcrImportIds.clear();
+        window.__expandedOcrImportIds.add(id);
+      }
+
+----- HTML LINE 3784 -----
+          );
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+      ) {
+        window.__expandedOcrImportIds.clear();
+        window.__expandedOcrImportIds.add(id);
+      }
+
+
+----- HTML LINE 3785 -----
+
+      if (
+        !autoSaved ||
+        autoSaved.ok !== true
+      ) {
+        const saveError =
+          autoSaved &&
+          autoSaved.error
+            ? autoSaved.error
+            : (
+                "1回目・2回目解析結果の" +
+                "DB保存に失敗しました。"
+              );
+
+        throw new Error(saveError);
+      }
+
+      if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+      ) {
+        window.__expandedOcrImportIds.clear();
+        window.__expandedOcrImportIds.add(id);
+      }
+
+      if (
+
+----- HTML LINE 3831 -----
+          fileName: name,
+          ai_steps:
+            item.__aiSteps,
+          document_group:
+            item.__documentGroup,
+          visible_field_labels:
+            item.__visibleFieldLabels,
+          specialistAnalysisId:
+            autoSaved
+              .specialistAnalysisId ||
+            autoSaved
+              .specialist_analysis_id ||
+            null,
+          appliedCount
+        });
+      }
+
+      return {
+        ok: true,
+        name,
+        kind:
+          visual.kindLabel || "",
+        destination:
+          visual.destinationLabel || "",
+        accounting:
+          visual.accountingLabel || "",
+        confidence:
+
+----- HTML LINE 3833 -----
+            item.__aiSteps,
+          document_group:
+            item.__documentGroup,
+          visible_field_labels:
+            item.__visibleFieldLabels,
+          specialistAnalysisId:
+            autoSaved
+              .specialistAnalysisId ||
+            autoSaved
+              .specialist_analysis_id ||
+            null,
+          appliedCount
+        });
+      }
+
+      return {
+        ok: true,
+        name,
+        kind:
+          visual.kindLabel || "",
+        destination:
+          visual.destinationLabel || "",
+        accounting:
+          visual.accountingLabel || "",
+        confidence:
+          visual.confidenceLabel || "",
+        needsReview:
+
+----- HTML LINE 3858 -----
+          visual.confidenceLabel || "",
+        needsReview:
+          visual.needsReview === true,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        specialistAnalysisId:
+          autoSaved
+            .specialistAnalysisId ||
+          autoSaved
+            .specialist_analysis_id ||
+          null,
+        appliedCount
+      };
+    }
+    catch (error) {
+      const message =
+        error.message ||
+        String(error);
+
+      showResult({
+        ok: false,
+        name,
+        error: message
+      });
+
+
+----- HTML LINE 3860 -----
+          visual.needsReview === true,
+        ai_steps:
+          item.__aiSteps,
+        document_group:
+          item.__documentGroup,
+        specialistAnalysisId:
+          autoSaved
+            .specialistAnalysisId ||
+          autoSaved
+            .specialist_analysis_id ||
+          null,
+        appliedCount
+      };
+    }
+    catch (error) {
+      const message =
+        error.message ||
+        String(error);
+
+      showResult({
+        ok: false,
+        name,
+        error: message
+      });
+
+      return {
+        ok: false,
+
+----- HTML LINE 3959 -----
+    selectedIndex = -1;
+
+    document.getElementById("ocrText").value = "";
+    setBottomOcrText("");
+    clearDraftFields();
+    setInitialAiOnlyView();
+
+    try {
+      const res = await fetch("/api/payment-documents/review-items");
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "読込失敗");
+      }
+
+      const allItems = data.items || [];
+      items = allItems;
+      if (typeof ensureSpecialistButtonCountObserver === "function") {
+        ensureSpecialistButtonCountObserver();
+      }
+
+      window.setTimeout(() => {
+        if (Array.isArray(items) && items.length > 0 && selectedIndex < 0) {
+          selectItem(0);
+        } else {
+          updateRecordNavigationControls();
+        }
+
+----- HTML LINE 4226 -----
+  async function restartServer() {
+    const ok = confirm("サーバーを再起動しますか？\n終了前バックアップありの再起動APIを呼びます。");
+
+    if (!ok) return;
+
+    showResult("サーバー再起動を要求中です。");
+
+    try {
+      const res = await fetch("/api/system/restart-with-backup", {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      showResult(JSON.stringify(data, null, 2));
+    } catch (error) {
+      showResult("再起動要求後に接続が切れた可能性があります。\n" + (error.message || String(error)));
+    }
+  }
+/* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_START */
+  let draftMasters = {};
+
+  const DRAFT_MASTER_FIELDS = [
+    { id: "draftAiDocumentKind", type: "document_types", label: "書類区分" },
+    { id: "draftAnalysisSystemLabel", type: "analysis_systems", label: "専門解析先" },
+    { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
+
+----- HTML LINE 4460 -----
+      return;
+    }
+
+    el.value = String(value);
+  }
+
+  async function loadDraftMasters() {
+    try {
+      const res = await fetch("/api/expenses/masters");
+      const data = await res.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "マスタ読込失敗");
+      }
+
+      draftMasters = data.masters || data.items || data;
+      populateDraftMasterSelects();
+    } catch (error) {
+      draftMasters = {};
+      populateDraftMasterSelects();
+
+      const message =
+        "マスタ読込に失敗しました。\n" +
+        "区分系は固定値にせず、マスタ接続後に選択できるようにしています。\n" +
+        (error.message || String(error));
+
+      showResult(message);
+
+----- HTML LINE 4667 -----
+      );
+    });
+
+    select.value = match ? match.value : "";
+  }
+
+  async function fetchDraftMasterRows(type) {
+    if (type === "analysis_systems") {
+      const res = await fetch("/api/expenses/masters", {
+        cache: "no-store"
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(
+          type + ": " + (data.error || "専門解析先マスタ読込失敗")
+        );
+      }
+
+      if (
+        data.masters &&
+        Array.isArray(data.masters.analysis_systems)
+      ) {
+        return data.masters.analysis_systems;
+      }
+
+
+----- HTML LINE 4693 -----
+
+      if (Array.isArray(data.analysis_systems)) {
+        return data.analysis_systems;
+      }
+
+      return [];
+    }
+
+    const res = await fetch(
+      "/api/masters?type=" + encodeURIComponent(type),
+      {
+        cache: "no-store"
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      throw new Error(
+        type + ": " + (data.error || "マスタ読込失敗")
+      );
+    }
+
+    return data.rows || data.items || data.masters || [];
+  }
+
+  async function loadDraftMasters() {
+
+----- HTML LINE 5081 -----
+      };
+
+      showResultSafe({
+        ok: true,
+        message: "表示中の項目だけをmemoへ出します。",
+        visibleFieldCount: fields.length
+      });
+
+      var res = await fetch("/api/payment-documents/review-visible-fields-memo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      var responseText = await res.text();
+      var data = {};
+
+      try {
+        data = JSON.parse(responseText || "{}");
+      } catch (error) {
+        throw new Error("API応答がJSONではありません: " + responseText.slice(0, 300));
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || data.message || ("HTTP " + res.status));
+
+----- HTML LINE 6262 -----
+          ? saveDraft.warnings
+          : []
+    };
+  }
+
+  async function saveSortingDraftFromReviewPage() {
+    const payload = collectSortingDraftPayload();
+
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || "下書き保存に失敗しました。");
+    }
+
+    return json;
+  }
+
+
+----- HTML LINE 6516 -----
+      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+
+      display_rotation: 0,
+      memo: "まとめて保存ボタンから仕分け下書き保存"
+    };
+  }
+
+  async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || "下書き保存に失敗しました。");
+    }
+
+    return json;
+  }
+
+----- HTML LINE 6517 -----
+      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+
+      display_rotation: 0,
+      memo: "まとめて保存ボタンから仕分け下書き保存"
+    };
+  }
+
+  async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(function () {
+      return {};
+    });
+
+    if (!res.ok || !json.ok) {
+      throw new Error(json.error || "下書き保存に失敗しました。");
+    }
+
+    return json;
+  }
+
+
+----- HTML LINE 6563 -----
+          id,
+          error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+        });
+        continue;
+      }
+
+      try {
+        const payload = buildPayloadFromCachedResult(id, cached);
+        const saved = await postSortingDraft(payload);
+
+        ok.push({
+          id,
+          draftId: saved.specialistAnalysisId || ""
+        });
+      } catch (err) {
+        ng.push({
+          id,
+          error: err && err.message ? err.message : String(err)
+        });
+      }
+    }
+
+    return { ok, ng };
+  }
+
+  function ensureBulkSaveButton() {
+    if (document.getElementById("bulkSaveSortingDraftButton")) {
+
+----- HTML LINE 6661 -----
+
+  window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
+})();
+/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
+</script>
+<script>
+</script>
+
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+----- HTML LINE 6666 -----
+<script>
+</script>
+
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+
+----- HTML LINE 6667 -----
+</script>
+
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+
+----- HTML LINE 6669 -----
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+
+----- HTML LINE 6670 -----
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+----- HTML LINE 6671 -----
+(function () {
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+
+----- HTML LINE 6672 -----
+  "use strict";
+
+  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+
+  var autoSaveTimer = null;
+  var autoSaveRunning = false;
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+    var title = document.querySelector(".draft-panel .panel-title");
+
+----- HTML LINE 6679 -----
+  var autoSaveQueued = false;
+  var suppressAutoSave = false;
+
+  function textValue(value) {
+    return String(value || "").replace(/\s+/g, "").trim();
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+    var title = document.querySelector(".draft-panel .panel-title");
+
+    if (title) {
+      title.appendChild(box);
+    } else {
+      document.body.appendChild(box);
+    }
+
+
+----- HTML LINE 6684 -----
+  }
+
+  function statusBox() {
+    var box = document.getElementById("sortingAutoSaveStatus");
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+    var title = document.querySelector(".draft-panel .panel-title");
+
+    if (title) {
+      title.appendChild(box);
+    } else {
+      document.body.appendChild(box);
+    }
+
+    return box;
+  }
+
+  function setStatus(message, isError) {
+    var box = statusBox();
+
+----- HTML LINE 6688 -----
+
+    if (box) return box;
+
+    box = document.createElement("span");
+    box.id = "sortingAutoSaveStatus";
+    box.className = "muted sorting-auto-save-status";
+    box.style.marginLeft = "0.5rem";
+    box.style.fontWeight = "800";
+    box.textContent = "自動保存: 待機";
+
+    var title = document.querySelector(".draft-panel .panel-title");
+
+    if (title) {
+      title.appendChild(box);
+    } else {
+      document.body.appendChild(box);
+    }
+
+    return box;
+  }
+
+  function setStatus(message, isError) {
+    var box = statusBox();
+
+    box.textContent = message;
+    box.style.color = isError ? "#991b1b" : "#166534";
+  }
+
+----- HTML LINE 6742 -----
+
+    return false;
+  }
+
+  function saveFunctionReady() {
+    return typeof window.hdOriginSaveSortingDraftFromReviewPage === "function";
+  }
+
+  async function runAutoSave(reason) {
+    if (suppressAutoSave) {
+      return { ok: false, skipped: true, reason: "suppressed" };
+    }
+
+    if (!selectedIdExists()) {
+      return { ok: false, skipped: true, reason: "no_selected_ocr" };
+    }
+
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+
+----- HTML LINE 6743 -----
+    return false;
+  }
+
+  function saveFunctionReady() {
+    return typeof window.hdOriginSaveSortingDraftFromReviewPage === "function";
+  }
+
+  async function runAutoSave(reason) {
+    if (suppressAutoSave) {
+      return { ok: false, skipped: true, reason: "suppressed" };
+    }
+
+    if (!selectedIdExists()) {
+      return { ok: false, skipped: true, reason: "no_selected_ocr" };
+    }
+
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+
+----- HTML LINE 6752 -----
+      return { ok: false, skipped: true, reason: "suppressed" };
+    }
+
+    if (!selectedIdExists()) {
+      return { ok: false, skipped: true, reason: "no_selected_ocr" };
+    }
+
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+
+----- HTML LINE 6755 -----
+    if (!selectedIdExists()) {
+      return { ok: false, skipped: true, reason: "no_selected_ocr" };
+    }
+
+    if (!saveFunctionReady()) {
+      setStatus("自動保存待機: 保存関数の読込待ち", false);
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+
+----- HTML LINE 6761 -----
+
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+
+----- HTML LINE 6762 -----
+      setTimeout(function () {
+        runAutoSave(reason || "human");
+      }, 500);
+
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+
+----- HTML LINE 6766 -----
+      return { ok: false, skipped: true, reason: "save_function_not_ready" };
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+----- HTML LINE 6767 -----
+    }
+
+    if (autoSaveRunning) {
+      autoSaveQueued = true;
+      return { ok: false, queued: true };
+    }
+
+    autoSaveRunning = true;
+    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
+
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+
+----- HTML LINE 6777 -----
+    try {
+      /*
+        重要:
+        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+      */
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+----- HTML LINE 6783 -----
+      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+
+----- HTML LINE 6784 -----
+
+      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
+
+      return Object.assign({ ok: true }, saved || {});
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+----- HTML LINE 6788 -----
+    } catch (error) {
+      var message = error && error.message ? error.message : String(error);
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+
+----- HTML LINE 6790 -----
+
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+
+----- HTML LINE 6791 -----
+      console.error("HD Origin sorting draft autosave failed:", error);
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+
+----- HTML LINE 6792 -----
+      setStatus("自動保存失敗: " + message, true);
+
+      return { ok: false, error: message };
+    } finally {
+      autoSaveRunning = false;
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+----- HTML LINE 6797 -----
+
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+
+----- HTML LINE 6798 -----
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        scheduleAutoSave("human");
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (
+
+----- HTML LINE 6801 -----
+      }
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (
+      button &&
+      button.classList &&
+      button.classList.contains("sorting-bulk-save")
+
+----- HTML LINE 6802 -----
+    }
+  }
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (
+      button &&
+      button.classList &&
+      button.classList.contains("sorting-bulk-save")
+    ) {
+
+----- HTML LINE 6804 -----
+
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (
+      button &&
+      button.classList &&
+      button.classList.contains("sorting-bulk-save")
+    ) {
+      return false;
+    }
+
+----- HTML LINE 6805 -----
+  function scheduleAutoSave(reason) {
+    if (suppressAutoSave) return;
+    if (!selectedIdExists()) return;
+
+    clearTimeout(autoSaveTimer);
+    setStatus("自動保存待機中...", false);
+
+    autoSaveTimer = setTimeout(function () {
+      runAutoSave(reason || "human");
+    }, 700);
+  }
+
+  function isDraftControl(target) {
+    if (!target || !target.closest) return false;
+
+    return !!target.closest(".draft-field, .master-select");
+  }
+
+  function isSaveButton(button) {
+    if (
+      button &&
+      button.classList &&
+      button.classList.contains("sorting-bulk-save")
+    ) {
+      return false;
+    }
+
+
+----- HTML LINE 6853 -----
+      if (isSaveButton(button)) {
+        button.remove();
+      }
+    });
+  }
+
+  document.addEventListener("input", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("change", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("click", function (event) {
+    var button = event.target && event.target.closest
+      ? event.target.closest("button, input[type='button'], input[type='submit'], a")
+      : null;
+
+    if (!isSaveButton(button)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+----- HTML LINE 6859 -----
+  document.addEventListener("input", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("change", function (event) {
+    if (isDraftControl(event.target)) {
+      scheduleAutoSave("human");
+    }
+  }, true);
+
+  document.addEventListener("click", function (event) {
+    var button = event.target && event.target.closest
+      ? event.target.closest("button, input[type='button'], input[type='submit'], a")
+      : null;
+
+    if (!isSaveButton(button)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    removeSaveButtons();
+    setStatus("保存ボタンは廃止済みです。自動保存します。", false);
+  }, true);
+
+
+----- HTML LINE 6875 -----
+
+    if (!isSaveButton(button)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    removeSaveButtons();
+    setStatus("保存ボタンは廃止済みです。自動保存します。", false);
+  }, true);
+
+  function wrapAnalyzer(name) {
+    var original = window[name];
+
+    if (typeof original !== "function" || original.__hdOriginAutoSaveGpt00FixedWrapped) {
+      return;
+    }
+
+    var wrapped = async function () {
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+
+----- HTML LINE 6881 -----
+
+    removeSaveButtons();
+    setStatus("保存ボタンは廃止済みです。自動保存します。", false);
+  }, true);
+
+  function wrapAnalyzer(name) {
+    var original = window[name];
+
+    if (typeof original !== "function" || original.__hdOriginAutoSaveGpt00FixedWrapped) {
+      return;
+    }
+
+    var wrapped = async function () {
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+
+----- HTML LINE 6886 -----
+  function wrapAnalyzer(name) {
+    var original = window[name];
+
+    if (typeof original !== "function" || original.__hdOriginAutoSaveGpt00FixedWrapped) {
+      return;
+    }
+
+    var wrapped = async function () {
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+
+----- HTML LINE 6891 -----
+    }
+
+    var wrapped = async function () {
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+    /* runAiDraftForItemIndexは関数内でDB保存完了まで待機するため自動保存ラッパー対象外 */
+  }
+
+  removeSaveButtons();
+  installAnalyzerWraps();
+
+----- HTML LINE 6894 -----
+      suppressAutoSave = true;
+
+      try {
+        return await original.apply(this, arguments);
+      } finally {
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+    /* runAiDraftForItemIndexは関数内でDB保存完了まで待機するため自動保存ラッパー対象外 */
+  }
+
+  removeSaveButtons();
+  installAnalyzerWraps();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+
+----- HTML LINE 6899 -----
+        suppressAutoSave = false;
+
+        setTimeout(function () {
+          runAutoSave("ai");
+        }, 0);
+      }
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+    /* runAiDraftForItemIndexは関数内でDB保存完了まで待機するため自動保存ラッパー対象外 */
+  }
+
+  removeSaveButtons();
+  installAnalyzerWraps();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      removeSaveButtons();
+      installAnalyzerWraps();
+    });
+  }
+
+
+----- HTML LINE 6905 -----
+    };
+
+    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
+    window[name] = wrapped;
+  }
+
+  function installAnalyzerWraps() {
+    wrapAnalyzer("runAiDraftFromSelectedOcr");
+    /* runAiDraftForItemIndexは関数内でDB保存完了まで待機するため自動保存ラッパー対象外 */
+  }
+
+  removeSaveButtons();
+  installAnalyzerWraps();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      removeSaveButtons();
+      installAnalyzerWraps();
+    });
+  }
+
+  var observer = new MutationObserver(function () {
+    removeSaveButtons();
+    installAnalyzerWraps();
+  });
+
+  observer.observe(document.documentElement, {
+
+----- HTML LINE 6928 -----
+    installAnalyzerWraps();
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  window.hdOriginRunSortingDraftAutoSave = runAutoSave;
+  window.hdOriginScheduleSortingDraftAutoSave = scheduleAutoSave;
+})();
+</script>
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
+<!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginReviewAllItemsMemoInstalled) return;
+  window.__hdOriginReviewAllItemsMemoInstalled = true;
+
+  function getItemsForAllMemo() {
+    try {
+      if (Array.isArray(window.items)) return window.items;
+      if (typeof items !== "undefined" && Array.isArray(items)) return items;
+    } catch (error) {
+      return [];
+
+----- HTML LINE 6929 -----
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  window.hdOriginRunSortingDraftAutoSave = runAutoSave;
+  window.hdOriginScheduleSortingDraftAutoSave = scheduleAutoSave;
+})();
+</script>
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
+<!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginReviewAllItemsMemoInstalled) return;
+  window.__hdOriginReviewAllItemsMemoInstalled = true;
+
+  function getItemsForAllMemo() {
+    try {
+      if (Array.isArray(window.items)) return window.items;
+      if (typeof items !== "undefined" && Array.isArray(items)) return items;
+    } catch (error) {
+      return [];
+    }
+
+----- HTML LINE 6932 -----
+    childList: true,
+    subtree: true
+  });
+
+  window.hdOriginRunSortingDraftAutoSave = runAutoSave;
+  window.hdOriginScheduleSortingDraftAutoSave = scheduleAutoSave;
+})();
+</script>
+<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
+<!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__hdOriginReviewAllItemsMemoInstalled) return;
+  window.__hdOriginReviewAllItemsMemoInstalled = true;
+
+  function getItemsForAllMemo() {
+    try {
+      if (Array.isArray(window.items)) return window.items;
+      if (typeof items !== "undefined" && Array.isArray(items)) return items;
+    } catch (error) {
+      return [];
+    }
+    return [];
+  }
+
+
+----- HTML LINE 7200 -----
+
+      if (!list.length) {
+        showResult({ ok: false, error: "全件表示する書類がありません。先に一覧を更新してください。" });
+        return;
+      }
+
+      var payload = buildPayload();
+
+      var res = await fetch("/api/payment-documents/review-visible-fields-memo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+
+      var responseText = await res.text();
+      var data = {};
+
+      try {
+        data = JSON.parse(responseText || "{}");
+      } catch (error) {
+        throw new Error("API応答がJSONではありません: " + responseText.slice(0, 300));
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || data.message || ("HTTP " + res.status));
+      }
+
+
+----- HTML LINE 7370 -----
+
+      return {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  async function fetchJson(url) {
+    var res = await fetch(url, {
+      method: "GET",
+      headers: { "Accept": "application/json" }
+    });
+
+    var text = await res.text();
+    var data = {};
+
+    try {
+      data = JSON.parse(text || "{}");
+    } catch (error) {
+      throw new Error("API応答がJSONではありません: " + text.slice(0, 300));
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || data.message || ("HTTP " + res.status));
+    }
+
+    return data;
+
+----- HTML LINE 7636 -----
+    pushField(fields, base + " / 保存JSON", "visibleFields", "visibleFields", jsonText(draft.visibleFields || draft.visible_fields || {}), "database_latest_specialist_analysis");
+    pushField(fields, base + " / 保存JSON", "warnings", "warnings", jsonText(draft.warnings || []), "database_latest_specialist_analysis");
+
+    pushField(fields, base, "作成日時", "createdAt", draft.createdAt || draft.created_at || "", "database_latest_specialist_analysis");
+    pushField(fields, base, "更新日時", "updatedAt", draft.updatedAt || draft.updated_at || "", "database_latest_specialist_analysis");
+  }
+
+  async function postMemo(payload) {
+    var res = await fetch("/api/payment-documents/review-visible-fields-memo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+
+    var text = await res.text();
+    var data = {};
+
+    try {
+      data = JSON.parse(text || "{}");
+    } catch (error) {
+      throw new Error("API応答がJSONではありません: " + text.slice(0, 300));
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || data.message || ("HTTP " + res.status));
+    }
+
+
+----- HTML LINE 7995 -----
+  async function refreshSpecialistNavigationCounts() {
+    if (refreshRunning) {
+      return;
+    }
+
+    refreshRunning = true;
+
+    try {
+      const response = await fetch(reviewItemsUrl, {
+        cache: "no-store"
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error || "専門画面件数の取得に失敗しました。"
+        );
+      }
+
+            /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_START */
+      const countSourceItems=Array.isArray(data.items)
+        ? data.items
+        : [];
+
+      let countVisibleItems=countSourceItems;
+
+
+----- HTML LINE 8015 -----
+            /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_START */
+      const countSourceItems=Array.isArray(data.items)
+        ? data.items
+        : [];
+
+      let countVisibleItems=countSourceItems;
+
+      try {
+        const cilResponse=await fetch(
+          "/api/payment-documents/contract-insurance-lease/list",
+          { cache:"no-store" }
+        );
+
+        if (cilResponse.ok) {
+          const cilData=await cilResponse.json();
+
+          const cilRows=Array.isArray(cilData)
+            ? cilData
+            : Array.isArray(cilData.items)
+              ? cilData.items
+              : Array.isArray(cilData.rows)
+                ? cilData.rows
+                : [];
+
+          const savedCilIds=new Set(
+            cilRows
+              .map(function (row) {
+
+============================================================
+3. サーバー側ルート存在確認
+============================================================
+ROUTE_EXISTS=True / API=/api/payment-documents/ai-draft/
+ROUTE_EXISTS=True / API=/api/payment-documents/review-items
+ROUTE_EXISTS=True / API=/api/payment-documents/review-visible-fields-memo
+ROUTE_EXISTS=True / API=/api/payment-documents/sorting-drafts/save
+ROUTE_EXISTS=True / API=/api/payment-documents/contract-insurance-lease/list
+
+============================================================
+4. 起動中サーバー応答
+============================================================
+
+API=http://localhost:3000/api/payment-documents/ai-draft/
+HTTP_STATUS=404
+HTTP_ERROR=リモート サーバーがエラーを返しました: (404) 見つかりません
+
+API=http://localhost:3000/api/payment-documents/sorting-drafts/save
+HTTP_STATUS=404
+HTTP_ERROR=リモート サーバーがエラーを返しました: (404) 見つかりません
+
+============================================================
+5. 新保存APIのコード存在
+============================================================
+SORTING_DRAFT_SAVE_ROUTE_CODE_COUNT=1
+OVERALL_STATUS=SUCCESS

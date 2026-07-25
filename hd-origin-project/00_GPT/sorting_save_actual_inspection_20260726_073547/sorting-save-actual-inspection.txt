@@ -1,0 +1,301 @@
+============================================================
+基礎解析 保存先・保存API 現物確認
+============================================================
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+【候補テーブル】
+TABLE_COUNT=1
+TABLE=accounting.payment_document_basic_analysis_results
+  COLUMN=basic_analysis_id / TYPE=bigint / NULLABLE=NO / DEFAULT=
+  COLUMN=payment_document_ocr_import_id / TYPE=bigint / NULLABLE=NO / DEFAULT=
+  COLUMN=company_id / TYPE=bigint / NULLABLE=YES / DEFAULT=
+  COLUMN=document_type_id / TYPE=bigint / NULLABLE=YES / DEFAULT=
+  COLUMN=specialist_analysis_id / TYPE=bigint / NULLABLE=YES / DEFAULT=
+  COLUMN=ai_confidence / TYPE=numeric / NULLABLE=YES / DEFAULT=
+  COLUMN=ai_reason / TYPE=text / NULLABLE=YES / DEFAULT=
+  COLUMN=needs_review / TYPE=boolean / NULLABLE=NO / DEFAULT=false
+  COLUMN=warnings_json / TYPE=jsonb / NULLABLE=NO / DEFAULT='[]'::jsonb
+  COLUMN=raw_result_json / TYPE=jsonb / NULLABLE=NO / DEFAULT='{}'::jsonb
+  COLUMN=candidate_masters_snapshot_json / TYPE=jsonb / NULLABLE=NO / DEFAULT='{}'::jsonb
+  COLUMN=output_schema_snapshot_json / TYPE=jsonb / NULLABLE=NO / DEFAULT='{}'::jsonb
+  COLUMN=prompt_snapshot / TYPE=text / NULLABLE=YES / DEFAULT=
+  COLUMN=model_name / TYPE=character varying / NULLABLE=YES / DEFAULT=
+  COLUMN=prompt_version / TYPE=character varying / NULLABLE=YES / DEFAULT=
+  COLUMN=is_current / TYPE=boolean / NULLABLE=NO / DEFAULT=true
+  COLUMN=analysis_completed / TYPE=boolean / NULLABLE=NO / DEFAULT=false
+  COLUMN=started_at / TYPE=timestamp with time zone / NULLABLE=YES / DEFAULT=
+  COLUMN=completed_at / TYPE=timestamp with time zone / NULLABLE=YES / DEFAULT=
+  COLUMN=created_at / TYPE=timestamp with time zone / NULLABLE=NO / DEFAULT=CURRENT_TIMESTAMP
+  COLUMN=updated_at / TYPE=timestamp with time zone / NULLABLE=NO / DEFAULT=CURRENT_TIMESTAMP
+
+【コード内保存処理候補】
+
+----- ROUTES LINE 1463 -----
+  1451:     `);
+  1452: 
+  1453:     const reviewCurrentStatus =
+  1454:       reviewStatusResult.rows[0]?.current_status;
+  1455: 
+  1456:     if (!reviewCurrentStatus) {
+  1457:       throw new Error(
+  1458:         "ステータスマスタからOCR後の表示先を解決できませんでした。"
+  1459:       );
+  1460:     }
+  1461: 
+  1462:     const statusUpdateResult = await db.query(`
+  1463:       UPDATE accounting.payment_document_ocr_imports
+  1464:       SET
+  1465:         current_status = $2,
+  1466:         updated_at = CURRENT_TIMESTAMP
+  1467:       WHERE payment_document_ocr_import_id = $1
+  1468:         AND deleted_at IS NULL
+  1469:       RETURNING current_status
+  1470:     `, [
+  1471:       dbRow.payment_document_ocr_import_id,
+  1472:       reviewCurrentStatus
+  1473:     ]);
+  1474: 
+  1475:     if (statusUpdateResult.rowCount !== 1) {
+  1476:       throw new Error(
+  1477:         "OCR取込レコードのcurrent_statusを更新できませんでした。"
+  1478:       );
+  1479:     }
+  1480: 
+  1481:     const finalMeta = {
+  1482:       ...dbMeta,
+  1483:       currentStatus: reviewCurrentStatus,
+  1484:       current_status: reviewCurrentStatus,
+  1485:       dbSaved: true,
+  1486:       paymentDocumentOcrImportId:
+  1487:         dbRow.payment_document_ocr_import_id,
+  1488:       databaseSavedAt:
+  1489:         new Date().toISOString()
+  1490:     };
+  1491: 
+  1492:     if (movedMetaPath) {
+
+----- ROUTES LINE 6772 -----
+  6760: 
+  6761:   result.draft = draft;
+  6762:   result.classification = draft;
+  6763:   result.sorting = draft;
+  6764:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+  6765:   result.visible_field_labels = [];
+  6766:   result.display_mode = "sorting_only";
+  6767:   result.image_used = false;
+  6768: 
+  6769:   return result;
+  6770: }
+  6771: /* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
+  6772: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_START */
+  6773: function hdOriginSortingDraftText(value) {
+  6774:   if (value === null || value === undefined) return "";
+  6775: 
+  6776:   if (typeof value === "object") {
+  6777:     try {
+  6778:       return JSON.stringify(value);
+  6779:     } catch {
+  6780:       return String(value);
+  6781:     }
+  6782:   }
+  6783: 
+  6784:   return String(value).trim();
+  6785: }
+  6786: 
+  6787: function hdOriginSortingDraftFirstObject(...items) {
+  6788:   for (const item of items) {
+  6789:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  6790:       return item;
+  6791:     }
+  6792:   }
+  6793: 
+  6794:   return {};
+  6795: }
+  6796: 
+  6797: function hdOriginSortingDraftNumberOrNull(value) {
+  6798:   if (value === null || value === undefined || value === "") return null;
+  6799:   const n = Number(value);
+  6800:   return Number.isFinite(n) ? n : null;
+  6801: }
+
+----- ROUTES LINE 6981 -----
+  6969:     sha256: hdOriginSortingDraftText(ocrRow.sha256 || body.sha256),
+  6970:     ocr_text_length: Number(ocrRow.ocr_text_length || body.ocrTextLength || body.ocr_text_length || 0),
+  6971: 
+  6972:     display_rotation: hdOriginSortingDraftRotation(body.displayRotation || body.display_rotation),
+  6973: 
+  6974:     memo: hdOriginSortingDraftText(body.memo),
+  6975:     created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
+  6976:     created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
+  6977:     updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
+  6978:   };
+  6979: }
+  6980: 
+  6981: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
+  6982: 
+  6983: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
+  6984: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
+  6985: /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
+  6986: function hdOriginCilText(value) {
+  6987:   if (value === null || value === undefined) return "";
+  6988: 
+  6989:   if (typeof value === "object") {
+  6990:     try {
+  6991:       return JSON.stringify(value);
+  6992:     } catch {
+  6993:       return String(value);
+  6994:     }
+  6995:   }
+  6996: 
+  6997:   return String(value).trim();
+  6998: }
+  6999: 
+  7000: function hdOriginCilFirstObject(...items) {
+  7001:   for (const item of items) {
+  7002:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  7003:       return item;
+  7004:     }
+  7005:   }
+  7006: 
+  7007:   return {};
+  7008: }
+  7009: 
+  7010: function hdOriginCilJson(value, fallback) {
+
+----- ROUTES LINE 6983 -----
+  6971: 
+  6972:     display_rotation: hdOriginSortingDraftRotation(body.displayRotation || body.display_rotation),
+  6973: 
+  6974:     memo: hdOriginSortingDraftText(body.memo),
+  6975:     created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
+  6976:     created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
+  6977:     updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
+  6978:   };
+  6979: }
+  6980: 
+  6981: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
+  6982: 
+  6983: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
+  6984: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
+  6985: /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
+  6986: function hdOriginCilText(value) {
+  6987:   if (value === null || value === undefined) return "";
+  6988: 
+  6989:   if (typeof value === "object") {
+  6990:     try {
+  6991:       return JSON.stringify(value);
+  6992:     } catch {
+  6993:       return String(value);
+  6994:     }
+  6995:   }
+  6996: 
+  6997:   return String(value).trim();
+  6998: }
+  6999: 
+  7000: function hdOriginCilFirstObject(...items) {
+  7001:   for (const item of items) {
+  7002:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  7003:       return item;
+  7004:     }
+  7005:   }
+  7006: 
+  7007:   return {};
+  7008: }
+  7009: 
+  7010: function hdOriginCilJson(value, fallback) {
+  7011:   if (value === null || value === undefined) return fallback;
+  7012:   return value;
+
+----- ROUTES LINE 6984 -----
+  6972:     display_rotation: hdOriginSortingDraftRotation(body.displayRotation || body.display_rotation),
+  6973: 
+  6974:     memo: hdOriginSortingDraftText(body.memo),
+  6975:     created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
+  6976:     created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
+  6977:     updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
+  6978:   };
+  6979: }
+  6980: 
+  6981: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
+  6982: 
+  6983: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
+  6984: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
+  6985: /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
+  6986: function hdOriginCilText(value) {
+  6987:   if (value === null || value === undefined) return "";
+  6988: 
+  6989:   if (typeof value === "object") {
+  6990:     try {
+  6991:       return JSON.stringify(value);
+  6992:     } catch {
+  6993:       return String(value);
+  6994:     }
+  6995:   }
+  6996: 
+  6997:   return String(value).trim();
+  6998: }
+  6999: 
+  7000: function hdOriginCilFirstObject(...items) {
+  7001:   for (const item of items) {
+  7002:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  7003:       return item;
+  7004:     }
+  7005:   }
+  7006: 
+  7007:   return {};
+  7008: }
+  7009: 
+  7010: function hdOriginCilJson(value, fallback) {
+  7011:   if (value === null || value === undefined) return fallback;
+  7012:   return value;
+  7013: }
+
+----- ROUTES LINE 10565 -----
+ 10553:         analysisSystemLabel,
+ 10554:         specialistStatus,
+ 10555:         aiConfidence,
+ 10556:         aiReason,
+ 10557:         JSON.stringify(warningsJson),
+ 10558:         JSON.stringify(rawResultJson),
+ 10559:         humanConfirmStatus,
+ 10560:         humanMemo
+ 10561:       ]);
+ 10562: 
+ 10563:       const saved = inserted.rows[0];
+ 10564:       await client.query(`
+ 10565:         UPDATE accounting.payment_document_ocr_imports
+ 10566:         SET
+ 10567:           latest_specialist_analysis_id = $1,
+ 10568:           current_status = '専門解析',
+ 10569:           updated_at = now()
+ 10570:         WHERE payment_document_ocr_import_id = $2
+ 10571:           AND deleted_at IS NULL
+ 10572:       `, [
+ 10573:         saved.specialist_analysis_id,
+ 10574:         ocrImportId
+ 10575:       ]);
+ 10576: await client.query("COMMIT");
+ 10577: 
+ 10578:       return {
+ 10579:         saved,
+ 10580:         paymentDocumentOcrImportId: ocrImportId,
+ 10581:         specialistAnalysisId: saved.specialist_analysis_id,
+ 10582:         analysisSystemCode,
+ 10583:         analysisSystemLabel,
+ 10584:         specialistAnalysisStatus: specialistStatus
+ 10585:       };
+ 10586:     } catch (err) {
+ 10587:       try {
+ 10588:         await client.query("ROLLBACK");
+ 10589:       } catch {
+ 10590:         // 元エラーを優先
+ 10591:       }
+ 10592: 
+ 10593:       throw err;
+ 10594:     } finally {
+
+SORTING_SAVE_ROUTE_EXISTS=false
+OVERALL_STATUS=SUCCESS
