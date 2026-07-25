@@ -134,6 +134,55 @@ CREATE INDEX IF NOT EXISTS ix_receipt_imports_hash
 ON accounting.receipt_imports (image_hash_sha256)
 WHERE image_hash_sha256 IS NOT NULL;
 
+CREATE TABLE IF NOT EXISTS accounting.receipt_ai_drafts (
+  id BIGSERIAL PRIMARY KEY,
+  receipt_import_id BIGINT NOT NULL REFERENCES accounting.receipt_imports(id) ON DELETE CASCADE,
+  transaction_date DATE,
+  vendor_name TEXT,
+  total_amount NUMERIC(14,2),
+  tax_amount NUMERIC(14,2),
+  tax_rate TEXT,
+  tax_treatment_name TEXT,
+  payment_method_name TEXT,
+  account_title_name TEXT,
+  invoice_number TEXT,
+  summary TEXT,
+  memo TEXT,
+  confidence INTEGER,
+  line_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'draft',
+  ai_model TEXT,
+  ai_raw_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  error_message TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS receipt_import_id BIGINT,
+  ADD COLUMN IF NOT EXISTS transaction_date DATE,
+  ADD COLUMN IF NOT EXISTS vendor_name TEXT,
+  ADD COLUMN IF NOT EXISTS total_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_rate TEXT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_name TEXT,
+  ADD COLUMN IF NOT EXISTS payment_method_name TEXT,
+  ADD COLUMN IF NOT EXISTS account_title_name TEXT,
+  ADD COLUMN IF NOT EXISTS invoice_number TEXT,
+  ADD COLUMN IF NOT EXISTS summary TEXT,
+  ADD COLUMN IF NOT EXISTS memo TEXT,
+  ADD COLUMN IF NOT EXISTS confidence INTEGER,
+  ADD COLUMN IF NOT EXISTS line_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'draft',
+  ADD COLUMN IF NOT EXISTS ai_model TEXT,
+  ADD COLUMN IF NOT EXISTS ai_raw_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS error_message TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS ix_receipt_ai_drafts_receipt_import_id
+ON accounting.receipt_ai_drafts(receipt_import_id);
+
 CREATE SCHEMA IF NOT EXISTS expenses;
 
 CREATE TABLE IF NOT EXISTS expenses.account_titles (
@@ -321,6 +370,24 @@ ALTER TABLE expenses.expense_details
 
 -- RECEIPT_RELATIONSHIP_SCHEMA_START
 
+-- RECEIPT_AI_DRAFT_VENDOR_COLUMNS_20260703_START
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS vendor_address TEXT,
+  ADD COLUMN IF NOT EXISTS vendor_phone TEXT,
+  ADD COLUMN IF NOT EXISTS receipt_time_text TEXT;
+
+-- RECEIPT_AI_DRAFT_VENDOR_COLUMNS_20260703_END
+
+-- RECEIPT_TEMP_MASTER_NAMES_SCHEMA_20260703_START
+
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS purpose_temp_name TEXT,
+  ADD COLUMN IF NOT EXISTS project_temp_name TEXT,
+  ADD COLUMN IF NOT EXISTS department_temp_name TEXT;
+
+-- RECEIPT_TEMP_MASTER_NAMES_SCHEMA_20260703_END
+
 -- RECEIPT_INVOICE_EVIDENCE_MASTERS_START
 
 CREATE TABLE IF NOT EXISTS expenses.invoice_types (
@@ -383,8 +450,19 @@ WHERE NOT EXISTS (
 
 -- RECEIPT_INVOICE_EVIDENCE_MASTERS_END
 
+ALTER TABLE accounting.receipt_ai_drafts
+  ADD COLUMN IF NOT EXISTS payment_method_id BIGINT,
+  ADD COLUMN IF NOT EXISTS target_person_id BIGINT,
+  ADD COLUMN IF NOT EXISTS purpose_id BIGINT,
+  ADD COLUMN IF NOT EXISTS project_id BIGINT,
+  ADD COLUMN IF NOT EXISTS department_id BIGINT,
+  ADD COLUMN IF NOT EXISTS invoice_type_id BIGINT,
+  ADD COLUMN IF NOT EXISTS evidence_type_id BIGINT,
+  ADD COLUMN IF NOT EXISTS evidence_memo TEXT;
+
 CREATE TABLE IF NOT EXISTS accounting.receipt_tax_breakdowns (
   id BIGSERIAL PRIMARY KEY,
+  receipt_ai_draft_id BIGINT NOT NULL,
   tax_category_id BIGINT,
   tax_category_name TEXT NOT NULL DEFAULT '',
   tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
@@ -400,6 +478,7 @@ CREATE TABLE IF NOT EXISTS accounting.receipt_tax_breakdowns (
 );
 
 ALTER TABLE accounting.receipt_tax_breakdowns
+  ADD COLUMN IF NOT EXISTS receipt_ai_draft_id BIGINT,
   ADD COLUMN IF NOT EXISTS tax_category_id BIGINT,
   ADD COLUMN IF NOT EXISTS tax_category_name TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
@@ -413,11 +492,75 @@ ALTER TABLE accounting.receipt_tax_breakdowns
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_draft_idx
+ON accounting.receipt_tax_breakdowns(receipt_ai_draft_id);
+
 CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_category_idx
 ON accounting.receipt_tax_breakdowns(tax_category_id);
 
 CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_treatment_idx
 ON accounting.receipt_tax_breakdowns(tax_treatment_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_draft_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_draft_fkey
+      FOREIGN KEY (receipt_ai_draft_id)
+      REFERENCES accounting.receipt_ai_drafts(id)
+      ON DELETE CASCADE;
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_category_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_category_fkey
+      FOREIGN KEY (tax_category_id)
+      REFERENCES expenses.tax_categories(tax_category_id);
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_tax_breakdowns_treatment_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_tax_breakdowns
+      ADD CONSTRAINT receipt_tax_breakdowns_treatment_fkey
+      FOREIGN KEY (tax_treatment_id)
+      REFERENCES expenses.tax_treatments(tax_treatment_id);
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'receipt_ai_drafts_payment_method_fkey'
+  ) THEN
+    ALTER TABLE accounting.receipt_ai_drafts
+      ADD CONSTRAINT receipt_ai_drafts_payment_method_fkey
+      FOREIGN KEY (payment_method_id)
+      REFERENCES expenses.payment_methods(payment_method_id);
+  END IF;
+END
+$$;
 
 -- RECEIPT_RELATIONSHIP_SCHEMA_END
 INSERT INTO expenses.account_titles (account_code, account_name, sort_order)
@@ -609,6 +752,25 @@ ON CONFLICT (treatment_name) DO UPDATE SET
     await runTargetSql(paymentDocumentOcrMigrationSql);
   }
   /* GPT00_PAYMENT_DOCUMENT_OCR_BOOTSTRAP_20260711_END */
+  /*
+    GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711
+
+    CIL専門テーブルが参照する
+    accounting.payment_document_sorting_drafts を先に作成する。
+  */
+  /* GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711_START */
+  const paymentDocumentSortingMigrationSql = readSqlIfExists(
+    path.join(
+      "database",
+      "migrations",
+      "20260707_006_payment_document_sorting_drafts.sql"
+    )
+  ).replace(/^\uFEFF/, "");
+
+  if (paymentDocumentSortingMigrationSql.trim()) {
+    await runTargetSql(paymentDocumentSortingMigrationSql);
+  }
+  /* GPT00_PAYMENT_DOCUMENT_SORTING_BOOTSTRAP_20260711_END */
   /*
     GPT00_PAYMENT_DOCUMENT_SPECIALIST_BOOTSTRAP_20260711
 

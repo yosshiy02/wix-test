@@ -7174,10 +7174,10 @@ async function hdOriginCilReloadSavedFromQuery() {
     const keys = [
 
 
-      "specialistAnalysisId",
+      "paymentDocumentSortingDraftId",
 
 
-      "specialist_analysis_id",
+      "payment_document_sorting_draft_id",
 
 
       "sortingDraftId",
@@ -7382,7 +7382,7 @@ async function hdOriginCilReloadSavedFromQuery() {
     const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
     const payload = {
       paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
-      specialistAnalysisId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
       rawResult:
         analysisResult && typeof analysisResult === "object"
           ? analysisResult
@@ -7595,7 +7595,7 @@ async function hdOriginCilReloadSavedFromQuery() {
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け専門解析ID: " + (result.specialistAnalysisId || "") + "\n専門専門解析ID: " + (result.contractInsuranceLeaseDraftId || ""));
+      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け下書きID: " + (result.paymentDocumentSortingDraftId || "") + "\n専門下書きID: " + (result.contractInsuranceLeaseDraftId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -7810,8 +7810,8 @@ async function hdOriginCilReloadSavedFromQuery() {
   function hdOriginCilSavedSortingDraftId(saved) {
     if (!saved || typeof saved !== "object") return "";
 
-    return saved.specialistAnalysisId ||
-      saved.specialist_analysis_id ||
+    return saved.paymentDocumentSortingDraftId ||
+      saved.payment_document_sorting_draft_id ||
       saved.sortingDraftId ||
       saved.sorting_draft_id ||
       saved.draftId ||
@@ -7848,7 +7848,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 
     return {
       paymentDocumentOcrImportId: Number(id),
-      specialistAnalysisId: hdOriginCilSavedSortingDraftId(sortingSaved),
+      paymentDocumentSortingDraftId: hdOriginCilSavedSortingDraftId(sortingSaved),
       analysisSystemCode: "contract_insurance_lease_analysis",
       analysis_system_code: "contract_insurance_lease_analysis",
       analysisSystemLabel: "契約・保険・リース",
@@ -8081,10 +8081,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
           );
 
     const savedId =
-      item.latestSpecialistAnalysisId ||
-      item.latest_specialist_analysis_id ||
-      item.specialistAnalysisId ||
-      item.specialist_analysis_id ||
+      item.latestSortingDraftId ||
+      item.latest_sorting_draft_id ||
+      item.paymentDocumentSortingDraftId ||
+      item.payment_document_sorting_draft_id ||
       (nested
         ? hdOriginCilSavedSortingDraftId(nested)
         : "");
@@ -8096,8 +8096,8 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
     return {
       ok: true,
       reusedExistingSortingDraft: true,
-      specialistAnalysisId: savedId,
-      specialist_analysis_id: savedId
+      paymentDocumentSortingDraftId: savedId,
+      payment_document_sorting_draft_id: savedId
     };
   }
 
@@ -8144,7 +8144,7 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
 
         ok.push({
           id,
-          sortingDraftId: saved.specialistAnalysisId || "",
+          sortingDraftId: saved.paymentDocumentSortingDraftId || "",
           specialistDraftId: specialistSaved.contractInsuranceLeaseDraftId || ""
         });
       } catch (err) {

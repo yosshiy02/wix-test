@@ -158,9 +158,9 @@ async function getDraftByImportId(importId) {
   const result = await pool.query(
     `
     SELECT *
-    FROM accounting.delivery_note_results
+    FROM accounting.delivery_note_drafts
     WHERE import_id = $1
-    ORDER BY delivery_note_result_id DESC
+    ORDER BY delivery_note_draft_id DESC
     LIMIT 1
     `,
     [importId]
@@ -172,11 +172,11 @@ async function getDraftByImportId(importId) {
   const detailResult = await pool.query(
     `
     SELECT *
-    FROM accounting.delivery_note_result_details
-    WHERE delivery_note_result_id = $1
-    ORDER BY line_no ASC, delivery_note_result_detail_id ASC
+    FROM accounting.delivery_note_draft_details
+    WHERE delivery_note_draft_id = $1
+    ORDER BY line_no ASC, delivery_note_draft_detail_id ASC
     `,
-    [draft.delivery_note_result_id]
+    [draft.delivery_note_draft_id]
   );
 
   return {
@@ -199,17 +199,17 @@ async function saveDraft(payload) {
     if (importId) {
       const existing = await client.query(
         `
-        SELECT delivery_note_result_id
-        FROM accounting.delivery_note_results
+        SELECT delivery_note_draft_id
+        FROM accounting.delivery_note_drafts
         WHERE import_id = $1
-        ORDER BY delivery_note_result_id DESC
+        ORDER BY delivery_note_draft_id DESC
         LIMIT 1
         `,
         [importId]
       );
 
       if (existing.rows[0]) {
-        draftId = existing.rows[0].delivery_note_result_id;
+        draftId = existing.rows[0].delivery_note_draft_id;
       }
     }
 
@@ -233,7 +233,7 @@ async function saveDraft(payload) {
     if (draftId) {
       const updated = await client.query(
         `
-        UPDATE accounting.delivery_note_results
+        UPDATE accounting.delivery_note_drafts
         SET
           import_id = $1,
           delivery_date = $2,
@@ -248,7 +248,7 @@ async function saveDraft(payload) {
           ocr_raw_text = $11,
           ai_json = $12,
           updated_at = now()
-        WHERE delivery_note_result_id = $13
+        WHERE delivery_note_draft_id = $13
         RETURNING *
         `,
         [...values, draftId]
@@ -257,13 +257,13 @@ async function saveDraft(payload) {
       draft = updated.rows[0];
 
       await client.query(
-        `DELETE FROM accounting.delivery_note_result_details WHERE delivery_note_result_id = $1`,
+        `DELETE FROM accounting.delivery_note_draft_details WHERE delivery_note_draft_id = $1`,
         [draftId]
       );
     } else {
       const inserted = await client.query(
         `
-        INSERT INTO accounting.delivery_note_results (
+        INSERT INTO accounting.delivery_note_drafts (
           import_id,
           delivery_date,
           vendor_name,
@@ -284,7 +284,7 @@ async function saveDraft(payload) {
       );
 
       draft = inserted.rows[0];
-      draftId = draft.delivery_note_result_id;
+      draftId = draft.delivery_note_draft_id;
     }
 
     for (let i = 0; i < lines.length; i += 1) {
@@ -292,8 +292,8 @@ async function saveDraft(payload) {
 
       await client.query(
         `
-        INSERT INTO accounting.delivery_note_result_details (
-          delivery_note_result_id,
+        INSERT INTO accounting.delivery_note_draft_details (
+          delivery_note_draft_id,
           line_no,
           item_code,
           item_name,

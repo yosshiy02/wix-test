@@ -10403,6 +10403,10 @@ specialistAnalysisId:
 
         paymentDocumentOcrImportId:
           specialistSaved.paymentDocumentOcrImportId,
+
+        paymentDocumentSortingDraftId:
+          specialistSaved.paymentDocumentSortingDraftId,
+
         specialistAnalysisId:
           specialistSaved.specialistAnalysisId,
 
@@ -10455,12 +10459,14 @@ specialistAnalysisId:
         ok: true,
         message: "専門解析結果を保存しました。",
         paymentDocumentOcrImportId: saved.paymentDocumentOcrImportId,
+        paymentDocumentSortingDraftId: saved.paymentDocumentSortingDraftId,
         specialistAnalysisId: saved.specialistAnalysisId,
         specialist_analysis_id: saved.specialistAnalysisId,
         latestSpecialistAnalysisId: saved.specialistAnalysisId,
         analysisSystemCode: saved.analysisSystemCode,
         analysisSystemLabel: saved.analysisSystemLabel,
         specialistAnalysisStatus: saved.specialistAnalysisStatus,
+        sortingDraftAutoCreated: !!saved.sortingDraftAutoCreated,
         saved: saved.saved
       });
     } catch (err) {

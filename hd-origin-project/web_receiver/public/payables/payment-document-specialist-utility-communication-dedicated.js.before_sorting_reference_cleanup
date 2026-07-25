@@ -1041,21 +1041,21 @@
 
     return Number(
       firstValue(
-        source.specialistAnalysisId,
-        source.specialist_analysis_id,
+        source.paymentDocumentSortingDraftId,
+        source.payment_document_sorting_draft_id,
         source.sortingDraftId,
         source.sorting_draft_id,
-        source.latestSpecialistAnalysisId,
-        source.latest_specialist_analysis_id,
+        source.latestSortingDraftId,
+        source.latest_sorting_draft_id,
 
-        raw.specialistAnalysisId,
-        raw.specialist_analysis_id,
+        raw.paymentDocumentSortingDraftId,
+        raw.payment_document_sorting_draft_id,
 
-        draft.specialistAnalysisId,
-        draft.specialist_analysis_id,
+        draft.paymentDocumentSortingDraftId,
+        draft.payment_document_sorting_draft_id,
 
-        sorting.specialistAnalysisId,
-        sorting.specialist_analysis_id,
+        sorting.paymentDocumentSortingDraftId,
+        sorting.payment_document_sorting_draft_id,
         sorting.id,
         0
       )
@@ -2040,10 +2040,10 @@
     };
 
     if (sortingDraftId > 0) {
-      commonPayload.specialistAnalysisId =
+      commonPayload.paymentDocumentSortingDraftId =
         sortingDraftId;
 
-      commonPayload.specialist_analysis_id =
+      commonPayload.payment_document_sorting_draft_id =
         sortingDraftId;
     }
 
@@ -2087,8 +2087,8 @@
     const returnedSortingDraftId =
       Number(
         firstValue(
-          commonSaved.specialistAnalysisId,
-          commonSaved.specialist_analysis_id,
+          commonSaved.paymentDocumentSortingDraftId,
+          commonSaved.payment_document_sorting_draft_id,
           sortingDraftId,
           0
         )
@@ -2154,10 +2154,10 @@
     };
 
     if (returnedSortingDraftId > 0) {
-      utilityPayload.specialistAnalysisId =
+      utilityPayload.paymentDocumentSortingDraftId =
         returnedSortingDraftId;
 
-      utilityPayload.specialist_analysis_id =
+      utilityPayload.payment_document_sorting_draft_id =
         returnedSortingDraftId;
     }
 

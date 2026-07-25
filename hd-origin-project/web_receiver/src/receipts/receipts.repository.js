@@ -258,164 +258,6 @@ const rows = [];
 
   return rows;
 }
-async function createAiDraft(receiptImportId, draft) {
-  const result = await pool.query(
-    `
-    INSERT INTO accounting.receipt_ai_drafts (
-      receipt_import_id,
-      transaction_date,
-      vendor_name,
-      vendor_address,
-      vendor_phone,
-      receipt_time_text,
-      total_amount,
-      tax_amount,
-      tax_rate,
-      tax_treatment_name,
-      payment_method_name,
-      purpose_id,
-      purpose_temp_name,
-      account_title_name,
-      invoice_number,
-      summary,
-      memo,
-      confidence,
-      line_items,
-      status,
-      ai_model,
-      ai_raw_json,
-      error_message
-    ) VALUES (
-            $1, $2, $3, $4, $5, $6,
-      $7, $8, $9, $10, $11, $12, $13,
-      $14, $15, $16, $17, $18, $19::jsonb,
-      'draft', $20, $21::jsonb, ''
-    )
-    RETURNING *
-    `,
-    [
-      receiptImportId,
-      draft.transactionDate,
-      draft.vendorName,
-      draft.vendorAddress || "",
-      draft.vendorPhone || "",
-      draft.receiptTimeText || "",
-      draft.totalAmount,
-      draft.taxAmount,
-      draft.taxRate,
-      draft.taxTreatmentName || draft.tax_treatment_name || "",
-      draft.paymentMethodName,
-      draft.purposeId || draft.purpose_id || null,
-      draft.purposeName || draft.purpose_name || "",
-      draft.accountTitleName,
-      draft.invoiceNumber,
-      draft.summary,
-      draft.memo,
-      draft.confidence,
-      JSON.stringify(draft.lineItems || []),
-      draft.aiModel,
-      JSON.stringify(draft.aiRawJson || {})
-    ]
-  );
-  const savedDraft = result.rows[0];
-
-  const aiTaxBreakdowns = buildReceiptTaxBreakdownsFromDraft(draft);
-
-  if (aiTaxBreakdowns.length > 0) {
-    await replaceReceiptTaxBreakdowns(Number(savedDraft.id), aiTaxBreakdowns);
-  }
-
-  return savedDraft;
-}
-
-async function getAiDrafts(receiptImportId) {
-  const result = await pool.query(
-    `
-    SELECT *
-    FROM accounting.receipt_ai_drafts
-    WHERE receipt_import_id = $1
-    ORDER BY id DESC
-    `,
-    [receiptImportId]
-  );
-
-  return result.rows;
-}
-
-async function updateAiDraft(id, patch) {
-  const result = await pool.query(
-    `
-    UPDATE accounting.receipt_ai_drafts
-    SET
-      transaction_date = $2,
-      vendor_name = $3,
-      vendor_address = $4,
-      vendor_phone = $5,
-      receipt_time_text = $6,
-      total_amount = $7,
-      tax_amount = $8,
-      tax_rate = $9,
-      tax_treatment_name = $10,
-      payment_method_id = $11,
-      payment_method_name = $12,
-      target_person_id = $13,
-      purpose_id = $14,
-      project_id = $15,
-      department_id = $16,
-      invoice_type_id = $17,
-      evidence_type_id = $18,
-      evidence_memo = $19,
-      account_title_name = $20,
-      invoice_number = $21,
-      summary = $22,
-      memo = $23,
-      confidence = $24,
-      line_items = $25::jsonb,
-      status = $26,
-      purpose_temp_name = $27,
-      project_temp_name = $28,
-      department_temp_name = $29,
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = $1
-    RETURNING *
-    `,
-    [
-      id,
-      patch.transactionDate || null,
-      patch.vendorName || "",
-      patch.vendorAddress || patch.vendor_address || "",
-      patch.vendorPhone || patch.vendor_phone || "",
-      patch.receiptTimeText || patch.receipt_time_text || "",
-      patch.totalAmount === "" || patch.totalAmount === undefined ? null : Number(patch.totalAmount),
-      patch.taxAmount === "" || patch.taxAmount === undefined ? null : Number(patch.taxAmount),
-      patch.taxRate || "",
-      patch.taxTreatmentName || patch.tax_treatment_name || "",
-      patch.paymentMethodId || patch.payment_method_id || null,
-      patch.paymentMethodName || patch.payment_method_name || "",
-      patch.targetPersonId || patch.target_person_id || null,
-      patch.purposeId || patch.purpose_id || null,
-      patch.projectId || patch.project_id || null,
-      patch.departmentId || patch.department_id || null,
-      patch.invoiceTypeId || patch.invoice_type_id || null,
-      patch.evidenceTypeId || patch.evidence_type_id || null,
-      patch.evidenceMemo || patch.evidence_memo || "",
-      patch.accountTitleName || patch.account_title_name || "",
-      patch.invoiceNumber || patch.invoice_number || "",
-      patch.summary || "",
-      patch.memo || "",
-      patch.confidence === "" || patch.confidence === undefined ? null : Number(patch.confidence),
-      JSON.stringify(Array.isArray(patch.lineItems) ? patch.lineItems : []),
-      patch.status || "draft",
-      patch.purposeTempName || patch.purpose_temp_name || "",
-      patch.projectTempName || patch.project_temp_name || "",
-      patch.departmentTempName || patch.department_temp_name || ""
-    ]
-  );
-
-  return result.rows[0] || null;
-}
-
-
 async function getImportByImageHashSha256(hash) {
   const result = await pool.query(
     `
@@ -565,14 +407,6 @@ async function deleteImportById(id) {
       await client.query("ROLLBACK");
       return null;
     }
-
-    await client.query(
-      `
-      DELETE FROM accounting.receipt_ai_drafts
-      WHERE receipt_import_id = $1
-      `,
-      [id]
-    );
 
     await client.query(
       `
@@ -742,153 +576,6 @@ async function getReceiptTaxBreakdowns(receiptAiDraftId) {
   );
 
   return result.rows;
-}
-
-async function replaceReceiptTaxBreakdowns(receiptAiDraftId, items) {
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const draftCheck = await client.query(
-      `
-      SELECT id
-      FROM accounting.receipt_ai_drafts
-      WHERE id = $1
-      LIMIT 1
-      `,
-      [receiptAiDraftId]
-    );
-
-    if (draftCheck.rowCount === 0) {
-      await client.query("ROLLBACK");
-      return null;
-    }
-
-    await client.query(
-      `
-      DELETE FROM accounting.receipt_tax_breakdowns
-      WHERE receipt_ai_draft_id = $1
-      `,
-      [receiptAiDraftId]
-    );
-
-    const rows = Array.isArray(items) ? items : [];
-    const inserted = [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i] || {};
-
-      const taxCategoryId = row.taxCategoryId || row.tax_category_id || null;
-      const taxCategoryName = row.taxCategoryName || row.tax_category_name || "";
-      const taxRate = row.taxRate || row.tax_rate || "";
-
-      const taxTreatmentId = row.taxTreatmentId || row.tax_treatment_id || null;
-      const taxTreatmentName = row.taxTreatmentName || row.tax_treatment_name || "";
-
-      const targetAmount = row.targetAmount ?? row.target_amount ?? "";
-      const taxAmount = row.taxAmount ?? row.tax_amount ?? "";
-      const aiConfidence = row.aiConfidence ?? row.ai_confidence ?? "";
-
-      const isConfirmed =
-        row.isConfirmed === false || row.is_confirmed === false
-          ? false
-          : true;
-
-      const sortOrder = Number(row.sortOrder || row.sort_order || (i + 1) * 10);
-
-      const hasMeaning =
-        taxCategoryId ||
-        taxCategoryName ||
-        taxTreatmentId ||
-        taxTreatmentName ||
-        String(targetAmount || "").trim() !== "" ||
-        String(taxAmount || "").trim() !== "";
-
-      if (!hasMeaning) {
-        continue;
-      }
-
-      const result = await client.query(
-        `
-        INSERT INTO accounting.receipt_tax_breakdowns (
-          receipt_ai_draft_id,
-          tax_category_id,
-          tax_category_name,
-          tax_rate,
-          tax_treatment_id,
-          tax_treatment_name,
-          target_amount,
-          tax_amount,
-          ai_confidence,
-          is_confirmed,
-          sort_order
-        ) VALUES (
-          $1,
-          $2::BIGINT,
-          COALESCE(
-            (SELECT tax_name FROM expenses.tax_categories WHERE tax_category_id = $2::BIGINT),
-            $3::TEXT,
-            ''
-          ),
-          COALESCE(
-            (SELECT tax_rate FROM expenses.tax_categories WHERE tax_category_id = $2::BIGINT),
-            NULLIF($4::TEXT, '')::NUMERIC,
-            0
-          ),
-          $5::BIGINT,
-          COALESCE(
-            (SELECT treatment_name FROM expenses.tax_treatments WHERE tax_treatment_id = $5::BIGINT),
-            $6::TEXT,
-            ''
-          ),
-          NULLIF($7::TEXT, '')::NUMERIC,
-          NULLIF($8::TEXT, '')::NUMERIC,
-          NULLIF($9::TEXT, '')::NUMERIC,
-          $10::BOOLEAN,
-          $11::INTEGER
-        )
-        RETURNING
-          id,
-          receipt_ai_draft_id,
-          tax_category_id,
-          tax_category_name,
-          tax_rate,
-          tax_treatment_id,
-          tax_treatment_name,
-          target_amount,
-          tax_amount,
-          ai_confidence,
-          is_confirmed,
-          sort_order
-        `,
-        [
-          receiptAiDraftId,
-          taxCategoryId ? String(taxCategoryId) : null,
-          taxCategoryName,
-          taxRate,
-          taxTreatmentId ? String(taxTreatmentId) : null,
-          taxTreatmentName,
-          targetAmount,
-          taxAmount,
-          aiConfidence,
-          isConfirmed,
-          sortOrder
-        ]
-      );
-
-      inserted.push(result.rows[0]);
-    }
-
-    await client.query("COMMIT");
-
-    return inserted;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
 }
 
 /* RECEIPT_ACCOUNTING_HOTFIX_START */
@@ -1158,26 +845,6 @@ async function deleteImportById(id) {
 
     await client.query(
       `
-      DELETE FROM accounting.receipt_tax_breakdowns
-      WHERE receipt_ai_draft_id IN (
-        SELECT id
-        FROM accounting.receipt_ai_drafts
-        WHERE receipt_import_id = $1
-      )
-      `,
-      [id]
-    ).catch(() => {});
-
-    await client.query(
-      `
-      DELETE FROM accounting.receipt_ai_drafts
-      WHERE receipt_import_id = $1
-      `,
-      [id]
-    ).catch(() => {});
-
-    await client.query(
-      `
       DELETE FROM accounting.receipt_imports
       WHERE id = $1
       `,
@@ -1202,93 +869,13 @@ async function deleteImportById(id) {
   勘定科目は現テーブルでは account_title_name として保存する。
 */
 
-createAiDraft = async function createAiDraftWithMasterIds(receiptImportId, draft) {
-  const result = await pool.query(
-    `
-    INSERT INTO accounting.receipt_ai_drafts (
-      receipt_import_id,
-      transaction_date,
-      vendor_name,
-      vendor_address,
-      vendor_phone,
-      receipt_time_text,
-      total_amount,
-      tax_amount,
-      tax_rate,
-      tax_treatment_name,
-      payment_method_id,
-      payment_method_name,
-      account_title_name,
-      invoice_type_id,
-      evidence_type_id,
-      evidence_memo,
-      invoice_number,
-      summary,
-      memo,
-      confidence,
-      line_items,
-      status,
-      ai_model,
-      ai_raw_json,
-      error_message
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6,
-      $7, $8, $9, $10, $11, $12,
-      $13, $14, $15, $16, $17, $18,
-      $19, $20, $21::jsonb, 'draft', $22, $23::jsonb, ''
-    )
-    RETURNING *
-    `,
-    [
-      receiptImportId,
-      draft.transactionDate,
-      draft.vendorName,
-      draft.vendorAddress || "",
-      draft.vendorPhone || "",
-      draft.receiptTimeText || "",
-      draft.totalAmount,
-      draft.taxAmount,
-      draft.taxRate,
-      draft.taxTreatmentName || draft.tax_treatment_name || "",
-      draft.paymentMethodId || draft.payment_method_id || null,
-      draft.paymentMethodName || draft.payment_method_name || "",
-      draft.accountTitleName || draft.account_title_name || "",
-      draft.invoiceTypeId || draft.invoice_type_id || null,
-      draft.evidenceTypeId || draft.evidence_type_id || null,
-      draft.evidenceMemo || draft.evidence_memo || "",
-      draft.invoiceNumber || draft.invoice_number || "",
-      draft.summary || "",
-      draft.memo || "",
-      draft.confidence,
-      JSON.stringify(draft.lineItems || []),
-      draft.aiModel,
-      JSON.stringify(draft.aiRawJson || {})
-    ]
-  );
-
-  const savedDraft = result.rows[0];
-
-  const aiTaxBreakdowns = buildReceiptTaxBreakdownsFromDraft(draft);
-
-  if (aiTaxBreakdowns.length > 0) {
-    await replaceReceiptTaxBreakdowns(Number(savedDraft.id), aiTaxBreakdowns);
-  }
-
-  return savedDraft;
-};
 /* RECEIPT_AI_DRAFT_MASTER_SAVE_END */
 module.exports = {
-  getReceiptTaxBreakdowns,
-  replaceReceiptTaxBreakdowns,
-  getReceiptMasterOptions,
+  getReceiptTaxBreakdowns,  getReceiptMasterOptions,
   deleteImportById,
   listImportsForOcrDuplicateCheck,
   listImports,
-  getImportById,
-  createAiDraft,
-  getAiDrafts,
-  updateAiDraft,
-  getImportByImageHashSha256,
+  getImportById,  getImportByImageHashSha256,
   createLocalImport,
 };
 
@@ -1410,7 +997,7 @@ if (
 /* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_START */
 /*
   新レシートDB 6テーブル用 repository 関数。
-  旧 receipt_ai_drafts / receipt_tax_breakdowns はここでは変更しない。
+  正式レシート3テーブルを使用する。
   既存APIを壊さないため、module.exports へ追加代入する。
 */
 
@@ -1485,13 +1072,13 @@ async function createReceiptDraftFromImport(receiptImportId) {
 
   const result = await pool.query(
     `
-    INSERT INTO accounting.receipt_drafts (
+    INSERT INTO accounting.receipts (
       receipt_import_id,
       receipt_name,
       receipt_image_path,
       receipt_imported_at,
       image_hash_sha256,
-      draft_status
+      saved_status
     ) VALUES (
       $1, $2, $3, $4, $5, '取込済み'
     )
@@ -1526,8 +1113,8 @@ async function createReceiptDraftDetailFromAi(draftReceiptId, receiptImportId, d
 
   const result = await pool.query(
     `
-    INSERT INTO accounting.receipt_draft_details (
-      draft_receipt_id,
+    INSERT INTO accounting.receipt_details (
+      receipt_id,
       receipt_import_id,
 
       transaction_date,
@@ -1624,8 +1211,8 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
 
     await client.query(
       `
-      DELETE FROM accounting.receipt_draft_detail_breakdowns
-      WHERE draft_receipt_detail_id = $1
+      DELETE FROM accounting.receipt_detail_breakdowns
+      WHERE receipt_detail_id = $1
       `,
       [draftReceiptDetailId]
     );
@@ -1689,9 +1276,9 @@ async function replaceReceiptDraftDetailBreakdowns(draftReceiptId, draftReceiptD
 
       const result = await client.query(
         `
-        INSERT INTO accounting.receipt_draft_detail_breakdowns (
-          draft_receipt_id,
-          draft_receipt_detail_id,
+        INSERT INTO accounting.receipt_detail_breakdowns (
+          receipt_id,
+          receipt_detail_id,
           item_name,
           quantity,
           unit_price,
@@ -1740,7 +1327,7 @@ async function createReceiptDraftFromAi(receiptImportId, draft) {
   }
 
   const detail = await createReceiptDraftDetailFromAi(
-    Number(receiptDraft.draft_receipt_id),
+    Number(receiptDraft.receipt_id),
     Number(receiptImportId),
     draft || {}
   );
@@ -1749,19 +1336,19 @@ async function createReceiptDraftFromAi(receiptImportId, draft) {
 
   const breakdowns = detail
     ? await replaceReceiptDraftDetailBreakdowns(
-        Number(receiptDraft.draft_receipt_id),
-        Number(detail.draft_receipt_detail_id),
+        Number(receiptDraft.receipt_id),
+        Number(detail.receipt_detail_id),
         lineItems
       )
     : [];
 
   return {
     ...(detail || {}),
-    id: detail ? detail.draft_receipt_detail_id : null,
-    draft_receipt_id: receiptDraft.draft_receipt_id,
-    draftReceiptId: receiptDraft.draft_receipt_id,
-    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
-    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    id: detail ? detail.receipt_detail_id : null,
+    receipt_id: receiptDraft.receipt_id,
+    draftReceiptId: receiptDraft.receipt_id,
+    receipt_detail_id: detail ? detail.receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.receipt_detail_id : null,
     receipt_import_id: receiptImportId,
     receiptImportId,
     line_items: lineItems,
@@ -1774,9 +1361,9 @@ async function getReceiptDraftByImportId(receiptImportId) {
   const draftResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_drafts
+    FROM accounting.receipts
     WHERE receipt_import_id = $1
-    ORDER BY draft_receipt_id DESC
+    ORDER BY receipt_id DESC
     LIMIT 1
     `,
     [receiptImportId]
@@ -1791,11 +1378,11 @@ async function getReceiptDraftByImportId(receiptImportId) {
   const detailsResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_draft_details
-    WHERE draft_receipt_id = $1
-    ORDER BY draft_receipt_detail_id DESC
+    FROM accounting.receipt_details
+    WHERE receipt_id = $1
+    ORDER BY receipt_detail_id DESC
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   return {
@@ -1807,7 +1394,7 @@ async function getReceiptDraftByImportId(receiptImportId) {
 async function updateReceiptDraftDetail(id, patch) {
   const result = await pool.query(
     `
-    UPDATE accounting.receipt_draft_details
+    UPDATE accounting.receipt_details
     SET
       transaction_date = $2,
       receipt_time_text = $3,
@@ -1840,7 +1427,7 @@ async function updateReceiptDraftDetail(id, patch) {
 
       receipt_summary_id = $22,
       updated_at = CURRENT_TIMESTAMP
-    WHERE draft_receipt_detail_id = $1
+    WHERE receipt_detail_id = $1
     RETURNING *
     `,
     [
@@ -1892,16 +1479,16 @@ module.exports.updateReceiptDraftDetail = updateReceiptDraftDetail;
 /* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_20260705_START */
 /*
   新6テーブル下書き取得の上書き。
-  明細 details に receipt_draft_detail_breakdowns を付けて返す。
+  明細 details に receipt_detail_breakdowns を付けて返す。
   画面側の日付ズレ対策として DATE は YYYY-MM-DD 文字列で返す。
 */
 async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
   const draftResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_drafts
+    FROM accounting.receipts
     WHERE receipt_import_id = $1
-    ORDER BY draft_receipt_id DESC
+    ORDER BY receipt_id DESC
     LIMIT 1
     `,
     [receiptImportId]
@@ -1918,27 +1505,27 @@ async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
     SELECT
       *,
       to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
-    FROM accounting.receipt_draft_details
-    WHERE draft_receipt_id = $1
-    ORDER BY draft_receipt_detail_id DESC
+    FROM accounting.receipt_details
+    WHERE receipt_id = $1
+    ORDER BY receipt_detail_id DESC
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_draft_detail_breakdowns
-    WHERE draft_receipt_id = $1
-    ORDER BY draft_receipt_detail_id, draft_receipt_detail_breakdown_id
+    FROM accounting.receipt_detail_breakdowns
+    WHERE receipt_id = $1
+    ORDER BY receipt_detail_id, receipt_detail_breakdown_id
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsByDetailId = new Map();
 
   for (const row of breakdownsResult.rows) {
-    const key = Number(row.draft_receipt_detail_id);
+    const key = Number(row.receipt_detail_id);
     if (!breakdownsByDetailId.has(key)) {
       breakdownsByDetailId.set(key, []);
     }
@@ -1946,7 +1533,7 @@ async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
     breakdownsByDetailId.get(key).push({
       ...row,
 
-      id: row.draft_receipt_detail_breakdown_id,
+      id: row.receipt_detail_breakdown_id,
 
       itemName: row.item_name,
       item_name: row.item_name,
@@ -1970,7 +1557,7 @@ async function getReceiptDraftByImportIdWithBreakdowns(receiptImportId) {
   }
 
   const details = detailsResult.rows.map((detail) => {
-    const key = Number(detail.draft_receipt_detail_id);
+    const key = Number(detail.receipt_detail_id);
     const breakdowns = breakdownsByDetailId.get(key) || [];
     const transactionDateText = detail.transaction_date_text || "";
 
@@ -2008,9 +1595,9 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
   const draftResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_drafts
+    FROM accounting.receipts
     WHERE receipt_import_id = $1
-    ORDER BY draft_receipt_id DESC
+    ORDER BY receipt_id DESC
     LIMIT 1
     `,
     [receiptImportId]
@@ -2027,11 +1614,11 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
     SELECT
       *,
       to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
-    FROM accounting.receipt_draft_details
-    WHERE draft_receipt_id = $1
-    ORDER BY draft_receipt_detail_id DESC
+    FROM accounting.receipt_details
+    WHERE receipt_id = $1
+    ORDER BY receipt_detail_id DESC
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsResult = await pool.query(
@@ -2041,21 +1628,21 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
       tc.tax_name AS tax_category_name,
       tc.tax_rate AS tax_rate,
       tt.treatment_name AS tax_treatment_name
-    FROM accounting.receipt_draft_detail_breakdowns b
+    FROM accounting.receipt_detail_breakdowns b
     LEFT JOIN expenses.tax_categories tc
       ON tc.tax_category_id = b.tax_category_id
     LEFT JOIN expenses.tax_treatments tt
       ON tt.tax_treatment_id = b.tax_treatment_id
-    WHERE b.draft_receipt_id = $1
-    ORDER BY b.draft_receipt_detail_id, b.draft_receipt_detail_breakdown_id
+    WHERE b.receipt_id = $1
+    ORDER BY b.receipt_detail_id, b.receipt_detail_breakdown_id
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsByDetailId = new Map();
 
   for (const row of breakdownsResult.rows) {
-    const key = Number(row.draft_receipt_detail_id);
+    const key = Number(row.receipt_detail_id);
     if (!breakdownsByDetailId.has(key)) {
       breakdownsByDetailId.set(key, []);
     }
@@ -2065,7 +1652,7 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
     breakdownsByDetailId.get(key).push({
       ...row,
 
-      id: row.draft_receipt_detail_breakdown_id,
+      id: row.receipt_detail_breakdown_id,
 
       item_name: name,
       itemName: name,
@@ -2107,14 +1694,14 @@ async function getReceiptDraftByImportIdWithBreakdownsV2(receiptImportId) {
   }
 
   const details = detailsResult.rows.map((detail) => {
-    const key = Number(detail.draft_receipt_detail_id);
+    const key = Number(detail.receipt_detail_id);
     const breakdowns = breakdownsByDetailId.get(key) || [];
     const transactionDateText = detail.transaction_date_text || "";
 
     return {
       ...detail,
 
-      id: detail.draft_receipt_detail_id,
+      id: detail.receipt_detail_id,
 
       transaction_date: transactionDateText,
       transactionDate: transactionDateText,
@@ -2166,7 +1753,7 @@ module.exports.getReceiptDraftByImportId = getReceiptDraftByImportIdWithBreakdow
 /* RECEIPT_NEW_6_TAX_SAVE_V2_20260705_START */
 /*
   新6テーブル保存 V2。
-  AI解析結果の税区分・税処理を、明細内訳 receipt_draft_detail_breakdowns にも入れる。
+  AI解析結果の税区分・税処理を、明細内訳 receipt_detail_breakdowns にも入れる。
   既存データは自動では変わらない。次回AI解析分から反映される。
 */
 
@@ -2232,7 +1819,7 @@ async function createReceiptDraftFromAiTaxSaveV2(receiptImportId, draft) {
   }
 
   const detail = await createReceiptDraftDetailFromAi(
-    Number(receiptDraft.draft_receipt_id),
+    Number(receiptDraft.receipt_id),
     Number(receiptImportId),
     draft || {}
   );
@@ -2242,19 +1829,19 @@ async function createReceiptDraftFromAiTaxSaveV2(receiptImportId, draft) {
 
   const breakdowns = detail
     ? await replaceReceiptDraftDetailBreakdowns(
-        Number(receiptDraft.draft_receipt_id),
-        Number(detail.draft_receipt_detail_id),
+        Number(receiptDraft.receipt_id),
+        Number(detail.receipt_detail_id),
         lineItems
       )
     : [];
 
   return {
     ...(detail || {}),
-    id: detail ? detail.draft_receipt_detail_id : null,
-    draft_receipt_id: receiptDraft.draft_receipt_id,
-    draftReceiptId: receiptDraft.draft_receipt_id,
-    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
-    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    id: detail ? detail.receipt_detail_id : null,
+    receipt_id: receiptDraft.receipt_id,
+    draftReceiptId: receiptDraft.receipt_id,
+    receipt_detail_id: detail ? detail.receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.receipt_detail_id : null,
     receipt_import_id: receiptImportId,
     receiptImportId,
     line_items: lineItems,
@@ -2270,19 +1857,19 @@ module.exports.createReceiptDraftFromAi = createReceiptDraftFromAiTaxSaveV2;
 /*
   新6テーブル用 税額内訳API。
   旧 receipt_tax_breakdowns は使わず、
-  receipt_draft_details / receipt_draft_detail_breakdowns から画面互換の税額内訳を返す。
+  receipt_details / receipt_detail_breakdowns から画面互換の税額内訳を返す。
 */
 
 async function getReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId) {
   const detailResult = await pool.query(
     `
     SELECT
-      draft_receipt_detail_id,
-      draft_receipt_id,
+      receipt_detail_id,
+      receipt_id,
       total_amount,
       tax_total_amount
-    FROM accounting.receipt_draft_details
-    WHERE draft_receipt_detail_id = $1
+    FROM accounting.receipt_details
+    WHERE receipt_detail_id = $1
     LIMIT 1
     `,
     [draftReceiptDetailId]
@@ -2302,17 +1889,17 @@ async function getReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId) {
       tc.tax_name AS tax_category_name,
       tc.tax_rate,
       tt.treatment_name AS tax_treatment_name
-    FROM accounting.receipt_draft_detail_breakdowns b
+    FROM accounting.receipt_detail_breakdowns b
     LEFT JOIN expenses.tax_categories tc
       ON tc.tax_category_id = b.tax_category_id
     LEFT JOIN expenses.tax_treatments tt
       ON tt.tax_treatment_id = b.tax_treatment_id
-    WHERE b.draft_receipt_detail_id = $1
+    WHERE b.receipt_detail_id = $1
       AND (
         b.tax_category_id IS NOT NULL
         OR b.tax_treatment_id IS NOT NULL
       )
-    ORDER BY b.draft_receipt_detail_breakdown_id
+    ORDER BY b.receipt_detail_breakdown_id
     LIMIT 1
     `,
     [draftReceiptDetailId]
@@ -2331,7 +1918,7 @@ async function getReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId) {
     {
       id: Number(draftReceiptDetailId),
       receipt_ai_draft_id: Number(draftReceiptDetailId),
-      draft_receipt_detail_id: Number(draftReceiptDetailId),
+      receipt_detail_id: Number(draftReceiptDetailId),
 
       tax_category_id: tax.tax_category_id || null,
       taxCategoryId: tax.tax_category_id || null,
@@ -2407,10 +1994,10 @@ async function replaceReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId, item
     const detailCheck = await client.query(
       `
       SELECT
-        draft_receipt_detail_id,
+        receipt_detail_id,
         total_amount
-      FROM accounting.receipt_draft_details
-      WHERE draft_receipt_detail_id = $1
+      FROM accounting.receipt_details
+      WHERE receipt_detail_id = $1
       LIMIT 1
       `,
       [draftReceiptDetailId]
@@ -2425,12 +2012,12 @@ async function replaceReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId, item
 
     await client.query(
       `
-      UPDATE accounting.receipt_draft_details
+      UPDATE accounting.receipt_details
       SET
         tax_total_amount = $2,
         total_amount = COALESCE($3, total_amount),
         updated_at = CURRENT_TIMESTAMP
-      WHERE draft_receipt_detail_id = $1
+      WHERE receipt_detail_id = $1
       `,
       [
         draftReceiptDetailId,
@@ -2442,12 +2029,12 @@ async function replaceReceiptDraftDetailTaxBreakdowns(draftReceiptDetailId, item
     if (taxCategoryId || taxTreatmentId) {
       await client.query(
         `
-        UPDATE accounting.receipt_draft_detail_breakdowns
+        UPDATE accounting.receipt_detail_breakdowns
         SET
           tax_category_id = COALESCE($2::BIGINT, tax_category_id),
           tax_treatment_id = COALESCE($3::BIGINT, tax_treatment_id),
           updated_at = CURRENT_TIMESTAMP
-        WHERE draft_receipt_detail_id = $1
+        WHERE receipt_detail_id = $1
         `,
         [
           draftReceiptDetailId,
@@ -2475,7 +2062,7 @@ module.exports.replaceReceiptDraftDetailTaxBreakdowns = replaceReceiptDraftDetai
 /* RECEIPT_NEW_6_CONFIDENCE_20260705_START */
 /*
   新6テーブル 信頼度対応。
-  receipt_draft_details.ai_confidence にAI信頼度を保存し、
+  receipt_details.ai_confidence にAI信頼度を保存し、
   画面返却時に confidence / aiConfidence として返す。
 */
 
@@ -2514,8 +2101,8 @@ async function createReceiptDraftDetailFromAiConfidenceV2(draftReceiptId, receip
 
   const result = await pool.query(
     `
-    INSERT INTO accounting.receipt_draft_details (
-      draft_receipt_id,
+    INSERT INTO accounting.receipt_details (
+      receipt_id,
       receipt_import_id,
 
       transaction_date,
@@ -2614,7 +2201,7 @@ async function createReceiptDraftFromAiConfidenceV3(receiptImportId, draft) {
   }
 
   const detail = await createReceiptDraftDetailFromAiConfidenceV2(
-    Number(receiptDraft.draft_receipt_id),
+    Number(receiptDraft.receipt_id),
     Number(receiptImportId),
     draft || {}
   );
@@ -2624,8 +2211,8 @@ async function createReceiptDraftFromAiConfidenceV3(receiptImportId, draft) {
 
   const breakdowns = detail
     ? await replaceReceiptDraftDetailBreakdowns(
-        Number(receiptDraft.draft_receipt_id),
-        Number(detail.draft_receipt_detail_id),
+        Number(receiptDraft.receipt_id),
+        Number(detail.receipt_detail_id),
         lineItems
       )
     : [];
@@ -2633,11 +2220,11 @@ async function createReceiptDraftFromAiConfidenceV3(receiptImportId, draft) {
   return {
     ...(detail || {}),
 
-    id: detail ? detail.draft_receipt_detail_id : null,
-    draft_receipt_id: receiptDraft.draft_receipt_id,
-    draftReceiptId: receiptDraft.draft_receipt_id,
-    draft_receipt_detail_id: detail ? detail.draft_receipt_detail_id : null,
-    draftReceiptDetailId: detail ? detail.draft_receipt_detail_id : null,
+    id: detail ? detail.receipt_detail_id : null,
+    receipt_id: receiptDraft.receipt_id,
+    draftReceiptId: receiptDraft.receipt_id,
+    receipt_detail_id: detail ? detail.receipt_detail_id : null,
+    draftReceiptDetailId: detail ? detail.receipt_detail_id : null,
     receipt_import_id: receiptImportId,
     receiptImportId,
 
@@ -2655,9 +2242,9 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
   const draftResult = await pool.query(
     `
     SELECT *
-    FROM accounting.receipt_drafts
+    FROM accounting.receipts
     WHERE receipt_import_id = $1
-    ORDER BY draft_receipt_id DESC
+    ORDER BY receipt_id DESC
     LIMIT 1
     `,
     [receiptImportId]
@@ -2674,11 +2261,11 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
     SELECT
       *,
       to_char(transaction_date, 'YYYY-MM-DD') AS transaction_date_text
-    FROM accounting.receipt_draft_details
-    WHERE draft_receipt_id = $1
-    ORDER BY draft_receipt_detail_id DESC
+    FROM accounting.receipt_details
+    WHERE receipt_id = $1
+    ORDER BY receipt_detail_id DESC
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsResult = await pool.query(
@@ -2688,21 +2275,21 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
       tc.tax_name AS tax_category_name,
       tc.tax_rate AS tax_rate,
       tt.treatment_name AS tax_treatment_name
-    FROM accounting.receipt_draft_detail_breakdowns b
+    FROM accounting.receipt_detail_breakdowns b
     LEFT JOIN expenses.tax_categories tc
       ON tc.tax_category_id = b.tax_category_id
     LEFT JOIN expenses.tax_treatments tt
       ON tt.tax_treatment_id = b.tax_treatment_id
-    WHERE b.draft_receipt_id = $1
-    ORDER BY b.draft_receipt_detail_id, b.draft_receipt_detail_breakdown_id
+    WHERE b.receipt_id = $1
+    ORDER BY b.receipt_detail_id, b.receipt_detail_breakdown_id
     `,
-    [draft.draft_receipt_id]
+    [draft.receipt_id]
   );
 
   const breakdownsByDetailId = new Map();
 
   for (const row of breakdownsResult.rows) {
-    const key = Number(row.draft_receipt_detail_id);
+    const key = Number(row.receipt_detail_id);
     if (!breakdownsByDetailId.has(key)) {
       breakdownsByDetailId.set(key, []);
     }
@@ -2712,7 +2299,7 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
     breakdownsByDetailId.get(key).push({
       ...row,
 
-      id: row.draft_receipt_detail_breakdown_id,
+      id: row.receipt_detail_breakdown_id,
 
       item_name: name,
       itemName: name,
@@ -2754,14 +2341,14 @@ async function getReceiptDraftByImportIdConfidenceV3(receiptImportId) {
   }
 
   const details = detailsResult.rows.map((detail) => {
-    const key = Number(detail.draft_receipt_detail_id);
+    const key = Number(detail.receipt_detail_id);
     const breakdowns = breakdownsByDetailId.get(key) || [];
     const transactionDateText = detail.transaction_date_text || "";
 
     return {
       ...detail,
 
-      id: detail.draft_receipt_detail_id,
+      id: detail.receipt_detail_id,
 
       transaction_date: transactionDateText,
       transactionDate: transactionDateText,
@@ -2823,7 +2410,7 @@ module.exports.getReceiptDraftByImportId = getReceiptDraftByImportIdConfidenceV3
   - 下書きは削除しない
   - 画像は削除しない
   - 1レシートごとにトランザクション
-  - source_draft_receipt_id で二重本保存を防ぐ
+  - source_receipt_id で二重本保存を防ぐ
 */
 function __receiptPostSaveNumber(value) {
   const n = Number(value);
@@ -2849,9 +2436,9 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
     const draftResult = await client.query(
       `
       SELECT *
-      FROM accounting.receipt_drafts
+      FROM accounting.receipts
       WHERE receipt_import_id = $1
-      ORDER BY draft_receipt_id DESC
+      ORDER BY receipt_id DESC
       LIMIT 1
       FOR UPDATE
       `,
@@ -2875,11 +2462,11 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
       `
       SELECT *
       FROM accounting.receipts
-      WHERE source_draft_receipt_id = $1
+      WHERE source_receipt_id = $1
       ORDER BY receipt_id DESC
       LIMIT 1
       `,
-      [draft.draft_receipt_id]
+      [draft.receipt_id]
     );
 
     const existing = existingResult.rows[0] || null;
@@ -2887,12 +2474,12 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
     if (existing) {
       await client.query(
         `
-        UPDATE accounting.receipt_drafts
-        SET draft_status = '本保存済み',
+        UPDATE accounting.receipts
+        SET saved_status = '本保存済み',
             updated_at = NOW()
-        WHERE draft_receipt_id = $1
+        WHERE receipt_id = $1
         `,
-        [draft.draft_receipt_id]
+        [draft.receipt_id]
       );
 
       await client.query(
@@ -2911,7 +2498,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         ok: true,
         already_saved: true,
         receipt_import_id: importId,
-        draft_receipt_id: draft.draft_receipt_id,
+        receipt_id: draft.receipt_id,
         receipt_id: existing.receipt_id,
         message: "既に本保存済みです。二重登録はしていません。"
       };
@@ -2920,12 +2507,12 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
     const detailsResult = await client.query(
       `
       SELECT *
-      FROM accounting.receipt_draft_details
-      WHERE draft_receipt_id = $1
-      ORDER BY draft_receipt_detail_id
+      FROM accounting.receipt_details
+      WHERE receipt_id = $1
+      ORDER BY receipt_detail_id
       FOR UPDATE
       `,
-      [draft.draft_receipt_id]
+      [draft.receipt_id]
     );
 
     const details = detailsResult.rows || [];
@@ -2937,7 +2524,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         skipped: true,
         reason: "detail_not_found",
         receipt_import_id: importId,
-        draft_receipt_id: draft.draft_receipt_id,
+        receipt_id: draft.receipt_id,
         message: "下書き明細がありません。"
       };
     }
@@ -2963,7 +2550,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         skipped: true,
         reason: "validation_error",
         receipt_import_id: importId,
-        draft_receipt_id: draft.draft_receipt_id,
+        receipt_id: draft.receipt_id,
         message: validationErrors.join(" / "),
         validation_errors: validationErrors
       };
@@ -2972,7 +2559,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
     const receiptResult = await client.query(
       `
       INSERT INTO accounting.receipts (
-        source_draft_receipt_id,
+        source_receipt_id,
         receipt_import_id,
         receipt_name,
         receipt_image_path,
@@ -2993,7 +2580,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
       RETURNING *
       `,
       [
-        draft.draft_receipt_id,
+        draft.receipt_id,
         draft.receipt_import_id,
         draft.receipt_name,
         draft.receipt_image_path,
@@ -3010,7 +2597,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         `
         INSERT INTO accounting.receipt_details (
           receipt_id,
-          source_draft_receipt_detail_id,
+          source_receipt_detail_id,
           transaction_date,
           receipt_time_text,
           vendor_name,
@@ -3046,7 +2633,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         `,
         [
           receipt.receipt_id,
-          detail.draft_receipt_detail_id,
+          detail.receipt_detail_id,
           detail.transaction_date,
           detail.receipt_time_text,
           detail.vendor_name,
@@ -3073,26 +2660,26 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
       );
 
       const savedDetail = savedDetailResult.rows[0];
-      detailIdMap.set(Number(detail.draft_receipt_detail_id), Number(savedDetail.receipt_detail_id));
+      detailIdMap.set(Number(detail.receipt_detail_id), Number(savedDetail.receipt_detail_id));
     }
 
     const breakdownResult = await client.query(
       `
       SELECT *
-      FROM accounting.receipt_draft_detail_breakdowns
-      WHERE draft_receipt_id = $1
-      ORDER BY draft_receipt_detail_breakdown_id
+      FROM accounting.receipt_detail_breakdowns
+      WHERE receipt_id = $1
+      ORDER BY receipt_detail_breakdown_id
       `,
-      [draft.draft_receipt_id]
+      [draft.receipt_id]
     );
 
     let savedBreakdownCount = 0;
 
     for (const breakdown of breakdownResult.rows || []) {
-      const receiptDetailId = detailIdMap.get(Number(breakdown.draft_receipt_detail_id));
+      const receiptDetailId = detailIdMap.get(Number(breakdown.receipt_detail_id));
 
       if (!receiptDetailId) {
-        throw new Error("明細内訳の親明細が見つかりません。draft_breakdown_id=" + breakdown.draft_receipt_detail_breakdown_id);
+        throw new Error("明細内訳の親明細が見つかりません。draft_breakdown_id=" + breakdown.receipt_detail_breakdown_id);
       }
 
       await client.query(
@@ -3100,7 +2687,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         INSERT INTO accounting.receipt_detail_breakdowns (
           receipt_id,
           receipt_detail_id,
-          source_draft_receipt_detail_breakdown_id,
+          source_receipt_detail_breakdown_id,
           item_name,
           quantity,
           unit_price,
@@ -3121,7 +2708,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
         [
           receipt.receipt_id,
           receiptDetailId,
-          breakdown.draft_receipt_detail_breakdown_id,
+          breakdown.receipt_detail_breakdown_id,
           breakdown.item_name,
           breakdown.quantity,
           breakdown.unit_price,
@@ -3138,12 +2725,12 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
 
     await client.query(
       `
-      UPDATE accounting.receipt_drafts
-      SET draft_status = '本保存済み',
+      UPDATE accounting.receipts
+      SET saved_status = '本保存済み',
           updated_at = NOW()
-      WHERE draft_receipt_id = $1
+      WHERE receipt_id = $1
       `,
-      [draft.draft_receipt_id]
+      [draft.receipt_id]
     );
 
     await client.query(
@@ -3161,7 +2748,7 @@ async function postReceiptDraftByImportId(receiptImportId, options = {}) {
     return {
       ok: true,
       receipt_import_id: importId,
-      draft_receipt_id: draft.draft_receipt_id,
+      receipt_id: draft.receipt_id,
       receipt_id: receipt.receipt_id,
       detail_count: details.length,
       breakdown_count: savedBreakdownCount,

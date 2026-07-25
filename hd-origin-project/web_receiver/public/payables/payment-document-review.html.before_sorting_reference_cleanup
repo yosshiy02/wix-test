@@ -3108,11 +3108,11 @@ function setDocumentPreview(item) {
             item.__documentGroup,
           visible_field_labels:
             item.__visibleFieldLabels,
-          specialistAnalysisId:
+          paymentDocumentSortingDraftId:
             autoSaved
-              .specialistAnalysisId ||
+              .paymentDocumentSortingDraftId ||
             autoSaved
-              .specialist_analysis_id ||
+              .payment_document_sorting_draft_id ||
             null,
           appliedCount
         });
@@ -3127,11 +3127,11 @@ function setDocumentPreview(item) {
           item.__documentGroup,
         visible_field_labels:
           item.__visibleFieldLabels,
-        specialistAnalysisId:
+        paymentDocumentSortingDraftId:
           autoSaved
-            .specialistAnalysisId ||
+            .paymentDocumentSortingDraftId ||
           autoSaved
-            .specialist_analysis_id ||
+            .payment_document_sorting_draft_id ||
           null,
         appliedCount
       };
@@ -3821,11 +3821,11 @@ async function runSelectedAiDrafts() {
             item.__documentGroup,
           visible_field_labels:
             item.__visibleFieldLabels,
-          specialistAnalysisId:
+          paymentDocumentSortingDraftId:
             autoSaved
-              .specialistAnalysisId ||
+              .paymentDocumentSortingDraftId ||
             autoSaved
-              .specialist_analysis_id ||
+              .payment_document_sorting_draft_id ||
             null,
           appliedCount
         });
@@ -3848,11 +3848,11 @@ async function runSelectedAiDrafts() {
           item.__aiSteps,
         document_group:
           item.__documentGroup,
-        specialistAnalysisId:
+        paymentDocumentSortingDraftId:
           autoSaved
-            .specialistAnalysisId ||
+            .paymentDocumentSortingDraftId ||
           autoSaved
-            .specialist_analysis_id ||
+            .payment_document_sorting_draft_id ||
           null,
         appliedCount
       };
@@ -6312,7 +6312,7 @@ const saveDraft = Object.assign(
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きを保存しました。\n専門解析ID: " + (result.specialistAnalysisId || ""));
+      alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -6553,7 +6553,7 @@ const saveDraft = Object.assign(
 
         ok.push({
           id,
-          draftId: saved.specialistAnalysisId || ""
+          draftId: saved.paymentDocumentSortingDraftId || ""
         });
       } catch (err) {
         ng.push({
@@ -7534,7 +7534,7 @@ const saveDraft = Object.assign(
   function pushField(fields, section, label, id, value, source) {
     fields.push({
       no: fields.length + 1,
-      source: source || "database_latest_specialist_analysis",
+      source: source || "database_latest_sorting_draft",
       section: section,
       label: label,
       id: id || "",
@@ -7561,7 +7561,7 @@ const saveDraft = Object.assign(
     var base = prefix || "DB最新仕分け下書き";
 
     if (!draft) {
-      pushField(fields, base, "DB保存状態", "db_found", "DB最新仕分け下書きなし", "database_latest_specialist_analysis");
+      pushField(fields, base, "DB保存状態", "db_found", "DB最新仕分け下書きなし", "database_latest_sorting_draft");
       return;
     }
 
@@ -7577,33 +7577,33 @@ const saveDraft = Object.assign(
       draft.aiSummary || draft.ai_summary
     );
 
-    pushField(fields, base, "OCR取込ID", "paymentDocumentOcrImportId", id || draft.paymentDocumentOcrImportId || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "ファイル名", "originalFileName", name, "database_latest_specialist_analysis");
-    pushField(fields, base, "専門解析ID", "specialistAnalysisId", draft.specialistAnalysisId || draft.specialist_analysis_id || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "下書き番号", "draftNo", draft.draftNo || draft.draft_no || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "下書き状態", "draftStatus", draft.draftStatus || draft.draft_status || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "人間確認状態", "humanCheckStatus", draft.humanCheckStatus || draft.human_check_status || "", "database_latest_specialist_analysis");
+    pushField(fields, base, "OCR取込ID", "paymentDocumentOcrImportId", id || draft.paymentDocumentOcrImportId || "", "database_latest_sorting_draft");
+    pushField(fields, base, "ファイル名", "originalFileName", name, "database_latest_sorting_draft");
+    pushField(fields, base, "下書きID", "paymentDocumentSortingDraftId", draft.paymentDocumentSortingDraftId || draft.payment_document_sorting_draft_id || "", "database_latest_sorting_draft");
+    pushField(fields, base, "下書き番号", "draftNo", draft.draftNo || draft.draft_no || "", "database_latest_sorting_draft");
+    pushField(fields, base, "下書き状態", "draftStatus", draft.draftStatus || draft.draft_status || "", "database_latest_sorting_draft");
+    pushField(fields, base, "人間確認状態", "humanCheckStatus", draft.humanCheckStatus || draft.human_check_status || "", "database_latest_sorting_draft");
 
-    pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || masterName(masterRowForCode("document_types", draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "")) || draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / AI仕分け", "処理先", "paymentDestinationLabel", draft.paymentDestinationLabel || draft.payment_destination_label || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / AI仕分け", "会計区分", "accountingCategoryLabel", draft.accountingCategoryLabel || draft.accounting_category_label || "", "database_latest_specialist_analysis");
+    pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || masterName(masterRowForCode("document_types", draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "")) || draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "処理先", "paymentDestinationLabel", draft.paymentDestinationLabel || draft.payment_destination_label || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI仕分け", "会計区分", "accountingCategoryLabel", draft.accountingCategoryLabel || draft.accounting_category_label || "", "database_latest_sorting_draft");
 
-    pushField(fields, base + " / 解析システム", "解析システムコード", "analysisSystemCode", draft.analysisSystemCode || draft.analysis_system_code || sortResultObject.analysis_system_code || visibleFieldsObject.analysis_system_code || aiSummaryObject.analysis_system_code || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / 解析システム", "解析システム", "analysisSystemLabel", draft.analysisSystemLabel || draft.analysis_system_label || sortResultObject.analysis_system_label || visibleFieldsObject.analysis_system_label || aiSummaryObject.analysis_system_label || aiSummaryObject.analysis_system || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / 解析システム", "解析システム信頼度", "analysisSystemConfidence", draft.analysisSystemConfidence || draft.analysis_system_confidence || sortResultObject.analysis_system_confidence || visibleFieldsObject.analysis_system_confidence || aiSummaryObject.analysis_system_confidence || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / 解析システム", "解析システム判定理由", "analysisSystemReason", draft.analysisSystemReason || draft.analysis_system_reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || aiSummaryObject.analysis_system_reason || "", "database_latest_specialist_analysis");
+    pushField(fields, base + " / 解析システム", "解析システムコード", "analysisSystemCode", draft.analysisSystemCode || draft.analysis_system_code || sortResultObject.analysis_system_code || visibleFieldsObject.analysis_system_code || aiSummaryObject.analysis_system_code || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム", "analysisSystemLabel", draft.analysisSystemLabel || draft.analysis_system_label || sortResultObject.analysis_system_label || visibleFieldsObject.analysis_system_label || aiSummaryObject.analysis_system_label || aiSummaryObject.analysis_system || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム信頼度", "analysisSystemConfidence", draft.analysisSystemConfidence || draft.analysis_system_confidence || sortResultObject.analysis_system_confidence || visibleFieldsObject.analysis_system_confidence || aiSummaryObject.analysis_system_confidence || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / 解析システム", "解析システム判定理由", "analysisSystemReason", draft.analysisSystemReason || draft.analysis_system_reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || aiSummaryObject.analysis_system_reason || "", "database_latest_sorting_draft");
 
-    pushField(fields, base + " / AI判断", "AI信頼度", "aiConfidenceLabel", draft.aiConfidenceLabel || draft.ai_confidence_label || draft.aiConfidence || draft.ai_confidence || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / AI判断", "AI判定理由", "aiReason", draft.aiReason || draft.ai_reason || draft.reviewReason || draft.review_reason || aiSummaryObject.reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || "", "database_latest_specialist_analysis");
-    pushField(fields, base + " / AI判断", "要確認", "needsReview", draft.needsReview || draft.needs_review ? "true" : "false", "database_latest_specialist_analysis");
+    pushField(fields, base + " / AI判断", "AI信頼度", "aiConfidenceLabel", draft.aiConfidenceLabel || draft.ai_confidence_label || draft.aiConfidence || draft.ai_confidence || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI判断", "AI判定理由", "aiReason", draft.aiReason || draft.ai_reason || draft.reviewReason || draft.review_reason || aiSummaryObject.reason || sortResultObject.analysis_system_reason || visibleFieldsObject.analysis_system_reason || "", "database_latest_sorting_draft");
+    pushField(fields, base + " / AI判断", "要確認", "needsReview", draft.needsReview || draft.needs_review ? "true" : "false", "database_latest_sorting_draft");
 
-    pushField(fields, base + " / 保存JSON", "aiSummary", "aiSummary", jsonText(draft.aiSummary || draft.ai_summary || {}), "database_latest_specialist_analysis");
-    pushField(fields, base + " / 保存JSON", "sortResult", "sortResult", jsonText(draft.sortResult || draft.sort_result || {}), "database_latest_specialist_analysis");
-    pushField(fields, base + " / 保存JSON", "visibleFields", "visibleFields", jsonText(draft.visibleFields || draft.visible_fields || {}), "database_latest_specialist_analysis");
-    pushField(fields, base + " / 保存JSON", "warnings", "warnings", jsonText(draft.warnings || []), "database_latest_specialist_analysis");
+    pushField(fields, base + " / 保存JSON", "aiSummary", "aiSummary", jsonText(draft.aiSummary || draft.ai_summary || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "sortResult", "sortResult", jsonText(draft.sortResult || draft.sort_result || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "visibleFields", "visibleFields", jsonText(draft.visibleFields || draft.visible_fields || {}), "database_latest_sorting_draft");
+    pushField(fields, base + " / 保存JSON", "warnings", "warnings", jsonText(draft.warnings || []), "database_latest_sorting_draft");
 
-    pushField(fields, base, "作成日時", "createdAt", draft.createdAt || draft.created_at || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "更新日時", "updatedAt", draft.updatedAt || draft.updated_at || "", "database_latest_specialist_analysis");
+    pushField(fields, base, "作成日時", "createdAt", draft.createdAt || draft.created_at || "", "database_latest_sorting_draft");
+    pushField(fields, base, "更新日時", "updatedAt", draft.updatedAt || draft.updated_at || "", "database_latest_sorting_draft");
   }
 
   async function postMemo(payload) {
