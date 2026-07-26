@@ -383,6 +383,41 @@ WHERE NOT EXISTS (
 
 -- RECEIPT_INVOICE_EVIDENCE_MASTERS_END
 
+CREATE TABLE IF NOT EXISTS accounting.receipt_tax_breakdowns (
+  id BIGSERIAL PRIMARY KEY,
+  tax_category_id BIGINT,
+  tax_category_name TEXT NOT NULL DEFAULT '',
+  tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
+  tax_treatment_id BIGINT,
+  tax_treatment_name TEXT NOT NULL DEFAULT '',
+  target_amount NUMERIC(14,2),
+  tax_amount NUMERIC(14,2),
+  ai_confidence NUMERIC(5,4),
+  is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE accounting.receipt_tax_breakdowns
+  ADD COLUMN IF NOT EXISTS tax_category_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_category_name TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tax_treatment_id BIGINT,
+  ADD COLUMN IF NOT EXISTS tax_treatment_name TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS target_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS tax_amount NUMERIC(14,2),
+  ADD COLUMN IF NOT EXISTS ai_confidence NUMERIC(5,4),
+  ADD COLUMN IF NOT EXISTS is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_category_idx
+ON accounting.receipt_tax_breakdowns(tax_category_id);
+
+CREATE INDEX IF NOT EXISTS receipt_tax_breakdowns_treatment_idx
+ON accounting.receipt_tax_breakdowns(tax_treatment_id);
 
 -- RECEIPT_RELATIONSHIP_SCHEMA_END
 INSERT INTO expenses.account_titles (account_code, account_name, sort_order)

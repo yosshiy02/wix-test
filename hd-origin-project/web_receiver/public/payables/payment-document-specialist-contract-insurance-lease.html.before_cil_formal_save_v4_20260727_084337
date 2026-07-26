@@ -158,7 +158,7 @@
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
-<button type="button" id="bulkSaveSpecialistResultButton" class="btn btn-primary hd-origin-bulk-save-specialist-result">まとめて保存</button>
+<button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -3039,10 +3039,10 @@ function setDocumentPreview(item) {
       );
 
       /* HD_ORIGIN_CIL_BULK_ANALYZED_CACHE */
-      window.hdOriginSpecialistResultBulkCache =
-        window.hdOriginSpecialistResultBulkCache || {};
+      window.hdOriginSortingDraftBulkCache =
+        window.hdOriginSortingDraftBulkCache || {};
 
-      window.hdOriginSpecialistResultBulkCache[
+      window.hdOriginSortingDraftBulkCache[
         String(ocrId)
       ]=
         data;
@@ -6731,15 +6731,15 @@ async function hdOriginCilReloadSavedFromQuery() {
 
 
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_RESULT_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
-  if (window.__hdOriginSpecialistResultSaveUiInstalled) {
+  if (window.__hdOriginSortingDraftSaveUiInstalled) {
     return;
   }
 
-  window.__hdOriginSpecialistResultSaveUiInstalled = true;
+  window.__hdOriginSortingDraftSaveUiInstalled = true;
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -6977,7 +6977,7 @@ async function hdOriginCilReloadSavedFromQuery() {
     return 0;
   }
 
-  function collectSpecialistResultPayload(context) {
+  function collectSortingDraftPayload(context) {
     const ocrId =
       Number(
         context && (
@@ -7000,10 +7000,6 @@ async function hdOriginCilReloadSavedFromQuery() {
 
     const payload = {
       paymentDocumentOcrImportId: ocrId,
-      analysisSystemCode: "contract_insurance_lease_analysis",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysisSystemLabel: "契約・保険・リース",
-      analysis_system_label: "契約・保険・リース",
 
       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
@@ -7035,7 +7031,7 @@ async function hdOriginCilReloadSavedFromQuery() {
 
       display_rotation: getDisplayRotation(),
 
-      memo: "契約・保険・リース専門解析画面から正式保存",
+      memo: "payment-document-review 画面から下書き保存",
 
       ai_summary: {
         document_kind: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
@@ -7170,10 +7166,10 @@ async function hdOriginCilReloadSavedFromQuery() {
   }
 
 
-  /* HD_ORIGIN_GPT2_CIL_SAVED_SPECIALIST_ANALYSIS_ID_FIX_20260722_START */
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_START */
 
 
-  function hdOriginCilSavedSpecialistAnalysisId(source) {
+  function hdOriginCilSavedSortingDraftId(source) {
 
 
     const keys = [
@@ -7348,13 +7344,13 @@ async function hdOriginCilReloadSavedFromQuery() {
   }
 
 
-  /* HD_ORIGIN_GPT2_CIL_SAVED_SPECIALIST_ANALYSIS_ID_FIX_20260722_END */
+  /* HD_ORIGIN_GPT2_CIL_SAVED_SORTING_DRAFT_ID_FIX_20260722_END */
 
 
 
 
-async function saveSpecialistResultFromReviewPage(context) {
-    const payload = collectSpecialistResultPayload(context);
+async function saveSortingDraftFromReviewPage(context) {
+    const payload = collectSortingDraftPayload(context);
 
     const analysisResult =
       context && context.analysisResult && typeof context.analysisResult === "object"
@@ -7450,11 +7446,7 @@ async function saveSpecialistResultFromReviewPage(context) {
       analysisRoot.specialist_route_label ||
       "";
 
-    payload.rawResult = analysisResult;
-    payload.specialistFields = collectContractInsuranceLeaseCurrentFieldsForSave();
-    payload.visibleFields = payload.specialistFields;
-
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -7467,7 +7459,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("専門解析結果の正式保存に失敗しました。", res, json, payload));
+      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
     return json;
@@ -7484,7 +7476,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     if (!text) return false;
 
-    return text.includes("正式保存");
+    return text.includes("下書き保存") || text.includes("下書き");
   }
 
   document.addEventListener("click", async function (event) {
@@ -7507,13 +7499,13 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     try {
       if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = "正式保存中...";
+        button.textContent = "下書き保存中...";
       }
 
-      const result = await saveSpecialistResultFromReviewPage();
+      const result = await saveSortingDraftFromReviewPage();
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = "正式保存済み";
+        button.textContent = "下書き保存済み";
       }
 
       console.log("HD Origin sorting draft saved:", result);
@@ -7523,36 +7515,36 @@ async function saveSpecialistResultFromReviewPage(context) {
       console.error("HD Origin sorting draft save failed:", err);
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = originalText || "正式保存";
+        button.textContent = originalText || "下書き保存";
       }
 
-      alert("正式保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
+      alert("下書き保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
     } finally {
       setTimeout(function () {
         button.dataset.hdOriginSortingDraftSaving = "0";
 
         if ((button.textContent || "").includes("保存中")) {
-          button.textContent = originalText || "正式保存";
+          button.textContent = originalText || "下書き保存";
         }
       }, 800);
     }
   }, true);
 
-  window.hdOriginSaveSpecialistResultFromReviewPage = saveSpecialistResultFromReviewPage;
+  window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_RESULT_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_RESULT_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
-  if (window.__hdOriginBulkSpecialistResultSaveInstalled) {
+  if (window.__hdOriginBulkSortingDraftSaveInstalled) {
     return;
   }
 
-  window.__hdOriginBulkSpecialistResultSaveInstalled = true;
-  window.hdOriginSpecialistResultBulkCache = window.hdOriginSpecialistResultBulkCache || {};
+  window.__hdOriginBulkSortingDraftSaveInstalled = true;
+  window.hdOriginSortingDraftBulkCache = window.hdOriginSortingDraftBulkCache || {};
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -7590,15 +7582,15 @@ async function saveSpecialistResultFromReviewPage(context) {
       return;
     }
 
-    window.hdOriginSpecialistResultBulkCache[String(id)] = {
+    window.hdOriginSortingDraftBulkCache[String(id)] = {
       paymentDocumentOcrImportId: id,
       result: json,
       cachedAt: new Date().toISOString()
     };
   }
 
-  if (!window.__hdOriginBulkSpecialistResultFetchPatched && window.fetch) {
-    window.__hdOriginBulkSpecialistResultFetchPatched = true;
+  if (!window.__hdOriginBulkSortingDraftFetchPatched && window.fetch) {
+    window.__hdOriginBulkSortingDraftFetchPatched = true;
 
     const originalFetch = window.fetch.bind(window);
 
@@ -7656,7 +7648,7 @@ async function saveSpecialistResultFromReviewPage(context) {
   }
 
   function getIdsFromCache() {
-    return Object.keys(window.hdOriginSpecialistResultBulkCache || {})
+    return Object.keys(window.hdOriginSortingDraftBulkCache || {})
       .map(numberId)
       .filter(Boolean);
   }
@@ -7669,10 +7661,6 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     return {
       paymentDocumentOcrImportId: id,
-      analysisSystemCode: "contract_insurance_lease_analysis",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysisSystemLabel: "契約・保険・リース",
-      analysis_system_label: "契約・保険・リース",
 
       document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
       document_type_label: textValue(draft.document_type_label || root.document_type_label || aiSummary.document_kind_label),
@@ -7708,12 +7696,12 @@ async function saveSpecialistResultFromReviewPage(context) {
       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
 
       display_rotation: 0,
-      memo: "まとめて保存ボタンから専門解析結果を正式保存"
+      memo: "まとめて保存ボタンから仕分け下書き保存"
     };
   }
 
-  async function postSpecialistResult(payload) {
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  async function postSortingDraft(payload) {
+    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -7726,7 +7714,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     });
 
     if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("専門解析結果の正式保存に失敗しました。", res, json, payload));
+      throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
     return json;
@@ -7734,7 +7722,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_START
   // 後追い判定ではなく、保存APIの返却ID表記ゆれを吸収するだけ。
-  function hdOriginCilSavedSpecialistAnalysisId(saved) {
+  function hdOriginCilSavedSortingDraftId(saved) {
     if (!saved || typeof saved !== "object") return "";
 
     return saved.specialistAnalysisId ||
@@ -7870,8 +7858,8 @@ async function saveSpecialistResultFromReviewPage(context) {
   }
 
   function hdOriginCilHydrateBulkCacheFromExistingItems(targetIds) {
-    window.hdOriginSpecialistResultBulkCache =
-      window.hdOriginSpecialistResultBulkCache || {};
+    window.hdOriginSortingDraftBulkCache =
+      window.hdOriginSortingDraftBulkCache || {};
 
     const allowed =
       Array.isArray(targetIds) && targetIds.length
@@ -7894,7 +7882,7 @@ async function saveSpecialistResultFromReviewPage(context) {
       if (
         !id ||
         (allowed && !allowed.has(id)) ||
-        window.hdOriginSpecialistResultBulkCache[id]
+        window.hdOriginSortingDraftBulkCache[id]
       ) {
         return;
       }
@@ -7906,7 +7894,7 @@ async function saveSpecialistResultFromReviewPage(context) {
         return;
       }
 
-      window.hdOriginSpecialistResultBulkCache[id] =
+      window.hdOriginSortingDraftBulkCache[id] =
         existing;
 
       item.__specialistAnalyzed = true;
@@ -7917,7 +7905,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     return hydrated;
   }
 
-  /* HD_ORIGIN_CIL_BULK_EXISTING_SPECIALIST_ANALYSIS_REUSE */
+  /* HD_ORIGIN_CIL_BULK_EXISTING_SORTING_DRAFT_REUSE */
   function hdOriginCilBulkItemByOcrId(id) {
     const wanted = String(id || "");
 
@@ -7964,7 +7952,7 @@ async function saveSpecialistResultFromReviewPage(context) {
       item.specialistAnalysisId ||
       item.specialist_analysis_id ||
       (nested
-        ? hdOriginCilSavedSpecialistAnalysisId(nested)
+        ? hdOriginCilSavedSortingDraftId(nested)
         : "");
 
     if (!savedId) {
@@ -7979,7 +7967,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     };
   }
 
-  async function bulkSaveSpecialistResults() {
+  async function bulkSaveSortingDrafts() {
     let ids = getSelectedOcrIds();
 
     const hydratedExistingCount =
@@ -7999,7 +7987,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     const ng = [];
 
     for (const id of ids) {
-      const cached = window.hdOriginSpecialistResultBulkCache[String(id)];
+      const cached = window.hdOriginSortingDraftBulkCache[String(id)];
 
       if (!cached) {
         ng.push({
@@ -8016,7 +8004,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
         const saved =
           existingSortingSaved ||
-          await postSpecialistResult(payload);
+          await postSortingDraft(payload);
 
         ok.push({
           id,
@@ -8034,8 +8022,8 @@ async function saveSpecialistResultFromReviewPage(context) {
   }
 
   function ensureBulkSaveButton() {
-    if (document.getElementById("bulkSaveSpecialistResultButton")) {
-      return document.getElementById("bulkSaveSpecialistResultButton");
+    if (document.getElementById("bulkSaveSortingDraftButton")) {
+      return document.getElementById("bulkSaveSortingDraftButton");
     }
 
     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
@@ -8050,8 +8038,8 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     const button = document.createElement("button");
     button.type = "button";
-    button.id = "bulkSaveSpecialistResultButton";
-    button.className = "btn btn-primary hd-origin-bulk-save-specialist-result";
+    button.id = "bulkSaveSortingDraftButton";
+    button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
     button.textContent = "まとめて保存";
 
     sortButton.insertAdjacentElement("afterend", button);
@@ -8060,7 +8048,7 @@ async function saveSpecialistResultFromReviewPage(context) {
   }
 
   document.addEventListener("click", async function (event) {
-    const button = event.target.closest("#bulkSaveSpecialistResultButton");
+    const button = event.target.closest("#bulkSaveSortingDraftButton");
 
     if (!button) {
       return;
@@ -8087,7 +8075,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
       try {
         result =
-          await bulkSaveSpecialistResults();
+          await bulkSaveSortingDrafts();
       }
       finally {
         window.__hdOriginCilBulkSaveRunning =
@@ -8130,9 +8118,9 @@ async function saveSpecialistResultFromReviewPage(context) {
     ensureBulkSaveButton();
   }
 
-  window.hdOriginBulkSaveSpecialistResults = bulkSaveSpecialistResults;
+  window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_RESULT_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
 <script>
 </script>
@@ -8716,7 +8704,7 @@ async function saveSpecialistResultFromReviewPage(context) {
   let queuedSaveContext = null;
 
   function saveFunction() {
-    return window.hdOriginSaveSpecialistResultFromReviewPage;
+    return window.hdOriginSaveSortingDraftFromReviewPage;
   }
 
   function itemOcrImportId(item) {
@@ -10356,7 +10344,7 @@ async function saveSpecialistResultFromReviewPage(context) {
   function installSaveRefresh() {
     const original =
       window
-        .hdOriginSaveSpecialistResultFromReviewPage;
+        .hdOriginSaveSortingDraftFromReviewPage;
 
     if (
       typeof original !== "function"
@@ -10400,7 +10388,7 @@ async function saveSpecialistResultFromReviewPage(context) {
         true;
 
     window
-      .hdOriginSaveSpecialistResultFromReviewPage =
+      .hdOriginSaveSortingDraftFromReviewPage =
         wrapped;
 
     return true;

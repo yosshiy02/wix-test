@@ -38,7 +38,8 @@
     <div class="receipt-header-actions" aria-label="レシート操作">
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" id="bulkAiButton" onclick="bulkAnalyzeCheckedReceipts()">まとめてAI</button>
-<button type="button" onclick="location.href='/ledgers/reports/receipt-ledger-report.html'">レシート台帳</button>
+      <button type="button" id="bulkSaveButton" onclick="bulkSaveCheckedReceipts()">まとめて保存</button>
+      <button type="button" onclick="location.href='/ledgers/reports/receipt-ledger-report.html'">レシート台帳</button>
       <button type="button" onclick="location.href='/receipts/receipt-scan-inbox.html'">レシート取込へ</button>
       <button type="button" class="warn" onclick="restartHdOriginServer()">サーバー再起動</button>
     </div>
@@ -339,7 +340,7 @@
 
     let currentItems = [];
     let selectedId = null;
-    let currentSpecialistResult = null;
+    let currentDraft = null;
     let currentLineItems = [];
     let selectedBulkReceiptIds = new Set();
 
@@ -678,9 +679,9 @@
       return "";
     }
 
-    function receiptTimeValueForForm(currentSpecialistResult, raw, item) {
+    function receiptTimeValueForForm(currentDraft, raw, item) {
       return receiptExtractTimeText(
-        (currentSpecialistResult && (currentSpecialistResult.receipt_time_text || currentSpecialistResult.receiptTimeText)) ||
+        (currentDraft && (currentDraft.receipt_time_text || currentDraft.receiptTimeText)) ||
         (raw && (raw.receiptTimeText || raw.receipt_time_text)) ||
         (item && (item.ocr_raw_text || item.ocrRawText)) ||
         ""
@@ -951,9 +952,9 @@ const res = await fetch("/api/masters/" + encodeURIComponent(def.masterType), {
       label.textContent = isSettled ? "清算済み" : "未精算";
       label.style.color = isSettled ? "#17652a" : "#b00020";
 
-      if (currentSpecialistResult) {
-        currentSpecialistResult.is_settled = isSettled;
-        currentSpecialistResult.isSettled = isSettled;
+      if (currentDraft) {
+        currentDraft.is_settled = isSettled;
+        currentDraft.isSettled = isSettled;
       }
     }
     /* RECEIPT_SETTLED_CHECKBOX_20260705_END */
@@ -992,25 +993,25 @@ function receiptSummaryMasterName(row) {
   ).trim();
 }
 
-function receiptSummaryOptionsHtml(specialistResult) {
+function receiptSummaryOptionsHtml(draft) {
   const raw =
-    specialistResult &&
-    specialistResult.ai_raw_json &&
-    typeof specialistResult.ai_raw_json === "object"
-      ? specialistResult.ai_raw_json
+    draft &&
+    draft.ai_raw_json &&
+    typeof draft.ai_raw_json === "object"
+      ? draft.ai_raw_json
       : {};
 
   const currentId =
-    specialistResult.receipt_summary_id ??
-    specialistResult.receiptSummaryId ??
+    draft.receipt_summary_id ??
+    draft.receiptSummaryId ??
     raw.receiptSummaryId ??
     raw.receipt_summary_id ??
     null;
 
   const currentName = String(
-    specialistResult.summary ??
-    specialistResult.receipt_summary_name ??
-    specialistResult.receiptSummaryName ??
+    draft.summary ??
+    draft.receipt_summary_name ??
+    draft.receiptSummaryName ??
     raw.receiptSummaryName ??
     raw.receipt_summary_name ??
     ""
@@ -1096,12 +1097,14 @@ function getReceiptSummarySelectedId() {
 }
 /* RECEIPT_SUMMARY_MASTER_SELECT_20260723_END */
 
-function renderForm(item, specialistResults) {
-      currentSpecialistResult = specialistResults[0] || null;
+function renderForm(item, drafts) {
+      currentDraft = drafts[0] || null;
 
-      if (!currentSpecialistResult) {
+      if (!currentDraft) {
         currentLineItems = [];
-        receiptTaxBreakdowns = [];
+currentReceiptAiDraftId = currentDraft && currentDraft.id ? Number(currentDraft.id) : null;
+receiptTaxBreakdowns = [];
+receiptTaxBreakdownsLoadedDraftId = null;
 document.getElementById("formArea").innerHTML = `
           <div class="actions">
             <button class="primary" onclick="analyzeReceipt(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">AIで読取候補を作成</button>
@@ -1112,13 +1115,11 @@ document.getElementById("formArea").innerHTML = `
         return;
       }
 
-      const raw = currentSpecialistResult.ai_raw_json || {};
-      currentLineItems = Array.isArray(currentSpecialistResult.line_items) ? currentSpecialistResult.line_items : [];
-      receiptTaxBreakdowns = Array.isArray(currentSpecialistResult.taxBreakdowns)
-        ? currentSpecialistResult.taxBreakdowns.map(mapTaxBreakdownFromApi)
-        : Array.isArray(currentSpecialistResult.tax_breakdowns)
-          ? currentSpecialistResult.tax_breakdowns.map(mapTaxBreakdownFromApi)
-          : [];
+      const raw = currentDraft.ai_raw_json || {};
+      currentLineItems = Array.isArray(currentDraft.line_items) ? currentDraft.line_items : [];
+currentReceiptAiDraftId = currentDraft && currentDraft.id ? Number(currentDraft.id) : null;
+receiptTaxBreakdowns = [];
+receiptTaxBreakdownsLoadedDraftId = null;
 document.getElementById("formArea").innerHTML = `
         <div class="actions">
           <button class="primary" onclick="saveReceiptSpecialistResult()">専門解析結果を保存</button>
@@ -1135,17 +1136,17 @@ document.getElementById("formArea").innerHTML = `
                 <div class="receipt-amount-direct-row">
                 <div class="receipt-payment-field">
                                                       <label>支払方法</label>
-                                                      <input id="paymentMethodName" value="${esc(currentSpecialistResult.payment_method_name)}">
+                                                      <input id="paymentMethodName" value="${esc(currentDraft.payment_method_name)}">
                                                     </div>
                   
                   <div class="receipt-amount-tax-row">
                   <div class="receipt-amount-direct-field receipt-amount-total">
                     <label>合計金額</label>
-                    <input id="totalAmount" type="number" step="any" value="${esc(numValue(currentSpecialistResult.total_amount))}">
+                    <input id="totalAmount" type="number" step="any" value="${esc(numValue(currentDraft.total_amount))}">
                   </div>
                   <div class="receipt-amount-direct-field receipt-amount-tax">
                     <label>消費税合計</label>
-                    <input id="taxAmount" type="number" step="any" value="${esc(numValue(currentSpecialistResult.tax_amount))}">
+                    <input id="taxAmount" type="number" step="any" value="${esc(numValue(currentDraft.tax_amount))}">
                   </div>
                   <button type="button" id="taxBreakdownButton" onclick="openTaxBreakdown()">消費税内訳</button>
                 </div>
@@ -1158,7 +1159,7 @@ document.getElementById("formArea").innerHTML = `
                     <div class="receipt-target-person-row" style="grid-column: 1 / 2 !important; grid-row: 1 !important; order: 1 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>対象者</label>
                       <select id="targetPersonId">
-                        ${optionHtml((receiptMasterOptions || {}).targetPeople || [], "target_person_id", "target_person_name", currentSpecialistResult.target_person_id)}
+                        ${optionHtml((receiptMasterOptions || {}).targetPeople || [], "target_person_id", "target_person_name", currentDraft.target_person_id)}
                       </select>
                       <!-- RECEIPT_SETTLED_CHECKBOX_20260705_UI_START -->
                       <label
@@ -1168,22 +1169,22 @@ document.getElementById("formArea").innerHTML = `
                         <input
                           id="isSettled"
                           type="checkbox"
-                          value="${receiptIsSettledValue(currentSpecialistResult.is_settled ?? currentSpecialistResult.isSettled) ? "true" : "false"}"
-                          ${receiptIsSettledValue(currentSpecialistResult.is_settled ?? currentSpecialistResult.isSettled) ? "checked" : ""}
+                          value="${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "true" : "false"}"
+                          ${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "checked" : ""}
                           onchange="updateReceiptSettledLabel()"
                           style="width: auto !important; min-height: 0 !important; margin: 0;"
                         >
                         <span
                           id="isSettledLabelText"
-                          style="color: ${receiptIsSettledValue(currentSpecialistResult.is_settled ?? currentSpecialistResult.isSettled) ? "#17652a" : "#b00020"};"
-                        >${receiptIsSettledValue(currentSpecialistResult.is_settled ?? currentSpecialistResult.isSettled) ? "清算済み" : "未精算"}</span>
+                          style="color: ${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "#17652a" : "#b00020"};"
+                        >${receiptIsSettledValue(currentDraft.is_settled ?? currentDraft.isSettled) ? "清算済み" : "未精算"}</span>
                       </label>
                       <!-- RECEIPT_SETTLED_CHECKBOX_20260705_UI_END -->
 </div>
 
                     <div class="receipt-summary-field" style="grid-column: 2 / 3 !important; grid-row: 1 !important; order: 2 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>摘要</label>
-                      <select id="summary">${receiptSummaryOptionsHtml(currentSpecialistResult)}</select>
+                      <select id="summary">${receiptSummaryOptionsHtml(currentDraft)}</select>
                     </div>
 
                     <div class="receipt-memo-field" style="grid-column: 1 / 3 !important; grid-row: 2 !important; order: 3 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
@@ -1191,17 +1192,17 @@ document.getElementById("formArea").innerHTML = `
                         <label>メモ・注意点</label>
                         <button type="button" class="receipt-memo-clear-button" onclick="document.getElementById('memo').value=''; document.getElementById('memo').dispatchEvent(new Event('input', { bubbles: true }));">クリア</button>
                       </div>
-                      <textarea id="memo">${esc(currentSpecialistResult.memo)}</textarea>
+                      <textarea id="memo">${esc(currentDraft.memo)}</textarea>
                     </div>
 
                     <div class="receipt-account-title-field" style="grid-column: 2 / 3 !important; grid-row: 3 !important; order: 5 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>勘定科目候補</label>
-                      <input id="accountTitleName" value="${esc(currentSpecialistResult.account_title_name || raw.accountTitleName || raw.account_title_name || "")}">
+                      <input id="accountTitleName" value="${esc(currentDraft.account_title_name || raw.accountTitleName || raw.account_title_name || "")}">
                     </div>
 
                     <div class="receipt-confidence-field" style="grid-column: 1 / 2 !important; grid-row: 3 !important; order: 4 !important; align-self: start !important; justify-self: stretch !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
                       <label>信頼度</label>
-                      <input id="confidence" type="number" value="${esc(numValue(currentSpecialistResult.confidence))}">
+                      <input id="confidence" type="number" value="${esc(numValue(currentDraft.confidence))}">
                     </div>
 
                   </div>
@@ -1211,11 +1212,11 @@ document.getElementById("formArea").innerHTML = `
                 <div class="receipt-date-time-inline-row">
                   <div>
                                                                       <label>取引日</label>
-                                                                      <input id="transactionDate" type="date" value="${esc(toDateInput(currentSpecialistResult.transaction_date, raw))}">
+                                                                      <input id="transactionDate" type="date" value="${esc(toDateInput(currentDraft.transaction_date, raw))}">
                                                                     </div>
                   <div>
                                                                       <label>時刻</label>
-                                                                      <input id="receiptTimeText" value="${esc(receiptTimeValueForForm(currentSpecialistResult, raw, item))}">
+                                                                      <input id="receiptTimeText" value="${esc(receiptTimeValueForForm(currentDraft, raw, item))}">
                                                                     </div>
                 </div>
 
@@ -1227,37 +1228,37 @@ document.getElementById("formArea").innerHTML = `
                                   
 
                 <label>店名・支払先</label>
-                <textarea id="vendorName" rows="2">${esc(currentSpecialistResult.vendor_name)}</textarea>
+                <textarea id="vendorName" rows="2">${esc(currentDraft.vendor_name)}</textarea>
 
                 <label>住所</label>
-                <textarea id="vendorAddress" rows="2">${esc(currentSpecialistResult.vendor_address)}</textarea>
+                <textarea id="vendorAddress" rows="2">${esc(currentDraft.vendor_address)}</textarea>
 
                 <label>電話番号</label>
-                <input id="vendorPhone" value="${esc(currentSpecialistResult.vendor_phone || raw.vendorPhone || raw.vendor_phone || "")}">
+                <input id="vendorPhone" value="${esc(currentDraft.vendor_phone || raw.vendorPhone || raw.vendor_phone || "")}">
 
                 <div class="receipt-invoice-label-row">
                   <label>インボイス番号</label>
-                  <div class="invoice-note-wrap">${invoiceNote(currentSpecialistResult.invoice_number)}</div>
+                  <div class="invoice-note-wrap">${invoiceNote(currentDraft.invoice_number)}</div>
                 </div>
-                <input id="invoiceNumber" value="${esc(currentSpecialistResult.invoice_number)}">
+                <input id="invoiceNumber" value="${esc(currentDraft.invoice_number)}">
                 
                   <div class="receipt-invoice-evidence-row">
                     <div>
                       <label>インボイス区分</label>
                       <select id="invoiceTypeId">
-                        ${optionHtml((receiptMasterOptions || {}).invoiceTypes || [], "invoice_type_id", "invoice_type_name", currentSpecialistResult.invoice_type_id)}
+                        ${optionHtml((receiptMasterOptions || {}).invoiceTypes || [], "invoice_type_id", "invoice_type_name", currentDraft.invoice_type_id)}
                       </select>
                     </div>
                     <div>
                       <label>証憑区分</label>
                       <select id="evidenceTypeId">
-                        ${optionHtml((receiptMasterOptions || {}).evidenceTypes || [], "evidence_type_id", "evidence_type_name", currentSpecialistResult.evidence_type_id)}
+                        ${optionHtml((receiptMasterOptions || {}).evidenceTypes || [], "evidence_type_id", "evidence_type_name", currentDraft.evidence_type_id)}
                       </select>
                     </div>
                   </div>
                   <div>
                     <label>証憑メモ</label>
-                    <input id="evidenceMemo" value="${esc(currentSpecialistResult.evidence_memo)}">
+                    <input id="evidenceMemo" value="${esc(currentDraft.evidence_memo)}">
                   </div>
                 
               </div>
@@ -1270,31 +1271,31 @@ document.getElementById("formArea").innerHTML = `
                                   <label>目的</label>
                                   <div class="receipt-master-action-line">
                                     <select id="purposeId" onchange="updateReceiptMasterDisplay('purpose')">
-                                      ${optionHtml((receiptMasterOptions || {}).purposes || [], "purpose_id", "purpose_name", currentSpecialistResult.purpose_id)}
+                                      ${optionHtml((receiptMasterOptions || {}).purposes || [], "purpose_id", "purpose_name", currentDraft.purpose_id)}
                                     </select>
                                     <button type="button" onclick="registerReceiptMasterFromCandidate('purpose')">新規登録</button>
                                   </div>
-                                  <input id="purposeCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentSpecialistResult.purpose_name || currentSpecialistResult.purpose_temp_name || raw.purposeName || raw.purpose_name || raw.purposeTempName || raw.purpose_temp_name || "")}">
+                                  <input id="purposeCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentDraft.purpose_name || currentDraft.purpose_temp_name || raw.purposeName || raw.purpose_name || raw.purposeTempName || raw.purpose_temp_name || "")}">
                                 </div>
                                 <div class="receipt-master-combo-field">
                                   <label>案件</label>
                                   <div class="receipt-master-action-line">
                                     <select id="projectId" onchange="updateReceiptMasterDisplay('project')">
-                                      ${optionHtml((receiptMasterOptions || {}).projects || [], "project_id", "project_name", currentSpecialistResult.project_id)}
+                                      ${optionHtml((receiptMasterOptions || {}).projects || [], "project_id", "project_name", currentDraft.project_id)}
                                     </select>
                                     <button type="button" onclick="registerReceiptMasterFromCandidate('project')">新規登録</button>
                                   </div>
-                                  <input id="projectCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentSpecialistResult.project_name || currentSpecialistResult.project_temp_name || raw.projectName || raw.project_name || raw.projectTempName || raw.project_temp_name || "")}">
+                                  <input id="projectCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentDraft.project_name || currentDraft.project_temp_name || raw.projectName || raw.project_name || raw.projectTempName || raw.project_temp_name || "")}">
                                 </div>
                                 <div class="receipt-master-combo-field">
                                   <label>部門</label>
                                   <div class="receipt-master-action-line">
                                     <select id="departmentId" onchange="updateReceiptMasterDisplay('department')">
-                                      ${optionHtml((receiptMasterOptions || {}).departments || [], "department_id", "department_name", currentSpecialistResult.department_id)}
+                                      ${optionHtml((receiptMasterOptions || {}).departments || [], "department_id", "department_name", currentDraft.department_id)}
                                     </select>
                                     <button type="button" onclick="registerReceiptMasterFromCandidate('department')">新規登録</button>
                                   </div>
-                                  <input id="departmentCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentSpecialistResult.department_name || currentSpecialistResult.department_temp_name || raw.departmentName || raw.department_name || raw.departmentTempName || raw.department_temp_name || "")}">
+                                  <input id="departmentCandidateName" class="receipt-master-candidate-name" placeholder="AI候補・人間入力・保存対象" value="${esc(currentDraft.department_name || currentDraft.department_temp_name || raw.departmentName || raw.department_name || raw.departmentTempName || raw.department_temp_name || "")}">
                                 </div>
                               </div>
 
@@ -1478,7 +1479,7 @@ document.getElementById("formArea").innerHTML = `
       return n;
     }
 
-    function collectSpecialistResultPayload() {
+    function collectDraftPayload() {
       return {
         transactionDate: getInput("transactionDate") || null,
         vendorName: getInput("vendorName"),
@@ -1506,9 +1507,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         receiptSummaryId: getReceiptSummarySelectedId(),
         memo: getInput("memo"),
         confidence: cleanNumber(getInput("confidence")),
-        taxBreakdowns: typeof getTaxBreakdownsForSave === "function"
-          ? getTaxBreakdownsForSave()
-          : [],
+        status: "draft",
         lineItems: currentLineItems.map(line => ({
           name: line.name || "",
           quantity: cleanNumber(line.quantity),
@@ -1561,7 +1560,9 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         return;
       }
 
-      const result = collectSpecialistResultPayload();
+      const result = collectDraftPayload();
+      delete result.status;
+
       const res = await fetch(
         "/api/payment-documents/specialist-analysis-results/save",
         {
@@ -1605,7 +1606,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
       const ok = confirm(
         "このレシートを削除しますか？\n\n" +
-        "DBの取込データ、専門解析結果、画像ファイルを削除します。"
+        "DBの取込データ、AI下書き、画像ファイルを削除します。"
       );
 
       if (!ok) return;
@@ -1625,7 +1626,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       }
 
       selectedId = null;
-      currentSpecialistResult = null;
+      currentDraft = null;
       currentLineItems = [];
 
       document.getElementById("imageArea").innerHTML = "左から選択してください。";
@@ -1710,7 +1711,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         data.result ||
         data;
 
-      const specialistResult =
+      const draft =
         data.draft ||
         data.aiDraft ||
         data.ai_draft ||
@@ -1727,16 +1728,16 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         aiResult;
 
       if (
-        !specialistResult ||
-        typeof specialistResult !== "object" ||
-        Array.isArray(specialistResult)
+        !draft ||
+        typeof draft !== "object" ||
+        Array.isArray(draft)
       ) {
         alert("専門解析AI結果を取得できませんでした。");
         await loadDetail(ocrId);
         return;
       }
 
-      renderForm(item, [specialistResult]);
+      renderForm(item, [draft]);
     }
     /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_START */
 
@@ -1755,14 +1756,98 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     }
 
     function setBulkButtonsDisabled(disabled) {
-      ["bulkAiButton"].forEach((id) => {
+      ["bulkAiButton", "bulkSaveButton"].forEach((id) => {
         const button = document.getElementById(id);
         if (button) button.disabled = !!disabled;
       });
     }
 
+    async function fetchReceiptDetailForBulk(id) {
+      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
 
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ("詳細取得失敗 ID " + id));
+      }
 
+      return data;
+    }
+
+    function draftDateForBulk(draft) {
+      const raw = draft.ai_raw_json || {};
+      if (raw.transactionDate) return raw.transactionDate;
+      if (draft.transaction_date) return String(draft.transaction_date).slice(0, 10);
+      return null;
+    }
+
+    function buildDraftPayloadForBulk(draft) {
+      const raw = draft.ai_raw_json || {};
+      const lineItems = Array.isArray(draft.line_items) ? draft.line_items : [];
+
+      return {
+        transactionDate: draftDateForBulk(draft),
+        vendorName: draft.vendor_name || raw.vendorName || raw.vendor_name || "",
+        vendorAddress: draft.vendor_address || raw.vendorAddress || raw.vendor_address || "",
+        vendorPhone: draft.vendor_phone || raw.vendorPhone || raw.vendor_phone || "",
+        totalAmount: cleanNumber(draft.total_amount),
+        taxAmount: cleanNumber(draft.tax_amount),
+        taxRate: "",
+        taxTreatmentName: "",
+        paymentMethodName: draft.payment_method_name || raw.paymentMethodName || raw.payment_method_name || "",
+        targetPersonId: draft.target_person_id || raw.targetPersonId || raw.target_person_id || null,
+        purposeId: draft.purpose_id || raw.purposeId || raw.purpose_id || null,
+        purposeName: draft.purpose_name || raw.purposeName || raw.purpose_name || "",
+        projectId: draft.project_id || raw.projectId || raw.project_id || null,
+        projectName: draft.project_name || raw.projectName || raw.project_name || "",
+        departmentId: draft.department_id || raw.departmentId || raw.department_id || null,
+        departmentName: draft.department_name || raw.departmentName || raw.department_name || "",
+        invoiceTypeId: draft.invoice_type_id || raw.invoiceTypeId || raw.invoice_type_id || null,
+        evidenceTypeId: draft.evidence_type_id || raw.evidenceTypeId || raw.evidence_type_id || null,
+        evidenceMemo: draft.evidence_memo || raw.evidenceMemo || raw.evidence_memo || "",
+        accountTitleName: draft.account_title_name || "",
+        invoiceNumber: draft.invoice_number || raw.invoiceNumber || raw.invoice_number || "",
+        summary: draft.summary || "",
+
+        receiptSummaryId: draft.receipt_summary_id || raw.receiptSummaryId || raw.receipt_summary_id || null,
+        memo: draft.memo || "",
+        confidence: cleanNumber(draft.confidence),
+        status: "draft",
+        lineItems: lineItems.map((line) => {
+          return {
+            name: line.name || "",
+            quantity: cleanNumber(line.quantity),
+            unitPrice: cleanNumber(line.unitPrice),
+            amount: cleanNumber(line.amount),
+            taxAmount: cleanNumber(line.taxAmount ?? line.tax_amount),
+            taxRate: line.taxRate || line.tax_rate || "",
+            taxTreatmentName: line.taxTreatmentName || line.tax_treatment_name || draft.tax_treatment_name || "",
+            memo: line.memo || ""
+          };
+        })
+      };
+    }
+
+    async function patchDraftForBulk(draftId, payload) {
+      const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(draftId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ("保存失敗 draft_id " + draftId));
+      }
+
+      return data;
+    }
 
     async function bulkAnalyzeCheckedReceipts() {
       const ids = getSelectedBulkReceiptIdsInListOrder();
@@ -2011,9 +2096,186 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     }
 
         /* RECEIPT_POST_SAVE_HTML_20260705_START */
+    async function flushCurrentReceiptDraftBeforePost(ids) {
+      const list = Array.isArray(ids) ? ids.map((id) => Number(id)) : [];
 
+      if (!list.includes(Number(selectedId || 0))) {
+        return;
+      }
 
+      if (!currentDraft || !currentDraft.id) {
+        return;
+      }
 
+      try {
+        const payload = collectDraftPayload();
+        await patchDraftForBulk(currentDraft.id, payload);
+      } catch (error) {
+        throw new Error("現在表示中の下書き自動保存に失敗しました: " + (error && error.message ? error.message : error));
+      }
+    }
+
+    async function bulkPostReceiptImports(ids) {
+      const ocrIds = Array.isArray(ids)
+        ? ids
+            .map((id) => Number(id))
+            .filter((id) => Number.isFinite(id) && id > 0)
+        : [];
+
+      const receiptImportIds = [];
+
+      for (const ocrId of ocrIds) {
+        const resolveRes = await fetch(
+          "/api/receipts/payment-document-ocr-imports/" +
+          encodeURIComponent(ocrId) +
+          "/receipt-import",
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+        const resolveData = await resolveRes.json().catch(() => {
+          return {
+            ok: false,
+            error: "JSON読込失敗"
+          };
+        });
+
+        const receiptImportId = Number(
+          resolveData.receiptImportId ||
+          resolveData.receipt_import_id ||
+          0
+        );
+
+        if (
+          !resolveRes.ok ||
+          !resolveData.ok ||
+          !Number.isFinite(receiptImportId) ||
+          receiptImportId <= 0
+        ) {
+          throw new Error(
+            "レシート取込IDを取得できません。OCR ID " +
+            ocrId +
+            ": " +
+            (resolveData.error || "対応する取込データがありません。")
+          );
+        }
+
+        if (!receiptImportIds.includes(receiptImportId)) {
+          receiptImportIds.push(receiptImportId);
+        }
+      }
+
+      if (!receiptImportIds.length) {
+        throw new Error("本保存対象のレシート取込IDがありません。");
+      }
+
+      const res = await fetch("/api/receipts/imports/bulk-post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({
+          receiptImportIds: receiptImportIds
+        })
+      });
+
+      const data = await res.json().catch(() => {
+        return { ok: false, error: "JSON読込失敗" };
+      });
+
+      if (!res.ok) {
+        throw new Error(data.error || "本保存APIが失敗しました。");
+      }
+
+      return data;
+    }
+
+    function buildBulkPostResultText(data) {
+      const summary = data.summary || {};
+      const results = Array.isArray(data.results) ? data.results : [];
+      const failed = results.filter((row) => !row.ok);
+      const already = results.filter((row) => row.ok && row.already_saved);
+
+      const lines = [];
+      lines.push("本保存結果");
+      lines.push("");
+      lines.push("対象: " + (summary.total ?? results.length) + " 件");
+      lines.push("成功: " + (summary.success ?? 0) + " 件");
+      lines.push("既に本保存済み: " + (summary.already_saved ?? already.length) + " 件");
+      lines.push("失敗: " + (summary.failed ?? failed.length) + " 件");
+
+      if (failed.length) {
+        lines.push("");
+        lines.push("失敗内容:");
+        failed.forEach((row) => {
+          lines.push("- ID " + (row.receipt_import_id || "") + ": " + (row.message || row.reason || "失敗"));
+        });
+      }
+
+      return lines.join("\n");
+    }
+
+    async function bulkSaveCheckedReceipts() {
+      const ids = getSelectedBulkReceiptIdsInListOrder();
+
+      if (!ids.length) {
+        await receiptAlert("本保存するレシートにチェックを入れてください。", "まとめて本保存");
+        return;
+      }
+
+      if (!(await receiptConfirm(
+        "チェックした " + ids.length + " 件を本保存します。\n\n下書きは削除せず、本保存済みとして記録します。\n既に本保存済みのものは二重登録しません。\n\n実行しますか？",
+        "まとめて本保存"
+      ))) {
+        return;
+      }
+
+      const button = document.getElementById("bulkSaveButton");
+      const originalText = button ? button.textContent : "";
+
+      setBulkButtonsDisabled(true);
+
+      try {
+        if (button) {
+          button.textContent = "本保存準備中";
+        }
+
+        await flushCurrentReceiptDraftBeforePost(ids);
+
+        if (button) {
+          button.textContent = "本保存中";
+        }
+
+        const data = await bulkPostReceiptImports(ids);
+        const message = buildBulkPostResultText(data);
+
+        selectedBulkReceiptIds.clear();
+
+        if (selectedId) {
+          await loadDetail(selectedId);
+        } else {
+          await loadList();
+        }
+
+        await receiptAlert(message, "まとめて本保存");
+      } catch (error) {
+        await receiptError(
+          "まとめて本保存に失敗しました。",
+          error && error.stack ? error.stack : String(error || ""),
+          "まとめて本保存"
+        );
+      } finally {
+        if (button) {
+          button.textContent = originalText || "まとめて保存";
+        }
+
+        setBulkButtonsDisabled(false);
+      }
+    }
     /* RECEIPT_POST_SAVE_HTML_20260705_END */
     /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_END */
 
@@ -2058,6 +2320,28 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     return "";
   }
 
+  function receiptDiningFindOcrTextForTime(draft) {
+    var raw = draft && draft.ai_raw_json ? draft.ai_raw_json : {};
+    var sources = [
+      draft && draft.ocr_raw_text,
+      draft && draft.ocrRawText,
+      raw && raw.ocr_raw_text,
+      raw && raw.ocrRawText,
+      raw && raw.rawText,
+      raw && raw.ocrText,
+      window.currentItem && window.currentItem.ocr_raw_text,
+      window.currentItem && window.currentItem.ocrRawText,
+      window.currentReceipt && window.currentReceipt.ocr_raw_text,
+      window.currentReceipt && window.currentReceipt.ocrRawText
+    ];
+
+    for (var i = 0; i < sources.length; i++) {
+      var text = String(sources[i] || "");
+      if (text.trim()) return text;
+    }
+
+    return "";
+  }
   function receiptDiningNormalizeTime(value) {
     var s = String(value === null || value === undefined ? "" : value).trim();
 
@@ -2110,7 +2394,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     return;
   }
 
-  function receiptDiningNormalizeSpecialistResultFields() {
+  function receiptDiningNormalizeDraftFields() {
     if (!receiptDiningLooksLikeDining()) return;
 
     var summary = document.getElementById("summary");
@@ -2145,7 +2429,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
   function receiptDiningApplyUi() {
     receiptDiningEnsureReceiptTimeField();
-    receiptDiningNormalizeSpecialistResultFields();
+    receiptDiningNormalizeDraftFields();
 
     if (typeof receiptDiningEnsureReviewNote === "function") {
       receiptDiningEnsureReviewNote();
@@ -2158,8 +2442,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
   var oldRenderForm = window.renderForm;
   if (typeof oldRenderForm === "function" && !oldRenderForm.__receiptDiningWrapped) {
-    var wrapped = function (item, specialistResults) {
-      oldRenderForm(item, specialistResults);
+    var wrapped = function (item, drafts) {
+      oldRenderForm(item, drafts);
       setTimeout(receiptDiningApplyUi, 0);
     };
     wrapped.__receiptDiningWrapped = true;
@@ -2167,17 +2451,17 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     renderForm = wrapped;
   }
 
-  var originalCollectSpecialistResultPayload = window.collectSpecialistResultPayload;
-  if (typeof originalCollectSpecialistResultPayload === "function" && !originalCollectSpecialistResultPayload.__receiptDiningWrapped) {
+  var oldCollectDraftPayload = window.collectDraftPayload;
+  if (typeof oldCollectDraftPayload === "function" && !oldCollectDraftPayload.__receiptDiningWrapped) {
     var wrappedCollect = function () {
-      var payload = originalCollectSpecialistResultPayload();
+      var payload = oldCollectDraftPayload();
       var receiptTimeValue = receiptDiningNormalizeTime(receiptDiningValue("receiptTimeText"));
       payload.receiptTimeText = receiptTimeValue ? receiptTimeValue : null;
       return payload;
     };
     wrappedCollect.__receiptDiningWrapped = true;
-    window.collectSpecialistResultPayload = wrappedCollect;
-    collectSpecialistResultPayload = wrappedCollect;
+    window.collectDraftPayload = wrappedCollect;
+    collectDraftPayload = wrappedCollect;
   }
 
   document.addEventListener("input", function (event) {
@@ -2732,22 +3016,22 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     }
 
     const currentName = String(oldInput.value || "").trim();
-    const currentSpecialistPaymentMethodId =
-      currentSpecialistResult &&
+    const currentDraftPaymentId =
+      currentDraft &&
       (
-        currentSpecialistResult.payment_method_id ||
-        currentSpecialistResult.paymentMethodId ||
-        currentSpecialistResult.payment_methodId
+        currentDraft.payment_method_id ||
+        currentDraft.paymentMethodId ||
+        currentDraft.payment_methodId
       )
         ? String(
-            currentSpecialistResult.payment_method_id ||
-            currentSpecialistResult.paymentMethodId ||
-            currentSpecialistResult.payment_methodId
+            currentDraft.payment_method_id ||
+            currentDraft.paymentMethodId ||
+            currentDraft.payment_methodId
           )
         : "";
 
     const matched = receiptFindPaymentMethodByName(currentName);
-    const currentId = currentSpecialistPaymentMethodId || (matched ? receiptPaymentMethodId(matched) : "");
+    const currentId = currentDraftPaymentId || (matched ? receiptPaymentMethodId(matched) : "");
 
     const select = document.createElement("select");
     select.id = "paymentMethodId";
@@ -2779,12 +3063,12 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     renderForm = wrappedRenderForm;
   }
 
-  const originalCollectSpecialistResultPayload = window.collectSpecialistResultPayload;
-  if (typeof originalCollectSpecialistResultPayload === "function" && !originalCollectSpecialistResultPayload.__paymentMethodMasterSelectWrapped) {
-    const wrappedCollectSpecialistResultPayload = function () {
+  const oldCollectDraftPayload = window.collectDraftPayload;
+  if (typeof oldCollectDraftPayload === "function" && !oldCollectDraftPayload.__paymentMethodMasterSelectWrapped) {
+    const wrappedCollectDraftPayload = function () {
       receiptSyncPaymentMethodName();
 
-      const payload = originalCollectSpecialistResultPayload.apply(this, arguments);
+      const payload = oldCollectDraftPayload.apply(this, arguments);
       const select = document.getElementById("paymentMethodId");
       const hidden = document.getElementById("paymentMethodName");
 
@@ -2799,9 +3083,9 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       return payload;
     };
 
-    wrappedCollectSpecialistResultPayload.__paymentMethodMasterSelectWrapped = true;
-    window.collectSpecialistResultPayload = wrappedCollectSpecialistResultPayload;
-    collectSpecialistResultPayload = wrappedCollectSpecialistResultPayload;
+    wrappedCollectDraftPayload.__paymentMethodMasterSelectWrapped = true;
+    window.collectDraftPayload = wrappedCollectDraftPayload;
+    collectDraftPayload = wrappedCollectDraftPayload;
   }
 })();
 /* RECEIPT_PAYMENT_METHOD_MASTER_SELECT_20260705_END */
@@ -2938,24 +3222,24 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
     const currentName = String(oldInput.value || "").trim();
 
-    const currentSpecialistAccountTitleId =
-      currentSpecialistResult &&
+    const currentDraftAccountId =
+      currentDraft &&
       (
-        currentSpecialistResult.account_title_id ||
-        currentSpecialistResult.accountTitleId ||
-        currentSpecialistResult.account_id ||
-        currentSpecialistResult.accountId
+        currentDraft.account_title_id ||
+        currentDraft.accountTitleId ||
+        currentDraft.account_id ||
+        currentDraft.accountId
       )
         ? String(
-            currentSpecialistResult.account_title_id ||
-            currentSpecialistResult.accountTitleId ||
-            currentSpecialistResult.account_id ||
-            currentSpecialistResult.accountId
+            currentDraft.account_title_id ||
+            currentDraft.accountTitleId ||
+            currentDraft.account_id ||
+            currentDraft.accountId
           )
         : "";
 
     const matched = receiptFindAccountTitleByName(currentName);
-    const currentId = currentSpecialistAccountTitleId || (matched ? receiptAccountTitleId(matched) : "");
+    const currentId = currentDraftAccountId || (matched ? receiptAccountTitleId(matched) : "");
 
     const originalId = oldInput.id || "accountTitleCandidateName";
     const originalName = oldInput.getAttribute("name") || originalId;
@@ -2991,12 +3275,12 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     renderForm = wrappedRenderForm;
   }
 
-  const originalCollectSpecialistResultPayload = window.collectSpecialistResultPayload;
-  if (typeof originalCollectSpecialistResultPayload === "function" && !originalCollectSpecialistResultPayload.__accountTitleMasterSelectWrapped) {
-    const wrappedCollectSpecialistResultPayload = function () {
+  const oldCollectDraftPayload = window.collectDraftPayload;
+  if (typeof oldCollectDraftPayload === "function" && !oldCollectDraftPayload.__accountTitleMasterSelectWrapped) {
+    const wrappedCollectDraftPayload = function () {
       receiptSyncAccountTitleName();
 
-      const payload = originalCollectSpecialistResultPayload.apply(this, arguments);
+      const payload = oldCollectDraftPayload.apply(this, arguments);
 
       const select = document.getElementById("accountTitleId");
       const hidden =
@@ -3017,9 +3301,9 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       return payload;
     };
 
-    wrappedCollectSpecialistResultPayload.__accountTitleMasterSelectWrapped = true;
-    window.collectSpecialistResultPayload = wrappedCollectSpecialistResultPayload;
-    collectSpecialistResultPayload = wrappedCollectSpecialistResultPayload;
+    wrappedCollectDraftPayload.__accountTitleMasterSelectWrapped = true;
+    window.collectDraftPayload = wrappedCollectDraftPayload;
+    collectDraftPayload = wrappedCollectDraftPayload;
   }
 })();
 /* RECEIPT_ACCOUNT_TITLE_MASTER_SELECT_20260705_END */
@@ -3263,6 +3547,9 @@ loadList();
 
     let receiptMasterOptions = null;
     let receiptTaxBreakdowns = [];
+    let receiptTaxBreakdownsLoadedDraftId = null;
+    let currentReceiptAiDraftId = null;
+    let receiptSaveDraftWrapped = false;
 
     function toNumberValue(value) {
       const n = Number(String(value || "").replace(/,/g, ""));
@@ -3374,9 +3661,62 @@ loadList();
         });
     }
 
+    async function loadTaxBreakdownsForCurrentDraft() {
+      if (!currentReceiptAiDraftId) {
+        receiptTaxBreakdowns = [];
+        receiptTaxBreakdownsLoadedDraftId = null;
+        return;
+      }
+
+      if (receiptTaxBreakdownsLoadedDraftId === currentReceiptAiDraftId) {
+        return;
+      }
+
+      const res = await fetch("/api/receipts/ai-drafts/" + currentReceiptAiDraftId + "/tax-breakdowns");
+
+      if (!res.ok) {
+        throw new Error("消費税内訳の取得に失敗しました。");
+      }
+
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+
+      receiptTaxBreakdowns = items.map(mapTaxBreakdownFromApi);
+      receiptTaxBreakdownsLoadedDraftId = currentReceiptAiDraftId;
+    }
+
+    async function saveTaxBreakdownsForCurrentDraft() {
+      if (!currentReceiptAiDraftId) {
+        return;
+      }
+
+      if (receiptTaxBreakdownsLoadedDraftId !== currentReceiptAiDraftId) {
+        return;
+      }
+
+      const items = getTaxBreakdownsForSave();
+
+      const res = await fetch("/api/receipts/ai-drafts/" + currentReceiptAiDraftId + "/tax-breakdowns", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!res.ok) {
+        throw new Error("消費税内訳の保存に失敗しました。");
+      }
+
+      const data = await res.json();
+      receiptTaxBreakdowns = Array.isArray(data.items) ? data.items.map(mapTaxBreakdownFromApi) : receiptTaxBreakdowns;
+      receiptTaxBreakdownsLoadedDraftId = currentReceiptAiDraftId;
+    }
+
     async function openTaxBreakdown() {
       try {
         await loadReceiptMasterOptions();
+        await loadTaxBreakdownsForCurrentDraft();
 
         if (!Array.isArray(receiptTaxBreakdowns)) {
           receiptTaxBreakdowns = [];
@@ -3537,6 +3877,33 @@ loadList();
       }
     }
 
+    function wrapSaveDraftForTaxBreakdowns() {
+      if (receiptSaveDraftWrapped) return;
+
+      const originalSaveDraft = window.saveDraft;
+
+      if (typeof originalSaveDraft !== "function") {
+        setTimeout(wrapSaveDraftForTaxBreakdowns, 100);
+        return;
+      }
+
+      window.saveDraft = async function() {
+        const result = await originalSaveDraft.apply(this, arguments);
+
+        try {
+          await saveTaxBreakdownsForCurrentDraft();
+        } catch (error) {
+          alert(error.message || "消費税内訳の保存に失敗しました。");
+          throw error;
+        }
+
+        return result;
+      };
+
+      receiptSaveDraftWrapped = true;
+    }
+
+    wrapSaveDraftForTaxBreakdowns();
 
     /* RECEIPT_TAX_BREAKDOWN_MODAL_SCRIPT_END */
 

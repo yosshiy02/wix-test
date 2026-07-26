@@ -1,0 +1,401 @@
+{
+  "createdAt": "2026-07-26T22:24:39.142Z",
+  "operation": "before_drop_receipt_legacy_tables",
+  "tables": [
+    {
+      "schemaName": "accounting",
+      "tableName": "receipt_tax_breakdowns",
+      "fullName": "accounting.receipt_tax_breakdowns",
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "NO",
+          "column_default": "nextval('accounting.receipt_tax_breakdowns_id_seq'::regclass)",
+          "numeric_precision": 64,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "tax_category_id",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": 64,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "tax_category_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "''::text",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "tax_rate",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "numeric_precision": 6,
+          "numeric_scale": 4
+        },
+        {
+          "column_name": "tax_treatment_id",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": 64,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "tax_treatment_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "''::text",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "target_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": 14,
+          "numeric_scale": 2
+        },
+        {
+          "column_name": "tax_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": 14,
+          "numeric_scale": 2
+        },
+        {
+          "column_name": "ai_confidence",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": 5,
+          "numeric_scale": 4
+        },
+        {
+          "column_name": "is_confirmed",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "sort_order",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0",
+          "numeric_precision": 32,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "numeric_precision": null,
+          "numeric_scale": null
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "receipt_tax_breakdowns_category_fkey",
+          "contype": "f",
+          "definition": "FOREIGN KEY (tax_category_id) REFERENCES expenses.tax_categories(tax_category_id)"
+        },
+        {
+          "conname": "receipt_tax_breakdowns_pkey",
+          "contype": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "receipt_tax_breakdowns_treatment_fkey",
+          "contype": "f",
+          "definition": "FOREIGN KEY (tax_treatment_id) REFERENCES expenses.tax_treatments(tax_treatment_id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "receipt_tax_breakdowns_category_idx",
+          "indexdef": "CREATE INDEX receipt_tax_breakdowns_category_idx ON accounting.receipt_tax_breakdowns USING btree (tax_category_id)"
+        },
+        {
+          "indexname": "receipt_tax_breakdowns_pkey",
+          "indexdef": "CREATE UNIQUE INDEX receipt_tax_breakdowns_pkey ON accounting.receipt_tax_breakdowns USING btree (id)"
+        },
+        {
+          "indexname": "receipt_tax_breakdowns_treatment_idx",
+          "indexdef": "CREATE INDEX receipt_tax_breakdowns_treatment_idx ON accounting.receipt_tax_breakdowns USING btree (tax_treatment_id)"
+        }
+      ],
+      "referencingForeignKeys": [],
+      "referencingViews": []
+    },
+    {
+      "schemaName": "expenses",
+      "tableName": "receipt_ai_drafts",
+      "fullName": "expenses.receipt_ai_drafts",
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "column_name": "receipt_ai_draft_id",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "NO",
+          "column_default": "nextval('expenses.receipt_ai_drafts_receipt_ai_draft_id_seq'::regclass)",
+          "numeric_precision": 64,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "receipt_import_id",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "NO",
+          "column_default": null,
+          "numeric_precision": 64,
+          "numeric_scale": 0
+        },
+        {
+          "column_name": "ai_provider",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "ai_model",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "draft_status",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "'draft'::text",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "raw_json",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_receipt_date",
+          "data_type": "date",
+          "udt_name": "date",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_vendor_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_total_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_tax_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_invoice_number",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_payment_method_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_target_person",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_purpose",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_project_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_department_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_evidence_type",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "suggested_summary",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "confidence",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "error_message",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "numeric_precision": null,
+          "numeric_scale": null
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()",
+          "numeric_precision": null,
+          "numeric_scale": null
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "receipt_ai_drafts_draft_status_check",
+          "contype": "c",
+          "definition": "CHECK ((draft_status = ANY (ARRAY['draft'::text, 'suggested'::text, 'accepted'::text, 'rejected'::text, 'error'::text])))"
+        },
+        {
+          "conname": "receipt_ai_drafts_pkey",
+          "contype": "p",
+          "definition": "PRIMARY KEY (receipt_ai_draft_id)"
+        },
+        {
+          "conname": "receipt_ai_drafts_receipt_import_id_fkey",
+          "contype": "f",
+          "definition": "FOREIGN KEY (receipt_import_id) REFERENCES expenses.receipt_imports(receipt_import_id) ON DELETE CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "idx_receipt_ai_drafts_import_id",
+          "indexdef": "CREATE INDEX idx_receipt_ai_drafts_import_id ON expenses.receipt_ai_drafts USING btree (receipt_import_id)"
+        },
+        {
+          "indexname": "receipt_ai_drafts_pkey",
+          "indexdef": "CREATE UNIQUE INDEX receipt_ai_drafts_pkey ON expenses.receipt_ai_drafts USING btree (receipt_ai_draft_id)"
+        }
+      ],
+      "referencingForeignKeys": [],
+      "referencingViews": []
+    }
+  ]
+}

@@ -94,7 +94,7 @@ HD Origin Project スタート文書
 - 専門解析はStage3 specialistだけを実行する。
 - 専門解析結果のdraft、fields、visible_field_labels、warningsを保存する。
 - 共通保存APIは /api/payment-documents/specialist-analysis-results/save。
-- payment_document_sorting_drafts.latest_specialist_analysis_idを更新する。
+- payment_document_ocr_imports.latest_specialist_analysis_idを更新する。
 - 人間修正時は画面で保持しているanalysis_system_codeを使用する。
 - 保存時に専門AI結果を固定フォーム項目だけへ丸め込まない。
 
@@ -123,7 +123,7 @@ HD Origin Project スタート文書
 - Web支払書類フローの原因説明にAccessを持ち出さない。
 
 [生成情報]
-生成日時: 2026/7/25 7:52:15
+生成日時: 2026/7/26 22:43:54
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -200,6 +200,278 @@ hd-origin-project\
 ├─ __pycache__\
 │  ├─ env_initializer.cpython-312.pyc
 │  └─ env_initializer.cpython-313.pyc
+├─ 00_GPT\
+│  ├─ ai_draft_all_calls_inspection_20260726_103629\
+│  │  └─ ai-draft-all-calls-inspection.txt
+│  ├─ ai_draft_company_input_check_20260726_094159\
+│  │  └─ ai-draft-company-input-check.txt
+│  ├─ ai_draft_company_input_check_20260726_094220\
+│  │  └─ ai-draft-company-input-check.txt
+│  ├─ ai_draft_existing_company_inspection_20260726_111317\
+│  │  └─ result.txt
+│  ├─ ai_draft_route_company_receive_20260726_110615\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ ai_draft_route_company_receive_20260726_110704\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ ai_draft_route_company_receive_v2_20260726_110932\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ ai_draft_two_calls_inspection_20260726_103328\
+│  │  └─ ai-draft-two-calls-inspection.txt
+│  ├─ ai_return_company_validation_20260726_111455\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ ai_return_company_validation_v2_20260726_111845\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ ai_return_company_validation_v3_20260726_112008\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ autosave_api_not_found_check_20260726_074534\
+│  │  └─ autosave-api-not-found-check.txt
+│  ├─ bank_transaction_actual_save_extract_20260725_172804\
+│  │  └─ bank-transaction-actual-save-functions.txt
+│  ├─ bank_transaction_amount_balance_20260725_142827\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_bank_info_20260725_142346\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_bank_info_20260725_142428\
+│  │  └─ before.html
+│  ├─ bank_transaction_bank_info_20260725_142608\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_button_enable_20260725_173746\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_button_inspection_20260725_173649\
+│  │  └─ bank-transaction-button-inspection.txt
+│  ├─ bank_transaction_code_priority_mapping_20260725_165051\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_css_20260725_142118\
+│  │  ├─ after.css
+│  │  └─ before.css
+│  ├─ bank_transaction_date_counterparty_20260725_142727\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_db_items_20260725_171845\
+│  │  └─ read-bank-transaction-analysis-items.js
+│  ├─ bank_transaction_db_structure_20260725_170418\
+│  │  └─ check-bank-analysis-item-tables.js
+│  ├─ bank_transaction_db_structure_20260725_170647\
+│  │  └─ check-bank-analysis-item-tables.js
+│  ├─ bank_transaction_db_structure_20260725_170904\
+│  │  └─ check-bank-analysis-item-tables.js
+│  ├─ bank_transaction_detail_20260725_143133\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_disable_alias_conversion_20260725_164124\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_final_static_check_v2_20260725_174116\
+│  │  ├─ bank-transaction-final-static-check-v2.txt
+│  │  └─ bank-transaction-inline.syntax-check.js
+│  ├─ bank_transaction_harddebug_code_mapping_20260725_165721\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_harddebug_syntax_check_20260725_165939\
+│  │  └─ bank-transaction-harddebug-mapping.syntax-check.js
+│  ├─ bank_transaction_html_db_compare_20260725_171959\
+│  │  └─ compare-bank-html-db-items.js
+│  ├─ bank_transaction_html_shell_20260725_142222\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_instrument_20260725_143038\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_item_code_occurrence_check_20260725_173952\
+│  │  └─ bank-transaction-item-code-occurrences.txt
+│  ├─ bank_transaction_js_20260725_150517\
+│  │  ├─ after.js
+│  │  └─ before.js
+│  ├─ bank_transaction_js_link_20260725_150651\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_loan_repayment_20260725_142937\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_mapping_syntax_check_20260725_165218\
+│  │  └─ applyAiFieldMap.syntax-check.js
+│  ├─ bank_transaction_prompt_20260725_114750\
+│  │  ├─ after.json
+│  │  ├─ apply.sql
+│  │  ├─ before.json
+│  │  ├─ memo.txt
+│  │  └─ undo.sql
+│  ├─ bank_transaction_raw_json_key_check_20260725_173537\
+│  │  └─ bank-transaction-raw-json-key-check.txt
+│  ├─ bank_transaction_review_button_20260725_135903\
+│  │  ├─ after.html
+│  │  ├─ before.html
+│  │  ├─ memo.txt
+│  │  └─ undo.ps1
+│  ├─ bank_transaction_route_definition_20260725_163343\
+│  │  └─ before.html
+│  ├─ bank_transaction_route_definition_20260725_163434\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ bank_transaction_save_api_inspection_20260725_172924\
+│  │  └─ specialist-save-api-handler.txt
+│  ├─ bank_transaction_save_collection_inspection_20260725_172521\
+│  │  └─ bank-transaction-save-collection-report.txt
+│  ├─ bank_transaction_save_function_extract_20260725_172657\
+│  │  └─ bank-transaction-save-functions.txt
+│  ├─ bank_transaction_save_helper_extract_20260725_173039\
+│  │  └─ specialist-save-helper.txt
+│  ├─ bank_transaction_save_payload_20260725_173228\
+│  │  ├─ after.html
+│  │  ├─ before.html
+│  │  └─ inline-script.syntax-check.js
+│  ├─ bank_transaction_specialist_20260725_113144\
+│  │  ├─ apply.sql
+│  │  ├─ before.json
+│  │  ├─ diagnostic_result.json
+│  │  ├─ diagnostic_rollback.sql
+│  │  └─ undo.sql
+│  ├─ bank_transaction_summary_notes_20260725_143311\
+│  │  ├─ after.html
+│  │  └─ before.html
+│  ├─ basic_analysis_company_result_check_20260726_091410\
+│  │  ├─ basic-analysis-company-result-check.txt
+│  │  ├─ check-basic-analysis-company.js
+│  │  ├─ node-stderr.txt
+│  │  └─ node-stdout.txt
+│  ├─ basic_analysis_company_source_check_20260726_075339\
+│  │  ├─ basic-analysis-company-source-check.txt
+│  │  └─ check-company-source.js
+│  ├─ basic_analysis_identity_fix_20260726_125700\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ basic_analysis_left_list_only_20260726_111640\
+│  │  └─ payment-document-review.css
+│  ├─ basic_analysis_next_status_fix_20260726_133511\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ basic_analysis_reload_fix_20260726_155954\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ basic_analysis_save_route_20260726_073733\
+│  │  ├─ after\
+│  │  │  └─ paymentDocuments.routes.after.js
+│  │  ├─ before\
+│  │  │  └─ paymentDocuments.routes.before.js
+│  │  ├─ memo\
+│  │  │  └─ basic-analysis-save-route-result.txt
+│  │  └─ undo\
+│  │     └─ paymentDocuments.routes.restore.js
+│  ├─ bulk_save_button_actual_check_20260726_072433\
+│  │  └─ bulk-save-button-actual-check.txt
+│  ├─ bulk_save_button_keep_fix_20260726_072513\
+│  │  ├─ after\
+│  │  ├─ before\
+│  │  │  └─ payment-document-review.before.html
+│  │  ├─ memo\
+│  │  │  └─ bulk-save-button-keep-fix-result.txt
+│  │  └─ undo\
+│  │     └─ payment-document-review.restore.html
+│  ├─ bulk_save_button_visible_fix_20260726_072847\
+│  │  ├─ after\
+│  │  │  └─ payment-document-review.after.html
+│  │  ├─ before\
+│  │  │  └─ payment-document-review.before.html
+│  │  ├─ memo\
+│  │  │  └─ bulk-save-button-visible-fix-result.txt
+│  │  └─ undo\
+│  │     └─ payment-document-review.restore.html
+│  ├─ bulk_save_master_status_fix_20260726_073235\
+│  │  ├─ after\
+│  │  ├─ before\
+│  │  │  └─ paymentDocuments.routes.before.js
+│  │  ├─ memo\
+│  │  │  └─ bulk-save-master-status-fix-result.txt
+│  │  └─ undo\
+│  │     └─ paymentDocuments.routes.restore.js
+│  ├─ bulk_save_master_status_fix_20260726_073439\
+│  │  ├─ after\
+│  │  ├─ before\
+│  │  │  └─ paymentDocuments.routes.before.js
+│  │  ├─ memo\
+│  │  │  └─ bulk-save-master-status-fix-result.txt
+│  │  └─ undo\
+│  │     └─ paymentDocuments.routes.restore.js
+│  ├─ bulk_sort_effect_check_20260726_071601\
+│  │  └─ bulk-sort-effect-check.txt
+│  ├─ bulk_sort_save_button_20260726_072126\
+│  │  ├─ after\
+│  │  │  └─ payment-document-review.after.html
+│  │  ├─ apply\
+│  │  ├─ before\
+│  │  │  └─ payment-document-review.before.html
+│  │  ├─ memo\
+│  │  │  └─ bulk-sort-save-button-result.txt
+│  │  └─ undo\
+│  │     └─ payment-document-review.restore.html
+│  ├─ classification_anchor_inspection_20260726_111556\
+│  │  └─ result.txt
+│  ├─ classification_prompt_company_context_20260726_105305\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ classification_prompt_fixed_company_20260726_105419\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ classification_prompt_fixed_company_v2_20260726_105522\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ classification_prompt_fixed_company_v3_20260726_105632\
+│  │  ├─ paymentDocuments.routes.before.js
+│  │  └─ result.txt
+│  ├─ company_id_master_actual_check_20260726_075917\
+│  │  └─ check-company-id-master.js
+│  ├─ company_id_master_actual_check_20260726_081029\
+│  │  ├─ check-company-id-master.js
+│  │  └─ company-id-master-actual-check.txt
+│  ├─ company_id_master_retry_20260726_081116\
+│  │  ├─ company-id-master-retry-result.txt
+│  │  ├─ node-stderr.txt
+│  │  └─ node-stdout.txt
+│  ├─ company_id_post_all_3_20260726_103958\
+│  │  ├─ payment-document-review.before.html
+│  │  └─ result.txt
+│  ├─ company_id_post_fix_20260726_103210\
+│  │  ├─ payment-document-review.before.html
+│  │  └─ result.txt
+│  ├─ company_id_post_regex_20260726_104512\
+│  │  ├─ payment-document-review.before.html
+│  │  └─ result.txt
+│  ├─ company_item_master_direct_check_20260726_081449\
+│  │  ├─ check-company-item-master.js
+│  │  ├─ company-item-master-direct-check.txt
+│  │  ├─ node-stderr.txt
+│  │  └─ node-stdout.txt
+│  ├─ connect_entry_company_to_basic_analysis_20260726_101011\
+│  │  ├─ after\
+│  │  ├─ before\
+│  │  │  ├─ payment-document-review.html
+│  │  │  └─ paymentDocuments.routes.js
+│  │  ├─ undo\
+│  │  └─ result.txt
+│  ├─ connect_entry_company_to_basic_analysis_20260726_102337\
+│  │  ├─ after\
+│  │  ├─ before\
+│  │  │  ├─ payment-document-review.html
+│  │  │  └─ paymentDocuments.routes.js
+│  │  ├─ undo\
+│  │  └─ result.txt
+│  ├─ current_prompt_company_check_20260726_091826\
+│  │  ├─ check-current-prompts.js
+│  │  ├─ current-prompt-company-check.txt
+│  │  ├─ node-stderr.txt
+│  │  └─ node-stdout.txt
+│  └─ ... 省略
 ├─ database\
 │  ├─ expenses\
 │  │  ├─ master_management_setup.sql.bak_20260626_202651
@@ -216,6 +488,8 @@ hd-origin-project\
 │     ├─ 20260707_003_all_master_internal_codes.sql
 │     ├─ 20260707_004_meaningful_master_codes_cleanup.sql
 │     ├─ 20260707_005_payment_document_ocr_imports.sql
+│     ├─ 20260707_005_payment_document_ocr_imports.sql.before_remove_draft_status_20260725_103243
+│     ├─ 20260707_005_payment_document_ocr_imports.sql.before_remove_draft_status_v2_20260725_103349
 │     ├─ 20260707_006_payment_document_sorting_drafts.sql
 │     ├─ 20260708_004_payment_document_sorting_drafts_analysis_system_columns.sql
 │     ├─ 20260708_005_contract_insurance_lease_drafts.sql
@@ -223,6 +497,7 @@ hd-origin-project\
 │     ├─ 20260709_001_payment_document_sorting_drafts_analysis_system_columns.sql
 │     ├─ 20260710_001_payable_control_fields.sql
 │     ├─ 20260710_002_payment_document_specialist_link.sql
+│     ├─ 20260710_002_payment_document_specialist_link.sql.before_formal_specialist_direct_link_20260725_103635
 │     ├─ 20260710_003_company_person_position_permission_masters.sql
 │     ├─ 20260710_003_contract_insurance_lease_drafts_foundation.sql
 │     ├─ 20260711_001_payable_selection_masters.sql
@@ -260,501 +535,6 @@ hd-origin-project\
 │     ├─ 20260723_003_analysis_item_child_properties.sql
 │     ├─ 20260723_004_utility_tax_category_id_master.sql
 │     └─ README_MIGRATIONS.txt
-├─ GPT00が使う一時ファイルフォルダ\
-│  ├─ after\
-│  │  ├─ evidence_data_reset.after_20260725_072237.json
-│  │  ├─ payment_document_current_statuses.after_20260725_070054.json
-│  │  ├─ payment_document_ocr_imports.current_status.after_20260725_063528.txt
-│  │  └─ restore_recovery_reset.after_20260725_073744.json
-│  ├─ apply\
-│  │  ├─ evidence_data_reset.apply_20260725_072237.txt
-│  │  └─ restore_recovery_reset.apply_20260725_073744.txt
-│  ├─ before\
-│  │  ├─ evidence_data_reset.before_20260725_072237.json
-│  │  ├─ payment_document_current_statuses.before_20260725_070054.json
-│  │  ├─ payment_document_ocr_imports.current_status.before_20260725_063528.txt
-│  │  └─ restore_recovery_reset.before_20260725_073744.json
-│  ├─ memo\
-│  │  ├─ evidence_data_reset.memo_20260725_072237.txt
-│  │  ├─ payment_document_current_status_20260725_063528.txt
-│  │  ├─ payment_document_current_statuses_20260725_070054.txt
-│  │  └─ restore_recovery_reset.memo_20260725_073744.txt
-│  ├─ temp\
-│  └─ undo\
-│     ├─ evidence_data_reset.undo_information_20260725_072237.txt
-│     ├─ restore_recovery_reset.undo_information_20260725_073744.txt
-│     ├─ undo_payment_document_current_status_20260725_063528.ps1
-│     └─ undo_payment_document_current_statuses_20260725_070054.ps1
-├─ GPT2が使う一時ファイルフォルダ\
-│  ├─ after\
-│  │  ├─ calendar_event_editor_20260716_074031\
-│  │  │  ├─ calendar-event-editor.css
-│  │  │  ├─ calendar-event-editor.js
-│  │  │  └─ index.html
-│  │  ├─ calendar_workflow_server_20260715_234700\
-│  │  ├─ calendar_workflow_server_20260715_235200\
-│  │  │  ├─ calendarWorkflow.routes.js
-│  │  │  ├─ server.js
-│  │  │  └─ workflow.system.txt
-│  │  ├─ calendar_workflow_ui_20260716_001046\
-│  │  │  ├─ index.html
-│  │  │  ├─ workflow-ai-openai.css
-│  │  │  └─ workflow-ai-openai.js
-│  │  ├─ database\
-│  │  │  └─ migrations\
-│  │  │     ├─ 20260708_005_contract_insurance_lease_drafts.sql
-│  │  │     └─ 20260708_006_contract_insurance_lease_missing_masters.sql
-│  │  ├─ web_receiver\
-│  │  │  ├─ public\
-│  │  │  │  └─ payables\
-│  │  │  │     ...
-│  │  │  └─ src\
-│  │  │     └─ paymentDocuments\
-│  │  │        ...
-│  │  ├─ workflow_ai_edit_applied_20260716_075852\
-│  │  │  ├─ workflow-ai-openai.css
-│  │  │  └─ workflow-ai-openai.js
-│  │  ├─ workflow_ai_row_editor_20260716_081153\
-│  │  │  ├─ workflow-ai-openai.css
-│  │  │  └─ workflow-ai-openai.js
-│  │  ├─ 20260710_002_payment_document_specialist_link.sql
-│  │  ├─ 20260710_003_contract_insurance_lease_drafts_foundation.sql
-│  │  ├─ 20260712_001_analysis_system_master.after_20260712_115153.sql
-│  │  ├─ 20260712_001_analysis_system_master.after_id_connection_20260712_120449.sql
-│  │  ├─ 20260712_001_analysis_system_master.after_parent5_20260712_130107.sql
-│  │  ├─ analysis_system_id_after_20260712_135507.json
-│  │  ├─ analysis_system_id_sync_result_20260712_135147.json
-│  │  ├─ calendar_script.after_remove_old_workflow_20260715_233100.js
-│  │  ├─ calendar_script.after_step4_20260715_225725.js
-│  │  ├─ calendar_style.after_remove_old_workflow_20260715_233100.css
-│  │  ├─ calendar-event-editor.human-protection.after_20260716_211935.js
-│  │  ├─ cil_bulk_save_check_20260709_213004.js
-│  │  ├─ cil_map_check_20260709_211315.js
-│  │  ├─ cil-analysis-open.after_20260723_095519.js
-│  │  ├─ cil-analysis.after_open_from_ledger_20260723_095519.html
-│  │  ├─ cil-ledger.after_detail_tree_20260723_093745.css
-│  │  ├─ cil-ledger.after_detail_tree_20260723_093745.html
-│  │  ├─ cil-ledger.after_detail_tree_20260723_093745.js
-│  │  ├─ cil-ledger.after_edit_button_20260723_095519.css
-│  │  ├─ cil-ledger.after_edit_button_20260723_095519.html
-│  │  ├─ cil-ledger.after_edit_button_20260723_095519.js
-│  │  ├─ cil-ledger.after_return_20260723_102304.js
-│  │  ├─ cil-list-policy.after_20260723_095915.js
-│  │  ├─ contract-insurance-lease-ledger-report.after_20260723_093218.css
-│  │  ├─ contract-insurance-lease-ledger-report.after_20260723_093218.html
-│  │  ├─ contract-insurance-lease-ledger-report.after_20260723_093218.js
-│  │  ├─ GPT2_business_flow_settings_20260709_194022.after.html
-│  │  ├─ GPT2_expenses_masters_契約保険リース14追加_20260708_211652_expenses.repository.js
-│  │  ├─ GPT2_main_business_flow_button_20260709_194022.after.index.html
-│  │  ├─ GPT2_payment_document_inbox_右側パネル修正_20260709_094251.after.css
-│  │  ├─ GPT2_payment_document_inbox_仕分けシステム風_20260709_093935.after.css
-│  │  ├─ GPT2_payment_document_inbox_仕分けシステム風_20260709_093935.after.html
-│  │  ├─ GPT2_receipt_ledger_print_nav_20260709_202611.after.html
-│  │  ├─ GPT2_receipt_saved_list_nav_20260709_202611.after.html
-│  │  ├─ GPT2_receipt_scan_inbox_見た目修正_20260709_101416.after.html
-│  │  ├─ GPT2_receipt-list_レイアウト崩れ修正_20260709_100742.after.css
-│  │  ├─ GPT2_restore_pool_crash_fix_20260709_112302.after.backup.service.js
-│  │  ├─ GPT2_restore_pool_crash_fix_20260709_112302.after.server.js
-│  │  ├─ GPT2_メインページおしゃれ化_20260709_093100.after.index.html
-│  │  ├─ GPT2_起動後_最新バックアップ復元確認_ボタン式_20260709_084109.after.server.js
-│  │  ├─ GPT2_起動後_最新バックアップ復元確認2回_20260709_083531.after.server.js
-│  │  ├─ GPT2_起動後バックアップ確認_MessageBox修正_20260709_084813.after.server.js
-│  │  ├─ GPT2_起動後確認完了まで画面を開かない_20260709_085210.after.server.js
-│  │  ├─ GPT2_起動後確認完了まで画面を開かない_20260709_085210.after.start_hd_origin.bat
-│  │  ├─ GPT2_起動時_最新バックアップ復元確認2回_retry_20260709_082859.after.server.js
-│  │  ├─ GPT2_起動時リストア失敗対応_20260709_111732.after.backup.service.js
-│  │  ├─ GPT2_起動時リストア失敗対応_20260709_111732.after.server.js
-│  │  ├─ GPT2_起動失敗復旧_古いリストア呼び出し削除_20260709_084426.after.server.js
-│  │  ├─ GPT2_契約保険リース_ai_specialist_context_body_detect_20260709_080649.after.html
-│  │  ├─ GPT2_契約保険リース_stage3専門解析呼び出し_20260709_074754.after.html
-│  │  ├─ GPT2_契約保険リース_単独保存専門下書き連動_関数検出_20260708_235326.after.html
-│  │  ├─ GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_paymentDocuments.routes.after.js
-│  │  ├─ GPT2_契約保険リース専門下書き保存API接続_20260708_214641_paymentDocuments.routes.after.js
-│  │  ├─ GPT2_契約保険リース専門下書き保存API接続_20260708_214641_specialist.after.html
-│  │  ├─ GPT2_契約保険リース専門画面_14マスタselect化_20260708_212832_after.html
-│  │  ├─ GPT2_契約保険リース専門画面_未追加7マスタselect差込_20260708_213034_after.html
-│  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090110.after.hd-origin-exit-guard.js
-│  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090325.after.hd-origin-exit-guard.js
-│  │  ├─ GPT2_再起動後_現在ページリロード_20260709_091747.after.hd-origin-exit-guard.js
-│  │  ├─ GPT2_再起動後_現在ページリロード_20260709_091747.after.server.js
-│  │  ├─ GPT2_再起動後_現在ページリロード_20260709_091747.after.start_hd_origin.bat
-│  │  ├─ index.workflow-simple-ui.after_20260716_213201.html
-│  │  ├─ index.workflow-simple-ui.after_20260716_213322.html
-│  │  ├─ index.year-labels.after_20260716_231811.html
-│  │  ├─ index.year-labels.after_20260716_232309.html
-│  │  ├─ main_index.after_calendar_step4_20260715_225725.html
-│  │  ├─ master-management.after_analysis_system_20260712_115153.js
-│  │  ├─ master.repository.after_analysis_parent5_20260712_130107.js
-│  │  ├─ master.repository.after_analysis_system_20260712_115153.js
-│  │  ├─ master.repository.after_analysis_system_connection_fix_20260712_133507.js
-│  │  ├─ payables_payment-document-review.html.after_all_target_mapping_20260711_174250.html
-│  │  ├─ payables_payment-document-specialist-contract-insurance-lease.html.after_all_target_mapping_20260711_174250.html
-│  │  └─ ... 省略
-│  ├─ apply\
-│  │  ├─ apply_ai_sort_autosave_20260711_163321.ps1
-│  │  ├─ apply_all_specialist_target_mapping_20260711_174250.ps1
-│  │  ├─ apply_analysis_code_autosave_20260711_160933.ps1
-│  │  ├─ apply_analysis_system_id_connection_20260712_120449.ps1
-│  │  ├─ apply_analysis_system_master_20260712_115153.ps1
-│  │  ├─ apply_analysis_system_parent5_20260712_130107.ps1
-│  │  ├─ apply_autosave_tx_20260711_171605.ps1
-│  │  ├─ apply_basic_analysis_layout_safe2_20260711_224004.ps1
-│  │  ├─ apply_basic_analysis_prompt_20260711_224322.ps1
-│  │  ├─ apply_basic_analysis_single_prompt_20260712_150305.ps1
-│  │  ├─ apply_calendar_step1_disable_broken_sync_20260715_222920.ps1
-│  │  ├─ apply_cil_combined_save_20260711_000250.ps1
-│  │  ├─ apply_cil_combined_save_encoding_fixed_20260711_000402.ps1
-│  │  ├─ apply_cil_specialist_common_save_20260710_202753.ps1
-│  │  ├─ apply_invoice_target_mapping_20260711_173928.ps1
-│  │  ├─ apply_issue_date_db_column_safe2_20260711_233043.ps1
-│  │  ├─ apply_issue_date_db_column_safe3_20260711_233236.ps1
-│  │  ├─ apply_issue_date_db_column_safe4_20260711_233600.ps1
-│  │  ├─ apply_issue_date_db_column_safe4_20260711_233719.ps1
-│  │  ├─ apply_issue_date_safe3_20260712_000244.ps1
-│  │  ├─ apply_order1_clear_basic_analysis_prompts_20260711_225408.ps1
-│  │  ├─ apply_order2_minimal_basic_analysis_prompts_20260711_231619.ps1
-│  │  ├─ apply_order4_basic_analysis_routes_safe3_20260711_230847.ps1
-│  │  ├─ apply_remove_all_left_list_destination_20260711_184300.ps1
-│  │  ├─ apply_remove_invoice_list_destination_20260711_183940.ps1
-│  │  ├─ apply_remove_unneeded_specialist_single_button_20260712_152540.ps1
-│  │  ├─ apply_remove_visible_specialist_single_button_20260712_153031.ps1
-│  │  ├─ apply_specialist_actual_code_fix_20260712_164459.ps1
-│  │  ├─ apply_specialist_fetch_context_20260711_124158.ps1
-│  │  ├─ apply_specialist_parent_auto_20260710_211608.ps1
-│  │  ├─ apply_specialist_record_controls_20260712_151750.ps1
-│  │  ├─ apply_specialist_save_api_20260710_201656.ps1
-│  │  ├─ apply_stage1_four_fields_20260711_184548.ps1
-│  │  ├─ apply_stage1_visual_block_20260711_185223.ps1
-│  │  ├─ check_cil_return_columns.js
-│  │  ├─ cil_ai_summary_code_fix_20260709_210142.apply.ps1
-│  │  ├─ cil_bulk_save_fix_20260709_213004.apply.ps1
-│  │  ├─ cil_duplicate_remove_20260723_083908.txt
-│  │  ├─ cil_ledger_get_20260723_092543.txt
-│  │  ├─ cil_map_fix_20260709_211315.apply.ps1
-│  │  ├─ GPT2_apply_CIL_DB_foundation_20260710_235421.js
-│  │  ├─ GPT2_apply_CIL_foundation_correct_db_20260711_002856.js
-│  │  ├─ GPT2_contract_insurance_lease_ai_summary_code_fix_20260709_205806.apply.ps1
-│  │  ├─ GPT2_contract_insurance_lease_complete_retry_20260709_204220.apply.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix_20260709_205208.apply.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix2_20260709_205330.apply.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.apply.ps1
-│  │  ├─ GPT2_expenses_masters_契約保険リース14追加_20260708_211652_apply.ps1
-│  │  ├─ GPT2_receipt_saved_single_ledger_nav_20260709_202611.apply.ps1
-│  │  ├─ GPT2_契約保険リース_専門下書きDB設計_20260708_204945_apply.js
-│  │  ├─ GPT2_契約保険リース_単独保存専門下書き連動_関数検出_20260708_235326.apply.ps1
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_20260708_210606_apply.js
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_clean_20260708_211123_apply.js
-│  │  ├─ patch_calendar_monday_start_20260716_233541.js
-│  │  ├─ patch_calendar_monday_start_v2_20260716_233855.js
-│  │  ├─ patch_workflow_accounting_merge_20260716_220449.js
-│  │  ├─ patch_workflow_accounting_merge_20260716_220708.js
-│  │  ├─ patch_workflow_ai_144_fix_v2_20260716_222528.js
-│  │  ├─ patch_workflow_ai_144_fix_v3_20260716_223428.js
-│  │  ├─ patch_workflow_ai_144_fix_v3_20260716_224005.js
-│  │  ├─ patch_workflow_ai_annual_expansion_20260716_214659.js
-│  │  ├─ patch_workflow_ai_annual_expansion_20260716_215038.js
-│  │  └─ pd_routes_recover_20260709_213414.apply.ps1
-│  ├─ before\
-│  │  ├─ web_receiver\
-│  │  │  ├─ public\
-│  │  │  │  └─ payables\
-│  │  │  │     ...
-│  │  │  └─ src\
-│  │  │     └─ paymentDocuments\
-│  │  │        ...
-│  │  ├─ 20260712_001_analysis_system_master.before_id_connection_20260712_120449.sql
-│  │  ├─ 20260712_001_analysis_system_master.before_parent5_20260712_130107.sql
-│  │  ├─ analysis_system_id_before_20260712_135507.json
-│  │  ├─ basic_analysis_ai_autosave_20260711_222135_payment-document-review.before.html
-│  │  ├─ basic_analysis_ai_autosave_20260711_222135_paymentDocuments.routes.before.js
-│  │  ├─ basic_analysis_ai_autosave_20260711_222135_sorting.extra-rules.before.txt
-│  │  ├─ basic_analysis_ai_autosave_20260711_222135_sorting.system.before.txt
-│  │  ├─ basic_analysis_ai_complete_20260711_220229_payment-document-review.before.html
-│  │  ├─ basic_analysis_ai_complete_20260711_220229_paymentDocuments.routes.before.js
-│  │  ├─ basic_analysis_ai_complete_20260711_220229_sorting.extra-rules.before.txt
-│  │  ├─ basic_analysis_ai_complete_20260711_220229_sorting.system.before.txt
-│  │  ├─ basic_analysis_complete_20260711_215951_payment-document-review.before.html
-│  │  ├─ basic_analysis_complete_20260711_215951_paymentDocuments.routes.before.js
-│  │  ├─ basic_analysis_complete_20260711_215951_sorting.extra-rules.before.txt
-│  │  ├─ basic_analysis_complete_20260711_215951_sorting.system.before.txt
-│  │  ├─ calendar_index.before_event_editor_20260716_074031.html
-│  │  ├─ calendar_index.before_workflow_ui_20260716_001046.html
-│  │  ├─ calendar_script.before_remove_old_workflow_20260715_233100.js
-│  │  ├─ calendar_script.before_step4_20260715_225725.js
-│  │  ├─ calendar_style.before_remove_old_workflow_20260715_233100.css
-│  │  ├─ calendar-event-editor.before_20260716_203534.js
-│  │  ├─ calendar-event-editor.before_20260716_203638.js
-│  │  ├─ calendar-event-editor.before_20260716_203805.js
-│  │  ├─ calendar-event-editor.before_20260716_205645.js
-│  │  ├─ calendar-event-editor.exact-repair.before_20260716_210508.js
-│  │  ├─ calendar-event-editor.human-protection.before_20260716_211935.js
-│  │  ├─ calendar-event-editor.line-repair.before_20260716_210644.js
-│  │  ├─ calendar-event-editor.simple-repair.before_20260716_210238.js
-│  │  ├─ calendarWorkflow.routes.before_20260716_203534.js
-│  │  ├─ calendarWorkflow.routes.before_20260716_203638.js
-│  │  ├─ calendarWorkflow.routes.before_20260716_203805.js
-│  │  ├─ calendarWorkflow.routes.before_20260716_205645.js
-│  │  ├─ calendarWorkflow.routes.exact-repair.before_20260716_210508.js
-│  │  ├─ calendarWorkflow.routes.simple-repair.before_20260716_210238.js
-│  │  ├─ CIL_ABNORMAL_DATA_20260723_082633.json
-│  │  ├─ cil_bulk_save_before_20260709_213004.html
-│  │  ├─ cil_examples_before_20260709_210142.txt
-│  │  ├─ cil_map_before_20260709_211315.html
-│  │  ├─ cil_mapping_before_20260709_211034.html
-│  │  ├─ CIL_OLD_DRAFTS_20260723_091344.json
-│  │  ├─ CIL_OLD_SPECIALIST_RESULTS_20260723_090636.json
-│  │  ├─ cil_rules_before_20260709_210142.txt
-│  │  ├─ cil-analysis.before_open_from_ledger_20260723_095519.html
-│  │  ├─ cil-ledger.before_button_labels_20260723_094712.html
-│  │  ├─ cil-ledger.before_detail_tree_20260723_093745.css
-│  │  ├─ cil-ledger.before_detail_tree_20260723_093745.html
-│  │  ├─ cil-ledger.before_detail_tree_20260723_093745.js
-│  │  ├─ cil-ledger.before_edit_button_20260723_095519.css
-│  │  ├─ cil-ledger.before_edit_button_20260723_095519.html
-│  │  ├─ cil-ledger.before_edit_button_20260723_095519.js
-│  │  ├─ cil-ledger.before_remove_status_20260723_093948.html
-│  │  ├─ cil-ledger.before_remove_status_20260723_093948.js
-│  │  ├─ cil-ledger.before_return_20260723_101359.js
-│  │  ├─ cil-ledger.before_return_20260723_102304.js
-│  │  ├─ cil-list-policy.before_20260723_095915.js
-│  │  ├─ contract-insurance-lease-ledger-report.before_20260723_093024.html
-│  │  ├─ contract-insurance-lease-ledger-report.before_20260723_093218.html
-│  │  ├─ existing_issue_date_migration_before_safe3_20260711_233236.sql
-│  │  ├─ existing_issue_date_migration_before_safe4_20260711_233600.sql
-│  │  ├─ existing_issue_date_migration_before_safe4_20260711_233719.sql
-│  │  ├─ GPT2_CIL_DB_before_20260710_235421.txt
-│  │  ├─ GPT2_CIL_DB_foundation_BOM_before_after_20260710_235522.sql
-│  │  ├─ GPT2_CIL_DB_foundation_BOM_before_project_20260710_235522.sql
-│  │  ├─ GPT2_contract_insurance_lease_ai_summary_code_fix_20260709_205804.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_rules.txt
-│  │  ├─ GPT2_contract_insurance_lease_ai_summary_code_fix_20260709_205806.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_rules.txt
-│  │  ├─ GPT2_contract_insurance_lease_complete_20260709_203847.before.html
-│  │  ├─ GPT2_contract_insurance_lease_complete_retry_20260709_204220.before.html
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix_20260709_205208.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_examples.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix_20260709_205208.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_fields.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix2_20260709_205330.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_rules.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix2_20260709_205330.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_system.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_examples.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_fields.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_rules.txt
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.before_web_receiver_src_paymentDocuments_prompts_stage3-specialist_contract-insurance-lease_system.txt
-│  │  ├─ GPT2_expenses_masters_契約保険リース14追加_20260708_211652_expenses.repository.js
-│  │  ├─ GPT2_main_business_flow_button_20260709_194022.before.index.html
-│  │  ├─ GPT2_payment_document_inbox_右側パネル修正_20260709_094251.before.css
-│  │  ├─ GPT2_payment_document_inbox_仕分けシステム風_20260709_093935.before.css
-│  │  └─ ... 省略
-│  ├─ GPT2に渡すフォルダ\
-│  │  ├─ CALENDAR_SECOND_COLLECTION_20260715_220208.txt
-│  │  ├─ CURRENT_CALENDAR_SECOND__interaction-boost.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__monday-start-calendar.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__monday-start-calendar.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__month-cell-height-fix.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__premium-style.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__reminder-countdown.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__reminder-countdown.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__reverse-scheduler.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__reverse-scheduler.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__right-click-plus.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__right-click-plus.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__status-manager.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__status-manager.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__ui-control-panel.css
-│  │  ├─ CURRENT_CALENDAR_SECOND__ui-control-panel.js
-│  │  ├─ CURRENT_CALENDAR_SECOND__ultimate-features.css
-│  │  └─ CURRENT_CALENDAR_SECOND__ultimate-features.js
-│  ├─ memo\
-│  │  ├─ ai_autosave_bridge_fix_20260712_095618.txt
-│  │  ├─ ai_only_specialist_routing_20260711_144121.txt
-│  │  ├─ ai_only_specialist_routing_20260711_144354.txt
-│  │  ├─ ai_sort_500_error_ocr1_20260711_164055.txt
-│  │  ├─ ai_sort_autosave_analysis_code_check_20260711_160622.txt
-│  │  ├─ ai_sort_autosave_final_test_20260711_163721.txt
-│  │  ├─ ai_sort_autosave_fix_20260711_163321.txt
-│  │  ├─ ai_sort_route_exact_8040_8130_20260711_162554.txt
-│  │  ├─ ai_sort_save_payload_exact_20260711_162230.txt
-│  │  ├─ all_specialist_analysis_20260711_132713.txt
-│  │  ├─ all_specialist_analysis_20260711_132859.txt
-│  │  ├─ all_specialist_common_summary_debug_20260711_132008.txt
-│  │  ├─ all_specialist_target_mapping_fix_20260711_174250.txt
-│  │  ├─ analysis_code_autosave_fix_20260711_160933.txt
-│  │  ├─ analysis_system_actual_db_records_20260712_132959.txt
-│  │  ├─ analysis_system_actual_db_records_20260712_133036.txt
-│  │  ├─ analysis_system_actual_resolution_check_20260712_134027.txt
-│  │  ├─ analysis_system_code_existing_save_test_20260711_170020.txt
-│  │  ├─ analysis_system_code_post_restart_verify_20260711_161825.txt
-│  │  ├─ analysis_system_connection_collection_20260712_115355.txt
-│  │  ├─ analysis_system_connection_fix_20260712_133507.txt
-│  │  ├─ analysis_system_current_records_20260712_132837.txt
-│  │  ├─ analysis_system_display_actual_check_20260712_141208.txt
-│  │  ├─ analysis_system_failed_repair_actual_check_20260712_133820.txt
-│  │  ├─ analysis_system_final_connection_blocks_20260712_121003.txt
-│  │  ├─ analysis_system_id_column_and_sync_20260712_135507.txt
-│  │  ├─ analysis_system_id_connection_20260712_120449.txt
-│  │  ├─ analysis_system_json_display_fix_20260712_140749.txt
-│  │  ├─ analysis_system_master_actual_inspection_20260712_110434.txt
-│  │  ├─ analysis_system_master_exact_blocks_20260712_110644.txt
-│  │  ├─ analysis_system_master_foundation_20260712_115153.txt
-│  │  ├─ analysis_system_parent5_20260712_130107.txt
-│  │  ├─ analysis_system_parent5_direct_fix_20260712_134525.txt
-│  │  ├─ autosave_tx_fix_20260711_171605.txt
-│  │  ├─ base_analysis_actual_ai_fields_collection_20260712_171646.txt
-│  │  ├─ basic_analysis_always_visible_20260712_090631.txt
-│  │  ├─ basic_analysis_fixed_display_20260712_084057.txt
-│  │  ├─ basic_analysis_layout_safe2_20260711_224004.txt
-│  │  ├─ basic_analysis_prompt_20260711_224322.txt
-│  │  ├─ basic_analysis_single_prompt_20260712_150305.txt
-│  │  ├─ basic_analysis_step1_actual_check_20260711_223130.txt
-│  │  ├─ calendar_accounting_dummy_20260715_224627.txt
-│  │  ├─ calendar_event_editor_result_20260716_074031.txt
-│  │  ├─ calendar_event_human_protection_result_20260716_211935.txt
-│  │  ├─ calendar_monday_start_v2_result_20260716_233855.txt
-│  │  ├─ calendar_remove_old_workflow_result_20260715_233100.txt
-│  │  ├─ calendar_step1_result_20260715_223133.txt
-│  │  ├─ calendar_step2_month_result_20260715_223614.txt
-│  │  ├─ calendar_step4_result_20260715_225725.txt
-│  │  ├─ calendar_workflow_server_apply_result_20260715_235928.txt
-│  │  ├─ calendar_workflow_ui_result_20260716_001046.txt
-│  │  ├─ check_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144121.js
-│  │  ├─ check_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144354.js
-│  │  ├─ check_ai_only_payment-document-specialist-invoice-payable_20260711_144121.js
-│  │  ├─ check_ai_only_payment-document-specialist-invoice-payable_20260711_144354.js
-│  │  ├─ check_ai_only_payment-document-specialist-tax-public_20260711_144121.js
-│  │  ├─ check_ai_only_payment-document-specialist-tax-public_20260711_144354.js
-│  │  ├─ check_ai_only_payment-document-specialist-utility-communication_20260711_144121.js
-│  │  ├─ check_ai_only_payment-document-specialist-utility-communication_20260711_144354.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144121.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-contract-insurance-lease_20260711_144354.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-invoice-payable_20260711_144121.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-invoice-payable_20260711_144354.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-tax-public_20260711_144121.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-tax-public_20260711_144354.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-utility-communication_20260711_144121.js
-│  │  ├─ check_applied_ai_only_payment-document-specialist-utility-communication_20260711_144354.js
-│  │  ├─ check_applied_local_render_payment-document-specialist-invoice-payable_20260711_124457.js
-│  │  ├─ check_applied_local_render_payment-document-specialist-tax-public_20260711_124457.js
-│  │  ├─ check_applied_local_render_payment-document-specialist-utility-communication_20260711_124457.js
-│  │  ├─ check_cil_after_restart_20260711_091048.js
-│  │  ├─ check_cil_after_restart_result_20260711_091048.txt
-│  │  ├─ check_cil_after_restart_result_20260711_091048.txt.stderr.txt
-│  │  ├─ check_cil_after_restart_result_20260711_091048.txt.stdout.txt
-│  │  ├─ check_cil_current_state_20260711_090714.js
-│  │  ├─ check_cil_current_state_result_20260711_090714.txt
-│  │  ├─ check_cil_current_state_result_20260711_090714.txt.stderr.txt
-│  │  ├─ check_cil_current_state_result_20260711_090714.txt.stdout.txt
-│  │  ├─ check_cil_link_actual_columns_20260711_090148.js
-│  │  ├─ check_cil_link_actual_columns_result_20260711_090148.txt
-│  │  └─ ... 省略
-│  ├─ report\
-│  │  └─ issue_date_safe3_20260712_000244.txt
-│  ├─ temp\
-│  │  ├─ add_and_sync_analysis_system_id_20260712_135507.js
-│  │  ├─ analysis_system_records_20260712_132959.json
-│  │  ├─ analysis_system_records_20260712_133036.json
-│  │  ├─ check_specialist_inline_scripts_20260712_151750.js
-│  │  ├─ fix_analysis_system_id_sync_20260712_135147.js
-│  │  ├─ fix_payment_document_reason_display_20260712_141753.js
-│  │  ├─ fix_payment_document_reason_parser_20260712_142110.js
-│  │  ├─ read_analysis_system_records_20260712_132959.js
-│  │  ├─ read_analysis_system_records_20260712_133036.js
-│  │  ├─ repair_analysis_system_records_20260712_134525.js
-│  │  ├─ repair_analysis_system_records_result_20260712_134525.json
-│  │  ├─ repair_analysis_system_repository_20260712_133652.js
-│  │  ├─ specialist_review_items_20260712_154413.json
-│  │  └─ verify_specialist_routing_20260712_154413.js
-│  ├─ undo\
-│  │  ├─ cil_ai_summary_code_fix_20260709_210142.undo.ps1
-│  │  ├─ cil_bulk_save_fix_20260709_213004.undo.ps1
-│  │  ├─ cil_map_fix_20260709_211315.undo.ps1
-│  │  ├─ GPT2_contract_insurance_lease_ai_summary_code_fix_20260709_205806.undo.ps1
-│  │  ├─ GPT2_contract_insurance_lease_complete_retry_20260709_204220.undo.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix_20260709_205208.undo.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_ng_fix2_20260709_205330.undo.ps1
-│  │  ├─ GPT2_contract_insurance_lease_prompt_precision_20260709_204756.undo.ps1
-│  │  ├─ GPT2_expenses_masters_契約保険リース14追加_20260708_211652_undo.ps1
-│  │  ├─ GPT2_main_business_flow_button_20260709_194022.undo.ps1
-│  │  ├─ GPT2_payment_document_inbox_右側パネル修正_20260709_094251.undo.ps1
-│  │  ├─ GPT2_payment_document_inbox_仕分けシステム風_20260709_093935.undo.ps1
-│  │  ├─ GPT2_receipt_saved_single_ledger_nav_20260709_202611.undo.ps1
-│  │  ├─ GPT2_receipt_scan_inbox_見た目修正_20260709_101416.undo.ps1
-│  │  ├─ GPT2_receipt-list_レイアウト崩れ修正_20260709_100742.undo.ps1
-│  │  ├─ GPT2_restore_pool_crash_fix_20260709_112302.undo.ps1
-│  │  ├─ GPT2_undo_CIL_DB_foundation_20260710_235421.sql
-│  │  ├─ GPT2_undo_CIL_foundation_correct_db_20260711_002856.sql
-│  │  ├─ GPT2_undo_specialist_api_20260711_114434.ps1
-│  │  ├─ GPT2_メインページおしゃれ化_20260709_093100.undo.ps1
-│  │  ├─ GPT2_起動後_最新バックアップ復元確認_ボタン式_20260709_084109.undo.ps1
-│  │  ├─ GPT2_起動後_最新バックアップ復元確認2回_20260709_083531.undo.ps1
-│  │  ├─ GPT2_起動後バックアップ確認_MessageBox修正_20260709_084813.undo.ps1
-│  │  ├─ GPT2_起動後確認完了まで画面を開かない_20260709_085210.undo.ps1
-│  │  ├─ GPT2_起動時_最新バックアップ復元確認2回_retry_20260709_082859.undo.ps1
-│  │  ├─ GPT2_起動時リストア失敗対応_20260709_111732.undo.ps1
-│  │  ├─ GPT2_起動失敗復旧_古いリストア呼び出し削除_20260709_084426.undo.ps1
-│  │  ├─ GPT2_契約保険リース_ai_specialist_context_body_detect_20260709_080649.undo.ps1
-│  │  ├─ GPT2_契約保険リース_stage3専門解析呼び出し_20260709_074754.undo.ps1
-│  │  ├─ GPT2_契約保険リース_専門下書きDB設計_20260708_204945_undo.ps1
-│  │  ├─ GPT2_契約保険リース_専門下書きDB設計_20260708_204945_undo.sql
-│  │  ├─ GPT2_契約保険リース_単独保存専門下書き連動_関数検出_20260708_235326.undo.ps1
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_20260708_210606_undo.ps1
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_20260708_210606_undo.sql
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_clean_20260708_211123_undo.ps1
-│  │  ├─ GPT2_契約保険リース_不足マスタ追加_clean_20260708_211123_undo.sql
-│  │  ├─ GPT2_契約保険リース専門下書き保存API_JSONB修正_20260708_215349_undo.ps1
-│  │  ├─ GPT2_契約保険リース専門下書き保存API接続_20260708_214641_undo.ps1
-│  │  ├─ GPT2_契約保険リース専門画面_14マスタselect化_20260708_212832_undo.ps1
-│  │  ├─ GPT2_契約保険リース専門画面_未追加7マスタselect差込_20260708_213034_undo.ps1
-│  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090110.undo.ps1
-│  │  ├─ GPT2_再起動バックアップ中_全画面ロック_20260709_090325.undo.ps1
-│  │  ├─ GPT2_再起動後_現在ページリロード_20260709_091747.undo.ps1
-│  │  ├─ pd_routes_recover_20260709_213414.undo.ps1
-│  │  ├─ undo_ai_autosave_bridge_20260712_095618.ps1
-│  │  ├─ undo_ai_only_specialist_routing_20260711_144121.ps1
-│  │  ├─ undo_ai_only_specialist_routing_20260711_144354.ps1
-│  │  ├─ undo_ai_sort_autosave_20260711_163321.ps1
-│  │  ├─ undo_all_specialist_target_mapping_20260711_174250.ps1
-│  │  ├─ undo_analysis_code_autosave_20260711_160933.ps1
-│  │  ├─ undo_analysis_system_connection_fix_20260712_133507.ps1
-│  │  ├─ undo_analysis_system_id_column_20260712_135507.ps1
-│  │  ├─ undo_analysis_system_id_connection_20260712_120449.ps1
-│  │  ├─ undo_analysis_system_json_display_20260712_140749.ps1
-│  │  ├─ undo_analysis_system_master_20260712_115153.ps1
-│  │  ├─ undo_analysis_system_parent5_20260712_130107.ps1
-│  │  ├─ undo_autosave_tx_20260711_171605.ps1
-│  │  ├─ undo_basic_analysis_always_visible_20260712_090631.ps1
-│  │  ├─ undo_basic_analysis_fixed_display_20260712_084057.txt
-│  │  ├─ undo_basic_analysis_layout_safe2_20260711_224004.ps1
-│  │  ├─ undo_basic_analysis_prompt_20260711_224322.ps1
-│  │  ├─ undo_basic_analysis_single_prompt_20260712_150305.ps1
-│  │  ├─ undo_calendar_accounting_dummy_20260715_224627.ps1
-│  │  ├─ undo_calendar_event_editor_20260716_074031.ps1
-│  │  ├─ undo_calendar_event_human_protection_20260716_211935.ps1
-│  │  ├─ undo_calendar_monday_start_v2_20260716_233855.ps1
-│  │  ├─ undo_calendar_remove_old_workflow_20260715_233100.ps1
-│  │  ├─ undo_calendar_step1_20260715_223133.ps1
-│  │  ├─ undo_calendar_step1_disable_broken_sync_20260715_222920.ps1
-│  │  ├─ undo_calendar_step2_month_20260715_223614.ps1
-│  │  ├─ undo_calendar_step4_20260715_225725.ps1
-│  │  ├─ undo_calendar_workflow_server_apply_20260715_235928.ps1
-│  │  ├─ undo_calendar_workflow_ui_20260716_001046.ps1
-│  │  ├─ undo_cil_combined_save_20260711_000250.ps1
-│  │  ├─ undo_cil_combined_save_encoding_fixed_20260711_000402.ps1
-│  │  ├─ undo_cil_duplicate_remove_20260723_083908.ps1
-│  │  ├─ undo_cil_ledger_detail_tree_20260723_093745.ps1
-│  │  ├─ undo_cil_ledger_edit_button_20260723_095519.ps1
-│  │  ├─ undo_cil_ledger_formal_20260723_093218.ps1
-│  │  ├─ undo_cil_ledger_get_20260723_092543.ps1
-│  │  └─ ... 省略
-│  ├─ 00_README_GPT2_TEMP_FOLDER.txt
-│  ├─ issue_date_db_column_apply_safe2_20260711_233043.js
-│  ├─ issue_date_db_column_apply_safe3_20260711_233236.js
-│  ├─ issue_date_db_column_apply_safe4_20260711_233600.js
-│  ├─ issue_date_db_column_apply_safe4_20260711_233719.js
-│  ├─ issue_date_db_column_check_safe2_20260711_233043.js
-│  ├─ issue_date_db_column_check_safe3_20260711_233236.js
-│  ├─ issue_date_db_column_check_safe4_20260711_233600.js
-│  ├─ issue_date_db_column_check_safe4_20260711_233719.js
-│  ├─ order5_basic_analysis_db_check_safe2_20260711_232406.js
-│  ├─ patch_basic_analysis_fixed_display_20260712_084209.js
-│  ├─ patch_basic_analysis_fixed_safe2_20260712_084339.js
-│  └─ patch_issue_date_safe4_20260712_001317.js
 ├─ GPT3が使う一時ファイルフォルダ\
 │  ├─ after\
 │  │  ├─ database\
@@ -911,13 +691,26 @@ hd-origin-project\
 │  │  │  │  ├─ contract-insurance-lease-ledger-report.css
 │  │  │  │  ├─ contract-insurance-lease-ledger-report.html
 │  │  │  │  ├─ contract-insurance-lease-ledger-report.js
+│  │  │  │  ├─ contract-insurance-lease-ledger-report.js.before_contract_results_fix
+│  │  │  │  ├─ invoice-payable-ledger-report.css
+│  │  │  │  ├─ invoice-payable-ledger-report.html
+│  │  │  │  ├─ invoice-payable-ledger-report.js
+│  │  │  │  ├─ needs-review-ledger-report.css
+│  │  │  │  ├─ needs-review-ledger-report.html
+│  │  │  │  ├─ needs-review-ledger-report.js
 │  │  │  │  ├─ receipt-ledger-report.css
 │  │  │  │  ├─ receipt-ledger-report.html
 │  │  │  │  ├─ receipt-ledger-report.js
+│  │  │  │  ├─ reference-check-ledger-report.css
+│  │  │  │  ├─ reference-check-ledger-report.html
+│  │  │  │  ├─ reference-check-ledger-report.js
+│  │  │  │  ├─ tax-public-ledger-report.css
 │  │  │  │  ├─ tax-public-ledger-report.html
+│  │  │  │  ├─ tax-public-ledger-report.js
 │  │  │  │  ├─ utility-communication-ledger-report.css
 │  │  │  │  ├─ utility-communication-ledger-report.html
-│  │  │  │  └─ utility-communication-ledger-report.js
+│  │  │  │  ├─ utility-communication-ledger-report.js
+│  │  │  │  └─ utility-communication-ledger-report.js.before_utility_results_fix
 │  │  │  └─ ledger-management-dashboard.html
 │  │  ├─ masters\
 │  │  │  ├─ company-transaction-rule-master.html
@@ -934,35 +727,84 @@ hd-origin-project\
 │  │  │  ├─ payable-list.css
 │  │  │  ├─ payable-list.html
 │  │  │  ├─ payment-document-inbox.css
+│  │  │  ├─ payment-document-inbox.css.before_edit_mini_blue_20260725
 │  │  │  ├─ payment-document-inbox.html
+│  │  │  ├─ payment-document-inbox.html.before_delete_double_confirm_20260725_v2
+│  │  │  ├─ payment-document-inbox.html.before_delete_double_confirm_20260725_v3
+│  │  │  ├─ payment-document-inbox.html.before_ocr_action_button_20260725
+│  │  │  ├─ payment-document-inbox.html.before_process_status_display_20260725
+│  │  │  ├─ payment-document-inbox.html.before_row_action_button_20260725_v2
 │  │  │  ├─ payment-document-journal-voucher-output.html
 │  │  │  ├─ payment-document-payables-report.html
 │  │  │  ├─ payment-document-review.css
 │  │  │  ├─ payment-document-review.html
 │  │  │  ├─ payment-document-review.html.bak_20260721064613
+│  │  │  ├─ payment-document-review.html.before_analysis_system_formal_source_20260726_203111.bak
+│  │  │  ├─ payment-document-review.html.before_basic_analysis_api_20260726_195710.bak
+│  │  │  ├─ payment-document-review.html.before_basic_analyzed判定_20260726_165241.bak
+│  │  │  ├─ payment-document-review.html.before_basic_draft_source_20260726_165148.bak
+│  │  │  ├─ payment-document-review.html.before_company_payload_20260726_162216.bak
+│  │  │  ├─ payment-document-review.html.before_company_payload_fix_20260726_162302.bak
+│  │  │  ├─ payment-document-review.html.before_disable_autosave_20260726_222737.bak
+│  │  │  ├─ payment-document-review.html.before_disable_basic_autosave_20260726_222541.bak
+│  │  │  ├─ payment-document-review.html.before_formal_basic_restore_20260726_163903.bak
+│  │  │  ├─ payment-document-review.html.before_formal_basic_visual_20260726_164906.bak
+│  │  │  ├─ payment-document-review.html.before_process_status_display_20260725
+│  │  │  ├─ payment-document-review.html.before_reload_ai_restore_20260726_162820.bak
+│  │  │  ├─ payment-document-review.html.before_reload_ai_restore_fix_20260726_162918.bak
+│  │  │  ├─ payment-document-review.html.before_reload_ai_restore_fix2_20260726_163017.bak
+│  │  │  ├─ payment-document-review.html.before_remove_ai_draft_20260726_224009.bak
+│  │  │  ├─ payment-document-review.html.before_remove_aiDraftOf_sortingDraft_20260726_204730.bak
+│  │  │  ├─ payment-document-review.html.before_remove_draft_no_status_display_20260726_205512.bak
+│  │  │  ├─ payment-document-review.html.before_remove_latestSortingDraft_block_20260726_165909.bak
+│  │  │  ├─ payment-document-review.html.before_remove_old_draft_labels_20260726_202448.bak
+│  │  │  ├─ payment-document-review.html.before_remove_old_read_api_2lines_20260726_202344.bak
+│  │  │  ├─ payment-document-review.html.before_remove_visible_latestSortingDraft_20260726_200722.bak
+│  │  │  ├─ payment-document-review.html.before_rename_all_db_latest_basic_count_20260726_203309.bak
+│  │  │  ├─ payment-document-review.html.before_rename_basic_analysis_cache_20260726_200046.bak
+│  │  │  ├─ payment-document-review.html.before_rename_cached_basic_payload_20260726_200151.bak
+│  │  │  ├─ payment-document-review.html.before_rename_collect_basic_analysis_20260726_195927.bak
+│  │  │  ├─ payment-document-review.html.before_rename_db_latest_basic_found_20260726_203211.bak
+│  │  │  ├─ payment-document-review.html.before_rename_save_basic_analysis_20260726_195832.bak
+│  │  │  ├─ payment-document-review.html.before_replace_dbDraftOf_lines_20260726_202829.bak
+│  │  │  ├─ payment-document-review.html.before_safe_draft_batch_retry_20260726_204459.bak
+│  │  │  ├─ payment-document-review.html.before_screen_value_save_20260726_223623.bak
+│  │  │  ├─ payment-document-review.html.before_sorting_reference_cleanup
+│  │  │  ├─ payment-document-review.html.before_summary_formal_analyzed_20260726_165626.bak
+│  │  │  ├─ payment-document-specialist-bank-transaction.css
+│  │  │  ├─ payment-document-specialist-bank-transaction.html
+│  │  │  ├─ payment-document-specialist-bank-transaction.html.before_process_status_display_20260725
+│  │  │  ├─ payment-document-specialist-bank-transaction.js
 │  │  │  ├─ payment-document-specialist-card-statement.css
 │  │  │  ├─ payment-document-specialist-card-statement.html
+│  │  │  ├─ payment-document-specialist-card-statement.html.before_process_status_display_20260725
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease-open-from-ledger.js
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.css
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.css.before_cancel_click_regex
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.html
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.html.before_bulk_cancel
 │  │  │  ├─ payment-document-specialist-contract-insurance-lease.html.before_bulk_cancel_loop
+│  │  │  ├─ payment-document-specialist-contract-insurance-lease.html.before_contract_results_fix
+│  │  │  ├─ payment-document-specialist-contract-insurance-lease.html.before_process_status_display_20260725
+│  │  │  ├─ payment-document-specialist-contract-insurance-lease.html.before_sorting_reference_cleanup
 │  │  │  ├─ payment-document-specialist-invoice-payable.css
 │  │  │  ├─ payment-document-specialist-invoice-payable.html
+│  │  │  ├─ payment-document-specialist-invoice-payable.html.before_process_status_display_20260725
 │  │  │  ├─ payment-document-specialist-needs-review.css
 │  │  │  ├─ payment-document-specialist-needs-review.html
+│  │  │  ├─ payment-document-specialist-needs-review.html.before_process_status_display_20260725
 │  │  │  ├─ payment-document-specialist-record-navigation.css
 │  │  │  ├─ payment-document-specialist-record-navigation.js
 │  │  │  ├─ payment-document-specialist-reference-check.css
 │  │  │  ├─ payment-document-specialist-reference-check.html
+│  │  │  ├─ payment-document-specialist-reference-check.html.before_process_status_display_20260725
 │  │  │  ├─ payment-document-specialist-tax-public.css
 │  │  │  ├─ payment-document-specialist-tax-public.html
+│  │  │  ├─ payment-document-specialist-tax-public.html.before_process_status_display_20260725
 │  │  │  ├─ payment-document-specialist-utility-communication-dedicated.js
-│  │  │  ├─ payment-document-specialist-utility-communication.css
-│  │  │  ├─ payment-document-specialist-utility-communication.html
-│  │  │  ├─ payment-document-specialist-utility-communication.html.before_communication_display_20260724_181854
-│  │  │  └─ payment-document-transfer-request-output.html
+│  │  │  ├─ payment-document-specialist-utility-communication-dedicated.js.before_sorting_reference_cleanup
+│  │  │  ├─ payment-document-specialist-utility-communication-dedicated.js.before_utility_results_fix
+│  │  │  └─ ... 省略
 │  │  ├─ receipts\
 │  │  │  ├─ receipt-ledger-print.html
 │  │  │  ├─ receipt-list-ledger-deep-link.js
@@ -979,7 +821,10 @@ hd-origin-project\
 │  │  │  ├─ receipt-list.html.before_date_time_inline_html_20260704_210615.bak
 │  │  │  ├─ receipt-list.html.before_invoice_evidence_inline_20260704_211648.bak
 │  │  │  ├─ receipt-list.html.before_invoice_note_right_20260704_211342.bak
+│  │  │  ├─ receipt-list.html.before_normal_formal_save_20260726_223642
+│  │  │  ├─ receipt-list.html.before_normal_formal_save_20260726_223642.check.js
 │  │  │  ├─ receipt-list.html.before_note_account_group_20260704_212507.bak
+│  │  │  ├─ receipt-list.html.before_remove_auto_draft_20260726_222718
 │  │  │  ├─ receipt-list.html.before_remove_bulk_summary_id
 │  │  │  ├─ receipt-list.html.before_remove_lines_colors_20260704_202955.bak
 │  │  │  ├─ receipt-list.html.before_remove_main_tax_choice_20260704_212106.bak
@@ -1083,6 +928,7 @@ hd-origin-project\
 │  │  │  └─ calendarWorkflow.routes.js
 │  │  ├─ deliveryNotes\
 │  │  │  ├─ deliveryNotes.repository.js
+│  │  │  ├─ deliveryNotes.repository.js.before_results_fix
 │  │  │  └─ deliveryNotes.routes.js
 │  │  ├─ expenses\
 │  │  │  ├─ expenses.repository.js
@@ -1142,9 +988,48 @@ hd-origin-project\
 │  │  │  ├─ paymentDocuments.aiPromptLoader.js.before_cil_payment_method
 │  │  │  ├─ paymentDocuments.routes.js
 │  │  │  ├─ paymentDocuments.routes.js.bak_20260721064613
+│  │  │  ├─ paymentDocuments.routes.js.before_basic_analysis_api_20260726_195710.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_basic_link_20260726_223226
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_final_old_reference_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_latest_specialist_id_fix_20260725_101647
 │  │  │  ├─ paymentDocuments.routes.js.before_cil_master_save
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_remaining_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_result_columns_fix
 │  │  │  ├─ paymentDocuments.routes.js.before_cil_save_restore
-│  │  │  └─ paymentDocuments.routes.js.before_cil_save_restore2
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_save_restore2
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_specialist_id_fix_20260725_101144
+│  │  │  ├─ paymentDocuments.routes.js.before_cil_specialist_id_fix_v2_20260725_101234
+│  │  │  ├─ paymentDocuments.routes.js.before_contract_results_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_dbmeta_status_cleanup_20260725
+│  │  │  ├─ paymentDocuments.routes.js.before_delete_restore_raw_20260725
+│  │  │  ├─ paymentDocuments.routes.js.before_final_specialist_direct_save_20260725_102405
+│  │  │  ├─ paymentDocuments.routes.js.before_final_specialist_direct_save_v2_20260725_102526
+│  │  │  ├─ paymentDocuments.routes.js.before_formal_basic_link_20260726_222956
+│  │  │  ├─ paymentDocuments.routes.js.before_formal_json_column_fix_20260725_105006
+│  │  │  ├─ paymentDocuments.routes.js.before_meta_status_cleanup_20260725_v2
+│  │  │  ├─ paymentDocuments.routes.js.before_needs_review_json_fix_20260725_104619
+│  │  │  ├─ paymentDocuments.routes.js.before_ocr_list_specialist_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_process_status_filter_20260725
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_final_sorting_response_fields_20260725_102610
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_final_sorting_response_fields_v2_20260725_102658
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_obsolete_sorting_read_20260725_101011
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_obsolete_sorting_save_20260725_100539
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_old_draft_response_aliases_20260726_200313.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_sorting_draft_count_response_20260726_211558.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_remove_unused_basic_payload_builder_retry2_20260726_211201.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_reset_ocr_api_20260725
+│  │  │  ├─ paymentDocuments.routes.js.before_reset_ocr_restore_saved_20260725_v2
+│  │  │  ├─ paymentDocuments.routes.js.before_review_items_basic_analysis_replace_20260726_214542.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_review_items_basic_analysis_retry_20260726_214925.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_review_items_formal_specialist_20260725_101924
+│  │  │  ├─ paymentDocuments.routes.js.before_review_items_needs_review_fix_20260725_104443
+│  │  │  ├─ paymentDocuments.routes.js.before_safe_draft_batch_retry_20260726_204459.bak
+│  │  │  ├─ paymentDocuments.routes.js.before_specialist_direct_ocr_link_20260725_102232
+│  │  │  ├─ paymentDocuments.routes.js.before_utility_final_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_utility_result_columns_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_utility_results_fix
+│  │  │  ├─ paymentDocuments.routes.js.before_utility_specialist_link_fix_20260725_101420
+│  │  │  └─ paymentDocuments.routes.js.before_utility_specialist_link_fix_v2_20260725_101519
 │  │  ├─ projectBackup\
 │  │  │  ├─ projectBackup.routes.js
 │  │  │  └─ projectBackup.service.js
@@ -1153,11 +1038,14 @@ hd-origin-project\
 │  │  │  ├─ receipts.ai.js.before_remove_summary_master_load
 │  │  │  ├─ receipts.ai.js.before_remove_summary_resolver
 │  │  │  ├─ receipts.repository.js
+│  │  │  ├─ receipts.repository.js.before_receipt_ai_delete_cleanup
+│  │  │  ├─ receipts.repository.js.before_receipt_formal_table_fix
 │  │  │  ├─ receipts.repository.js.before_remove_confidence_summary_id
 │  │  │  ├─ receipts.repository.js.before_remove_confidence_summary_id_v2
 │  │  │  ├─ receipts.repository.js.before_remove_final_summary_id
 │  │  │  ├─ receipts.repository.js.before_remove_first_summary_id_save
 │  │  │  ├─ receipts.repository.js.before_remove_summary_id_comment
+│  │  │  ├─ receipts.repository.js.before_remove_unused_ai_draft_functions
 │  │  │  ├─ receipts.repository.js.before_remove_update_summary_id
 │  │  │  ├─ receipts.routes.js
 │  │  │  └─ receipts.routes.js.before_remove_summary_id_return
@@ -1169,8 +1057,13 @@ hd-origin-project\
 │  │  │  └─ time.js
 │  │  ├─ config.js
 │  │  ├─ db.bootstrap.js
+│  │  ├─ db.bootstrap.js.before_draft_bootstrap_cleanup
+│  │  ├─ db.bootstrap.js.before_final_receipt_ai_bootstrap_cleanup
+│  │  ├─ db.bootstrap.js.before_remove_obsolete_cil_bootstrap_20260725_104025
+│  │  ├─ db.bootstrap.js.before_remove_obsolete_cil_bootstrap_v2_20260725_104110
 │  │  ├─ db.js
 │  │  ├─ projectStatus.js
+│  │  ├─ projectStatus.js.before_sorting_reference_cleanup
 │  │  ├─ response.js
 │  │  └─ static.js
 │  ├─ _apply_baseline_migration_for_gpt.js

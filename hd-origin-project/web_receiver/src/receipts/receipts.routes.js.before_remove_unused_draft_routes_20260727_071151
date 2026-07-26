@@ -1223,11 +1223,64 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
       return true;
     }
 
+    const newDraft = await repo.getReceiptDraftByImportId(item.id);
+
+    const drafts = newDraft && Array.isArray(newDraft.details)
+      ? newDraft.details.map((detail) => ({
+          ...detail,
+
+          id: detail.draft_receipt_detail_id,
+          receipt_import_id: item.id,
+
+          transaction_date: detail.transaction_date,
+          receipt_date: detail.transaction_date,
+
+          receipt_time_text: detail.receipt_time_text,
+
+          vendor_name: detail.vendor_name,
+          vendor_address: detail.vendor_address,
+          vendor_phone: detail.vendor_phone,
+
+          payment_method_id: detail.payment_method_id,
+
+          total_amount: detail.total_amount,
+          tax_amount: detail.tax_total_amount,
+          tax_total_amount: detail.tax_total_amount,
+
+          invoice_number: detail.invoice_number,
+          invoice_type_id: detail.invoice_type_id,
+
+          evidence_type_id: detail.evidence_type_id,
+          evidence_memo: detail.evidence_memo,
+
+          target_person_id: detail.target_person_id,
+          is_settled: detail.is_settled,
+          isSettled: detail.is_settled,
+
+          summary: detail.summary,
+          receipt_summary_id: detail.receipt_summary_id,
+          receiptSummaryId: detail.receipt_summary_id,
+          memo: detail.memo,
+
+          account_title_id: detail.account_title_id,
+          purpose_id: detail.purpose_id,
+          project_id: detail.project_id,
+          department_id: detail.department_id,
+
+          line_items: detail.line_items || detail.breakdowns || [],
+          lineItems: detail.lineItems || detail.breakdowns || [],
+
+          __new6: true,
+          draft_receipt_id: newDraft.draft_receipt_id,
+          draft_receipt_detail_id: detail.draft_receipt_detail_id
+        }))
+      : [];
 
     sendJson(res, 200, {
       ok: true,
       item,
-});
+      aiDrafts: drafts,
+    });
 
     return true;
   }
@@ -1301,9 +1354,244 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
     return true;
   }
   /* RECEIPT_PAYMENT_DOCUMENT_BRIDGE_API_20260722_END */
+  const analyzeMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)\/analyze$/);
+
+  if (req.method === "POST" && analyzeMatch) {
+    const id = Number(analyzeMatch[1]);
+    const item = await repo.getImportById(id);
+
+    if (!item) {
+      sendJson(res, 404, {
+        ok: false,
+        error: "レシートが見つかりません。",
+      });
+
+      return true;
+    }
+
+    try {
+      const analyzed = await ai.analyzeReceiptImport(item);
+      const saved = await repo.createReceiptDraftFromAi(item.id, analyzed);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "AI下書きを作成しました。",
+        draft: saved,
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message,
+      });
+    }
+
+    return true;
+  }
 
 
-    /* RECEIPT_SAVED_LEDGER_ROUTES_20260705_START */
+  const taxBreakdownMatch = pathname.match(/^\/api\/receipts\/ai-drafts\/(\d+)\/tax-breakdowns$/);
+
+  if (req.method === "GET" && taxBreakdownMatch) {
+    try {
+      const repository = require("./receipts.repository");
+      const draftId = Number(taxBreakdownMatch[1]);
+      const items = await repository.getReceiptDraftDetailTaxBreakdowns(draftId);
+
+      sendJson(res, 200, {
+        ok: true,
+        items
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "消費税内訳の取得に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+
+  if ((req.method === "PUT" || req.method === "PATCH") && taxBreakdownMatch) {
+    try {
+      const repository = require("./receipts.repository");
+      const draftId = Number(taxBreakdownMatch[1]);
+      const body = await readJsonBody(req);
+
+      const items = Array.isArray(body.items)
+        ? body.items
+        : Array.isArray(body.taxBreakdowns)
+          ? body.taxBreakdowns
+          : [];
+
+      const saved = await repository.replaceReceiptDraftDetailTaxBreakdowns(draftId, items);
+
+      if (saved === null) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "AI下書きが見つかりません。"
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        items: saved
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "消費税内訳の保存に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+  const draftMatch = pathname.match(/^\/api\/receipts\/ai-drafts\/(\d+)$/);
+
+  if ((req.method === "PUT" || req.method === "PATCH") && draftMatch) {
+    try {
+      const body = await readJsonBody(req);
+      const saved = await repo.updateReceiptDraftDetail(Number(draftMatch[1]), body);
+
+      if (!saved) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "AI下書きが見つかりません。",
+        });
+
+        return true;
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "候補を保存しました。",
+        draft: saved,
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message,
+      });
+    }
+
+    return true;
+  }
+  /* RECEIPT_POST_SAVE_ROUTES_20260705_START */
+  const bulkPostMatch = pathname === "/api/receipts/imports/bulk-post";
+
+  if (req.method === "POST" && bulkPostMatch) {
+    try {
+      const body = await readJsonBody(req);
+      const rawIds = Array.isArray(body.receiptImportIds)
+        ? body.receiptImportIds
+        : Array.isArray(body.receipt_import_ids)
+          ? body.receipt_import_ids
+          : Array.isArray(body.ids)
+            ? body.ids
+            : [];
+
+      const ids = Array.from(new Set(
+        rawIds
+          .map((id) => Number(id))
+          .filter((id) => Number.isFinite(id) && id > 0)
+      ));
+
+      if (!ids.length) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "本保存するレシートが選択されていません。"
+        });
+
+        return true;
+      }
+
+      const results = [];
+      let success = 0;
+      let alreadySaved = 0;
+      let failed = 0;
+
+      for (const id of ids) {
+        try {
+          const result = await repo.postReceiptDraftByImportId(id, {
+            mode: "bulk"
+          });
+
+          results.push(result);
+
+          if (result && result.ok && result.already_saved) {
+            alreadySaved++;
+          } else if (result && result.ok) {
+            success++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          failed++;
+          results.push({
+            ok: false,
+            receipt_import_id: id,
+            reason: "exception",
+            message: error.message || String(error)
+          });
+        }
+      }
+
+      sendJson(res, 200, {
+        ok: failed === 0,
+        message: "本保存処理が完了しました。",
+        summary: {
+          total: ids.length,
+          success,
+          already_saved: alreadySaved,
+          failed
+        },
+        results
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "まとめて本保存に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+
+  const singlePostMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)\/post$/);
+
+  if (req.method === "POST" && singlePostMatch) {
+    try {
+      const result = await repo.postReceiptDraftByImportId(Number(singlePostMatch[1]), {
+        mode: "single"
+      });
+
+      sendJson(res, result && result.ok ? 200 : 400, {
+        ok: !!(result && result.ok),
+        result
+      });
+
+      return true;
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || "本保存に失敗しました。"
+      });
+
+      return true;
+    }
+  }
+  /* RECEIPT_POST_SAVE_ROUTES_20260705_END */
+
+
+
+  /* RECEIPT_SAVED_LEDGER_ROUTES_20260705_START */
   if (req.method === "GET" && pathname === "/api/receipts/saved") {
     try {
       const items = await repo.listSavedReceipts(

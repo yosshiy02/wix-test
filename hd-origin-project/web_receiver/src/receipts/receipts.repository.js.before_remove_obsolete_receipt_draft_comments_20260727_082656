@@ -776,6 +776,14 @@ async function deleteImportById(id) {
   }
 }
 /* RECEIPT_ACCOUNTING_HOTFIX_END */
+/* RECEIPT_AI_DRAFT_MASTER_SAVE_START */
+/*
+  AI下書き保存の上書き。
+  AIが返した支払方法ID・インボイス区分ID・証憑区分ID・証憑メモも保存する。
+  勘定科目は現テーブルでは account_title_name として保存する。
+*/
+
+/* RECEIPT_AI_DRAFT_MASTER_SAVE_END */
 module.exports = {
 getReceiptMasterOptions,
   deleteImportById,
@@ -942,6 +950,15 @@ function __receiptNew6ToBoolean(value) {
 
 
 /* RECEIPT_NEW_6_TABLE_REPOSITORY_FUNCTIONS_20260705_END */
+
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_20260705_START */
+/*
+  新6テーブル下書き取得の上書き。
+  明細 details に receipt_detail_breakdowns を付けて返す。
+  画面側の日付ズレ対策として DATE は YYYY-MM-DD 文字列で返す。
+*/
+/* RECEIPT_NEW_6_GET_DRAFT_WITH_BREAKDOWNS_20260705_END */
+
 
 /* RECEIPT_NEW_6_TAX_SAVE_V2_20260705_START */
 /*

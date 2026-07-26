@@ -6980,6 +6980,219 @@ function hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText) {
 }
 /* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_START */
+function hdOriginSortingDraftText(value) {
+  if (value === null || value === undefined) return "";
+
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  return String(value).trim();
+}
+
+function hdOriginSortingDraftFirstObject(...items) {
+  for (const item of items) {
+    if (item && typeof item === "object" && !Array.isArray(item)) {
+      return item;
+    }
+  }
+
+  return {};
+}
+
+function hdOriginSortingDraftNumberOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function hdOriginSortingDraftRotation(value) {
+  const n = Number(value || 0);
+
+  if (![0, 90, 180, 270].includes(n)) {
+    return 0;
+  }
+
+  return n;
+}
+
+function hdOriginSortingDraftJson(value, fallback) {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  return value;
+}
+
+function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
+  const root =
+    hdOriginSortingDraftFirstObject(
+      body.sortResult,
+      body.sort_result,
+      body.sorting,
+      body.classification,
+      body.draft,
+      body.aiDraft,
+      body
+    );
+
+  const draft = hdOriginSortingDraftFirstObject(
+    body.draft,
+    body.aiDraft,
+    body.sorting,
+    body.classification,
+    root.draft,
+    root.sorting,
+    root.classification,
+    root
+  );
+
+  const aiSummary = hdOriginSortingDraftFirstObject(
+    body.ai_summary,
+    body.aiSummary,
+    draft.ai_summary,
+    draft.aiSummary,
+    root.ai_summary,
+    root.aiSummary
+  );
+
+  const visibleFields = hdOriginSortingDraftJson(
+    body.visibleFields || body.visible_fields || body.fields || draft.fields || {},
+    {}
+  );
+
+  const warnings = Array.isArray(body.warnings)
+    ? body.warnings
+    : Array.isArray(draft.warnings)
+      ? draft.warnings
+      : Array.isArray(root.warnings)
+        ? root.warnings
+        : [];
+
+  const now = new Date();
+  const z = n => String(n).padStart(2, "0");
+  const draftNo =
+    "PDSD-" +
+    String(ocrRow.payment_document_ocr_import_id) +
+    "-" +
+    String(now.getFullYear()) +
+    z(now.getMonth() + 1) +
+    z(now.getDate()) +
+    z(now.getHours()) +
+    z(now.getMinutes()) +
+    z(now.getSeconds());
+
+  return {
+    issue_date: (() => {
+      const value =
+        body.document_date ??
+        body.documentDate ??
+        draft.document_date ??
+        draft.documentDate ??
+        body.issue_date ??
+        body.issueDate ??
+        draft.issue_date ??
+        draft.issueDate ??
+        aiSummary.issue_date ??
+        aiSummary.issueDate ??
+        null;
+      if (value === null || value === undefined || value === "") return null;
+      const matched = String(value).trim().match(/^(\d{4}-\d{2}-\d{2})/);
+      return matched ? matched[1] : null;
+    })(),
+    payment_document_ocr_import_id: Number(ocrRow.payment_document_ocr_import_id),
+    draft_no: hdOriginSortingDraftText(body.draftNo || body.draft_no || draftNo),
+    draft_status: hdOriginSortingDraftText(body.draftStatus || body.draft_status || "draft_saved"),
+    human_check_status: hdOriginSortingDraftText(body.humanCheckStatus || body.human_check_status || "unchecked"),
+
+    document_type_id: hdOriginSortingDraftNumberOrNull(body.documentTypeId || body.document_type_id || draft.document_type_id),
+    document_type_code: hdOriginSortingDraftText(draft.document_type_code || body.document_type_code),
+    document_type_label: hdOriginSortingDraftText(
+      draft.document_type_label || body.document_type_label
+    ),
+
+    payment_destination_id: hdOriginSortingDraftNumberOrNull(body.paymentDestinationId || body.payment_destination_id || draft.payment_destination_id),
+    payment_destination_code: hdOriginSortingDraftText(
+      draft.payment_destination_code || body.payment_destination_code
+    ),
+    payment_destination_label: hdOriginSortingDraftText(
+      draft.payment_destination_label || body.payment_destination_label
+    ),
+
+    accounting_category_id: hdOriginSortingDraftNumberOrNull(body.accountingCategoryId || body.accounting_category_id || draft.accounting_category_id),
+    accounting_category_code: hdOriginSortingDraftText(
+      draft.accounting_category_code || body.accounting_category_code
+    ),
+    accounting_category_label: hdOriginSortingDraftText(
+      draft.accounting_category_label || body.accounting_category_label
+    ),
+
+    payable_kind_id: null,
+    payable_kind_code: "",
+    payable_kind_label: "",
+
+    specialist_route_code: "",
+    specialist_route_label: "",
+
+    analysis_system_code: hdOriginSortingDraftText(
+      draft.analysis_system_code || body.analysis_system_code
+    ),
+    analysis_system_label: hdOriginSortingDraftText(draft.analysis_system_label || body.analysis_system_label),
+    analysis_system_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    analysis_system_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
+
+    payment_target_label: hdOriginSortingDraftText(body.paymentTargetLabel || body.payment_target_label || aiSummary.payment_target),
+    payable_target_label: hdOriginSortingDraftText(body.payableTargetLabel || body.payable_target_label || aiSummary.payable_target),
+    expense_target_label: hdOriginSortingDraftText(body.expenseTargetLabel || body.expense_target_label || aiSummary.expense_target),
+    tax_public_label: hdOriginSortingDraftText(body.taxPublicLabel || body.tax_public_label || aiSummary.tax_public),
+    public_utility_label: hdOriginSortingDraftText(body.publicUtilityLabel || body.public_utility_label || aiSummary.public_utility),
+    contract_insurance_lease_label: hdOriginSortingDraftText(body.contractInsuranceLeaseLabel || body.contract_insurance_lease_label || aiSummary.contract_insurance_lease),
+
+    ai_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
+    ai_confidence_label: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
+    ai_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    review_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
+    needs_review:
+      typeof body.needs_review === "boolean"
+        ? body.needs_review
+        : typeof body.needsReview === "boolean"
+          ? body.needsReview
+          : typeof draft.needs_review === "boolean"
+            ? draft.needs_review
+            : typeof root.needs_review === "boolean"
+              ? root.needs_review
+              : false,
+
+    ai_summary_json: aiSummary,
+    sort_result_json: hdOriginSortingDraftJson(body.sortResult || body.sort_result || body.sorting || root, {}),
+    visible_fields_json: visibleFields,
+    human_corrections_json: hdOriginSortingDraftJson(body.humanCorrections || body.human_corrections || {}, {}),
+    warnings_json: warnings,
+
+    original_file_name: hdOriginSortingDraftText(ocrRow.original_file_name || body.originalFileName || body.original_file_name),
+    saved_file_name: hdOriginSortingDraftText(ocrRow.saved_file_name || body.savedFileName || body.saved_file_name),
+    saved_relative_path: hdOriginSortingDraftText(ocrRow.saved_relative_path || body.savedRelativePath || body.saved_relative_path),
+    sha256: hdOriginSortingDraftText(ocrRow.sha256 || body.sha256),
+    ocr_text_length: Number(ocrRow.ocr_text_length || body.ocrTextLength || body.ocr_text_length || 0),
+
+    display_rotation: hdOriginSortingDraftRotation(body.displayRotation || body.display_rotation),
+
+    memo: hdOriginSortingDraftText(body.memo),
+    created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
+    created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
+    updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
+  };
+}
+
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
+
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
+/* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
 function hdOriginCilText(value) {
   if (value === null || value === undefined) return "";
 
@@ -7131,6 +7344,271 @@ function hdOriginCilCodeLabel(value, fallbackLabel) {
   if (norm.includes("対象外")) return { code: "not_applicable", label: "対象外" };
 
   return { code: "", label: text };
+}
+
+function hdOriginCilBuildRecord(body, ocrRow, latestSpecialistAnalysisId) {
+  const root = hdOriginCilFirstObject(
+    body.sortResult,
+    body.sort_result,
+    body.sorting,
+    body.classification,
+    body.draft,
+    body.aiDraft,
+    body
+  );
+
+  const draft = hdOriginCilFirstObject(
+    body.draft,
+    body.aiDraft,
+    body.sorting,
+    body.classification,
+    root.draft,
+    root.sorting,
+    root.classification,
+    root
+  );
+
+  const aiSummary = hdOriginCilFirstObject(
+    body.ai_summary,
+    body.aiSummary,
+    draft.ai_summary,
+    draft.aiSummary,
+    root.ai_summary,
+    root.aiSummary
+  );
+
+  const fields = hdOriginCilFirstObject(
+    body.specialistFields,
+    body.specialist_fields,
+    body.fields,
+    body.visibleFields,
+    body.visible_fields,
+    draft.fields,
+    root.fields
+  );
+
+  const warnings = Array.isArray(body.warnings)
+    ? body.warnings
+    : Array.isArray(draft.warnings)
+      ? draft.warnings
+      : Array.isArray(root.warnings)
+        ? root.warnings
+        : [];
+
+  const now = new Date();
+  const z = n => String(n).padStart(2, "0");
+  const draftNo =
+    "CILD-" +
+    String(ocrRow.payment_document_ocr_import_id) +
+    "-" +
+    String(now.getFullYear()) +
+    z(now.getMonth() + 1) +
+    z(now.getDate()) +
+    z(now.getHours()) +
+    z(now.getMinutes()) +
+    z(now.getSeconds());
+
+  const cilKind = hdOriginCilCodeLabel(
+    body.contractInsuranceLeaseKindCode ||
+      body.contract_insurance_lease_kind_code ||
+      hdOriginCilField(fields, "契約・保険・リース") ||
+      aiSummary.contract_insurance_lease ||
+      draft.contract_insurance_lease_label ||
+      draft.contract_insurance_lease_code,
+    ""
+  );
+
+  const insuranceType = hdOriginCilCodeLabel(hdOriginCilField(fields, "保険種類") || body.insurance_type_code, "");
+  const leaseItemCategory = hdOriginCilCodeLabel(hdOriginCilField(fields, "リース物件区分") || body.lease_item_category_code, "");
+  const contractType = hdOriginCilCodeLabel(hdOriginCilField(fields, "契約種別") || body.contract_type_code, "");
+  const contractStatus = hdOriginCilCodeLabel(hdOriginCilField(fields, "契約ステータス") || body.contract_status_code, "");
+  const paymentStatus = hdOriginCilCodeLabel(hdOriginCilField(fields, "支払状態") || body.payment_status_code, "");
+  const paymentCycle = hdOriginCilCodeLabel(hdOriginCilField(fields, "支払周期") || body.payment_cycle_code, "");
+  const companyBurden = hdOriginCilCodeLabel(hdOriginCilField(fields, "会社負担可否") || body.company_burden_code, "");
+  const personalMix = hdOriginCilCodeLabel(hdOriginCilField(fields, "個人負担混在") || body.mixed_personal_flag_code, "");
+  const payableRegistration = hdOriginCilCodeLabel(hdOriginCilField(fields, "未払登録") || body.payable_registration_code, "");
+  const accountsPayableRegistration = hdOriginCilCodeLabel(hdOriginCilField(fields, "買掛登録") || body.accounts_payable_registration_code, "");
+  const autoRenewal = hdOriginCilCodeLabel(hdOriginCilField(fields, "自動更新有無") || body.auto_renewal_code, "");
+  const ownershipTransfer = hdOriginCilCodeLabel(hdOriginCilField(fields, "所有権移転区分") || body.ownership_transfer_code, "");
+  const earlyCancellation = hdOriginCilCodeLabel(hdOriginCilField(fields, "中途解約可否") || body.early_cancellation_code, "");
+
+  return {
+    payment_document_ocr_import_id: Number(ocrRow.payment_document_ocr_import_id),
+    specialist_analysis_id: hdOriginCilNumberOrNull(
+      body.specialistAnalysisId ||
+        body.specialist_analysis_id ||
+        latestSpecialistAnalysisId
+    ),
+    draft_no: hdOriginCilText(body.draftNo || body.draft_no || draftNo),
+    draft_status: hdOriginCilText(body.draftStatus || body.draft_status || "specialist_draft_saved"),
+    human_check_status: hdOriginCilText(body.humanCheckStatus || body.human_check_status || "unchecked"),
+    is_current: true,
+
+    original_file_name: hdOriginCilText(ocrRow.original_file_name || ocrRow.saved_file_name),
+    saved_file_name: hdOriginCilText(ocrRow.saved_file_name),
+    saved_relative_path: hdOriginCilText(ocrRow.saved_relative_path),
+    sha256: hdOriginCilText(ocrRow.sha256),
+    ocr_text_length: hdOriginCilNumberOrNull(ocrRow.ocr_text_length),
+
+    document_type_code: hdOriginCilText(body.document_type_code || draft.document_type_code || aiSummary.document_kind),
+    document_type_label: hdOriginCilText(body.document_type_label || draft.document_type_label || aiSummary.document_kind_label || aiSummary.document_kind),
+    evidence_type_code: hdOriginCilText(hdOriginCilField(fields, "証憑区分")),
+    evidence_type_label: hdOriginCilText(hdOriginCilField(fields, "証憑区分")),
+
+    payment_destination_code: hdOriginCilText(body.payment_destination_code || draft.payment_destination_code || "contract_insurance_lease"),
+    payment_destination_label: hdOriginCilText(body.payment_destination_label || draft.payment_destination_label || "契約・保険・リース"),
+
+    contract_insurance_lease_kind_code: cilKind.code,
+    contract_insurance_lease_kind_label: cilKind.label,
+
+    analysis_system_code: hdOriginCilText(body.analysis_system_code || draft.analysis_system_code || "contract_insurance_lease"),
+    analysis_system_label: hdOriginCilText(body.analysis_system_label || draft.analysis_system_label || "契約・保険・リース解析システム"),
+    analysis_system_reason: hdOriginCilText(body.analysis_system_reason || draft.analysis_system_reason || aiSummary.reason),
+    analysis_system_confidence: hdOriginCilText(body.analysis_system_confidence || draft.analysis_system_confidence || draft.ai_confidence || aiSummary.confidence_label),
+
+    ai_confidence: hdOriginCilText(body.ai_confidence || draft.ai_confidence || draft.confidence || aiSummary.confidence_label),
+    ai_confidence_label: hdOriginCilText(body.ai_confidence_label || draft.ai_confidence_label || draft.confidence_label || aiSummary.confidence_label),
+    ai_reason: hdOriginCilText(body.ai_reason || draft.ai_reason || draft.reason || aiSummary.reason),
+    review_reason: hdOriginCilText(body.review_reason || draft.review_reason || aiSummary.reason),
+    needs_review: !!(body.needs_review || draft.needs_review),
+
+    issuer_name: hdOriginCilText(hdOriginCilField(fields, "発行元")),
+    vendor_name: hdOriginCilText(hdOriginCilField(fields, "支払先") || draft.vendor_name),
+    insurance_company_name: hdOriginCilText(hdOriginCilField(fields, "保険会社") || hdOriginCilField(fields, "発行元")),
+    lease_company_name: hdOriginCilText(hdOriginCilField(fields, "リース会社") || hdOriginCilField(fields, "発行元")),
+    contract_partner_name: hdOriginCilText(hdOriginCilField(fields, "契約相手先") || hdOriginCilField(fields, "支払先")),
+    recipient_name: hdOriginCilText(hdOriginCilField(fields, "宛名")),
+    contractor_name: hdOriginCilText(hdOriginCilField(fields, "契約者")),
+    insured_name: hdOriginCilText(hdOriginCilField(fields, "被保険者")),
+    company_name: hdOriginCilText(hdOriginCilField(fields, "会社名")),
+    person_name: hdOriginCilText(hdOriginCilField(fields, "個人名")),
+    address: hdOriginCilText(hdOriginCilField(fields, "住所")),
+    phone: hdOriginCilText(hdOriginCilField(fields, "電話番号")),
+    email: hdOriginCilText(hdOriginCilField(fields, "メール")),
+
+    contract_no: hdOriginCilText(hdOriginCilField(fields, "契約番号")),
+    insurance_policy_no: hdOriginCilText(hdOriginCilField(fields, "証券番号", "保険証券番号")),
+    notice_no: hdOriginCilText(hdOriginCilField(fields, "通知書番号")),
+    management_no: hdOriginCilText(hdOriginCilField(fields, "管理番号")),
+    customer_no: hdOriginCilText(hdOriginCilField(fields, "お客様番号")),
+    member_no: hdOriginCilText(hdOriginCilField(fields, "会員番号")),
+    registration_no: hdOriginCilText(hdOriginCilField(fields, "登録番号")),
+    corporate_no: hdOriginCilText(hdOriginCilField(fields, "法人番号")),
+
+    document_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "書類日付")),
+    issue_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "発行日", "通知日")),
+    due_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "支払期限・納期限", "支払期限", "納期限")),
+    payment_plan_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "支払予定日", "支払日")),
+    withdrawal_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "引落日")),
+    contract_start_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "契約開始日")),
+    contract_end_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "契約終了日")),
+    service_period_start: hdOriginCilDateOrNull(hdOriginCilField(fields, "対象開始日", "保険期間開始日")),
+    service_period_end: hdOriginCilDateOrNull(hdOriginCilField(fields, "対象終了日", "保険期間終了日")),
+    renewal_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "更新日")),
+    cancellation_notice_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "解約通知期限")),
+    cancellation_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "解約日")),
+
+    payment_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "請求・支払金額", "支払金額", "保険料")),
+    monthly_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額金額", "月額リース料", "月額契約料")),
+    annual_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "年額金額", "年額契約料")),
+    total_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "合計金額", "リース総額")),
+    amount_ex_tax: hdOriginCilNumberOrNull(hdOriginCilField(fields, "税抜金額")),
+    tax_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "消費税額")),
+    amount_in_tax: hdOriginCilNumberOrNull(hdOriginCilField(fields, "税込金額")),
+    non_tax_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "非課税・不課税金額")),
+    fee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "手数料")),
+    late_fee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "延滞金")),
+    discount_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "割引・値引")),
+
+    payment_method_code: hdOriginCilText(hdOriginCilField(fields, "支払方法", "支払方法マスタ")),
+    payment_method_label: hdOriginCilText(hdOriginCilField(fields, "支払方法", "支払方法マスタ")),
+    payment_status_code: paymentStatus.code,
+    payment_status_label: paymentStatus.label,
+    payment_cycle_code: paymentCycle.code,
+    payment_cycle_label: paymentCycle.label,
+    payment_count: hdOriginCilNumberOrNull(hdOriginCilField(fields, "支払回数")),
+
+    transfer_bank_name: hdOriginCilText(hdOriginCilField(fields, "振込先銀行")),
+    debit_bank_name: hdOriginCilText(hdOriginCilField(fields, "引落銀行")),
+    bank_account_no: hdOriginCilText(hdOriginCilField(fields, "口座番号")),
+    bank_account_name: hdOriginCilText(hdOriginCilField(fields, "口座名義")),
+
+    accounting_category_code: hdOriginCilText(body.accounting_category_code || draft.accounting_category_code || hdOriginCilField(fields, "会計区分")),
+    accounting_category_label: hdOriginCilText(body.accounting_category_label || draft.accounting_category_label || hdOriginCilField(fields, "会計区分")),
+    payable_kind_code: hdOriginCilText(body.payable_kind_code || draft.payable_kind_code || hdOriginCilField(fields, "未払種別")),
+    payable_kind_label: hdOriginCilText(body.payable_kind_label || draft.payable_kind_label || hdOriginCilField(fields, "未払種別")),
+    account_title_code: hdOriginCilText(hdOriginCilField(fields, "勘定科目")),
+    account_title_label: hdOriginCilText(hdOriginCilField(fields, "勘定科目")),
+    tax_category_code: hdOriginCilText(hdOriginCilField(fields, "税区分")),
+    tax_category_label: hdOriginCilText(hdOriginCilField(fields, "税区分")),
+    invoice_type_code: hdOriginCilText(hdOriginCilField(fields, "インボイス区分")),
+    invoice_type_label: hdOriginCilText(hdOriginCilField(fields, "インボイス区分")),
+
+    target_person_label: hdOriginCilText(hdOriginCilField(fields, "対象者")),
+    purpose_label: hdOriginCilText(hdOriginCilField(fields, "目的")),
+    project_label: hdOriginCilText(hdOriginCilField(fields, "案件")),
+    department_label: hdOriginCilText(hdOriginCilField(fields, "部門")),
+
+    payable_registration_code: payableRegistration.code,
+    payable_registration_label: payableRegistration.label,
+    accounts_payable_registration_code: accountsPayableRegistration.code,
+    accounts_payable_registration_label: accountsPayableRegistration.label,
+    company_burden_code: companyBurden.code,
+    company_burden_label: companyBurden.label,
+    mixed_personal_flag_code: personalMix.code,
+    mixed_personal_flag_label: personalMix.label,
+
+    summary: hdOriginCilText(hdOriginCilField(fields, "摘要") || draft.summary),
+    memo: hdOriginCilText(body.memo || draft.memo || "契約・保険・リース専門画面から保存"),
+    internal_memo: hdOriginCilText(body.internal_memo || ""),
+    review_memo: hdOriginCilText(hdOriginCilField(fields, "要確認メモ")),
+
+    insurance_type_code: insuranceType.code,
+    insurance_type_label: insuranceType.label,
+    insurance_target: hdOriginCilText(hdOriginCilField(fields, "保険対象")),
+    insurance_period_start: hdOriginCilDateOrNull(hdOriginCilField(fields, "保険期間開始日", "対象開始日")),
+    insurance_period_end: hdOriginCilDateOrNull(hdOriginCilField(fields, "保険期間終了日", "対象終了日")),
+    insurance_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "保険料")),
+
+    lease_item_name: hdOriginCilText(hdOriginCilField(fields, "リース物件")),
+    lease_item_category_code: leaseItemCategory.code,
+    lease_item_category_label: leaseItemCategory.label,
+    monthly_lease_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額リース料", "月額金額")),
+    lease_total_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "リース総額", "合計金額")),
+    ownership_transfer_code: ownershipTransfer.code,
+    ownership_transfer_label: ownershipTransfer.label,
+    early_cancellation_code: earlyCancellation.code,
+    early_cancellation_label: earlyCancellation.label,
+    residual_value_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価")),
+    lease_start_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース開始日")),
+    lease_end_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース終了日")),
+    lease_period_months: hdOriginCilNumberOrNull(hdOriginCilField(fields, "リース期間")),
+    lease_item_location: hdOriginCilText(hdOriginCilField(fields, "物件所在地")),
+    residual_value_guarantee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価保証額")),
+    renewal_terms: hdOriginCilText(hdOriginCilField(fields, "更新条件")),
+    cancellation_terms: hdOriginCilText(hdOriginCilField(fields, "解約条件")),
+
+    contract_type_code: contractType.code,
+    contract_type_label: contractType.label,
+    contract_name: hdOriginCilText(hdOriginCilField(fields, "契約名", "書類名")),
+    auto_renewal_code: autoRenewal.code,
+    auto_renewal_label: autoRenewal.label,
+    contract_status_code: contractStatus.code,
+    contract_status_label: contractStatus.label,
+    monthly_contract_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額契約料", "月額金額")),
+    annual_contract_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "年額契約料", "年額金額")),
+
+    specialist_fields_json: fields,
+    ai_summary_json: aiSummary,
+    ai_raw_json: root,
+    visible_fields_json: hdOriginCilJson(body.visibleFields || body.visible_fields || fields, {}),
+    human_corrections_json: hdOriginCilJson(body.humanCorrections || body.human_corrections || {}, {}),
+    warnings_json: warnings,
+
+    created_by_page: "payment-document-specialist-contract-insurance-lease.html",
+    created_by: "system",
+    updated_by: "system"
+  };
 }
 
 async function hdOriginSaveUtilityCommunicationDraft(body) {
@@ -7340,6 +7818,337 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
     client.release();
   }
 }
+async function hdOriginSaveContractInsuranceLeaseDraft(body) {
+  const ocrImportId = Number(
+    body.paymentDocumentOcrImportId ||
+      body.payment_document_ocr_import_id ||
+      body.ocrImportId ||
+      body.id
+  );
+
+  if (!Number.isInteger(ocrImportId) || ocrImportId < 1) {
+    const err = new Error("不正なOCR取込IDです。");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const ocrResult = await client.query(`
+      SELECT
+        payment_document_ocr_import_id,
+        original_file_name,
+        saved_file_name,
+        saved_relative_path,
+        sha256,
+        ocr_text_length,
+        latest_specialist_analysis_id
+      FROM accounting.payment_document_ocr_imports
+      WHERE payment_document_ocr_import_id = $1
+        AND deleted_at IS NULL
+      LIMIT 1
+    `, [ocrImportId]);
+
+    if (!ocrResult.rows.length) {
+      const err = new Error("OCR取込データが見つかりません。");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const ocrRow = ocrResult.rows[0];
+
+    const latestSpecialistAnalysisId = hdOriginCilNumberOrNull(
+      body.specialistAnalysisId ||
+        body.specialist_analysis_id ||
+        body.latestSpecialistAnalysisId ||
+        body.latest_specialist_analysis_id ||
+        ocrRow.latest_specialist_analysis_id
+    );
+
+    const record = hdOriginCilBuildRecord(body, ocrRow, latestSpecialistAnalysisId);
+
+    record.specialist_analysis_id =
+      hdOriginCilNumberOrNull(
+        body.specialistAnalysisId ||
+        body.specialist_analysis_id ||
+        body.latestSpecialistAnalysisId
+      );
+
+    await client.query(`
+      DELETE FROM accounting.payment_document_contract_insurance_lease_results
+      WHERE payment_document_ocr_import_id = $1
+    `, [ocrImportId]);
+
+    const colResult = await client.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'accounting'
+        AND table_name = 'payment_document_contract_insurance_lease_results'
+    `);
+
+    const existingCols = new Set(colResult.rows.map(row => row.column_name));
+
+    const columns = Object.keys(record)
+      .filter(key => existingCols.has(key))
+      .filter(key => record[key] !== undefined);
+
+    /* HD_ORIGIN_CIL_JSONB_STRINGIFY_FIX_20260708_START */
+    const jsonbColumns = new Set([
+      "specialist_fields_json",
+      "ai_summary_json",
+      "ai_raw_json",
+      "visible_fields_json",
+      "human_corrections_json",
+      "warnings_json"
+    ]);
+
+    const values = columns.map(key => {
+      const value = record[key];
+
+      if (!jsonbColumns.has(key)) {
+        return value;
+      }
+
+      if (value === null || value === undefined || value === "") {
+        return JSON.stringify(key === "warnings_json" ? [] : {});
+      }
+
+      if (typeof value === "string") {
+        try {
+          JSON.parse(value);
+          return value;
+        } catch {
+          return JSON.stringify(value);
+        }
+      }
+
+      return JSON.stringify(value);
+    });
+    /* HD_ORIGIN_CIL_JSONB_STRINGIFY_FIX_20260708_END */
+
+    const placeholders = columns.map((_, index) => "$" + (index + 1));
+
+    const insertResult = await client.query(`
+      INSERT INTO accounting.payment_document_contract_insurance_lease_results (
+        ${columns.map(col => '"' + col.replace(/"/g, '""') + '"').join(", ")}
+      )
+      VALUES (${placeholders.join(", ")})
+      RETURNING
+        contract_insurance_lease_result_id,
+        payment_document_ocr_import_id,
+        result_no,
+        is_current,
+        result_status,
+        created_at
+    `, values);
+
+    
+    /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_LINES_SAVE_20260722_START */
+    const leaseItemLineCandidates = [
+      body.lease_item_lines,
+      body.leaseItemLines,
+      body.specialist && body.specialist.lease_item_lines,
+      body.rawResult && body.rawResult.lease_item_lines,
+      body.rawResult &&
+        body.rawResult.specialist &&
+        body.rawResult.specialist.lease_item_lines,
+      body.raw_result &&
+        body.raw_result.specialist &&
+        body.raw_result.specialist.lease_item_lines
+    ];
+
+    const leaseItemLines =
+      leaseItemLineCandidates.find(Array.isArray) || [];
+
+    if (leaseItemLines.length > 0) {
+      const parentResult = await client.query(`
+        SELECT contract_insurance_lease_result_id
+        FROM accounting.payment_document_contract_insurance_lease_results
+        WHERE payment_document_ocr_import_id = $1
+          AND is_current = TRUE
+        ORDER BY contract_insurance_lease_result_id DESC
+        LIMIT 1
+      `, [ocrImportId]);
+
+      if (!parentResult.rows.length) {
+        throw new Error(
+          "保存直後の契約・保険・リース親下書きを取得できません。"
+        );
+      }
+
+      const parentDraftId =
+        parentResult.rows[0].contract_insurance_lease_result_id;
+
+      const categoryResult = await client.query(`
+        SELECT
+          lease_item_category_id,
+          lease_item_category_code,
+          lease_item_category_name
+        FROM expenses.lease_item_categories
+        WHERE is_active = TRUE
+        ORDER BY sort_order, lease_item_category_id
+      `);
+
+      const categoryRows = categoryResult.rows;
+      const categoryByCode = new Map(
+        categoryRows.map(row => [
+          String(row.lease_item_category_code || "").trim(),
+          row
+        ])
+      );
+
+      const needsReviewCategory =
+        categoryByCode.get("needs_review");
+
+      if (!needsReviewCategory) {
+        throw new Error(
+          "リース物件区分マスタのneeds_reviewがありません。"
+        );
+      }
+
+      for (
+        let index = 0;
+        index < leaseItemLines.length;
+        index++
+      ) {
+        const line = hdOriginAiOnlyObject(
+          leaseItemLines[index]
+        );
+
+        const itemName = hdOriginCilText(
+          line.item_name ||
+          line["物件名"] ||
+          line["リース物件"]
+        );
+
+        if (!itemName) {
+          continue;
+        }
+
+        const requestedCode = hdOriginCilText(
+          line.lease_item_category_code
+        );
+
+        const requestedName = hdOriginCilText(
+          line.lease_item_category_name
+        );
+
+        let category =
+          categoryByCode.get(requestedCode) || null;
+
+        if (!category && requestedName) {
+          category =
+            categoryRows.find(row =>
+              String(
+                row.lease_item_category_name || ""
+              ).trim() === requestedName
+            ) || null;
+        }
+
+        if (!category) {
+          category = needsReviewCategory;
+        }
+
+        await client.query(`
+          INSERT INTO
+            accounting.payment_document_contract_insurance_lease_item_lines
+          (
+            contract_insurance_lease_result_id,
+            lease_item_category_id,
+            lease_item_category_code,
+            lease_item_category_name,
+            item_name,
+            manufacturer_name,
+            model_number,
+            serial_number,
+            quantity,
+            unit_name,
+            lease_start_date,
+            lease_end_date,
+            lease_period_months,
+            item_location,
+            monthly_lease_amount,
+            lease_total_amount,
+            residual_value_amount,
+            residual_value_guarantee_amount,
+            ai_confidence,
+            sort_order
+          )
+          VALUES
+          (
+            $1, $2, $3, $4, $5,
+            $6, $7, $8, $9, $10,
+            $11, $12, $13, $14, $15,
+            $16, $17, $18, $19, $20
+          )
+        `, [
+          parentDraftId,
+          category.lease_item_category_id,
+          category.lease_item_category_code,
+          category.lease_item_category_name,
+          itemName,
+          hdOriginCilText(line.manufacturer_name),
+          hdOriginCilText(line.model_number),
+          hdOriginCilText(line.serial_number),
+          hdOriginCilNumberOrNull(line.quantity),
+          hdOriginCilText(line.unit_name),
+          hdOriginCilDateOrNull(line.lease_start_date),
+          hdOriginCilDateOrNull(line.lease_end_date),
+          hdOriginCilNumberOrNull(
+            line.lease_period_months
+          ),
+          hdOriginCilText(line.item_location),
+          hdOriginCilNumberOrNull(
+            line.monthly_lease_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.lease_total_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.residual_value_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.residual_value_guarantee_amount
+          ),
+          hdOriginCilNumberOrNull(
+            line.ai_confidence
+          ),
+          index + 1
+        ]);
+      }
+    }
+    /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_LINES_SAVE_20260722_END */
+
+await client.query("COMMIT");
+
+    const row = insertResult.rows[0];
+
+    return {
+      ok: true,
+      contractInsuranceLeaseDraftId: row.contract_insurance_lease_result_id,
+      paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+      contractInsuranceLeaseResultId: row.contract_insurance_lease_result_id,
+      resultNo: row.result_no,
+      isCurrent: row.is_current,
+      resultStatus: row.result_status,
+      createdAt: row.created_at
+    };
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // 元エラーを優先
+    }
+
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+/* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_START */
 function hdOriginBusinessFlowPromptCommonDir() {
   return path.join(__dirname, "prompts", "common");
@@ -9417,33 +10226,56 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.saved_at,
           o.saved_by_page,
           o.current_status,
+          o.latest_specialist_analysis_id,
           o.sorted_at,
           o.created_at,
           o.updated_at,
 
-          b.basic_analysis_id,
-          b.company_id AS basic_company_id,
-          b.ai_confidence AS basic_ai_confidence,
-          b.ai_reason AS basic_ai_reason,
-          b.needs_review AS basic_needs_review,
-          b.warnings_json AS basic_warnings_json,
-          b.raw_result_json AS basic_raw_result_json,
-          b.analysis_completed AS basic_analysis_completed,
-          b.completed_at AS basic_completed_at,
-          b.created_at AS basic_created_at,
-          b.updated_at AS basic_updated_at
+          s.specialist_analysis_id,
+          s.analysis_system_code,
+          s.analysis_system_label,
+          s.ai_confidence,
+          s.ai_reason,
+          CASE
+        WHEN LOWER(
+          COALESCE(
+            s.raw_result_json->>'needs_review',
+            'false'
+          )
+        ) = 'true'
+          THEN TRUE
+        ELSE FALSE
+      END AS needs_review,
+          s.warnings_json,
+          s.raw_result_json,
+          COALESCE(
+        s.raw_result_json->'draft',
+        '{}'::jsonb
+      ) AS draft_json,
+          COALESCE(
+        s.raw_result_json->'visible_fields',
+        s.raw_result_json->'visibleFields',
+        '{}'::jsonb
+      ) AS visible_fields_json,
+          COALESCE(
+        s.raw_result_json->'visible_field_labels',
+        s.raw_result_json->'visibleFieldLabels',
+        '{}'::jsonb
+      ) AS visible_field_labels_json,
+          s.human_confirm_status,
+          s.human_memo,
+          s.created_at AS specialist_created_at,
+          s.updated_at AS specialist_updated_at
 
-        FROM
-          accounting.payment_document_ocr_imports o
+        FROM accounting.payment_document_ocr_imports o
 
         LEFT JOIN
-          accounting.payment_document_basic_analysis_results b
-          ON b.payment_document_ocr_import_id =
-             o.payment_document_ocr_import_id
-         AND b.is_current = TRUE
+          accounting.payment_document_specialist_analysis_results s
+          ON s.specialist_analysis_id =
+             o.latest_specialist_analysis_id
+         AND s.is_current = TRUE
 
-        WHERE
-          o.deleted_at IS NULL
+        WHERE o.deleted_at IS NULL
           AND COALESCE(o.ocr_raw_text, '') <> ''
 
         ORDER BY
@@ -9455,189 +10287,63 @@ async function handlePaymentDocumentRoutes(req, res) {
         LIMIT 500
       `);
 
-      const objectOrEmpty = value =>
-        value &&
-        typeof value === "object" &&
-        !Array.isArray(value)
-          ? value
-          : {};
-
-      const arrayOrEmpty = value =>
-        Array.isArray(value)
-          ? value
-          : [];
-
       const items = result.rows.map(row => {
-        const basicRawResult =
-          objectOrEmpty(
-            row.basic_raw_result_json
-          );
+        const rawResult =
+          row.raw_result_json &&
+          typeof row.raw_result_json === "object" &&
+          !Array.isArray(row.raw_result_json)
+            ? row.raw_result_json
+            : {};
 
-        const basicDraft =
-          objectOrEmpty(
-            basicRawResult.draft
-          );
-
-        const effectiveDraft =
-          Object.keys(basicDraft).length
-            ? basicDraft
-            : objectOrEmpty(
-                basicRawResult.aiDraft ||
-                basicRawResult.ai_draft ||
-                basicRawResult.sortResult ||
-                basicRawResult.sort_result ||
-                basicRawResult
-              );
-
-        const sortResult =
-          objectOrEmpty(
-            basicRawResult.sortResult ||
-            basicRawResult.sort_result ||
-            effectiveDraft.sortResult ||
-            effectiveDraft.sort_result ||
-            effectiveDraft
-          );
+        const specialistDraft =
+          row.draft_json &&
+          typeof row.draft_json === "object" &&
+          !Array.isArray(row.draft_json)
+            ? row.draft_json
+            : {};
 
         const visibleFields =
-          objectOrEmpty(
-            basicRawResult.visibleFields ||
-            basicRawResult.visible_fields ||
-            effectiveDraft.visibleFields ||
-            effectiveDraft.visible_fields
-          );
+          row.visible_fields_json &&
+          typeof row.visible_fields_json === "object"
+            ? row.visible_fields_json
+            : {};
 
         const visibleFieldLabels =
-          arrayOrEmpty(
-            basicRawResult.visibleFieldLabels ||
-            basicRawResult.visible_field_labels ||
-            effectiveDraft.visibleFieldLabels ||
-            effectiveDraft.visible_field_labels
-          );
+          Array.isArray(row.visible_field_labels_json)
+            ? row.visible_field_labels_json
+            : [];
 
-        const aiSummary =
-          objectOrEmpty(
-            basicRawResult.aiSummary ||
-            basicRawResult.ai_summary ||
-            effectiveDraft.aiSummary ||
-            effectiveDraft.ai_summary
-          );
-
-        const latestBasicAnalysis =
-          row.basic_analysis_id
-            ? {
-                basicAnalysisId:
-                  row.basic_analysis_id,
-
-                basic_analysis_id:
-                  row.basic_analysis_id,
-
-                paymentDocumentOcrImportId:
-                  row.payment_document_ocr_import_id,
-
-                payment_document_ocr_import_id:
-                  row.payment_document_ocr_import_id,
-
-                companyId:
-                  row.basic_company_id,
-
-                company_id:
-                  row.basic_company_id,
-
-                aiConfidence:
-                  row.basic_ai_confidence,
-
-                ai_confidence:
-                  row.basic_ai_confidence,
-
-                aiReason:
-                  row.basic_ai_reason,
-
-                ai_reason:
-                  row.basic_ai_reason,
-
-                needsReview:
-                  !!row.basic_needs_review,
-
-                needs_review:
-                  !!row.basic_needs_review,
-
-                warnings:
-                  row.basic_warnings_json || [],
-
-                warnings_json:
-                  row.basic_warnings_json || [],
-
-                rawResult:
-                  basicRawResult,
-
-                raw_result:
-                  basicRawResult,
-
-                draft:
-                  effectiveDraft,
-
-                sortResult:
-                  sortResult,
-
-                sort_result:
-                  sortResult,
-
-                visibleFields:
-                  visibleFields,
-
-                visible_fields:
-                  visibleFields,
-
-                visibleFieldLabels:
-                  visibleFieldLabels,
-
-                visible_field_labels:
-                  visibleFieldLabels,
-
-                aiSummary:
-                  aiSummary,
-
-                ai_summary:
-                  aiSummary,
-
-                analysisCompleted:
-                  row.basic_analysis_completed === true,
-
-                analysis_completed:
-                  row.basic_analysis_completed === true,
-
-                completedAt:
-                  row.basic_completed_at,
-
-                completed_at:
-                  row.basic_completed_at,
-
-                createdAt:
-                  row.basic_created_at,
-
-                created_at:
-                  row.basic_created_at,
-
-                updatedAt:
-                  row.basic_updated_at,
-
-                updated_at:
-                  row.basic_updated_at
-              }
-            : null;
-
-        const analysisSystemCode =
-          String(
-            effectiveDraft.analysis_system_code ||
-            effectiveDraft.analysisSystemCode ||
-            sortResult.analysis_system_code ||
-            sortResult.analysisSystemCode ||
-            ""
-          ).trim();
+        const specialistResult = row.specialist_analysis_id
+          ? {
+              ...rawResult,
+              ok: true,
+              source: "db_current_specialist_analysis",
+              paymentDocumentOcrImportId:
+                row.payment_document_ocr_import_id,
+              specialistAnalysisId:
+                row.specialist_analysis_id,
+              analysisSystemCode:
+                row.analysis_system_code,
+              analysisSystemLabel:
+                row.analysis_system_label,
+              aiConfidence:
+                row.ai_confidence,
+              aiReason:
+                row.ai_reason,
+              needsReview:
+                !!row.needs_review,
+              warnings:
+                row.warnings_json || [],
+              draft:
+                specialistDraft,
+              visibleFields,
+              visible_field_labels:
+                visibleFieldLabels
+            }
+          : null;
 
         return {
-          source:
-            "database-review-items-basic-analysis",
+          source: "database-review-items",
 
           paymentDocumentOcrImportId:
             row.payment_document_ocr_import_id,
@@ -9645,9 +10351,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           imageUrl:
             "/api/payment-documents/ocr-imports/file/" +
             encodeURIComponent(
-              String(
-                row.payment_document_ocr_import_id
-              )
+              String(row.payment_document_ocr_import_id)
             ),
 
           fileName:
@@ -9710,9 +10414,7 @@ async function handlePaymentDocumentRoutes(req, res) {
             row.ocr_raw_text,
 
           ocrTextPreview:
-            String(
-              row.ocr_raw_text || ""
-            ).slice(0, 240),
+            String(row.ocr_raw_text || "").slice(0, 240),
 
           ocrTextLength:
             row.ocr_text_length,
@@ -9753,32 +10455,49 @@ async function handlePaymentDocumentRoutes(req, res) {
           sortedAt:
             row.sorted_at,
 
-          latestBasicAnalysisId:
-            row.basic_analysis_id,
+          latestSpecialistAnalysisId:
+            row.latest_specialist_analysis_id,
 
-          latestBasicAnalysis,
+          specialistAnalysisId:
+            row.specialist_analysis_id,
 
-          analysisSystemCode,
+          analysisSystemCode:
+            row.analysis_system_code,
+
+          analysisSystemLabel:
+            row.analysis_system_label,
+
+          specialistAnalysisStatus:
+            row.specialist_analysis_id
+              ? row.human_confirm_status || "専門解析"
+              : "未解析",
+
+          specialistAnalyzedAt:
+            row.specialist_updated_at ||
+            row.specialist_created_at ||
+            null,
+
+          __specialistAnalyzed:
+            !!row.specialist_analysis_id,
+
+          __cilSpecialistResult:
+            specialistResult,
 
           __aiDraft:
-            latestBasicAnalysis
-              ? effectiveDraft
+            row.specialist_analysis_id
+              ? specialistDraft
               : null,
 
           __visibleFieldLabels:
-            latestBasicAnalysis
+            row.specialist_analysis_id
               ? visibleFieldLabels
               : [],
 
           __documentGroup:
-            latestBasicAnalysis
-              ? analysisSystemCode
-              : "",
+            row.analysis_system_code || "",
 
           __aiRawResult:
-            latestBasicAnalysis
-              ? basicRawResult
-              : null,
+            specialistResult,
 
           createdAt:
             row.created_at,
@@ -9790,18 +10509,14 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       sendJson(res, 200, {
         ok: true,
-        source:
-          "database-review-items-basic-analysis",
+        source: "database-review-items",
         items
       });
     } catch (err) {
       sendJson(res, 500, {
         ok: false,
-        source:
-          "database-review-items-basic-analysis",
-        error:
-          err.message ||
-          String(err)
+        source: "database-review-items",
+        error: err.message || String(err)
       });
     }
 
@@ -9913,7 +10628,6 @@ async function handlePaymentDocumentRoutes(req, res) {
       const ocrResult = await client.query(`
         SELECT
           payment_document_ocr_import_id,
-          latest_basic_analysis_id,
           latest_specialist_analysis_id,
           original_file_name,
           saved_file_name,
@@ -9939,43 +10653,6 @@ async function handlePaymentDocumentRoutes(req, res) {
       ocrImportId = Number(
         ocrImportRow.payment_document_ocr_import_id
       );
-
-      /* HD_ORIGIN_SPECIALIST_BASIC_LINK_20260726 */
-      const requestedBasicAnalysisId =
-        hdOriginSpecialistSaveNumber(
-          root.basicAnalysisId ||
-          root.basic_analysis_id ||
-          ocrImportRow.latest_basic_analysis_id
-        ) || null;
-
-      const basicResult = await client.query(`
-        SELECT basic_analysis_id
-        FROM accounting.payment_document_basic_analysis_results
-        WHERE payment_document_ocr_import_id = $1
-          AND is_current = TRUE
-          AND (
-            $2::bigint IS NULL
-            OR basic_analysis_id = $2::bigint
-          )
-        ORDER BY basic_analysis_id DESC
-        LIMIT 1
-      `, [
-        ocrImportId,
-        requestedBasicAnalysisId
-      ]);
-
-      const basicAnalysisRow = basicResult.rows[0] || null;
-
-      if (!basicAnalysisRow) {
-        const err = new Error(
-          "正式な基礎解析結果を確認できません。"
-        );
-        err.statusCode = 400;
-        throw err;
-      }
-
-      const basicAnalysisId =
-        Number(basicAnalysisRow.basic_analysis_id);
 
       const analysisSystemCode = hdOriginSpecialistFirstText(
         root.analysisSystemCode,
@@ -10052,20 +10729,14 @@ async function handlePaymentDocumentRoutes(req, res) {
       ) || "\u672A\u78BA\u8A8D";
 
       await client.query(`
-        UPDATE accounting.payment_document_specialist_analysis_results
-        SET
-          is_current = FALSE,
-          updated_at = now()
+        DELETE FROM accounting.payment_document_specialist_analysis_results
         WHERE payment_document_ocr_import_id = $1
           AND analysis_system_code = $2
-          AND is_current = TRUE
       `, [ocrImportId, analysisSystemCode]);
 
       const inserted = await client.query(`
         INSERT INTO accounting.payment_document_specialist_analysis_results (
-          payment_document_ocr_import_id,
-          basic_analysis_id,
-analysis_system_code,
+          payment_document_ocr_import_id,analysis_system_code,
           analysis_system_label,
           specialist_analysis_status,
           ai_confidence,
@@ -10078,21 +10749,17 @@ analysis_system_code,
           created_at,
           updated_at
         ) VALUES (
-          $1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,TRUE,now(),now()
+          $1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,TRUE,now(),now()
         )
         RETURNING
           specialist_analysis_id,
-          payment_document_ocr_import_id,
-          basic_analysis_id,
-analysis_system_code,
+          payment_document_ocr_import_id,analysis_system_code,
           analysis_system_label,
           specialist_analysis_status,
           created_at,
           updated_at
       `, [
-        ocrImportId,
-        basicAnalysisId,
-        analysisSystemCode,
+        ocrImportId,        analysisSystemCode,
         analysisSystemLabel,
         specialistStatus,
         aiConfidence,
@@ -10107,14 +10774,12 @@ analysis_system_code,
       await client.query(`
         UPDATE accounting.payment_document_ocr_imports
         SET
-          latest_basic_analysis_id = $1,
-          latest_specialist_analysis_id = $2,
+          latest_specialist_analysis_id = $1,
           current_status = '専門解析',
           updated_at = now()
-        WHERE payment_document_ocr_import_id = $3
+        WHERE payment_document_ocr_import_id = $2
           AND deleted_at IS NULL
       `, [
-        basicAnalysisId,
         saved.specialist_analysis_id,
         ocrImportId
       ]);
@@ -10123,7 +10788,6 @@ await client.query("COMMIT");
       return {
         saved,
         paymentDocumentOcrImportId: ocrImportId,
-        basicAnalysisId,
         specialistAnalysisId: saved.specialist_analysis_id,
         analysisSystemCode,
         analysisSystemLabel,
@@ -10142,7 +10806,88 @@ await client.query("COMMIT");
     }
   }
 
-    if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/specialist-analysis-results/save") {
+  /* HD_ORIGIN_GPT2_CIL_COMBINED_SAVE_ROUTE_20260710_START */
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/contract-insurance-lease-drafts/save"
+  ) {
+    try {
+      const body = await readBody(req);
+
+      const specialistSaved =
+        await hdOriginSavePaymentDocumentSpecialistAnalysisResult(body);
+
+      const cilSaved =
+        await hdOriginSaveContractInsuranceLeaseDraft({
+          ...body,
+
+          paymentDocumentOcrImportId:
+            specialistSaved.paymentDocumentOcrImportId,
+
+          payment_document_ocr_import_id:
+            specialistSaved.paymentDocumentOcrImportId,
+specialistAnalysisId:
+            specialistSaved.specialistAnalysisId,
+
+          specialist_analysis_id:
+            specialistSaved.specialistAnalysisId,
+
+          latestSpecialistAnalysisId:
+            specialistSaved.specialistAnalysisId
+        });
+
+      sendJson(res, 200, {
+        ok: true,
+        message:
+          "専門解析結果と契約・保険・リース専門下書きを保存しました。",
+
+        paymentDocumentOcrImportId:
+          specialistSaved.paymentDocumentOcrImportId,
+        specialistAnalysisId:
+          specialistSaved.specialistAnalysisId,
+
+        specialist_analysis_id:
+          specialistSaved.specialistAnalysisId,
+
+        latestSpecialistAnalysisId:
+          specialistSaved.specialistAnalysisId,
+
+        contractInsuranceLeaseDraftId:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        paymentDocumentContractInsuranceLeaseDraftId:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        contract_insurance_lease_result_id:
+          cilSaved.contractInsuranceLeaseDraftId,
+
+        analysisSystemCode:
+          specialistSaved.analysisSystemCode,
+
+        analysisSystemLabel:
+          specialistSaved.analysisSystemLabel,
+
+        specialistAnalysisStatus:
+          specialistSaved.specialistAnalysisStatus,
+
+        specialistAnalysis:
+          specialistSaved.saved,
+
+        contractInsuranceLeaseDraft:
+          cilSaved
+      });
+    } catch (err) {
+      sendJson(res, err.statusCode || 500, {
+        ok: false,
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_GPT2_CIL_COMBINED_SAVE_ROUTE_20260710_END */
+  if (req.method === "POST" && String(req.url || "").split("?")[0] === "/api/payment-documents/specialist-analysis-results/save") {
     try {
       const body = await readBody(req);
       const saved = await hdOriginSavePaymentDocumentSpecialistAnalysisResult(body);
@@ -10954,6 +11699,7 @@ await client.query("COMMIT");
             specialistMoved.rowCount;
         }
 
+        let sortingDraftCount = 0;
 
         await client.query("COMMIT");
 
@@ -10972,6 +11718,8 @@ await client.query("COMMIT");
           movedSpecialistResultCount:
             specialistResultCount,
 
+          movedSortingDraftCount:
+            sortingDraftCount
         });
 
         return true;
@@ -12277,3 +13025,8 @@ HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
 禁止:
 機械の誤り対策として、人間確認を通常業務へ戻すこと。
 */
+
+
+
+
+

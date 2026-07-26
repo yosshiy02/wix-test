@@ -992,25 +992,25 @@ function receiptSummaryMasterName(row) {
   ).trim();
 }
 
-function receiptSummaryOptionsHtml(specialistResult) {
+function receiptSummaryOptionsHtml(draft) {
   const raw =
-    specialistResult &&
-    specialistResult.ai_raw_json &&
-    typeof specialistResult.ai_raw_json === "object"
-      ? specialistResult.ai_raw_json
+    draft &&
+    draft.ai_raw_json &&
+    typeof draft.ai_raw_json === "object"
+      ? draft.ai_raw_json
       : {};
 
   const currentId =
-    specialistResult.receipt_summary_id ??
-    specialistResult.receiptSummaryId ??
+    draft.receipt_summary_id ??
+    draft.receiptSummaryId ??
     raw.receiptSummaryId ??
     raw.receipt_summary_id ??
     null;
 
   const currentName = String(
-    specialistResult.summary ??
-    specialistResult.receipt_summary_name ??
-    specialistResult.receiptSummaryName ??
+    draft.summary ??
+    draft.receipt_summary_name ??
+    draft.receiptSummaryName ??
     raw.receiptSummaryName ??
     raw.receipt_summary_name ??
     ""
@@ -1096,8 +1096,8 @@ function getReceiptSummarySelectedId() {
 }
 /* RECEIPT_SUMMARY_MASTER_SELECT_20260723_END */
 
-function renderForm(item, specialistResults) {
-      currentSpecialistResult = specialistResults[0] || null;
+function renderForm(item, drafts) {
+      currentSpecialistResult = drafts[0] || null;
 
       if (!currentSpecialistResult) {
         currentLineItems = [];
@@ -1710,7 +1710,7 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         data.result ||
         data;
 
-      const specialistResult =
+      const draft =
         data.draft ||
         data.aiDraft ||
         data.ai_draft ||
@@ -1727,16 +1727,16 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         aiResult;
 
       if (
-        !specialistResult ||
-        typeof specialistResult !== "object" ||
-        Array.isArray(specialistResult)
+        !draft ||
+        typeof draft !== "object" ||
+        Array.isArray(draft)
       ) {
         alert("専門解析AI結果を取得できませんでした。");
         await loadDetail(ocrId);
         return;
       }
 
-      renderForm(item, [specialistResult]);
+      renderForm(item, [draft]);
     }
     /* RECEIPT_BULK_AI_SAVE_SCRIPT_20260702_START */
 
@@ -1761,6 +1761,12 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       });
     }
 
+    function draftDateForBulk(draft) {
+      const raw = draft.ai_raw_json || {};
+      if (raw.transactionDate) return raw.transactionDate;
+      if (draft.transaction_date) return String(draft.transaction_date).slice(0, 10);
+      return null;
+    }
 
 
 
@@ -2058,6 +2064,28 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     return "";
   }
 
+  function receiptDiningFindOcrTextForTime(draft) {
+    var raw = draft && draft.ai_raw_json ? draft.ai_raw_json : {};
+    var sources = [
+      draft && draft.ocr_raw_text,
+      draft && draft.ocrRawText,
+      raw && raw.ocr_raw_text,
+      raw && raw.ocrRawText,
+      raw && raw.rawText,
+      raw && raw.ocrText,
+      window.currentItem && window.currentItem.ocr_raw_text,
+      window.currentItem && window.currentItem.ocrRawText,
+      window.currentReceipt && window.currentReceipt.ocr_raw_text,
+      window.currentReceipt && window.currentReceipt.ocrRawText
+    ];
+
+    for (var i = 0; i < sources.length; i++) {
+      var text = String(sources[i] || "");
+      if (text.trim()) return text;
+    }
+
+    return "";
+  }
   function receiptDiningNormalizeTime(value) {
     var s = String(value === null || value === undefined ? "" : value).trim();
 
@@ -2158,8 +2186,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
 
   var oldRenderForm = window.renderForm;
   if (typeof oldRenderForm === "function" && !oldRenderForm.__receiptDiningWrapped) {
-    var wrapped = function (item, specialistResults) {
-      oldRenderForm(item, specialistResults);
+    var wrapped = function (item, drafts) {
+      oldRenderForm(item, drafts);
       setTimeout(receiptDiningApplyUi, 0);
     };
     wrapped.__receiptDiningWrapped = true;

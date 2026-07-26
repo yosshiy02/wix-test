@@ -7133,6 +7133,271 @@ function hdOriginCilCodeLabel(value, fallbackLabel) {
   return { code: "", label: text };
 }
 
+function hdOriginCilBuildRecord(body, ocrRow, latestSpecialistAnalysisId) {
+  const root = hdOriginCilFirstObject(
+    body.sortResult,
+    body.sort_result,
+    body.sorting,
+    body.classification,
+    body.draft,
+    body.aiDraft,
+    body
+  );
+
+  const draft = hdOriginCilFirstObject(
+    body.draft,
+    body.aiDraft,
+    body.sorting,
+    body.classification,
+    root.draft,
+    root.sorting,
+    root.classification,
+    root
+  );
+
+  const aiSummary = hdOriginCilFirstObject(
+    body.ai_summary,
+    body.aiSummary,
+    draft.ai_summary,
+    draft.aiSummary,
+    root.ai_summary,
+    root.aiSummary
+  );
+
+  const fields = hdOriginCilFirstObject(
+    body.specialistFields,
+    body.specialist_fields,
+    body.fields,
+    body.visibleFields,
+    body.visible_fields,
+    draft.fields,
+    root.fields
+  );
+
+  const warnings = Array.isArray(body.warnings)
+    ? body.warnings
+    : Array.isArray(draft.warnings)
+      ? draft.warnings
+      : Array.isArray(root.warnings)
+        ? root.warnings
+        : [];
+
+  const now = new Date();
+  const z = n => String(n).padStart(2, "0");
+  const draftNo =
+    "CILD-" +
+    String(ocrRow.payment_document_ocr_import_id) +
+    "-" +
+    String(now.getFullYear()) +
+    z(now.getMonth() + 1) +
+    z(now.getDate()) +
+    z(now.getHours()) +
+    z(now.getMinutes()) +
+    z(now.getSeconds());
+
+  const cilKind = hdOriginCilCodeLabel(
+    body.contractInsuranceLeaseKindCode ||
+      body.contract_insurance_lease_kind_code ||
+      hdOriginCilField(fields, "契約・保険・リース") ||
+      aiSummary.contract_insurance_lease ||
+      draft.contract_insurance_lease_label ||
+      draft.contract_insurance_lease_code,
+    ""
+  );
+
+  const insuranceType = hdOriginCilCodeLabel(hdOriginCilField(fields, "保険種類") || body.insurance_type_code, "");
+  const leaseItemCategory = hdOriginCilCodeLabel(hdOriginCilField(fields, "リース物件区分") || body.lease_item_category_code, "");
+  const contractType = hdOriginCilCodeLabel(hdOriginCilField(fields, "契約種別") || body.contract_type_code, "");
+  const contractStatus = hdOriginCilCodeLabel(hdOriginCilField(fields, "契約ステータス") || body.contract_status_code, "");
+  const paymentStatus = hdOriginCilCodeLabel(hdOriginCilField(fields, "支払状態") || body.payment_status_code, "");
+  const paymentCycle = hdOriginCilCodeLabel(hdOriginCilField(fields, "支払周期") || body.payment_cycle_code, "");
+  const companyBurden = hdOriginCilCodeLabel(hdOriginCilField(fields, "会社負担可否") || body.company_burden_code, "");
+  const personalMix = hdOriginCilCodeLabel(hdOriginCilField(fields, "個人負担混在") || body.mixed_personal_flag_code, "");
+  const payableRegistration = hdOriginCilCodeLabel(hdOriginCilField(fields, "未払登録") || body.payable_registration_code, "");
+  const accountsPayableRegistration = hdOriginCilCodeLabel(hdOriginCilField(fields, "買掛登録") || body.accounts_payable_registration_code, "");
+  const autoRenewal = hdOriginCilCodeLabel(hdOriginCilField(fields, "自動更新有無") || body.auto_renewal_code, "");
+  const ownershipTransfer = hdOriginCilCodeLabel(hdOriginCilField(fields, "所有権移転区分") || body.ownership_transfer_code, "");
+  const earlyCancellation = hdOriginCilCodeLabel(hdOriginCilField(fields, "中途解約可否") || body.early_cancellation_code, "");
+
+  return {
+    payment_document_ocr_import_id: Number(ocrRow.payment_document_ocr_import_id),
+    specialist_analysis_id: hdOriginCilNumberOrNull(
+      body.specialistAnalysisId ||
+        body.specialist_analysis_id ||
+        latestSpecialistAnalysisId
+    ),
+    draft_no: hdOriginCilText(body.draftNo || body.draft_no || draftNo),
+    draft_status: hdOriginCilText(body.draftStatus || body.draft_status || "specialist_draft_saved"),
+    human_check_status: hdOriginCilText(body.humanCheckStatus || body.human_check_status || "unchecked"),
+    is_current: true,
+
+    original_file_name: hdOriginCilText(ocrRow.original_file_name || ocrRow.saved_file_name),
+    saved_file_name: hdOriginCilText(ocrRow.saved_file_name),
+    saved_relative_path: hdOriginCilText(ocrRow.saved_relative_path),
+    sha256: hdOriginCilText(ocrRow.sha256),
+    ocr_text_length: hdOriginCilNumberOrNull(ocrRow.ocr_text_length),
+
+    document_type_code: hdOriginCilText(body.document_type_code || draft.document_type_code || aiSummary.document_kind),
+    document_type_label: hdOriginCilText(body.document_type_label || draft.document_type_label || aiSummary.document_kind_label || aiSummary.document_kind),
+    evidence_type_code: hdOriginCilText(hdOriginCilField(fields, "証憑区分")),
+    evidence_type_label: hdOriginCilText(hdOriginCilField(fields, "証憑区分")),
+
+    payment_destination_code: hdOriginCilText(body.payment_destination_code || draft.payment_destination_code || "contract_insurance_lease"),
+    payment_destination_label: hdOriginCilText(body.payment_destination_label || draft.payment_destination_label || "契約・保険・リース"),
+
+    contract_insurance_lease_kind_code: cilKind.code,
+    contract_insurance_lease_kind_label: cilKind.label,
+
+    analysis_system_code: hdOriginCilText(body.analysis_system_code || draft.analysis_system_code || "contract_insurance_lease"),
+    analysis_system_label: hdOriginCilText(body.analysis_system_label || draft.analysis_system_label || "契約・保険・リース解析システム"),
+    analysis_system_reason: hdOriginCilText(body.analysis_system_reason || draft.analysis_system_reason || aiSummary.reason),
+    analysis_system_confidence: hdOriginCilText(body.analysis_system_confidence || draft.analysis_system_confidence || draft.ai_confidence || aiSummary.confidence_label),
+
+    ai_confidence: hdOriginCilText(body.ai_confidence || draft.ai_confidence || draft.confidence || aiSummary.confidence_label),
+    ai_confidence_label: hdOriginCilText(body.ai_confidence_label || draft.ai_confidence_label || draft.confidence_label || aiSummary.confidence_label),
+    ai_reason: hdOriginCilText(body.ai_reason || draft.ai_reason || draft.reason || aiSummary.reason),
+    review_reason: hdOriginCilText(body.review_reason || draft.review_reason || aiSummary.reason),
+    needs_review: !!(body.needs_review || draft.needs_review),
+
+    issuer_name: hdOriginCilText(hdOriginCilField(fields, "発行元")),
+    vendor_name: hdOriginCilText(hdOriginCilField(fields, "支払先") || draft.vendor_name),
+    insurance_company_name: hdOriginCilText(hdOriginCilField(fields, "保険会社") || hdOriginCilField(fields, "発行元")),
+    lease_company_name: hdOriginCilText(hdOriginCilField(fields, "リース会社") || hdOriginCilField(fields, "発行元")),
+    contract_partner_name: hdOriginCilText(hdOriginCilField(fields, "契約相手先") || hdOriginCilField(fields, "支払先")),
+    recipient_name: hdOriginCilText(hdOriginCilField(fields, "宛名")),
+    contractor_name: hdOriginCilText(hdOriginCilField(fields, "契約者")),
+    insured_name: hdOriginCilText(hdOriginCilField(fields, "被保険者")),
+    company_name: hdOriginCilText(hdOriginCilField(fields, "会社名")),
+    person_name: hdOriginCilText(hdOriginCilField(fields, "個人名")),
+    address: hdOriginCilText(hdOriginCilField(fields, "住所")),
+    phone: hdOriginCilText(hdOriginCilField(fields, "電話番号")),
+    email: hdOriginCilText(hdOriginCilField(fields, "メール")),
+
+    contract_no: hdOriginCilText(hdOriginCilField(fields, "契約番号")),
+    insurance_policy_no: hdOriginCilText(hdOriginCilField(fields, "証券番号", "保険証券番号")),
+    notice_no: hdOriginCilText(hdOriginCilField(fields, "通知書番号")),
+    management_no: hdOriginCilText(hdOriginCilField(fields, "管理番号")),
+    customer_no: hdOriginCilText(hdOriginCilField(fields, "お客様番号")),
+    member_no: hdOriginCilText(hdOriginCilField(fields, "会員番号")),
+    registration_no: hdOriginCilText(hdOriginCilField(fields, "登録番号")),
+    corporate_no: hdOriginCilText(hdOriginCilField(fields, "法人番号")),
+
+    document_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "書類日付")),
+    issue_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "発行日", "通知日")),
+    due_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "支払期限・納期限", "支払期限", "納期限")),
+    payment_plan_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "支払予定日", "支払日")),
+    withdrawal_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "引落日")),
+    contract_start_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "契約開始日")),
+    contract_end_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "契約終了日")),
+    service_period_start: hdOriginCilDateOrNull(hdOriginCilField(fields, "対象開始日", "保険期間開始日")),
+    service_period_end: hdOriginCilDateOrNull(hdOriginCilField(fields, "対象終了日", "保険期間終了日")),
+    renewal_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "更新日")),
+    cancellation_notice_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "解約通知期限")),
+    cancellation_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "解約日")),
+
+    payment_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "請求・支払金額", "支払金額", "保険料")),
+    monthly_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額金額", "月額リース料", "月額契約料")),
+    annual_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "年額金額", "年額契約料")),
+    total_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "合計金額", "リース総額")),
+    amount_ex_tax: hdOriginCilNumberOrNull(hdOriginCilField(fields, "税抜金額")),
+    tax_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "消費税額")),
+    amount_in_tax: hdOriginCilNumberOrNull(hdOriginCilField(fields, "税込金額")),
+    non_tax_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "非課税・不課税金額")),
+    fee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "手数料")),
+    late_fee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "延滞金")),
+    discount_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "割引・値引")),
+
+    payment_method_code: hdOriginCilText(hdOriginCilField(fields, "支払方法", "支払方法マスタ")),
+    payment_method_label: hdOriginCilText(hdOriginCilField(fields, "支払方法", "支払方法マスタ")),
+    payment_status_code: paymentStatus.code,
+    payment_status_label: paymentStatus.label,
+    payment_cycle_code: paymentCycle.code,
+    payment_cycle_label: paymentCycle.label,
+    payment_count: hdOriginCilNumberOrNull(hdOriginCilField(fields, "支払回数")),
+
+    transfer_bank_name: hdOriginCilText(hdOriginCilField(fields, "振込先銀行")),
+    debit_bank_name: hdOriginCilText(hdOriginCilField(fields, "引落銀行")),
+    bank_account_no: hdOriginCilText(hdOriginCilField(fields, "口座番号")),
+    bank_account_name: hdOriginCilText(hdOriginCilField(fields, "口座名義")),
+
+    accounting_category_code: hdOriginCilText(body.accounting_category_code || draft.accounting_category_code || hdOriginCilField(fields, "会計区分")),
+    accounting_category_label: hdOriginCilText(body.accounting_category_label || draft.accounting_category_label || hdOriginCilField(fields, "会計区分")),
+    payable_kind_code: hdOriginCilText(body.payable_kind_code || draft.payable_kind_code || hdOriginCilField(fields, "未払種別")),
+    payable_kind_label: hdOriginCilText(body.payable_kind_label || draft.payable_kind_label || hdOriginCilField(fields, "未払種別")),
+    account_title_code: hdOriginCilText(hdOriginCilField(fields, "勘定科目")),
+    account_title_label: hdOriginCilText(hdOriginCilField(fields, "勘定科目")),
+    tax_category_code: hdOriginCilText(hdOriginCilField(fields, "税区分")),
+    tax_category_label: hdOriginCilText(hdOriginCilField(fields, "税区分")),
+    invoice_type_code: hdOriginCilText(hdOriginCilField(fields, "インボイス区分")),
+    invoice_type_label: hdOriginCilText(hdOriginCilField(fields, "インボイス区分")),
+
+    target_person_label: hdOriginCilText(hdOriginCilField(fields, "対象者")),
+    purpose_label: hdOriginCilText(hdOriginCilField(fields, "目的")),
+    project_label: hdOriginCilText(hdOriginCilField(fields, "案件")),
+    department_label: hdOriginCilText(hdOriginCilField(fields, "部門")),
+
+    payable_registration_code: payableRegistration.code,
+    payable_registration_label: payableRegistration.label,
+    accounts_payable_registration_code: accountsPayableRegistration.code,
+    accounts_payable_registration_label: accountsPayableRegistration.label,
+    company_burden_code: companyBurden.code,
+    company_burden_label: companyBurden.label,
+    mixed_personal_flag_code: personalMix.code,
+    mixed_personal_flag_label: personalMix.label,
+
+    summary: hdOriginCilText(hdOriginCilField(fields, "摘要") || draft.summary),
+    memo: hdOriginCilText(body.memo || draft.memo || "契約・保険・リース専門画面から保存"),
+    internal_memo: hdOriginCilText(body.internal_memo || ""),
+    review_memo: hdOriginCilText(hdOriginCilField(fields, "要確認メモ")),
+
+    insurance_type_code: insuranceType.code,
+    insurance_type_label: insuranceType.label,
+    insurance_target: hdOriginCilText(hdOriginCilField(fields, "保険対象")),
+    insurance_period_start: hdOriginCilDateOrNull(hdOriginCilField(fields, "保険期間開始日", "対象開始日")),
+    insurance_period_end: hdOriginCilDateOrNull(hdOriginCilField(fields, "保険期間終了日", "対象終了日")),
+    insurance_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "保険料")),
+
+    lease_item_name: hdOriginCilText(hdOriginCilField(fields, "リース物件")),
+    lease_item_category_code: leaseItemCategory.code,
+    lease_item_category_label: leaseItemCategory.label,
+    monthly_lease_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額リース料", "月額金額")),
+    lease_total_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "リース総額", "合計金額")),
+    ownership_transfer_code: ownershipTransfer.code,
+    ownership_transfer_label: ownershipTransfer.label,
+    early_cancellation_code: earlyCancellation.code,
+    early_cancellation_label: earlyCancellation.label,
+    residual_value_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価")),
+    lease_start_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース開始日")),
+    lease_end_date: hdOriginCilDateOrNull(hdOriginCilField(fields, "リース終了日")),
+    lease_period_months: hdOriginCilNumberOrNull(hdOriginCilField(fields, "リース期間")),
+    lease_item_location: hdOriginCilText(hdOriginCilField(fields, "物件所在地")),
+    residual_value_guarantee_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "残価保証額")),
+    renewal_terms: hdOriginCilText(hdOriginCilField(fields, "更新条件")),
+    cancellation_terms: hdOriginCilText(hdOriginCilField(fields, "解約条件")),
+
+    contract_type_code: contractType.code,
+    contract_type_label: contractType.label,
+    contract_name: hdOriginCilText(hdOriginCilField(fields, "契約名", "書類名")),
+    auto_renewal_code: autoRenewal.code,
+    auto_renewal_label: autoRenewal.label,
+    contract_status_code: contractStatus.code,
+    contract_status_label: contractStatus.label,
+    monthly_contract_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "月額契約料", "月額金額")),
+    annual_contract_amount: hdOriginCilNumberOrNull(hdOriginCilField(fields, "年額契約料", "年額金額")),
+
+    specialist_fields_json: fields,
+    ai_summary_json: aiSummary,
+    ai_raw_json: root,
+    visible_fields_json: hdOriginCilJson(body.visibleFields || body.visible_fields || fields, {}),
+    human_corrections_json: hdOriginCilJson(body.humanCorrections || body.human_corrections || {}, {}),
+    warnings_json: warnings,
+
+    created_by_page: "payment-document-specialist-contract-insurance-lease.html",
+    created_by: "system",
+    updated_by: "system"
+  };
+}
+
 async function hdOriginSaveUtilityCommunicationDraft(body) {
   const ocrId = Number(
     body.paymentDocumentOcrImportId ||
@@ -7340,6 +7605,7 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
     client.release();
   }
 }
+/* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_START */
 function hdOriginBusinessFlowPromptCommonDir() {
   return path.join(__dirname, "prompts", "common");
