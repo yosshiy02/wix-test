@@ -3361,7 +3361,7 @@ async function runSelectedAiDrafts() {
   };
 
   window.buildSortingVisual = function(item) {
-    const draft = item && item.__aiDraft ? item.__aiDraft : {};
+    const draft = item && item.latestBasicAnalysis && item.latestBasicAnalysis.rawResult && item.latestBasicAnalysis.rawResult.draft ? item.latestBasicAnalysis.rawResult.draft : (item && item.__aiDraft ? item.__aiDraft : {});
     const group = window.firstText(item && item.__documentGroup, draft.document_group, draft.documentGroup);
 
     const kindRaw = window.pickDraftValue(draft, [
@@ -3438,7 +3438,7 @@ async function runSelectedAiDrafts() {
     }
 
     return {
-      analyzed: !!(item && item.__aiDraft),
+      analyzed: !!(item && item.latestBasicAnalysis && (item.latestBasicAnalysis.analysisCompleted === true || item.latestBasicAnalysis.analysis_completed === true) && (item.latestBasicAnalysis.basicAnalysisId || item.latestBasicAnalysis.basic_analysis_id)),
       theme,
       rowClass: "visual-row-" + theme,
       kindClass: "visual-chip visual-kind visual-chip-" + window.detectSortingTheme(kindRaw || group),
