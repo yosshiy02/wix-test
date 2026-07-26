@@ -10993,24 +10993,22 @@ specialistAnalysisId:
       const ocrRow = ocrResult.rows[0];
 
       const nextStatusResult = await client.query(`
-        SELECT
-          CASE
-            WHEN current_master.display_order >=
-                 target_master.display_order
-              THEN current_master.current_status
-            ELSE target_master.current_status
-          END AS current_status
-        FROM
-          accounting.payment_document_current_statuses
-            current_master
-        CROSS JOIN
-          accounting.payment_document_current_statuses
-            target_master
-        WHERE
-          current_master.current_status = $1
-          AND target_master.current_status =
-              '専門解析待ち'
-          AND target_master.is_active = TRUE
+        SELECT candidate.current_status
+        FROM accounting.payment_document_current_statuses current_status_master
+        JOIN LATERAL (
+          SELECT next_master.current_status
+          FROM accounting.payment_document_current_statuses next_master
+          WHERE next_master.is_active = TRUE
+            AND next_master.is_processing = FALSE
+            AND next_master.is_terminal = FALSE
+            AND next_master.is_error = FALSE
+            AND next_master.display_order >
+                current_status_master.display_order
+          ORDER BY next_master.display_order
+          LIMIT 1
+        ) candidate
+          ON TRUE
+        WHERE current_status_master.current_status = $1
         LIMIT 1
       `, [ocrRow.current_status]);
 
@@ -11019,9 +11017,7 @@ specialistAnalysisId:
 
       if (!nextCurrentStatus) {
         const error = new Error(
-          "現在状態または専門解析待ちをステータスマスタから取得できませんでした。" +
-          " current_status=" +
-          String(ocrRow.current_status || "")
+          "ステータスマスタから基礎解析保存後の次状態を解決できませんでした。"
         );
 
         error.statusCode = 409;
