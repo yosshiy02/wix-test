@@ -7348,81 +7348,12 @@ async function hdOriginCilReloadSavedFromQuery() {
 
 
 
-  async function postContractInsuranceLeaseDraftFromSingleSave(sortingPayload, sortingSaved, analysisResult) {
-  const cilSingleLeaseItemLines =
-    cilLeaseItemLinesForPayload(
-      analysisResult
-    );
-
-  if (
-    analysisResult &&
-    typeof analysisResult === "object"
-  ) {
-    analysisResult = Object.assign(
-      {},
-      analysisResult,
-      {
-        lease_item_lines:
-          cilSingleLeaseItemLines,
-        specialist: Object.assign(
-          {},
-          analysisResult.specialist &&
-          typeof analysisResult.specialist ===
-            "object"
-            ? analysisResult.specialist
-            : {},
-          {
-            lease_item_lines:
-              cilSingleLeaseItemLines
-          }
         )
       }
     );
   }
 
-    const currentFields = { ...(sortingPayload.visibleFields || {}), ...collectContractInsuranceLeaseCurrentFieldsForSave() };
-    const payload = {
-      paymentDocumentOcrImportId: sortingPayload.paymentDocumentOcrImportId,
-      specialistAnalysisId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      rawResult:
-        analysisResult && typeof analysisResult === "object"
-          ? analysisResult
-          : {},
-      specialist:
-        analysisResult &&
-        analysisResult.specialist &&
-        typeof analysisResult.specialist === "object"
-          ? analysisResult.specialist
-          : {},
-      draft: sortingPayload,
-      sortResult: sortingPayload.sortResult || {},
-      ai_summary: sortingPayload.ai_summary || {},
-      fields: currentFields,
-      visibleFields: currentFields,
-      warnings: Array.isArray(sortingPayload.warnings) ? sortingPayload.warnings : [],
-      memo: "契約・保険・リース専門画面の単独下書き保存から専門下書き保存"
-    };
-
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
-    }
-
-    return json;
-  }
-
-  async function saveSortingDraftFromReviewPage(context) {
+async function saveSortingDraftFromReviewPage(context) {
     const payload = collectSortingDraftPayload(context);
 
     const analysisResult =
@@ -7535,21 +7466,8 @@ async function hdOriginCilReloadSavedFromQuery() {
       throw new Error(hdOriginCilSaveErrorMessage("仕分け下書き保存に失敗しました。", res, json, payload));
     }
 
-    const specialistJson = await postContractInsuranceLeaseDraftFromSingleSave(payload, json, analysisResult);
-
-    return {
-      ...json,
-      contractInsuranceLeaseDraftId:
-        specialistJson.specialistAnalysisId ||
-        specialistJson.specialist_analysis_id ||
-        specialistJson.latestSpecialistAnalysisId ||
-        specialistJson.contractInsuranceLeaseDraftId ||
-        specialistJson.paymentDocumentContractInsuranceLeaseDraftId ||
-        specialistJson.contract_insurance_lease_result_id ||
-        "",
-      contractInsuranceLeaseDraft: specialistJson
-    };
-  }
+    return json;
+}
 
   function looksLikeDraftSaveButton(el) {
     if (!el) return false;
@@ -7596,7 +7514,7 @@ async function hdOriginCilReloadSavedFromQuery() {
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きと契約・保険・リース専門下書きを保存しました。\n仕分け専門解析ID: " + (result.specialistAnalysisId || "") + "\n専門専門解析ID: " + (result.contractInsuranceLeaseDraftId || ""));
+      alert("保存しました。\n専門解析ID: " + (result.specialistAnalysisId || result.specialist_analysis_id || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -7840,53 +7758,6 @@ async function hdOriginCilReloadSavedFromQuery() {
     ].filter(Boolean).join(" / ");
   }
   // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_END
-function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sortingSaved) {
-    const result = firstObject(cached);
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result);
-    const draft = firstObject(result.draft, root.draft, root.sorting, root.classification, root);
-    const fields = firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields, sortingPayload.visibleFields, sortingPayload.visible_fields, sortingPayload.fields);
-    const aiSummary = firstObject(draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary, sortingPayload.ai_summary);
-
-    return {
-      paymentDocumentOcrImportId: Number(id),
-      specialistAnalysisId: hdOriginCilSavedSortingDraftId(sortingSaved),
-      analysisSystemCode: "contract_insurance_lease_analysis",
-      analysis_system_code: "contract_insurance_lease_analysis",
-      analysisSystemLabel: "契約・保険・リース",
-      analysis_system_label: "契約・保険・リース",
-      lease_item_lines: cilLeaseItemLinesForPayload(result),
-    rawResult: result,
-      specialist: firstObject(
-        result.specialist,
-        result.result && result.result.specialist
-      ),
-      draft,
-      sortResult: root,
-      ai_summary: aiSummary,
-      fields,
-      visibleFields: fields,
-      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
-      memo: "契約・保険・リース専門画面のまとめて保存から専門下書き保存"
-    };
-  }
-
-  async function postContractInsuranceLeaseDraft(payload) {
-    const res = await fetch("/api/payment-documents/contract-insurance-lease-drafts/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(hdOriginCilSaveErrorMessage("契約・保険・リース専門下書き保存に失敗しました。", res, json, payload));
-    }
-
     return json;
   }
   /* HD_ORIGIN_CIL_BULK_EXISTING_ANALYSIS_FALLBACK */
@@ -8140,13 +8011,10 @@ function buildContractInsuranceLeaseDraftPayload(id, cached, sortingPayload, sor
         const saved =
           existingSortingSaved ||
           await postSortingDraft(payload);
-        const specialistPayload = buildContractInsuranceLeaseDraftPayload(id, cached, payload, saved);
-        const specialistSaved = await postContractInsuranceLeaseDraft(specialistPayload);
 
         ok.push({
           id,
-          sortingDraftId: saved.specialistAnalysisId || "",
-          specialistDraftId: specialistSaved.contractInsuranceLeaseDraftId || ""
+          sortingDraftId: saved.specialistAnalysisId || ""
         });
       } catch (err) {
         ng.push({

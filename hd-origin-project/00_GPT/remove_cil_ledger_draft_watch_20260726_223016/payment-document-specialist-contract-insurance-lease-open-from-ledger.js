@@ -185,6 +185,65 @@
     });
   }
 
+  function patchSaveFetch() {
+    if (window.__hdOriginCilSavedListFetchPatched) {
+      return;
+    }
+
+    window.__hdOriginCilSavedListFetchPatched=true;
+
+    const originalFetch=window.fetch.bind(window);
+
+    window.fetch=async function (input,init) {
+      const response=await originalFetch(input,init);
+
+      try {
+        const url=
+          typeof input==="string"
+            ? input
+            : input && input.url
+              ? input.url
+              : "";
+
+        if (
+          response.ok &&
+          url.includes(
+            "/api/payment-documents/contract-insurance-lease-drafts/save"
+          )
+        ) {
+          const payload=
+            init && typeof init.body==="string"
+              ? JSON.parse(init.body)
+              : {};
+
+          const id=Number(
+            payload.paymentDocumentOcrImportId ||
+            payload.payment_document_ocr_import_id ||
+            payload.ocrImportId ||
+            0
+          );
+
+          if (id > 0) {
+            savedIds.add(id);
+
+            window.setTimeout(function () {
+              removeSavedItem(id);
+            },0);
+          }
+        }
+      } catch (error) {
+        console.warn(
+          "保存後リスト除外処理に失敗しました。",
+          error
+        );
+      }
+
+      return response;
+    };
+  }
+
+  patchSaveFetch();
+
   loadSavedIds()
     .then(function () {
       let attempts=0;

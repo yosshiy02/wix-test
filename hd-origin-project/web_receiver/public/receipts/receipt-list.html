@@ -515,23 +515,36 @@
 
       function analysisSystemCodeOf(item) {
         const source = objectValue(item);
-        const latest = objectValue(source.latestSortingDraft || source.latest_sorting_draft);
-        const saved = objectValue(source.__savedSortingDraft || source.savedSortingDraft || source.sortingDraft || source.sorting_draft);
-        const draft = objectValue(source.__aiDraft || source.aiDraft || source.draft);
-        const sortResult = objectValue(source.sortResult || source.sort_result);
+
+        const latestBasicAnalysis = objectValue(
+          source.latestBasicAnalysis ||
+          source.latest_basic_analysis
+        );
+
+        const latestSpecialistAnalysis = objectValue(
+          source.latestSpecialistAnalysis ||
+          source.latest_specialist_analysis
+        );
 
         const candidates = [
-          latest.analysisSystemCode, latest.analysis_system_code,
-          saved.analysisSystemCode, saved.analysis_system_code,
-          draft.analysisSystemCode, draft.analysis_system_code,
-          sortResult.analysisSystemCode, sortResult.analysis_system_code,
-          source.analysisSystemCode, source.analysis_system_code
+          source.analysisSystemCode,
+          source.analysis_system_code,
+
+          latestBasicAnalysis.analysisSystemCode,
+          latestBasicAnalysis.analysis_system_code,
+
+          latestSpecialistAnalysis.analysisSystemCode,
+          latestSpecialistAnalysis.analysis_system_code
         ];
 
         for (const candidate of candidates) {
-          const code = textValue(candidate);
-          if (code) return code;
+          const code = String(candidate || "").trim();
+
+          if (code) {
+            return code;
+          }
         }
+
         return "";
       }
 
@@ -605,35 +618,31 @@
       document.getElementById("imageArea").innerHTML = `<img src="${imageUrl}" alt="receipt">`;
 
       await loadReceiptMasterOptions();
-      
-      let drafts = item.__aiDraft ? [item.__aiDraft] : [];
 
-      try {
-        const resolveRes = await fetch(
-          "/api/receipts/payment-document-ocr-imports/" +
-          encodeURIComponent(id) +
-          "/receipt-import"
-        );
+      const latestSpecialistAnalysis =
+        item.latestSpecialistAnalysis ||
+        item.latest_specialist_analysis ||
+        null;
 
-        const resolveData = await resolveRes.json();
+      const formalSpecialistResult =
+        latestSpecialistAnalysis &&
+        typeof latestSpecialistAnalysis === "object"
+          ? (
+              latestSpecialistAnalysis.rawResult ||
+              latestSpecialistAnalysis.raw_result ||
+              latestSpecialistAnalysis.result ||
+              latestSpecialistAnalysis.analysisResult ||
+              latestSpecialistAnalysis.analysis_result ||
+              null
+            )
+          : null;
 
-        if (resolveRes.ok && resolveData.ok && resolveData.receiptImportId) {
-          const detailRes = await fetch(
-            "/api/receipts/imports/" +
-            encodeURIComponent(resolveData.receiptImportId)
-          );
-
-          const detailData = await detailRes.json();
-
-          if (detailRes.ok && detailData.ok && Array.isArray(detailData.aiDrafts)) {
-            drafts = detailData.aiDrafts;
-          }
-        }
-      } catch (error) {
-        console.error("receipt draft bridge read failed", error);
-      }
-
-      renderForm(item, drafts);
+      renderForm(
+        item,
+        formalSpecialistResult
+          ? [formalSpecialistResult]
+          : []
+      );
     }
     function receiptExtractTimeText(value) {
       const text = String(value === null || value === undefined ? "" : value)
@@ -1113,7 +1122,7 @@ receiptTaxBreakdowns = [];
 receiptTaxBreakdownsLoadedDraftId = null;
 document.getElementById("formArea").innerHTML = `
         <div class="actions">
-          <button class="primary" onclick="saveDraft()">候補を保存</button>
+          <button class="primary" onclick="saveReceiptSpecialistResult()">専門解析結果を保存</button>
           <button onclick="analyzeReceipt(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">AI再解析</button>
           <button class="danger" onclick="deleteReceiptImport(${item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.id})">削除</button>
         </div>
@@ -1493,7 +1502,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         evidenceMemo: getInput("evidenceMemo"),
         accountTitleName: getInput("accountTitleName"),
         invoiceNumber: getInput("invoiceNumber"),
-        summary: getInput("summary"),
+        summary: getInput("summary"),
+
         receiptSummaryId: getReceiptSummarySelectedId(),
         memo: getInput("memo"),
         confidence: cleanNumber(getInput("confidence")),
@@ -1511,268 +1521,84 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       };
     }
 
-    async function saveDraft() {
-      if (!currentDraft) {
-        alert("保存する候補がありません。");
-        return;
-      }
-
-      const payload = collectDraftPayload();
-
-      const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(currentDraft.id), {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify(payload)
+    async function saveReceiptSpecialistResult() {
+      const item = (currentItems || []).find(function (row) {
+        return Number(
+          row.paymentDocumentOcrImportId ||
+          row.payment_document_ocr_import_id ||
+          row.id
+        ) === Number(selectedId);
       });
 
-      const data = await res.json();
-
-      if (!data.ok) {
-        alert("保存失敗: " + (data.error || ""));
+      if (!item) {
+        alert("選択中の正式OCR証憑を確認できません。");
         return;
       }
 
-      alert("保存しました。");
-      await loadDetail(selectedId);
-    }
-    /* RECEIPT_AUTO_DRAFT_SAVE_20260705_START */
-    /*
-      画面変更時の下書き自動保存。
-      - 保存ボタンは本保存用にする前提なので、ここでは押させない。
-      - input / select / textarea の変更を拾い、現在の下書きへ静かにPATCHする。
-      - 明細内訳モーダルは既存の saveTaxBreakdownsForCurrentDraft を使う。
-      - アラートは出さず、右下に状態だけ出す。
-    */
-    let receiptAutoDraftSaveTimer = null;
-    let receiptAutoDraftSaveRunning = false;
-    let receiptAutoDraftSaveQueued = false;
-    let receiptAutoDraftSaveLastJson = "";
+      const basic =
+        item.latestBasicAnalysis ||
+        item.latest_basic_analysis ||
+        {};
 
-    let receiptAutoTaxSaveTimer = null;
-    let receiptAutoTaxSaveRunning = false;
-    let receiptAutoTaxSaveQueued = false;
+      const ocrId = Number(
+        item.paymentDocumentOcrImportId ||
+        item.payment_document_ocr_import_id ||
+        item.id ||
+        0
+      );
 
-    function ensureReceiptAutoSaveStatus() {
-      let el = document.getElementById("receiptAutoSaveStatus");
-      if (el) return el;
+      const basicId = Number(
+        basic.basicAnalysisId ||
+        basic.basic_analysis_id ||
+        item.latestBasicAnalysisId ||
+        item.latest_basic_analysis_id ||
+        0
+      );
 
-      el = document.createElement("div");
-      el.id = "receiptAutoSaveStatus";
-      el.style.position = "fixed";
-      el.style.right = "0.75rem";
-      el.style.bottom = "0.75rem";
-      el.style.zIndex = "100001";
-      el.style.padding = "0.4rem 0.65rem";
-      el.style.borderRadius = "0.45rem";
-      el.style.border = "0.0625rem solid #bbb";
-      el.style.background = "#ffffff";
-      el.style.color = "#333";
-      el.style.fontSize = "0.75rem";
-      el.style.fontWeight = "800";
-      el.style.boxShadow = "0 0.25rem 0.8rem rgba(0,0,0,0.18)";
-      el.style.display = "none";
-      document.body.appendChild(el);
-
-      return el;
-    }
-
-    function setReceiptAutoSaveStatus(text, kind) {
-      const el = ensureReceiptAutoSaveStatus();
-      el.textContent = String(text || "");
-      el.style.display = text ? "block" : "none";
-
-      if (kind === "error") {
-        el.style.borderColor = "#d95c5c";
-        el.style.background = "#ffe8e8";
-        el.style.color = "#8a1f1f";
-      } else if (kind === "saving") {
-        el.style.borderColor = "#d6a100";
-        el.style.background = "#fff7d6";
-        el.style.color = "#6b5000";
-      } else {
-        el.style.borderColor = "#72b979";
-        el.style.background = "#ecffef";
-        el.style.color = "#0f5f1d";
-      }
-    }
-
-    function getReceiptAutoSaveDraftId() {
-      if (!currentDraft || !currentDraft.id) return null;
-
-      const id = Number(currentDraft.id);
-      if (!Number.isFinite(id) || id <= 0) return null;
-
-      return id;
-    }
-
-    function queueReceiptDraftAutoSave(reason) {
-      const draftId = getReceiptAutoSaveDraftId();
-      if (!draftId) return;
-
-      const receiptId = Number(selectedId || 0);
-
-      clearTimeout(receiptAutoDraftSaveTimer);
-      setReceiptAutoSaveStatus("下書き保存待ち", "saving");
-
-      receiptAutoDraftSaveTimer = setTimeout(function () {
-        runReceiptDraftAutoSave(draftId, receiptId, reason || "change");
-      }, 700);
-    }
-
-    async function runReceiptDraftAutoSave(draftId, receiptId, reason) {
-      if (!draftId) return;
-
-      if (!currentDraft || Number(currentDraft.id) !== Number(draftId)) {
+      if (!ocrId || !basicId) {
+        alert("正式なOCR取込IDまたは基礎解析IDを確認できません。");
         return;
       }
 
-      if (Number(selectedId || 0) !== Number(receiptId || 0)) {
-        return;
-      }
+      const result = collectDraftPayload();
+      delete result.status;
 
-      if (receiptAutoDraftSaveRunning) {
-        receiptAutoDraftSaveQueued = true;
-        return;
-      }
-
-      let payload;
-
-      try {
-        payload = collectDraftPayload();
-      } catch (error) {
-        setReceiptAutoSaveStatus("下書き保存失敗", "error");
-        console.error("collectDraftPayload failed", error);
-        return;
-      }
-
-      const json = JSON.stringify(payload);
-
-      if (json === receiptAutoDraftSaveLastJson) {
-        setReceiptAutoSaveStatus("下書き保存済", "ok");
-        return;
-      }
-
-      receiptAutoDraftSaveRunning = true;
-      receiptAutoDraftSaveQueued = false;
-      setReceiptAutoSaveStatus("下書き保存中", "saving");
-
-      try {
-        const res = await fetch("/api/receipts/ai-drafts/" + encodeURIComponent(draftId), {
-          method: "PATCH",
+      const res = await fetch(
+        "/api/payment-documents/specialist-analysis-results/save",
+        {
+          method: "POST",
           headers: {
             "Content-Type": "application/json; charset=utf-8"
           },
-          body: json
-        });
-
-        const data = await res.json().catch(function () {
-          return { ok: false, error: "JSON読込失敗" };
-        });
-
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || "下書き保存に失敗しました。");
+          body: JSON.stringify({
+            paymentDocumentOcrImportId: ocrId,
+            basicAnalysisId: basicId,
+            analysisSystemCode: "receipt_evidence_analysis",
+            analysisSystemLabel: "領収・レシート",
+            specialistAnalysisStatus: "保存済み",
+            aiConfidence: result.confidence,
+            aiReason: "レシート専門解析画面で保存",
+            warnings: [],
+            rawResult: result,
+            humanConfirmStatus: "未確認",
+            humanMemo: result.memo || ""
+          })
         }
+      );
 
-        receiptAutoDraftSaveLastJson = json;
+      const data = await res.json().catch(function () {
+        return { ok: false, error: "JSON読込失敗" };
+      });
 
-        if (data.draft) {
-          currentDraft = Object.assign({}, currentDraft || {}, data.draft);
-        }
-
-        setReceiptAutoSaveStatus("下書き保存済", "ok");
-      } catch (error) {
-        setReceiptAutoSaveStatus("下書き保存失敗", "error");
-        console.error("receipt auto draft save failed", error);
-      } finally {
-        receiptAutoDraftSaveRunning = false;
-
-        if (receiptAutoDraftSaveQueued) {
-          receiptAutoDraftSaveQueued = false;
-          setTimeout(function () {
-            runReceiptDraftAutoSave(draftId, receiptId, reason || "queued");
-          }, 250);
-        }
-      }
-    }
-
-    function queueReceiptTaxBreakdownAutoSave() {
-      if (typeof saveTaxBreakdownsForCurrentDraft !== "function") return;
-      if (typeof updateTaxBreakdown !== "function") return;
-      if (!currentReceiptAiDraftId) return;
-
-      const draftId = Number(currentReceiptAiDraftId || 0);
-      clearTimeout(receiptAutoTaxSaveTimer);
-      setReceiptAutoSaveStatus("明細内訳保存待ち", "saving");
-
-      receiptAutoTaxSaveTimer = setTimeout(function () {
-        runReceiptTaxBreakdownAutoSave(draftId);
-      }, 700);
-    }
-
-    async function runReceiptTaxBreakdownAutoSave(draftId) {
-      if (!draftId) return;
-      if (Number(currentReceiptAiDraftId || 0) !== Number(draftId)) return;
-
-      if (receiptAutoTaxSaveRunning) {
-        receiptAutoTaxSaveQueued = true;
+      if (!res.ok || !data.ok) {
+        alert("正式保存に失敗しました: " + (data.error || ""));
         return;
       }
 
-      receiptAutoTaxSaveRunning = true;
-      receiptAutoTaxSaveQueued = false;
-      setReceiptAutoSaveStatus("明細内訳保存中", "saving");
-
-      try {
-        updateTaxBreakdown();
-        await saveTaxBreakdownsForCurrentDraft();
-        setReceiptAutoSaveStatus("明細内訳保存済", "ok");
-      } catch (error) {
-        setReceiptAutoSaveStatus("明細内訳保存失敗", "error");
-        console.error("receipt tax breakdown auto save failed", error);
-      } finally {
-        receiptAutoTaxSaveRunning = false;
-
-        if (receiptAutoTaxSaveQueued) {
-          receiptAutoTaxSaveQueued = false;
-          setTimeout(function () {
-            runReceiptTaxBreakdownAutoSave(draftId);
-          }, 250);
-        }
-      }
+      alert("専門解析結果を正式保存しました。");
+      await loadDetail(ocrId);
     }
-
-    function handleReceiptAutoSaveEvent(event) {
-      const target = event && event.target ? event.target : null;
-      if (!target || !target.closest) return;
-
-      const tag = String(target.tagName || "").toUpperCase();
-      if (!["INPUT", "SELECT", "TEXTAREA"].includes(tag)) return;
-
-      if (target.id === "receiptCopySystemText") return;
-      if (target.classList && target.classList.contains("receipt-ai-check")) return;
-
-      if (target.closest("#taxBreakdownModal")) {
-        queueReceiptTaxBreakdownAutoSave();
-        return;
-      }
-
-      if (!target.closest("#formArea")) return;
-
-      queueReceiptDraftAutoSave(event.type || "change");
-    }
-
-    function installReceiptAutoDraftSave() {
-      if (window.receiptAutoDraftSaveInstalled) return;
-      window.receiptAutoDraftSaveInstalled = true;
-
-      document.addEventListener("input", handleReceiptAutoSaveEvent);
-      document.addEventListener("change", handleReceiptAutoSaveEvent);
-    }
-
-    installReceiptAutoDraftSave();
-    /* RECEIPT_AUTO_DRAFT_SAVE_20260705_END */
+    
 
 
     async function deleteReceiptImport(id) {
@@ -1921,7 +1747,8 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         evidenceMemo: draft.evidence_memo || raw.evidenceMemo || raw.evidence_memo || "",
         accountTitleName: draft.account_title_name || "",
         invoiceNumber: draft.invoice_number || raw.invoiceNumber || raw.invoice_number || "",
-        summary: draft.summary || "",
+        summary: draft.summary || "",
+
         receiptSummaryId: draft.receipt_summary_id || raw.receiptSummaryId || raw.receipt_summary_id || null,
         memo: draft.memo || "",
         confidence: cleanNumber(draft.confidence),
@@ -4328,58 +4155,39 @@ loadList();
   }
 
   function analysisSystemCodeOf(item) {
-    const source = objectValue(item);
+        const source = objectValue(item);
 
-    const latest = objectValue(
-      source.latestSortingDraft ||
-      source.latest_sorting_draft
-    );
+        const latestBasicAnalysis = objectValue(
+          source.latestBasicAnalysis ||
+          source.latest_basic_analysis
+        );
 
-    const saved = objectValue(
-      source.__savedSortingDraft ||
-      source.savedSortingDraft ||
-      source.sortingDraft ||
-      source.sorting_draft
-    );
+        const latestSpecialistAnalysis = objectValue(
+          source.latestSpecialistAnalysis ||
+          source.latest_specialist_analysis
+        );
 
-    const draft = objectValue(
-      source.__aiDraft ||
-      source.aiDraft ||
-      source.draft
-    );
+        const candidates = [
+          source.analysisSystemCode,
+          source.analysis_system_code,
 
-    const sortResult = objectValue(
-      source.sortResult ||
-      source.sort_result
-    );
+          latestBasicAnalysis.analysisSystemCode,
+          latestBasicAnalysis.analysis_system_code,
 
-    const candidates = [
-      latest.analysisSystemCode,
-      latest.analysis_system_code,
+          latestSpecialistAnalysis.analysisSystemCode,
+          latestSpecialistAnalysis.analysis_system_code
+        ];
 
-      saved.analysisSystemCode,
-      saved.analysis_system_code,
+        for (const candidate of candidates) {
+          const code = String(candidate || "").trim();
 
-      draft.analysisSystemCode,
-      draft.analysis_system_code,
+          if (code) {
+            return code;
+          }
+        }
 
-      sortResult.analysisSystemCode,
-      sortResult.analysis_system_code,
-
-      source.analysisSystemCode,
-      source.analysis_system_code
-    ];
-
-    for (const candidate of candidates) {
-      const code = String(candidate || "").trim();
-
-      if (code) {
-        return code;
+        return "";
       }
-    }
-
-    return "";
-  }
 
   function applySpecialistNavigationCounts(items) {
     const counts = Object.create(null);
