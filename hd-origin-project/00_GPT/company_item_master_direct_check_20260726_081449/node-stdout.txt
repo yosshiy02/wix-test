@@ -1,0 +1,80 @@
+============================================================
+解析項目マスタ company_id 直接確認
+============================================================
+
+TABLE=accounting.analysis_items / EXISTS=true
+
+----- COLUMNS accounting.analysis_items -----
+COLUMN_COUNT=19
+COLUMN=analysis_item_id / TYPE=bigint / NULLABLE=NO
+COLUMN=analysis_item_code / TYPE=character varying / NULLABLE=NO
+COLUMN=analysis_item_name / TYPE=character varying / NULLABLE=NO
+COLUMN=normal_column_candidate_name / TYPE=character varying / NULLABLE=YES
+COLUMN=analysis_item_category_id / TYPE=bigint / NULLABLE=NO
+COLUMN=analysis_data_type_id / TYPE=bigint / NULLABLE=NO
+COLUMN=analysis_storage_method_id / TYPE=bigint / NULLABLE=NO
+COLUMN=max_length / TYPE=integer / NULLABLE=YES
+COLUMN=decimal_places / TYPE=integer / NULLABLE=YES
+COLUMN=is_multiple / TYPE=boolean / NULLABLE=NO
+COLUMN=is_standard_extract / TYPE=boolean / NULLABLE=NO
+COLUMN=is_searchable / TYPE=boolean / NULLABLE=NO
+COLUMN=is_aggregatable / TYPE=boolean / NULLABLE=NO
+COLUMN=is_reconcilable / TYPE=boolean / NULLABLE=NO
+COLUMN=display_order / TYPE=integer / NULLABLE=NO
+COLUMN=is_active / TYPE=boolean / NULLABLE=NO
+COLUMN=description / TYPE=text / NULLABLE=YES
+COLUMN=created_at / TYPE=timestamp with time zone / NULLABLE=NO
+COLUMN=updated_at / TYPE=timestamp with time zone / NULLABLE=NO
+
+----- SEARCH accounting.analysis_items -----
+TEXT_COLUMN_COUNT=4
+MATCH_COUNT=2
+{"analysis_item_id":"38","analysis_item_code":"tax_type","analysis_item_name":"税目","normal_column_candidate_name":"税目","analysis_item_category_id":"2","analysis_data_type_id":"1","analysis_storage_method_id":"1","max_length":100,"decimal_places":null,"is_multiple":false,"is_standard_extract":false,"is_searchable":false,"is_aggregatable":false,"is_reconcilable":false,"display_order":38,"is_active":true,"description":"法人税、消費税、住民税等","created_at":"2026-07-14T12:28:36.000Z","updated_at":"2026-07-14T12:28:36.000Z"}
+{"analysis_item_id":"89","analysis_item_code":"master_resolution_history_json","analysis_item_name":"マスタ照合履歴","normal_column_candidate_name":null,"analysis_item_category_id":"4","analysis_data_type_id":"9","analysis_storage_method_id":"4","max_length":null,"decimal_places":null,"is_multiple":false,"is_standard_extract":false,"is_searchable":false,"is_aggregatable":false,"is_reconcilable":false,"display_order":89,"is_active":true,"description":"会社・取引先・文書種別等のマスタ照合候補と確定履歴","created_at":"2026-07-14T12:28:37.000Z","updated_at":"2026-07-14T12:28:37.000Z"}
+
+TABLE=accounting.specialist_analysis_items / EXISTS=true
+
+----- COLUMNS accounting.specialist_analysis_items -----
+COLUMN_COUNT=11
+COLUMN=mapping_id / TYPE=bigint / NULLABLE=NO
+COLUMN=specialist_analysis_id / TYPE=bigint / NULLABLE=NO
+COLUMN=analysis_item_id / TYPE=bigint / NULLABLE=NO
+COLUMN=is_required / TYPE=boolean / NULLABLE=NO
+COLUMN=is_recommended / TYPE=boolean / NULLABLE=NO
+COLUMN=display_order / TYPE=integer / NULLABLE=NO
+COLUMN=confidence_threshold / TYPE=numeric / NULLABLE=YES
+COLUMN=extraction_instruction / TYPE=text / NULLABLE=YES
+COLUMN=is_active / TYPE=boolean / NULLABLE=NO
+COLUMN=created_at / TYPE=timestamp with time zone / NULLABLE=NO
+COLUMN=updated_at / TYPE=timestamp with time zone / NULLABLE=NO
+
+----- SEARCH accounting.specialist_analysis_items -----
+TEXT_COLUMN_COUNT=1
+MATCH_COUNT=0
+
+TABLE=accounting.analysis_item_categories / EXISTS=true
+
+----- COLUMNS accounting.analysis_item_categories -----
+COLUMN_COUNT=8
+COLUMN=analysis_item_category_id / TYPE=bigint / NULLABLE=NO
+COLUMN=analysis_item_category_code / TYPE=character varying / NULLABLE=NO
+COLUMN=analysis_item_category_name / TYPE=character varying / NULLABLE=NO
+COLUMN=display_order / TYPE=integer / NULLABLE=NO
+COLUMN=is_active / TYPE=boolean / NULLABLE=NO
+COLUMN=description / TYPE=text / NULLABLE=YES
+COLUMN=created_at / TYPE=timestamp with time zone / NULLABLE=NO
+COLUMN=updated_at / TYPE=timestamp with time zone / NULLABLE=NO
+
+----- SEARCH accounting.analysis_item_categories -----
+TEXT_COLUMN_COUNT=3
+MATCH_COUNT=0
+
+============================================================
+companiesマスタ現物
+============================================================
+COMPANY_MASTER_ROW_COUNT=3
+{"company_id":"1","company_code":"HATO_DAIYA","company_name":"株式会社ハトダイヤ","company_short_name":"ハトダイヤ","display_order":1,"is_active":true,"description":null,"created_at":"2026-07-14T12:04:50.000Z","updated_at":"2026-07-14T12:04:50.000Z"}
+{"company_id":"2","company_code":"HD_ORIGIN_STYLE","company_name":"株式会社HDオリジンスタイル","company_short_name":"HDオリジンスタイル","display_order":2,"is_active":true,"description":null,"created_at":"2026-07-14T12:04:50.000Z","updated_at":"2026-07-14T12:04:50.000Z"}
+{"company_id":"3","company_code":"SAKAGUCHI_KATSUYASU_SHOTEN","company_name":"有限会社坂口勝康商店","company_short_name":"坂口勝康商店","display_order":3,"is_active":true,"description":null,"created_at":"2026-07-14T12:04:50.000Z","updated_at":"2026-07-14T12:04:50.000Z"}
+
+NODE_OVERALL_STATUS=SUCCESS

@@ -1,0 +1,58 @@
+============================================================
+company_id マスタ定義 現物確認 再実行
+============================================================
+NODE_FILE=G:\GITHUB\wix-test\hd-origin-project\00_GPT\company_id_master_actual_check_20260726_081029\check-company-id-master.js
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+NODE_EXIT_CODE=1
+
+============================================================
+NODE_STANDARD_OUTPUT
+============================================================
+【1. マスタ候補テーブル一覧】
+CANDIDATE_TABLE_COUNT=14
+TABLE=accounting.ai_prompt_definitions
+TABLE=accounting.analysis_data_types
+TABLE=accounting.analysis_item_categories
+TABLE=accounting.analysis_item_child_properties
+TABLE=accounting.analysis_items
+TABLE=accounting.analysis_storage_methods
+TABLE=accounting.payable_selection_masters
+TABLE=accounting.payment_document_analysis_values
+TABLE=accounting.payment_document_basic_analysis_results
+TABLE=accounting.payment_document_contract_insurance_lease_item_lines
+TABLE=accounting.payment_document_specialist_analysis_results
+TABLE=accounting.payment_document_specialist_analysis_runs
+TABLE=accounting.payment_document_utility_communication_line_items
+TABLE=accounting.specialist_analysis_items
+
+【2. company_id・会社項目を検索可能な列】
+
+【3. company_id・会社のマスタ登録値】
+
+
+============================================================
+NODE_STANDARD_ERROR
+============================================================
+
+NODE_OVERALL_STATUS=FAILED
+NODE_ERROR_TYPE=TypeError
+NODE_ERROR_MESSAGE=textColumns.map is not a function
+NODE_ERROR_STACK=TypeError: textColumns.map is not a function
+    at main (G:\GITHUB\wix-test\hd-origin-project\00_GPT\company_id_master_actual_check_20260726_081029\check-company-id-master.js:100:36)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+
+
+============================================================
+company_id マスタ定義 現物確認エラー
+============================================================
+FAILED_MESSAGE=Node.js確認処理が失敗しました。EXIT_CODE=1
+ERROR_TYPE=System.Management.Automation.RuntimeException
+ERROR_POSITION=発生場所 行:117 文字:9
++         throw "Node.js確認処理が失敗しました。EXIT_CODE=$ExitCode"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+OVERALL_STATUS=FAILED

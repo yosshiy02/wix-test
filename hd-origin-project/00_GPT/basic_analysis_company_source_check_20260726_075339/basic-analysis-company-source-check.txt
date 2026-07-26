@@ -1,0 +1,139 @@
+============================================================
+基礎解析 company_id 正式取得元確認
+============================================================
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+【1. payment_document_ocr_imports 全列】
+COLUMN=payment_document_ocr_import_id / TYPE=bigint / NULLABLE=NO
+COLUMN=document_key / TYPE=text / NULLABLE=NO
+COLUMN=original_file_name / TYPE=text / NULLABLE=NO
+COLUMN=saved_file_name / TYPE=text / NULLABLE=NO
+COLUMN=mime_type / TYPE=text / NULLABLE=NO
+COLUMN=size_bytes / TYPE=bigint / NULLABLE=NO
+COLUMN=sha256 / TYPE=text / NULLABLE=NO
+COLUMN=document_type / TYPE=text / NULLABLE=NO
+COLUMN=destination / TYPE=text / NULLABLE=NO
+COLUMN=source_type / TYPE=text / NULLABLE=NO
+COLUMN=vendor_name / TYPE=text / NULLABLE=NO
+COLUMN=note / TYPE=text / NULLABLE=NO
+COLUMN=email_subject / TYPE=text / NULLABLE=NO
+COLUMN=email_from / TYPE=text / NULLABLE=NO
+COLUMN=email_received_at / TYPE=text / NULLABLE=NO
+COLUMN=ocr_status / TYPE=text / NULLABLE=NO
+COLUMN=ocr_provider / TYPE=text / NULLABLE=NO
+COLUMN=ocr_api_version / TYPE=text / NULLABLE=NO
+COLUMN=ocr_at / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=ocr_raw_text / TYPE=text / NULLABLE=NO
+COLUMN=ocr_text_length / TYPE=integer / NULLABLE=NO
+COLUMN=ocr_error / TYPE=text / NULLABLE=NO
+COLUMN=process_status / TYPE=text / NULLABLE=NO
+COLUMN=save_status / TYPE=text / NULLABLE=NO
+COLUMN=evidence_saved / TYPE=boolean / NULLABLE=NO
+COLUMN=ocr_saved / TYPE=boolean / NULLABLE=NO
+COLUMN=saved_relative_path / TYPE=text / NULLABLE=NO
+COLUMN=saved_meta_relative_path / TYPE=text / NULLABLE=NO
+COLUMN=saved_at / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=saved_by_page / TYPE=text / NULLABLE=NO
+COLUMN=created_at / TYPE=timestamp with time zone / NULLABLE=NO
+COLUMN=updated_at / TYPE=timestamp with time zone / NULLABLE=NO
+COLUMN=deleted_at / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=sorted_at / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=支払書類OCR取込ID / TYPE=bigint / NULLABLE=YES
+COLUMN=書類キー / TYPE=text / NULLABLE=YES
+COLUMN=元ファイル名 / TYPE=text / NULLABLE=YES
+COLUMN=保存ファイル名 / TYPE=text / NULLABLE=YES
+COLUMN=MIME種類 / TYPE=text / NULLABLE=YES
+COLUMN=ファイルサイズ / TYPE=bigint / NULLABLE=YES
+COLUMN=ハッシュ値 / TYPE=text / NULLABLE=YES
+COLUMN=書類種類 / TYPE=text / NULLABLE=YES
+COLUMN=処理先 / TYPE=text / NULLABLE=YES
+COLUMN=取込元種類 / TYPE=text / NULLABLE=YES
+COLUMN=取引先名 / TYPE=text / NULLABLE=YES
+COLUMN=備考 / TYPE=text / NULLABLE=YES
+COLUMN=メール件名 / TYPE=text / NULLABLE=YES
+COLUMN=メール送信元 / TYPE=text / NULLABLE=YES
+COLUMN=メール受信日時 / TYPE=text / NULLABLE=YES
+COLUMN=OCR状態 / TYPE=text / NULLABLE=YES
+COLUMN=OCR提供元 / TYPE=text / NULLABLE=YES
+COLUMN=OCRAPI版 / TYPE=text / NULLABLE=YES
+COLUMN=OCR日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=OCR原文 / TYPE=text / NULLABLE=YES
+COLUMN=OCR文字数 / TYPE=integer / NULLABLE=YES
+COLUMN=OCRエラー / TYPE=text / NULLABLE=YES
+COLUMN=処理状態 / TYPE=text / NULLABLE=YES
+COLUMN=保存状態 / TYPE=text / NULLABLE=YES
+COLUMN=証憑保存済 / TYPE=boolean / NULLABLE=YES
+COLUMN=OCR保存済 / TYPE=boolean / NULLABLE=YES
+COLUMN=保存相対パス / TYPE=text / NULLABLE=YES
+COLUMN=メタ保存相対パス / TYPE=text / NULLABLE=YES
+COLUMN=保存日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=保存画面 / TYPE=text / NULLABLE=YES
+COLUMN=作成日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=更新日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=削除日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=仕分日時 / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=import_source_id / TYPE=bigint / NULLABLE=YES
+COLUMN=file_format_id / TYPE=bigint / NULLABLE=YES
+COLUMN=stored_file_reference / TYPE=text / NULLABLE=YES
+COLUMN=file_sha256 / TYPE=character varying / NULLABLE=YES
+COLUMN=ocr_result_json / TYPE=jsonb / NULLABLE=YES
+COLUMN=ocr_confidence / TYPE=numeric / NULLABLE=YES
+COLUMN=ocr_status_code / TYPE=character varying / NULLABLE=YES
+COLUMN=ocr_completed_at / TYPE=timestamp with time zone / NULLABLE=YES
+COLUMN=has_error / TYPE=boolean / NULLABLE=NO
+COLUMN=error_message / TYPE=text / NULLABLE=YES
+COLUMN=latest_basic_analysis_id / TYPE=bigint / NULLABLE=YES
+COLUMN=current_status / TYPE=text / NULLABLE=YES
+COLUMN=latest_specialist_analysis_id / TYPE=bigint / NULLABLE=YES
+
+【2. company_idを持つ証憑関連テーブル】
+TABLE=accounting.payment_document_basic_analysis_results / COLUMN=company_id
+
+【3. basic_analysis_results 外部キー】
+FK_COLUMN=company_id / REFERENCES=accounting.companies.company_id
+FK_COLUMN=document_type_id / REFERENCES=accounting.payment_document_types.document_type_id
+FK_COLUMN=payment_document_ocr_import_id / REFERENCES=accounting.payment_document_ocr_imports.payment_document_ocr_import_id
+FK_COLUMN=specialist_analysis_id / REFERENCES=accounting.payment_document_specialist_analyses.specialist_analysis_id
+
+【4. OCR取込ID 28～55の実レコード】
+OCR_ROW_COUNT=28
+{"payment_document_ocr_import_id":"28","document_key":"saved:saved/2026-07/20260718_182408_307_2026-07-18_11.11.02.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"29","document_key":"saved:saved/2026-07/20260717_000600_356_2026-07-05_10.37.03.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"30","document_key":"saved:saved/2026-07/20260716_220826_467_2026-07-01_21.59.06.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"31","document_key":"saved:saved/2026-07/20260718_190922_629_2026-07-09_13.35.32.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"32","document_key":"saved:saved/2026-07/20260717_220925_664_2026-07-06_16.26.05.pdf","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"33","document_key":"saved:saved/2026-07/20260717_221308_339_2026-07-06_07.24.29.pdf","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"34","document_key":"saved:saved/2026-07/20260717_221627_604_2026-07-05_10.37.03.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"35","document_key":"saved:saved/2026-07/20260717_215954_980_2026-07-03_13.56.30.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"36","document_key":"saved:saved/2026-07/20260717_220519_003_2026-07-03_13.56.30.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"37","document_key":"saved:saved/2026-07/20260717_221801_242_2026-07-03_13.56.30.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"38","document_key":"saved:saved/2026-07/20260717_221932_652_2026-07-02_14.26.31.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"39","document_key":"saved:saved/2026-07/20260717_222146_000_2026-07-02_14.26.31.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"40","document_key":"saved:saved/2026-07/20260717_223309_635_2026-07-01_22.03.41.png","document_type":"","source_type":"access_ocr_form","import_source_id":null,"current_status":"OCR待ち"}
+{"payment_document_ocr_import_id":"41","document_key":"saved:saved/2026-07/20260725_172335_306_IMG20260720170215409.jpg","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"42","document_key":"saved:saved/2026-07/20260725_172335_783_IMG20260720170822767.jpg","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"43","document_key":"saved:saved/2026-07/20260725_172334_949_IMG20260720170141596.jpg","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"44","document_key":"saved:saved/2026-07/20260718_182408_307_2026-07-18_11.11.02_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"45","document_key":"saved:saved/2026-07/20260717_000600_356_2026-07-05_10.37.03_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"46","document_key":"saved:saved/2026-07/20260716_220826_467_2026-07-01_21.59.06_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"47","document_key":"saved:saved/2026-07/20260718_190922_629_2026-07-09_13.35.32_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"48","document_key":"saved:saved/2026-07/20260717_220925_664_2026-07-06_16.26.05_2.pdf","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"49","document_key":"saved:saved/2026-07/20260717_221308_339_2026-07-06_07.24.29_2.pdf","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"50","document_key":"saved:saved/2026-07/20260717_221627_604_2026-07-05_10.37.03_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"51","document_key":"saved:saved/2026-07/20260717_215954_980_2026-07-03_13.56.30_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"52","document_key":"saved:saved/2026-07/20260717_220519_003_2026-07-03_13.56.30_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"53","document_key":"saved:saved/2026-07/20260717_221801_242_2026-07-03_13.56.30_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"54","document_key":"saved:saved/2026-07/20260717_221932_652_2026-07-02_14.26.31_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+{"payment_document_ocr_import_id":"55","document_key":"saved:saved/2026-07/20260717_222146_000_2026-07-02_14.26.31_2.png","document_type":"","source_type":"","import_source_id":null,"current_status":"基礎解析待ち"}
+
+【5. company_id関連FK一覧】
+TABLE=accounting.bank_transactions / COLUMN=company_id / REFERENCES=accounting.bank_accounts.bank_account_id
+TABLE=accounting.bank_transactions / COLUMN=company_id / REFERENCES=accounting.bank_accounts.company_id
+TABLE=accounting.payable_payments / COLUMN=company_id / REFERENCES=accounting.bank_accounts.bank_account_id
+TABLE=accounting.payable_payments / COLUMN=company_id / REFERENCES=accounting.bank_accounts.company_id
+TABLE=accounting.payment_document_basic_analysis_results / COLUMN=company_id / REFERENCES=accounting.companies.company_id
+
+OVERALL_STATUS=SUCCESS
