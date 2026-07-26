@@ -3453,6 +3453,52 @@ async function runSelectedAiDrafts() {
       reasonRaw
     };
   };
+  function restoreSavedBasicAnalysisToItem(item) {
+    if (!item || item.__aiDraft) {
+      return item;
+    }
+
+    const saved =
+      item.latestBasicAnalysis ||
+      item.latestSortingDraft ||
+      item.__savedSortingDraft ||
+      null;
+
+    if (!saved) {
+      return item;
+    }
+
+    const savedResult =
+      saved.sortResult ||
+      saved.sort_result ||
+      saved.visibleFields ||
+      saved.visible_fields ||
+      saved.rawResult ||
+      saved.raw_result ||
+      {};
+
+    const savedFields =
+      saved.visibleFields ||
+      saved.visible_fields ||
+      savedResult.fields ||
+      {};
+
+    item.__aiDraft = Object.assign(
+      {},
+      savedResult,
+      {
+        fields: savedFields
+      }
+    );
+
+    item.__visibleFieldLabels =
+      saved.visibleFieldLabels ||
+      saved.visible_field_labels ||
+      item.__visibleFieldLabels ||
+      [];
+
+    return item;
+  }
 
   window.updateSelectedSortingSummary = function() {
     const summary = document.getElementById("selectedSortingSummary");
@@ -3460,6 +3506,7 @@ async function runSelectedAiDrafts() {
 
     const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
     window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    (items || []).forEach(restoreSavedBasicAnalysisToItem);
     const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
     const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
 
@@ -3530,6 +3577,8 @@ async function runSelectedAiDrafts() {
     if (!list) return;
 
     list.innerHTML = (items || []).map((item, index) => {
+
+      restoreSavedBasicAnalysisToItem(item);
       const active = index === selectedIndex ? " active" : "";
       const name = item.originalFileName || item.fileName || "";
       const id = String(window.ocrImportIdOf(item) || "");
@@ -4183,14 +4232,8 @@ async function loadItems() {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
-    
-    // DBに保存されている過去のデータを items の __aiDraft としてメモリに復元する
-    if (item.latestSortingDraft && !item.__aiDraft) {
-        const pastSortResult = item.latestSortingDraft.sortResult || item.latestSortingDraft.visibleFields || {};
-        // 過去の保存データがあれば、それを AIの解析結果と同じ形式として扱う
-        item.__aiDraft = Object.assign({}, pastSortResult, { fields: item.latestSortingDraft.visibleFields || pastSortResult.fields || {} });
-    }
-
+    // DB保存済みの正式な基礎解析結果を画面メモリへ復元する
+    restoreSavedBasicAnalysisToItem(item);
     if (item && item.__aiDraft) {
       // 画面の日本語ラベル専用の復元関数に、AIの生データ（または保存されていた過去データ）を渡す
       if (typeof applyAiDraftToFormHardDebug === "function") {
