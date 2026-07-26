@@ -6266,6 +6266,20 @@ const saveDraft = Object.assign(
 
   async function saveSortingDraftFromReviewPage() {
     const payload = collectSortingDraftPayload();
+    const currentCompany =
+      hdOriginGetCurrentCompanyForPaymentDocument();
+
+    payload.company_id = Number(
+      currentCompany.company_id ||
+      currentCompany.companyId ||
+      0
+    );
+
+    payload.company_code = String(
+      currentCompany.company_code ||
+      currentCompany.companyCode ||
+      ""
+    ).trim();
 
     const res = await fetch("/api/payment-documents/sorting-drafts/save", {
       method: "POST",
