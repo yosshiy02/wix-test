@@ -6980,219 +6980,6 @@ function hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText) {
 }
 /* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_START */
-function hdOriginSortingDraftText(value) {
-  if (value === null || value === undefined) return "";
-
-  if (typeof value === "object") {
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return String(value);
-    }
-  }
-
-  return String(value).trim();
-}
-
-function hdOriginSortingDraftFirstObject(...items) {
-  for (const item of items) {
-    if (item && typeof item === "object" && !Array.isArray(item)) {
-      return item;
-    }
-  }
-
-  return {};
-}
-
-function hdOriginSortingDraftNumberOrNull(value) {
-  if (value === null || value === undefined || value === "") return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-
-function hdOriginSortingDraftRotation(value) {
-  const n = Number(value || 0);
-
-  if (![0, 90, 180, 270].includes(n)) {
-    return 0;
-  }
-
-  return n;
-}
-
-function hdOriginSortingDraftJson(value, fallback) {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
-
-  return value;
-}
-
-function hdOriginBuildSortingDraftSavePayload(body, ocrRow) {
-  const root =
-    hdOriginSortingDraftFirstObject(
-      body.sortResult,
-      body.sort_result,
-      body.sorting,
-      body.classification,
-      body.draft,
-      body.aiDraft,
-      body
-    );
-
-  const draft = hdOriginSortingDraftFirstObject(
-    body.draft,
-    body.aiDraft,
-    body.sorting,
-    body.classification,
-    root.draft,
-    root.sorting,
-    root.classification,
-    root
-  );
-
-  const aiSummary = hdOriginSortingDraftFirstObject(
-    body.ai_summary,
-    body.aiSummary,
-    draft.ai_summary,
-    draft.aiSummary,
-    root.ai_summary,
-    root.aiSummary
-  );
-
-  const visibleFields = hdOriginSortingDraftJson(
-    body.visibleFields || body.visible_fields || body.fields || draft.fields || {},
-    {}
-  );
-
-  const warnings = Array.isArray(body.warnings)
-    ? body.warnings
-    : Array.isArray(draft.warnings)
-      ? draft.warnings
-      : Array.isArray(root.warnings)
-        ? root.warnings
-        : [];
-
-  const now = new Date();
-  const z = n => String(n).padStart(2, "0");
-  const draftNo =
-    "PDSD-" +
-    String(ocrRow.payment_document_ocr_import_id) +
-    "-" +
-    String(now.getFullYear()) +
-    z(now.getMonth() + 1) +
-    z(now.getDate()) +
-    z(now.getHours()) +
-    z(now.getMinutes()) +
-    z(now.getSeconds());
-
-  return {
-    issue_date: (() => {
-      const value =
-        body.document_date ??
-        body.documentDate ??
-        draft.document_date ??
-        draft.documentDate ??
-        body.issue_date ??
-        body.issueDate ??
-        draft.issue_date ??
-        draft.issueDate ??
-        aiSummary.issue_date ??
-        aiSummary.issueDate ??
-        null;
-      if (value === null || value === undefined || value === "") return null;
-      const matched = String(value).trim().match(/^(\d{4}-\d{2}-\d{2})/);
-      return matched ? matched[1] : null;
-    })(),
-    payment_document_ocr_import_id: Number(ocrRow.payment_document_ocr_import_id),
-    draft_no: hdOriginSortingDraftText(body.draftNo || body.draft_no || draftNo),
-    draft_status: hdOriginSortingDraftText(body.draftStatus || body.draft_status || "draft_saved"),
-    human_check_status: hdOriginSortingDraftText(body.humanCheckStatus || body.human_check_status || "unchecked"),
-
-    document_type_id: hdOriginSortingDraftNumberOrNull(body.documentTypeId || body.document_type_id || draft.document_type_id),
-    document_type_code: hdOriginSortingDraftText(draft.document_type_code || body.document_type_code),
-    document_type_label: hdOriginSortingDraftText(
-      draft.document_type_label || body.document_type_label
-    ),
-
-    payment_destination_id: hdOriginSortingDraftNumberOrNull(body.paymentDestinationId || body.payment_destination_id || draft.payment_destination_id),
-    payment_destination_code: hdOriginSortingDraftText(
-      draft.payment_destination_code || body.payment_destination_code
-    ),
-    payment_destination_label: hdOriginSortingDraftText(
-      draft.payment_destination_label || body.payment_destination_label
-    ),
-
-    accounting_category_id: hdOriginSortingDraftNumberOrNull(body.accountingCategoryId || body.accounting_category_id || draft.accounting_category_id),
-    accounting_category_code: hdOriginSortingDraftText(
-      draft.accounting_category_code || body.accounting_category_code
-    ),
-    accounting_category_label: hdOriginSortingDraftText(
-      draft.accounting_category_label || body.accounting_category_label
-    ),
-
-    payable_kind_id: null,
-    payable_kind_code: "",
-    payable_kind_label: "",
-
-    specialist_route_code: "",
-    specialist_route_label: "",
-
-    analysis_system_code: hdOriginSortingDraftText(
-      draft.analysis_system_code || body.analysis_system_code
-    ),
-    analysis_system_label: hdOriginSortingDraftText(draft.analysis_system_label || body.analysis_system_label),
-    analysis_system_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
-    analysis_system_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
-
-    payment_target_label: hdOriginSortingDraftText(body.paymentTargetLabel || body.payment_target_label || aiSummary.payment_target),
-    payable_target_label: hdOriginSortingDraftText(body.payableTargetLabel || body.payable_target_label || aiSummary.payable_target),
-    expense_target_label: hdOriginSortingDraftText(body.expenseTargetLabel || body.expense_target_label || aiSummary.expense_target),
-    tax_public_label: hdOriginSortingDraftText(body.taxPublicLabel || body.tax_public_label || aiSummary.tax_public),
-    public_utility_label: hdOriginSortingDraftText(body.publicUtilityLabel || body.public_utility_label || aiSummary.public_utility),
-    contract_insurance_lease_label: hdOriginSortingDraftText(body.contractInsuranceLeaseLabel || body.contract_insurance_lease_label || aiSummary.contract_insurance_lease),
-
-    ai_confidence: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
-    ai_confidence_label: hdOriginSortingDraftText(draft.analysis_system_confidence || body.analysis_system_confidence),
-    ai_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
-    review_reason: hdOriginSortingDraftText(draft.analysis_system_reason || body.analysis_system_reason),
-    needs_review:
-      typeof body.needs_review === "boolean"
-        ? body.needs_review
-        : typeof body.needsReview === "boolean"
-          ? body.needsReview
-          : typeof draft.needs_review === "boolean"
-            ? draft.needs_review
-            : typeof root.needs_review === "boolean"
-              ? root.needs_review
-              : false,
-
-    ai_summary_json: aiSummary,
-    sort_result_json: hdOriginSortingDraftJson(body.sortResult || body.sort_result || body.sorting || root, {}),
-    visible_fields_json: visibleFields,
-    human_corrections_json: hdOriginSortingDraftJson(body.humanCorrections || body.human_corrections || {}, {}),
-    warnings_json: warnings,
-
-    original_file_name: hdOriginSortingDraftText(ocrRow.original_file_name || body.originalFileName || body.original_file_name),
-    saved_file_name: hdOriginSortingDraftText(ocrRow.saved_file_name || body.savedFileName || body.saved_file_name),
-    saved_relative_path: hdOriginSortingDraftText(ocrRow.saved_relative_path || body.savedRelativePath || body.saved_relative_path),
-    sha256: hdOriginSortingDraftText(ocrRow.sha256 || body.sha256),
-    ocr_text_length: Number(ocrRow.ocr_text_length || body.ocrTextLength || body.ocr_text_length || 0),
-
-    display_rotation: hdOriginSortingDraftRotation(body.displayRotation || body.display_rotation),
-
-    memo: hdOriginSortingDraftText(body.memo),
-    created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
-    created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
-    updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
-  };
-}
-
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
-
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
-/* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
 function hdOriginCilText(value) {
   if (value === null || value === undefined) return "";
 
@@ -10736,7 +10523,8 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const inserted = await client.query(`
         INSERT INTO accounting.payment_document_specialist_analysis_results (
-          payment_document_ocr_import_id,analysis_system_code,
+          payment_document_ocr_import_id,
+analysis_system_code,
           analysis_system_label,
           specialist_analysis_status,
           ai_confidence,
@@ -10753,13 +10541,15 @@ async function handlePaymentDocumentRoutes(req, res) {
         )
         RETURNING
           specialist_analysis_id,
-          payment_document_ocr_import_id,analysis_system_code,
+          payment_document_ocr_import_id,
+analysis_system_code,
           analysis_system_label,
           specialist_analysis_status,
           created_at,
           updated_at
       `, [
-        ocrImportId,        analysisSystemCode,
+        ocrImportId,
+        analysisSystemCode,
         analysisSystemLabel,
         specialistStatus,
         aiConfidence,
@@ -11699,7 +11489,6 @@ specialistAnalysisId:
             specialistMoved.rowCount;
         }
 
-        let sortingDraftCount = 0;
 
         await client.query("COMMIT");
 
@@ -11718,8 +11507,6 @@ specialistAnalysisId:
           movedSpecialistResultCount:
             specialistResultCount,
 
-          movedSortingDraftCount:
-            sortingDraftCount
         });
 
         return true;

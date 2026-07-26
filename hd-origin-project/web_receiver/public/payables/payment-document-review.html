@@ -99,7 +99,7 @@
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
-        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveSortingDrafts()">まとめて保存</button>
+        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveBasicAnalysisResults()">まとめて保存</button>
 <!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
@@ -2687,8 +2687,8 @@ function setDocumentPreview(item) {
       // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
       let savedInfo = " (保存に失敗しました)";
       try {
-          if (typeof window.hdOriginSaveSortingDraftFromReviewPage === "function") {
-              await window.hdOriginSaveSortingDraftFromReviewPage();
+          if (typeof window.hdOriginSaveBasicAnalysisResultFromReviewPage === "function") {
+              await window.hdOriginSaveBasicAnalysisResultFromReviewPage();
               savedInfo = " (結果を自動保存しました)";
           } else if (typeof scheduleAutoSave === "function") {
               scheduleAutoSave("ai");
@@ -3096,18 +3096,18 @@ async function runAiDraftForItemIndex(index, options = {}) {
 
       if (
         typeof window
-          .hdOriginRunSortingDraftAutoSave
+          .hdOriginRunBasicAnalysisAutoSave
         !== "function"
       ) {
         throw new Error(
-          "仕分け下書き自動保存関数が" +
+          "基礎解析自動保存関数が" +
           "見つかりません。"
         );
       }
 
       const autoSaved =
         await window
-          .hdOriginRunSortingDraftAutoSave(
+          .hdOriginRunBasicAnalysisAutoSave(
             "ai"
           );
 
@@ -3808,18 +3808,18 @@ async function runSelectedAiDrafts() {
 
       if (
         typeof window
-          .hdOriginRunSortingDraftAutoSave
+          .hdOriginRunBasicAnalysisAutoSave
         !== "function"
       ) {
         throw new Error(
-          "仕分け下書き自動保存関数が" +
+          "基礎解析自動保存関数が" +
           "見つかりません。"
         );
       }
 
       const autoSaved =
         await window
-          .hdOriginRunSortingDraftAutoSave(
+          .hdOriginRunBasicAnalysisAutoSave(
             "ai"
           );
 
@@ -5586,11 +5586,11 @@ count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_tar
 (function () {
   "use strict";
 
-  if (window.__hdOriginSortingDraftSaveUiInstalled) {
+  if (window.__hdOriginBasicAnalysisSaveUiInstalled) {
     return;
   }
 
-  window.__hdOriginSortingDraftSaveUiInstalled = true;
+  window.__hdOriginBasicAnalysisSaveUiInstalled = true;
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -6348,11 +6348,11 @@ const saveDraft = Object.assign(
     event.preventDefault();
     event.stopPropagation();
 
-    if (button.dataset.hdOriginSortingDraftSaving === "1") {
+    if (button.dataset.hdOriginBasicAnalysisSaving === "1") {
       return;
     }
 
-    button.dataset.hdOriginSortingDraftSaving = "1";
+    button.dataset.hdOriginBasicAnalysisSaving = "1";
 
     const originalText = button.textContent;
 
@@ -6369,7 +6369,7 @@ const saveDraft = Object.assign(
 
       console.log("HD Origin sorting draft saved:", result);
 
-      alert("仕分け下書きを保存しました。\n専門解析ID: " + (result.specialistAnalysisId || ""));
+      alert("基礎解析結果を保存しました。\n専門解析ID: " + (result.specialistAnalysisId || ""));
     } catch (err) {
       console.error("HD Origin sorting draft save failed:", err);
 
@@ -6380,7 +6380,7 @@ const saveDraft = Object.assign(
       alert("下書き保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
     } finally {
       setTimeout(function () {
-        button.dataset.hdOriginSortingDraftSaving = "0";
+        button.dataset.hdOriginBasicAnalysisSaving = "0";
 
         if ((button.textContent || "").includes("保存中")) {
           button.textContent = originalText || "下書き保存";
@@ -6389,7 +6389,7 @@ const saveDraft = Object.assign(
     }
   }, true);
 
-  window.hdOriginSaveSortingDraftFromReviewPage = saveBasicAnalysisResultFromReviewPage;
+  window.hdOriginSaveBasicAnalysisResultFromReviewPage = saveBasicAnalysisResultFromReviewPage;
 })();
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
@@ -6398,11 +6398,11 @@ const saveDraft = Object.assign(
 (function () {
   "use strict";
 
-  if (window.__hdOriginBulkSortingDraftSaveInstalled) {
+  if (window.__hdOriginBulkBasicAnalysisSaveInstalled) {
     return;
   }
 
-  window.__hdOriginBulkSortingDraftSaveInstalled = true;
+  window.__hdOriginBulkBasicAnalysisSaveInstalled = true;
   window.hdOriginBasicAnalysisBulkCache = window.hdOriginBasicAnalysisBulkCache || {};
 
   function textValue(value) {
@@ -6448,8 +6448,8 @@ const saveDraft = Object.assign(
     };
   }
 
-  if (!window.__hdOriginBulkSortingDraftFetchPatched && window.fetch) {
-    window.__hdOriginBulkSortingDraftFetchPatched = true;
+  if (!window.__hdOriginBulkBasicAnalysisFetchPatched && window.fetch) {
+    window.__hdOriginBulkBasicAnalysisFetchPatched = true;
 
     const originalFetch = window.fetch.bind(window);
 
@@ -6555,11 +6555,11 @@ const saveDraft = Object.assign(
       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
 
       display_rotation: 0,
-      memo: "まとめて保存ボタンから仕分け下書き保存"
+      memo: "まとめて保存ボタンから基礎解析結果保存"
     };
   }
 
-  async function postSortingDraft(payload) {
+  async function postBasicAnalysisResult(payload) {
     const res = await fetch("/api/payment-documents/basic-analysis-results/save", {
       method: "POST",
       headers: {
@@ -6579,7 +6579,7 @@ const saveDraft = Object.assign(
     return json;
   }
 
-  async function bulkSaveSortingDrafts() {
+  async function bulkSaveBasicAnalysisResults() {
     let ids = getSelectedOcrIds();
 
     if (ids.length === 0) {
@@ -6606,7 +6606,7 @@ const saveDraft = Object.assign(
 
       try {
         const payload = buildBasicAnalysisPayloadFromCachedResult(id, cached);
-        const saved = await postSortingDraft(payload);
+        const saved = await postBasicAnalysisResult(payload);
 
         ok.push({
           id,
@@ -6624,8 +6624,8 @@ const saveDraft = Object.assign(
   }
 
   function ensureBulkSaveButton() {
-    if (document.getElementById("bulkSaveSortingDraftButton")) {
-      return document.getElementById("bulkSaveSortingDraftButton");
+    if (document.getElementById("bulkSaveBasicAnalysisButton")) {
+      return document.getElementById("bulkSaveBasicAnalysisButton");
     }
 
     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
@@ -6640,7 +6640,7 @@ const saveDraft = Object.assign(
 
     const button = document.createElement("button");
     button.type = "button";
-    button.id = "bulkSaveSortingDraftButton";
+    button.id = "bulkSaveBasicAnalysisButton";
     button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
     button.textContent = "まとめて保存";
 
@@ -6650,7 +6650,7 @@ const saveDraft = Object.assign(
   }
 
   document.addEventListener("click", async function (event) {
-    const button = event.target.closest("#bulkSaveSortingDraftButton");
+    const button = event.target.closest("#bulkSaveBasicAnalysisButton");
 
     if (!button) {
       return;
@@ -6669,7 +6669,7 @@ const saveDraft = Object.assign(
       button.dataset.saving = "1";
       button.textContent = "まとめて保存中...";
 
-      const result = await bulkSaveSortingDrafts();
+      const result = await bulkSaveBasicAnalysisResults();
 
       button.textContent = "まとめて保存";
 
@@ -6697,7 +6697,7 @@ const saveDraft = Object.assign(
     ensureBulkSaveButton();
   }
 
-  window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
+  window.hdOriginBulkSaveBasicAnalysisResults = bulkSaveBasicAnalysisResults;
 })();
 /* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
@@ -6709,8 +6709,8 @@ const saveDraft = Object.assign(
 (function () {
   "use strict";
 
-  if (window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled) return;
-  window.__hdOriginSortingDraftAutoSaveGpt00FixedInstalled = true;
+  if (window.__hdOriginBasicAnalysisAutoSaveGpt00FixedInstalled) return;
+  window.__hdOriginBasicAnalysisAutoSaveGpt00FixedInstalled = true;
 
   var autoSaveTimer = null;
   var autoSaveRunning = false;
@@ -6782,7 +6782,7 @@ const saveDraft = Object.assign(
   }
 
   function saveFunctionReady() {
-    return typeof window.hdOriginSaveSortingDraftFromReviewPage === "function";
+    return typeof window.hdOriginSaveBasicAnalysisResultFromReviewPage === "function";
   }
 
   async function runAutoSave(reason) {
@@ -6816,9 +6816,9 @@ const saveDraft = Object.assign(
       /*
         重要:
         collectBasicAnalysisResultPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
-        既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
+        既存側が window に公開している hdOriginSaveBasicAnalysisResultFromReviewPage を呼ぶ。
       */
-      var saved = await window.hdOriginSaveSortingDraftFromReviewPage();
+      var saved = await window.hdOriginSaveBasicAnalysisResultFromReviewPage();
 
       setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
 
@@ -6870,13 +6870,13 @@ const saveDraft = Object.assign(
     if (
       button &&
       button.getAttribute &&
-      button.getAttribute("onclick") === "runBulkSaveSortingDrafts()"
+      button.getAttribute("onclick") === "runBulkSaveBasicAnalysisResults()"
     ) {
       return false;
     }
     if (!button) return false;
 
-    if (button.id === "bulkSaveSortingDraftButton") return true;
+    if (button.id === "bulkSaveBasicAnalysisButton") return true;
     if (button.classList && button.classList.contains("hd-origin-bulk-save-sorting-draft")) return true;
 
     var t = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
@@ -6971,8 +6971,8 @@ const saveDraft = Object.assign(
     subtree: true
   });
 
-  window.hdOriginRunSortingDraftAutoSave = runAutoSave;
-  window.hdOriginScheduleSortingDraftAutoSave = scheduleAutoSave;
+  window.hdOriginRunBasicAnalysisAutoSave = runAutoSave;
+  window.hdOriginScheduleBasicAnalysisAutoSave = scheduleAutoSave;
 })();
 </script>
 <!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
@@ -7050,11 +7050,13 @@ const saveDraft = Object.assign(
   function aiDraftOf(item) {
     if (!item) return {};
 
+    var basicAnalysis = item.latestBasicAnalysis || item.latest_basic_analysis || {};
+    var basicRawResult = basicAnalysis.rawResult || basicAnalysis.raw_result || {};
+
     return item.__aiDraft ||
       item.aiDraft ||
       item.ai_draft ||
-      item.sortingDraft ||
-      item.sorting_draft ||
+      basicRawResult.draft ||
       item.draft ||
       {};
   }
@@ -7621,19 +7623,18 @@ const saveDraft = Object.assign(
   }
 
   function dbDraftOf(item, fetchedDraft) {
-    return fetchedDraft ||
-      (item && item.latestSortingDraft) ||
-      (item && item.__savedSortingDraft) ||
-      null;
+    var basicAnalysis = item && item.latestBasicAnalysis;
+    var rawResult = basicAnalysis && (basicAnalysis.rawResult || basicAnalysis.raw_result);
+    return fetchedDraft || (rawResult && rawResult.draft) || null;
   }
 
   function addDbDraftFields(fields, item, draft, prefix) {
     var name = itemName(item);
     var id = itemId(item);
-    var base = prefix || "DB最新仕分け下書き";
+    var base = prefix || "DB正式基礎解析結果";
 
     if (!draft) {
-      pushField(fields, base, "DB保存状態", "db_found", "DB最新仕分け下書きなし", "database_latest_specialist_analysis");
+      pushField(fields, base, "DB保存状態", "db_found", "DB正式基礎解析結果なし", "database_latest_specialist_analysis");
       return;
     }
 
@@ -7652,8 +7653,6 @@ const saveDraft = Object.assign(
     pushField(fields, base, "OCR取込ID", "paymentDocumentOcrImportId", id || draft.paymentDocumentOcrImportId || "", "database_latest_specialist_analysis");
     pushField(fields, base, "ファイル名", "originalFileName", name, "database_latest_specialist_analysis");
     pushField(fields, base, "専門解析ID", "specialistAnalysisId", draft.specialistAnalysisId || draft.specialist_analysis_id || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "下書き番号", "draftNo", draft.draftNo || draft.draft_no || "", "database_latest_specialist_analysis");
-    pushField(fields, base, "下書き状態", "draftStatus", draft.draftStatus || draft.draft_status || "", "database_latest_specialist_analysis");
     pushField(fields, base, "人間確認状態", "humanCheckStatus", draft.humanCheckStatus || draft.human_check_status || "", "database_latest_specialist_analysis");
 
     pushField(fields, base + " / AI仕分け", "書類区分", "documentTypeLabel", draft.documentTypeLabel || draft.document_type_label || masterName(masterRowForCode("document_types", draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "")) || draft.documentTypeCode || draft.document_type_code || sortResultObject.document_type_code || "", "database_latest_specialist_analysis");
@@ -7719,12 +7718,13 @@ const saveDraft = Object.assign(
 
       showResultLocal({
         ok: true,
-        message: "表示中の項目とDB最新下書きをmemoへ出します。",
+        message: "表示中の項目とDB正式基礎解析結果をmemoへ出します。",
         selectedOcrImportId: id
       });
 
-      var latest = await fetchJson("/api/payment-documents/sorting-drafts/by-ocr-import/" + encodeURIComponent(String(id)));
-      var dbDraft = dbDraftOf(item, latest.draft);
+      var basicAnalysis = item && item.latestBasicAnalysis && typeof item.latestBasicAnalysis === "object" ? item.latestBasicAnalysis : {};
+      var basicRawResult = basicAnalysis.rawResult && typeof basicAnalysis.rawResult === "object" ? basicAnalysis.rawResult : (basicAnalysis.raw_result && typeof basicAnalysis.raw_result === "object" ? basicAnalysis.raw_result : {});
+      var dbDraft = basicRawResult.draft && typeof basicRawResult.draft === "object" ? basicRawResult.draft : {};
 
       var screenFields = collectScreenVisibleFields();
       var fields = [];
@@ -7733,7 +7733,7 @@ const saveDraft = Object.assign(
         fields.push(field);
       });
 
-      addDbDraftFields(fields, item, dbDraft, "DB最新仕分け下書き");
+      addDbDraftFields(fields, item, dbDraft, "DB正式基礎解析結果");
 
       var ocr = itemOcrText(item);
 
@@ -7754,7 +7754,7 @@ const saveDraft = Object.assign(
         } : null,
         ocrRawText: ocr,
         ocrTextLength: ocr.length,
-        dbLatestSortingDraftFound: !!dbDraft,
+        dbLatestBasicAnalysisFound: !!dbDraft,
         screenVisibleFieldCount: screenFields.length,
         fields: fields
       };
@@ -7763,7 +7763,7 @@ const saveDraft = Object.assign(
 
       showResultLocal({
         ok: true,
-        message: "表示中の項目 + DB最新下書きをmemoへ出しました。",
+        message: "表示中の項目 + DB正式基礎解析結果をmemoへ出しました。",
         count: data.count,
         memoPath: data.memoPath,
         openedNotepad: data.openedNotepad
@@ -7793,7 +7793,7 @@ const saveDraft = Object.assign(
     try {
       showResultLocal({
         ok: true,
-        message: "DBから全件の最新仕分け下書きを読み直してmemoへ出します。"
+        message: "一覧内の全件正式基礎解析結果をmemoへ出します。"
       });
 
       var data = await fetchJson("/api/payment-documents/review-items");
@@ -7818,7 +7818,7 @@ const saveDraft = Object.assign(
         if (draft) dbDraftCount++;
         if (ocr) ocrCount++;
 
-        var section = "全件DB最新仕分け下書き / " + no + " / " + name;
+        var section = "全件DB正式基礎解析結果 / " + no + " / " + name;
 
         addDbDraftFields(fields, item, draft, section);
 
@@ -7826,7 +7826,7 @@ const saveDraft = Object.assign(
           "==============================\n" +
           no + " " + name + "\n" +
           "OCR取込ID: " + id + "\n" +
-          "DB最新下書き: " + (draft ? "あり" : "なし") + "\n" +
+          "DB正式基礎解析結果: " + (draft ? "あり" : "なし") + "\n" +
           "==============================\n" +
           (ocr || "[OCR本文なし]")
         );
@@ -7852,7 +7852,7 @@ const saveDraft = Object.assign(
         ocrRawText: allOcrText,
         ocrTextLength: allOcrText.length,
         allItemCount: list.length,
-        allDbLatestSortingDraftCount: dbDraftCount,
+        allDbLatestBasicAnalysisCount: dbDraftCount,
         allOcrCount: ocrCount,
         fields: fields
       };
@@ -7861,7 +7861,7 @@ const saveDraft = Object.assign(
 
       showResultLocal({
         ok: true,
-        message: "DB全件最新下書きをmemoへ出しました。",
+        message: "DB全件正式基礎解析結果をmemoへ出しました。",
         itemCount: list.length,
         dbDraftCount: dbDraftCount,
         ocrCount: ocrCount,
@@ -7944,17 +7944,21 @@ const saveDraft = Object.assign(
   function analysisSystemCodeOf(item) {
     const source = objectValue(item);
 
-    const latest = objectValue(
-      source.latestSortingDraft ||
-      source.latest_sorting_draft
+    const basicAnalysis = objectValue(
+      source.latestBasicAnalysis ||
+      source.latest_basic_analysis
     );
 
-    const saved = objectValue(
-      source.__savedSortingDraft ||
-      source.savedSortingDraft ||
-      source.sortingDraft ||
-      source.sorting_draft
+    const basicRawResult = objectValue(
+      basicAnalysis.rawResult ||
+      basicAnalysis.raw_result
     );
+
+    const latest = objectValue(
+      basicRawResult.draft
+    );
+
+    const saved = {};
 
     const draft = objectValue(
       source.__aiDraft ||
@@ -8192,7 +8196,7 @@ const saveDraft = Object.assign(
 })();
 
 /* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
-async function runBulkSaveSortingDrafts() {
+async function runBulkSaveBasicAnalysisResults() {
   const button = document.querySelector(".sorting-bulk-save");
 
   if (button) {
@@ -8223,7 +8227,7 @@ async function runBulkSaveSortingDrafts() {
       "件"
     );
 
-    const result = await bulkSaveSortingDrafts();
+    const result = await bulkSaveBasicAnalysisResults();
 
     const succeeded =
       result && Array.isArray(result.ok)
