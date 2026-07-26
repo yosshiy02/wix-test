@@ -3257,6 +3257,8 @@ async function runSelectedAiDrafts() {
   }
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_START */
   window.__checkedOcrImportIds = window.__checkedOcrImportIds || new Set();
+  window.__expandedOcrImportIds = window.__expandedOcrImportIds || new Set();
+
   window.ocrImportIdOf = function(item) {
     if (!item) return "";
     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.ocrImportId || item.id || "";
@@ -3460,6 +3462,8 @@ async function runSelectedAiDrafts() {
 
     const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
     window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
+    window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
+
     const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
     const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
 
@@ -3487,6 +3491,27 @@ async function runSelectedAiDrafts() {
     window.updateSelectedSortingSummary();
   };
 
+  window.toggleSortingAccordion = function(index, event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const item = items[index];
+    const id = String(window.ocrImportIdOf(item) || "");
+
+    if (!id) return;
+
+    const alreadyOpen = window.__expandedOcrImportIds.has(id);
+
+    window.__expandedOcrImportIds.clear();
+
+    if (!alreadyOpen) {
+      window.__expandedOcrImportIds.add(id);
+    }
+
+    window.renderSortingList();
+  };
+
   window.selectSortingSummary = function(index, event) {
     if (event) {
       event.preventDefault();
@@ -3499,6 +3524,7 @@ async function runSelectedAiDrafts() {
       selectItem(index);
     }
 
+    window.toggleSortingAccordion(index);
   };
 
   window.selectAllSortingItems = function() {
@@ -3543,7 +3569,7 @@ async function runSelectedAiDrafts() {
 
       return `
         <div class="sorting-item-card ${visual.rowClass}${active}">
-          <div class="sorting-row-head">
+          <div class="sorting-accordion-head">
             <input
               type="checkbox"
               class="sorting-check"
@@ -3810,6 +3836,15 @@ async function runSelectedAiDrafts() {
       }
 
       if (
+        window.__expandedOcrImportIds &&
+        typeof window.__expandedOcrImportIds.clear
+        === "function"
+      ) {
+        window.__expandedOcrImportIds.clear();
+        window.__expandedOcrImportIds.add(id);
+      }
+
+      if (
         typeof window.renderSortingList
         === "function"
       ) {
@@ -3925,6 +3960,7 @@ async function runSelectedAiDrafts() {
       window.renderSortingList();
     }
 
+    window.__expandedOcrImportIds.clear();
     window.renderSortingList();
 
     const grouped = results
