@@ -1,0 +1,218 @@
+============================================================
+ai-draft 全呼出箇所 現物確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-review.html
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+AI_DRAFT_MATCH_COUNT=3
+
+============================================================
+MATCH_NO=1
+AI_DRAFT_LINE=2583
+OWNER_FUNCTION_LINE=2572
+OWNER_FUNCTION=async function runAiDraftFromSelectedOcr() {
+DISPLAY_LINES=2553-2613
+============================================================
+    2553:         const hasValue = !!getFieldValue(control);
+    2554:         const shouldShow = hasValue || visibleSet.has(labelText);
+    2555: 
+    2556:         if (shouldShow) {
+    2557:           label.classList.remove("ai-field-hidden");
+    2558:           sectionHasVisibleField = true;
+    2559:         } else {
+    2560:           label.classList.add("ai-field-hidden");
+    2561:         }
+    2562:       });
+    2563: 
+    2564:       if (sectionHasVisibleField) {
+    2565:         section.classList.remove("ai-section-hidden");
+    2566:       } else {
+    2567:         section.classList.add("ai-section-hidden");
+    2568:       }
+    2569:     });
+    2570:   }
+    2571: /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+F   2572:   async function runAiDraftFromSelectedOcr() {
+    2573:     const id = selectedOcrImportId();
+    2574: 
+    2575:     if (!id) {
+    2576:       showResult("左リストからDB保存済みOCRを選択してください。");
+    2577:       return;
+    2578:     }
+    2579: 
+    2580:     showResult("AI基礎解析（1回目・2回目）を実行しています。画像は送信しません。");
+    2581: 
+    2582:     try {
+>   2583:       const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+    2584:         method: "POST",
+    2585:         headers: { "Content-Type": "application/json" }
+    2586:       });
+    2587: 
+    2588:       const data = await res.json();
+    2589: 
+    2590:       if (!data.ok) {
+    2591:         showResult(data);
+    2592:         return;
+    2593:       }
+    2594:       
+    2595:       /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_START */
+    2596:       const preservedVisibleFieldLabels =
+    2597:         Array.isArray(data.visible_field_labels)
+    2598:           ? data.visible_field_labels.slice()
+    2599:           : (
+    2600:               data.draft &&
+    2601:               Array.isArray(data.draft.visible_field_labels)
+    2602:                 ? data.draft.visible_field_labels.slice()
+    2603:                 : []
+    2604:             );
+    2605: 
+    2606:       if (
+    2607:         data.draft &&
+    2608:         typeof data.draft === "object" &&
+    2609:         !Array.isArray(data.draft)
+    2610:       ) {
+    2611:         data.draft.visible_field_labels =
+    2612:           preservedVisibleFieldLabels;
+    2613: 
+
+============================================================
+MATCH_NO=2
+AI_DRAFT_LINE=2942
+OWNER_FUNCTION_LINE=2884
+OWNER_FUNCTION=async function runAiDraftForItemIndex(index, options = {}) {
+DISPLAY_LINES=2912-2972
+============================================================
+    2912:       item.fileName ||
+    2913:       ("No." + (index + 1));
+    2914: 
+    2915:     if (!id) {
+    2916:       const error =
+    2917:         "OCR保存IDがないため解析できません。";
+    2918: 
+    2919:       showResult(error);
+    2920: 
+    2921:       return {
+    2922:         ok: false,
+    2923:         name,
+    2924:         error
+    2925:       };
+    2926:     }
+    2927: 
+    2928:     if (!options.silent) {
+    2929:       showResult(
+    2930:         "単品仕分け中: " +
+    2931:         name +
+    2932:         "\n" +
+    2933:         "マスタ駆動AIの1回目解析と" +
+    2934:         "2回目解析を実行しています。" +
+    2935:         "3回目の専門解析は実行しません。" +
+    2936:         "画像は送信しません。"
+    2937:       );
+    2938:     }
+    2939: 
+    2940:     try {
+    2941:       const res = await fetch(
+>   2942:         "/api/payment-documents/ai-draft/" +
+    2943:         encodeURIComponent(id),
+    2944:         {
+    2945:           method: "POST",
+    2946:           headers: {
+    2947:             "Content-Type":
+    2948:               "application/json"
+    2949:           }
+    2950:         }
+    2951:       );
+    2952: 
+    2953:       const data = await res.json();
+    2954: 
+    2955:       if (!res.ok || !data.ok) {
+    2956:         const error =
+    2957:           data.error ||
+    2958:           data.message ||
+    2959:           (
+    2960:             "マスタ駆動AI解析に失敗しました。" +
+    2961:             " HTTP=" +
+    2962:             res.status
+    2963:           );
+    2964: 
+    2965:         showResult({
+    2966:           ok: false,
+    2967:           name,
+    2968:           error,
+    2969:           data
+    2970:         });
+    2971: 
+    2972:         return {
+
+============================================================
+MATCH_NO=3
+AI_DRAFT_LINE=3635
+OWNER_FUNCTION_LINE=3577
+OWNER_FUNCTION=window.runAiDraftForItemIndex = async function(index, options = {}) {
+DISPLAY_LINES=3605-3665
+============================================================
+    3605:       item.fileName ||
+    3606:       ("No." + (index + 1));
+    3607: 
+    3608:     if (!id) {
+    3609:       const error =
+    3610:         "OCR保存IDがないため解析できません。";
+    3611: 
+    3612:       showResult(error);
+    3613: 
+    3614:       return {
+    3615:         ok: false,
+    3616:         name,
+    3617:         error
+    3618:       };
+    3619:     }
+    3620: 
+    3621:     if (!options.silent) {
+    3622:       showResult(
+    3623:         "単品仕分け中: " +
+    3624:         name +
+    3625:         "\n" +
+    3626:         "マスタ駆動AIの1回目解析と" +
+    3627:         "2回目解析を実行しています。" +
+    3628:         "3回目の専門解析は実行しません。" +
+    3629:         "画像は送信しません。"
+    3630:       );
+    3631:     }
+    3632: 
+    3633:     try {
+    3634:       const res = await fetch(
+>   3635:         "/api/payment-documents/ai-draft/" +
+    3636:         encodeURIComponent(id),
+    3637:         {
+    3638:           method: "POST",
+    3639:           headers: {
+    3640:             "Content-Type":
+    3641:               "application/json"
+    3642:           }
+    3643:         }
+    3644:       );
+    3645: 
+    3646:       const data = await res.json();
+    3647: 
+    3648:       if (!res.ok || !data.ok) {
+    3649:         const error =
+    3650:           data.error ||
+    3651:           data.message ||
+    3652:           (
+    3653:             "マスタ駆動AI解析に失敗しました。" +
+    3654:             " HTTP=" +
+    3655:             res.status
+    3656:           );
+    3657: 
+    3658:         showResult({
+    3659:           ok: false,
+    3660:           name,
+    3661:           error,
+    3662:           data
+    3663:         });
+    3664: 
+    3665:         return {
+
+OVERALL_STATUS=SUCCESS

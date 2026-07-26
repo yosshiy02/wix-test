@@ -1,0 +1,51 @@
+============================================================
+Stage1 classification生成箇所 現物確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+FUNCTION_START_LINE=4953
+FUNCTION_END_LINE=5877
+NORMALIZE_MATCH_COUNT=1
+
+============================================================
+MATCH_LINE=5009
+DISPLAY_LINES=4997-5029
+============================================================
+    4997:     })
+    4998:   );
+    4999: 
+    5000:   const classificationResponse = await callPaymentDocumentOpenAiJson(
+    5001:     classificationPrompt,
+    5002:     loadPaymentDocumentPromptText(
+    5003:       "classification.system.txt",
+    5004:       "OCR本文だけから、支払書類の分類JSONを作成してください。必ずJSONのみを返してください。"
+    5005:     )
+    5006:   );
+    5007: 
+    5008:   const classification =
+>   5009:     normalizeStage1ClassificationCandidate(
+    5010:       classificationResponse.parsed,
+    5011:       sourceTypeCode
+    5012:     );
+    5013: 
+    5014:   await validateStage1MasterCodes(
+    5015:     classification
+    5016:   );
+    5017:   const visibleLabels = [
+    5018:     "document_number",
+    5019:     "reference_number",
+    5020:     "issuer_name",
+    5021:     "issuer_registration_number",
+    5022:     "issuer_postal_code",
+    5023:     "issuer_address",
+    5024:     "issuer_phone",
+    5025:     "recipient_name",
+    5026:     "recipient_code",
+    5027:     "document_date"
+    5028:   ];
+    5029: 
+
+OVERALL_STATUS=SUCCESS

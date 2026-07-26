@@ -1,0 +1,160 @@
+============================================================
+createTwoStepAiDraft draft 2箇所確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+
+FUNCTION_START_LINE=4953
+FUNCTION_END_LINE=5908
+DRAFT_MATCH_COUNT=2
+
+============================================================
+DRAFT_NO=1
+DRAFT_LINE=5084
+DISPLAY_LINES=5072-5139
+============================================================
+    5072:     loadPaymentDocumentPromptText(
+    5073:       "detail.system.txt",
+    5074:       "OCR本文だけから、分類済み支払書類の必要項目JSONを作成してください。必ずJSONのみを返してください。"
+    5075:     )
+    5076:   );
+    5077: 
+    5078:   const detail = normalizeStage2CommonFieldsCandidate(
+    5079:     detailResponse.parsed
+    5080:   );
+    5081: 
+    5082:   const { warnings: detailWarnings, ...stage2Fields } = detail;
+    5083: 
+>   5084:   const draft = {
+    5085:     ...stage2Fields,
+    5086:     company_code: classification.company_code,
+    5087:     document_type_code: classification.document_type_code,
+    5088:     payment_destination_code: classification.payment_destination_code,
+    5089:     accounting_category_code: classification.accounting_category_code,
+    5090:     analysis_system_code: classification.analysis_system_code,
+    5091:     analysis_system_reason: classification.analysis_system_reason,
+    5092:     analysis_system_confidence: classification.analysis_system_confidence,
+    5093:     needs_review: classification.needs_review,
+    5094:     source_type_code: classification.source_type_code,
+    5095:     fields: { ...stage2Fields },
+    5096:     warnings: [
+    5097:       ...(Array.isArray(classification.warnings) ? classification.warnings : []),
+    5098:       ...(Array.isArray(detailWarnings) ? detailWarnings : [])
+    5099:     ]
+    5100:   };
+    5101: 
+    5102:   // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
+    5103:   draft.visible_field_labels = visibleLabels;
+    5104:   return {
+    5105:     draft,
+    5106:     classification,
+    5107:     visible_field_labels: draft.visible_field_labels || visibleLabels,
+    5108:     display_mode: "visible_fields_only",
+    5109:     prompt_rule_files: {
+    5110:       classification: await selectPaymentDocumentPromptFiles({
+    5111:         ocrText,
+    5112:         phase: "classification"
+    5113:       }),
+    5114:       detail: await selectPaymentDocumentPromptFiles({
+    5115:         ocrText,
+    5116:         draft: classification,
+    5117:         phase: "detail"
+    5118:       })
+    5119:     },
+    5120:     steps: [
+    5121:       {
+    5122:         name: "classification",
+    5123:         usage: classificationResponse.usage
+    5124:       },
+    5125:       {
+    5126:         name: "detail",
+    5127:         usage: detailResponse.usage
+    5128:       }
+    5129:     ]
+    5130:   };
+    5131: }
+    5132: /* PAYMENT_DOCUMENT_AI_2STEP_CLASSIFY_DETAIL_20260707_END */
+    5133: 
+    5134: /* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_AI_DECIDES_FIELDS_20260708_START */
+    5135: function hdOriginAiOnlyArray(value) {
+    5136:   if (!Array.isArray(value)) return [];
+    5137: 
+    5138:   return value
+    5139:     .map(item => String(item || "").trim())
+
+============================================================
+DRAFT_NO=2
+DRAFT_LINE=5274
+DISPLAY_LINES=5262-5329
+============================================================
+    5262:   );
+    5263: 
+    5264:   const response = await callPaymentDocumentOpenAiJson(
+    5265:     prompt,
+    5266:     loadPaymentDocumentPromptText(
+    5267:       "stage3-specialist/common/system.txt",
+    5268:       "OCR本文だけから専門解析JSONを作成してください。表示項目はvisible_field_labelsでAIが決めてください。必ずJSONのみを返してください。"
+    5269:     )
+    5270:   );
+    5271: 
+    5272:   const parsed = hdOriginAiOnlyObject(response.parsed);
+    5273:   const rawDraft = hdOriginAiOnlyObject(parsed.draft || parsed.ai_draft || parsed);
+>   5274:   const draft = { ...rawDraft };
+    5275:   const fields = hdOriginAiOnlyObject(rawDraft.fields || parsed.fields);
+    5276: 
+    5277:   draft.fields = fields;
+    5278: 
+    5279:   draft.visible_field_labels = hdOriginAiOnlyArray(
+    5280:     parsed.visible_field_labels ||
+    5281:     parsed.visibleFieldLabels ||
+    5282:     rawDraft.visible_field_labels ||
+    5283:     rawDraft.visibleFieldLabels
+    5284:   );
+    5285: 
+    5286:   draft.document_group = String(
+    5287:     rawDraft.document_group || ""
+    5288:   ).trim();
+    5289: 
+    5290:   draft.specialist_route_code = String(
+    5291:     rawDraft.specialist_route_code || ""
+    5292:   ).trim();
+    5293: 
+    5294:   draft.specialist_route_label = String(
+    5295:     rawDraft.specialist_route_label || ""
+    5296:   ).trim();
+    5297: 
+    5298:   draft.analysis_system_code = String(
+    5299:     rawDraft.analysis_system_code || ""
+    5300:   ).trim();
+    5301: 
+    5302:   draft.analysis_system_label = String(
+    5303:     rawDraft.analysis_system_label || ""
+    5304:   ).trim();
+    5305: 
+    5306:   const requiredAiFields = [
+    5307:     ["draft.document_group", draft.document_group],
+    5308:     ["draft.specialist_route_code", draft.specialist_route_code],
+    5309:     ["draft.analysis_system_code", draft.analysis_system_code]
+    5310:   ];
+    5311: 
+    5312:   const missingAiFields = requiredAiFields
+    5313:     .filter(([, value]) => !value)
+    5314:     .map(([name]) => name);
+    5315: 
+    5316:   if (missingAiFields.length) {
+    5317:     const error = new Error(
+    5318:       "AI専門解析結果の必須項目が不足しています: " +
+    5319:       missingAiFields.join(", ")
+    5320:     );
+    5321:     error.statusCode = 502;
+    5322:     throw error;
+    5323:   }
+    5324: 
+    5325:   if (Array.isArray(parsed.warnings) && parsed.warnings.length) {
+    5326:     draft.warnings = parsed.warnings;
+    5327:   }
+    5328: 
+    5329:   return {
+
+OVERALL_STATUS=SUCCESS

@@ -1866,6 +1866,118 @@ input.sorting-check[type="checkbox"] {
 }
 /* HD_ORIGIN_PAYMENT_SORTING_MAJOR_LEGEND_COLOR_20260708_END */
 
+/* HD_ORIGIN_PAYMENT_SORTING_LEFT_DYNAMIC_HEIGHT_20260708_START */
+/* 左側一覧：ステータス・チップ・詳細欄の増減で高さが崩れないよう、固定気味の1行表示を解除して自動伸縮にする。 */
+
+.list-panel,
+.list-panel .list {
+  min-height: 0 !important;
+}
+
+.list-panel .list {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-items: stretch !important;
+}
+
+.sorting-item-card {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  background: #ffffff !important;
+}
+
+.sorting-item-card.active,
+.sorting-item-card.expanded {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.sorting-accordion-head {
+  height: auto !important;
+  min-height: 0 !important;
+  align-items: start !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+}
+
+.sorting-summary-button,
+.sorting-item-main {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-align: left !important;
+}
+
+.sorting-summary-main {
+  min-width: 0 !important;
+  align-items: start !important;
+}
+
+.sorting-summary-main .name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-height: 1.25 !important;
+}
+
+.sorting-summary-chips,
+.sorting-visual-line {
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  overflow: visible !important;
+}
+
+.visual-chip,
+.legend-chip {
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.sorting-accordion-detail,
+.sorting-accordion-detail.open {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.sorting-accordion-detail.open {
+  display: block !important;
+}
+
+.sorting-detail-grid,
+.sorting-detail-grid > div {
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.detail-value {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+/* HD_ORIGIN_PAYMENT_SORTING_LEFT_DYNAMIC_HEIGHT_20260708_END */
+
 /* HD_ORIGIN_STAGE1_SORTING_VISUAL_BLOCK_20260711_START */
 .stage1-sorting-block {
       border: 3px solid #444;
@@ -1918,4 +2030,146 @@ input.sorting-check[type="checkbox"] {
   white-space: nowrap;
 }
 /* HD_ORIGIN_RECORD_NAVIGATION_20260712_END */
+/* HD_ORIGIN_BASIC_ANALYSIS_LEFT_LIST_ONLY_20260726_START */
 
+/*
+  適用範囲:
+  基礎解析画面の左側一覧のみ。
+  中央プレビュー、右側確認欄、3列幅には影響させない。
+*/
+
+/* 左一覧では詳細アコーディオンを表示しない */
+.list-panel .sorting-accordion-toggle,
+.list-panel .sorting-accordion-detail {
+  display: none !important;
+}
+
+/* 一覧カードを固定行として表示 */
+.list-panel .sorting-item-card {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0.0625rem solid #d1d5db;
+  border-radius: 0.45rem;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* 選択中の行を明確にする */
+.list-panel .sorting-item-card.active {
+  border-color: #111827;
+  box-shadow: inset 0.22rem 0 0 #111827;
+  background: #f3f4f6;
+}
+
+/* チェック欄＋一覧本体だけの構成 */
+.list-panel .sorting-accordion-head {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  min-height: 3.75rem;
+}
+
+/* チェックボックス領域 */
+.list-panel .sorting-check {
+  width: 1rem;
+  height: 1rem;
+  margin: auto;
+  cursor: pointer;
+}
+
+/* 一覧行本体 */
+.list-panel .sorting-summary-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 3.75rem;
+  padding: 0.42rem 0.5rem;
+  border: 0;
+  border-left: 0.0625rem solid #e5e7eb;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.28rem;
+}
+
+/* 選択中も文字を読みやすく保つ */
+.list-panel .sorting-summary-button.item.active {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* 番号とファイル名 */
+.list-panel .sorting-summary-main {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+}
+
+/* 番号 */
+.list-panel .sorting-summary-main .no {
+  display: block;
+  grid-row: auto;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  color: #374151;
+}
+
+/* ファイル名 */
+.list-panel .sorting-summary-main .name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* 種類・状態は2行目の短い情報として表示 */
+.list-panel .sorting-summary-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  padding-left: 2.35rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* 左一覧内のチップだけ小さく整える */
+.list-panel .sorting-summary-chips > span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 9rem;
+  min-height: 1.25rem;
+  padding: 0.08rem 0.32rem;
+  border-radius: 0.28rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+/* 一覧間隔 */
+.list-panel .list {
+  gap: 0.32rem;
+}
+
+/* 展開状態が残っても行高を変更させない */
+.list-panel .sorting-item-card.expanded {
+  overflow: hidden;
+}
+
+/* HD_ORIGIN_BASIC_ANALYSIS_LEFT_LIST_ONLY_20260726_END */

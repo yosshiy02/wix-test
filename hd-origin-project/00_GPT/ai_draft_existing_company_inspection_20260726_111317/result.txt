@@ -1,0 +1,297 @@
+============================================================
+ai-draftルート 既存会社処理 現物確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+SCOPE_START_LINE=12217
+SCOPE_END_LINE=12353
+
+============================================================
+TARGET=READ_BODY
+PATTERN=readBody(req)
+MATCH_COUNT=1
+============================================================
+MATCH_LINE=12227
+DISPLAY_LINES=12217-12247
+   12217:   if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-draft/")) {
+   12218:     try {
+   12219:       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-draft/", ""));
+   12220:       const id = Number(idText);
+   12221: 
+   12222:       if (!Number.isInteger(id) || id < 1) {
+   12223:         sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
+   12224:         return true;
+   12225:       }
+   12226: 
+>  12227:       const body = await readBody(req);
+   12228: 
+   12229:       const companyId = Number(
+   12230:         body.company_id ||
+   12231:         body.companyId ||
+   12232:         0
+   12233:       );
+   12234: 
+   12235:       const companyCode = String(
+   12236:         body.company_code ||
+   12237:         body.companyCode ||
+   12238:         ""
+   12239:       ).trim();
+   12240: 
+   12241:       if (
+   12242:         !Number.isInteger(companyId) ||
+   12243:         companyId < 1 ||
+   12244:         !companyCode
+   12245:       ) {
+   12246:         sendJson(res, 400, {
+   12247:           ok: false,
+
+
+============================================================
+TARGET=COMPANY_ID_DECLARATION
+PATTERN=const companyId
+MATCH_COUNT=1
+============================================================
+MATCH_LINE=12229
+DISPLAY_LINES=12217-12249
+   12217:   if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-draft/")) {
+   12218:     try {
+   12219:       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-draft/", ""));
+   12220:       const id = Number(idText);
+   12221: 
+   12222:       if (!Number.isInteger(id) || id < 1) {
+   12223:         sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
+   12224:         return true;
+   12225:       }
+   12226: 
+   12227:       const body = await readBody(req);
+   12228: 
+>  12229:       const companyId = Number(
+   12230:         body.company_id ||
+   12231:         body.companyId ||
+   12232:         0
+   12233:       );
+   12234: 
+   12235:       const companyCode = String(
+   12236:         body.company_code ||
+   12237:         body.companyCode ||
+   12238:         ""
+   12239:       ).trim();
+   12240: 
+   12241:       if (
+   12242:         !Number.isInteger(companyId) ||
+   12243:         companyId < 1 ||
+   12244:         !companyCode
+   12245:       ) {
+   12246:         sendJson(res, 400, {
+   12247:           ok: false,
+   12248:           error:
+   12249:             "プロジェクト入口で選択した会社情報がありません。"
+
+
+============================================================
+TARGET=COMPANY_CODE_DECLARATION
+PATTERN=const companyCode
+MATCH_COUNT=1
+============================================================
+MATCH_LINE=12235
+DISPLAY_LINES=12223-12255
+   12223:         sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
+   12224:         return true;
+   12225:       }
+   12226: 
+   12227:       const body = await readBody(req);
+   12228: 
+   12229:       const companyId = Number(
+   12230:         body.company_id ||
+   12231:         body.companyId ||
+   12232:         0
+   12233:       );
+   12234: 
+>  12235:       const companyCode = String(
+   12236:         body.company_code ||
+   12237:         body.companyCode ||
+   12238:         ""
+   12239:       ).trim();
+   12240: 
+   12241:       if (
+   12242:         !Number.isInteger(companyId) ||
+   12243:         companyId < 1 ||
+   12244:         !companyCode
+   12245:       ) {
+   12246:         sendJson(res, 400, {
+   12247:           ok: false,
+   12248:           error:
+   12249:             "プロジェクト入口で選択した会社情報がありません。"
+   12250:         });
+   12251: 
+   12252:         return true;
+   12253:       }
+   12254: 
+   12255:       const companyResult = await db.query(`
+
+
+============================================================
+TARGET=COMPANY_MASTER
+PATTERN=FROM accounting.companies
+MATCH_COUNT=1
+============================================================
+MATCH_LINE=12260
+DISPLAY_LINES=12248-12280
+   12248:           error:
+   12249:             "プロジェクト入口で選択した会社情報がありません。"
+   12250:         });
+   12251: 
+   12252:         return true;
+   12253:       }
+   12254: 
+   12255:       const companyResult = await db.query(`
+   12256:         SELECT
+   12257:           company_id,
+   12258:           company_code,
+   12259:           company_name
+>  12260:         FROM accounting.companies
+   12261:         WHERE company_id = $1
+   12262:           AND company_code = $2
+   12263:           AND is_active = true
+   12264:         LIMIT 1
+   12265:       `, [
+   12266:         companyId,
+   12267:         companyCode
+   12268:       ]);
+   12269: 
+   12270:       if (!companyResult.rows.length) {
+   12271:         sendJson(res, 422, {
+   12272:           ok: false,
+   12273:           error:
+   12274:             "入口の会社情報が会社マスタと一致しません。"
+   12275:         });
+   12276: 
+   12277:         return true;
+   12278:       }
+   12279: 
+   12280:       const selectedCompany =
+
+
+============================================================
+TARGET=SELECTED_COMPANY
+PATTERN=selectedCompany
+MATCH_COUNT=3
+============================================================
+MATCH_LINE=12280
+DISPLAY_LINES=12268-12300
+   12268:       ]);
+   12269: 
+   12270:       if (!companyResult.rows.length) {
+   12271:         sendJson(res, 422, {
+   12272:           ok: false,
+   12273:           error:
+   12274:             "入口の会社情報が会社マスタと一致しません。"
+   12275:         });
+   12276: 
+   12277:         return true;
+   12278:       }
+   12279: 
+>  12280:       const selectedCompany =
+   12281:         companyResult.rows[0];
+   12282: 
+   12283:       const result = await db.query(`
+   12284:         SELECT
+   12285:           payment_document_ocr_import_id,
+   12286:           original_file_name,
+   12287:           saved_file_name,
+   12288:           source_type,
+   12289:           mime_type,
+   12290:           ocr_raw_text,
+   12291:           ocr_text_length
+   12292:         FROM accounting.payment_document_ocr_imports
+   12293:         WHERE payment_document_ocr_import_id = $1
+   12294:           AND deleted_at IS NULL
+   12295:         LIMIT 1
+   12296:       `, [id]);
+   12297: 
+   12298:       if (!result.rows.length) {
+   12299:         sendJson(res, 404, { ok: false, error: "OCR取込データが見つかりません。" });
+   12300:         return true;
+
+MATCH_LINE=12319
+DISPLAY_LINES=12307-12339
+   12307:         sendJson(res, 400, { ok: false, error: "OCR本文が空です。" });
+   12308:         return true;
+   12309:       }
+   12310: 
+   12311:             const sourceTypeCode =
+   12312:         await resolvePaymentDocumentSourceTypeCode(row);
+   12313: 
+   12314:       const aiResult =
+   12315:         await createTwoStepAiDraftFromOcrText(
+   12316:           ocrText,
+   12317:           {
+   12318:             company_id:
+>  12319:               selectedCompany.company_id,
+   12320:             company_code:
+   12321:               selectedCompany.company_code,
+   12322:             source_type_code:
+   12323:               sourceTypeCode
+   12324:           }
+   12325:         );
+   12326:       const draft = aiResult.draft;
+   12327: 
+   12328:       sendJson(res, 200, {
+   12329:         ok: true,
+   12330:         source: "openai_ocr_text_only",
+   12331:         image_used: false,
+   12332:         paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+   12333:         originalFileName: row.original_file_name || row.saved_file_name,
+   12334:         ocrTextLength: row.ocr_text_length,
+   12335:         ai_steps: aiResult.steps,
+   12336:         display_mode: aiResult.display_mode,
+   12337:         document_group: aiResult.document_group,
+   12338:         visible_field_labels: aiResult.visible_field_labels,
+   12339:         classification: aiResult.classification,
+
+MATCH_LINE=12321
+DISPLAY_LINES=12309-12341
+   12309:       }
+   12310: 
+   12311:             const sourceTypeCode =
+   12312:         await resolvePaymentDocumentSourceTypeCode(row);
+   12313: 
+   12314:       const aiResult =
+   12315:         await createTwoStepAiDraftFromOcrText(
+   12316:           ocrText,
+   12317:           {
+   12318:             company_id:
+   12319:               selectedCompany.company_id,
+   12320:             company_code:
+>  12321:               selectedCompany.company_code,
+   12322:             source_type_code:
+   12323:               sourceTypeCode
+   12324:           }
+   12325:         );
+   12326:       const draft = aiResult.draft;
+   12327: 
+   12328:       sendJson(res, 200, {
+   12329:         ok: true,
+   12330:         source: "openai_ocr_text_only",
+   12331:         image_used: false,
+   12332:         paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+   12333:         originalFileName: row.original_file_name || row.saved_file_name,
+   12334:         ocrTextLength: row.ocr_text_length,
+   12335:         ai_steps: aiResult.steps,
+   12336:         display_mode: aiResult.display_mode,
+   12337:         document_group: aiResult.document_group,
+   12338:         visible_field_labels: aiResult.visible_field_labels,
+   12339:         classification: aiResult.classification,
+   12340:         draft
+   12341:       });
+
+
+============================================================
+TARGET=SOURCE_TYPE_CONTEXT
+PATTERN=source_type_code: sourceTypeCode
+MATCH_COUNT=0
+============================================================
+OVERALL_STATUS=SUCCESS

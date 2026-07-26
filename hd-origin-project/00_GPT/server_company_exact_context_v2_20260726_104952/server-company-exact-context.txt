@@ -1,0 +1,406 @@
+============================================================
+基礎解析サーバー company_id接続箇所 現物確認 V2
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+============================================================
+TARGET=CLASSIFICATION_PROMPT_DEFINITION
+PATTERN=function buildPaymentDocumentClassificationPrompt
+MATCH_COUNT=1
+============================================================
+MATCH_NO=1
+MATCH_LINE=4359
+DISPLAY_LINES=4347-4404
+    4347: ····text.includes("検収書")
+    4348: ··)·return·"reference";
+    4349: 
+    4350: ··if·(
+    4351: ····text.includes("invoice")·||
+    4352: ····text.includes("payable")·||
+    4353: ····text.includes("請求")
+    4354: ··)·return·"invoice";
+    4355: 
+    4356: ··return·"other";
+    4357: }
+    4358: 
+>   4359: function·buildPaymentDocumentClassificationPrompt(ocrText)·{
+    4360: ··return·[
+    4361: ····"あなたは支払書類のStage1共通仕分けAIです。",
+    4362: ····"画像は見ていません。OCR本文全体を根拠に仕分けしてください。",
+    4363: ····"選択区分は、後続で提示されるPostgreSQLの有効マスタ候補だけを使用してください。",
+    4364: ····"",
+    4365: ····"絶対ルール:",
+    4366: ····"-·会社、文書種別、処理先、会計区分、専門解析先はAIだけが判断する。",
+    4367: ····"-·company_codeは会社マスタ候補から必ず1つ選ぶ。",
+    4368: ····"-·document_type_codeは文書種別マスタ候補から必ず1つ選ぶ。",
+    4369: ····"-·payment_destination_codeは処理先マスタ候補から必ず1つ選ぶ。",
+    4370: ····"-·accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
+    4371: ····"-·analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
+    4372: ····"-·選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
+    4373: 
+    4374: ····"-·payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
+    4375: ····"-·analysis_system_reasonは必ず具体的に返す。",
+    4376: ····"-·analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
+    4377: ····"-·needs_reviewは必ずtrueまたはfalseのbooleanで返す。",
+    4378: ····"-·判断に迷う場合も有効なマスタコードを選び、needs_review=trueにする。",
+    4379: ····"-·Node.js、SQL、HTML、固定語句、既定値、後付け補正を前提にしない。",
+    4380: ····"-·OCR本文にない情報を作らない。",
+    4381: ····"",
+    4382: ····"返すJSON形式:",
+    4383: ····"{",
+    4384: ····'··"company_code":·"",',
+    4385: ····'··"document_type_code":·"",',
+    4386: ····'··"payment_destination_code":·"",',
+    4387: ····'··"accounting_category_code":·"",',
+    4388: ····'··"analysis_system_code":·"",',
+    4389: ····'··"analysis_system_reason":·"",',
+    4390: ····'··"analysis_system_confidence":·"high",',
+    4391: ····'··"needs_review":·false,',
+    4392: ····'··"warnings":·[]',
+    4393: ····"}",
+    4394: ····"",
+    4395: ····"上記9項目以外は返さない。",
+    4396: ····"JSON以外の文章は返さない。",
+    4397: ····"",
+    4398: ····"OCR本文:",
+    4399: ····"------------------------------",
+    4400: ····String(ocrText·||·"").slice(0,·12000),
+    4401: ····"------------------------------"
+    4402: ··].join("\n");
+    4403: }
+    4404: function·buildPaymentDocumentDetailPrompt(ocrText,·classification)·{
+
+============================================================
+TARGET=TWO_STEP_DEFINITION
+PATTERN=async function createTwoStepAiDraftFromOcrText
+MATCH_COUNT=1
+============================================================
+MATCH_NO=1
+MATCH_LINE=4935
+DISPLAY_LINES=4923-4980
+    4923: ····issuer_postal_code:·text("issuer_postal_code"),
+    4924: ····issuer_address:·text("issuer_address"),
+    4925: ····issuer_phone:·text("issuer_phone"),
+    4926: ····recipient_name:·text("recipient_name"),
+    4927: ····recipient_code:·text("recipient_code"),
+    4928: ····document_date:·text("document_date"),
+    4929: ····warnings:·Array.isArray(source.warnings)
+    4930: ······?·source.warnings.map(item·=>·String(item·||·"").trim()).filter(Boolean)
+    4931: ······:·[]
+    4932: ··};
+    4933: }
+    4934: 
+>   4935: async·function·createTwoStepAiDraftFromOcrText(ocrText,·context·=·{})·{
+    4936: ··const·sourceTypeCode·=·String(
+    4937: ····context·&&·context.source_type_code·||·""
+    4938: ··).trim();
+    4939: 
+    4940: ··if·(!sourceTypeCode)·{
+    4941: ····const·error·=·new·Error(
+    4942: ······"システム確定済みの入手元区分マスタコードがありません。"
+    4943: ····);
+    4944: 
+    4945: ····error.statusCode·=·422;
+    4946: ····throw·error;
+    4947: ··}
+    4948: ··const·classificationPrompt·=·await·appendPaymentDocumentExternalPrompt(
+    4949: ····buildPaymentDocumentClassificationPrompt(ocrText),
+    4950: ····await·selectPaymentDocumentPromptFiles({
+    4951: ······ocrText,
+    4952: ······phase:·"classification"
+    4953: ····})
+    4954: ··);
+    4955: 
+    4956: ··const·classificationResponse·=·await·callPaymentDocumentOpenAiJson(
+    4957: ····classificationPrompt,
+    4958: ····loadPaymentDocumentPromptText(
+    4959: ······"classification.system.txt",
+    4960: ······"OCR本文だけから、支払書類の分類JSONを作成してください。必ずJSONのみを返してください。"
+    4961: ····)
+    4962: ··);
+    4963: 
+    4964: ··const·classification·=
+    4965: ····normalizeStage1ClassificationCandidate(
+    4966: ······classificationResponse.parsed,
+    4967: ······sourceTypeCode
+    4968: ····);
+    4969: 
+    4970: ··await·validateStage1MasterCodes(
+    4971: ····classification
+    4972: ··);
+    4973: ··const·visibleLabels·=·[
+    4974: ····"document_number",
+    4975: ····"reference_number",
+    4976: ····"issuer_name",
+    4977: ····"issuer_registration_number",
+    4978: ····"issuer_postal_code",
+    4979: ····"issuer_address",
+    4980: ····"issuer_phone",
+
+============================================================
+TARGET=CLASSIFICATION_PROMPT_CALL
+PATTERN=buildPaymentDocumentClassificationPrompt(ocrText)
+MATCH_COUNT=2
+============================================================
+MATCH_NO=1
+MATCH_LINE=4359
+DISPLAY_LINES=4347-4404
+    4347: ····text.includes("検収書")
+    4348: ··)·return·"reference";
+    4349: 
+    4350: ··if·(
+    4351: ····text.includes("invoice")·||
+    4352: ····text.includes("payable")·||
+    4353: ····text.includes("請求")
+    4354: ··)·return·"invoice";
+    4355: 
+    4356: ··return·"other";
+    4357: }
+    4358: 
+>   4359: function·buildPaymentDocumentClassificationPrompt(ocrText)·{
+    4360: ··return·[
+    4361: ····"あなたは支払書類のStage1共通仕分けAIです。",
+    4362: ····"画像は見ていません。OCR本文全体を根拠に仕分けしてください。",
+    4363: ····"選択区分は、後続で提示されるPostgreSQLの有効マスタ候補だけを使用してください。",
+    4364: ····"",
+    4365: ····"絶対ルール:",
+    4366: ····"-·会社、文書種別、処理先、会計区分、専門解析先はAIだけが判断する。",
+    4367: ····"-·company_codeは会社マスタ候補から必ず1つ選ぶ。",
+    4368: ····"-·document_type_codeは文書種別マスタ候補から必ず1つ選ぶ。",
+    4369: ····"-·payment_destination_codeは処理先マスタ候補から必ず1つ選ぶ。",
+    4370: ····"-·accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
+    4371: ····"-·analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
+    4372: ····"-·選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
+    4373: 
+    4374: ····"-·payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
+    4375: ····"-·analysis_system_reasonは必ず具体的に返す。",
+    4376: ····"-·analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
+    4377: ····"-·needs_reviewは必ずtrueまたはfalseのbooleanで返す。",
+    4378: ····"-·判断に迷う場合も有効なマスタコードを選び、needs_review=trueにする。",
+    4379: ····"-·Node.js、SQL、HTML、固定語句、既定値、後付け補正を前提にしない。",
+    4380: ····"-·OCR本文にない情報を作らない。",
+    4381: ····"",
+    4382: ····"返すJSON形式:",
+    4383: ····"{",
+    4384: ····'··"company_code":·"",',
+    4385: ····'··"document_type_code":·"",',
+    4386: ····'··"payment_destination_code":·"",',
+    4387: ····'··"accounting_category_code":·"",',
+    4388: ····'··"analysis_system_code":·"",',
+    4389: ····'··"analysis_system_reason":·"",',
+    4390: ····'··"analysis_system_confidence":·"high",',
+    4391: ····'··"needs_review":·false,',
+    4392: ····'··"warnings":·[]',
+    4393: ····"}",
+    4394: ····"",
+    4395: ····"上記9項目以外は返さない。",
+    4396: ····"JSON以外の文章は返さない。",
+    4397: ····"",
+    4398: ····"OCR本文:",
+    4399: ····"------------------------------",
+    4400: ····String(ocrText·||·"").slice(0,·12000),
+    4401: ····"------------------------------"
+    4402: ··].join("\n");
+    4403: }
+    4404: function·buildPaymentDocumentDetailPrompt(ocrText,·classification)·{
+
+MATCH_NO=2
+MATCH_LINE=4949
+DISPLAY_LINES=4937-4994
+    4937: ····context·&&·context.source_type_code·||·""
+    4938: ··).trim();
+    4939: 
+    4940: ··if·(!sourceTypeCode)·{
+    4941: ····const·error·=·new·Error(
+    4942: ······"システム確定済みの入手元区分マスタコードがありません。"
+    4943: ····);
+    4944: 
+    4945: ····error.statusCode·=·422;
+    4946: ····throw·error;
+    4947: ··}
+    4948: ··const·classificationPrompt·=·await·appendPaymentDocumentExternalPrompt(
+>   4949: ····buildPaymentDocumentClassificationPrompt(ocrText),
+    4950: ····await·selectPaymentDocumentPromptFiles({
+    4951: ······ocrText,
+    4952: ······phase:·"classification"
+    4953: ····})
+    4954: ··);
+    4955: 
+    4956: ··const·classificationResponse·=·await·callPaymentDocumentOpenAiJson(
+    4957: ····classificationPrompt,
+    4958: ····loadPaymentDocumentPromptText(
+    4959: ······"classification.system.txt",
+    4960: ······"OCR本文だけから、支払書類の分類JSONを作成してください。必ずJSONのみを返してください。"
+    4961: ····)
+    4962: ··);
+    4963: 
+    4964: ··const·classification·=
+    4965: ····normalizeStage1ClassificationCandidate(
+    4966: ······classificationResponse.parsed,
+    4967: ······sourceTypeCode
+    4968: ····);
+    4969: 
+    4970: ··await·validateStage1MasterCodes(
+    4971: ····classification
+    4972: ··);
+    4973: ··const·visibleLabels·=·[
+    4974: ····"document_number",
+    4975: ····"reference_number",
+    4976: ····"issuer_name",
+    4977: ····"issuer_registration_number",
+    4978: ····"issuer_postal_code",
+    4979: ····"issuer_address",
+    4980: ····"issuer_phone",
+    4981: ····"recipient_name",
+    4982: ····"recipient_code",
+    4983: ····"document_date"
+    4984: ··];
+    4985: 
+    4986: ··const·detailPrompt·=·await·appendPaymentDocumentExternalPrompt(
+    4987: ····buildPaymentDocumentDetailPrompt(ocrText,·classification),
+    4988: ····await·selectPaymentDocumentPromptFiles({
+    4989: ······ocrText,
+    4990: ······draft:·classification,
+    4991: ······phase:·"detail"
+    4992: ····})
+    4993: ··);
+    4994: 
+
+============================================================
+TARGET=AI_DRAFT_ROUTE
+PATTERN=urlPath.startsWith("/api/payment-documents/ai-draft/")
+MATCH_COUNT=1
+============================================================
+MATCH_NO=1
+MATCH_LINE=12151
+DISPLAY_LINES=12139-12196
+   12139: ······});
+   12140: ····}·catch·(err)·{
+   12141: ······sendJson(res,·err.statusCode·||·500,·{
+   12142: ········ok:·false,
+   12143: ········source:·"openai_ocr_text_only",
+   12144: ········image_used:·false,
+   12145: ········error:·err.message·||·String(err)
+   12146: ······});
+   12147: ····}
+   12148: 
+   12149: ····return·true;
+   12150: ··}
+>  12151: ··if·(req.method·===·"POST"·&&·urlPath.startsWith("/api/payment-documents/ai-draft/"))·{
+   12152: ····try·{
+   12153: ······const·idText·=·decodeURIComponent(urlPath.replace("/api/payment-documents/ai-draft/",·""));
+   12154: ······const·id·=·Number(idText);
+   12155: 
+   12156: ······if·(!Number.isInteger(id)·||·id·<·1)·{
+   12157: ········sendJson(res,·400,·{·ok:·false,·error:·"不正なOCR取込IDです。"·});
+   12158: ········return·true;
+   12159: ······}
+   12160: 
+   12161: ······const·result·=·await·db.query(`
+   12162: ········SELECT
+   12163: ··········payment_document_ocr_import_id,
+   12164: ··········original_file_name,
+   12165: ··········saved_file_name,
+   12166: ··········source_type,
+   12167: ··········mime_type,
+   12168: ··········ocr_raw_text,
+   12169: ··········ocr_text_length
+   12170: ········FROM·accounting.payment_document_ocr_imports
+   12171: ········WHERE·payment_document_ocr_import_id·=·$1
+   12172: ··········AND·deleted_at·IS·NULL
+   12173: ········LIMIT·1
+   12174: ······`,·[id]);
+   12175: 
+   12176: ······if·(!result.rows.length)·{
+   12177: ········sendJson(res,·404,·{·ok:·false,·error:·"OCR取込データが見つかりません。"·});
+   12178: ········return·true;
+   12179: ······}
+   12180: 
+   12181: ······const·row·=·result.rows[0];
+   12182: ······const·ocrText·=·String(row.ocr_raw_text·||·"").trim();
+   12183: 
+   12184: ······if·(!ocrText)·{
+   12185: ········sendJson(res,·400,·{·ok:·false,·error:·"OCR本文が空です。"·});
+   12186: ········return·true;
+   12187: ······}
+   12188: 
+   12189: ············const·sourceTypeCode·=
+   12190: ········await·resolvePaymentDocumentSourceTypeCode(row);
+   12191: 
+   12192: ······const·aiResult·=
+   12193: ········await·createTwoStepAiDraftFromOcrText(
+   12194: ··········ocrText,
+   12195: ··········{
+   12196: ············source_type_code:·sourceTypeCode
+
+============================================================
+TARGET=AI_DRAFT_CREATE_CALL
+PATTERN=await createTwoStepAiDraftFromOcrText
+MATCH_COUNT=1
+============================================================
+MATCH_NO=1
+MATCH_LINE=12193
+DISPLAY_LINES=12181-12238
+   12181: ······const·row·=·result.rows[0];
+   12182: ······const·ocrText·=·String(row.ocr_raw_text·||·"").trim();
+   12183: 
+   12184: ······if·(!ocrText)·{
+   12185: ········sendJson(res,·400,·{·ok:·false,·error:·"OCR本文が空です。"·});
+   12186: ········return·true;
+   12187: ······}
+   12188: 
+   12189: ············const·sourceTypeCode·=
+   12190: ········await·resolvePaymentDocumentSourceTypeCode(row);
+   12191: 
+   12192: ······const·aiResult·=
+>  12193: ········await·createTwoStepAiDraftFromOcrText(
+   12194: ··········ocrText,
+   12195: ··········{
+   12196: ············source_type_code:·sourceTypeCode
+   12197: ··········}
+   12198: ········);
+   12199: ······const·draft·=·aiResult.draft;
+   12200: 
+   12201: ······sendJson(res,·200,·{
+   12202: ········ok:·true,
+   12203: ········source:·"openai_ocr_text_only",
+   12204: ········image_used:·false,
+   12205: ········paymentDocumentOcrImportId:·row.payment_document_ocr_import_id,
+   12206: ········originalFileName:·row.original_file_name·||·row.saved_file_name,
+   12207: ········ocrTextLength:·row.ocr_text_length,
+   12208: ········ai_steps:·aiResult.steps,
+   12209: ········display_mode:·aiResult.display_mode,
+   12210: ········document_group:·aiResult.document_group,
+   12211: ········visible_field_labels:·aiResult.visible_field_labels,
+   12212: ········classification:·aiResult.classification,
+   12213: ········draft
+   12214: ······});
+   12215: ····}·catch·(err)·{
+   12216: ······sendJson(res,·err.statusCode·||·500,·{
+   12217: ········ok:·false,
+   12218: ········source:·"openai_ocr_text_only",
+   12219: ········image_used:·false,
+   12220: ········error:·err.message·||·String(err)
+   12221: ······});
+   12222: ····}
+   12223: 
+   12224: ····return·true;
+   12225: ··}
+   12226: ··if·(req.method·===·"GET"·&&·urlPath·===·"/api/payment-documents/ocr-imports")·{
+   12227: ····try·{
+   12228: ······const·items·=·await·listPaymentDocumentOcrImportsFromDb();
+   12229: 
+   12230: ······sendJson(res,·200,·{
+   12231: ········ok:·true,
+   12232: ········source:·"database",
+   12233: ········count:·items.length,
+   12234: ········items
+   12235: ······});
+   12236: ····}·catch·(err)·{
+   12237: ······sendJson(res,·500,·{
+   12238: ········ok:·false,
+
+OVERALL_STATUS=SUCCESS

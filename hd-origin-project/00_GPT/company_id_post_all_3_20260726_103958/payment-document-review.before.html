@@ -2569,58 +2569,6 @@ function setDocumentPreview(item) {
     });
   }
 /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
-  function hdOriginGetCurrentCompanyForPaymentDocument() {
-    let storedCompany = {};
-
-    try {
-      storedCompany = JSON.parse(
-        localStorage.getItem(
-          "hd_origin_current_company"
-        ) || "{}"
-      );
-    } catch (error) {
-      storedCompany = {};
-    }
-
-    const companyId = Number(
-      localStorage.getItem(
-        "current_company_id"
-      ) ||
-      storedCompany.company_id ||
-      0
-    );
-
-    const companyCode = String(
-      localStorage.getItem(
-        "current_company_code"
-      ) ||
-      storedCompany.company_code ||
-      ""
-    ).trim();
-
-    if (
-      !Number.isInteger(companyId) ||
-      companyId < 1
-    ) {
-      throw new Error(
-        "入口で選択した会社IDを取得できません。" +
-        "最初の会社選択画面から入り直してください。"
-      );
-    }
-
-    if (!companyCode) {
-      throw new Error(
-        "入口で選択した会社コードを取得できません。" +
-        "最初の会社選択画面から入り直してください。"
-      );
-    }
-
-    return {
-      company_id: companyId,
-      company_code: companyCode
-    };
-  }
-
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -2632,13 +2580,9 @@ function setDocumentPreview(item) {
     showResult("AI基礎解析（1回目・2回目）を実行しています。画像は送信しません。");
 
     try {
-      const currentCompany =
-        hdOriginGetCurrentCompanyForPaymentDocument();
-
       const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentCompany)
+        headers: { "Content-Type": "application/json" }
       });
 
       const data = await res.json();
@@ -2994,9 +2938,6 @@ function setDocumentPreview(item) {
     }
 
     try {
-      const currentCompany =
-        hdOriginGetCurrentCompanyForPaymentDocument();
-
       const res = await fetch(
         "/api/payment-documents/ai-draft/" +
         encodeURIComponent(id),
@@ -3005,10 +2946,7 @@ function setDocumentPreview(item) {
           headers: {
             "Content-Type":
               "application/json"
-          },
-          body: JSON.stringify(
-            currentCompany
-          )
+          }
         }
       );
 
@@ -3693,9 +3631,6 @@ async function runSelectedAiDrafts() {
     }
 
     try {
-      const currentCompany =
-        hdOriginGetCurrentCompanyForPaymentDocument();
-
       const res = await fetch(
         "/api/payment-documents/ai-draft/" +
         encodeURIComponent(id),
@@ -3704,10 +3639,7 @@ async function runSelectedAiDrafts() {
           headers: {
             "Content-Type":
               "application/json"
-          },
-          body: JSON.stringify(
-            currentCompany
-          )
+          }
         }
       );
 

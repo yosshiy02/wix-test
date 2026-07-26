@@ -5083,7 +5083,6 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
 
   const draft = {
     ...stage2Fields,
-    company_id: classification.company_id,
     company_code: classification.company_code,
     document_type_code: classification.document_type_code,
     payment_destination_code: classification.payment_destination_code,
