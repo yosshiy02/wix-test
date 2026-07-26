@@ -3506,8 +3506,8 @@ async function runSelectedAiDrafts() {
     const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
     window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
     (items || []).forEach(restoreSavedBasicAnalysisToItem);
-    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
-    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+    const analyzedCount = (items || []).filter(item => item && window.buildSortingVisual(item).analyzed).length;
+    const reviewCount = (items || []).filter(item => item && window.buildSortingVisual(item).analyzed && window.buildSortingVisual(item).needsReview).length;
 
     summary.textContent =
       "選択: " + window.__checkedOcrImportIds.size + "件" +
