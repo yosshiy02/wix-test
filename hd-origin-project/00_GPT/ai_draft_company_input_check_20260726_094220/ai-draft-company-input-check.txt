@@ -1,0 +1,3165 @@
+============================================================
+ai-draft company_id 実入力確認
+============================================================
+TARGET_FILE=G:\GITHUB\wix-test\hd-origin-project\web_receiver\src\paymentDocuments\paymentDocuments.routes.js
+CONNECTION_MODE=READ_ONLY
+FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+STATUS_MASTER_UPDATE=NO
+
+MATCHED_LINE_COUNT=109
+
+CONTEXT_RANGE_COUNT=42
+
+------------------------------------------------------------
+LINES=197-250
+------------------------------------------------------------
+   197:     z(d.getSeconds())
+   198:   ].join("") + "_" + String(d.getMilliseconds()).padStart(3, "0");
+   199: }
+   200: 
+   201: function metaPathFor(filePath) {
+   202:   return filePath + ".meta.json";
+   203: }
+   204: 
+   205: function readJsonSafe(filePath) {
+   206:   try {
+   207:     if (!fs.existsSync(filePath)) return null;
+   208:     return JSON.parse(fs.readFileSync(filePath, "utf8"));
+   209:   } catch {
+   210:     return null;
+   211:   }
+   212: }
+   213: 
+   214: function writeJson(filePath, data) {
+   215:   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+   216: }
+   217: function sha256Buffer(buffer) {
+   218:   return crypto.createHash("sha256").update(buffer).digest("hex");
+   219: }
+   220: 
+   221: function sha256File(filePath) {
+   222:   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+   223: }
+   224: 
+   225: function findDuplicateInboxItem(fileHash, sizeBytes) {
+   226:   const dir = inboxDir();
+   227:   const targetHash = String(fileHash || "").trim().toLowerCase();
+   228: 
+   229:   if (!targetHash) {
+   230:     return null;
+   231:   }
+   232: 
+   233:   const entries = fs.readdirSync(dir, { withFileTypes: true })
+   234:     .filter(entry => entry.isFile())
+   235:     .filter(entry => !isHiddenSidecar(entry.name));
+   236: 
+   237:   for (const entry of entries) {
+   238:     const filePath = path.join(dir, entry.name);
+   239:     const stat = fs.statSync(filePath);
+   240: 
+   241:     if (Number(sizeBytes) > 0 && stat.size !== Number(sizeBytes)) {
+   242:       continue;
+   243:     }
+   244: 
+   245:     const metaPath = metaPathFor(filePath);
+   246:     const meta = readJsonSafe(metaPath) || {};
+   247:     let existingHash = String(meta.sha256 || meta.fileSha256 || meta.contentHash || "").trim().toLowerCase();
+   248: 
+   249:     if (!existingHash) {
+   250:       existingHash = sha256File(filePath);
+
+------------------------------------------------------------
+LINES=626-683
+------------------------------------------------------------
+   626:     try {
+   627:       json = JSON.parse(pollText);
+   628:     } catch {
+   629:       throw new Error("Azure OCR結果をJSONとして読めませんでした。");
+   630:     }
+   631: 
+   632:     lastJson = json;
+   633: 
+   634:     const status = String(json.status || "").toLowerCase();
+   635: 
+   636:     if (status === "succeeded") {
+   637:       return {
+   638:         rawText: extractAzureText(json),
+   639:         rawJson: json
+   640:       };
+   641:     }
+   642: 
+   643:     if (status === "failed") {
+   644:       throw new Error("Azure OCRが失敗しました: " + JSON.stringify(json.error || json).slice(0, 800));
+   645:     }
+   646:   }
+   647: 
+   648:   throw new Error("Azure OCRがタイムアウトしました。最後の状態: " + JSON.stringify(lastJson || {}).slice(0, 800));
+   649: }
+   650: 
+   651: /* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_20260717_START */
+   652: function isLocalAccessOcrRequest(req) {
+   653:   const remoteAddress = String(
+   654:     req &&
+   655:     req.socket &&
+   656:     req.socket.remoteAddress
+   657:       ? req.socket.remoteAddress
+   658:       : ""
+   659:   ).toLowerCase();
+   660: 
+   661:   return (
+   662:     remoteAddress === "127.0.0.1" ||
+   663:     remoteAddress === "::1" ||
+   664:     remoteAddress === "::ffff:127.0.0.1"
+   665:   );
+   666: }
+   667: 
+   668: function validateAccessOcrLocalFilePath(value) {
+   669:   const requestedPath = String(value || "").trim();
+   670: 
+   671:   if (!requestedPath) {
+   672:     throw new Error("OCR対象ファイルパスが空です。");
+   673:   }
+   674: 
+   675:   if (requestedPath.includes("\0")) {
+   676:     throw new Error("OCR対象ファイルパスが不正です。");
+   677:   }
+   678: 
+   679:   const resolvedPath = path.resolve(requestedPath);
+   680: 
+   681:   if (!path.isAbsolute(resolvedPath)) {
+   682:     throw new Error("OCR対象には絶対パスを指定してください。");
+   683:   }
+
+------------------------------------------------------------
+LINES=2195-2248
+------------------------------------------------------------
+  2195:   if (norm.includes("カード")) return "card_payable";
+  2196:   if (norm.includes("買掛") || norm.includes("仕入債務")) return "accounts_payable";
+  2197:   if (norm.includes("経費")) return "expense";
+  2198:   if (norm.includes("支払")) return "payable";
+  2199:   if (norm.includes("対象外")) return "no_process";
+  2200:   if (norm.includes("確認")) return "needs_review";
+  2201: 
+  2202:   return "";
+  2203: }
+  2204: /* PAYMENT_DOCUMENT_AI_CODE_NORMALIZE_20260707_END */
+  2205: function normalizeAiDraftCandidate(value) {
+  2206:   const draft = value && typeof value === "object" ? value : {};
+  2207: 
+  2208:   return {
+  2209:     document_type_code: String(draft.document_type_code || "").trim(),
+  2210:     payment_destination_code: String(draft.payment_destination_code || "").trim(),
+  2211:     accounting_category_code: String(draft.accounting_category_code || "").trim(),
+  2212:     payable_kind_code: String(draft.payable_kind_code || "").trim(),
+  2213:     source_type_code: String(draft.source_type_code || "").trim(),
+  2214: 
+  2215:     // --- ここから追加: AIが返した重要なシステム情報を消失させずに維持する ---
+  2216:     analysis_system_code: String(draft.analysis_system_code || "").trim(),
+  2217:     analysis_system_label: String(draft.analysis_system_label || "").trim(),
+  2218:     analysis_system_reason: String(draft.analysis_system_reason || "").trim(),
+  2219:     analysis_system_confidence: String(draft.analysis_system_confidence || "").trim(),
+  2220:     specialist_route_code: String(draft.specialist_route_code || "").trim(),
+  2221:     specialist_route_label: String(draft.specialist_route_label || "").trim(),
+  2222:     
+  2223:     ai_summary: draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {},
+  2224:     fields: draft.fields && typeof draft.fields === "object" ? draft.fields : {},
+  2225:     visible_field_labels: Array.isArray(draft.visible_field_labels) ? draft.visible_field_labels : [],
+  2226:     document_group: String(draft.document_group || "").trim(),
+  2227:     // --- 追加ここまで ---
+  2228: 
+  2229:     vendor_name: String(draft.vendor_name || "").trim(),
+  2230:     issue_date: String(draft.issue_date || "").trim(),
+  2231:     due_date: String(draft.due_date || "").trim(),
+  2232:     invoice_number: String(draft.invoice_number || "").trim(),
+  2233: 
+  2234:     total_amount: draft.total_amount === null || draft.total_amount === undefined || draft.total_amount === ""
+  2235:       ? null
+  2236:       : Number(draft.total_amount),
+  2237: 
+  2238:     tax_amount: draft.tax_amount === null || draft.tax_amount === undefined || draft.tax_amount === ""
+  2239:       ? null
+  2240:       : Number(draft.tax_amount),
+  2241: 
+  2242:     currency: String(draft.currency || "JPY").trim(),
+  2243:     summary: String(draft.summary || "").trim(),
+  2244:     memo: String(draft.memo || "").trim(),
+  2245: 
+  2246:     confidence: {
+  2247:       document_type: Number(draft.confidence && draft.confidence.document_type || 0),
+  2248:       payment_destination: Number(draft.confidence && draft.confidence.payment_destination || 0),
+
+------------------------------------------------------------
+LINES=2324-2378
+------------------------------------------------------------
+  2324:     return base;
+  2325:   }
+  2326: 
+  2327:   const taxOffice = paymentDocumentMatchText(text, /納付先[:：]\s*([^\r\n]+?)(?:\s+税目[:：]|$)/);
+  2328:   const taxName = paymentDocumentMatchText(text, /税目[:：]\s*([^\s\r\n]+)/);
+  2329:   const payer = paymentDocumentMatchText(text, /納付者[:：]\s*([^\r\n]+)/);
+  2330:   const dueDateRaw = paymentDocumentMatchText(text, /納付期限[:：]\s*([0-9０-９]{4}\s*年\s*[0-9０-９]{1,2}\s*月\s*[0-9０-９]{1,2}\s*日)/);
+  2331:   const managementNo = paymentDocumentMatchText(text, /整理番号[:：]\s*([^\s\r\n]+)/);
+  2332:   const baseTax = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /本[税稅][:：]\s*([0-9０-９,，]+)\s*円?/));
+  2333:   const additionalTax = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /附帯税[:：]\s*([0-9０-９,，]+)\s*円?/));
+  2334:   const totalAmount = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /合計納付額[:：]\s*([0-9０-９,，]+)\s*円?/));
+  2335:   const dueDate = paymentDocumentJpDateToIso(dueDateRaw);
+  2336: 
+  2337:   base.document_type_code = "tax_payment_notice";
+  2338:   base.payment_destination_code = "tax_public";
+  2339:   base.accounting_category_code = "tax";
+  2340:   base.payable_kind_code = "unpaid";
+  2341: 
+  2342:   if (!base.source_type_code) {
+  2343:     base.source_type_code = "scan_upload";
+  2344:   }
+  2345: 
+  2346:   if (totalAmount) {
+  2347:     base.total_amount = Number(totalAmount);
+  2348:   }
+  2349: 
+  2350:   if (dueDate) {
+  2351:     base.due_date = dueDate;
+  2352:   }
+  2353: 
+  2354:   if (managementNo && !base.invoice_number) {
+  2355:     base.invoice_number = managementNo;
+  2356:   }
+  2357: 
+  2358:   if (taxOffice && !base.vendor_name) {
+  2359:     base.vendor_name = taxOffice;
+  2360:   }
+  2361: 
+  2362:   if (!base.summary) {
+  2363:     base.summary = taxName ? taxName + " 納付" : "税金・公的支払い 納付";
+  2364:   }
+  2365: 
+  2366:   paymentDocumentSetField(base.fields, "書類種別", "tax_payment_notice", true);
+  2367:   paymentDocumentSetField(base.fields, "書類区分", "tax_payment_notice", true);
+  2368:   paymentDocumentSetField(base.fields, "証憑区分", "納付書・納税通知書", false);
+  2369:   paymentDocumentSetField(base.fields, "処理先", "tax_public", true);
+  2370:   paymentDocumentSetField(base.fields, "税金・公的支払", "税金・公的支払い", true);
+  2371:   paymentDocumentSetField(base.fields, "支払対象", "支払対象", true);
+  2372:   paymentDocumentSetField(base.fields, "未払登録対象", "未払登録対象", true);
+  2373:   paymentDocumentSetField(base.fields, "経費登録対象", "対象外", true);
+  2374:   paymentDocumentSetField(base.fields, "発行元", taxOffice, false);
+  2375:   paymentDocumentSetField(base.fields, "支払先", taxOffice, false);
+  2376:   paymentDocumentSetField(base.fields, "納付先", taxOffice, false);
+  2377:   paymentDocumentSetField(base.fields, "税目", taxName, false);
+  2378:   paymentDocumentSetField(base.fields, "宛名", payer, false);
+
+------------------------------------------------------------
+LINES=2479-2587
+------------------------------------------------------------
+  2479:     "- 画像を見た前提の判断は禁止。",
+  2480:     "- OCR本文にない情報を作らない。",
+  2481:     "- 金額は数値だけにする。円記号やカンマは入れない。",
+  2482:     "- 日付は分かる場合だけ YYYY-MM-DD。",
+  2483:     "- 書類区分などのコードは、下の候補から近いものだけ使う。分からなければ空文字。",
+  2484:     "",
+  2485:     "document_type_code候補:",
+  2486:     "invoice, tax_payment_notice, receipt, web_statement, card_statement, utility_notice, insurance_notice, lease_contract, mail_saved, contract, other",
+  2487:     "",
+  2488:     "payment_destination_code候補:",
+  2489:     "payable, accounts_payable, expense, tax_public, card_payable, contract_insurance_lease, no_process, needs_review",
+  2490:     "",
+  2491:     "accounting_category_code候補:",
+  2492:     "normal, advance_payment, tax, public_utility, insurance, lease, asset, mixed_personal, needs_review",
+  2493:     "",
+  2494:     "payable_kind_code候補:",
+  2495:     "accounts_payable, unpaid, accrued_expense, card_payable, other",
+  2496:     "",
+  2497:     "source_type_code候補:",
+  2498:     "scan_upload, pdf_upload, mail_saved, web_download",
+  2499:     "",
+  2500:     "返すJSON形式:",
+  2501:     "{",
+  2502:     '  "document_type_code": "",',
+  2503:     '  "payment_destination_code": "",',
+  2504:     '  "accounting_category_code": "",',
+  2505:     '  "payable_kind_code": "",',
+  2506:     '  "source_type_code": "",',
+  2507:     '  "vendor_name": "",',
+  2508:     '  "issue_date": "",',
+  2509:     '  "due_date": "",',
+  2510:     '  "invoice_number": "",',
+  2511:     '  "total_amount": null,',
+  2512:     '  "tax_amount": null,',
+  2513:     '  "currency": "JPY",',
+  2514:     '  "summary": "",',
+  2515:     '  "memo": "",',
+  2516:     '  "confidence": {',
+  2517:     '    "document_type": 0,',
+  2518:     '    "payment_destination": 0,',
+  2519:     '    "vendor_name": 0,',
+  2520:     '    "total_amount": 0',
+  2521:     "  },",
+  2522:     '  "warnings": []',
+  2523:     "}",
+  2524:     "",
+  2525:     "OCR本文:",
+  2526:     "------------------------------",
+  2527:     String(ocrText || "").slice(0, 12000),
+  2528:     "------------------------------"
+  2529:   ].join("\n");
+  2530: }
+  2531: 
+  2532: async function createAiDraftFromOcrText(ocrText) {
+  2533:   const apiKey = getOpenAiApiKey();
+  2534: 
+  2535:   if (!apiKey) {
+  2536:     const error = new Error("OPENAI_API_KEY が未設定です。");
+  2537:     error.statusCode = 500;
+  2538:     throw error;
+  2539:   }
+  2540: 
+  2541:   const prompt = buildPaymentDocumentAiPrompt(ocrText);
+  2542: 
+  2543:   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  2544:     method: "POST",
+  2545:     headers: {
+  2546:       "Authorization": "Bearer " + apiKey,
+  2547:       "Content-Type": "application/json"
+  2548:     },
+  2549:     body: JSON.stringify({
+  2550:       model: getOpenAiModel(),
+  2551:       temperature: 0,
+  2552:       messages: [
+  2553:         {
+  2554:           role: "system",
+  2555:           content: loadPaymentDocumentPromptText("legacy.system.txt", "OCR本文だけを根拠に、日本の支払書類の会計入力候補JSONを作成してください。推測しすぎず、必ずJSONのみを返してください。")
+  2556:         },
+  2557:         {
+  2558:           role: "user",
+  2559:           content: await appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
+  2560:         }
+  2561:       ],
+  2562:       response_format: {
+  2563:         type: "json_object"
+  2564:       }
+  2565:     })
+  2566:   });
+  2567: 
+  2568:   const data = await response.json().catch(() => null);
+  2569: 
+  2570:   if (!response.ok) {
+  2571:     const message =
+  2572:       data && data.error && data.error.message
+  2573:         ? data.error.message
+  2574:         : "OpenAI API error: " + response.status;
+  2575: 
+  2576:     const error = new Error(message);
+  2577:     error.statusCode = response.status;
+  2578:     throw error;
+  2579:   }
+  2580: 
+  2581:   const content =
+  2582:     data &&
+  2583:     data.choices &&
+  2584:     data.choices[0] &&
+  2585:     data.choices[0].message &&
+  2586:     data.choices[0].message.content
+  2587:       ? data.choices[0].message.content
+
+------------------------------------------------------------
+LINES=2763-2817
+------------------------------------------------------------
+  2763:     return base;
+  2764:   }
+  2765: 
+  2766:   const taxOffice = paymentDocumentMatchText(text, /納付先[:：]\s*([^\r\n]+?)(?:\s+税目[:：]|$)/);
+  2767:   const taxName = paymentDocumentMatchText(text, /税目[:：]\s*([^\s\r\n]+)/);
+  2768:   const payer = paymentDocumentMatchText(text, /納付者[:：]\s*([^\r\n]+)/);
+  2769:   const dueDateRaw = paymentDocumentMatchText(text, /納付期限[:：]\s*([0-9０-９]{4}\s*年\s*[0-9０-９]{1,2}\s*月\s*[0-9０-９]{1,2}\s*日)/);
+  2770:   const managementNo = paymentDocumentMatchText(text, /整理番号[:：]\s*([^\s\r\n]+)/);
+  2771:   const baseTax = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /本[税稅][:：]\s*([0-9０-９,，]+)\s*円?/));
+  2772:   const additionalTax = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /附帯税[:：]\s*([0-9０-９,，]+)\s*円?/));
+  2773:   const totalAmount = paymentDocumentNormalizeMoneyText(paymentDocumentMatchText(text, /合計納付額[:：]\s*([0-9０-９,，]+)\s*円?/));
+  2774:   const dueDate = paymentDocumentJpDateToIso(dueDateRaw);
+  2775: 
+  2776:   base.document_type_code = "tax_payment_notice";
+  2777:   base.payment_destination_code = "tax_public";
+  2778:   base.accounting_category_code = "tax";
+  2779:   base.payable_kind_code = "unpaid";
+  2780: 
+  2781:   if (!base.source_type_code) {
+  2782:     base.source_type_code = "scan_upload";
+  2783:   }
+  2784: 
+  2785:   if (totalAmount) {
+  2786:     base.total_amount = Number(totalAmount);
+  2787:   }
+  2788: 
+  2789:   if (dueDate) {
+  2790:     base.due_date = dueDate;
+  2791:   }
+  2792: 
+  2793:   if (managementNo && !base.invoice_number) {
+  2794:     base.invoice_number = managementNo;
+  2795:   }
+  2796: 
+  2797:   if (taxOffice && !base.vendor_name) {
+  2798:     base.vendor_name = taxOffice;
+  2799:   }
+  2800: 
+  2801:   if (!base.summary) {
+  2802:     base.summary = taxName ? taxName + " 納付" : "税金・公的支払い 納付";
+  2803:   }
+  2804: 
+  2805:   paymentDocumentSetField(base.fields, "書類種別", "tax_payment_notice", true);
+  2806:   paymentDocumentSetField(base.fields, "書類区分", "tax_payment_notice", true);
+  2807:   paymentDocumentSetField(base.fields, "証憑区分", "納付書・納税通知書", false);
+  2808:   paymentDocumentSetField(base.fields, "処理先", "tax_public", true);
+  2809:   paymentDocumentSetField(base.fields, "税金・公的支払", "税金・公的支払い", true);
+  2810:   paymentDocumentSetField(base.fields, "支払対象", "支払対象", true);
+  2811:   paymentDocumentSetField(base.fields, "未払登録対象", "未払登録対象", true);
+  2812:   paymentDocumentSetField(base.fields, "経費登録対象", "対象外", true);
+  2813:   paymentDocumentSetField(base.fields, "発行元", taxOffice, false);
+  2814:   paymentDocumentSetField(base.fields, "支払先", taxOffice, false);
+  2815:   paymentDocumentSetField(base.fields, "納付先", taxOffice, false);
+  2816:   paymentDocumentSetField(base.fields, "税目", taxName, false);
+  2817:   paymentDocumentSetField(base.fields, "宛名", payer, false);
+
+------------------------------------------------------------
+LINES=2922-2998
+------------------------------------------------------------
+  2922: 
+  2923:   return [
+  2924:     "あなたは日本の中小企業向け会計入力補助AIです。",
+  2925:     "画像は見ていません。OCR本文だけを根拠に、支払書類の下書き候補をJSONで作成してください。",
+  2926:     "確定ではなく候補です。迷う場合は空文字にし、warningsに理由を書いてください。",
+  2927:     "",
+  2928:     "絶対ルール:",
+  2929:     "- 画像を見た前提の判断は禁止。",
+  2930:     "- OCR本文にない情報を作らない。",
+  2931:     "- 金額はカンマなしの数字文字列、または数値。",
+  2932:     "- 日付は分かる場合だけ YYYY-MM-DD。",
+  2933:     "- 分からない項目は空文字。",
+  2934:     "",
+  2935:     "コード候補:",
+  2936:     "document_type_code: invoice, tax_payment_notice, receipt, web_statement, card_statement, utility_notice, insurance_notice, lease_contract, mail_saved, contract, other",
+  2937:     "payment_destination_code: payable, accounts_payable, expense, tax_public, card_payable, contract_insurance_lease, no_process, needs_review",
+  2938:     "accounting_category_code: normal, advance_payment, tax, public_utility, insurance, lease, asset, mixed_personal, needs_review",
+  2939:     "payable_kind_code: accounts_payable, unpaid, accrued_expense, card_payable, other",
+  2940:     "source_type_code: scan_upload, pdf_upload, mail_saved, web_download",
+  2941:     "",
+  2942:     "業務判断ルール:",
+  2943:     "- 請求書、振込先、支払期限、請求金額がある場合は document_type_code=invoice、payment_destination_code=payable を第一候補にする。",
+  2944:     "- 仕入・材料・外注など、商品やサービスを後払いで受けている内容は payable_kind_code=accounts_payable または unpaid を候補にする。",
+  2945:     "- 法人税、消費税、住民税、事業税、源泉所得税、社会保険、労働保険などは document_type_code=tax_payment_notice、payment_destination_code=tax_public、accounting_category_code=tax を候補にする。",
+  2946:     "- 電気、ガス、水道、通信、電話、インターネット等の利用明細や払込票は document_type_code=utility_notice、accounting_category_code=public_utility を候補にする。",
+  2947:     "- クレジットカード利用明細、カード会社名、利用日、引落日、カード番号下4桁が中心なら document_type_code=card_statement、payment_destination_code=card_payable、payable_kind_code=card_payable を候補にする。",
+  2948:     "- 保険料、保険証券、保険期間、契約者、被保険者が中心なら document_type_code=insurance_notice、payment_destination_code=contract_insurance_lease、accounting_category_code=insurance を候補にする。",
+  2949:     "- リース契約、賃貸借、契約期間、月額、支払回数が中心なら document_type_code=lease_contract、payment_destination_code=contract_insurance_lease、accounting_category_code=lease を候補にする。",
+  2950:     "- 領収済、領収書、受領印、支払済が明確なら document_type_code=receipt。未払登録は原則しないが、経費登録候補にする。",
+  2951:     "- メール本文、件名、送信者、添付ファイル名の情報が中心なら source_type_code=mail_saved、document_type_code=mail_saved を候補にする。",
+  2952:     "- 金額が複数ある場合は、支払うべき最終金額を total_amount、消費税額だけを tax_amount に入れる。判断できない場合は該当fieldsへ残して warnings に書く。",
+  2953:     "- 宛名が株式会社HDオリジンスタイル、HD Origin、坂口喜康などの場合は宛名・会社名・個人名へ分ける。支払先と宛名を混同しない。",
+  2954:     "- マスタ選択項目はコード候補に合う場合だけコードを入れる。合わない場合は fields 側に文字で残し、コードは空文字にする。",
+  2955:     "- 要確認のときは needs_review を使い、無理に payable や expense に寄せない。",
+  2956:     "",
+  2957:     "返すJSON形式:",
+  2958:     "{",
+  2959:     '  "document_type_code": "",',
+  2960:     '  "payment_destination_code": "",',
+  2961:     '  "accounting_category_code": "",',
+  2962:     '  "payable_kind_code": "",',
+  2963:     '  "source_type_code": "",',
+  2964:     '  "vendor_name": "",',
+  2965:     '  "issue_date": "",',
+  2966:     '  "due_date": "",',
+  2967:     '  "invoice_number": "",',
+  2968:     '  "total_amount": null,',
+  2969:     '  "tax_amount": null,',
+  2970:     '  "currency": "JPY",',
+  2971:     '  "summary": "",',
+  2972:     '  "memo": "",',
+  2973:     '  "ai_summary": {',
+  2974:     '    "document_kind": "",',
+  2975:     '    "destination": "",',
+  2976:     '    "payment_target": "",',
+  2977:     '    "payable_target": "",',
+  2978:     '    "expense_target": "",',
+  2979:     '    "tax_public": "",',
+  2980:     '    "contract_insurance_lease": "",',
+  2981:     '    "confidence_label": "",',
+  2982:     '    "reason": ""',
+  2983:     "  },",
+  2984:     '  "fields": {',
+  2985:     fieldNames.map(name => '    "' + name + '": ""').join(",\n"),
+  2986:     "  },",
+  2987:     '  "confidence": {',
+  2988:     '    "document_type": 0,',
+  2989:     '    "payment_destination": 0,',
+  2990:     '    "vendor_name": 0,',
+  2991:     '    "total_amount": 0',
+  2992:     "  },",
+  2993:     '  "warnings": []',
+  2994:     "}",
+  2995:     "",
+  2996:     "OCR本文:",
+  2997:     "------------------------------",
+  2998:     String(ocrText || "").slice(0, 12000),
+
+------------------------------------------------------------
+LINES=4356-4446
+------------------------------------------------------------
+  4356:   return "other";
+  4357: }
+  4358: 
+  4359: function buildPaymentDocumentClassificationPrompt(ocrText) {
+  4360:   return [
+  4361:     "あなたは支払書類のStage1共通仕分けAIです。",
+  4362:     "画像は見ていません。OCR本文全体を根拠に仕分けしてください。",
+  4363:     "選択区分は、後続で提示されるPostgreSQLの有効マスタ候補だけを使用してください。",
+  4364:     "",
+  4365:     "絶対ルール:",
+  4366:     "- 会社、文書種別、処理先、会計区分、専門解析先はAIだけが判断する。",
+  4367:     "- company_codeは会社マスタ候補から必ず1つ選ぶ。",
+  4368:     "- document_type_codeは文書種別マスタ候補から必ず1つ選ぶ。",
+  4369:     "- payment_destination_codeは処理先マスタ候補から必ず1つ選ぶ。",
+  4370:     "- accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
+  4371:     "- analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
+  4372:     "- 選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
+  4373: 
+  4374:     "- payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
+  4375:     "- analysis_system_reasonは必ず具体的に返す。",
+  4376:     "- analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
+  4377:     "- needs_reviewは必ずtrueまたはfalseのbooleanで返す。",
+  4378:     "- 判断に迷う場合も有効なマスタコードを選び、needs_review=trueにする。",
+  4379:     "- Node.js、SQL、HTML、固定語句、既定値、後付け補正を前提にしない。",
+  4380:     "- OCR本文にない情報を作らない。",
+  4381:     "",
+  4382:     "返すJSON形式:",
+  4383:     "{",
+  4384:     '  "company_code": "",',
+  4385:     '  "document_type_code": "",',
+  4386:     '  "payment_destination_code": "",',
+  4387:     '  "accounting_category_code": "",',
+  4388:     '  "analysis_system_code": "",',
+  4389:     '  "analysis_system_reason": "",',
+  4390:     '  "analysis_system_confidence": "high",',
+  4391:     '  "needs_review": false,',
+  4392:     '  "warnings": []',
+  4393:     "}",
+  4394:     "",
+  4395:     "上記9項目以外は返さない。",
+  4396:     "JSON以外の文章は返さない。",
+  4397:     "",
+  4398:     "OCR本文:",
+  4399:     "------------------------------",
+  4400:     String(ocrText || "").slice(0, 12000),
+  4401:     "------------------------------"
+  4402:   ].join("\n");
+  4403: }
+  4404: function buildPaymentDocumentDetailPrompt(ocrText, classification) {
+  4405:   return [
+  4406:     "あなたは支払書類のStage2共通基本情報抽出AIです。",
+  4407:     "画像は見ず、OCR本文に明記された基本情報だけを抽出してください。",
+  4408:     "Stage1の分類結果を変更または再判定してはいけません。",
+  4409:     "",
+  4410:     "Stage1結果:",
+  4411:     JSON.stringify(classification || {}, null, 2),
+  4412:     "",
+  4413:     "抽出する基本10項目:",
+  4414:     "- document_number",
+  4415:     "- reference_number",
+  4416:     "- issuer_name",
+  4417:     "- issuer_registration_number",
+  4418:     "- issuer_postal_code",
+  4419:     "- issuer_address",
+  4420:     "- issuer_phone",
+  4421:     "- recipient_name",
+  4422:     "- recipient_code",
+  4423:     "- document_date",
+  4424:     "",
+  4425:     "絶対ルール:",
+  4426:     "- OCR本文にない情報を作らない。",
+  4427:     "- 推測や補完をしない。",
+  4428:     "- 不明な項目は空文字にする。",
+  4429:     "- document_dateは明確な場合だけYYYY-MM-DD形式にする。",
+  4430:     "- 金額、税額、支払期限、支払日、支払方法を抽出しない。",
+  4431:     "- 明細、摘要、契約内容、保険内容、専門解析項目を抽出しない。",
+  4432:     "- Stage1のマスタコードを返さない。",
+  4433:     "- stage2_fieldsには基本10項目以外を入れない。",
+  4434:     "",
+  4435:     "返すJSON形式:",
+  4436:     "{",
+  4437:     '  "stage2_fields": {',
+  4438:     '    "document_number": "",',
+  4439:     '    "reference_number": "",',
+  4440:     '    "issuer_name": "",',
+  4441:     '    "issuer_registration_number": "",',
+  4442:     '    "issuer_postal_code": "",',
+  4443:     '    "issuer_address": "",',
+  4444:     '    "issuer_phone": "",',
+  4445:     '    "recipient_name": "",',
+  4446:     '    "recipient_code": "",',
+
+------------------------------------------------------------
+LINES=4541-4597
+------------------------------------------------------------
+  4541:   return basePrompt + "\n" + instruction;
+  4542: }
+  4543: /* PAYMENT_DOCUMENT_AI_PROMPT_SAFE_PRECISION_20260707_END */
+  4544: async function callPaymentDocumentOpenAiJson(prompt, systemMessage) {
+  4545:   const apiKey = getOpenAiApiKey();
+  4546: 
+  4547:   if (!apiKey) {
+  4548:     const error = new Error("OPENAI_API_KEY が未設定です。");
+  4549:     error.statusCode = 500;
+  4550:     throw error;
+  4551:   }
+  4552: 
+  4553:   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  4554:     method: "POST",
+  4555:     headers: {
+  4556:       "Authorization": "Bearer " + apiKey,
+  4557:       "Content-Type": "application/json"
+  4558:     },
+  4559:     body: JSON.stringify({
+  4560:       model: getOpenAiModel(),
+  4561:       temperature: 0,
+  4562:       messages: [
+  4563:         {
+  4564:           role: "system",
+  4565:           content: systemMessage || "OCR本文だけから、支払書類の会計入力候補JSONを作成してください。必ずJSONのみを返してください。"
+  4566:         },
+  4567:         {
+  4568:           role: "user",
+  4569:           content: await appendPaymentDocumentExternalPrompt(appendPaymentDocumentMasterCodeInstruction(prompt), ["business-rules.txt", "legacy.extra-rules.txt"])
+  4570:         }
+  4571:       ],
+  4572:       response_format: {
+  4573:         type: "json_object"
+  4574:       }
+  4575:     })
+  4576:   });
+  4577: 
+  4578:   const data = await response.json().catch(() => null);
+  4579: 
+  4580:   if (!response.ok) {
+  4581:     const message =
+  4582:       data && data.error && data.error.message
+  4583:         ? data.error.message
+  4584:         : "OpenAI API error: " + response.status;
+  4585: 
+  4586:     const error = new Error(message);
+  4587:     error.statusCode = response.status;
+  4588:     throw error;
+  4589:   }
+  4590: 
+  4591:   const content =
+  4592:     data &&
+  4593:     data.choices &&
+  4594:     data.choices[0] &&
+  4595:     data.choices[0].message &&
+  4596:     data.choices[0].message.content
+  4597:       ? data.choices[0].message.content
+
+------------------------------------------------------------
+LINES=4664-4756
+------------------------------------------------------------
+  4664:     accounting_category_code: String(
+  4665:       result.accounting_category_code || ""
+  4666:     ).trim(),
+  4667: 
+  4668:     analysis_system_code: String(
+  4669:       result.analysis_system_code || ""
+  4670:     ).trim(),
+  4671: 
+  4672:     analysis_system_reason: String(
+  4673:       result.analysis_system_reason || ""
+  4674:     ).trim(),
+  4675: 
+  4676:     analysis_system_confidence:
+  4677:       confidence,
+  4678: 
+  4679:     needs_review:
+  4680:       result.needs_review,
+  4681: 
+  4682:     source_type_code: String(
+  4683:       sourceTypeCode || ""
+  4684:     ).trim(),
+  4685: 
+  4686:     warnings: Array.isArray(result.warnings)
+  4687:       ? result.warnings
+  4688:           .map(item =>
+  4689:             String(item || "").trim()
+  4690:           )
+  4691:           .filter(Boolean)
+  4692:       : []
+  4693:   };
+  4694: }
+  4695: 
+  4696: async function validateStage1MasterCodes(
+  4697:   classification
+  4698: ) {
+  4699:   const requiredValues = {
+  4700:     company_code: String(
+  4701:       classification.company_code || ""
+  4702:     ).trim(),
+  4703: 
+  4704:     document_type_code: String(
+  4705:       classification.document_type_code || ""
+  4706:     ).trim(),
+  4707: 
+  4708:     payment_destination_code: String(
+  4709:       classification.payment_destination_code || ""
+  4710:     ).trim(),
+  4711: 
+  4712:     accounting_category_code: String(
+  4713:       classification.accounting_category_code || ""
+  4714:     ).trim(),
+  4715: 
+  4716:     analysis_system_code: String(
+  4717:       classification.analysis_system_code || ""
+  4718:     ).trim(),
+  4719: 
+  4720:     source_type_code: String(
+  4721:       classification.source_type_code || ""
+  4722:     ).trim()
+  4723:   };
+  4724: 
+  4725:   for (const [fieldName, code] of Object.entries(requiredValues)) {
+  4726:     if (!code) {
+  4727:       const error = new Error(
+  4728:         "Stage1必須マスタコードが空です: " +
+  4729:         fieldName
+  4730:       );
+  4731: 
+  4732:       error.statusCode = 422;
+  4733:       throw error;
+  4734:     }
+  4735:   }
+  4736: 
+  4737:   const result = await db.query(`
+  4738:     SELECT
+  4739:       'company_code' AS field_name,
+  4740:       company_code AS code
+  4741:     FROM expenses.companies
+  4742:     WHERE is_active = true
+  4743: 
+  4744:     UNION ALL
+  4745: 
+  4746:     SELECT
+  4747:       'document_type_code',
+  4748:       document_type_code
+  4749:     FROM expenses.document_types
+  4750:     WHERE is_active = true
+  4751: 
+  4752:     UNION ALL
+  4753: 
+  4754:     SELECT
+  4755:       'payment_destination_code',
+  4756:       payment_destination_code
+
+------------------------------------------------------------
+LINES=4761-4878
+------------------------------------------------------------
+  4761: 
+  4762:     SELECT
+  4763:       'accounting_category_code',
+  4764:       accounting_category_code
+  4765:     FROM expenses.accounting_categories
+  4766:     WHERE is_active = true
+  4767: 
+  4768:     UNION ALL
+  4769: 
+  4770:     SELECT
+  4771:       'analysis_system_code',
+  4772:       analysis_system_code
+  4773:     FROM expenses.analysis_systems
+  4774:     WHERE is_active = true
+  4775: 
+  4776:     UNION ALL
+  4777: 
+  4778:     SELECT
+  4779:       'source_type_code',
+  4780:       payment_source_type_code
+  4781:     FROM expenses.payment_source_types
+  4782:     WHERE is_active = true
+  4783:   `);
+  4784: 
+  4785:   const activeCodes = new Map();
+  4786: 
+  4787:   for (const row of result.rows) {
+  4788:     const fieldName = String(
+  4789:       row.field_name || ""
+  4790:     ).trim();
+  4791: 
+  4792:     const code = String(
+  4793:       row.code || ""
+  4794:     ).trim();
+  4795: 
+  4796:     if (!activeCodes.has(fieldName)) {
+  4797:       activeCodes.set(
+  4798:         fieldName,
+  4799:         new Set()
+  4800:       );
+  4801:     }
+  4802: 
+  4803:     if (code) {
+  4804:       activeCodes
+  4805:         .get(fieldName)
+  4806:         .add(code);
+  4807:     }
+  4808:   }
+  4809: 
+  4810:   for (const [fieldName, code] of Object.entries(requiredValues)) {
+  4811:     const fieldCodes =
+  4812:       activeCodes.get(fieldName) ||
+  4813:       new Set();
+  4814: 
+  4815:     if (!fieldCodes.has(code)) {
+  4816:       const error = new Error(
+  4817:         "Stage1の選択値が有効なマスタコードではありません。" +
+  4818:         " field=" + fieldName +
+  4819:         " code=" + code
+  4820:       );
+  4821: 
+  4822:       error.statusCode = 422;
+  4823:       throw error;
+  4824:     }
+  4825:   }
+  4826: 
+  4827:   return classification;
+  4828: }
+  4829: 
+  4830: async function resolvePaymentDocumentSourceTypeCode(row) {
+  4831:   const result = await db.query(`
+  4832:     SELECT
+  4833:       payment_source_type_code
+  4834:     FROM expenses.payment_source_types
+  4835:     WHERE is_active = true
+  4836:       AND COALESCE(payment_source_type_code, '') <> ''
+  4837:     ORDER BY sort_order, payment_source_type_id
+  4838:   `);
+  4839: 
+  4840:   const activeCodes = new Set(
+  4841:     result.rows.map(item =>
+  4842:       String(
+  4843:         item.payment_source_type_code || ""
+  4844:       ).trim()
+  4845:     )
+  4846:   );
+  4847: 
+  4848:   const sourceType = String(
+  4849:     row && row.source_type || ""
+  4850:   ).trim().toLowerCase();
+  4851: 
+  4852:   const mimeType = String(
+  4853:     row && row.mime_type || ""
+  4854:   ).trim().toLowerCase();
+  4855: 
+  4856:   let resolvedCode = "";
+  4857: 
+  4858:   if (activeCodes.has(sourceType)) {
+  4859:     resolvedCode = sourceType;
+  4860:   } else if (
+  4861:     sourceType.includes("mail")
+  4862:   ) {
+  4863:     resolvedCode = "mail_saved";
+  4864:   } else if (
+  4865:     sourceType.includes("web")
+  4866:   ) {
+  4867:     resolvedCode = "web_download";
+  4868:   } else if (
+  4869:     sourceType.includes("manual")
+  4870:   ) {
+  4871:     resolvedCode = "manual_upload";
+  4872:   } else if (
+  4873:     mimeType === "application/pdf"
+  4874:   ) {
+  4875:     resolvedCode = "pdf_upload";
+  4876:   } else if (
+  4877:     sourceType === "scan_inbox" ||
+  4878:     sourceType === "scan" ||
+
+------------------------------------------------------------
+LINES=4919-4972
+------------------------------------------------------------
+  4919:     document_number: text("document_number"),
+  4920:     reference_number: text("reference_number"),
+  4921:     issuer_name: text("issuer_name"),
+  4922:     issuer_registration_number: text("issuer_registration_number"),
+  4923:     issuer_postal_code: text("issuer_postal_code"),
+  4924:     issuer_address: text("issuer_address"),
+  4925:     issuer_phone: text("issuer_phone"),
+  4926:     recipient_name: text("recipient_name"),
+  4927:     recipient_code: text("recipient_code"),
+  4928:     document_date: text("document_date"),
+  4929:     warnings: Array.isArray(source.warnings)
+  4930:       ? source.warnings.map(item => String(item || "").trim()).filter(Boolean)
+  4931:       : []
+  4932:   };
+  4933: }
+  4934: 
+  4935: async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
+  4936:   const sourceTypeCode = String(
+  4937:     context && context.source_type_code || ""
+  4938:   ).trim();
+  4939: 
+  4940:   if (!sourceTypeCode) {
+  4941:     const error = new Error(
+  4942:       "システム確定済みの入手元区分マスタコードがありません。"
+  4943:     );
+  4944: 
+  4945:     error.statusCode = 422;
+  4946:     throw error;
+  4947:   }
+  4948:   const classificationPrompt = await appendPaymentDocumentExternalPrompt(
+  4949:     buildPaymentDocumentClassificationPrompt(ocrText),
+  4950:     await selectPaymentDocumentPromptFiles({
+  4951:       ocrText,
+  4952:       phase: "classification"
+  4953:     })
+  4954:   );
+  4955: 
+  4956:   const classificationResponse = await callPaymentDocumentOpenAiJson(
+  4957:     classificationPrompt,
+  4958:     loadPaymentDocumentPromptText(
+  4959:       "classification.system.txt",
+  4960:       "OCR本文だけから、支払書類の分類JSONを作成してください。必ずJSONのみを返してください。"
+  4961:     )
+  4962:   );
+  4963: 
+  4964:   const classification =
+  4965:     normalizeStage1ClassificationCandidate(
+  4966:       classificationResponse.parsed,
+  4967:       sourceTypeCode
+  4968:     );
+  4969: 
+  4970:   await validateStage1MasterCodes(
+  4971:     classification
+  4972:   );
+
+------------------------------------------------------------
+LINES=5001-5054
+------------------------------------------------------------
+  5001:   );
+  5002: 
+  5003:   const detail = normalizeStage2CommonFieldsCandidate(
+  5004:     detailResponse.parsed
+  5005:   );
+  5006: 
+  5007:   const { warnings: detailWarnings, ...stage2Fields } = detail;
+  5008: 
+  5009:   const draft = {
+  5010:     ...stage2Fields,
+  5011:     company_code: classification.company_code,
+  5012:     document_type_code: classification.document_type_code,
+  5013:     payment_destination_code: classification.payment_destination_code,
+  5014:     accounting_category_code: classification.accounting_category_code,
+  5015:     analysis_system_code: classification.analysis_system_code,
+  5016:     analysis_system_reason: classification.analysis_system_reason,
+  5017:     analysis_system_confidence: classification.analysis_system_confidence,
+  5018:     needs_review: classification.needs_review,
+  5019:     source_type_code: classification.source_type_code,
+  5020:     fields: { ...stage2Fields },
+  5021:     warnings: [
+  5022:       ...(Array.isArray(classification.warnings) ? classification.warnings : []),
+  5023:       ...(Array.isArray(detailWarnings) ? detailWarnings : [])
+  5024:     ]
+  5025:   };
+  5026: 
+  5027:   // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
+  5028:   draft.visible_field_labels = visibleLabels;
+  5029:   return {
+  5030:     draft,
+  5031:     classification,
+  5032:     visible_field_labels: draft.visible_field_labels || visibleLabels,
+  5033:     display_mode: "visible_fields_only",
+  5034:     prompt_rule_files: {
+  5035:       classification: await selectPaymentDocumentPromptFiles({
+  5036:         ocrText,
+  5037:         phase: "classification"
+  5038:       }),
+  5039:       detail: await selectPaymentDocumentPromptFiles({
+  5040:         ocrText,
+  5041:         draft: classification,
+  5042:         phase: "detail"
+  5043:       })
+  5044:     },
+  5045:     steps: [
+  5046:       {
+  5047:         name: "classification",
+  5048:         usage: classificationResponse.usage
+  5049:       },
+  5050:       {
+  5051:         name: "detail",
+  5052:         usage: detailResponse.usage
+  5053:       }
+  5054:     ]
+
+------------------------------------------------------------
+LINES=5163-5216
+------------------------------------------------------------
+  5163:       "",
+  5164:       "返すJSON形式:",
+  5165:       "{",
+  5166:       '  "draft": {',
+  5167:       '    "analysis_system_code": "",',
+  5168:       '    "analysis_system_label": "",',
+  5169:       '    "analysis_system_reason": "",',
+  5170:       '    "analysis_system_confidence": "",',
+  5171:       '    "document_group": "",',
+  5172:       '    "specialist_route_code": "",',
+  5173:       '    "specialist_route_label": "",',
+  5174:       '    "fields": {}',
+  5175:       "  },",
+  5176:       '  "visible_field_labels": [],',
+  5177:       '  "warnings": []',
+  5178:       "}",
+  5179:       "",
+  5180:       "専門解析コンテキスト:",
+  5181:       JSON.stringify(specialistContext, null, 2),
+  5182:       "",
+  5183:       "OCR本文:",
+  5184:       String(ocrText || "")
+  5185:     ].join("\n"),
+  5186:     await selectPaymentDocumentPromptFiles(specialistContext)
+  5187:   );
+  5188: 
+  5189:   const response = await callPaymentDocumentOpenAiJson(
+  5190:     prompt,
+  5191:     loadPaymentDocumentPromptText(
+  5192:       "stage3-specialist/common/system.txt",
+  5193:       "OCR本文だけから専門解析JSONを作成してください。表示項目はvisible_field_labelsでAIが決めてください。必ずJSONのみを返してください。"
+  5194:     )
+  5195:   );
+  5196: 
+  5197:   const parsed = hdOriginAiOnlyObject(response.parsed);
+  5198:   const rawDraft = hdOriginAiOnlyObject(parsed.draft || parsed.ai_draft || parsed);
+  5199:   const draft = { ...rawDraft };
+  5200:   const fields = hdOriginAiOnlyObject(rawDraft.fields || parsed.fields);
+  5201: 
+  5202:   draft.fields = fields;
+  5203: 
+  5204:   draft.visible_field_labels = hdOriginAiOnlyArray(
+  5205:     parsed.visible_field_labels ||
+  5206:     parsed.visibleFieldLabels ||
+  5207:     rawDraft.visible_field_labels ||
+  5208:     rawDraft.visibleFieldLabels
+  5209:   );
+  5210: 
+  5211:   draft.document_group = String(
+  5212:     rawDraft.document_group || ""
+  5213:   ).trim();
+  5214: 
+  5215:   draft.specialist_route_code = String(
+  5216:     rawDraft.specialist_route_code || ""
+
+------------------------------------------------------------
+LINES=5290-5343
+------------------------------------------------------------
+  5290:     z(d.getHours()) +
+  5291:     z(d.getMinutes()) +
+  5292:     z(d.getSeconds())
+  5293:   );
+  5294: }
+  5295: 
+  5296: function paymentDocumentReviewMemoDir() {
+  5297:   const dir = path.join(config.projectRoot, "GPTが使う一時ファイルフォルダ", "memo");
+  5298:   ensureDir(dir);
+  5299:   return dir;
+  5300: }
+  5301: 
+  5302: function paymentDocumentReviewMemoText(value) {
+  5303:   if (value === null || value === undefined) return "";
+  5304:   if (Array.isArray(value)) return value.map(paymentDocumentReviewMemoText).join(", ");
+  5305: 
+  5306:   if (typeof value === "object") {
+  5307:     try {
+  5308:       return JSON.stringify(value);
+  5309:     } catch {
+  5310:       return String(value);
+  5311:     }
+  5312:   }
+  5313: 
+  5314:   return String(value);
+  5315: }
+  5316: 
+  5317: function paymentDocumentReviewVisibleFieldsMemoLines(body) {
+  5318:   const fields = Array.isArray(body.fields) ? body.fields : [];
+  5319:   const selectedItem = body.selectedItem || {};
+  5320:   const missingControls = Array.isArray(body.aiMissingControls) ? body.aiMissingControls : [];
+  5321:   const lines = [];
+  5322: 
+  5323:   lines.push("==============================");
+  5324:   lines.push("支払書類内容確認 表示中項目メモ");
+  5325:   lines.push("==============================");
+  5326:   lines.push("日時: " + new Date().toISOString());
+  5327:   lines.push("");
+  5328:   lines.push("[選択中OCR]");
+  5329:   lines.push("selectedIndex: " + paymentDocumentReviewMemoText(body.selectedIndex));
+  5330:   lines.push("selectedOcrImportId: " + paymentDocumentReviewMemoText(body.selectedOcrImportId));
+  5331:   lines.push("originalFileName: " + paymentDocumentReviewMemoText(selectedItem.originalFileName));
+  5332:   lines.push("savedFileName: " + paymentDocumentReviewMemoText(selectedItem.savedFileName));
+  5333:   lines.push("mimeType: " + paymentDocumentReviewMemoText(selectedItem.mimeType));
+  5334:   lines.push("ocrStatus: " + paymentDocumentReviewMemoText(selectedItem.ocrStatus));
+  5335:   lines.push("");
+  5336:   lines.push("[AI反映]");
+  5337:   lines.push("aiAppliedCount: " + paymentDocumentReviewMemoText(body.aiAppliedCount));
+  5338:   lines.push("aiMissingControls: " + (missingControls.length ? missingControls.join(", ") : "なし"));
+  5339:   lines.push("");
+  5340:   lines.push("[表示中項目]");
+  5341:   lines.push("項目数: " + fields.length);
+  5342: 
+  5343:   let currentSection = "";
+
+------------------------------------------------------------
+LINES=5799-5868
+------------------------------------------------------------
+  5799: /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
+  5800: function applyPaymentDocumentSortRuleFallbackFromOcr(ocrText, draft) {
+  5801:   /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
+  5802:   return draft;
+  5803:   /*
+  5804:     基礎解析ではOCR本文の固定語句による後付け分類を禁止する。
+  5805:     この関数は旧フォールバック互換名だけ残し、AI返却値の基礎解析正規化だけ行う。
+  5806:   */
+  5807:   return normalizePaymentDocumentSortCandidate(draft);
+  5808: }
+  5809: /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
+  5810: 
+  5811: async function createPaymentDocumentSortFromOcrText(ocrText) {
+  5812:   const prompt = buildPaymentDocumentSortPrompt(ocrText);
+  5813: 
+  5814:   const response = await callPaymentDocumentOpenAiJson(
+  5815:     prompt,
+  5816:     loadPaymentDocumentPromptText(
+  5817:       "sorting.system.txt",
+  5818:       "OCR本文だけから支払書類の1回目仕分けJSONを作成してください。詳細項目は抽出せず、必ずJSONのみを返してください。"
+  5819:     )
+  5820:   );
+  5821: 
+  5822:   const draft = normalizePaymentDocumentSortCandidate(response.parsed);
+  5823: 
+  5824:   return {
+  5825:     draft,
+  5826:     classification: draft,
+  5827:     sorting: draft,
+  5828:     document_group: draft.analysis_system_code || draft.analysis_system_label || "",
+  5829:     visible_field_labels: draft.visible_field_labels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"],
+  5830:     display_mode: "sorting_only",
+  5831:     image_used: false,
+  5832:     prompt_rule_files: {
+  5833:       sorting: ["sorting.system.txt"]
+  5834:     },
+  5835:     steps: [
+  5836:       {
+  5837:         name: "sorting",
+  5838:         usage: response.usage
+  5839:       }
+  5840:     ],
+  5841:     ai_steps: [
+  5842:       {
+  5843:         name: "sorting",
+  5844:         usage: response.usage
+  5845:       }
+  5846:     ]
+  5847:   };
+  5848: }
+  5849: /* PAYMENT_DOCUMENT_AI_SORT_ONLY_20260707_END */
+  5850: /* PAYMENT_DOCUMENT_SORT_GROW_POLISH_20260707_START */
+  5851: function hdOriginSortGrowText(value) {
+  5852:   /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
+  5853:      AI重視方針:
+  5854:      この関数はOCR本文ベースの後追い分類補正を行っていたため、
+  5855:      AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
+  5856:      保存API・表示処理ではなく、AI後の補正だけを止める。
+  5857:   */
+  5858:   return value;
+  5859: 
+  5860:   if (value === null || value === undefined) return "";
+  5861:   return String(value).trim();
+  5862: }
+  5863: 
+  5864: function hdOriginSortGrowHasAny(text, words) {
+  5865:   const s = String(text || "").replace(/\s+/g, "").toLowerCase();
+  5866:   return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
+  5867: }
+  5868: 
+
+------------------------------------------------------------
+LINES=5934-5987
+------------------------------------------------------------
+  5934:     "利用店名",
+  5935:     "card",
+  5936:     "処理先:カード明細照合へ",
+  5937:     "購入先証憑と紐付ける",
+  5938:     "カード明細は照合用"
+  5939:   ]);
+  5940: 
+  5941:   if (isCardStatement) {
+  5942:     draft.document_type_code = "card_statement";
+  5943:     draft.document_type_label = "カード利用明細";
+  5944:     draft.document_type_name = "カード利用明細";
+  5945: 
+  5946:     draft.payment_destination_code = "card_payable";
+  5947:     draft.payment_destination_label = "カード未払";
+  5948:     draft.payment_destination_name = "カード未払";
+  5949: 
+  5950:     draft.specialist_route_code = "card_statement";
+  5951:     draft.specialist_route_label = "カード明細照合";
+  5952:     draft.source_type_code = "card_statement";
+  5953: 
+  5954:     if (!hdOriginCardSortGrowText(draft.payable_kind_code)) {
+  5955:       draft.payable_kind_code = "card_payable";
+  5956:     }
+  5957: 
+  5958:     if (!hdOriginCardSortGrowText(draft.accounting_category_code)) {
+  5959:       draft.accounting_category_code = "normal";
+  5960:     }
+  5961: 
+  5962:     draft.confidence = draft.confidence || "high";
+  5963:     draft.confidence_level = draft.confidence_level || "high";
+  5964:     draft.confidence_label = draft.confidence_label || "高";
+  5965:     draft.ai_confidence = draft.ai_confidence || "高";
+  5966: 
+  5967:     if (!hdOriginCardSortGrowText(draft.review_reason)) {
+  5968:       draft.review_reason = "カード利用明細、カード会社明細等の記載があり、購入先証憑との照合対象であるため。";
+  5969:     }
+  5970: 
+  5971:     if (draft.confidence === "low" || draft.confidence_label === "低") {
+  5972:       draft.needs_review = true;
+  5973:     } else if (draft.needs_review !== true) {
+  5974:       draft.needs_review = false;
+  5975:     }
+  5976: 
+  5977:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  5978:     draft.ai_summary.document_kind = "カード利用明細";
+  5979:     draft.ai_summary.destination = "カード未払";
+  5980:     draft.ai_summary.payment_target = "支払対象候補";
+  5981:     draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
+  5982:     draft.ai_summary.expense_target = "対象外";
+  5983:     draft.ai_summary.tax_public = "対象外";
+  5984:     draft.ai_summary.contract_insurance_lease = "対象外";
+  5985:     draft.ai_summary.card_statement = "カード明細照合";
+  5986:     draft.ai_summary.confidence_label = draft.confidence_label || draft.ai_confidence || "高";
+  5987:     draft.ai_summary.reason = draft.review_reason;
+
+------------------------------------------------------------
+LINES=6068-6121
+------------------------------------------------------------
+  6068: 
+  6069:   const shouldOverrideCard =
+  6070:     isMailSaved &&
+  6071:     isCommunication &&
+  6072:     (hasCardPaymentOnly || draft.payment_destination_code === "card_payable") &&
+  6073:     !hasStrongCardStatement;
+  6074: 
+  6075:   if (shouldOverrideCard) {
+  6076:     draft.document_type_code = "mail_saved";
+  6077:     draft.document_type_label = "メール保存証憑";
+  6078:     draft.document_type_name = "メール保存証憑";
+  6079: 
+  6080:     draft.payment_destination_code = "expense";
+  6081:     draft.payment_destination_label = "経費";
+  6082:     draft.payment_destination_name = "経費";
+  6083: 
+  6084:     draft.specialist_route_code = "utility";
+  6085:     draft.specialist_route_label = "公共料金・通信費確認";
+  6086:     draft.source_type_code = "scan_upload";
+  6087: 
+  6088:     draft.accounting_category_code = draft.accounting_category_code || "normal";
+  6089:     draft.payable_kind_code = "";
+  6090: 
+  6091:     draft.confidence = draft.confidence || "high";
+  6092:     draft.confidence_level = draft.confidence_level || "high";
+  6093:     draft.confidence_label = draft.confidence_label || "高";
+  6094:     draft.ai_confidence = draft.ai_confidence || "高";
+  6095: 
+  6096:     draft.needs_review = false;
+  6097: 
+  6098:     draft.review_reason = "メール保存証憑であり、通信費のお知らせ・ご請求額・支払方法の記載があるため。支払方法がクレジットカードでもカード明細そのものではない。";
+  6099: 
+  6100:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6101:     draft.ai_summary.document_kind = "メール保存証憑";
+  6102:     draft.ai_summary.destination = "経費";
+  6103:     draft.ai_summary.payment_target = "支払対象候補";
+  6104:     draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
+  6105:     draft.ai_summary.expense_target = "候補";
+  6106:     draft.ai_summary.tax_public = "対象外";
+  6107:     draft.ai_summary.public_utility = "公共料金";
+  6108:     draft.ai_summary.contract_insurance_lease = "対象外";
+  6109:     draft.ai_summary.card_statement = "対象外";
+  6110:     draft.ai_summary.confidence_label = draft.confidence_label || draft.ai_confidence || "高";
+  6111:     draft.ai_summary.reason = draft.review_reason;
+  6112:   }
+  6113: 
+  6114:   result.draft = draft;
+  6115:   result.classification = draft;
+  6116:   result.sorting = draft;
+  6117:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+  6118:   result.visible_field_labels = [];
+  6119:   result.display_mode = "sorting_only";
+  6120:   result.image_used = false;
+  6121: 
+
+------------------------------------------------------------
+LINES=6171-6224
+------------------------------------------------------------
+  6171:     "インボイス番号",
+  6172:     "人間確認",
+  6173:     "確認"
+  6174:   ]);
+  6175: 
+  6176:   const isReceiptAttention = isReceipt && needsHumanCheck;
+  6177: 
+  6178:   if (isReceiptAttention) {
+  6179:     draft.document_type_code = "receipt";
+  6180:     draft.document_type_label = "領収書";
+  6181:     draft.document_type_name = "領収書";
+  6182: 
+  6183:     draft.payment_destination_code = "expense";
+  6184:     draft.payment_destination_label = "経費管理";
+  6185:     draft.payment_destination_name = "経費管理";
+  6186: 
+  6187:     draft.specialist_route_code = "paid_evidence";
+  6188:     draft.specialist_route_label = "支払済み証憑確認";
+  6189:     draft.source_type_code = "paid_evidence";
+  6190: 
+  6191:     draft.accounting_category_code = draft.accounting_category_code || "normal";
+  6192:     draft.payable_kind_code = "";
+  6193: 
+  6194:     draft.confidence = "medium";
+  6195:     draft.confidence_level = "medium";
+  6196:     draft.confidence_label = "中";
+  6197:     draft.ai_confidence = "中";
+  6198: 
+  6199:     draft.needs_review = true;
+  6200:     draft.review_reason = "領収書だが、宛名が上様で但し書き・インボイス番号の人間確認が必要なため。";
+  6201: 
+  6202:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6203:     draft.ai_summary.document_kind = "領収書";
+  6204:     draft.ai_summary.destination = "経費管理";
+  6205:     draft.ai_summary.payment_target = "支払済み証憑候補";
+  6206:     draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
+  6207:     draft.ai_summary.expense_target = "候補";
+  6208:     draft.ai_summary.tax_public = "対象外";
+  6209:     draft.ai_summary.contract_insurance_lease = "対象外";
+  6210:     draft.ai_summary.card_statement = "対象外";
+  6211:     draft.ai_summary.confidence_label = "中";
+  6212:     draft.ai_summary.reason = draft.review_reason;
+  6213:   }
+  6214: 
+  6215:   result.draft = draft;
+  6216:   result.classification = draft;
+  6217:   result.sorting = draft;
+  6218:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+  6219:   result.visible_field_labels = [];
+  6220:   result.display_mode = "sorting_only";
+  6221:   result.image_used = false;
+  6222: 
+  6223:   return result;
+  6224: }
+
+------------------------------------------------------------
+LINES=6292-6345
+------------------------------------------------------------
+  6292:     "都市計画税",
+  6293:     "源泉所得税",
+  6294:     "社会保険料"
+  6295:   ]);
+  6296: 
+  6297:   const isMaterialInvoice = isInvoice && isMaterialPurchase && !isRealTaxPublic;
+  6298: 
+  6299:   if (isMaterialInvoice) {
+  6300:     draft.document_type_code = "invoice";
+  6301:     draft.document_type_label = "請求書";
+  6302:     draft.document_type_name = "請求書";
+  6303: 
+  6304:     draft.payment_destination_code = "accounts_payable";
+  6305:     draft.payment_destination_label = "買掛管理";
+  6306:     draft.payment_destination_name = "買掛管理";
+  6307: 
+  6308:     draft.specialist_route_code = "accounts_payable";
+  6309:     draft.specialist_route_label = "買掛・仕入請求確認";
+  6310:     draft.source_type_code = "accounts_payable";
+  6311: 
+  6312:     draft.accounting_category_code = draft.accounting_category_code || "normal";
+  6313:     draft.accounting_category_label = draft.accounting_category_label || "通常";
+  6314:     draft.accounting_category_name = draft.accounting_category_name || "通常";
+  6315: 
+  6316:     draft.payable_kind_code = "purchase_payable";
+  6317:     draft.payable_kind_label = "仕入買掛";
+  6318:     draft.payable_kind_name = "仕入買掛";
+  6319: 
+  6320:     draft.confidence = "high";
+  6321:     draft.confidence_level = "high";
+  6322:     draft.confidence_label = "高";
+  6323:     draft.ai_confidence = "高";
+  6324: 
+  6325:     draft.needs_review = false;
+  6326:     draft.review_reason = "請求書であり、靴資材一式・支払期限・請求番号・請求合計の記載があるため、材料仕入の買掛候補と判断。";
+  6327: 
+  6328:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6329:     draft.ai_summary.document_kind = "請求書";
+  6330:     draft.ai_summary.destination = "買掛管理";
+  6331:     draft.ai_summary.payment_target = "支払対象候補";
+  6332:     draft.ai_summary.payable_target = "候補";
+  6333:     draft.ai_summary.expense_target = "対象外";
+  6334:     draft.ai_summary.tax_public = "対象外";
+  6335:     draft.ai_summary.contract_insurance_lease = "対象外";
+  6336:     draft.ai_summary.card_statement = "対象外";
+  6337:     draft.ai_summary.confidence_label = "高";
+  6338:     draft.ai_summary.reason = draft.review_reason;
+  6339:   }
+  6340: 
+  6341:   result.draft = draft;
+  6342:   result.classification = draft;
+  6343:   result.sorting = draft;
+  6344:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+  6345:   result.visible_field_labels = [];
+
+------------------------------------------------------------
+LINES=6404-6457
+------------------------------------------------------------
+  6404:       hdOriginInsuranceSortHasAny(text, ["保険料通知書"]) ||
+  6405:       (
+  6406:         hdOriginInsuranceSortHasAny(text, ["保険料", "保険"]) &&
+  6407:         hdOriginInsuranceSortHasAny(text, ["契約番号", "契約者", "口座振替", "支払日"])
+  6408:       )
+  6409:     );
+  6410: 
+  6411:   if (isInsuranceNotice) {
+  6412:     draft.document_type_code = "insurance_notice";
+  6413:     draft.document_type_label = "保険料通知書";
+  6414:     draft.document_type_name = "保険料通知書";
+  6415: 
+  6416:     draft.payment_destination_code = "contract_insurance_lease";
+  6417:     draft.payment_destination_label = "契約・保険・リース";
+  6418:     draft.payment_destination_name = "契約・保険・リース";
+  6419: 
+  6420:     draft.specialist_route_code = "contract_insurance_lease";
+  6421:     draft.specialist_route_label = "契約・保険・リース確認";
+  6422:     draft.source_type_code = "scan_upload";
+  6423: 
+  6424:     draft.accounting_category_code = "insurance";
+  6425:     draft.accounting_category_label = "保険";
+  6426:     draft.accounting_category_name = "保険";
+  6427: 
+  6428:     draft.payable_kind_code = "unpaid";
+  6429:     draft.payable_kind_label = "未払金";
+  6430:     draft.payable_kind_name = "未払金";
+  6431: 
+  6432:     draft.confidence = "high";
+  6433:     draft.confidence_level = "high";
+  6434:     draft.confidence_label = "高";
+  6435:     draft.ai_confidence = "高";
+  6436: 
+  6437:     draft.needs_review = false;
+  6438:     draft.review_reason = "保険料通知書であり、契約番号・支払日・保険料・口座振替の記載があるため。買掛ではなく契約・保険系の未払金候補として扱う。";
+  6439: 
+  6440:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6441:     draft.ai_summary.document_kind = "保険料通知書";
+  6442:     draft.ai_summary.destination = "契約・保険・リース";
+  6443:     draft.ai_summary.payment_target = "支払対象候補";
+  6444:     draft.ai_summary.payable_target = "候補";
+  6445:     draft.ai_summary.expense_target = "対象外";
+  6446:     draft.ai_summary.tax_public = "対象外";
+  6447:     draft.ai_summary.public_utility = "対象外";
+  6448:     draft.ai_summary.contract_insurance_lease = "保険";
+  6449:     draft.ai_summary.card_statement = "対象外";
+  6450:     draft.ai_summary.confidence_label = "高";
+  6451:     draft.ai_summary.reason = draft.review_reason;
+  6452:   }
+  6453: 
+  6454:   result.draft = draft;
+  6455:   result.classification = draft;
+  6456:   result.sorting = draft;
+  6457:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+
+------------------------------------------------------------
+LINES=6515-6568
+------------------------------------------------------------
+  6515:       hdOriginLeaseSortHasAny(text, ["リース契約書", "リース契約"]) ||
+  6516:       (
+  6517:         hdOriginLeaseSortHasAny(text, ["リース"]) &&
+  6518:         hdOriginLeaseSortHasAny(text, ["貸主", "借主", "契約期間", "月額リース料", "毎月末日", "支払日"])
+  6519:       )
+  6520:     );
+  6521: 
+  6522:   if (isLeaseContract) {
+  6523:     draft.document_type_code = "lease_contract";
+  6524:     draft.document_type_label = "リース契約書";
+  6525:     draft.document_type_name = "リース契約書";
+  6526: 
+  6527:     draft.payment_destination_code = "contract_insurance_lease";
+  6528:     draft.payment_destination_label = "契約・保険・リース";
+  6529:     draft.payment_destination_name = "契約・保険・リース";
+  6530: 
+  6531:     draft.specialist_route_code = "contract_insurance_lease";
+  6532:     draft.specialist_route_label = "契約・保険・リース確認";
+  6533:     draft.source_type_code = "scan_upload";
+  6534: 
+  6535:     draft.accounting_category_code = "lease";
+  6536:     draft.accounting_category_label = "リース";
+  6537:     draft.accounting_category_name = "リース";
+  6538: 
+  6539:     draft.payable_kind_code = "unpaid";
+  6540:     draft.payable_kind_label = "未払金";
+  6541:     draft.payable_kind_name = "未払金";
+  6542: 
+  6543:     draft.confidence = "high";
+  6544:     draft.confidence_level = "high";
+  6545:     draft.confidence_label = "高";
+  6546:     draft.ai_confidence = "高";
+  6547: 
+  6548:     draft.needs_review = false;
+  6549:     draft.review_reason = "リース契約書であり、貸主・借主・契約期間・月額リース料・支払日の記載があるため。買掛ではなく契約・リース系の未払金候補として扱う。";
+  6550: 
+  6551:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6552:     draft.ai_summary.document_kind = "リース契約書";
+  6553:     draft.ai_summary.destination = "契約・保険・リース";
+  6554:     draft.ai_summary.payment_target = "支払対象候補";
+  6555:     draft.ai_summary.payable_target = "候補";
+  6556:     draft.ai_summary.expense_target = "対象外";
+  6557:     draft.ai_summary.tax_public = "対象外";
+  6558:     draft.ai_summary.public_utility = "対象外";
+  6559:     draft.ai_summary.contract_insurance_lease = "リース";
+  6560:     draft.ai_summary.card_statement = "対象外";
+  6561:     draft.ai_summary.confidence_label = "高";
+  6562:     draft.ai_summary.reason = draft.review_reason;
+  6563:   }
+  6564: 
+  6565:   result.draft = draft;
+  6566:   result.classification = draft;
+  6567:   result.sorting = draft;
+  6568:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+
+------------------------------------------------------------
+LINES=6713-6813
+------------------------------------------------------------
+  6713:     "社会保険料",
+  6714:     "年税額",
+  6715:     "納期限"
+  6716:   ]);
+  6717: 
+  6718:   if (isUtility && !isRealTaxPublic) {
+  6719:     const utilityKind = hdOriginDetectUtilityKindForReason(text);
+  6720: 
+  6721:     draft.document_type_code = "utility_notice";
+  6722:     draft.document_type_label = "公共料金通知書";
+  6723:     draft.document_type_name = "公共料金通知書";
+  6724: 
+  6725:     draft.payment_destination_code = "expense";
+  6726:     draft.payment_destination_label = "経費管理";
+  6727:     draft.payment_destination_name = "経費管理";
+  6728: 
+  6729:     draft.specialist_route_code = "utility";
+  6730:     draft.specialist_route_label = "公共料金・通信費確認";
+  6731:     draft.source_type_code = "scan_upload";
+  6732: 
+  6733:     draft.accounting_category_code = "public_utility";
+  6734:     draft.accounting_category_label = "公共料金";
+  6735:     draft.accounting_category_name = "公共料金";
+  6736:     draft.payable_kind_code = "";
+  6737: 
+  6738:     draft.confidence = "high";
+  6739:     draft.confidence_level = "high";
+  6740:     draft.confidence_label = "高";
+  6741:     draft.ai_confidence = "高";
+  6742: 
+  6743:     draft.needs_review = false;
+  6744:     draft.review_reason = utilityKind.reason;
+  6745: 
+  6746:     draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
+  6747:     draft.ai_summary.document_kind = "公共料金通知書";
+  6748:     draft.ai_summary.destination = "経費管理";
+  6749:     draft.ai_summary.payment_target = "支払対象候補";
+  6750:     draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
+  6751:     draft.ai_summary.expense_target = "候補";
+  6752:     draft.ai_summary.tax_public = "対象外";
+  6753:     draft.ai_summary.public_utility = "公共料金";
+  6754:     draft.ai_summary.contract_insurance_lease = "対象外";
+  6755:     draft.ai_summary.card_statement = "対象外";
+  6756:     draft.ai_summary.confidence_label = "高";
+  6757:     draft.ai_summary.reason = draft.review_reason;
+  6758:     draft.ai_summary.utility_kind = utilityKind.label;
+  6759:   }
+  6760: 
+  6761:   result.draft = draft;
+  6762:   result.classification = draft;
+  6763:   result.sorting = draft;
+  6764:   result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
+  6765:   result.visible_field_labels = [];
+  6766:   result.display_mode = "sorting_only";
+  6767:   result.image_used = false;
+  6768: 
+  6769:   return result;
+  6770: }
+  6771: /* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
+  6772: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_START */
+  6773: function hdOriginSortingDraftText(value) {
+  6774:   if (value === null || value === undefined) return "";
+  6775: 
+  6776:   if (typeof value === "object") {
+  6777:     try {
+  6778:       return JSON.stringify(value);
+  6779:     } catch {
+  6780:       return String(value);
+  6781:     }
+  6782:   }
+  6783: 
+  6784:   return String(value).trim();
+  6785: }
+  6786: 
+  6787: function hdOriginSortingDraftFirstObject(...items) {
+  6788:   for (const item of items) {
+  6789:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  6790:       return item;
+  6791:     }
+  6792:   }
+  6793: 
+  6794:   return {};
+  6795: }
+  6796: 
+  6797: function hdOriginSortingDraftNumberOrNull(value) {
+  6798:   if (value === null || value === undefined || value === "") return null;
+  6799:   const n = Number(value);
+  6800:   return Number.isFinite(n) ? n : null;
+  6801: }
+  6802: 
+  6803: function hdOriginSortingDraftRotation(value) {
+  6804:   const n = Number(value || 0);
+  6805: 
+  6806:   if (![0, 90, 180, 270].includes(n)) {
+  6807:     return 0;
+  6808:   }
+  6809: 
+  6810:   return n;
+  6811: }
+  6812: 
+  6813: function hdOriginSortingDraftJson(value, fallback) {
+
+------------------------------------------------------------
+LINES=6973-7026
+------------------------------------------------------------
+  6973: 
+  6974:     memo: hdOriginSortingDraftText(body.memo),
+  6975:     created_by_page: hdOriginSortingDraftText(body.createdByPage || body.created_by_page || "payment-document-review"),
+  6976:     created_by: hdOriginSortingDraftText(body.createdBy || body.created_by),
+  6977:     updated_by: hdOriginSortingDraftText(body.updatedBy || body.updated_by)
+  6978:   };
+  6979: }
+  6980: 
+  6981: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_END */
+  6982: 
+  6983: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_START */
+  6984: /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_READ_API_20260707_END */
+  6985: /* HD_ORIGIN_CONTRACT_INSURANCE_LEASE_DRAFT_SAVE_API_20260708_START */
+  6986: function hdOriginCilText(value) {
+  6987:   if (value === null || value === undefined) return "";
+  6988: 
+  6989:   if (typeof value === "object") {
+  6990:     try {
+  6991:       return JSON.stringify(value);
+  6992:     } catch {
+  6993:       return String(value);
+  6994:     }
+  6995:   }
+  6996: 
+  6997:   return String(value).trim();
+  6998: }
+  6999: 
+  7000: function hdOriginCilFirstObject(...items) {
+  7001:   for (const item of items) {
+  7002:     if (item && typeof item === "object" && !Array.isArray(item)) {
+  7003:       return item;
+  7004:     }
+  7005:   }
+  7006: 
+  7007:   return {};
+  7008: }
+  7009: 
+  7010: function hdOriginCilJson(value, fallback) {
+  7011:   if (value === null || value === undefined) return fallback;
+  7012:   return value;
+  7013: }
+  7014: 
+  7015: function hdOriginCilNumberOrNull(value) {
+  7016:   if (value === null || value === undefined || value === "") return null;
+  7017: 
+  7018:   const text = String(value).replace(/[,￥円\s]/g, "");
+  7019:   const n = Number(text);
+  7020: 
+  7021:   return Number.isFinite(n) ? n : null;
+  7022: }
+  7023: 
+  7024: function hdOriginCilDateOrNull(value) {
+  7025:   const text = hdOriginCilText(value);
+  7026: 
+
+------------------------------------------------------------
+LINES=7512-7570
+------------------------------------------------------------
+  7512:       specialistAnalysisId,
+  7513:       "UCD-" + ocrId + "-" + Date.now(),
+  7514:       Number(version.rows[0].next_version),
+  7515:       hdOriginCilText(
+  7516:         field("customer_number","お客様番号","公共料金お客様番号")
+  7517:       ),
+  7518:       hdOriginCilText(
+  7519:         field("supply_point_number","供給地点番号")
+  7520:       ),
+  7521:       hdOriginCilDateOrNull(
+  7522:         field("meter_reading_date","検針日")
+  7523:       ),
+  7524:       hdOriginCilNumberOrNull(
+  7525:         field("usage_quantity","使用量")
+  7526:       ),
+  7527:       hdOriginCilText(
+  7528:         field("usage_unit","使用量単位")
+  7529:       ),
+  7530:       JSON.stringify(fields),
+  7531:       JSON.stringify(aiSummary),
+  7532:       JSON.stringify(root),
+  7533:       JSON.stringify(body.visibleFields || body.visible_fields || fields),
+  7534:       JSON.stringify(body.humanCorrections || body.human_corrections || {}),
+  7535:       JSON.stringify(Array.isArray(body.warnings) ? body.warnings : []),
+  7536:       "payment-document-specialist-utility-communication.html",
+  7537:       "system",
+  7538:       "system"
+  7539:     ]);
+  7540: 
+  7541:     /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_START */
+  7542:     const utilityDraftId =
+  7543:       saved.rows[0].utility_communication_result_id;
+  7544: 
+  7545:     const lineItems =
+  7546:       Array.isArray(body.lineItems) ? body.lineItems :
+  7547:       Array.isArray(body.line_items) ? body.line_items :
+  7548:       Array.isArray(fields.line_items) ? fields.line_items :
+  7549:       Array.isArray(fields.lineItems) ? fields.lineItems :
+  7550:       [];
+  7551: 
+  7552:     for (let index = 0; index < lineItems.length; index += 1) {
+  7553:       const line =
+  7554:         lineItems[index] && typeof lineItems[index] === "object"
+  7555:           ? lineItems[index]
+  7556:           : {};
+  7557: 
+  7558:       await client.query(`
+  7559:         INSERT INTO accounting.payment_document_utility_communication_line_items (
+  7560:           utility_communication_result_id,
+  7561:           line_no,
+  7562:           item_name,
+  7563:           description,
+  7564:           usage_quantity,
+  7565:           usage_unit,
+  7566:           unit_price,
+  7567:           subtotal_amount,
+  7568:           tax_category_id,
+  7569:           tax_rate,
+  7570:           tax_amount,
+
+------------------------------------------------------------
+LINES=7575-7628
+------------------------------------------------------------
+  7575:         VALUES (
+  7576:           $1,$2,$3,$4,$5,$6,$7,
+  7577:           $8,$9,$10,$11,$12,$13,$14::jsonb
+  7578:         )
+  7579:       `, [
+  7580:         utilityDraftId,
+  7581:         Number(line.line_no || line.lineNo || index + 1),
+  7582:         hdOriginCilText(line.item_name || line.name),
+  7583:         hdOriginCilText(line.description),
+  7584:         hdOriginCilNumberOrNull(line.usage_quantity ?? line.quantity),
+  7585:         hdOriginCilText(line.usage_unit || line.unit),
+  7586:         hdOriginCilNumberOrNull(line.unit_price ?? line.unitPrice),
+  7587:         hdOriginCilNumberOrNull(line.subtotal_amount ?? line.amount),
+  7588:         hdOriginCilNumberOrNull(line.tax_category_id ?? line.taxCategoryId),
+  7589:         hdOriginCilNumberOrNull(line.tax_rate ?? line.taxRate),
+  7590:         hdOriginCilNumberOrNull(line.tax_amount ?? line.taxAmount),
+  7591:         hdOriginCilNumberOrNull(line.total_amount ?? line.totalAmount),
+  7592:         hdOriginCilText(line.source_text ?? line.memo),
+  7593:         JSON.stringify(line)
+  7594:       ]);
+  7595:     }
+  7596:     /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_END */
+  7597:     await client.query("COMMIT");
+  7598: 
+  7599:     return {
+  7600:       ok: true,
+  7601:       utilityCommunicationDraftId:
+  7602:         saved.rows[0].utility_communication_result_id
+  7603:     };
+  7604:   } catch (err) {
+  7605:     await client.query("ROLLBACK");
+  7606:     throw err;
+  7607:   } finally {
+  7608:     client.release();
+  7609:   }
+  7610: }
+  7611: async function hdOriginSaveContractInsuranceLeaseDraft(body) {
+  7612:   const ocrImportId = Number(
+  7613:     body.paymentDocumentOcrImportId ||
+  7614:       body.payment_document_ocr_import_id ||
+  7615:       body.ocrImportId ||
+  7616:       body.id
+  7617:   );
+  7618: 
+  7619:   if (!Number.isInteger(ocrImportId) || ocrImportId < 1) {
+  7620:     const err = new Error("不正なOCR取込IDです。");
+  7621:     err.statusCode = 400;
+  7622:     throw err;
+  7623:   }
+  7624: 
+  7625:   const client = await db.connect();
+  7626: 
+  7627:   try {
+  7628:     await client.query("BEGIN");
+
+------------------------------------------------------------
+LINES=7688-7753
+------------------------------------------------------------
+  7688:     /* HD_ORIGIN_CIL_JSONB_STRINGIFY_FIX_20260708_START */
+  7689:     const jsonbColumns = new Set([
+  7690:       "specialist_fields_json",
+  7691:       "ai_summary_json",
+  7692:       "ai_raw_json",
+  7693:       "visible_fields_json",
+  7694:       "human_corrections_json",
+  7695:       "warnings_json"
+  7696:     ]);
+  7697: 
+  7698:     const values = columns.map(key => {
+  7699:       const value = record[key];
+  7700: 
+  7701:       if (!jsonbColumns.has(key)) {
+  7702:         return value;
+  7703:       }
+  7704: 
+  7705:       if (value === null || value === undefined || value === "") {
+  7706:         return JSON.stringify(key === "warnings_json" ? [] : {});
+  7707:       }
+  7708: 
+  7709:       if (typeof value === "string") {
+  7710:         try {
+  7711:           JSON.parse(value);
+  7712:           return value;
+  7713:         } catch {
+  7714:           return JSON.stringify(value);
+  7715:         }
+  7716:       }
+  7717: 
+  7718:       return JSON.stringify(value);
+  7719:     });
+  7720:     /* HD_ORIGIN_CIL_JSONB_STRINGIFY_FIX_20260708_END */
+  7721: 
+  7722:     const placeholders = columns.map((_, index) => "$" + (index + 1));
+  7723: 
+  7724:     const insertResult = await client.query(`
+  7725:       INSERT INTO accounting.payment_document_contract_insurance_lease_results (
+  7726:         ${columns.map(col => '"' + col.replace(/"/g, '""') + '"').join(", ")}
+  7727:       )
+  7728:       VALUES (${placeholders.join(", ")})
+  7729:       RETURNING
+  7730:         contract_insurance_lease_result_id,
+  7731:         payment_document_ocr_import_id,
+  7732:         result_no,
+  7733:         is_current,
+  7734:         result_status,
+  7735:         created_at
+  7736:     `, values);
+  7737: 
+  7738:     
+  7739:     /* HD_ORIGIN_GPT2_CIL_LEASE_ITEM_LINES_SAVE_20260722_START */
+  7740:     const leaseItemLineCandidates = [
+  7741:       body.lease_item_lines,
+  7742:       body.leaseItemLines,
+  7743:       body.specialist && body.specialist.lease_item_lines,
+  7744:       body.rawResult && body.rawResult.lease_item_lines,
+  7745:       body.rawResult &&
+  7746:         body.rawResult.specialist &&
+  7747:         body.rawResult.specialist.lease_item_lines,
+  7748:       body.raw_result &&
+  7749:         body.raw_result.specialist &&
+  7750:         body.raw_result.specialist.lease_item_lines
+  7751:     ];
+  7752: 
+  7753:     const leaseItemLines =
+
+------------------------------------------------------------
+LINES=8234-8303
+------------------------------------------------------------
+  8234:     機械の誤り対策として人間確認を通常工程へ戻さない。
+  8235:   */
+  8236:   const humanErrorEliminationPolicy = [
+  8237:     "【最上位目標】",
+  8238:     "HD Origin Projectは、可能な限り完全機械化し、人間が作業へ介在することで発生するミスをなくします。",
+  8239:     "目的は、機械のミスを理由に人間確認を増やすことではありません。",
+  8240:     "人間の転記、選択、照合、計算、分類、確認、追跡、督促、再入力をシステムから除去してください。",
+  8241:     "",
+  8242:     "【基本原則】",
+  8243:     "- 通常案件は、最初から最後までAIとシステムだけで完了させる。",
+  8244:     "- 人間の最終確認を通常処理の必須工程にしない。",
+  8245:     "- 人間が確認しやすい画面ではなく、人間が確認しなくてよい自動処理を提案する。",
+  8246:     "- 人間確認件数を減らすのではなく、原則ゼロへ近づける。",
+  8247:     "- 情報不足を理由として、直ちに人間へ処理を返さない。",
+  8248:     "",
+  8249:     "【機械の誤りへの対応】",
+  8250:     "- 機械の誤りは、別データとの自動照合、複数AI判定、再解析、再計算、整合性検査で検出する。",
+  8251:     "- 金額は請求書、明細合計、銀行明細、支払実績を機械的に相互照合する。",
+  8252:     "- 会社はcompany_id、口座会社、取引先履歴、証憑情報を機械的に照合する。",
+  8253:     "- 分類結果はOCR、専門解析、過去確定処理、マスタを機械的に照合する。",
+  8254:     "- 不一致時は、システムが原因候補を特定して再処理する。",
+  8255:     "- 自動修正できない不一致は処理を安全停止し、勝手に確定しない。",
+  8256:     "- 安全停止は、人間確認を通常業務へ戻すことを意味しない。",
+  8257:     "",
+  8258:     "【提案禁止】",
+  8259:     "- 人間の最終確認を必須とする提案。",
+  8260:     "- 人間確認を促すだけの一覧、警告、フラグ、履歴。",
+  8261:     "- 承認待ち件数や確認待ち件数を増やす設計。",
+  8262:     "- 人間が効率的に確認できることを、自動化として扱う提案。",
+  8263:     "- 差異を発見しただけで人間へ丸投げする提案。",
+  8264:     "- 担当者が追跡、督促、照合、転記する提案。",
+  8265:     "",
+  8266:     "【自動化する対象】",
+  8267:     "- 証憑後追いは、自動追跡、自動取得、自動照合、自動督促する。",
+  8268:     "- 複数会社はcompany_idで自動分離し、会社間混同をシステム的に不可能にする。",
+  8269:     "- 役職と権限はDBから自動判定し、許可されない処理をシステムが拒否する。",
+  8270:     "- 銀行明細と支払予定・実績は自動照合し、一致分を自動完了する。",
+  8271:     "- 納品書と請求書は明細単位で自動突合し、一致分を自動完了する。",
+  8272:     "- 源泉徴収は取引先属性、報酬区分、請求書表示、税務ルールから自動判定する。",
+  8273:     "- 未払消込、銀行出金、源泉預り金、取消を一連の処理として自動実行する。",
+  8274:     "",
+  8275:     "【人間が残る場合】",
+  8276:     "法令上本人の意思表示そのものが必要な行為など、機械が代行できない行為だけを残します。",
+  8277:     "人間作業を残す場合は、自動化できない法的または物理的理由を具体的に示してください。",
+  8278:     "単に危険、重要、情報不足という理由では人間作業を残してはいけません。",
+  8279:     "",
+  8280:     "【提案の必須評価】",
+  8281:     "各提案について、なくなる人間作業、機械が実行する処理、使用するDB・API・AI、機械的な誤り検出方法を明示してください。",
+  8282:     "人間の確認工程を追加する提案ではなく、人間がミスを起こす機会そのものを削除する提案を優先してください。"
+  8283:   ].join("\n");
+  8284: 
+  8285:   const systemMessage = [
+  8286:     "あなたはHD Origin Projectの業務設計アドバイザーです。",
+  8287:     "役割は、会社業務を可能な限り完全機械化し、人間が作業へ介在することで発生する転記・選択・判断・確認・見落としのミスをなくすことです。",
+  8288:     "通常案件をAIとシステムだけで完了させる実装案を提示してください。機械の誤りは機械的な照合・再解析・再計算・安全停止で制御し、人間確認へ戻してはいけません。",
+  8289:     "会計仕訳や支払承認をAIだけで最終確定する提案は禁止です。",
+  8290:     "必ずJSONのみを返してください。"
+  8291:   ].join("\n");
+  8292: 
+  8293:   const prompt = [
+  8294:     "以下の最上位方針は、過去メモ、旧ルール、旧確認方針より必ず優先します。",
+  8295:     "",
+  8296:     humanErrorEliminationPolicy,
+  8297:     "",
+  8298:     "以下はHD Origin Projectの現在の業務フロー設定、AI解析結果、育成済み総務AIプロンプトです。",
+  8299:     "この内容を見て、今後作るべきもの・変えた方がいいもの・不足しているものを提案してください。",
+  8300:     "",
+  8301:     "【返却JSON形式】",
+  8302:     "{",
+  8303:     "  \"summary\": \"全体所見\",",
+
+------------------------------------------------------------
+LINES=8321-8398
+------------------------------------------------------------
+  8321:     "    {\"action\":\"残る行為\", \"legal_or_physical_reason\":\"機械化不能な法的または物理的理由\"}",
+  8322:     "  ],",
+  8323:     "  \"priority_order\": [\"次にやる順番\"]",
+  8324:     "}",
+  8325:     "",
+  8326:     "【判断観点】",
+  8327:     "- 書類がある業務だけでなく、書類なし支払、銀行引落、定期支払、証憑後追いを考慮する。",
+  8328:     "- 原則としてAIとシステムが処理を完了する。人間が作業へ介在してミスを起こす機会そのものを削除する。",
+  8329:     "- 機械の誤りは、機械同士の照合、再解析、再計算、整合性検査、安全停止で制御する。",
+  8330:     "- 機械の誤り対策として、人間の最終確認を通常フローへ追加してはいけない。",
+  8331:     "- 『人間が確認しやすくなる』ではなく、『人間が確認しなくてよくなる』実装を提案する。",
+  8332:     "- 人間の追跡、督促、転記、照合、分類、金額確認、会社選択を残さない。",
+  8333:     "- 人間作業を残す場合は、機械化できない法的または物理的理由を明示する。",
+  8334:     "- 真の例外条件がない場合、人間確認・承認待ち・確認履歴を新規提案してはいけない。",
+  8335:     "- DB、台帳、画面、ボタン、一覧、警告、プロンプト追記のどれが必要か考える。",
+  8336:     "- 社長が雑に書いた言葉がプロンプトとして育っていく前提で、次の育成候補を提案する。",
+  8337:     "",
+  8338:     "【画面入力 flow】",
+  8339:     JSON.stringify(flow, null, 2),
+  8340:     "",
+  8341:     "【現在画面に出ているAI解析結果】",
+  8342:     currentAiResult,
+  8343:     "",
+  8344:     "【company-business-flow-rules.txt】",
+  8345:     companyRules,
+  8346:     "",
+  8347:     "【general-affairs-ai.txt】",
+  8348:     generalAffairs,
+  8349:     "",
+  8350:     "【general-affairs-ai-notes.md】",
+  8351:     notes
+  8352:   ].join("\n");
+  8353: 
+  8354:   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  8355:     method: "POST",
+  8356:     headers: {
+  8357:       "Authorization": "Bearer " + apiKey,
+  8358:       "Content-Type": "application/json"
+  8359:     },
+  8360:     body: JSON.stringify({
+  8361:       model: hdOriginBusinessFlowGetOpenAiModel(),
+  8362:       temperature: 0.2,
+  8363:       messages: [
+  8364:         { role: "system", content: systemMessage },
+  8365:         { role: "user", content: prompt }
+  8366:       ],
+  8367:       response_format: { type: "json_object" }
+  8368:     })
+  8369:   });
+  8370: 
+  8371:   const data = await response.json().catch(() => null);
+  8372: 
+  8373:   if (!response.ok) {
+  8374:     const message =
+  8375:       data && data.error && data.error.message
+  8376:         ? data.error.message
+  8377:         : "OpenAI API エラー: HTTP " + response.status;
+  8378:     const err = new Error(message);
+  8379:     err.statusCode = response.status || 500;
+  8380:     throw err;
+  8381:   }
+  8382: 
+  8383:   const content =
+  8384:     data &&
+  8385:     data.choices &&
+  8386:     data.choices[0] &&
+  8387:     data.choices[0].message &&
+  8388:     data.choices[0].message.content
+  8389:       ? data.choices[0].message.content
+  8390:       : "";
+  8391: 
+  8392:   try {
+  8393:     return JSON.parse(content);
+  8394:   } catch {
+  8395:     const err = new Error("AI改善提案結果をJSONとして読めませんでした。");
+  8396:     err.statusCode = 500;
+  8397:     throw err;
+  8398:   }
+
+------------------------------------------------------------
+LINES=8499-8555
+------------------------------------------------------------
+  8499: 
+  8500:   if (!apiKey) {
+  8501:     const error = new Error(
+  8502:       "OPENAI_API_KEY が未設定です。"
+  8503:     );
+  8504: 
+  8505:     error.statusCode = 500;
+  8506:     throw error;
+  8507:   }
+  8508: 
+  8509:   const response = await fetch(
+  8510:     "https://api.openai.com/v1/chat/completions",
+  8511:     {
+  8512:       method: "POST",
+  8513:       headers: {
+  8514:         "Authorization": "Bearer " + apiKey,
+  8515:         "Content-Type": "application/json"
+  8516:       },
+  8517:       body: JSON.stringify({
+  8518:         model: getOpenAiModel(),
+  8519:         temperature: 0,
+  8520:         messages: [
+  8521:           {
+  8522:             role: "system",
+  8523:             content: String(
+  8524:               systemPrompt || ""
+  8525:             )
+  8526:           },
+  8527:           {
+  8528:             role: "user",
+  8529:             content: String(
+  8530:               userPrompt || ""
+  8531:             )
+  8532:           }
+  8533:         ],
+  8534:         response_format: {
+  8535:           type: "json_schema",
+  8536:           json_schema: {
+  8537:             name: "hd_origin_access_first_decision",
+  8538:             strict: true,
+  8539:             schema: {
+  8540:               type: "object",
+  8541:               additionalProperties: false,
+  8542:               properties: {
+  8543:                 company_code: {
+  8544:                   type: "string",
+  8545:                   enum: companyCodes
+  8546:                 },
+  8547:                 document_type_code: {
+  8548:                   type: "string",
+  8549:                   enum: documentTypeCodes
+  8550:                 },
+  8551:                 analysis_system_code: {
+  8552:                   type: "string",
+  8553:                   enum: analysisSystemCodes
+  8554:                 },
+  8555:                 confidence: {
+
+------------------------------------------------------------
+LINES=8641-8731
+------------------------------------------------------------
+  8641: async function createHdOriginAccessFirstAiDecision(body) {
+  8642:   const ocrText = hdOriginAccessFirstAiText(
+  8643:     body.ocr_text ||
+  8644:     body.ocrText
+  8645:   );
+  8646: 
+  8647:   if (!ocrText) {
+  8648:     const error = new Error("OCR本文が空です。");
+  8649:     error.statusCode = 400;
+  8650:     throw error;
+  8651:   }
+  8652: 
+  8653:   const companies = hdOriginAccessFirstAiArray(
+  8654:     body.candidate_companies ||
+  8655:     body.candidateCompanies
+  8656:   );
+  8657: 
+  8658:   const documentTypes = hdOriginAccessFirstAiArray(
+  8659:     body.candidate_document_types ||
+  8660:     body.candidateDocumentTypes
+  8661:   );
+  8662: 
+  8663:   const specialists = hdOriginAccessFirstAiArray(
+  8664:     body.candidate_specialists ||
+  8665:     body.candidateSpecialists
+  8666:   );
+  8667: 
+  8668:   if (!companies.length) {
+  8669:     const error = new Error("会社候補がありません。");
+  8670:     error.statusCode = 400;
+  8671:     throw error;
+  8672:   }
+  8673: 
+  8674:   if (!documentTypes.length) {
+  8675:     const error = new Error("文書種別候補がありません。");
+  8676:     error.statusCode = 400;
+  8677:     throw error;
+  8678:   }
+  8679: 
+  8680:   if (!specialists.length) {
+  8681:     const error = new Error("専門解析候補がありません。");
+  8682:     error.statusCode = 400;
+  8683:     throw error;
+  8684:   }
+  8685: 
+  8686:   const userPrompt = [
+  8687:     "次のOCR本文を一次判定してください。",
+  8688:     "",
+  8689:     "candidate_companies:",
+  8690:     JSON.stringify(companies, null, 2),
+  8691:     "",
+  8692:     "candidate_document_types:",
+  8693:     JSON.stringify(documentTypes, null, 2),
+  8694:     "",
+  8695:     "candidate_specialists:",
+  8696:     JSON.stringify(specialists, null, 2),
+  8697:     "",
+  8698:     "OCR本文:",
+  8699:     ocrText
+  8700:   ].join("\n");
+  8701: 
+  8702:   const systemPrompt =
+  8703:     loadPaymentDocumentPromptText(
+  8704:       "access-first-decision.system.txt",
+  8705:       ""
+  8706:     );
+  8707: 
+  8708:   if (!String(systemPrompt || "").trim()) {
+  8709:     const error = new Error(
+  8710:       "Access一次判定プロンプトを読み込めません。"
+  8711:     );
+  8712: 
+  8713:     error.statusCode = 500;
+  8714:     throw error;
+  8715:   }
+  8716: 
+  8717:   const response =
+  8718:     await callHdOriginAccessFirstAiOpenAiJson(
+  8719:       userPrompt,
+  8720:       systemPrompt,
+  8721:       {
+  8722:         companyCodes:
+  8723:           companies.map((item) => item.code),
+  8724:         documentTypeCodes:
+  8725:           documentTypes.map((item) => item.code),
+  8726:         analysisSystemCodes:
+  8727:           specialists.map((item) => item.code)
+  8728:       }
+  8729:     );
+  8730: 
+  8731:   const parsed =
+
+------------------------------------------------------------
+LINES=8866-8919
+------------------------------------------------------------
+  8866:           decision.company_label,
+  8867:         document_type_code:
+  8868:           decision.document_type_code,
+  8869:         document_type_label:
+  8870:           decision.document_type_label,
+  8871:         analysis_system_code:
+  8872:           decision.analysis_system_code,
+  8873:         analysis_system_label:
+  8874:           decision.analysis_system_label,
+  8875:         confidence:
+  8876:           decision.confidence,
+  8877:         reason:
+  8878:           decision.reason,
+  8879:         needs_review:
+  8880:           decision.needs_review,
+  8881:         warnings:
+  8882:           decision.warnings,
+  8883:         warnings_json:
+  8884:           JSON.stringify(
+  8885:             decision.warnings || []
+  8886:           ),
+  8887:         model:
+  8888:           decision.model,
+  8889:         prompt_version:
+  8890:           decision.prompt_version,
+  8891:         raw_result:
+  8892:           decision.raw_result,
+  8893:         usage:
+  8894:           decision.usage
+  8895:       });
+  8896:     } catch (error) {
+  8897:       sendJson(
+  8898:         res,
+  8899:         error.statusCode || 500,
+  8900:         {
+  8901:           ok: false,
+  8902:           source:
+  8903:             "access_openai_first_decision_text_only",
+  8904:           image_used: false,
+  8905:           error:
+  8906:             error.message ||
+  8907:             String(error)
+  8908:         }
+  8909:       );
+  8910:     }
+  8911: 
+  8912:     return true;
+  8913:   }
+  8914: 
+  8915:   /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_START */
+  8916:   if (
+  8917:     req.method === "POST" &&
+  8918:     String(req.url || "").split("?")[0] ===
+  8919:       "/api/payment-documents/access-ai-specialist"
+
+------------------------------------------------------------
+LINES=9060-9241
+------------------------------------------------------------
+  9060:         }
+  9061:       );
+  9062:     }
+  9063: 
+  9064:     return true;
+  9065:   }
+  9066:   /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_END */
+  9067: 
+  9068:   /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_START */
+  9069:   if (
+  9070:     req.method === "GET" &&
+  9071:     String(req.url || "").split("?")[0] ===
+  9072:       "/api/payment-documents/tax-public/withholding-rules"
+  9073:   ) {
+  9074:     try {
+  9075:       const result = await db.query(
+  9076:         `
+  9077:         SELECT
+  9078:           c.company_id,
+  9079:           c.company_code,
+  9080:           c.company_name,
+  9081: 
+  9082:           COALESCE(
+  9083:             r.payment_cycle_code,
+  9084:             'normal'
+  9085:           ) AS payment_cycle_code,
+  9086: 
+  9087:           COALESCE(
+  9088:             r.special_approval_status_code,
+  9089:             'not_approved'
+  9090:           ) AS special_approval_status_code,
+  9091: 
+  9092:           COALESCE(
+  9093:             r.special_applies_to_payable_withholding,
+  9094:             FALSE
+  9095:           ) AS special_applies_to_payable_withholding,
+  9096: 
+  9097:           COALESCE(
+  9098:             r.effective_from,
+  9099:             DATE '1900-01-01'
+  9100:           ) AS effective_from,
+  9101: 
+  9102:           r.effective_to,
+  9103: 
+  9104:           COALESCE(
+  9105:             r.rule_source_code,
+  9106:             'system_default_normal'
+  9107:           ) AS rule_source_code,
+  9108: 
+  9109:           COALESCE(
+  9110:             r.memo,
+  9111:             ''
+  9112:           ) AS memo,
+  9113: 
+  9114:           r.created_at,
+  9115:           r.updated_at,
+  9116: 
+  9117:           (
+  9118:             SELECT COUNT(*)
+  9119:             FROM accounting.tax_public_obligations o
+  9120:             WHERE
+  9121:               o.company_id = c.company_id
+  9122:               AND o.source_type_code =
+  9123:                 'withholding_tax_ledger'
+  9124:               AND o.status_code =
+  9125:                 'scheduled'
+  9126:           )::INTEGER AS scheduled_obligation_count
+  9127: 
+  9128:         FROM expenses.companies c
+  9129: 
+  9130:         LEFT JOIN
+  9131:           accounting.company_withholding_tax_rules r
+  9132:           ON r.company_id = c.company_id
+  9133: 
+  9134:         ORDER BY
+  9135:           c.company_id
+  9136:         `
+  9137:       );
+  9138: 
+  9139:       sendJson(res, 200, {
+  9140:         ok: true,
+  9141:         rules: result.rows
+  9142:       });
+  9143:     } catch (error) {
+  9144:       sendJson(
+  9145:         res,
+  9146:         error.statusCode || 500,
+  9147:         {
+  9148:           ok: false,
+  9149:           error:
+  9150:             error.message ||
+  9151:             String(error),
+  9152:           code:
+  9153:             error.code || null,
+  9154:           detail:
+  9155:             error.detail || null
+  9156:         }
+  9157:       );
+  9158:     }
+  9159: 
+  9160:     return true;
+  9161:   }
+  9162: 
+  9163:   if (
+  9164:     req.method === "POST" &&
+  9165:     String(req.url || "").split("?")[0] ===
+  9166:       "/api/payment-documents/tax-public/withholding-rules/save"
+  9167:   ) {
+  9168:     try {
+  9169:       const body =
+  9170:         await readBody(req);
+  9171: 
+  9172:       const companyId =
+  9173:         Number(body.company_id || 0);
+  9174: 
+  9175:       const paymentCycleCode =
+  9176:         String(
+  9177:           body.payment_cycle_code || ""
+  9178:         ).trim();
+  9179: 
+  9180:       const approvalStatusCode =
+  9181:         String(
+  9182:           body.special_approval_status_code || ""
+  9183:         ).trim();
+  9184: 
+  9185:       const specialApplies =
+  9186:         body.special_applies_to_payable_withholding ===
+  9187:           true;
+  9188: 
+  9189:       const effectiveFrom =
+  9190:         String(
+  9191:           body.effective_from || ""
+  9192:         ).trim();
+  9193: 
+  9194:       const effectiveTo =
+  9195:         String(
+  9196:           body.effective_to || ""
+  9197:         ).trim();
+  9198: 
+  9199:       const memo =
+  9200:         String(body.memo || "").trim();
+  9201: 
+  9202:       if (!Number.isInteger(companyId) || companyId <= 0) {
+  9203:         sendJson(res, 400, {
+  9204:           ok: false,
+  9205:           error:
+  9206:             "company_idが不正です。"
+  9207:         });
+  9208: 
+  9209:         return true;
+  9210:       }
+  9211: 
+  9212:       if (
+  9213:         ![
+  9214:           "normal",
+  9215:           "special"
+  9216:         ].includes(paymentCycleCode)
+  9217:       ) {
+  9218:         sendJson(res, 400, {
+  9219:           ok: false,
+  9220:           error:
+  9221:             "payment_cycle_codeが不正です。"
+  9222:         });
+  9223: 
+  9224:         return true;
+  9225:       }
+  9226: 
+  9227:       if (
+  9228:         ![
+  9229:           "not_approved",
+  9230:           "pending",
+  9231:           "approved",
+  9232:           "revoked"
+  9233:         ].includes(approvalStatusCode)
+  9234:       ) {
+  9235:         sendJson(res, 400, {
+  9236:           ok: false,
+  9237:           error:
+  9238:             "special_approval_status_codeが不正です。"
+  9239:         });
+  9240: 
+  9241:         return true;
+
+------------------------------------------------------------
+LINES=9258-9384
+------------------------------------------------------------
+  9258:       }
+  9259: 
+  9260:       if (
+  9261:         paymentCycleCode === "normal" &&
+  9262:         specialApplies === true
+  9263:       ) {
+  9264:         sendJson(res, 400, {
+  9265:           ok: false,
+  9266:           error:
+  9267:             "通常納付では特例適用を有効にできません。"
+  9268:         });
+  9269: 
+  9270:         return true;
+  9271:       }
+  9272: 
+  9273:       const companyExists =
+  9274:         await db.query(
+  9275:           `
+  9276:           SELECT company_id
+  9277:           FROM expenses.companies
+  9278:           WHERE company_id = $1
+  9279:           `,
+  9280:           [companyId]
+  9281:         );
+  9282: 
+  9283:       if (!companyExists.rows.length) {
+  9284:         sendJson(res, 404, {
+  9285:           ok: false,
+  9286:           error:
+  9287:             "対象会社がありません。"
+  9288:         });
+  9289: 
+  9290:         return true;
+  9291:       }
+  9292: 
+  9293:       const saveResult =
+  9294:         await db.query(
+  9295:           `
+  9296:           INSERT INTO
+  9297:             accounting.company_withholding_tax_rules (
+  9298:               company_id,
+  9299:               payment_cycle_code,
+  9300:               special_approval_status_code,
+  9301:               special_applies_to_payable_withholding,
+  9302:               effective_from,
+  9303:               effective_to,
+  9304:               rule_source_code,
+  9305:               memo
+  9306:             )
+  9307:           VALUES (
+  9308:             $1,
+  9309:             $2,
+  9310:             $3,
+  9311:             $4,
+  9312:             COALESCE(
+  9313:               NULLIF($5, '')::DATE,
+  9314:               DATE '1900-01-01'
+  9315:             ),
+  9316:             NULLIF($6, '')::DATE,
+  9317:             'company_setting',
+  9318:             $7
+  9319:           )
+  9320: 
+  9321:           ON CONFLICT (company_id)
+  9322:           DO UPDATE SET
+  9323:             payment_cycle_code =
+  9324:               EXCLUDED.payment_cycle_code,
+  9325: 
+  9326:             special_approval_status_code =
+  9327:               EXCLUDED.special_approval_status_code,
+  9328: 
+  9329:             special_applies_to_payable_withholding =
+  9330:               EXCLUDED.special_applies_to_payable_withholding,
+  9331: 
+  9332:             effective_from =
+  9333:               EXCLUDED.effective_from,
+  9334: 
+  9335:             effective_to =
+  9336:               EXCLUDED.effective_to,
+  9337: 
+  9338:             rule_source_code =
+  9339:               EXCLUDED.rule_source_code,
+  9340: 
+  9341:             memo =
+  9342:               EXCLUDED.memo,
+  9343: 
+  9344:             updated_at = NOW()
+  9345: 
+  9346:           RETURNING *
+  9347:           `,
+  9348:           [
+  9349:             companyId,
+  9350:             paymentCycleCode,
+  9351:             approvalStatusCode,
+  9352:             specialApplies,
+  9353:             effectiveFrom,
+  9354:             effectiveTo,
+  9355:             memo
+  9356:           ]
+  9357:         );
+  9358: 
+  9359:       const dueDateResult =
+  9360:         await db.query(
+  9361:           `
+  9362:           SELECT *
+  9363:           FROM accounting.calculate_withholding_tax_due_dates()
+  9364:           `
+  9365:         );
+  9366: 
+  9367:       const bankResult =
+  9368:         await db.query(
+  9369:           `
+  9370:           SELECT *
+  9371:           FROM accounting.reconcile_withholding_tax_bank_transactions()
+  9372:           `
+  9373:         );
+  9374: 
+  9375:       sendJson(res, 200, {
+  9376:         ok: true,
+  9377:         rule: saveResult.rows[0],
+  9378:         dueDateCalculation:
+  9379:           dueDateResult.rows[0] || null,
+  9380:         bankReconciliation:
+  9381:           bankResult.rows[0] || null
+  9382:       });
+  9383:     } catch (error) {
+  9384:       sendJson(
+
+------------------------------------------------------------
+LINES=9588-9697
+------------------------------------------------------------
+  9588:       );
+  9589:     }
+  9590: 
+  9591:     return true;
+  9592:   }
+  9593:   /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_END */
+  9594:   /* HD_ORIGIN_TAX_PUBLIC_WITHHOLDING_CANDIDATES_API_20260711_START */
+  9595:   if (
+  9596:     req.method === "GET" &&
+  9597:     String(req.url || "").split("?")[0] ===
+  9598:       "/api/payment-documents/tax-public/withholding-candidates"
+  9599:   ) {
+  9600:     try {
+  9601:       const requestUrl = new URL(
+  9602:         String(req.url || ""),
+  9603:         "http://localhost"
+  9604:       );
+  9605: 
+  9606:       const companyIdText = String(
+  9607:         requestUrl.searchParams.get(
+  9608:           "company_id"
+  9609:         ) || ""
+  9610:       ).trim();
+  9611: 
+  9612:       const companyId =
+  9613:         /^[0-9]+$/.test(companyIdText)
+  9614:           ? Number(companyIdText)
+  9615:           : null;
+  9616: 
+  9617:       const registrationResult =
+  9618:         await db.query(
+  9619:           `
+  9620:           SELECT *
+  9621:           FROM accounting.register_withholding_tax_obligations()
+  9622:           `
+  9623:         );
+  9624: 
+  9625:       const dueDateResult =
+  9626:         await db.query(
+  9627:           `
+  9628:           SELECT *
+  9629:           FROM accounting.calculate_withholding_tax_due_dates()
+  9630:           `
+  9631:         );
+  9632: 
+  9633:       const bankReconciliationResult =
+  9634:         await db.query(
+  9635:           `
+  9636:           SELECT *
+  9637:           FROM accounting.reconcile_withholding_tax_bank_transactions()
+  9638:           `
+  9639:         );
+  9640: 
+  9641:       const params = [];
+  9642:       const conditions = [
+  9643:         "source_type_code = 'withholding_tax_ledger'"
+  9644:       ];
+  9645: 
+  9646:       if (companyId) {
+  9647:         params.push(companyId);
+  9648: 
+  9649:         conditions.push(
+  9650:           "company_id = $" +
+  9651:           params.length
+  9652:         );
+  9653:       }
+  9654: 
+  9655:       const result = await db.query(
+  9656:         `
+  9657:         SELECT
+  9658:           tax_public_obligation_id,
+  9659:           company_id,
+  9660:           company_code,
+  9661:           company_name,
+  9662:           source_type_code,
+  9663:           source_key
+  9664:             AS tax_public_source_key,
+  9665:           tax_item_code,
+  9666:           tax_item_name,
+  9667:           source_ledger_id
+  9668:             AS withholding_tax_ledger_id,
+  9669:           payable_id,
+  9670:           payable_payment_id,
+  9671:           counterparty_name,
+  9672:           recognition_date,
+  9673:           due_date
+  9674:             AS tax_public_due_date,
+  9675:           payment_amount,
+  9676:           currency_code,
+  9677:           status_code
+  9678:             AS tax_public_status_code,
+  9679:           scheduled_at,
+  9680:           paid_at,
+  9681:           paid_reference,
+  9682:           machine_validation_status,
+  9683:           machine_validation_message,
+  9684:           created_at,
+  9685:           updated_at,
+  9686:           '源泉預り金台帳'
+  9687:             AS source_type_name
+  9688:         FROM
+  9689:           accounting.v_tax_public_obligations
+  9690:         WHERE
+  9691:           ${conditions.join(" AND ")}
+  9692:         ORDER BY
+  9693:           CASE status_code
+  9694:             WHEN 'error' THEN 1
+  9695:             WHEN 'scheduled' THEN 2
+  9696:             WHEN 'paid' THEN 3
+  9697:             ELSE 4
+
+------------------------------------------------------------
+LINES=9853-9912
+------------------------------------------------------------
+  9853:       const result = await db.query(
+  9854:         `
+  9855:         UPDATE
+  9856:           accounting.tax_public_obligations
+  9857:         SET
+  9858:           status_code = 'paid',
+  9859:           paid_at = NOW(),
+  9860:           paid_reference =
+  9861:             COALESCE(
+  9862:               ${paidReferenceParam},
+  9863:               paid_reference
+  9864:             ),
+  9865:           machine_validation_status =
+  9866:             'valid',
+  9867:           machine_validation_message =
+  9868:             NULL,
+  9869:           updated_at = NOW()
+  9870:         WHERE
+  9871:           source_type_code =
+  9872:             'withholding_tax_ledger'
+  9873:           AND ${conditions.join(" AND ")}
+  9874:           AND status_code <> 'cancelled'
+  9875:         RETURNING
+  9876:           tax_public_obligation_id,
+  9877:           company_id,
+  9878:           source_key,
+  9879:           source_ledger_id,
+  9880:           payable_id,
+  9881:           payable_payment_id,
+  9882:           payment_amount,
+  9883:           currency_code,
+  9884:           status_code,
+  9885:           paid_at,
+  9886:           paid_reference
+  9887:         `,
+  9888:         params
+  9889:       );
+  9890: 
+  9891:       if (!result.rows.length) {
+  9892:         sendJson(res, 404, {
+  9893:           ok: false,
+  9894:           error:
+  9895:             "対象の源泉所得税納付予定が見つかりません。"
+  9896:         });
+  9897: 
+  9898:         return true;
+  9899:       }
+  9900: 
+  9901:       sendJson(res, 200, {
+  9902:         ok: true,
+  9903:         payment: result.rows[0],
+  9904:         ledgerSynced: true
+  9905:       });
+  9906:     } catch (error) {
+  9907:       sendJson(
+  9908:         res,
+  9909:         error.statusCode || 500,
+  9910:         {
+  9911:           ok: false,
+  9912:           error:
+
+------------------------------------------------------------
+LINES=10539-10593
+------------------------------------------------------------
+ 10539:           created_at,
+ 10540:           updated_at
+ 10541:         ) VALUES (
+ 10542:           $1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,TRUE,now(),now()
+ 10543:         )
+ 10544:         RETURNING
+ 10545:           specialist_analysis_id,
+ 10546:           payment_document_ocr_import_id,analysis_system_code,
+ 10547:           analysis_system_label,
+ 10548:           specialist_analysis_status,
+ 10549:           created_at,
+ 10550:           updated_at
+ 10551:       `, [
+ 10552:         ocrImportId,        analysisSystemCode,
+ 10553:         analysisSystemLabel,
+ 10554:         specialistStatus,
+ 10555:         aiConfidence,
+ 10556:         aiReason,
+ 10557:         JSON.stringify(warningsJson),
+ 10558:         JSON.stringify(rawResultJson),
+ 10559:         humanConfirmStatus,
+ 10560:         humanMemo
+ 10561:       ]);
+ 10562: 
+ 10563:       const saved = inserted.rows[0];
+ 10564:       await client.query(`
+ 10565:         UPDATE accounting.payment_document_ocr_imports
+ 10566:         SET
+ 10567:           latest_specialist_analysis_id = $1,
+ 10568:           current_status = '専門解析',
+ 10569:           updated_at = now()
+ 10570:         WHERE payment_document_ocr_import_id = $2
+ 10571:           AND deleted_at IS NULL
+ 10572:       `, [
+ 10573:         saved.specialist_analysis_id,
+ 10574:         ocrImportId
+ 10575:       ]);
+ 10576: await client.query("COMMIT");
+ 10577: 
+ 10578:       return {
+ 10579:         saved,
+ 10580:         paymentDocumentOcrImportId: ocrImportId,
+ 10581:         specialistAnalysisId: saved.specialist_analysis_id,
+ 10582:         analysisSystemCode,
+ 10583:         analysisSystemLabel,
+ 10584:         specialistAnalysisStatus: specialistStatus
+ 10585:       };
+ 10586:     } catch (err) {
+ 10587:       try {
+ 10588:         await client.query("ROLLBACK");
+ 10589:       } catch {
+ 10590:         // 元エラーを優先
+ 10591:       }
+ 10592: 
+ 10593:       throw err;
+
+------------------------------------------------------------
+LINES=10840-10893
+------------------------------------------------------------
+ 10840:         root.model_name ||
+ 10841:         root.model ||
+ 10842:         ""
+ 10843:       ).trim();
+ 10844: 
+ 10845:       const promptVersion = String(
+ 10846:         body.promptVersion ||
+ 10847:         body.prompt_version ||
+ 10848:         root.prompt_version ||
+ 10849:         ""
+ 10850:       ).trim();
+ 10851: 
+ 10852:       client = await db.connect();
+ 10853:       await client.query("BEGIN");
+ 10854: 
+ 10855:       const ocrResult = await client.query(`
+ 10856:         SELECT
+ 10857:           payment_document_ocr_import_id,
+ 10858:           company_id,
+ 10859:           current_status
+ 10860:         FROM accounting.payment_document_ocr_imports
+ 10861:         WHERE payment_document_ocr_import_id = $1
+ 10862:           AND deleted_at IS NULL
+ 10863:         FOR UPDATE
+ 10864:       `, [ocrImportId]);
+ 10865: 
+ 10866:       if (!ocrResult.rows.length) {
+ 10867:         const error = new Error(
+ 10868:           "OCR取込データが見つかりません。"
+ 10869:         );
+ 10870: 
+ 10871:         error.statusCode = 404;
+ 10872:         throw error;
+ 10873:       }
+ 10874: 
+ 10875:       const ocrRow = ocrResult.rows[0];
+ 10876: 
+ 10877:       const nextStatusResult = await client.query(`
+ 10878:         SELECT candidate.current_status
+ 10879:         FROM accounting.payment_document_current_statuses current_status_master
+ 10880:         JOIN LATERAL (
+ 10881:           SELECT next_master.current_status
+ 10882:           FROM accounting.payment_document_current_statuses next_master
+ 10883:           WHERE next_master.is_active = TRUE
+ 10884:             AND next_master.is_processing = FALSE
+ 10885:             AND next_master.is_terminal = FALSE
+ 10886:             AND next_master.is_error = FALSE
+ 10887:             AND next_master.display_order >
+ 10888:                 current_status_master.display_order
+ 10889:           ORDER BY next_master.display_order
+ 10890:           LIMIT 1
+ 10891:         ) candidate
+ 10892:           ON TRUE
+ 10893:         WHERE current_status_master.current_status = $1
+
+------------------------------------------------------------
+LINES=10909-10962
+------------------------------------------------------------
+ 10909:       await client.query(`
+ 10910:         UPDATE accounting.payment_document_basic_analysis_results
+ 10911:         SET
+ 10912:           is_current = FALSE,
+ 10913:           updated_at = CURRENT_TIMESTAMP
+ 10914:         WHERE payment_document_ocr_import_id = $1
+ 10915:           AND is_current = TRUE
+ 10916:       `, [ocrImportId]);
+ 10917: 
+ 10918:       await client.query(`
+ 10919:         LOCK TABLE accounting.payment_document_basic_analysis_results
+ 10920:         IN SHARE ROW EXCLUSIVE MODE
+ 10921:       `);
+ 10922: 
+ 10923:       const inserted = await client.query(`
+ 10924:         INSERT INTO accounting.payment_document_basic_analysis_results (
+ 10925:           basic_analysis_id,
+ 10926:           payment_document_ocr_import_id,
+ 10927:           company_id,
+ 10928:           document_type_id,
+ 10929:           specialist_analysis_id,
+ 10930:           ai_confidence,
+ 10931:           ai_reason,
+ 10932:           needs_review,
+ 10933:           warnings_json,
+ 10934:           raw_result_json,
+ 10935:           candidate_masters_snapshot_json,
+ 10936:           output_schema_snapshot_json,
+ 10937:           prompt_snapshot,
+ 10938:           model_name,
+ 10939:           prompt_version,
+ 10940:           is_current,
+ 10941:           analysis_completed,
+ 10942:           started_at,
+ 10943:           completed_at,
+ 10944:           created_at,
+ 10945:           updated_at
+ 10946:         )
+ 10947:         VALUES (
+ 10948:           (
+ 10949:             SELECT
+ 10950:               COALESCE(MAX(basic_analysis_id), 0) + 1
+ 10951:             FROM accounting.payment_document_basic_analysis_results
+ 10952:           ),
+ 10953:           $1,
+ 10954:           $2,
+ 10955:           NULL,
+ 10956:           NULL,
+ 10957:           $3,
+ 10958:           $4,
+ 10959:           $5,
+ 10960:           $6::jsonb,
+ 10961:           $7::jsonb,
+ 10962:           $8::jsonb,
+
+------------------------------------------------------------
+LINES=10964-11024
+------------------------------------------------------------
+ 10964:           NULLIF($10, ''),
+ 10965:           NULLIF($11, ''),
+ 10966:           NULLIF($12, ''),
+ 10967:           TRUE,
+ 10968:           TRUE,
+ 10969:           CURRENT_TIMESTAMP,
+ 10970:           CURRENT_TIMESTAMP,
+ 10971:           CURRENT_TIMESTAMP,
+ 10972:           CURRENT_TIMESTAMP
+ 10973:         )
+ 10974:         RETURNING
+ 10975:           basic_analysis_id,
+ 10976:           payment_document_ocr_import_id,
+ 10977:           is_current,
+ 10978:           analysis_completed,
+ 10979:           completed_at
+ 10980:       `, [
+ 10981:         ocrImportId,
+ 10982:         ocrRow.company_id || null,
+ 10983:         aiConfidence,
+ 10984:         aiReason,
+ 10985:         needsReview,
+ 10986:         JSON.stringify(warnings),
+ 10987:         JSON.stringify(body),
+ 10988:         JSON.stringify(candidateMasters),
+ 10989:         JSON.stringify(outputSchema),
+ 10990:         promptSnapshot,
+ 10991:         modelName,
+ 10992:         promptVersion
+ 10993:       ]);
+ 10994: 
+ 10995:       const statusUpdated = await client.query(`
+ 10996:         UPDATE accounting.payment_document_ocr_imports
+ 10997:         SET
+ 10998:           current_status = $2,
+ 10999:           sorted_at = CURRENT_TIMESTAMP,
+ 11000:           updated_at = CURRENT_TIMESTAMP
+ 11001:         WHERE payment_document_ocr_import_id = $1
+ 11002:           AND deleted_at IS NULL
+ 11003:         RETURNING
+ 11004:           payment_document_ocr_import_id,
+ 11005:           current_status,
+ 11006:           sorted_at
+ 11007:       `, [
+ 11008:         ocrImportId,
+ 11009:         nextCurrentStatus
+ 11010:       ]);
+ 11011: 
+ 11012:       if (statusUpdated.rowCount !== 1) {
+ 11013:         throw new Error(
+ 11014:           "OCR取込データのcurrent_statusを更新できませんでした。"
+ 11015:         );
+ 11016:       }
+ 11017: 
+ 11018:       await client.query("COMMIT");
+ 11019: 
+ 11020:       const saved = inserted.rows[0];
+ 11021:       const statusRow = statusUpdated.rows[0];
+ 11022: 
+ 11023:       sendJson(res, 200, {
+ 11024:         ok: true,
+
+------------------------------------------------------------
+LINES=12133-12231
+------------------------------------------------------------
+ 12133:         document_group: aiResult.document_group,
+ 12134:         visible_field_labels: aiResult.visible_field_labels,
+ 12135:         prompt_rule_files: aiResult.prompt_rule_files,
+ 12136:         classification: aiResult.classification,
+ 12137:         specialist: aiResult.specialist,
+ 12138:         draft: aiResult.draft
+ 12139:       });
+ 12140:     } catch (err) {
+ 12141:       sendJson(res, err.statusCode || 500, {
+ 12142:         ok: false,
+ 12143:         source: "openai_ocr_text_only",
+ 12144:         image_used: false,
+ 12145:         error: err.message || String(err)
+ 12146:       });
+ 12147:     }
+ 12148: 
+ 12149:     return true;
+ 12150:   }
+ 12151:   if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-draft/")) {
+ 12152:     try {
+ 12153:       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-draft/", ""));
+ 12154:       const id = Number(idText);
+ 12155: 
+ 12156:       if (!Number.isInteger(id) || id < 1) {
+ 12157:         sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
+ 12158:         return true;
+ 12159:       }
+ 12160: 
+ 12161:       const result = await db.query(`
+ 12162:         SELECT
+ 12163:           payment_document_ocr_import_id,
+ 12164:           original_file_name,
+ 12165:           saved_file_name,
+ 12166:           source_type,
+ 12167:           mime_type,
+ 12168:           ocr_raw_text,
+ 12169:           ocr_text_length
+ 12170:         FROM accounting.payment_document_ocr_imports
+ 12171:         WHERE payment_document_ocr_import_id = $1
+ 12172:           AND deleted_at IS NULL
+ 12173:         LIMIT 1
+ 12174:       `, [id]);
+ 12175: 
+ 12176:       if (!result.rows.length) {
+ 12177:         sendJson(res, 404, { ok: false, error: "OCR取込データが見つかりません。" });
+ 12178:         return true;
+ 12179:       }
+ 12180: 
+ 12181:       const row = result.rows[0];
+ 12182:       const ocrText = String(row.ocr_raw_text || "").trim();
+ 12183: 
+ 12184:       if (!ocrText) {
+ 12185:         sendJson(res, 400, { ok: false, error: "OCR本文が空です。" });
+ 12186:         return true;
+ 12187:       }
+ 12188: 
+ 12189:             const sourceTypeCode =
+ 12190:         await resolvePaymentDocumentSourceTypeCode(row);
+ 12191: 
+ 12192:       const aiResult =
+ 12193:         await createTwoStepAiDraftFromOcrText(
+ 12194:           ocrText,
+ 12195:           {
+ 12196:             source_type_code: sourceTypeCode
+ 12197:           }
+ 12198:         );
+ 12199:       const draft = aiResult.draft;
+ 12200: 
+ 12201:       sendJson(res, 200, {
+ 12202:         ok: true,
+ 12203:         source: "openai_ocr_text_only",
+ 12204:         image_used: false,
+ 12205:         paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+ 12206:         originalFileName: row.original_file_name || row.saved_file_name,
+ 12207:         ocrTextLength: row.ocr_text_length,
+ 12208:         ai_steps: aiResult.steps,
+ 12209:         display_mode: aiResult.display_mode,
+ 12210:         document_group: aiResult.document_group,
+ 12211:         visible_field_labels: aiResult.visible_field_labels,
+ 12212:         classification: aiResult.classification,
+ 12213:         draft
+ 12214:       });
+ 12215:     } catch (err) {
+ 12216:       sendJson(res, err.statusCode || 500, {
+ 12217:         ok: false,
+ 12218:         source: "openai_ocr_text_only",
+ 12219:         image_used: false,
+ 12220:         error: err.message || String(err)
+ 12221:       });
+ 12222:     }
+ 12223: 
+ 12224:     return true;
+ 12225:   }
+ 12226:   if (req.method === "GET" && urlPath === "/api/payment-documents/ocr-imports") {
+ 12227:     try {
+ 12228:       const items = await listPaymentDocumentOcrImportsFromDb();
+ 12229: 
+ 12230:       sendJson(res, 200, {
+ 12231:         ok: true,
+
+------------------------------------------------------------
+LINES=12694-12744
+------------------------------------------------------------
+ 12694:   handlePaymentDocumentRoutes
+ 12695: };
+ 12696: 
+ 12697: /*
+ 12698: HD_ORIGIN_BUSINESS_FLOW_EXECUTION_AI_POLICY_20260711
+ 12699: 
+ 12700: 業務フローAIの最上位目標:
+ 12701: - 人間の転記、選択、照合、再入力、同一確認を徹底的になくす。
+ 12702: - 業務フローAIは案内AIではなく、業務を最後まで流す実行設計AIとする。
+ 12703: - 情報不足を見つけた場合、直ちに人間確認へ回さない。
+ 12704: - 会社マスタ、取引先マスタ、過去処理、原本画像、OCR、専門解析結果、
+ 12705:   銀行明細、契約、支払履歴、現在選択会社などから自動補完を試みる。
+ 12706: - 通常案件はAIとシステムが処理を完了する。
+ 12707: - 人間へ返すのは、自動補完・自動照合・再解析でも解消不能な例外だけ。
+ 12708: - 例外時も「確認してください」だけで終わらせず、
+ 12709:   解消不能な項目、試行済みの自動処理、停止理由、必要な最小入力を提示する。
+ 12710: 
+ 12711: 会社・支払業務:
+ 12712: - 会社は支払書類取込時のcompany_idを正とする。
+ 12713: - 未払画面で会社を選び直させない。
+ 12714: - 支払元銀行口座は同一company_idだけを対象にする。
+ 12715: - 支払実績と銀行出金は同一DBトランザクションで作成する。
+ 12716: - 未払消込額は銀行振込額と源泉徴収額の合計。
+ 12717: - 銀行出金額は銀行振込額と振込手数料の合計。
+ 12718: - 源泉徴収額は値引きではなく源泉預り金として記録する。
+ 12719: - 支払取消時は銀行明細と源泉預り金も連動して取消する。
+ 12720: - 源泉預り金は後日の源泉所得税納付へ引き継ぐ。
+ 12721: 
+ 12722: 業務ルール管理:
+ 12723: - 現在ルールは追記蓄積ではなく、矛盾のない現在版へ修正する。
+ 12724: - 変更履歴は別ファイルへ残す。
+ 12725: */
+ 12726: 
+ 12727: /*
+ 12728: HD_ORIGIN_HUMAN_ERROR_ELIMINATION_POLICY_20260711
+ 12729: 
+ 12730: 目的:
+ 12731: 可能な限り完全機械化し、人間が作業へ介在して発生するミスをなくす。
+ 12732: 
+ 12733: 機械の誤りへの対策:
+ 12734: 機械同士の照合、再解析、再計算、整合性検査、安全停止で制御する。
+ 12735: 
+ 12736: 禁止:
+ 12737: 機械の誤り対策として、人間確認を通常業務へ戻すこと。
+ 12738: */
+ 12739: 
+ 12740: 
+ 12741: 
+ 12742: 
+ 12743: 
+ 12744: 
+
+============================================================
+機械確認
+============================================================
+AI_DRAFT_ROUTE_COUNT=2
+COMPANY_ID_TOTAL_COUNT=18
+COMPANY_ID_NEAR_PROMPT_INPUT_COUNT=0
+OCR_IMPORT_SELECT_COMPANY_ID_COUNT=1
+REQUEST_BODY_COMPANY_ID_COUNT=1
+
+判定基準:
+PROMPT_INPUT内にcompany_idあり=AIへ渡している
+プロンプト文だけにcompany_idあり=AIへ実値を渡していない
+OCR_IMPORT_SELECT_COMPANY_ID_COUNT=0は現行列構造上は想定内
+REQUEST_BODY_COMPANY_ID_COUNT>0なら呼出元入力を使用している可能性あり
+
+OVERALL_STATUS=SUCCESS
