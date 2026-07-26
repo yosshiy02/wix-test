@@ -3454,48 +3454,47 @@ async function runSelectedAiDrafts() {
     };
   };
   function restoreSavedBasicAnalysisToItem(item) {
-    if (!item || item.__aiDraft) {
+    if (!item) {
       return item;
     }
 
-    const saved =
-      item.latestBasicAnalysis ||
-      item.latestSortingDraft ||
-      item.__savedSortingDraft ||
-      null;
+    const basic = item.latestBasicAnalysis;
 
-    if (!saved) {
+    if (
+      !basic ||
+      basic.analysisCompleted !== true ||
+      !basic.basicAnalysisId
+    ) {
       return item;
     }
 
-    const savedResult =
-      saved.sortResult ||
-      saved.sort_result ||
-      saved.visibleFields ||
-      saved.visible_fields ||
-      saved.rawResult ||
-      saved.raw_result ||
-      {};
+    const rawResult =
+      basic.rawResult &&
+      typeof basic.rawResult === "object"
+        ? basic.rawResult
+        : (
+            basic.raw_result &&
+            typeof basic.raw_result === "object"
+              ? basic.raw_result
+              : {}
+          );
 
-    const savedFields =
-      saved.visibleFields ||
-      saved.visible_fields ||
-      savedResult.fields ||
-      {};
+    const draft =
+      rawResult.draft &&
+      typeof rawResult.draft === "object"
+        ? rawResult.draft
+        : {};
 
-    item.__aiDraft = Object.assign(
-      {},
-      savedResult,
-      {
-        fields: savedFields
-      }
-    );
+    item.__aiDraft = draft;
 
     item.__visibleFieldLabels =
-      saved.visibleFieldLabels ||
-      saved.visible_field_labels ||
-      item.__visibleFieldLabels ||
-      [];
+      Array.isArray(draft.visible_field_labels)
+        ? draft.visible_field_labels
+        : (
+            Array.isArray(draft.visibleFieldLabels)
+              ? draft.visibleFieldLabels
+              : []
+          );
 
     return item;
   }
