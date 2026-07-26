@@ -1986,19 +1986,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
         '{}'::jsonb
       ) AS visible_field_labels_json,
       s.created_at AS specialist_created_at,
-      s.updated_at AS specialist_updated_at,
-
-      b.basic_analysis_id,
-      b.company_id AS basic_company_id,
-      b.ai_confidence AS basic_ai_confidence,
-      b.ai_reason AS basic_ai_reason,
-      b.needs_review AS basic_needs_review,
-      b.warnings_json AS basic_warnings_json,
-      b.raw_result_json AS basic_raw_result_json,
-      b.analysis_completed AS basic_analysis_completed,
-      b.completed_at AS basic_completed_at,
-      b.created_at AS basic_created_at,
-      b.updated_at AS basic_updated_at
+      s.updated_at AS specialist_updated_at
 
     FROM accounting.payment_document_ocr_imports o
 
@@ -2006,36 +1994,28 @@ async function listPaymentDocumentOcrImportsFromDb() {
       ON s.specialist_analysis_id = o.latest_specialist_analysis_id
      AND s.is_current = TRUE
 
-    LEFT JOIN accounting.payment_document_basic_analysis_results b
-      ON b.payment_document_ocr_import_id =
-         o.payment_document_ocr_import_id
-     AND b.is_current = TRUE
-
     WHERE o.deleted_at IS NULL
       AND COALESCE(o.ocr_raw_text, '') <> ''
-      AND (
-        o.current_status = (
-          WITH ocr_phase AS (
-            SELECT MAX(display_order) AS last_ocr_order
-            FROM accounting.payment_document_current_statuses
-            WHERE is_active = TRUE
-              AND (
-                current_status LIKE 'OCR%'
-                OR COALESCE(description, '') LIKE '%OCR%'
-              )
-          )
-          SELECT current_status
+      AND o.current_status = (
+        WITH ocr_phase AS (
+          SELECT MAX(display_order) AS last_ocr_order
           FROM accounting.payment_document_current_statuses
-          CROSS JOIN ocr_phase
           WHERE is_active = TRUE
-            AND is_processing = FALSE
-            AND is_terminal = FALSE
-            AND is_error = FALSE
-            AND display_order > ocr_phase.last_ocr_order
-          ORDER BY display_order
-          LIMIT 1
+            AND (
+              current_status LIKE 'OCR%'
+              OR COALESCE(description, '') LIKE '%OCR%'
+            )
         )
-        OR o.current_status = '専門解析待ち'
+        SELECT current_status
+        FROM accounting.payment_document_current_statuses
+        CROSS JOIN ocr_phase
+        WHERE is_active = TRUE
+          AND is_processing = FALSE
+          AND is_terminal = FALSE
+          AND is_error = FALSE
+          AND display_order > ocr_phase.last_ocr_order
+        ORDER BY display_order
+        LIMIT 1
       )
 
     ORDER BY
@@ -2066,93 +2046,6 @@ async function listPaymentDocumentOcrImportsFromDb() {
             row.visible_field_labels_json || {},
           createdAt: row.specialist_created_at,
           updatedAt: row.specialist_updated_at
-        }
-      : null;
-
-    const basicRawResult =
-      row.basic_raw_result_json &&
-      typeof row.basic_raw_result_json === "object"
-        ? row.basic_raw_result_json
-        : {};
-
-    const basicDraft =
-      basicRawResult.draft &&
-      typeof basicRawResult.draft === "object"
-        ? basicRawResult.draft
-        : basicRawResult;
-
-    const latestBasicAnalysis = row.basic_analysis_id
-      ? {
-          basicAnalysisId: row.basic_analysis_id,
-          basic_analysis_id: row.basic_analysis_id,
-          paymentDocumentOcrImportId:
-            row.payment_document_ocr_import_id,
-          payment_document_ocr_import_id:
-            row.payment_document_ocr_import_id,
-          companyId: row.basic_company_id,
-          company_id: row.basic_company_id,
-          aiConfidence:
-            row.basic_ai_confidence,
-          ai_confidence:
-            row.basic_ai_confidence,
-          aiReason:
-            row.basic_ai_reason,
-          ai_reason:
-            row.basic_ai_reason,
-          needsReview:
-            row.basic_needs_review,
-          needs_review:
-            row.basic_needs_review,
-          warnings:
-            row.basic_warnings_json || [],
-          warnings_json:
-            row.basic_warnings_json || [],
-          rawResult:
-            basicRawResult,
-          raw_result:
-            basicRawResult,
-          sortResult:
-            basicDraft.sortResult ||
-            basicDraft.sort_result ||
-            basicDraft.classification ||
-            basicDraft,
-          sort_result:
-            basicDraft.sort_result ||
-            basicDraft.sortResult ||
-            basicDraft.classification ||
-            basicDraft,
-          visibleFields:
-            basicDraft.visibleFields ||
-            basicDraft.visible_fields ||
-            {},
-          visible_fields:
-            basicDraft.visible_fields ||
-            basicDraft.visibleFields ||
-            {},
-          aiSummary:
-            basicDraft.aiSummary ||
-            basicDraft.ai_summary ||
-            {},
-          ai_summary:
-            basicDraft.ai_summary ||
-            basicDraft.aiSummary ||
-            {},
-          analysisCompleted:
-            row.basic_analysis_completed,
-          analysis_completed:
-            row.basic_analysis_completed,
-          completedAt:
-            row.basic_completed_at,
-          completed_at:
-            row.basic_completed_at,
-          createdAt:
-            row.basic_created_at,
-          created_at:
-            row.basic_created_at,
-          updatedAt:
-            row.basic_updated_at,
-          updated_at:
-            row.basic_updated_at
         }
       : null;
 
@@ -2200,13 +2093,6 @@ async function listPaymentDocumentOcrImportsFromDb() {
       savedAt: row.saved_at,
       savedByPage: row.saved_by_page,
       currentStatus: row.current_status,
-      latestBasicAnalysisId:
-        row.basic_analysis_id,
-      latestBasicAnalysis,
-      latestSortingDraft:
-        latestBasicAnalysis,
-      __savedSortingDraft:
-        latestBasicAnalysis,
       latestSpecialistAnalysisId:
         row.latest_specialist_analysis_id,
       sortedAt: row.sorted_at,
