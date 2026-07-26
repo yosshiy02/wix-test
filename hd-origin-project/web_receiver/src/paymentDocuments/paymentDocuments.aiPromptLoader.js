@@ -486,14 +486,51 @@ async function appendPaymentDocumentExternalPrompt(basePrompt, promptTexts) {
 
 function loadPaymentDocumentPromptText(_legacyFileName, fallbackText = "") {
   /*
-    現在の正規プロンプトはPostgreSQLマスタから取得する。
-    この関数は、routes.jsに残る旧ファイル読込形式との互換用であり、
-    ファイル探索・固定分類・後付け判定は行わない。
+    同期形式で残る旧呼出との互換用。
+    この関数ではDB検索を行わない。
   */
   return String(fallbackText ?? "").trim();
 }
+
+async function loadPaymentDocumentPromptTextFromDb(
+  promptName,
+  fallbackText = ""
+) {
+  const normalizedPromptName = normalizeText(promptName);
+  const normalizedFallback = String(
+    fallbackText ?? ""
+  ).trim();
+
+  if (!normalizedPromptName) {
+    return normalizedFallback;
+  }
+
+  const rows = await queryRows(
+    `SELECT
+       prompt_text
+     FROM accounting.ai_prompt_definitions
+     WHERE prompt_name = $1
+       AND is_active = true
+     ORDER BY
+       updated_at DESC,
+       prompt_definition_id DESC
+     LIMIT 1`,
+    [normalizedPromptName]
+  );
+
+  if (rows.length === 0) {
+    return normalizedFallback;
+  }
+
+  const promptText = String(
+    rows[0].prompt_text ?? ""
+  ).trim();
+
+  return promptText || normalizedFallback;
+}
 module.exports = {
-  loadPaymentDocumentPromptText,
+  loadPaymentDocumentPromptText,
+  loadPaymentDocumentPromptTextFromDb,
   selectPaymentDocumentPromptFiles,
   appendPaymentDocumentExternalPrompt
 };

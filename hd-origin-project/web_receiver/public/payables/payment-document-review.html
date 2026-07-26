@@ -2682,24 +2682,6 @@ function setDocumentPreview(item) {
          items[selectedIndex].__aiDraft = data.draft;
          items[selectedIndex].__visibleFieldLabels = data.visible_field_labels || [];
          
-         if (!items[selectedIndex].latestSortingDraft) {
-             items[selectedIndex].latestSortingDraft = {};
-         }
-         // 画面上の全入力値をかき集めてメモリに保持
-         const currentFormFields = {};
-         document.querySelectorAll(".draft-panel input, .draft-panel select, .draft-panel textarea").forEach(function(el) {
-           const name = el.name || el.id;
-           if (name && el.type !== "hidden") {
-             currentFormFields[name] = el.value || "";
-           }
-         });
-         
-         items[selectedIndex].latestSortingDraft.visibleFields = Object.assign(
-             {},
-             currentFormFields,
-             data.draft.fields || {},
-             data.draft
-         );
       }
 
       // スコープを壊さず、windowオブジェクト経由で安全に保存処理を呼ぶ
@@ -4240,7 +4222,7 @@ async function loadItems() {
       }
 
       if (typeof showVisibleFieldsOnly === "function") {
-        showVisibleFieldsOnly(item.__visibleFieldLabels || item.latestSortingDraft.__visibleFieldLabels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"]);
+        showVisibleFieldsOnly(item.__visibleFieldLabels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"]);
       }
     }
 
@@ -5896,7 +5878,7 @@ const directNames = [
     return 0;
   }
 
-  function collectSortingDraftPayload() {
+  function collectBasicAnalysisResultPayload() {
     const ocrId = findSelectedOcrImportId();
 
     if (!ocrId) {
@@ -6306,8 +6288,8 @@ const saveDraft = Object.assign(
     };
   }
 
-  async function saveSortingDraftFromReviewPage() {
-    const payload = collectSortingDraftPayload();
+  async function saveBasicAnalysisResultFromReviewPage() {
+    const payload = collectBasicAnalysisResultPayload();
     const currentCompany =
       hdOriginGetCurrentCompanyForPaymentDocument();
 
@@ -6323,7 +6305,7 @@ const saveDraft = Object.assign(
       ""
     ).trim();
 
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/basic-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -6379,7 +6361,7 @@ const saveDraft = Object.assign(
         button.textContent = "下書き保存中...";
       }
 
-      const result = await saveSortingDraftFromReviewPage();
+      const result = await saveBasicAnalysisResultFromReviewPage();
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
         button.textContent = "下書き保存済み";
@@ -6407,7 +6389,7 @@ const saveDraft = Object.assign(
     }
   }, true);
 
-  window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;
+  window.hdOriginSaveSortingDraftFromReviewPage = saveBasicAnalysisResultFromReviewPage;
 })();
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
@@ -6421,7 +6403,7 @@ const saveDraft = Object.assign(
   }
 
   window.__hdOriginBulkSortingDraftSaveInstalled = true;
-  window.hdOriginSortingDraftBulkCache = window.hdOriginSortingDraftBulkCache || {};
+  window.hdOriginBasicAnalysisBulkCache = window.hdOriginBasicAnalysisBulkCache || {};
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -6459,7 +6441,7 @@ const saveDraft = Object.assign(
       return;
     }
 
-    window.hdOriginSortingDraftBulkCache[String(id)] = {
+    window.hdOriginBasicAnalysisBulkCache[String(id)] = {
       paymentDocumentOcrImportId: id,
       result: json,
       cachedAt: new Date().toISOString()
@@ -6525,12 +6507,12 @@ const saveDraft = Object.assign(
   }
 
   function getIdsFromCache() {
-    return Object.keys(window.hdOriginSortingDraftBulkCache || {})
+    return Object.keys(window.hdOriginBasicAnalysisBulkCache || {})
       .map(numberId)
       .filter(Boolean);
   }
 
-  function buildPayloadFromCachedResult(id, cached) {
+  function buildBasicAnalysisPayloadFromCachedResult(id, cached) {
     const result = cached && cached.result ? cached.result : cached;
     const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.aiDraft, result);
     const draft = firstObject(result.draft, result.aiDraft, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
@@ -6578,7 +6560,7 @@ const saveDraft = Object.assign(
   }
 
   async function postSortingDraft(payload) {
-    const res = await fetch("/api/payment-documents/sorting-drafts/save", {
+    const res = await fetch("/api/payment-documents/basic-analysis-results/save", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -6612,7 +6594,7 @@ const saveDraft = Object.assign(
     const ng = [];
 
     for (const id of ids) {
-      const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+      const cached = window.hdOriginBasicAnalysisBulkCache[String(id)];
 
       if (!cached) {
         ng.push({
@@ -6623,7 +6605,7 @@ const saveDraft = Object.assign(
       }
 
       try {
-        const payload = buildPayloadFromCachedResult(id, cached);
+        const payload = buildBasicAnalysisPayloadFromCachedResult(id, cached);
         const saved = await postSortingDraft(payload);
 
         ok.push({
@@ -6833,7 +6815,7 @@ const saveDraft = Object.assign(
     try {
       /*
         重要:
-        collectSortingDraftPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
+        collectBasicAnalysisResultPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
         既存側が window に公開している hdOriginSaveSortingDraftFromReviewPage を呼ぶ。
       */
       var saved = await window.hdOriginSaveSortingDraftFromReviewPage();

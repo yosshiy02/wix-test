@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const config = require("../config");
 const { sendJson } = require("../response");
 const db = require("../db");
-const { loadPaymentDocumentPromptText, appendPaymentDocumentExternalPrompt, selectPaymentDocumentPromptFiles } = require("./paymentDocuments.aiPromptLoader");
+const { loadPaymentDocumentPromptText, loadPaymentDocumentPromptTextFromDb, appendPaymentDocumentExternalPrompt, selectPaymentDocumentPromptFiles } = require("./paymentDocuments.aiPromptLoader");
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
 const AZURE_API_VERSION = "2024-11-30";
 
@@ -2203,9 +2203,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
       latestBasicAnalysisId:
         row.basic_analysis_id,
       latestBasicAnalysis,
-      latestSortingDraft:
         latestBasicAnalysis,
-      __savedSortingDraft:
         latestBasicAnalysis,
       latestSpecialistAnalysisId:
         row.latest_specialist_analysis_id,
@@ -5113,7 +5111,7 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
 
   const classificationResponse = await callPaymentDocumentOpenAiJson(
     classificationPrompt,
-    loadPaymentDocumentPromptText(
+    await loadPaymentDocumentPromptTextFromDb(
       "classification.system.txt",
       "OCR本文だけから、支払書類の分類JSONを作成してください。必ずJSONのみを返してください。"
     )
@@ -10921,7 +10919,7 @@ specialistAnalysisId:
   if (
     req.method === "POST" &&
     String(req.url || "").split("?")[0] ===
-      "/api/payment-documents/sorting-drafts/save"
+      "/api/payment-documents/basic-analysis-results/save"
   ) {
     let client;
 
