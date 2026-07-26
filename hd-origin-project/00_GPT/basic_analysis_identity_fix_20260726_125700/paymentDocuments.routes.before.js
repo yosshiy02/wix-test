@@ -11040,6 +11040,7 @@ specialistAnalysisId:
 
       const inserted = await client.query(`
         INSERT INTO accounting.payment_document_basic_analysis_results (
+          basic_analysis_id,
           payment_document_ocr_import_id,
           company_id,
           document_type_id,
@@ -11062,6 +11063,11 @@ specialistAnalysisId:
           updated_at
         )
         VALUES (
+          (
+            SELECT
+              COALESCE(MAX(basic_analysis_id), 0) + 1
+            FROM accounting.payment_document_basic_analysis_results
+          ),
           $1,
           $2,
           NULL,
