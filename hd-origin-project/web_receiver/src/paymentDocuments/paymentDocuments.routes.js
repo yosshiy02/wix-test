@@ -10013,56 +10013,33 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.saved_at,
           o.saved_by_page,
           o.current_status,
-          o.latest_specialist_analysis_id,
           o.sorted_at,
           o.created_at,
           o.updated_at,
 
-          s.specialist_analysis_id,
-          s.analysis_system_code,
-          s.analysis_system_label,
-          s.ai_confidence,
-          s.ai_reason,
-          CASE
-        WHEN LOWER(
-          COALESCE(
-            s.raw_result_json->>'needs_review',
-            'false'
-          )
-        ) = 'true'
-          THEN TRUE
-        ELSE FALSE
-      END AS needs_review,
-          s.warnings_json,
-          s.raw_result_json,
-          COALESCE(
-        s.raw_result_json->'draft',
-        '{}'::jsonb
-      ) AS draft_json,
-          COALESCE(
-        s.raw_result_json->'visible_fields',
-        s.raw_result_json->'visibleFields',
-        '{}'::jsonb
-      ) AS visible_fields_json,
-          COALESCE(
-        s.raw_result_json->'visible_field_labels',
-        s.raw_result_json->'visibleFieldLabels',
-        '{}'::jsonb
-      ) AS visible_field_labels_json,
-          s.human_confirm_status,
-          s.human_memo,
-          s.created_at AS specialist_created_at,
-          s.updated_at AS specialist_updated_at
+          b.basic_analysis_id,
+          b.company_id AS basic_company_id,
+          b.ai_confidence AS basic_ai_confidence,
+          b.ai_reason AS basic_ai_reason,
+          b.needs_review AS basic_needs_review,
+          b.warnings_json AS basic_warnings_json,
+          b.raw_result_json AS basic_raw_result_json,
+          b.analysis_completed AS basic_analysis_completed,
+          b.completed_at AS basic_completed_at,
+          b.created_at AS basic_created_at,
+          b.updated_at AS basic_updated_at
 
-        FROM accounting.payment_document_ocr_imports o
+        FROM
+          accounting.payment_document_ocr_imports o
 
         LEFT JOIN
-          accounting.payment_document_specialist_analysis_results s
-          ON s.specialist_analysis_id =
-             o.latest_specialist_analysis_id
-         AND s.is_current = TRUE
+          accounting.payment_document_basic_analysis_results b
+          ON b.payment_document_ocr_import_id =
+             o.payment_document_ocr_import_id
+         AND b.is_current = TRUE
 
-        WHERE o.deleted_at IS NULL
+        WHERE
+          o.deleted_at IS NULL
           AND COALESCE(o.ocr_raw_text, '') <> ''
 
         ORDER BY
@@ -10074,63 +10051,189 @@ async function handlePaymentDocumentRoutes(req, res) {
         LIMIT 500
       `);
 
-      const items = result.rows.map(row => {
-        const rawResult =
-          row.raw_result_json &&
-          typeof row.raw_result_json === "object" &&
-          !Array.isArray(row.raw_result_json)
-            ? row.raw_result_json
-            : {};
+      const objectOrEmpty = value =>
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+          ? value
+          : {};
 
-        const specialistDraft =
-          row.draft_json &&
-          typeof row.draft_json === "object" &&
-          !Array.isArray(row.draft_json)
-            ? row.draft_json
-            : {};
+      const arrayOrEmpty = value =>
+        Array.isArray(value)
+          ? value
+          : [];
+
+      const items = result.rows.map(row => {
+        const basicRawResult =
+          objectOrEmpty(
+            row.basic_raw_result_json
+          );
+
+        const basicDraft =
+          objectOrEmpty(
+            basicRawResult.draft
+          );
+
+        const effectiveDraft =
+          Object.keys(basicDraft).length
+            ? basicDraft
+            : objectOrEmpty(
+                basicRawResult.aiDraft ||
+                basicRawResult.ai_draft ||
+                basicRawResult.sortResult ||
+                basicRawResult.sort_result ||
+                basicRawResult
+              );
+
+        const sortResult =
+          objectOrEmpty(
+            basicRawResult.sortResult ||
+            basicRawResult.sort_result ||
+            effectiveDraft.sortResult ||
+            effectiveDraft.sort_result ||
+            effectiveDraft
+          );
 
         const visibleFields =
-          row.visible_fields_json &&
-          typeof row.visible_fields_json === "object"
-            ? row.visible_fields_json
-            : {};
+          objectOrEmpty(
+            basicRawResult.visibleFields ||
+            basicRawResult.visible_fields ||
+            effectiveDraft.visibleFields ||
+            effectiveDraft.visible_fields
+          );
 
         const visibleFieldLabels =
-          Array.isArray(row.visible_field_labels_json)
-            ? row.visible_field_labels_json
-            : [];
+          arrayOrEmpty(
+            basicRawResult.visibleFieldLabels ||
+            basicRawResult.visible_field_labels ||
+            effectiveDraft.visibleFieldLabels ||
+            effectiveDraft.visible_field_labels
+          );
 
-        const specialistResult = row.specialist_analysis_id
-          ? {
-              ...rawResult,
-              ok: true,
-              source: "db_current_specialist_analysis",
-              paymentDocumentOcrImportId:
-                row.payment_document_ocr_import_id,
-              specialistAnalysisId:
-                row.specialist_analysis_id,
-              analysisSystemCode:
-                row.analysis_system_code,
-              analysisSystemLabel:
-                row.analysis_system_label,
-              aiConfidence:
-                row.ai_confidence,
-              aiReason:
-                row.ai_reason,
-              needsReview:
-                !!row.needs_review,
-              warnings:
-                row.warnings_json || [],
-              draft:
-                specialistDraft,
-              visibleFields,
-              visible_field_labels:
-                visibleFieldLabels
-            }
-          : null;
+        const aiSummary =
+          objectOrEmpty(
+            basicRawResult.aiSummary ||
+            basicRawResult.ai_summary ||
+            effectiveDraft.aiSummary ||
+            effectiveDraft.ai_summary
+          );
+
+        const latestBasicAnalysis =
+          row.basic_analysis_id
+            ? {
+                basicAnalysisId:
+                  row.basic_analysis_id,
+
+                basic_analysis_id:
+                  row.basic_analysis_id,
+
+                paymentDocumentOcrImportId:
+                  row.payment_document_ocr_import_id,
+
+                payment_document_ocr_import_id:
+                  row.payment_document_ocr_import_id,
+
+                companyId:
+                  row.basic_company_id,
+
+                company_id:
+                  row.basic_company_id,
+
+                aiConfidence:
+                  row.basic_ai_confidence,
+
+                ai_confidence:
+                  row.basic_ai_confidence,
+
+                aiReason:
+                  row.basic_ai_reason,
+
+                ai_reason:
+                  row.basic_ai_reason,
+
+                needsReview:
+                  !!row.basic_needs_review,
+
+                needs_review:
+                  !!row.basic_needs_review,
+
+                warnings:
+                  row.basic_warnings_json || [],
+
+                warnings_json:
+                  row.basic_warnings_json || [],
+
+                rawResult:
+                  basicRawResult,
+
+                raw_result:
+                  basicRawResult,
+
+                draft:
+                  effectiveDraft,
+
+                sortResult:
+                  sortResult,
+
+                sort_result:
+                  sortResult,
+
+                visibleFields:
+                  visibleFields,
+
+                visible_fields:
+                  visibleFields,
+
+                visibleFieldLabels:
+                  visibleFieldLabels,
+
+                visible_field_labels:
+                  visibleFieldLabels,
+
+                aiSummary:
+                  aiSummary,
+
+                ai_summary:
+                  aiSummary,
+
+                analysisCompleted:
+                  row.basic_analysis_completed === true,
+
+                analysis_completed:
+                  row.basic_analysis_completed === true,
+
+                completedAt:
+                  row.basic_completed_at,
+
+                completed_at:
+                  row.basic_completed_at,
+
+                createdAt:
+                  row.basic_created_at,
+
+                created_at:
+                  row.basic_created_at,
+
+                updatedAt:
+                  row.basic_updated_at,
+
+                updated_at:
+                  row.basic_updated_at
+              }
+            : null;
+
+        const analysisSystemCode =
+          String(
+            effectiveDraft.analysis_system_code ||
+            effectiveDraft.analysisSystemCode ||
+            sortResult.analysis_system_code ||
+            sortResult.analysisSystemCode ||
+            ""
+          ).trim();
 
         return {
-          source: "database-review-items",
+          source:
+            "database-review-items-basic-analysis",
 
           paymentDocumentOcrImportId:
             row.payment_document_ocr_import_id,
@@ -10138,7 +10241,9 @@ async function handlePaymentDocumentRoutes(req, res) {
           imageUrl:
             "/api/payment-documents/ocr-imports/file/" +
             encodeURIComponent(
-              String(row.payment_document_ocr_import_id)
+              String(
+                row.payment_document_ocr_import_id
+              )
             ),
 
           fileName:
@@ -10201,7 +10306,9 @@ async function handlePaymentDocumentRoutes(req, res) {
             row.ocr_raw_text,
 
           ocrTextPreview:
-            String(row.ocr_raw_text || "").slice(0, 240),
+            String(
+              row.ocr_raw_text || ""
+            ).slice(0, 240),
 
           ocrTextLength:
             row.ocr_text_length,
@@ -10242,49 +10349,32 @@ async function handlePaymentDocumentRoutes(req, res) {
           sortedAt:
             row.sorted_at,
 
-          latestSpecialistAnalysisId:
-            row.latest_specialist_analysis_id,
+          latestBasicAnalysisId:
+            row.basic_analysis_id,
 
-          specialistAnalysisId:
-            row.specialist_analysis_id,
+          latestBasicAnalysis,
 
-          analysisSystemCode:
-            row.analysis_system_code,
-
-          analysisSystemLabel:
-            row.analysis_system_label,
-
-          specialistAnalysisStatus:
-            row.specialist_analysis_id
-              ? row.human_confirm_status || "専門解析"
-              : "未解析",
-
-          specialistAnalyzedAt:
-            row.specialist_updated_at ||
-            row.specialist_created_at ||
-            null,
-
-          __specialistAnalyzed:
-            !!row.specialist_analysis_id,
-
-          __cilSpecialistResult:
-            specialistResult,
+          analysisSystemCode,
 
           __aiDraft:
-            row.specialist_analysis_id
-              ? specialistDraft
+            latestBasicAnalysis
+              ? effectiveDraft
               : null,
 
           __visibleFieldLabels:
-            row.specialist_analysis_id
+            latestBasicAnalysis
               ? visibleFieldLabels
               : [],
 
           __documentGroup:
-            row.analysis_system_code || "",
+            latestBasicAnalysis
+              ? analysisSystemCode
+              : "",
 
           __aiRawResult:
-            specialistResult,
+            latestBasicAnalysis
+              ? basicRawResult
+              : null,
 
           createdAt:
             row.created_at,
@@ -10296,14 +10386,18 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       sendJson(res, 200, {
         ok: true,
-        source: "database-review-items",
+        source:
+          "database-review-items-basic-analysis",
         items
       });
     } catch (err) {
       sendJson(res, 500, {
         ok: false,
-        source: "database-review-items",
-        error: err.message || String(err)
+        source:
+          "database-review-items-basic-analysis",
+        error:
+          err.message ||
+          String(err)
       });
     }
 
