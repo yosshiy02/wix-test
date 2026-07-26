@@ -10850,27 +10850,6 @@ specialistAnalysisId:
                   )
             );
 
-      const saveCompanyId = Number(
-        root.company_id ||
-        root.companyId ||
-        body.company_id ||
-        body.companyId ||
-        0
-      );
-
-      if (
-        !Number.isInteger(saveCompanyId) ||
-        saveCompanyId < 1
-      ) {
-        sendJson(res, 400, {
-          ok: false,
-          error:
-            "基礎解析保存用company_idがありません。"
-        });
-
-        return true;
-      }
-
       const aiSummary =
         root.ai_summary &&
         typeof root.ai_summary === "object"
@@ -10974,6 +10953,7 @@ specialistAnalysisId:
       const ocrResult = await client.query(`
         SELECT
           payment_document_ocr_import_id,
+          company_id,
           current_status
         FROM accounting.payment_document_ocr_imports
         WHERE payment_document_ocr_import_id = $1
@@ -11097,7 +11077,7 @@ specialistAnalysisId:
           completed_at
       `, [
         ocrImportId,
-        saveCompanyId,
+        ocrRow.company_id || null,
         aiConfidence,
         aiReason,
         needsReview,
