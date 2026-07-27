@@ -10670,7 +10670,8 @@ await client.query("COMMIT");
           SELECT
             payment_document_ocr_import_id,
             ocr_raw_text,
-            source_type
+            source_type,
+            mime_type
           FROM accounting.payment_document_ocr_imports
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
@@ -10685,7 +10686,7 @@ await client.query("COMMIT");
         }
 
         const ocrText = String(ocrRow.ocr_raw_text || "").trim();
-        const sourceTypeCode = String(ocrRow.source_type || "").trim();
+        const sourceTypeCode = await resolvePaymentDocumentSourceTypeCode(ocrRow);
 
         if (!ocrText) {
           const error = new Error("OCR本文が空です。");
