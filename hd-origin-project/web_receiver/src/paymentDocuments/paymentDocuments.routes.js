@@ -6979,7 +6979,7 @@ function hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText) {
   return result;
 }
 /* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_API_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_API_20260707_START */
 function hdOriginCilText(value) {
   if (value === null || value === undefined) return "";
 
@@ -7133,7 +7133,7 @@ function hdOriginCilCodeLabel(value, fallbackLabel) {
   return { code: "", label: text };
 }
 
-async function hdOriginSaveUtilityCommunicationDraft(body) {
+async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactionClient) {
   const ocrId = Number(
     body.paymentDocumentOcrImportId ||
     body.payment_document_ocr_import_id ||
@@ -7147,10 +7147,13 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
     throw err;
   }
 
-  const client = await db.connect();
+  const ownsTransaction = !transactionClient;
+  const client = transactionClient || await db.connect();
 
   try {
-    await client.query("BEGIN");
+    if (ownsTransaction) {
+      await client.query("BEGIN");
+    }
 
     const ocr = await client.query(`
       SELECT latest_specialist_analysis_id
@@ -7271,7 +7274,7 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
     ]);
 
     /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_START */
-    const utilityDraftId =
+    const utilityResultId =
       saved.rows[0].utility_communication_result_id;
 
     const lineItems =
@@ -7309,7 +7312,7 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
           $8,$9,$10,$11,$12,$13,$14::jsonb
         )
       `, [
-        utilityDraftId,
+        utilityResultId,
         Number(line.line_no || line.lineNo || index + 1),
         hdOriginCilText(line.item_name || line.name),
         hdOriginCilText(line.description),
@@ -7326,18 +7329,23 @@ async function hdOriginSaveUtilityCommunicationDraft(body) {
       ]);
     }
     /* HD_ORIGIN_UTILITY_LINE_ITEMS_SAVE_20260723_END */
-    await client.query("COMMIT");
+    if (ownsTransaction) {
+      await client.query("COMMIT");
+    }
 
     return {
       ok: true,
-      utilityCommunicationDraftId:
-        saved.rows[0].utility_communication_result_id
+      specialistAnalysisId
     };
   } catch (err) {
-    await client.query("ROLLBACK");
+    if (ownsTransaction) {
+      await client.query("ROLLBACK");
+    }
     throw err;
   } finally {
-    client.release();
+    if (ownsTransaction) {
+      client.release();
+    }
   }
 }
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_START */
@@ -10177,6 +10185,26 @@ analysis_system_code,
         saved.specialist_analysis_id,
         ocrImportId
       ]);
+
+      if (analysisSystemCode === "utility_communication_analysis") {
+        await hdOriginSaveUtilityCommunicationSpecialistResult({
+          ...root,
+          paymentDocumentOcrImportId: ocrImportId,
+          payment_document_ocr_import_id: ocrImportId,
+          specialistAnalysisId: saved.specialist_analysis_id,
+          specialist_analysis_id: saved.specialist_analysis_id,
+          specialistFields: hdOriginSpecialistFirstObject(
+            root.specialistFields,
+            root.specialist_fields,
+            root.fields,
+            root.visibleFields,
+            root.visible_fields
+          ),
+          rawResult: rawResultJson,
+          raw_result: rawResultJson,
+          warnings: warningsJson
+        }, client);
+      }
 await client.query("COMMIT");
 
       return {
@@ -10779,19 +10807,6 @@ await client.query("COMMIT");
       sendJson(res, 500, { ok: false, error: err.message || String(err) });
     }
 
-    return true;
-  }
-  if (req.method === "POST" && urlPath === "/api/payment-documents/utility-communication-drafts/save") {
-    try {
-      const body = await readBody(req);
-      const saved = await hdOriginSaveUtilityCommunicationDraft(body);
-      sendJson(res, 200, saved);
-    } catch (err) {
-      sendJson(res, err.statusCode || 500, {
-        ok: false,
-        error: err.message || String(err)
-      });
-    }
     return true;
   }
       /* HD_ORIGIN_UTILITY_LEDGER_GET_API_20260723_START */
@@ -11518,9 +11533,6 @@ await client.query("COMMIT");
         specialistAnalysisId:
           row.specialist_analysis_id,
 
-        utilityCommunicationDraftId:
-          row.utility_communication_result_id,
-
         draftVersion:
           row.result_version,
 
@@ -11675,142 +11687,6 @@ await client.query("COMMIT");
         classification: aiResult.classification,
         specialist: aiResult.specialist,
         draft: aiResult.draft
-      });
-    } catch (err) {
-      sendJson(res, err.statusCode || 500, {
-        ok: false,
-        source: "openai_ocr_text_only",
-        image_used: false,
-        error: err.message || String(err)
-      });
-    }
-
-    return true;
-  }
-  if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-draft/")) {
-    try {
-      const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-draft/", ""));
-      const id = Number(idText);
-
-      if (!Number.isInteger(id) || id < 1) {
-        sendJson(res, 400, { ok: false, error: "不正なOCR取込IDです。" });
-        return true;
-      }
-
-      const body = await readBody(req);
-
-      const companyId = Number(
-        body.company_id ||
-        body.companyId ||
-        0
-      );
-
-      const companyCode = String(
-        body.company_code ||
-        body.companyCode ||
-        ""
-      ).trim();
-
-      if (
-        !Number.isInteger(companyId) ||
-        companyId < 1 ||
-        !companyCode
-      ) {
-        sendJson(res, 400, {
-          ok: false,
-          error:
-            "プロジェクト入口で選択した会社情報がありません。"
-        });
-
-        return true;
-      }
-
-      const companyResult = await db.query(`
-        SELECT
-          company_id,
-          company_code,
-          company_name
-        FROM accounting.companies
-        WHERE company_id = $1
-          AND company_code = $2
-          AND is_active = true
-        LIMIT 1
-      `, [
-        companyId,
-        companyCode
-      ]);
-
-      if (!companyResult.rows.length) {
-        sendJson(res, 422, {
-          ok: false,
-          error:
-            "入口の会社情報が会社マスタと一致しません。"
-        });
-
-        return true;
-      }
-
-      const selectedCompany =
-        companyResult.rows[0];
-
-      const result = await db.query(`
-        SELECT
-          payment_document_ocr_import_id,
-          original_file_name,
-          saved_file_name,
-          source_type,
-          mime_type,
-          ocr_raw_text,
-          ocr_text_length
-        FROM accounting.payment_document_ocr_imports
-        WHERE payment_document_ocr_import_id = $1
-          AND deleted_at IS NULL
-        LIMIT 1
-      `, [id]);
-
-      if (!result.rows.length) {
-        sendJson(res, 404, { ok: false, error: "OCR取込データが見つかりません。" });
-        return true;
-      }
-
-      const row = result.rows[0];
-      const ocrText = String(row.ocr_raw_text || "").trim();
-
-      if (!ocrText) {
-        sendJson(res, 400, { ok: false, error: "OCR本文が空です。" });
-        return true;
-      }
-
-            const sourceTypeCode =
-        await resolvePaymentDocumentSourceTypeCode(row);
-
-      const aiResult =
-        await createTwoStepAiDraftFromOcrText(
-          ocrText,
-          {
-            company_id:
-              selectedCompany.company_id,
-            company_code:
-              selectedCompany.company_code,
-            source_type_code:
-              sourceTypeCode
-          }
-        );
-      const draft = aiResult.draft;
-
-      sendJson(res, 200, {
-        ok: true,
-        source: "openai_ocr_text_only",
-        image_used: false,
-        paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
-        originalFileName: row.original_file_name || row.saved_file_name,
-        ocrTextLength: row.ocr_text_length,
-        ai_steps: aiResult.steps,
-        display_mode: aiResult.display_mode,
-        document_group: aiResult.document_group,
-        visible_field_labels: aiResult.visible_field_labels,
-        classification: aiResult.classification,
-        draft
       });
     } catch (err) {
       sendJson(res, err.statusCode || 500, {

@@ -2622,6 +2622,64 @@ function setDocumentPreview(item) {
     };
   }
 
+  function hdOriginAiSpecialistRequestPayload(company, item) {
+    const source = item && typeof item === "object" ? item : {};
+    const basic = source.latestBasicAnalysis || source.latest_basic_analysis || source.basicAnalysis || source.basic_analysis || {};
+    const raw = basic.rawResult || basic.raw_result || source.__aiRawResult || source.aiRawResult || {};
+    const draft = raw.draft || raw.aiDraft || raw.ai_draft || source.__aiDraft || source.aiDraft || {};
+    const firstText = function () {
+      for (const value of arguments) {
+        const text = String(value || "").trim();
+        if (text) return text;
+      }
+      return "";
+    };
+
+    const analysisSystemCode = firstText(
+      source.analysisSystemCode,
+      source.analysis_system_code,
+      basic.analysisSystemCode,
+      basic.analysis_system_code,
+      draft.analysisSystemCode,
+      draft.analysis_system_code,
+      raw.analysisSystemCode,
+      raw.analysis_system_code
+    );
+    const documentGroup = firstText(
+      source.__documentGroup,
+      source.document_group,
+      basic.documentGroup,
+      basic.document_group,
+      draft.documentGroup,
+      draft.document_group,
+      raw.documentGroup,
+      raw.document_group
+    );
+    const specialistRouteCode = firstText(
+      source.specialistRouteCode,
+      source.specialist_route_code,
+      basic.specialistRouteCode,
+      basic.specialist_route_code,
+      draft.specialistRouteCode,
+      draft.specialist_route_code,
+      raw.specialistRouteCode,
+      raw.specialist_route_code,
+      documentGroup
+    );
+
+    if (!specialistRouteCode && !documentGroup) {
+      throw new Error("専門解析経路が基礎解析結果または画面選択から取得できません。");
+    }
+
+    return Object.assign({}, company, {
+      analysisSystemCode: analysisSystemCode,
+      analysis_system_code: analysisSystemCode,
+      specialist_route_code: specialistRouteCode || documentGroup,
+      document_group: documentGroup || specialistRouteCode,
+      group: documentGroup || specialistRouteCode
+    });
+  }
+
   async function runAiDraftFromSelectedOcr() {
     const id = selectedOcrImportId();
 
@@ -2635,11 +2693,16 @@ function setDocumentPreview(item) {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
+      const requestPayload =
+        hdOriginAiSpecialistRequestPayload(
+          currentCompany,
+          Array.isArray(items) ? items[selectedIndex] : null
+        );
 
-      const res = await fetch("/api/payment-documents/ai-draft/" + encodeURIComponent(String(id)), {
+      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentCompany)
+        body: JSON.stringify(requestPayload)
       });
 
       const data = await res.json();
@@ -2950,9 +3013,14 @@ async function runAiDraftForItemIndex(index, options = {}) {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
+      const requestPayload =
+        hdOriginAiSpecialistRequestPayload(
+          currentCompany,
+          item
+        );
 
       const res = await fetch(
-        "/api/payment-documents/ai-draft/" +
+        "/api/payment-documents/ai-specialist/" +
         encodeURIComponent(id),
         {
           method: "POST",
@@ -2961,7 +3029,7 @@ async function runAiDraftForItemIndex(index, options = {}) {
               "application/json"
           },
           body: JSON.stringify(
-            currentCompany
+            requestPayload
           )
         }
       );
@@ -3668,9 +3736,14 @@ async function runSelectedAiDrafts() {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
+      const requestPayload =
+        hdOriginAiSpecialistRequestPayload(
+          currentCompany,
+          item
+        );
 
       const res = await fetch(
-        "/api/payment-documents/ai-draft/" +
+        "/api/payment-documents/ai-specialist/" +
         encodeURIComponent(id),
         {
           method: "POST",
@@ -3679,7 +3752,7 @@ async function runSelectedAiDrafts() {
               "application/json"
           },
           body: JSON.stringify(
-            currentCompany
+            requestPayload
           )
         }
       );
@@ -5585,7 +5658,7 @@ count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_tar
 
 
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
@@ -5720,7 +5793,7 @@ count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_tar
   }
 
   function findSelectedOcrImportId() {
-    /* HD_ORIGIN_SORTING_DRAFT_SELECTED_OCR_ID_FIX_GPT00_20260709_START */
+    /* HD_ORIGIN_SPECIALIST_ANALYSIS_SELECTED_OCR_ID_FIX_GPT00_20260709_START */
     const functionNames = [
       "selectedOcrImportId",
       "getSelectedOcrImportId",
@@ -5769,7 +5842,7 @@ count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_tar
         }
       }
     } catch (error) {}
-    /* HD_ORIGIN_SORTING_DRAFT_SELECTED_OCR_ID_FIX_GPT00_20260709_END */
+    /* HD_ORIGIN_SPECIALIST_ANALYSIS_SELECTED_OCR_ID_FIX_GPT00_20260709_END */
 const directNames = [
       "selectedOcrImportId",
       "currentOcrImportId",
@@ -6171,7 +6244,7 @@ const directNames = [
               : []
           );
 
-const saveDraft = Object.assign(
+const analysisResult = Object.assign(
       {},
       currentDraft,
       {
@@ -6191,23 +6264,23 @@ const saveDraft = Object.assign(
 
 
       /* STAGE2_10_FIELDS_SAVE_20260722 */
-      saveDraft.fields.document_number = controlValue("draftDocumentNumber");
-      saveDraft.fields.reference_number = controlValue("draftReferenceNumber");
-      saveDraft.fields.issuer_name = controlValue("draftIssuer");
-      saveDraft.fields.issuer_registration_number = controlValue("draftRegistrationNo");
-      saveDraft.fields.issuer_postal_code = controlValue("draftIssuerPostalCode");
-      saveDraft.fields.issuer_address = controlValue("draftAddress");
-      saveDraft.fields.issuer_phone = controlValue("draftPhone");
-      saveDraft.fields.recipient_name = controlValue("draftRecipient");
-      saveDraft.fields.recipient_code = controlValue("draftRecipientCode");
-      saveDraft.fields.document_date = controlValue("draftIssueDate");
+      analysisResult.fields.document_number = controlValue("draftDocumentNumber");
+      analysisResult.fields.reference_number = controlValue("draftReferenceNumber");
+      analysisResult.fields.issuer_name = controlValue("draftIssuer");
+      analysisResult.fields.issuer_registration_number = controlValue("draftRegistrationNo");
+      analysisResult.fields.issuer_postal_code = controlValue("draftIssuerPostalCode");
+      analysisResult.fields.issuer_address = controlValue("draftAddress");
+      analysisResult.fields.issuer_phone = controlValue("draftPhone");
+      analysisResult.fields.recipient_name = controlValue("draftRecipient");
+      analysisResult.fields.recipient_code = controlValue("draftRecipientCode");
+      analysisResult.fields.document_date = controlValue("draftIssueDate");
     const fieldIssueDate = firstText(
       currentFields.document_date,
       currentDraft.document_date
     );
 
     if (fieldIssueDate) {
-      saveDraft.issue_date = fieldIssueDate;
+      analysisResult.issue_date = fieldIssueDate;
     }
 
 
@@ -6226,7 +6299,7 @@ const saveDraft = Object.assign(
     return {
       paymentDocumentOcrImportId: ocrId,
 
-      issue_date: saveDraft.issue_date || null,
+      issue_date: analysisResult.issue_date || null,
 
       document_type_id:
         masterId(documentTypeMaster) ||
@@ -6332,13 +6405,13 @@ const saveDraft = Object.assign(
         "payment-document-review 画面から下書き保存",
 
       sortResult:
-        saveDraft,
+        analysisResult,
 
       aiDraft:
-        saveDraft,
+        analysisResult,
 
       draft:
-        saveDraft,
+        analysisResult,
 
       ai_summary:
         aiSummary,
@@ -6347,14 +6420,14 @@ const saveDraft = Object.assign(
         visibleFieldLabels,
 
       visibleFields:
-        saveDraft.fields,
+        analysisResult.fields,
 
       fields:
-        saveDraft.fields,
+        analysisResult.fields,
 
       warnings:
-        Array.isArray(saveDraft.warnings)
-          ? saveDraft.warnings
+        Array.isArray(analysisResult.warnings)
+          ? analysisResult.warnings
           : []
     };
   }
@@ -6438,11 +6511,11 @@ const saveDraft = Object.assign(
         button.textContent = "下書き保存済み";
       }
 
-      console.log("HD Origin sorting draft saved:", result);
+      console.log("HD Origin specialist analysis saved:", result);
 
       alert("基礎解析結果を保存しました。\n専門解析ID: " + (result.specialistAnalysisId || ""));
     } catch (err) {
-      console.error("HD Origin sorting draft save failed:", err);
+      console.error("HD Origin specialist analysis save failed:", err);
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
         button.textContent = originalText || "下書き保存";
@@ -6462,10 +6535,10 @@ const saveDraft = Object.assign(
 
   window.hdOriginSaveBasicAnalysisResultFromReviewPage = saveBasicAnalysisResultFromReviewPage;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
 </script>
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
@@ -6681,7 +6754,7 @@ const saveDraft = Object.assign(
 
         ok.push({
           id,
-          draftId: saved.specialistAnalysisId || ""
+          specialistAnalysisId: saved.specialistAnalysisId || ""
         });
       } catch (err) {
         ng.push({
@@ -6712,7 +6785,7 @@ const saveDraft = Object.assign(
     const button = document.createElement("button");
     button.type = "button";
     button.id = "bulkSaveBasicAnalysisButton";
-    button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
+    button.className = "btn btn-primary hd-origin-bulk-save-specialist-analysis";
     button.textContent = "まとめて保存";
 
     sortButton.insertAdjacentElement("afterend", button);
@@ -6770,12 +6843,12 @@ const saveDraft = Object.assign(
 
   window.hdOriginBulkSaveBasicAnalysisResults = bulkSaveBasicAnalysisResults;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
 </script>
 <script>
 </script>
 
-<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_START -->
+<!-- HD_ORIGIN_SPECIALIST_ANALYSIS_AUTOSAVE_GPT00_20260709_START -->
 <script>
 (function () {
   "use strict";
@@ -6898,7 +6971,7 @@ const saveDraft = Object.assign(
     } catch (error) {
       var message = error && error.message ? error.message : String(error);
 
-      console.error("HD Origin sorting draft autosave failed:", error);
+      console.error("HD Origin specialist analysis autosave failed:", error);
       setStatus("自動保存失敗: " + message, true);
 
       return { ok: false, error: message };
@@ -6949,7 +7022,7 @@ const saveDraft = Object.assign(
     if (!button) return false;
 
     if (button.id === "bulkSaveBasicAnalysisButton") return true;
-    if (button.classList && button.classList.contains("hd-origin-bulk-save-sorting-draft")) return true;
+    if (button.classList && button.classList.contains("hd-origin-bulk-save-specialist-analysis")) return true;
 
     var t = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
 
@@ -7047,7 +7120,7 @@ const saveDraft = Object.assign(
   window.hdOriginScheduleBasicAnalysisAutoSave = scheduleAutoSave;
 })();
 </script>
-<!-- HD_ORIGIN_SORTING_DRAFT_AUTOSAVE_GPT00_20260709_END -->
+<!-- HD_ORIGIN_SPECIALIST_ANALYSIS_AUTOSAVE_GPT00_20260709_END -->
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
 <script>
 (function () {

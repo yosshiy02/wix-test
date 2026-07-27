@@ -21,17 +21,7 @@
             <nav class="specialist-system-nav"
            aria-label="専門解析システム"
            style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
-                <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_START -->
         <button type="button"
-                class="specialist-system-button specialist-basic-analysis"
-                data-base-label="基礎解析ページ"
-                onclick="location.href='./payment-document-review.html'">基礎解析ページ</button>
-        <button type="button"
-                class="specialist-system-button specialist-bank-transaction"
-                data-analysis-system-code="bank_transaction_analysis"
-                data-base-label="銀行取引専門解析"
-                onclick="location.href='./payment-document-specialist-bank-transaction.html'">銀行取引専門解析（0）</button>
-        <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_END --><button type="button"
                 class="specialist-system-button specialist-invoice"
                 data-analysis-system-code="invoice_payable_analysis"
                 data-base-label="請求・未払系"
@@ -3500,15 +3490,15 @@ function setDocumentPreview(item) {
       const source = objectValue(item);
 
       const latest = objectValue(
-        source.latestSpecialistAnalysis ||
-        source.latest_specialist_analysis
+        source.latestSortingDraft ||
+        source.latest_sorting_draft
       );
 
       const saved = objectValue(
-        source.__savedSpecialistAnalysis ||
-        source.savedSpecialistAnalysis ||
-        source.specialistAnalysis ||
-        source.specialist_analysis
+        source.__savedSortingDraft ||
+        source.savedSortingDraft ||
+        source.sortingDraft ||
+        source.sorting_draft
       );
 
       const draft = objectValue(
@@ -5018,15 +5008,15 @@ function setDocumentPreview(item) {
 
 
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
-  if (window.__hdOriginSpecialistAnalysisSaveUiInstalled) {
+  if (window.__hdOriginSortingDraftSaveUiInstalled) {
     return;
   }
 
-  window.__hdOriginSpecialistAnalysisSaveUiInstalled = true;
+  window.__hdOriginSortingDraftSaveUiInstalled = true;
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -5596,39 +5586,6 @@ function setDocumentPreview(item) {
       analysisRoot.specialist_route_label ||
       "";
 
-    const specialistRawResult = Object.assign(
-      {},
-      analysisResult,
-      {
-        draft: Object.assign(
-          {},
-          analysisDraft,
-          payload.sortResult || {},
-          {
-            fields: Object.assign(
-              {},
-              analysisDraft.fields || {},
-              payload.fields || payload.specialistFields || payload.visibleFields || {}
-            )
-          }
-        )
-      }
-    );
-    payload.analysisSystemCode =
-      payload.analysis_system_code || payload.analysisSystemCode || "";
-    payload.analysisSystemLabel =
-      payload.analysis_system_label || payload.analysisSystemLabel || "";
-    payload.rawResult = specialistRawResult;
-    payload.raw_result = specialistRawResult;
-    payload.warnings = Array.isArray(payload.warnings)
-      ? payload.warnings
-      : Array.isArray(analysisResult.warnings)
-        ? analysisResult.warnings
-        : Array.isArray(analysisDraft.warnings)
-          ? analysisDraft.warnings
-          : Array.isArray(analysisRoot.warnings)
-            ? analysisRoot.warnings
-            : [];
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
@@ -5650,7 +5607,7 @@ function setDocumentPreview(item) {
 
   window.hdOriginSaveBankTransactionSpecialistResult = saveBankTransactionSpecialistResult;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
 </script>
 <script>
 
@@ -5735,8 +5692,8 @@ function setDocumentPreview(item) {
     return item.__aiDraft ||
       item.aiDraft ||
       item.ai_draft ||
-      item.specialistAnalysis ||
-      item.specialist_analysis ||
+      item.sortingDraft ||
+      item.sorting_draft ||
       item.draft ||
       {};
   }
@@ -6449,15 +6406,15 @@ function setDocumentPreview(item) {
     const source = objectValue(item);
 
     const latest = objectValue(
-      source.latestSpecialistAnalysis ||
-      source.latest_specialist_analysis
+      source.latestSortingDraft ||
+      source.latest_sorting_draft
     );
 
     const saved = objectValue(
-      source.__savedSpecialistAnalysis ||
-      source.savedSpecialistAnalysis ||
-      source.specialistAnalysis ||
-      source.specialist_analysis
+      source.__savedSortingDraft ||
+      source.savedSortingDraft ||
+      source.sortingDraft ||
+      source.sorting_draft
     );
 
     const draft = objectValue(

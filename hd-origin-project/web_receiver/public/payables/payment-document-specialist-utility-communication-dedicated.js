@@ -3,7 +3,7 @@
 /* GPT3_UTILITY_DEDICATED_SCREEN_JS_START */
 (function () {
   const SAVE_ENDPOINT =
-    "/api/payment-documents/utility-communication-drafts/save";
+    "/api/payment-documents/specialist-analysis-results/save";
 
   let showAllFields = false;
   let lastVisibleFieldLabels = [];
@@ -1016,7 +1016,7 @@
     );
   }
 
-  function sortingDraftIdOf(item, rawResult) {
+  function specialistAnalysisIdOf(item, rawResult) {
     const source =
       objectValue(item);
 
@@ -1034,8 +1034,8 @@
     const sorting =
       objectValue(
         firstValue(
-          source.sortingDraft,
-          source.sorting_draft
+          source.specialistAnalysis,
+          source.specialist_analysis
         )
       );
 
@@ -1043,8 +1043,6 @@
       firstValue(
         source.specialistAnalysisId,
         source.specialist_analysis_id,
-        source.sortingDraftId,
-        source.sorting_draft_id,
         source.latestSpecialistAnalysisId,
         source.latest_specialist_analysis_id,
 
@@ -1880,13 +1878,6 @@
           null
         ),
 
-      utilityCommunicationDraftId:
-        firstValue(
-          saved.utilityCommunicationDraftId,
-          saved.utility_communication_result_id,
-          null
-        ),
-
       fieldNames:
         Object.keys(savedFields),
 
@@ -1947,8 +1938,8 @@
 
     validateLines(lines);
 
-    const sortingDraftId =
-      sortingDraftIdOf(
+    const existingSpecialistAnalysisId =
+      specialistAnalysisIdOf(
         item,
         rawResult
       );
@@ -2039,12 +2030,12 @@
         "公共料金・通信費まとめて保存（AI結果直接保存）"
     };
 
-    if (sortingDraftId > 0) {
+    if (existingSpecialistAnalysisId > 0) {
       commonPayload.specialistAnalysisId =
-        sortingDraftId;
+        existingSpecialistAnalysisId;
 
       commonPayload.specialist_analysis_id =
-        sortingDraftId;
+        existingSpecialistAnalysisId;
     }
 
     const commonSaved =
@@ -2084,89 +2075,6 @@
       );
     }
 
-    const returnedSortingDraftId =
-      Number(
-        firstValue(
-          commonSaved.specialistAnalysisId,
-          commonSaved.specialist_analysis_id,
-          sortingDraftId,
-          0
-        )
-      );
-
-    const utilityPayload = {
-      paymentDocumentOcrImportId:
-        ocrId,
-
-      payment_document_ocr_import_id:
-        ocrId,
-
-      specialistAnalysisId:
-        specialistAnalysisId,
-
-      specialist_analysis_id:
-        specialistAnalysisId,
-
-      fields:
-        fields,
-
-      specialistFields:
-        fields,
-
-      specialist_fields:
-        fields,
-
-      visibleFields:
-        fields,
-
-      visible_fields:
-        fields,
-
-      humanCorrections:
-        {},
-
-      human_corrections:
-        {},
-
-      rawResult:
-        rawResult,
-
-      raw_result:
-        rawResult,
-
-      lineItems:
-        lines,
-
-      line_items:
-        lines,
-
-      warnings:
-        warningsOf(
-          item,
-          rawResult
-        ),
-
-      createdByPage:
-        "payment-document-specialist-utility-communication.html",
-
-      created_by_page:
-        "payment-document-specialist-utility-communication.html"
-    };
-
-    if (returnedSortingDraftId > 0) {
-      utilityPayload.specialistAnalysisId =
-        returnedSortingDraftId;
-
-      utilityPayload.specialist_analysis_id =
-        returnedSortingDraftId;
-    }
-
-    const utilitySaved =
-      await postJsonDirect(
-        "/api/payment-documents/utility-communication-drafts/save",
-        utilityPayload
-      );
-
     const verified =
       await verifySaved(
         ocrId,
@@ -2183,13 +2091,6 @@
 
       specialistAnalysisId:
         specialistAnalysisId,
-
-      utilityCommunicationDraftId:
-        firstValue(
-          utilitySaved.utilityCommunicationDraftId,
-          utilitySaved.utility_communication_result_id,
-          verified.utilityCommunicationDraftId
-        ),
 
       fieldNames:
         verified.fieldNames,

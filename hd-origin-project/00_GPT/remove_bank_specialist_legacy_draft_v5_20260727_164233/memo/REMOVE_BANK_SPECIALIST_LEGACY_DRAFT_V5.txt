@@ -1,0 +1,125 @@
+
+==============================================================================
+銀行取引専門解析 旧下書きシステム撤去 V5開始
+==============================================================================
+DATETIME=2026/07/27 16:42:33
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-bank-transaction.html
+TARGET_ANALYSIS_SYSTEM_CODE=bank_transaction_analysis
+STATUS_MASTER_UPDATE=NO
+DATABASE_UPDATE=NO
+GIT_OPERATION=NO
+SERVER_OPERATION=NO
+OCR_EXECUTION=NO
+AI_EXECUTION=NO
+ORIGINAL_SHA256=4060E52E0FF424CD799244935E237375DA27F375A1623137AF0CEB72E0026534
+BACKUP_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\00_GPT\remove_bank_specialist_legacy_draft_v5_20260727_164233\undo\payment-document-specialist-bank-transaction.before.html
+BACKUP_STATUS=SUCCESS
+
+==============================================================================
+旧一括下書き保存撤去
+==============================================================================
+REMOVE_START_COUNT=1 | TEXT=/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */
+REMOVE_END_COUNT=1 | TEXT=/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
+BULK_SAVE_BUTTON_COUNT=1
+LEGACY_BULK_SAVE_REMOVAL=SUCCESS
+
+==============================================================================
+正式保存関数へ名称統一
+==============================================================================
+REPLACE_CHECK | OLD=collectSortingDraftPayload | COUNT=2 | EXPECTED=2
+REPLACE_CHECK | OLD=saveSortingDraftFromReviewPage | COUNT=5 | EXPECTED=5
+REPLACE_CHECK | OLD=memo: "payment-document-review 画面から下書き保存" | COUNT=1 | EXPECTED=1
+REPLACE_CHECK | OLD=throw new Error(json.error || "下書き保存に失敗しました。"); | COUNT=1 | EXPECTED=1
+
+==============================================================================
+旧手動下書き保存UI撤去
+==============================================================================
+REMOVE_START_COUNT=1 | TEXT=  function looksLikeDraftSaveButton(el) {
+REMOVE_END_COUNT=1 | TEXT=  window.hdOriginSaveSortingDraftFromReviewPage = saveBankTransactionSpecialistResult;
+REPLACE_CHECK | OLD=window.hdOriginSaveSortingDraftFromReviewPage | COUNT=2 | EXPECTED=2
+LEGACY_MANUAL_DRAFT_SAVE_UI_REMOVAL=SUCCESS
+FORMAL_AUTOSAVE_EXPORT_UPDATE=SUCCESS
+
+==============================================================================
+書込み前監査
+==============================================================================
+REQUIRED_TOKEN=/api/payment-documents/ai-specialist/ | COUNT=4
+REQUIRED_TOKEN=/api/payment-documents/specialist-analysis-results/save | COUNT=1
+REQUIRED_TOKEN=bank_transaction_analysis | COUNT=3
+REQUIRED_TOKEN=collectBankTransactionSpecialistResultPayload | COUNT=2
+REQUIRED_TOKEN=saveBankTransactionSpecialistResult | COUNT=4
+REQUIRED_TOKEN=window.hdOriginSaveBankTransactionSpecialistResult | COUNT=2
+FORBIDDEN_TOKEN=collectSortingDraftPayload | COUNT=0
+FORBIDDEN_TOKEN=saveSortingDraftFromReviewPage | COUNT=0
+FORBIDDEN_TOKEN=hdOriginSaveSortingDraftFromReviewPage | COUNT=0
+FORBIDDEN_TOKEN=bulkSaveSortingDrafts | COUNT=0
+FORBIDDEN_TOKEN=postSortingDraft | COUNT=0
+FORBIDDEN_TOKEN=buildPayloadFromCachedResult | COUNT=0
+FORBIDDEN_TOKEN=hdOriginBulkSaveSortingDrafts | COUNT=0
+FORBIDDEN_TOKEN=bulkSaveSortingDraftButton | COUNT=0
+FORBIDDEN_TOKEN=paymentDocumentSortingDraftId | COUNT=0
+FORBIDDEN_TOKEN=looksLikeDraftSaveButton | COUNT=0
+FORBIDDEN_TOKEN=下書き保存中 | COUNT=0
+FORBIDDEN_TOKEN=下書き保存済み | COUNT=0
+FORBIDDEN_TOKEN=仕分け下書きを保存しました | COUNT=0
+FORBIDDEN_TOKEN=HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START | COUNT=0
+FORBIDDEN_TOKEN=HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END | COUNT=0
+LEGACY_OPERATIONAL_DRAFT_CHECK=SUCCESS
+FORMAL_API_PRESERVATION_CHECK=SUCCESS
+
+==============================================================================
+インラインJavaScript構文確認
+==============================================================================
+INLINE_SCRIPT_CHECK | NO=1 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=2 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=3 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=4 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=5 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=6 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=7 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=8 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK | NO=9 | EXIT_CODE=0
+INLINE_SCRIPT_CHECK_COUNT=9
+INLINE_SCRIPT_SYNTAX_STATUS=SUCCESS
+
+==============================================================================
+正式書込み
+==============================================================================
+AFTER_SHA256=4625B52E60607546AB0AC290EC1AC1C88DA75B186910C7ABC2F766363A03648D
+AFTER_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\00_GPT\remove_bank_specialist_legacy_draft_v5_20260727_164233\after\payment-document-specialist-bank-transaction.after.html
+PROJECT_FILE_UPDATE=YES
+
+==============================================================================
+書込み後監査
+==============================================================================
+POST_REQUIRED_TOKEN=/api/payment-documents/ai-specialist/ | COUNT=4
+POST_REQUIRED_TOKEN=/api/payment-documents/specialist-analysis-results/save | COUNT=1
+POST_REQUIRED_TOKEN=bank_transaction_analysis | COUNT=3
+POST_REQUIRED_TOKEN=collectBankTransactionSpecialistResultPayload | COUNT=2
+POST_REQUIRED_TOKEN=saveBankTransactionSpecialistResult | COUNT=4
+POST_REQUIRED_TOKEN=window.hdOriginSaveBankTransactionSpecialistResult | COUNT=2
+POST_FORBIDDEN_TOKEN=collectSortingDraftPayload | COUNT=0
+POST_FORBIDDEN_TOKEN=saveSortingDraftFromReviewPage | COUNT=0
+POST_FORBIDDEN_TOKEN=hdOriginSaveSortingDraftFromReviewPage | COUNT=0
+POST_FORBIDDEN_TOKEN=bulkSaveSortingDrafts | COUNT=0
+POST_FORBIDDEN_TOKEN=postSortingDraft | COUNT=0
+POST_FORBIDDEN_TOKEN=buildPayloadFromCachedResult | COUNT=0
+POST_FORBIDDEN_TOKEN=hdOriginBulkSaveSortingDrafts | COUNT=0
+POST_FORBIDDEN_TOKEN=bulkSaveSortingDraftButton | COUNT=0
+POST_FORBIDDEN_TOKEN=paymentDocumentSortingDraftId | COUNT=0
+POST_FORBIDDEN_TOKEN=looksLikeDraftSaveButton | COUNT=0
+POST_FORBIDDEN_TOKEN=下書き保存中 | COUNT=0
+POST_FORBIDDEN_TOKEN=下書き保存済み | COUNT=0
+POST_FORBIDDEN_TOKEN=仕分け下書きを保存しました | COUNT=0
+POST_FORBIDDEN_TOKEN=HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START | COUNT=0
+POST_FORBIDDEN_TOKEN=HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END | COUNT=0
+
+LEGACY_BANK_MANUAL_DRAFT_SAVE_UI=NONE
+LEGACY_BANK_BULK_DRAFT_SAVE_UI=NONE
+LEGACY_BANK_SORTING_DRAFT_FUNCTION_NAMES=NONE
+FORMAL_STAGE3_API=PRESERVED
+FORMAL_SPECIALIST_SAVE_API=PRESERVED
+FORMAL_BANK_SPECIALIST_SAVE_FUNCTION=CONNECTED
+STATUS_MASTER_UPDATE=NO
+AUTO_ROLLBACK_STATUS=NOT_REQUIRED
+OVERALL_STATUS=SUCCESS

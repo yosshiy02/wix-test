@@ -411,7 +411,7 @@ function writeProjectStatus() {
       "7. 専門解析結果を下書きDBへ保存",
       "8. 人間確認・修正・確定",
       "",
-      "- 基礎解析の正規APIは /api/payment-documents/ai-draft/:id。",
+      "- 専門解析の正規APIは /api/payment-documents/ai-specialist/:id。",
       "- まとめて仕分けでも旧 /ai-sort/:id を使用しない。",
       "- 専門解析ボタンではStage1・Stage2を再実行しない。",
       "- 専門解析ボタンから /ai-sort または /ai-draft を呼ばない。",

@@ -109,7 +109,17 @@
             <nav class="specialist-system-nav"
            aria-label="専門解析システム"
            style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+                <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_START -->
         <button type="button"
+                class="specialist-system-button specialist-basic-analysis"
+                data-base-label="基礎解析ページ"
+                onclick="location.href='./payment-document-review.html'">基礎解析ページ</button>
+        <button type="button"
+                class="specialist-system-button specialist-bank-transaction"
+                data-analysis-system-code="bank_transaction_analysis"
+                data-base-label="銀行取引専門解析"
+                onclick="location.href='./payment-document-specialist-bank-transaction.html'">銀行取引専門解析（0）</button>
+        <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_END --><button type="button"
                 class="specialist-system-button specialist-invoice"
                 data-analysis-system-code="invoice_payable_analysis"
                 data-base-label="請求・未払系"
@@ -4366,15 +4376,15 @@ function setDocumentPreview(item) {
       const source = objectValue(item);
 
       const latest = objectValue(
-        source.latestSortingDraft ||
-        source.latest_sorting_draft
+        source.latestSpecialistAnalysis ||
+        source.latest_specialist_analysis
       );
 
       const saved = objectValue(
-        source.__savedSortingDraft ||
-        source.savedSortingDraft ||
-        source.sortingDraft ||
-        source.sorting_draft
+        source.__savedSpecialistAnalysis ||
+        source.savedSpecialistAnalysis ||
+        source.specialistAnalysis ||
+        source.specialist_analysis
       );
 
       const draft = objectValue(
@@ -4513,15 +4523,15 @@ function setDocumentPreview(item) {
         : {};
 
     const latest =
-      source.latestSortingDraft &&
-      typeof source.latestSortingDraft ===
+      source.latestSpecialistAnalysis &&
+      typeof source.latestSpecialistAnalysis ===
         "object"
-        ? source.latestSortingDraft
+        ? source.latestSpecialistAnalysis
         : (
-            source.latest_sorting_draft &&
-            typeof source.latest_sorting_draft ===
+            source.latest_specialist_analysis &&
+            typeof source.latest_specialist_analysis ===
               "object"
-              ? source.latest_sorting_draft
+              ? source.latest_specialist_analysis
               : {}
           );
 
@@ -4584,15 +4594,15 @@ function setDocumentPreview(item) {
         : {};
 
     const latest =
-      source.latestSortingDraft &&
-      typeof source.latestSortingDraft ===
+      source.latestSpecialistAnalysis &&
+      typeof source.latestSpecialistAnalysis ===
         "object"
-        ? source.latestSortingDraft
+        ? source.latestSpecialistAnalysis
         : (
-            source.latest_sorting_draft &&
-            typeof source.latest_sorting_draft ===
+            source.latest_specialist_analysis &&
+            typeof source.latest_specialist_analysis ===
               "object"
-              ? source.latest_sorting_draft
+              ? source.latest_specialist_analysis
               : {}
           );
 
@@ -7185,16 +7195,16 @@ async function hdOriginCilReloadSavedFromQuery() {
       "specialist_analysis_id",
 
 
-      "sortingDraftId",
+      "specialistAnalysisId",
 
 
-      "sorting_draft_id",
+      "specialist_analysis_id",
 
 
-      "draftId",
+      "specialistAnalysisId",
 
 
-      "draft_id"
+      "specialist_analysis_id"
 
 
     ];
@@ -7454,6 +7464,39 @@ async function saveSpecialistResultFromReviewPage(context) {
     payload.specialistFields = collectContractInsuranceLeaseCurrentFieldsForSave();
     payload.visibleFields = payload.specialistFields;
 
+    const specialistRawResult = Object.assign(
+      {},
+      analysisResult,
+      {
+        draft: Object.assign(
+          {},
+          analysisDraft,
+          payload.sortResult || {},
+          {
+            fields: Object.assign(
+              {},
+              analysisDraft.fields || {},
+              payload.fields || payload.specialistFields || payload.visibleFields || {}
+            )
+          }
+        )
+      }
+    );
+    payload.analysisSystemCode =
+      payload.analysis_system_code || payload.analysisSystemCode || "";
+    payload.analysisSystemLabel =
+      payload.analysis_system_label || payload.analysisSystemLabel || "";
+    payload.rawResult = specialistRawResult;
+    payload.raw_result = specialistRawResult;
+    payload.warnings = Array.isArray(payload.warnings)
+      ? payload.warnings
+      : Array.isArray(analysisResult.warnings)
+        ? analysisResult.warnings
+        : Array.isArray(analysisDraft.warnings)
+          ? analysisDraft.warnings
+          : Array.isArray(analysisRoot.warnings)
+            ? analysisRoot.warnings
+            : [];
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
@@ -7497,11 +7540,11 @@ async function saveSpecialistResultFromReviewPage(context) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (button.dataset.hdOriginSortingDraftSaving === "1") {
+    if (button.dataset.hdOriginSpecialistAnalysisSaving === "1") {
       return;
     }
 
-    button.dataset.hdOriginSortingDraftSaving = "1";
+    button.dataset.hdOriginSpecialistAnalysisSaving = "1";
 
     const originalText = button.textContent;
 
@@ -7516,11 +7559,11 @@ async function saveSpecialistResultFromReviewPage(context) {
         button.textContent = "正式保存済み";
       }
 
-      console.log("HD Origin sorting draft saved:", result);
+      console.log("HD Origin specialist analysis saved:", result);
 
       alert("保存しました。\n専門解析ID: " + (result.specialistAnalysisId || result.specialist_analysis_id || ""));
     } catch (err) {
-      console.error("HD Origin sorting draft save failed:", err);
+      console.error("HD Origin specialist analysis save failed:", err);
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
         button.textContent = originalText || "正式保存";
@@ -7529,7 +7572,7 @@ async function saveSpecialistResultFromReviewPage(context) {
       alert("正式保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
     } finally {
       setTimeout(function () {
-        button.dataset.hdOriginSortingDraftSaving = "0";
+        button.dataset.hdOriginSpecialistAnalysisSaving = "0";
 
         if ((button.textContent || "").includes("保存中")) {
           button.textContent = originalText || "正式保存";
@@ -7713,6 +7756,25 @@ async function saveSpecialistResultFromReviewPage(context) {
   }
 
   async function postSpecialistResult(payload) {
+    payload.analysisSystemCode =
+      payload.analysisSystemCode ||
+      payload.analysis_system_code ||
+      textValue((payload.sortResult || {}).analysis_system_code || (payload.sortResult || {}).analysisSystemCode);
+    payload.analysis_system_code = payload.analysisSystemCode;
+    payload.analysisSystemLabel =
+      payload.analysisSystemLabel ||
+      payload.analysis_system_label ||
+      textValue((payload.sortResult || {}).analysis_system_label || (payload.sortResult || {}).analysisSystemLabel);
+    payload.analysis_system_label = payload.analysisSystemLabel;
+    payload.rawResult =
+      payload.rawResult ||
+      payload.raw_result ||
+      payload.sortResult ||
+      {};
+    payload.raw_result = payload.rawResult;
+    payload.warnings = Array.isArray(payload.warnings)
+      ? payload.warnings
+      : [];
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
@@ -7739,10 +7801,10 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     return saved.specialistAnalysisId ||
       saved.specialist_analysis_id ||
-      saved.sortingDraftId ||
-      saved.sorting_draft_id ||
-      saved.draftId ||
-      saved.draft_id ||
+      saved.specialistAnalysisId ||
+      saved.specialist_analysis_id ||
+      saved.specialistAnalysisId ||
+      saved.specialist_analysis_id ||
       saved.id ||
       "";
   }
@@ -7948,13 +8010,13 @@ async function saveSpecialistResultFromReviewPage(context) {
     }
 
     const nested =
-      item.__savedSortingDraft &&
-      typeof item.__savedSortingDraft === "object"
-        ? item.__savedSortingDraft
+      item.__savedSpecialistAnalysis &&
+      typeof item.__savedSpecialistAnalysis === "object"
+        ? item.__savedSpecialistAnalysis
         : (
-            item.latestSortingDraft &&
-            typeof item.latestSortingDraft === "object"
-              ? item.latestSortingDraft
+            item.latestSpecialistAnalysis &&
+            typeof item.latestSpecialistAnalysis === "object"
+              ? item.latestSpecialistAnalysis
               : null
           );
 
@@ -7973,7 +8035,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     return {
       ok: true,
-      reusedExistingSortingDraft: true,
+      reusedExistingSpecialistAnalysis: true,
       specialistAnalysisId: savedId,
       specialist_analysis_id: savedId
     };
@@ -8020,7 +8082,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
         ok.push({
           id,
-          sortingDraftId: saved.specialistAnalysisId || ""
+          specialistAnalysisId: saved.specialistAnalysisId || ""
         });
       } catch (err) {
         ng.push({
@@ -8214,8 +8276,8 @@ async function saveSpecialistResultFromReviewPage(context) {
     return item.__aiDraft ||
       item.aiDraft ||
       item.ai_draft ||
-      item.sortingDraft ||
-      item.sorting_draft ||
+      item.specialistAnalysis ||
+      item.specialist_analysis ||
       item.draft ||
       {};
   }
@@ -9111,15 +9173,15 @@ async function saveSpecialistResultFromReviewPage(context) {
     const source = objectValue(item);
 
     const latest = objectValue(
-      source.latestSortingDraft ||
-      source.latest_sorting_draft
+      source.latestSpecialistAnalysis ||
+      source.latest_specialist_analysis
     );
 
     const saved = objectValue(
-      source.__savedSortingDraft ||
-      source.savedSortingDraft ||
-      source.sortingDraft ||
-      source.sorting_draft
+      source.__savedSpecialistAnalysis ||
+      source.savedSpecialistAnalysis ||
+      source.specialistAnalysis ||
+      source.specialist_analysis
     );
 
     const draft = objectValue(

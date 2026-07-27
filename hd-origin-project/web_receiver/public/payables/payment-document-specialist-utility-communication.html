@@ -22,7 +22,17 @@
             <nav class="specialist-system-nav"
            aria-label="専門解析システム"
            style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+                <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_START -->
         <button type="button"
+                class="specialist-system-button specialist-basic-analysis"
+                data-base-label="基礎解析ページ"
+                onclick="location.href='./payment-document-review.html'">基礎解析ページ</button>
+        <button type="button"
+                class="specialist-system-button specialist-bank-transaction"
+                data-analysis-system-code="bank_transaction_analysis"
+                data-base-label="銀行取引専門解析"
+                onclick="location.href='./payment-document-specialist-bank-transaction.html'">銀行取引専門解析（0）</button>
+        <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_END --><button type="button"
                 class="specialist-system-button specialist-invoice"
                 data-analysis-system-code="invoice_payable_analysis"
                 data-base-label="請求・未払系"
@@ -3783,15 +3793,15 @@ function setDocumentPreview(item) {
       const source = objectValue(item);
 
       const latest = objectValue(
-        source.latestSortingDraft ||
-        source.latest_sorting_draft
+        source.latestSpecialistAnalysis ||
+        source.latest_specialist_analysis
       );
 
       const saved = objectValue(
-        source.__savedSortingDraft ||
-        source.savedSortingDraft ||
-        source.sortingDraft ||
-        source.sorting_draft
+        source.__savedSpecialistAnalysis ||
+        source.savedSpecialistAnalysis ||
+        source.specialistAnalysis ||
+        source.specialist_analysis
       );
 
       const draft = objectValue(
@@ -4193,8 +4203,6 @@ function setDocumentPreview(item) {
           ocrId,
         specialistAnalysisId:
           data.specialistAnalysisId || null,
-        utilityCommunicationDraftId:
-          data.utilityCommunicationDraftId || null,
         lineItemCount:
           Array.isArray(data.line_items)
             ? data.line_items.length
@@ -5538,15 +5546,15 @@ function setDocumentPreview(item) {
 
 
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_START */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
 (function () {
   "use strict";
 
-  if (window.__hdOriginSortingDraftSaveUiInstalled) {
+  if (window.__hdOriginSpecialistAnalysisSaveUiInstalled) {
     return;
   }
 
-  window.__hdOriginSortingDraftSaveUiInstalled = true;
+  window.__hdOriginSpecialistAnalysisSaveUiInstalled = true;
 
   function textValue(value) {
     if (value === null || value === undefined) return "";
@@ -5784,7 +5792,7 @@ function setDocumentPreview(item) {
     return 0;
   }
 
-  function collectSortingDraftPayload(context) {
+  function collectSpecialistAnalysisPayload(context) {
     const ocrId =
       Number(
         context && (
@@ -5898,8 +5906,8 @@ function setDocumentPreview(item) {
     return payload;
   }
 
-  async function saveSortingDraftFromReviewPage(context) {
-    const payload = collectSortingDraftPayload(context);
+  async function saveSpecialistAnalysisResultFromReviewPage(context) {
+    const payload = collectSpecialistAnalysisPayload(context);
 
     const analysisResult =
       context && context.analysisResult && typeof context.analysisResult === "object"
@@ -5996,6 +6004,66 @@ function setDocumentPreview(item) {
       analysisRoot.specialist_route_label ||
       "";
 
+    const currentFields = {
+      customer_number: textValue(byId("draftUtilityCustomerNo")?.value),
+      supply_point_number: textValue(byId("draftSupplyPointNumber")?.value),
+      meter_reading_date: textValue(byId("draftMeterReadingDate")?.value),
+      usage_quantity: textValue(byId("draftUsageAmount")?.value),
+      usage_unit: textValue(byId("draftUsageUnit")?.value)
+    };
+
+    payload.analysisSystemCode = payload.analysis_system_code;
+    payload.analysisSystemLabel = payload.analysis_system_label;
+    payload.specialistFields = currentFields;
+    payload.fields = currentFields;
+    payload.visibleFields = currentFields;
+    payload.humanCorrections = currentFields;
+    payload.rawResult = analysisResult;
+    payload.lineItems =
+      typeof window.hdOriginGetUtilityLineItems === "function"
+        ? window.hdOriginGetUtilityLineItems()
+        : [];
+    payload.warnings = Array.isArray(analysisResult.warnings)
+      ? analysisResult.warnings
+      : Array.isArray(analysisDraft.warnings)
+        ? analysisDraft.warnings
+        : Array.isArray(analysisRoot.warnings)
+          ? analysisRoot.warnings
+          : [];
+
+    const specialistRawResult = Object.assign(
+      {},
+      analysisResult,
+      {
+        draft: Object.assign(
+          {},
+          analysisDraft,
+          payload.sortResult || {},
+          {
+            fields: Object.assign(
+              {},
+              analysisDraft.fields || {},
+              payload.fields || payload.specialistFields || payload.visibleFields || {}
+            )
+          }
+        )
+      }
+    );
+    payload.analysisSystemCode =
+      payload.analysis_system_code || payload.analysisSystemCode || "";
+    payload.analysisSystemLabel =
+      payload.analysis_system_label || payload.analysisSystemLabel || "";
+    payload.rawResult = specialistRawResult;
+    payload.raw_result = specialistRawResult;
+    payload.warnings = Array.isArray(payload.warnings)
+      ? payload.warnings
+      : Array.isArray(analysisResult.warnings)
+        ? analysisResult.warnings
+        : Array.isArray(analysisDraft.warnings)
+          ? analysisDraft.warnings
+          : Array.isArray(analysisRoot.warnings)
+            ? analysisRoot.warnings
+            : [];
     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
       method: "POST",
       headers: {
@@ -6012,40 +6080,6 @@ function setDocumentPreview(item) {
       throw new Error(json.error || "下書き保存に失敗しました。");
     }
 
-    const currentFields = {
-      customer_number: textValue(byId("draftUtilityCustomerNo")?.value),
-      supply_point_number: textValue(byId("draftSupplyPointNumber")?.value),
-      meter_reading_date: textValue(byId("draftMeterReadingDate")?.value),
-      usage_quantity: textValue(byId("draftUsageAmount")?.value),
-      usage_unit: textValue(byId("draftUsageUnit")?.value)
-    };
-
-    const specialistRes = await fetch("/api/payment-documents/utility-communication-drafts/save", {
-      method: "POST",
-      headers: {"Content-Type":"application/json; charset=utf-8"},
-      body: JSON.stringify({
-        paymentDocumentOcrImportId: json.paymentDocumentOcrImportId || payload.paymentDocumentOcrImportId,
-        paymentDocumentSortingDraftId: json.paymentDocumentSortingDraftId,
-        specialistAnalysisId: json.specialistAnalysisId,
-        fields: currentFields,
-        visibleFields: currentFields,
-        humanCorrections: currentFields,
-        rawResult: analysisResult,
-        /* GPT3_UTILITY_SINGLE_LINE_ITEMS_PAYLOAD */
-        lineItems:
-          typeof window.hdOriginGetUtilityLineItems === "function"
-            ? window.hdOriginGetUtilityLineItems()
-            : [],
-        warnings: payload.warnings || []
-      })
-    });
-
-    const specialistJson = await specialistRes.json().catch(function(){return {};});
-    if (!specialistRes.ok || !specialistJson.ok) {
-      throw new Error(specialistJson.error || "公共料金専門下書き保存に失敗しました。");
-    }
-
-    json.utilityCommunicationDraftId = specialistJson.utilityCommunicationDraftId;
     return json;
   }
 
@@ -6073,11 +6107,11 @@ function setDocumentPreview(item) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (button.dataset.hdOriginSortingDraftSaving === "1") {
+    if (button.dataset.hdOriginSpecialistAnalysisSaving === "1") {
       return;
     }
 
-    button.dataset.hdOriginSortingDraftSaving = "1";
+    button.dataset.hdOriginSpecialistAnalysisSaving = "1";
 
     const originalText = button.textContent;
 
@@ -6086,17 +6120,17 @@ function setDocumentPreview(item) {
         button.textContent = "下書き保存中...";
       }
 
-      const result = await saveSortingDraftFromReviewPage();
+      const result = await saveSpecialistAnalysisResultFromReviewPage();
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
         button.textContent = "下書き保存済み";
       }
 
-      console.log("HD Origin sorting draft saved:", result);
+      console.log("HD Origin specialist analysis saved:", result);
 
-      alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
+      alert("仕分け下書きを保存しました。\n下書きID: " + (result.specialistAnalysisId || ""));
     } catch (err) {
-      console.error("HD Origin sorting draft save failed:", err);
+      console.error("HD Origin specialist analysis save failed:", err);
 
       if (button.tagName === "BUTTON" || button.tagName === "A") {
         button.textContent = originalText || "下書き保存";
@@ -6105,7 +6139,7 @@ function setDocumentPreview(item) {
       alert("下書き保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
     } finally {
       setTimeout(function () {
-        button.dataset.hdOriginSortingDraftSaving = "0";
+        button.dataset.hdOriginSpecialistAnalysisSaving = "0";
 
         if ((button.textContent || "").includes("保存中")) {
           button.textContent = originalText || "下書き保存";
@@ -6114,9 +6148,9 @@ function setDocumentPreview(item) {
     }
   }, true);
 
-  window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;
+  window.hdOriginSaveSpecialistAnalysisFromReviewPage = saveSpecialistAnalysisResultFromReviewPage;
 })();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
+/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
 </script>
 <script>
 </script>
@@ -6200,8 +6234,8 @@ function setDocumentPreview(item) {
     return item.__aiDraft ||
       item.aiDraft ||
       item.ai_draft ||
-      item.sortingDraft ||
-      item.sorting_draft ||
+      item.specialistAnalysis ||
+      item.specialist_analysis ||
       item.draft ||
       {};
   }
@@ -6518,7 +6552,7 @@ function setDocumentPreview(item) {
   let queuedSaveContext = null;
 
   function saveFunction() {
-    return window.hdOriginSaveSortingDraftFromReviewPage;
+    return window.hdOriginSaveSpecialistAnalysisFromReviewPage;
   }
 
   function itemOcrImportId(item) {
@@ -6913,15 +6947,15 @@ function setDocumentPreview(item) {
     const source = objectValue(item);
 
     const latest = objectValue(
-      source.latestSortingDraft ||
-      source.latest_sorting_draft
+      source.latestSpecialistAnalysis ||
+      source.latest_specialist_analysis
     );
 
     const saved = objectValue(
-      source.__savedSortingDraft ||
-      source.savedSortingDraft ||
-      source.sortingDraft ||
-      source.sorting_draft
+      source.__savedSpecialistAnalysis ||
+      source.savedSpecialistAnalysis ||
+      source.specialistAnalysis ||
+      source.specialist_analysis
     );
 
     const draft = objectValue(
