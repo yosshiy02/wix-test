@@ -201,7 +201,7 @@
 
       ledgerStatus.textContent =
         rows.length === 0
-          ? "納品書・照合台帳は作成済みです。現在、登録済みデータはありません。"
+          ? "照合用台帳は作成済みです。現在、登録済みデータはありません。"
           : "検索結果は0件です。";
 
       return;
@@ -420,7 +420,7 @@
 
   async function loadLedger() {
     ledgerStatus.textContent =
-      "納品書・照合台帳を読み込んでいます。";
+      "照合用台帳を読み込んでいます。";
 
     reloadButton.disabled = true;
 
@@ -442,7 +442,7 @@
         throw new Error(
           payload && payload.error
             ? payload.error
-            : "納品書・照合台帳を取得できませんでした。"
+            : "照合用台帳を取得できませんでした。"
         );
       }
 
@@ -453,7 +453,7 @@
       render([]);
 
       ledgerStatus.textContent =
-        "納品書・照合台帳の読込に失敗しました: " +
+        "照合用台帳の読込に失敗しました: " +
         (
           error && error.message
             ? error.message

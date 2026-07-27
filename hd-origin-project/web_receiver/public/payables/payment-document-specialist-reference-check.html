@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>照合用専門解析システム - HD Origin Project</title>
+  <title>納品書・照合専門解析システム - HD Origin Project</title>
   <link rel="stylesheet" href="./payment-document-specialist-reference-check.css">
   <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
@@ -12,7 +12,7 @@
 <!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>照合用専門解析システム</h1>
+      <h1>納品書・照合専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
       <button type="button"
@@ -72,12 +72,12 @@
                 onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けで照合用へ送った書類を、照合用として専門解析する画面です。</span>
+<span class="muted">1回目仕分けで納品書・照合へ送った書類を、納品書・照合として専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>照合用 対象書類</span>
+        <span>納品書・照合 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
@@ -92,9 +92,9 @@
         <span class="legend-chip legend-expense">レシート・領収書</span>
         <span class="legend-chip legend-tax">税金・公的支払</span>
         <span class="legend-chip legend-contract">契約・保険・リース</span>
-        <span class="legend-chip legend-utility">照合用</span>
+        <span class="legend-chip legend-utility">納品書・照合</span>
         <span class="legend-chip legend-card">カード</span>
-        <span class="legend-chip legend-reference">照合用</span>
+        <span class="legend-chip legend-reference">納品書・照合</span>
         <span class="legend-chip legend-review">要確認</span>
       </div>
 
@@ -118,7 +118,7 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>照合用 解析確認</span>
+        <span>納品書・照合 解析確認</span>
         <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
 <div class="specialist-panel-actions">
   <div class="specialist-record-controls" aria-label="専門解析レコード移動">
@@ -157,7 +157,7 @@
 
             <div class="draft-form-scroll">
         <section class="draft-section">
-          <div class="draft-section-title">照合用 解析サマリー</div>
+          <div class="draft-section-title">納品書・照合 解析サマリー</div>
           <div class="form-grid">
             <label>
               書類区分
@@ -763,9 +763,9 @@
       analysis_system_label: "税金・公的支払専門解析システム"
     },
     reference_check: {
-      specialist_route_label: "照合用解析",
+      specialist_route_label: "納品書・照合解析",
       analysis_system_code: "reference_check_analysis",
-      analysis_system_label: "照合用専門解析システム"
+      analysis_system_label: "納品書・照合専門解析システム"
     },
     contract_insurance_lease: {
       specialist_route_label: "契約・保険・リース解析",
@@ -1323,7 +1323,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // 照合用 解析サマリー
+    // 納品書・照合 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1708,7 +1708,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // 照合用 解析サマリー
+    // 納品書・照合 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -2619,7 +2619,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("照合用 解析サマリー")) {
+      if (titleText === normalizeLabelText("納品書・照合 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2657,7 +2657,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("照合用の専門解析を実行しています。画像は送信しません。");
+    showResult("納品書・照合の専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2677,7 +2677,7 @@ function setDocumentPreview(item) {
       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "照合用の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "納品書・照合の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
@@ -2921,7 +2921,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\n照合用の専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n納品書・照合の専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -3065,8 +3065,8 @@ function setDocumentPreview(item) {
     expense: "経費",
     tax_public: "税金公的",
     card_payable: "カード未払",
-    evidence_only: "照合用",
-    reference: "照合用",
+    evidence_only: "納品書・照合",
+    reference: "納品書・照合",
     needs_review: "要確認",
     other: "その他",
     high: "高",
@@ -3409,7 +3409,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、照合用の専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、納品書・照合の専門解析をしています。");
     }
 
     try {
@@ -3662,10 +3662,10 @@ function setDocumentPreview(item) {
       items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
 
       summary.textContent =
-        "照合用専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "納品書・照合専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">照合用の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">納品書・照合の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -6141,7 +6141,7 @@ function setDocumentPreview(item) {
     pushField(fields, section, "未払登録対象", "payable_target", draft.payable_target_label || summary.payable_target || "");
     pushField(fields, section, "経費登録対象", "expense_target", draft.expense_target_label || summary.expense_target || "");
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
-    pushField(fields, section, "照合用", "public_utility", draft.public_utility_label || summary.public_utility || "");
+    pushField(fields, section, "納品書・照合", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
