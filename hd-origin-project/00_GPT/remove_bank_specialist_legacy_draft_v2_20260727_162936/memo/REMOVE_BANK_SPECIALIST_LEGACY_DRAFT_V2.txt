@@ -1,0 +1,61 @@
+
+==============================================================================
+銀行取引専門解析 旧下書きシステム撤去 V2開始
+==============================================================================
+DATETIME=2026/07/27 16:29:36
+PROJECT_ROOT=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-bank-transaction.html
+TARGET_ANALYSIS_SYSTEM_CODE=bank_transaction_analysis
+STATUS_MASTER_UPDATE=NO
+DATABASE_UPDATE=NO
+GIT_OPERATION=NO
+SERVER_OPERATION=NO
+OCR_EXECUTION=NO
+AI_EXECUTION=NO
+ORIGINAL_SHA256=4060E52E0FF424CD799244935E237375DA27F375A1623137AF0CEB72E0026534
+BACKUP_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\00_GPT\remove_bank_specialist_legacy_draft_v2_20260727_162936\undo\payment-document-specialist-bank-transaction.before.html
+BACKUP_STATUS=SUCCESS
+
+==============================================================================
+現物件数確認
+==============================================================================
+collectSortingDraftPayload_COUNT=2
+saveSortingDraftFromReviewPage_COUNT=5
+BULK_MARKER_START_COUNT=1
+BULK_BUTTON_COUNT=1
+
+==============================================================================
+旧一括下書き保存ブロック撤去
+==============================================================================
+MARKER_START_COUNT=1
+MARKER_END_COUNT=1
+BULK_SAVE_BUTTON_MATCH_COUNT=1
+LEGACY_BULK_SAVE_BLOCK_REMOVAL=SUCCESS
+LEGACY_BULK_SAVE_BUTTON_REMOVAL=SUCCESS
+
+==============================================================================
+正式専門解析保存関数へ名称統一
+==============================================================================
+REPLACE_CHECK | OLD=collectSortingDraftPayload | COUNT=2 | EXPECTED=2
+REPLACE_CHECK | OLD=saveSortingDraftFromReviewPage | COUNT=5 | EXPECTED=5
+REPLACE_CHECK | OLD=memo: "payment-document-review 画面から下書き保存" | COUNT=1 | EXPECTED=1
+REPLACE_CHECK | OLD=throw new Error(json.error || "下書き保存に失敗しました。"); | COUNT=1 | EXPECTED=1
+FORMAL_SAVE_FUNCTION_RENAME=SUCCESS
+FORMAL_AUTOSAVE_CONNECTION_UPDATE=SUCCESS
+
+==============================================================================
+旧手動下書き保存UI撤去
+==============================================================================
+MANUAL_UI_START_COUNT=1
+FORMAL_EXPORT_COUNT=0
+
+==============================================================================
+銀行取引専門解析 旧下書きシステム撤去V2 エラー
+==============================================================================
+ERROR_TYPE=System.Management.Automation.RuntimeException
+ERROR_MESSAGE=旧手動保存UIブロックの境界件数が想定と異なります。
+ERROR_POSITION=発生場所 行:327 文字:9
++         throw "旧手動保存UIブロックの境界件数が想定と異なります。"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AUTO_ROLLBACK_STATUS=NOT_REQUIRED
+OVERALL_STATUS=FAILED

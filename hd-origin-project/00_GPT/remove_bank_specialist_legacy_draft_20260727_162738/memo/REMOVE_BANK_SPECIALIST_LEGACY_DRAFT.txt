@@ -1,0 +1,43 @@
+
+==============================================================================
+銀行取引専門解析 旧下書きシステム撤去開始
+==============================================================================
+DATETIME=2026/07/27 16:27:38
+PROJECT_ROOT=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-bank-transaction.html
+TARGET_ANALYSIS_SYSTEM_CODE=bank_transaction_analysis
+STATUS_MASTER_UPDATE=NO
+DATABASE_UPDATE=NO
+GIT_OPERATION=NO
+SERVER_OPERATION=NO
+OCR_EXECUTION=NO
+AI_EXECUTION=NO
+ORIGINAL_SHA256=4060E52E0FF424CD799244935E237375DA27F375A1623137AF0CEB72E0026534
+BACKUP_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\00_GPT\remove_bank_specialist_legacy_draft_20260727_162738\undo\payment-document-specialist-bank-transaction.before.html
+BACKUP_STATUS=SUCCESS
+
+==============================================================================
+旧一括下書き保存ブロック撤去
+==============================================================================
+MARKER_START=/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */ | COUNT=1
+MARKER_END=/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */ | COUNT=1
+BULK_SAVE_BUTTON_COUNT_BEFORE=1
+LEGACY_BULK_SAVE_BLOCK_REMOVAL=SUCCESS
+LEGACY_BULK_SAVE_BUTTON_REMOVAL=SUCCESS
+
+==============================================================================
+正式専門解析保存関数へ名称統一
+==============================================================================
+REPLACE_CHECK | OLD=collectSortingDraftPayload | COUNT=2 | EXPECTED=2
+REPLACE_CHECK | OLD=saveSortingDraftFromReviewPage | COUNT=5 | EXPECTED=4
+
+==============================================================================
+銀行取引専門解析 旧下書きシステム撤去エラー
+==============================================================================
+ERROR_TYPE=System.Management.Automation.RuntimeException
+ERROR_MESSAGE=置換対象件数が想定と異なります: saveSortingDraftFromReviewPage
+ERROR_POSITION=発生場所 行:101 文字:9
++         throw "置換対象件数が想定と異なります: $Old"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AUTO_ROLLBACK_STATUS=NOT_REQUIRED
+OVERALL_STATUS=FAILED

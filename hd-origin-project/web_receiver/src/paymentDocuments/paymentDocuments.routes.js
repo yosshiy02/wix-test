@@ -10025,8 +10025,19 @@ async function handlePaymentDocumentRoutes(req, res) {
         aiSummary.reason
       );
 
-      const warningsJson = hdOriginSpecialistSaveArray(root.warnings || draft.warnings || sortResult.warnings);
-      const rawResultJson = hdOriginSpecialistSaveObject(
+      const warningsJson = hdOriginSpecialistSaveArray(
+        root.warnings ||
+        draft.warnings ||
+        sortResult.warnings
+      );
+
+      /*
+       * HD_ORIGIN_GPT2_CIL_HUMAN_EDIT_RAW_RESULT_MERGE
+       *
+       * 契約・保険・リース画面で人間が修正した専門項目を、
+       * 同じ専門解析結果のraw_result_jsonへ統合する。
+       */
+      const rawResultBaseJson = hdOriginSpecialistSaveObject(
         root.rawResult ||
         root.raw_result_json ||
         root.specialistResult ||
@@ -10035,7 +10046,55 @@ async function handlePaymentDocumentRoutes(req, res) {
         root
       );
 
-      const humanMemo = hdOriginSpecialistFirstText(
+      const cilHumanFields = hdOriginSpecialistFirstObject(
+        root.specialistFields,
+        root.specialist_fields,
+        root.visibleFields,
+        root.visible_fields
+      );
+
+      const cilVisibleFieldLabels = hdOriginSpecialistSaveArray(
+        root.visibleFieldLabels ||
+        root.visible_field_labels
+      );
+
+      const cilBaseDraft = hdOriginSpecialistFirstObject(
+        rawResultBaseJson.draft,
+        rawResultBaseJson.aiDraft,
+        rawResultBaseJson.ai_draft
+      );
+
+      const rawResultJson =
+        analysisSystemCode === "contract_insurance_lease_analysis" &&
+        Object.keys(cilHumanFields).length > 0
+          ? {
+              ...rawResultBaseJson,
+
+              draft: {
+                ...cilBaseDraft,
+                ...cilHumanFields
+              },
+
+              specialist_fields:
+                cilHumanFields,
+
+              specialistFields:
+                cilHumanFields,
+
+              visible_fields:
+                cilHumanFields,
+
+              visibleFields:
+                cilHumanFields,
+
+              visible_field_labels:
+                cilVisibleFieldLabels,
+
+              visibleFieldLabels:
+                cilVisibleFieldLabels
+            }
+          : rawResultBaseJson;
+const humanMemo = hdOriginSpecialistFirstText(
         root.humanMemo,
         root.human_memo,
         root.memo

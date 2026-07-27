@@ -1,0 +1,1882 @@
+
+==============================================================================
+銀行取引専門解析 保存関数・正式API 現物抽出開始
+==============================================================================
+DATETIME=2026/07/27 16:14:52
+PROJECT_ROOT=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project
+TARGET_FILE=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\web_receiver\public\payables\payment-document-specialist-bank-transaction.html
+TARGET_ANALYSIS_SYSTEM_CODE=bank_transaction_analysis
+READ_ONLY=YES
+PROJECT_FILE_UPDATE=NO
+DATABASE_CONNECTION=NO
+ENV_CONTENT_READ=NO
+GIT_OPERATION=NO
+SERVER_OPERATION=NO
+OCR_EXECUTION=NO
+AI_EXECUTION=NO
+OUTPUT=MEMO_ONLY
+TARGET_FILE_SIZE=241370
+TARGET_FILE_UPDATED=2026/07/25 17:48:12
+TARGET_FILE_SHA256=4060E52E0FF424CD799244935E237375DA27F375A1623137AF0CEB72E0026534
+TARGET_FILE_LINE_COUNT=7068
+
+==============================================================================
+関数抽出: collectSortingDraftPayload
+==============================================================================
+FUNCTION_NAME=collectSortingDraftPayload | DEFINITION_COUNT=1
+DEFINITION_NO=1 | START_LINE=5258
+FUNCTION_BLOCK | NAME=collectSortingDraftPayload | START_LINE=5258 | END_LINE=5370 | LINE_COUNT=113
+  5258 |   function collectSortingDraftPayload(context) {
+  5259 |     const ocrId =
+  5260 |       Number(
+  5261 |         context && (
+  5262 |           context.ocrImportId ||
+  5263 |           context.paymentDocumentOcrImportId ||
+  5264 |           context.payment_document_ocr_import_id ||
+  5265 |           context.id
+  5266 |         )
+  5267 |       ) ||
+  5268 |       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5269 |       findSelectedOcrImportId();
+  5270 | 
+  5271 |     if (!ocrId) {
+  5272 |       throw new Error("選択中OCR IDが取得できません。");
+  5273 |     }
+  5274 | 
+  5275 |     const documentTypeLabel = controlLabel("draftAiDocumentKind");
+  5276 |     const destinationLabel = controlLabel("draftAiDestination");
+  5277 |     const accountingCategoryLabel = controlLabel("draftAccountingCategory");
+  5278 | 
+  5279 |     const payload = {
+  5280 |       paymentDocumentOcrImportId: ocrId,
+  5281 | 
+  5282 |       document_type_id: numericOrNull(controlValue("draftAiDocumentKind")),
+  5283 |       document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5284 |       document_type_label: documentTypeLabel,
+  5285 | 
+  5286 |       payment_destination_id: numericOrNull(controlValue("draftAiDestination") || controlValue("draftDestination")),
+  5287 |       payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel) || selectedOptionCode("draftDestination", controlLabel("draftDestination")),
+  5288 |       payment_destination_label: destinationLabel || controlLabel("draftDestination"),
+  5289 | 
+  5290 |       accounting_category_id: numericOrNull(controlValue("draftAccountingCategory")),
+  5291 |       accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5292 |       accounting_category_label: accountingCategoryLabel,
+  5293 | 
+  5294 |       payment_target_label: controlValue("draftAiPayableFlag"),
+  5295 |       payable_target_label: controlValue("draftAiUnpaidFlag"),
+  5296 |       expense_target_label: controlValue("draftAiExpenseFlag"),
+  5297 |       tax_public_label: controlValue("draftAiTaxPublicFlag"),
+  5298 |       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5299 |       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5300 | 
+  5301 |       ai_confidence_label: controlValue("draftAiConfidence"),
+  5302 |       ai_reason: controlValue("draftAiReason"),
+  5303 |       review_reason: controlValue("draftAiReason"),
+  5304 | 
+  5305 |       needs_review:
+  5306 |         controlLabel("draftAiDestination").includes("要確認") ||
+  5307 |         controlLabel("draftAccountingCategory").includes("要確認") ||
+  5308 |         controlValue("draftAiConfidence").includes("低"),
+  5309 | 
+  5310 |       display_rotation: getDisplayRotation(),
+  5311 | 
+  5312 |       memo: "payment-document-review 画面から下書き保存",
+  5313 | 
+  5314 |       ai_summary: {
+  5315 |         document_kind: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5316 |         document_kind_label: documentTypeLabel,
+  5317 |         destination: selectedOptionCode("draftAiDestination", destinationLabel),
+  5318 |         destination_label: destinationLabel,
+  5319 |         payment_target: controlValue("draftAiPayableFlag"),
+  5320 |         payable_target: controlValue("draftAiUnpaidFlag"),
+  5321 |         expense_target: controlValue("draftAiExpenseFlag"),
+  5322 |         tax_public: controlValue("draftAiTaxPublicFlag"),
+  5323 |         public_utility: controlValue("draftAiPublicUtilityFlag"),
+  5324 |         contract_insurance_lease: controlValue("draftAiContractFlag"),
+  5325 |         confidence_label: controlValue("draftAiConfidence"),
+  5326 |         reason: controlValue("draftAiReason")
+  5327 |       },
+  5328 | 
+  5329 |       visibleFields: {
+  5330 |         document_type: {
+  5331 |           id: "draftAiDocumentKind",
+  5332 |           value: controlValue("draftAiDocumentKind"),
+  5333 |           label: documentTypeLabel
+  5334 |         },
+  5335 |         destination: {
+  5336 |           id: "draftAiDestination",
+  5337 |           value: controlValue("draftAiDestination"),
+  5338 |           label: destinationLabel
+  5339 |         },
+  5340 |         accounting_category: {
+  5341 |           id: "draftAccountingCategory",
+  5342 |           value: controlValue("draftAccountingCategory"),
+  5343 |           label: accountingCategoryLabel
+  5344 |         },
+  5345 |         payment_target: controlValue("draftAiPayableFlag"),
+  5346 |         payable_target: controlValue("draftAiUnpaidFlag"),
+  5347 |         expense_target: controlValue("draftAiExpenseFlag"),
+  5348 |         tax_public: controlValue("draftAiTaxPublicFlag"),
+  5349 |         public_utility: controlValue("draftAiPublicUtilityFlag"),
+  5350 |         contract_insurance_lease: controlValue("draftAiContractFlag"),
+  5351 |         confidence: controlValue("draftAiConfidence"),
+  5352 |         reason: controlValue("draftAiReason")
+  5353 |       },
+  5354 | 
+  5355 |       sortResult: {
+  5356 |         document_type_code: selectedOptionCode("draftAiDocumentKind", documentTypeLabel),
+  5357 |         document_type_label: documentTypeLabel,
+  5358 |         payment_destination_code: selectedOptionCode("draftAiDestination", destinationLabel),
+  5359 |         payment_destination_label: destinationLabel,
+  5360 |         accounting_category_code: selectedOptionCode("draftAccountingCategory", accountingCategoryLabel),
+  5361 |         accounting_category_label: accountingCategoryLabel,
+  5362 |         needs_review:
+  5363 |           controlLabel("draftAiDestination").includes("要確認") ||
+  5364 |           controlLabel("draftAccountingCategory").includes("要確認") ||
+  5365 |           controlValue("draftAiConfidence").includes("低")
+  5366 |       }
+  5367 |     };
+  5368 | 
+  5369 |     return payload;
+  5370 |   }
+
+==============================================================================
+関数抽出: saveSortingDraftFromReviewPage
+==============================================================================
+FUNCTION_NAME=saveSortingDraftFromReviewPage | DEFINITION_COUNT=1
+DEFINITION_NO=1 | START_LINE=5468
+FUNCTION_BLOCK | NAME=saveSortingDraftFromReviewPage | START_LINE=5468 | END_LINE=5607 | LINE_COUNT=140
+  5468 |   async function saveSortingDraftFromReviewPage(context) {
+  5469 |     const payload = collectSortingDraftPayload(context);
+  5470 | 
+  5471 |     const bankTransactionSavePayload =
+  5472 |       collectBankTransactionSavePayload();
+  5473 | 
+  5474 |     payload.draft =
+  5475 |       payload.draft &&
+  5476 |       typeof payload.draft === "object"
+  5477 |         ? payload.draft
+  5478 |         : {};
+  5479 | 
+  5480 |     payload.draft.fields =
+  5481 |       bankTransactionSavePayload.fields;
+  5482 | 
+  5483 |     payload.visibleFields =
+  5484 |       bankTransactionSavePayload.visibleFields;
+  5485 | 
+  5486 |     payload.visibleFieldLabels =
+  5487 |       bankTransactionSavePayload.visibleFieldLabels;
+  5488 | 
+  5489 |     payload.humanCorrections =
+  5490 |       bankTransactionSavePayload.humanCorrections;
+  5491 | 
+  5492 |     payload.bankTransactionFieldCount =
+  5493 |       bankTransactionSavePayload.fieldCount;
+  5494 | 
+  5495 |     const analysisResult =
+  5496 |       context && context.analysisResult && typeof context.analysisResult === "object"
+  5497 |         ? context.analysisResult
+  5498 |         : context && context.item && context.item.__aiRawResult
+  5499 |           ? context.item.__aiRawResult
+  5500 |           : {};
+  5501 | 
+  5502 |     const analysisDraft =
+  5503 |       analysisResult.draft && typeof analysisResult.draft === "object"
+  5504 |         ? analysisResult.draft
+  5505 |         : context && context.item && context.item.__aiDraft
+  5506 |           ? context.item.__aiDraft
+  5507 |           : {};
+  5508 | 
+  5509 |     const analysisRoot =
+  5510 |       analysisResult.sortResult ||
+  5511 |       analysisResult.sort_result ||
+  5512 |       analysisResult.result ||
+  5513 |       analysisDraft.sortResult ||
+  5514 |       analysisDraft.sort_result ||
+  5515 |       analysisDraft;
+  5516 | 
+  5517 |     const analysisSummary =
+  5518 |       analysisResult.ai_summary ||
+  5519 |       analysisResult.aiSummary ||
+  5520 |       analysisDraft.ai_summary ||
+  5521 |       analysisDraft.aiSummary ||
+  5522 |       analysisRoot.ai_summary ||
+  5523 |       analysisRoot.aiSummary ||
+  5524 |       {};
+  5525 | 
+  5526 |     payload.analysis_system_code =
+  5527 |       payload.analysis_system_code ||
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+  5535 |       analysisSummary.analysis_system_code ||
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5537 |       "";
+  5538 | 
+  5539 |     if (payload.analysis_system_code) {
+  5540 |       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+  5541 |         payload.analysis_system_code;
+  5542 |     }
+  5543 |     payload.analysis_system_label =
+  5544 |       payload.analysis_system_label ||
+  5545 |       payload.analysisSystemLabel ||
+  5546 |       analysisDraft.analysis_system_label ||
+  5547 |       analysisDraft.analysisSystemLabel ||
+  5548 |       analysisRoot.analysis_system_label ||
+  5549 |       analysisRoot.analysisSystemLabel ||
+  5550 |       analysisSummary.analysis_system_label ||
+  5551 |       analysisSummary.analysis_system ||
+  5552 |       "";
+  5553 | 
+  5554 |     payload.analysis_system_reason =
+  5555 |       payload.analysis_system_reason ||
+  5556 |       payload.analysisSystemReason ||
+  5557 |       analysisDraft.analysis_system_reason ||
+  5558 |       analysisDraft.analysisSystemReason ||
+  5559 |       analysisRoot.analysis_system_reason ||
+  5560 |       analysisRoot.analysisSystemReason ||
+  5561 |       analysisSummary.analysis_system_reason ||
+  5562 |       "";
+  5563 | 
+  5564 |     payload.analysis_system_confidence =
+  5565 |       payload.analysis_system_confidence ||
+  5566 |       payload.analysisSystemConfidence ||
+  5567 |       analysisDraft.analysis_system_confidence ||
+  5568 |       analysisDraft.analysisSystemConfidence ||
+  5569 |       analysisRoot.analysis_system_confidence ||
+  5570 |       analysisRoot.analysisSystemConfidence ||
+  5571 |       analysisSummary.analysis_system_confidence ||
+  5572 |       "";
+  5573 | 
+  5574 |     payload.specialist_route_code =
+  5575 |       payload.specialist_route_code ||
+  5576 |       payload.specialistRouteCode ||
+  5577 |       analysisDraft.specialist_route_code ||
+  5578 |       analysisRoot.specialist_route_code ||
+  5579 |       analysisResult.document_group ||
+  5580 |       analysisDraft.document_group ||
+  5581 |       "";
+  5582 | 
+  5583 |     payload.specialist_route_label =
+  5584 |       payload.specialist_route_label ||
+  5585 |       payload.specialistRouteLabel ||
+  5586 |       analysisDraft.specialist_route_label ||
+  5587 |       analysisRoot.specialist_route_label ||
+  5588 |       "";
+  5589 | 
+  5590 |     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5591 |       method: "POST",
+  5592 |       headers: {
+  5593 |         "Content-Type": "application/json; charset=utf-8"
+  5594 |       },
+  5595 |       body: JSON.stringify(payload)
+  5596 |     });
+  5597 | 
+  5598 |     const json = await res.json().catch(function () {
+  5599 |       return {};
+  5600 |     });
+  5601 | 
+  5602 |     if (!res.ok || !json.ok) {
+  5603 |       throw new Error(json.error || "下書き保存に失敗しました。");
+  5604 |     }
+  5605 | 
+  5606 |     return json;
+  5607 |   }
+
+==============================================================================
+関数抽出: bulkSaveSortingDrafts
+==============================================================================
+FUNCTION_NAME=bulkSaveSortingDrafts | DEFINITION_COUNT=1
+DEFINITION_NO=1 | START_LINE=5864
+FUNCTION_BLOCK | NAME=bulkSaveSortingDrafts | START_LINE=5864 | END_LINE=5906 | LINE_COUNT=43
+  5864 |   async function bulkSaveSortingDrafts() {
+  5865 |     let ids = getSelectedOcrIds();
+  5866 | 
+  5867 |     if (ids.length === 0) {
+  5868 |       ids = getIdsFromCache();
+  5869 |     }
+  5870 | 
+  5871 |     if (ids.length === 0) {
+  5872 |       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5873 |     }
+  5874 | 
+  5875 |     const ok = [];
+  5876 |     const ng = [];
+  5877 | 
+  5878 |     for (const id of ids) {
+  5879 |       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5880 | 
+  5881 |       if (!cached) {
+  5882 |         ng.push({
+  5883 |           id,
+  5884 |           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5885 |         });
+  5886 |         continue;
+  5887 |       }
+  5888 | 
+  5889 |       try {
+  5890 |         const payload = buildPayloadFromCachedResult(id, cached);
+  5891 |         const saved = await postSortingDraft(payload);
+  5892 | 
+  5893 |         ok.push({
+  5894 |           id,
+  5895 |           draftId: saved.paymentDocumentSortingDraftId || ""
+  5896 |         });
+  5897 |       } catch (err) {
+  5898 |         ng.push({
+  5899 |           id,
+  5900 |           error: err && err.message ? err.message : String(err)
+  5901 |         });
+  5902 |       }
+  5903 |     }
+  5904 | 
+  5905 |     return { ok, ng };
+  5906 |   }
+
+==============================================================================
+関数抽出: saveCurrentReviewDocument
+==============================================================================
+FUNCTION_NAME=saveCurrentReviewDocument | DEFINITION_COUNT=0
+FUNCTION_DEFINITION=NOT_FOUND
+
+==============================================================================
+関数抽出: saveCurrentDocument
+==============================================================================
+FUNCTION_NAME=saveCurrentDocument | DEFINITION_COUNT=0
+FUNCTION_DEFINITION=NOT_FOUND
+
+==============================================================================
+関数抽出: saveSpecialistAnalysisResult
+==============================================================================
+FUNCTION_NAME=saveSpecialistAnalysisResult | DEFINITION_COUNT=0
+FUNCTION_DEFINITION=NOT_FOUND
+
+==============================================================================
+正式Stage3 API周辺
+==============================================================================
+CONTEXT_KEYWORD=/api/payment-documents/ai-specialist/ | MATCH_COUNT=4
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/ai-specialist/ | MATCH_NO=1 | MATCH_LINE=637 | START_LINE=602 | END_LINE=692
+   602 |   const routeDefinitions = {
+   603 |     invoice_payable: {
+   604 |       specialist_route_label: "請求・未払系解析",
+   605 |       analysis_system_code: "invoice_payable_analysis",
+   606 |       analysis_system_label: "請求・未払系専門解析システム"
+   607 |     },
+   608 |     tax_public: {
+   609 |       specialist_route_label: "税金・公的支払解析",
+   610 |       analysis_system_code: "tax_public_analysis",
+   611 |       analysis_system_label: "税金・公的支払専門解析システム"
+   612 |     },
+   613 |     bank_transaction: {
+   614 |       specialist_route_label: "銀行取引解析",
+   615 |       analysis_system_code: "bank_transaction_analysis",
+   616 |       analysis_system_label: "銀行取引専門解析システム"
+   617 |     },
+   618 |     needs_review: {
+   619 |       specialist_route_label: "要確認解析",
+   620 |       analysis_system_code: "needs_review_analysis",
+   621 |       analysis_system_label: "要確認専門解析システム"
+   622 |     },
+   623 |     contract_insurance_lease: {
+   624 |       specialist_route_label: "契約・保険・リース解析",
+   625 |       analysis_system_code: "contract_insurance_lease_analysis",
+   626 |       analysis_system_label: "契約・保険・リース専門解析システム"
+   627 |     }
+   628 |   };
+   629 | 
+   630 |   window.fetch = function (input, init) {
+   631 |     const requestUrl = String(
+   632 |       input && input.url ? input.url : input || ""
+   633 |     );
+   634 | 
+   635 |     if (
+   636 |       !requestUrl.includes(
+   637 |         "/api/payment-documents/ai-specialist/"
+   638 |       )
+   639 |     ) {
+   640 |       return originalFetch(input, init);
+   641 |     }
+   642 | 
+   643 |     const routeCode = String(
+   644 |       document.body &&
+   645 |       document.body.dataset &&
+   646 |       document.body.dataset.specialistRouteCode
+   647 |         ? document.body.dataset.specialistRouteCode
+   648 |         : ""
+   649 |     ).trim();
+   650 | 
+   651 |     const definition = routeDefinitions[routeCode];
+   652 | 
+   653 |     if (!definition) {
+   654 |       return Promise.reject(
+   655 |         new Error(
+   656 |           "専門解析画面のdata-specialist-route-codeが不正です: " +
+   657 |           routeCode
+   658 |         )
+   659 |       );
+   660 |     }
+   661 | 
+   662 |     const nextInit = Object.assign({}, init || {});
+   663 | 
+   664 |     nextInit.method = nextInit.method || "POST";
+   665 | 
+   666 |     nextInit.headers = Object.assign(
+   667 |       {},
+   668 |       nextInit.headers || {},
+   669 |       {
+   670 |         "Content-Type": "application/json"
+   671 |       }
+   672 |     );
+   673 | 
+   674 |     let requestBody = {};
+   675 | 
+   676 |     if (
+   677 |       typeof nextInit.body === "string" &&
+   678 |       nextInit.body.trim()
+   679 |     ) {
+   680 |       try {
+   681 |         const parsed = JSON.parse(nextInit.body);
+   682 | 
+   683 |         if (
+   684 |           parsed &&
+   685 |           typeof parsed === "object" &&
+   686 |           !Array.isArray(parsed)
+   687 |         ) {
+   688 |           requestBody = parsed;
+   689 |         }
+   690 |       } catch (error) {
+   691 |         return Promise.reject(
+   692 |           new Error(
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/ai-specialist/ | MATCH_NO=2 | MATCH_LINE=2559 | START_LINE=2524 | END_LINE=2614
+  2524 |       }
+  2525 | 
+  2526 |       section.querySelectorAll("label").forEach(label => {
+  2527 |         const control = label.querySelector("input, select, textarea");
+  2528 |         const labelText = normalizeLabelText(getFieldLabelText(control));
+  2529 |         const hasValue = !!getFieldValue(control);
+  2530 |         const shouldShow = hasValue || visibleSet.has(labelText);
+  2531 | 
+  2532 |         if (shouldShow) {
+  2533 |           label.classList.remove("ai-field-hidden");
+  2534 |           sectionHasVisibleField = true;
+  2535 |         } else {
+  2536 |           label.classList.add("ai-field-hidden");
+  2537 |         }
+  2538 |       });
+  2539 | 
+  2540 |       if (sectionHasVisibleField) {
+  2541 |         section.classList.remove("ai-section-hidden");
+  2542 |       } else {
+  2543 |         section.classList.add("ai-section-hidden");
+  2544 |       }
+  2545 |     });
+  2546 |   }
+  2547 | /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
+  2548 |   async function runAiDraftFromSelectedOcr() {
+  2549 |     const id = selectedOcrImportId();
+  2550 | 
+  2551 |     if (!id) {
+  2552 |       showResult("左リストからDB保存済みOCRを選択してください。");
+  2553 |       return;
+  2554 |     }
+  2555 | 
+  2556 |     showResult("要確認の専門解析を実行しています。画像は送信しません。");
+  2557 | 
+  2558 |     try {
+  2559 |       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
+  2560 |         method: "POST",
+  2561 |         headers: {
+  2562 |           "Content-Type": "application/json"
+  2563 |         }
+  2564 |       });
+  2565 | 
+  2566 |       const data = await res.json();
+  2567 | 
+  2568 |       if (!data.ok) {
+  2569 |         showResult(data);
+  2570 |         return;
+  2571 |       }
+  2572 |       const appliedCount = applyAiDraftToFormHardDebug(data.draft);
+  2573 |       showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
+  2574 |       showResult({
+  2575 |         ok: true,
+  2576 |         message: "要確認の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+  2577 |         image_used: data.image_used,
+  2578 |         document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+  2579 |         visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
+  2580 |         ai_steps: data.ai_steps || [],
+  2581 |         draft: data.draft
+  2582 |       });
+  2583 |     } catch (error) {
+  2584 |       showResult({
+  2585 |         ok: false,
+  2586 |         error: error.message || String(error)
+  2587 |       });
+  2588 |     }
+  2589 |   }
+  2590 | /* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_CLIENT_20260707_END */
+  2591 | /* PAYMENT_DOCUMENT_OPENAI_WIDE_DRAFT_CLIENT_20260707_START */
+  2592 |   function normalizeLabelText(value) {
+  2593 |     return String(value || "")
+  2594 |       .replace(/\s+/g, "")
+  2595 |       .replace(/：/g, ":")
+  2596 |       .trim();
+  2597 |   }
+  2598 | 
+  2599 |   function findControlByLabelText(labelText) {
+  2600 |     const wanted = normalizeLabelText(labelText);
+  2601 | 
+  2602 |     if (!wanted) {
+  2603 |       return null;
+  2604 |     }
+  2605 | 
+  2606 |     const labels = Array.from(document.querySelectorAll("label, .field-label, .form-label, .label"));
+  2607 | 
+  2608 |     for (const label of labels) {
+  2609 |       const text = normalizeLabelText(label.textContent);
+  2610 | 
+  2611 |       if (!text || text !== wanted) {
+  2612 |         continue;
+  2613 |       }
+  2614 | 
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/ai-specialist/ | MATCH_NO=3 | MATCH_LINE=2843 | START_LINE=2808 | END_LINE=2898
+  2808 |     if (!list) return;
+  2809 | 
+  2810 |     if (
+  2811 |       typeof window.renderSortingList === "function"
+  2812 |     ) {
+  2813 |       window.renderSortingList();
+  2814 |       return;
+  2815 |     }
+  2816 | 
+  2817 |     updateSelectedSortingSummary();
+  2818 |   }
+  2819 |   async function runAiDraftForItemIndex(index, options = {}) {
+  2820 |     if (!Array.isArray(items) || index < 0 || index >= items.length) {
+  2821 |       showResult("解析する書類が見つかりません。");
+  2822 |       return { ok: false, error: "解析する書類が見つかりません。" };
+  2823 |     }
+  2824 | 
+  2825 |     selectedIndex = index;
+  2826 |     selectItem(index);
+  2827 | 
+  2828 |     const item = items[index];
+  2829 |     const id = String(ocrImportIdOf(item) || "");
+  2830 |     const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+  2831 | 
+  2832 |     if (!id) {
+  2833 |       const error = "OCR保存IDがないため解析できません。";
+  2834 |       showResult(error);
+  2835 |       return { ok: false, name, error };
+  2836 |     }
+  2837 | 
+  2838 |     if (!options.silent) {
+  2839 |       showResult("単品専門解析中: " + name + "\n要確認の専門解析を実行しています。画像は送信しません。");
+  2840 |     }
+  2841 | 
+  2842 |     try {
+  2843 |       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
+  2844 |         method: "POST",
+  2845 |         headers: {
+  2846 |           "Content-Type": "application/json"
+  2847 |         }
+  2848 |       });
+  2849 | 
+  2850 |       const data = await res.json();
+  2851 | 
+  2852 |       if (!data.ok) {
+  2853 |         const error = data.error || data.message || "専門解析失敗";
+  2854 |         showResult({ ok: false, name, error, data });
+  2855 |         return { ok: false, name, error };
+  2856 |       }
+  2857 | 
+  2858 |       item.__aiDraft = data.draft || {};
+  2859 |       item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+  2860 |       item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+  2861 |       item.__aiSteps = data.ai_steps || [];
+  2862 | 
+  2863 |       const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft);
+  2864 |       showVisibleFieldsOnly(item.__visibleFieldLabels);
+  2865 |       window.__lastAiDraftAppliedCount = appliedCount;
+  2866 | 
+  2867 |       renderSortingList();
+  2868 | 
+  2869 |       if (!options.silent) {
+  2870 |         showResult({
+  2871 |           ok: true,
+  2872 |           message: "単品専門解析が完了しました。画像はOpenAIへ送信していません。",
+  2873 |           fileName: name,
+  2874 |           document_group: item.__documentGroup,
+  2875 |           visible_field_labels: item.__visibleFieldLabels,
+  2876 |           appliedCount
+  2877 |         });
+  2878 |       }
+  2879 | 
+  2880 |       return {
+  2881 |         ok: true,
+  2882 |         name,
+  2883 |         document_group: item.__documentGroup,
+  2884 |         visible_field_labels: item.__visibleFieldLabels,
+  2885 |         appliedCount
+  2886 |       };
+  2887 |     } catch (error) {
+  2888 |       const message = error.message || String(error);
+  2889 |       showResult({ ok: false, name, error: message });
+  2890 |       return { ok: false, name, error: message };
+  2891 |     }
+  2892 |   }
+  2893 | 
+  2894 |   async function runSelectedAiDrafts() {
+  2895 |     const indexes = selectedSortingIndexes();
+  2896 | 
+  2897 |     if (!indexes.length) {
+  2898 |       showResult("まとめて専門解析する書類にチェックを入れてください。");
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/ai-specialist/ | MATCH_NO=4 | MATCH_LINE=3331 | START_LINE=3296 | END_LINE=3386
+  3296 | 
+  3297 |   window.applySortingAiResultToItem = function(item, data) {
+  3298 |     if (!item || !data) return;
+  3299 | 
+  3300 |     item.__aiDraft = data.draft || {};
+  3301 |     item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+  3302 |     item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+  3303 |     item.__aiSteps = data.ai_steps || [];
+  3304 |     item.__aiRawResult = data;
+  3305 |   };
+  3306 | 
+  3307 |   window.runAiDraftForItemIndex = async function(index, options = {}) {
+  3308 |     if (!Array.isArray(items) || index < 0 || index >= items.length) {
+  3309 |       showResult("解析する書類が見つかりません。");
+  3310 |       return { ok: false, error: "解析する書類が見つかりません。" };
+  3311 |     }
+  3312 | 
+  3313 |     selectedIndex = index;
+  3314 |     selectItem(index);
+  3315 | 
+  3316 |     const item = items[index];
+  3317 |     const id = String(window.ocrImportIdOf(item) || "");
+  3318 |     const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+  3319 | 
+  3320 |     if (!id) {
+  3321 |       const error = "OCR保存IDがないため解析できません。";
+  3322 |       showResult(error);
+  3323 |       return { ok: false, name, error };
+  3324 |     }
+  3325 | 
+  3326 |     if (!options.silent) {
+  3327 |       showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、要確認の専門解析をしています。");
+  3328 |     }
+  3329 | 
+  3330 |     try {
+  3331 |       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(id), {
+  3332 |         method: "POST",
+  3333 |         headers: {
+  3334 |           "Content-Type": "application/json"
+  3335 |         }
+  3336 |       });
+  3337 | 
+  3338 |       const data = await res.json();
+  3339 | 
+  3340 |       if (!data.ok) {
+  3341 |         const error = data.error || data.message || "専門解析失敗";
+  3342 |         showResult({ ok: false, name, error, data });
+  3343 |         return { ok: false, name, error };
+  3344 |       }
+  3345 | 
+  3346 |       window.applySortingAiResultToItem(item, data);
+  3347 | 
+  3348 |       if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
+  3349 | 
+  3350 |       if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
+  3351 |         try {
+  3352 |           await window.hdOriginSpecialistAutoSaveNow("analysis", { ocrImportId: id, item: item, analysisResult: data });
+  3353 |         } catch (saveError) {
+  3354 |           const saveMessage =
+  3355 |             saveError && saveError.message
+  3356 |               ? saveError.message
+  3357 |               : String(saveError);
+  3358 | 
+  3359 |           showResult(
+  3360 |             "専門解析には成功しましたが、DB自動保存に失敗しました。\n" +
+  3361 |             saveMessage
+  3362 |           );
+  3363 | 
+  3364 |           return {
+  3365 |             ok: false,
+  3366 |             analysisOk: true,
+  3367 |             saveOk: false,
+  3368 |             name,
+  3369 |             error: saveMessage
+  3370 |           };
+  3371 |         }
+  3372 |       }
+  3373 | 
+  3374 |       if (typeof showVisibleFieldsOnly === "function") {
+  3375 |         showVisibleFieldsOnly(item.__visibleFieldLabels || []);
+  3376 |       }
+  3377 | 
+  3378 |       window.__expandedOcrImportIds.clear();
+  3379 |       window.__expandedOcrImportIds.add(id);
+  3380 | 
+  3381 |       window.renderSortingList();
+  3382 | 
+  3383 |       const visual = window.buildSortingVisual(item);
+  3384 | 
+  3385 |       if (!options.silent) {
+  3386 |         showResult(
+
+==============================================================================
+正式専門解析保存API周辺
+==============================================================================
+CONTEXT_KEYWORD=/api/payment-documents/specialist-analysis-results/save | MATCH_COUNT=2
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/specialist-analysis-results/save | MATCH_NO=1 | MATCH_LINE=5590 | START_LINE=5500 | END_LINE=5660
+  5500 |           : {};
+  5501 | 
+  5502 |     const analysisDraft =
+  5503 |       analysisResult.draft && typeof analysisResult.draft === "object"
+  5504 |         ? analysisResult.draft
+  5505 |         : context && context.item && context.item.__aiDraft
+  5506 |           ? context.item.__aiDraft
+  5507 |           : {};
+  5508 | 
+  5509 |     const analysisRoot =
+  5510 |       analysisResult.sortResult ||
+  5511 |       analysisResult.sort_result ||
+  5512 |       analysisResult.result ||
+  5513 |       analysisDraft.sortResult ||
+  5514 |       analysisDraft.sort_result ||
+  5515 |       analysisDraft;
+  5516 | 
+  5517 |     const analysisSummary =
+  5518 |       analysisResult.ai_summary ||
+  5519 |       analysisResult.aiSummary ||
+  5520 |       analysisDraft.ai_summary ||
+  5521 |       analysisDraft.aiSummary ||
+  5522 |       analysisRoot.ai_summary ||
+  5523 |       analysisRoot.aiSummary ||
+  5524 |       {};
+  5525 | 
+  5526 |     payload.analysis_system_code =
+  5527 |       payload.analysis_system_code ||
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+  5535 |       analysisSummary.analysis_system_code ||
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5537 |       "";
+  5538 | 
+  5539 |     if (payload.analysis_system_code) {
+  5540 |       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+  5541 |         payload.analysis_system_code;
+  5542 |     }
+  5543 |     payload.analysis_system_label =
+  5544 |       payload.analysis_system_label ||
+  5545 |       payload.analysisSystemLabel ||
+  5546 |       analysisDraft.analysis_system_label ||
+  5547 |       analysisDraft.analysisSystemLabel ||
+  5548 |       analysisRoot.analysis_system_label ||
+  5549 |       analysisRoot.analysisSystemLabel ||
+  5550 |       analysisSummary.analysis_system_label ||
+  5551 |       analysisSummary.analysis_system ||
+  5552 |       "";
+  5553 | 
+  5554 |     payload.analysis_system_reason =
+  5555 |       payload.analysis_system_reason ||
+  5556 |       payload.analysisSystemReason ||
+  5557 |       analysisDraft.analysis_system_reason ||
+  5558 |       analysisDraft.analysisSystemReason ||
+  5559 |       analysisRoot.analysis_system_reason ||
+  5560 |       analysisRoot.analysisSystemReason ||
+  5561 |       analysisSummary.analysis_system_reason ||
+  5562 |       "";
+  5563 | 
+  5564 |     payload.analysis_system_confidence =
+  5565 |       payload.analysis_system_confidence ||
+  5566 |       payload.analysisSystemConfidence ||
+  5567 |       analysisDraft.analysis_system_confidence ||
+  5568 |       analysisDraft.analysisSystemConfidence ||
+  5569 |       analysisRoot.analysis_system_confidence ||
+  5570 |       analysisRoot.analysisSystemConfidence ||
+  5571 |       analysisSummary.analysis_system_confidence ||
+  5572 |       "";
+  5573 | 
+  5574 |     payload.specialist_route_code =
+  5575 |       payload.specialist_route_code ||
+  5576 |       payload.specialistRouteCode ||
+  5577 |       analysisDraft.specialist_route_code ||
+  5578 |       analysisRoot.specialist_route_code ||
+  5579 |       analysisResult.document_group ||
+  5580 |       analysisDraft.document_group ||
+  5581 |       "";
+  5582 | 
+  5583 |     payload.specialist_route_label =
+  5584 |       payload.specialist_route_label ||
+  5585 |       payload.specialistRouteLabel ||
+  5586 |       analysisDraft.specialist_route_label ||
+  5587 |       analysisRoot.specialist_route_label ||
+  5588 |       "";
+  5589 | 
+  5590 |     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5591 |       method: "POST",
+  5592 |       headers: {
+  5593 |         "Content-Type": "application/json; charset=utf-8"
+  5594 |       },
+  5595 |       body: JSON.stringify(payload)
+  5596 |     });
+  5597 | 
+  5598 |     const json = await res.json().catch(function () {
+  5599 |       return {};
+  5600 |     });
+  5601 | 
+  5602 |     if (!res.ok || !json.ok) {
+  5603 |       throw new Error(json.error || "下書き保存に失敗しました。");
+  5604 |     }
+  5605 | 
+  5606 |     return json;
+  5607 |   }
+  5608 | 
+  5609 |   function looksLikeDraftSaveButton(el) {
+  5610 |     if (!el) return false;
+  5611 | 
+  5612 |     const button = el.closest("button, input[type='button'], input[type='submit'], a");
+  5613 | 
+  5614 |     if (!button) return false;
+  5615 | 
+  5616 |     const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+  5617 | 
+  5618 |     if (!text) return false;
+  5619 | 
+  5620 |     return text.includes("下書き保存") || text.includes("下書き");
+  5621 |   }
+  5622 | 
+  5623 |   document.addEventListener("click", async function (event) {
+  5624 |     const button = event.target.closest("button, input[type='button'], input[type='submit'], a");
+  5625 | 
+  5626 |     if (!looksLikeDraftSaveButton(button)) {
+  5627 |       return;
+  5628 |     }
+  5629 | 
+  5630 |     event.preventDefault();
+  5631 |     event.stopPropagation();
+  5632 | 
+  5633 |     if (button.dataset.hdOriginSortingDraftSaving === "1") {
+  5634 |       return;
+  5635 |     }
+  5636 | 
+  5637 |     button.dataset.hdOriginSortingDraftSaving = "1";
+  5638 | 
+  5639 |     const originalText = button.textContent;
+  5640 | 
+  5641 |     try {
+  5642 |       if (button.tagName === "BUTTON" || button.tagName === "A") {
+  5643 |         button.textContent = "下書き保存中...";
+  5644 |       }
+  5645 | 
+  5646 |       const result = await saveSortingDraftFromReviewPage();
+  5647 | 
+  5648 |       if (button.tagName === "BUTTON" || button.tagName === "A") {
+  5649 |         button.textContent = "下書き保存済み";
+  5650 |       }
+  5651 | 
+  5652 |       console.log("HD Origin sorting draft saved:", result);
+  5653 | 
+  5654 |       alert("仕分け下書きを保存しました。\n下書きID: " + (result.paymentDocumentSortingDraftId || ""));
+  5655 |     } catch (err) {
+  5656 |       console.error("HD Origin sorting draft save failed:", err);
+  5657 | 
+  5658 |       if (button.tagName === "BUTTON" || button.tagName === "A") {
+  5659 |         button.textContent = originalText || "下書き保存";
+  5660 |       }
+
+CONTEXT_BLOCK | KEYWORD=/api/payment-documents/specialist-analysis-results/save | MATCH_NO=2 | MATCH_LINE=5845 | START_LINE=5755 | END_LINE=5915
+  5755 |     const ids = [];
+  5756 | 
+  5757 |     function pushId(value) {
+  5758 |       const id = numberId(value);
+  5759 | 
+  5760 |       if (id && !ids.includes(id)) {
+  5761 |         ids.push(id);
+  5762 |       }
+  5763 |     }
+  5764 | 
+  5765 |     document.querySelectorAll("input[type='checkbox']:checked").forEach(function (el) {
+  5766 |       pushId(
+  5767 |         el.dataset.paymentDocumentOcrImportId ||
+  5768 |         el.dataset.ocrImportId ||
+  5769 |         el.dataset.id ||
+  5770 |         el.value
+  5771 |       );
+  5772 | 
+  5773 |       const row = el.closest("[data-payment-document-ocr-import-id], [data-ocr-import-id], [data-id], tr, li, .item, .card");
+  5774 | 
+  5775 |       if (row) {
+  5776 |         pushId(
+  5777 |           row.dataset.paymentDocumentOcrImportId ||
+  5778 |           row.dataset.ocrImportId ||
+  5779 |           row.dataset.id
+  5780 |         );
+  5781 |       }
+  5782 |     });
+  5783 | 
+  5784 |     document.querySelectorAll(".selected[data-payment-document-ocr-import-id], .active[data-payment-document-ocr-import-id], .selected[data-ocr-import-id], .active[data-ocr-import-id]").forEach(function (el) {
+  5785 |       pushId(el.dataset.paymentDocumentOcrImportId || el.dataset.ocrImportId || el.dataset.id);
+  5786 |     });
+  5787 | 
+  5788 |     return ids;
+  5789 |   }
+  5790 | 
+  5791 |   function getIdsFromCache() {
+  5792 |     return Object.keys(window.hdOriginSortingDraftBulkCache || {})
+  5793 |       .map(numberId)
+  5794 |       .filter(Boolean);
+  5795 |   }
+  5796 | 
+  5797 |   function buildPayloadFromCachedResult(id, cached) {
+  5798 |     const result = cached && cached.result ? cached.result : cached;
+  5799 |     const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.aiDraft, result);
+  5800 |     const draft = firstObject(result.draft, result.aiDraft, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
+  5801 |     const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
+  5802 | 
+  5803 |     return {
+  5804 |       paymentDocumentOcrImportId: id,
+  5805 | 
+  5806 |       document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
+  5807 |       document_type_label: textValue(draft.document_type_label || root.document_type_label || aiSummary.document_kind_label),
+  5808 | 
+  5809 |       payment_destination_code: textValue(draft.payment_destination_code || root.payment_destination_code || aiSummary.destination),
+  5810 |       payment_destination_label: textValue(draft.payment_destination_label || root.payment_destination_label || aiSummary.destination_label),
+  5811 | 
+  5812 |       accounting_category_code: textValue(draft.accounting_category_code || root.accounting_category_code),
+  5813 |       accounting_category_label: textValue(draft.accounting_category_label || root.accounting_category_label),
+  5814 | 
+  5815 |       payable_kind_code: textValue(draft.payable_kind_code || root.payable_kind_code),
+  5816 |       payable_kind_label: textValue(draft.payable_kind_label || root.payable_kind_label),
+  5817 | 
+  5818 |       specialist_route_code: textValue(draft.specialist_route_code || root.specialist_route_code || root.document_group),
+  5819 |       specialist_route_label: textValue(draft.specialist_route_label || root.specialist_route_label),
+  5820 | 
+  5821 |       payment_target_label: textValue(aiSummary.payment_target),
+  5822 |       payable_target_label: textValue(aiSummary.payable_target),
+  5823 |       expense_target_label: textValue(aiSummary.expense_target),
+  5824 |       tax_public_label: textValue(aiSummary.tax_public),
+  5825 |       public_utility_label: textValue(aiSummary.public_utility),
+  5826 |       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5827 | 
+  5828 |       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5829 |       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5830 |       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5831 |       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5832 |       needs_review: !!(draft.needs_review || root.needs_review),
+  5833 | 
+  5834 |       ai_summary: aiSummary,
+  5835 |       sortResult: root,
+  5836 |       visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
+  5837 |       warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
+  5838 | 
+  5839 |       display_rotation: 0,
+  5840 |       memo: "まとめて保存ボタンから仕分け下書き保存"
+  5841 |     };
+  5842 |   }
+  5843 | 
+  5844 |   async function postSortingDraft(payload) {
+  5845 |     const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
+  5846 |       method: "POST",
+  5847 |       headers: {
+  5848 |         "Content-Type": "application/json; charset=utf-8"
+  5849 |       },
+  5850 |       body: JSON.stringify(payload)
+  5851 |     });
+  5852 | 
+  5853 |     const json = await res.json().catch(function () {
+  5854 |       return {};
+  5855 |     });
+  5856 | 
+  5857 |     if (!res.ok || !json.ok) {
+  5858 |       throw new Error(json.error || "下書き保存に失敗しました。");
+  5859 |     }
+  5860 | 
+  5861 |     return json;
+  5862 |   }
+  5863 | 
+  5864 |   async function bulkSaveSortingDrafts() {
+  5865 |     let ids = getSelectedOcrIds();
+  5866 | 
+  5867 |     if (ids.length === 0) {
+  5868 |       ids = getIdsFromCache();
+  5869 |     }
+  5870 | 
+  5871 |     if (ids.length === 0) {
+  5872 |       throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
+  5873 |     }
+  5874 | 
+  5875 |     const ok = [];
+  5876 |     const ng = [];
+  5877 | 
+  5878 |     for (const id of ids) {
+  5879 |       const cached = window.hdOriginSortingDraftBulkCache[String(id)];
+  5880 | 
+  5881 |       if (!cached) {
+  5882 |         ng.push({
+  5883 |           id,
+  5884 |           error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
+  5885 |         });
+  5886 |         continue;
+  5887 |       }
+  5888 | 
+  5889 |       try {
+  5890 |         const payload = buildPayloadFromCachedResult(id, cached);
+  5891 |         const saved = await postSortingDraft(payload);
+  5892 | 
+  5893 |         ok.push({
+  5894 |           id,
+  5895 |           draftId: saved.paymentDocumentSortingDraftId || ""
+  5896 |         });
+  5897 |       } catch (err) {
+  5898 |         ng.push({
+  5899 |           id,
+  5900 |           error: err && err.message ? err.message : String(err)
+  5901 |         });
+  5902 |       }
+  5903 |     }
+  5904 | 
+  5905 |     return { ok, ng };
+  5906 |   }
+  5907 | 
+  5908 |   function ensureBulkSaveButton() {
+  5909 |     if (document.getElementById("bulkSaveSortingDraftButton")) {
+  5910 |       return document.getElementById("bulkSaveSortingDraftButton");
+  5911 |     }
+  5912 | 
+  5913 |     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
+  5914 |     const sortButton = buttons.find(function (button) {
+  5915 |       const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+
+==============================================================================
+旧sorting draft関数の全参照
+==============================================================================
+CONTEXT_KEYWORD=collectSortingDraftPayload | MATCH_COUNT=2
+
+CONTEXT_BLOCK | KEYWORD=collectSortingDraftPayload | MATCH_NO=1 | MATCH_LINE=5258 | START_LINE=5254 | END_LINE=5264
+  5254 | 
+  5255 |     return 0;
+  5256 |   }
+  5257 | 
+  5258 |   function collectSortingDraftPayload(context) {
+  5259 |     const ocrId =
+  5260 |       Number(
+  5261 |         context && (
+  5262 |           context.ocrImportId ||
+  5263 |           context.paymentDocumentOcrImportId ||
+  5264 |           context.payment_document_ocr_import_id ||
+
+CONTEXT_BLOCK | KEYWORD=collectSortingDraftPayload | MATCH_NO=2 | MATCH_LINE=5469 | START_LINE=5465 | END_LINE=5475
+  5465 |   /* HD_ORIGIN_BANK_TRANSACTION_SAVE_PAYLOAD_END */
+  5466 | 
+  5467 | 
+  5468 |   async function saveSortingDraftFromReviewPage(context) {
+  5469 |     const payload = collectSortingDraftPayload(context);
+  5470 | 
+  5471 |     const bankTransactionSavePayload =
+  5472 |       collectBankTransactionSavePayload();
+  5473 | 
+  5474 |     payload.draft =
+  5475 |       payload.draft &&
+CONTEXT_KEYWORD=saveSortingDraftFromReviewPage | MATCH_COUNT=4
+
+CONTEXT_BLOCK | KEYWORD=saveSortingDraftFromReviewPage | MATCH_NO=1 | MATCH_LINE=5468 | START_LINE=5464 | END_LINE=5474
+  5464 |   }
+  5465 |   /* HD_ORIGIN_BANK_TRANSACTION_SAVE_PAYLOAD_END */
+  5466 | 
+  5467 | 
+  5468 |   async function saveSortingDraftFromReviewPage(context) {
+  5469 |     const payload = collectSortingDraftPayload(context);
+  5470 | 
+  5471 |     const bankTransactionSavePayload =
+  5472 |       collectBankTransactionSavePayload();
+  5473 | 
+  5474 |     payload.draft =
+
+CONTEXT_BLOCK | KEYWORD=saveSortingDraftFromReviewPage | MATCH_NO=2 | MATCH_LINE=5646 | START_LINE=5642 | END_LINE=5652
+  5642 |       if (button.tagName === "BUTTON" || button.tagName === "A") {
+  5643 |         button.textContent = "下書き保存中...";
+  5644 |       }
+  5645 | 
+  5646 |       const result = await saveSortingDraftFromReviewPage();
+  5647 | 
+  5648 |       if (button.tagName === "BUTTON" || button.tagName === "A") {
+  5649 |         button.textContent = "下書き保存済み";
+  5650 |       }
+  5651 | 
+  5652 |       console.log("HD Origin sorting draft saved:", result);
+
+CONTEXT_BLOCK | KEYWORD=saveSortingDraftFromReviewPage | MATCH_NO=3 | MATCH_LINE=5674 | START_LINE=5670 | END_LINE=5680
+  5670 |       }, 800);
+  5671 |     }
+  5672 |   }, true);
+  5673 | 
+  5674 |   window.hdOriginSaveSortingDraftFromReviewPage = saveSortingDraftFromReviewPage;
+  5675 | })();
+  5676 | /* HD_ORIGIN_PAYMENT_DOCUMENT_SORTING_DRAFT_SAVE_UI_20260707_END */
+  5677 | </script>
+  5678 | <script>
+  5679 | /* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_START */
+  5680 | (function () {
+
+CONTEXT_BLOCK | KEYWORD=saveSortingDraftFromReviewPage | MATCH_NO=4 | MATCH_LINE=6384 | START_LINE=6380 | END_LINE=6390
+  6380 |   let queuedSaveReason = "";
+  6381 |   let queuedSaveContext = null;
+  6382 | 
+  6383 |   function saveFunction() {
+  6384 |     return window.hdOriginSaveSortingDraftFromReviewPage;
+  6385 |   }
+  6386 | 
+  6387 |   function itemOcrImportId(item) {
+  6388 |     if (!item) {
+  6389 |       return 0;
+  6390 |     }
+CONTEXT_KEYWORD=bulkSaveSortingDrafts | MATCH_COUNT=3
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDrafts | MATCH_NO=1 | MATCH_LINE=5864 | START_LINE=5860 | END_LINE=5870
+  5860 | 
+  5861 |     return json;
+  5862 |   }
+  5863 | 
+  5864 |   async function bulkSaveSortingDrafts() {
+  5865 |     let ids = getSelectedOcrIds();
+  5866 | 
+  5867 |     if (ids.length === 0) {
+  5868 |       ids = getIdsFromCache();
+  5869 |     }
+  5870 | 
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDrafts | MATCH_NO=2 | MATCH_LINE=5954 | START_LINE=5950 | END_LINE=5960
+  5950 |     try {
+  5951 |       button.dataset.saving = "1";
+  5952 |       button.textContent = "まとめて保存中...";
+  5953 | 
+  5954 |       const result = await bulkSaveSortingDrafts();
+  5955 | 
+  5956 |       button.textContent = "まとめて保存";
+  5957 | 
+  5958 |       alert(
+  5959 |         "まとめて保存が完了しました。\n" +
+  5960 |         "成功: " + result.ok.length + "件\n" +
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDrafts | MATCH_NO=3 | MATCH_LINE=5982 | START_LINE=5978 | END_LINE=5988
+  5978 |   } else {
+  5979 |     ensureBulkSaveButton();
+  5980 |   }
+  5981 | 
+  5982 |   window.hdOriginBulkSaveSortingDrafts = bulkSaveSortingDrafts;
+  5983 | })();
+  5984 | /* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SORTING_DRAFT_SAVE_UI_20260707_END */
+  5985 | </script>
+  5986 | <script>
+  5987 | </script>
+  5988 | 
+CONTEXT_KEYWORD=bulkSaveSortingDraftButton | MATCH_COUNT=5
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDraftButton | MATCH_NO=1 | MATCH_LINE=73 | START_LINE=69 | END_LINE=79
+    69 |             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
+    70 |         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
+    71 |         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
+    72 |         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+    73 | <button type="button" id="bulkSaveSortingDraftButton" class="btn btn-primary hd-origin-bulk-save-sorting-draft">まとめて保存</button>
+    74 | </div>
+    75 |       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
+    76 |       <div id="sortingColorLegend" class="sorting-color-legend">
+    77 |         <span class="legend-chip legend-invoice">請求・未払系</span>
+    78 |         <span class="legend-chip legend-expense">レシート・領収書</span>
+    79 |         <span class="legend-chip legend-tax">税金・公的支払</span>
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDraftButton | MATCH_NO=2 | MATCH_LINE=5909 | START_LINE=5905 | END_LINE=5915
+  5905 |     return { ok, ng };
+  5906 |   }
+  5907 | 
+  5908 |   function ensureBulkSaveButton() {
+  5909 |     if (document.getElementById("bulkSaveSortingDraftButton")) {
+  5910 |       return document.getElementById("bulkSaveSortingDraftButton");
+  5911 |     }
+  5912 | 
+  5913 |     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
+  5914 |     const sortButton = buttons.find(function (button) {
+  5915 |       const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDraftButton | MATCH_NO=3 | MATCH_LINE=5910 | START_LINE=5906 | END_LINE=5916
+  5906 |   }
+  5907 | 
+  5908 |   function ensureBulkSaveButton() {
+  5909 |     if (document.getElementById("bulkSaveSortingDraftButton")) {
+  5910 |       return document.getElementById("bulkSaveSortingDraftButton");
+  5911 |     }
+  5912 | 
+  5913 |     const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
+  5914 |     const sortButton = buttons.find(function (button) {
+  5915 |       const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
+  5916 |       return text.includes("まとめて専門解析");
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDraftButton | MATCH_NO=4 | MATCH_LINE=5925 | START_LINE=5921 | END_LINE=5931
+  5921 |     }
+  5922 | 
+  5923 |     const button = document.createElement("button");
+  5924 |     button.type = "button";
+  5925 |     button.id = "bulkSaveSortingDraftButton";
+  5926 |     button.className = "btn btn-primary hd-origin-bulk-save-sorting-draft";
+  5927 |     button.textContent = "まとめて保存";
+  5928 | 
+  5929 |     sortButton.insertAdjacentElement("afterend", button);
+  5930 | 
+  5931 |     return button;
+
+CONTEXT_BLOCK | KEYWORD=bulkSaveSortingDraftButton | MATCH_NO=5 | MATCH_LINE=5935 | START_LINE=5931 | END_LINE=5941
+  5931 |     return button;
+  5932 |   }
+  5933 | 
+  5934 |   document.addEventListener("click", async function (event) {
+  5935 |     const button = event.target.closest("#bulkSaveSortingDraftButton");
+  5936 | 
+  5937 |     if (!button) {
+  5938 |       return;
+  5939 |     }
+  5940 | 
+  5941 |     event.preventDefault();
+CONTEXT_KEYWORD=window.saveSortingDraftFromReviewPage | MATCH_COUNT=0
+CONTEXT_KEYWORD=payment_document_sorting_draft_id | MATCH_COUNT=0
+CONTEXT_KEYWORD=payment_document_sorting_drafts | MATCH_COUNT=0
+CONTEXT_KEYWORD=sorting_draft_id | MATCH_COUNT=0
+CONTEXT_KEYWORD=draft_status | MATCH_COUNT=0
+
+==============================================================================
+正式ID・保存payload候補
+==============================================================================
+CONTEXT_KEYWORD=payment_document_ocr_import_id | MATCH_COUNT=15
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=1 | MATCH_LINE=782 | START_LINE=779 | END_LINE=787
+   779 |       return item.imageUrl;
+   780 |     }
+   781 | 
+   782 |     const id = item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+   783 | 
+   784 |     if (id) {
+   785 |       return "/api/payment-documents/ocr-imports/file/" + encodeURIComponent(String(id));
+   786 |     }
+   787 | 
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=2 | MATCH_LINE=1011 | START_LINE=1008 | END_LINE=1016
+  1008 |       return "";
+  1009 |     }
+  1010 | 
+  1011 |     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+  1012 |   }
+  1013 |   function setMasterSelectByCodeOrText(selector, value) {
+  1014 |     const select = document.querySelector(selector);
+  1015 | 
+  1016 |     if (!select) {
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=3 | MATCH_LINE=2751 | START_LINE=2748 | END_LINE=2756
+  2748 | 
+  2749 |   function ocrImportIdOf(item) {
+  2750 |     if (!item) return "";
+  2751 |     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+  2752 |   }
+  2753 | 
+  2754 |   function updateSelectedSortingSummary() {
+  2755 |     const summary = document.getElementById("selectedSortingSummary");
+  2756 |     if (!summary) return;
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=4 | MATCH_LINE=2941 | START_LINE=2938 | END_LINE=2946
+  2938 | 
+  2939 |   window.ocrImportIdOf = function(item) {
+  2940 |     if (!item) return "";
+  2941 |     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || item.ocrImportId || item.id || "";
+  2942 |   };
+  2943 | 
+  2944 |   window.firstText = function() {
+  2945 |     for (const value of arguments) {
+  2946 |       const text = String(value === null || value === undefined ? "" : value).trim();
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=5 | MATCH_LINE=4511 | START_LINE=4508 | END_LINE=4516
+  4508 |       return "";
+  4509 |     }
+  4510 | 
+  4511 |     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
+  4512 |   }
+  4513 | 
+  4514 |   async function exportVisibleFieldsMemoVisibleOnly() {
+  4515 |     var button = document.getElementById("visibleFieldsMemoButton") || document.querySelector(".mini-memo-button");
+  4516 |     var oldText = button ? button.textContent : "";
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=6 | MATCH_LINE=4533 | START_LINE=4530 | END_LINE=4538
+  4530 |         selectedIndex: safeSelectedIndex(),
+  4531 |         selectedOcrImportId: safeSelectedOcrImportId(),
+  4532 |         selectedItem: item ? {
+  4533 |           paymentDocumentOcrImportId: item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "",
+  4534 |           originalFileName: item.originalFileName || "",
+  4535 |           savedFileName: item.savedFileName || item.fileName || "",
+  4536 |           mimeType: item.mimeType || "",
+  4537 |           ocrStatus: item.ocrStatus || "",
+  4538 |           savedAt: item.savedAt || "",
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=7 | MATCH_LINE=5172 | START_LINE=5169 | END_LINE=5177
+  5169 | 
+  5170 |       const n = Number(
+  5171 |         obj.paymentDocumentOcrImportId ||
+  5172 |         obj.payment_document_ocr_import_id ||
+  5173 |         obj.selectedOcrImportId ||
+  5174 |         obj.id
+  5175 |       );
+  5176 | 
+  5177 |       if (Number.isInteger(n) && n > 0) return n;
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=8 | MATCH_LINE=5185 | START_LINE=5182 | END_LINE=5190
+  5182 |       "#paymentDocumentOcrImportId",
+  5183 |       "input[name='selectedOcrImportId']",
+  5184 |       "input[name='paymentDocumentOcrImportId']",
+  5185 |       "input[name='payment_document_ocr_import_id']"
+  5186 |     ];
+  5187 | 
+  5188 |     for (const selector of hiddenSelectors) {
+  5189 |       const el = document.querySelector(selector);
+  5190 |       if (!el) continue;
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=9 | MATCH_LINE=5264 | START_LINE=5261 | END_LINE=5269
+  5261 |         context && (
+  5262 |           context.ocrImportId ||
+  5263 |           context.paymentDocumentOcrImportId ||
+  5264 |           context.payment_document_ocr_import_id ||
+  5265 |           context.id
+  5266 |         )
+  5267 |       ) ||
+  5268 |       Number(window.__hdOriginSpecialistActiveOcrImportId || 0) ||
+  5269 |       findSelectedOcrImportId();
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=10 | MATCH_LINE=6039 | START_LINE=6036 | END_LINE=6044
+  6036 |     } catch (error) {}
+  6037 | 
+  6038 |     return item.paymentDocumentOcrImportId ||
+  6039 |       item.payment_document_ocr_import_id ||
+  6040 |       item.ocrImportId ||
+  6041 |       item.ocr_import_id ||
+  6042 |       item.id ||
+  6043 |       "";
+  6044 |   }
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=11 | MATCH_LINE=6179 | START_LINE=6176 | END_LINE=6184
+  6176 |       var ocrSection = no + " " + name + " / OCR本文";
+  6177 | 
+  6178 |       pushField(fields, baseSection, "No", "no", index + 1);
+  6179 |       pushField(fields, baseSection, "OCR取込ID", "payment_document_ocr_import_id", id);
+  6180 |       pushField(fields, baseSection, "ファイル名", "original_file_name", name);
+  6181 |       pushField(fields, baseSection, "AI解析状態", "ai_status", hasAi ? "解析結果あり" : "未解析または画面上にAI結果なし");
+  6182 | 
+  6183 |       pushAiSummary(fields, aiSection, draft, raw);
+  6184 | 
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=12 | MATCH_LINE=6418 | START_LINE=6415 | END_LINE=6423
+  6415 | 
+  6416 |     return Number(
+  6417 |       item.paymentDocumentOcrImportId ||
+  6418 |       item.payment_document_ocr_import_id ||
+  6419 |       item.ocrImportId ||
+  6420 |       item.ocr_import_id ||
+  6421 |       item.id ||
+  6422 |       0
+  6423 |     ) || 0;
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=13 | MATCH_LINE=6431 | START_LINE=6428 | END_LINE=6436
+  6428 |       context && (
+  6429 |         context.ocrImportId ||
+  6430 |         context.paymentDocumentOcrImportId ||
+  6431 |         context.payment_document_ocr_import_id ||
+  6432 |         context.id
+  6433 |       )
+  6434 |     ) || 0;
+  6435 | 
+  6436 |     if (contextId) {
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=14 | MATCH_LINE=6913 | START_LINE=6910 | END_LINE=6918
+  6910 |             cilRows
+  6911 |               .map(function (row) {
+  6912 |                 return Number(
+  6913 |                   row.payment_document_ocr_import_id ||
+  6914 |                   row.paymentDocumentOcrImportId ||
+  6915 |                   row.ocrImportId ||
+  6916 |                   row.id ||
+  6917 |                   0
+  6918 |                 );
+
+CONTEXT_BLOCK | KEYWORD=payment_document_ocr_import_id | MATCH_NO=15 | MATCH_LINE=6928 | START_LINE=6925 | END_LINE=6933
+  6925 |           countVisibleItems=countSourceItems.filter(function (item) {
+  6926 |             const id=Number(
+  6927 |               item.paymentDocumentOcrImportId ||
+  6928 |               item.payment_document_ocr_import_id ||
+  6929 |               item.ocrImportId ||
+  6930 |               item.ocr_import_id ||
+  6931 |               item.id ||
+  6932 |               0
+  6933 |             );
+CONTEXT_KEYWORD=basic_analysis_id | MATCH_COUNT=0
+CONTEXT_KEYWORD=analysis_system_code | MATCH_COUNT=26
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=1 | MATCH_LINE=605 | START_LINE=602 | END_LINE=610
+   602 |   const routeDefinitions = {
+   603 |     invoice_payable: {
+   604 |       specialist_route_label: "請求・未払系解析",
+   605 |       analysis_system_code: "invoice_payable_analysis",
+   606 |       analysis_system_label: "請求・未払系専門解析システム"
+   607 |     },
+   608 |     tax_public: {
+   609 |       specialist_route_label: "税金・公的支払解析",
+   610 |       analysis_system_code: "tax_public_analysis",
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=2 | MATCH_LINE=610 | START_LINE=607 | END_LINE=615
+   607 |     },
+   608 |     tax_public: {
+   609 |       specialist_route_label: "税金・公的支払解析",
+   610 |       analysis_system_code: "tax_public_analysis",
+   611 |       analysis_system_label: "税金・公的支払専門解析システム"
+   612 |     },
+   613 |     bank_transaction: {
+   614 |       specialist_route_label: "銀行取引解析",
+   615 |       analysis_system_code: "bank_transaction_analysis",
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=3 | MATCH_LINE=615 | START_LINE=612 | END_LINE=620
+   612 |     },
+   613 |     bank_transaction: {
+   614 |       specialist_route_label: "銀行取引解析",
+   615 |       analysis_system_code: "bank_transaction_analysis",
+   616 |       analysis_system_label: "銀行取引専門解析システム"
+   617 |     },
+   618 |     needs_review: {
+   619 |       specialist_route_label: "要確認解析",
+   620 |       analysis_system_code: "needs_review_analysis",
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=4 | MATCH_LINE=620 | START_LINE=617 | END_LINE=625
+   617 |     },
+   618 |     needs_review: {
+   619 |       specialist_route_label: "要確認解析",
+   620 |       analysis_system_code: "needs_review_analysis",
+   621 |       analysis_system_label: "要確認専門解析システム"
+   622 |     },
+   623 |     contract_insurance_lease: {
+   624 |       specialist_route_label: "契約・保険・リース解析",
+   625 |       analysis_system_code: "contract_insurance_lease_analysis",
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=5 | MATCH_LINE=625 | START_LINE=622 | END_LINE=630
+   622 |     },
+   623 |     contract_insurance_lease: {
+   624 |       specialist_route_label: "契約・保険・リース解析",
+   625 |       analysis_system_code: "contract_insurance_lease_analysis",
+   626 |       analysis_system_label: "契約・保険・リース専門解析システム"
+   627 |     }
+   628 |   };
+   629 | 
+   630 |   window.fetch = function (input, init) {
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=6 | MATCH_LINE=705 | START_LINE=702 | END_LINE=710
+   702 |       specialist_route_label:
+   703 |         requestBody.specialist_route_label ||
+   704 |         definition.specialist_route_label,
+   705 |       analysis_system_code:
+   706 |         requestBody.analysis_system_code ||
+   707 |         definition.analysis_system_code,
+   708 |       analysis_system_label:
+   709 |         requestBody.analysis_system_label ||
+   710 |         definition.analysis_system_label,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=7 | MATCH_LINE=706 | START_LINE=703 | END_LINE=711
+   703 |         requestBody.specialist_route_label ||
+   704 |         definition.specialist_route_label,
+   705 |       analysis_system_code:
+   706 |         requestBody.analysis_system_code ||
+   707 |         definition.analysis_system_code,
+   708 |       analysis_system_label:
+   709 |         requestBody.analysis_system_label ||
+   710 |         definition.analysis_system_label,
+   711 |       group: routeCode
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=8 | MATCH_LINE=707 | START_LINE=704 | END_LINE=712
+   704 |         definition.specialist_route_label,
+   705 |       analysis_system_code:
+   706 |         requestBody.analysis_system_code ||
+   707 |         definition.analysis_system_code,
+   708 |       analysis_system_label:
+   709 |         requestBody.analysis_system_label ||
+   710 |         definition.analysis_system_label,
+   711 |       group: routeCode
+   712 |     });
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=9 | MATCH_LINE=3518 | START_LINE=3515 | END_LINE=3523
+  3515 | 
+  3516 |       const candidates = [
+  3517 |         latest.analysisSystemCode,
+  3518 |         latest.analysis_system_code,
+  3519 | 
+  3520 |         saved.analysisSystemCode,
+  3521 |         saved.analysis_system_code,
+  3522 | 
+  3523 |         draft.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=10 | MATCH_LINE=3521 | START_LINE=3518 | END_LINE=3526
+  3518 |         latest.analysis_system_code,
+  3519 | 
+  3520 |         saved.analysisSystemCode,
+  3521 |         saved.analysis_system_code,
+  3522 | 
+  3523 |         draft.analysisSystemCode,
+  3524 |         draft.analysis_system_code,
+  3525 | 
+  3526 |         sortResult.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=11 | MATCH_LINE=3524 | START_LINE=3521 | END_LINE=3529
+  3521 |         saved.analysis_system_code,
+  3522 | 
+  3523 |         draft.analysisSystemCode,
+  3524 |         draft.analysis_system_code,
+  3525 | 
+  3526 |         sortResult.analysisSystemCode,
+  3527 |         sortResult.analysis_system_code,
+  3528 | 
+  3529 |         source.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=12 | MATCH_LINE=3527 | START_LINE=3524 | END_LINE=3532
+  3524 |         draft.analysis_system_code,
+  3525 | 
+  3526 |         sortResult.analysisSystemCode,
+  3527 |         sortResult.analysis_system_code,
+  3528 | 
+  3529 |         source.analysisSystemCode,
+  3530 |         source.analysis_system_code
+  3531 |       ];
+  3532 | 
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=13 | MATCH_LINE=3530 | START_LINE=3527 | END_LINE=3535
+  3527 |         sortResult.analysis_system_code,
+  3528 | 
+  3529 |         source.analysisSystemCode,
+  3530 |         source.analysis_system_code
+  3531 |       ];
+  3532 | 
+  3533 |       for (const candidate of candidates) {
+  3534 |         const code = textValue(candidate);
+  3535 | 
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=14 | MATCH_LINE=5526 | START_LINE=5523 | END_LINE=5531
+  5523 |       analysisRoot.aiSummary ||
+  5524 |       {};
+  5525 | 
+  5526 |     payload.analysis_system_code =
+  5527 |       payload.analysis_system_code ||
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=15 | MATCH_LINE=5527 | START_LINE=5524 | END_LINE=5532
+  5524 |       {};
+  5525 | 
+  5526 |     payload.analysis_system_code =
+  5527 |       payload.analysis_system_code ||
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=16 | MATCH_LINE=5529 | START_LINE=5526 | END_LINE=5534
+  5526 |     payload.analysis_system_code =
+  5527 |       payload.analysis_system_code ||
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=17 | MATCH_LINE=5531 | START_LINE=5528 | END_LINE=5536
+  5528 |       payload.analysisSystemCode ||
+  5529 |       analysisResult.analysis_system_code ||
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+  5535 |       analysisSummary.analysis_system_code ||
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=18 | MATCH_LINE=5533 | START_LINE=5530 | END_LINE=5538
+  5530 |       analysisResult.analysisSystemCode ||
+  5531 |       analysisDraft.analysis_system_code ||
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+  5535 |       analysisSummary.analysis_system_code ||
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5537 |       "";
+  5538 | 
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=19 | MATCH_LINE=5535 | START_LINE=5532 | END_LINE=5540
+  5532 |       analysisDraft.analysisSystemCode ||
+  5533 |       analysisRoot.analysis_system_code ||
+  5534 |       analysisRoot.analysisSystemCode ||
+  5535 |       analysisSummary.analysis_system_code ||
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5537 |       "";
+  5538 | 
+  5539 |     if (payload.analysis_system_code) {
+  5540 |       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=20 | MATCH_LINE=5539 | START_LINE=5536 | END_LINE=5544
+  5536 |       window.__hdOriginSpecialistActiveAnalysisSystemCode ||
+  5537 |       "";
+  5538 | 
+  5539 |     if (payload.analysis_system_code) {
+  5540 |       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+  5541 |         payload.analysis_system_code;
+  5542 |     }
+  5543 |     payload.analysis_system_label =
+  5544 |       payload.analysis_system_label ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=21 | MATCH_LINE=5541 | START_LINE=5538 | END_LINE=5546
+  5538 | 
+  5539 |     if (payload.analysis_system_code) {
+  5540 |       window.__hdOriginSpecialistActiveAnalysisSystemCode =
+  5541 |         payload.analysis_system_code;
+  5542 |     }
+  5543 |     payload.analysis_system_label =
+  5544 |       payload.analysis_system_label ||
+  5545 |       payload.analysisSystemLabel ||
+  5546 |       analysisDraft.analysis_system_label ||
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=22 | MATCH_LINE=6804 | START_LINE=6801 | END_LINE=6809
+  6801 | 
+  6802 |     const candidates = [
+  6803 |       latest.analysisSystemCode,
+  6804 |       latest.analysis_system_code,
+  6805 | 
+  6806 |       saved.analysisSystemCode,
+  6807 |       saved.analysis_system_code,
+  6808 | 
+  6809 |       draft.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=23 | MATCH_LINE=6807 | START_LINE=6804 | END_LINE=6812
+  6804 |       latest.analysis_system_code,
+  6805 | 
+  6806 |       saved.analysisSystemCode,
+  6807 |       saved.analysis_system_code,
+  6808 | 
+  6809 |       draft.analysisSystemCode,
+  6810 |       draft.analysis_system_code,
+  6811 | 
+  6812 |       sortResult.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=24 | MATCH_LINE=6810 | START_LINE=6807 | END_LINE=6815
+  6807 |       saved.analysis_system_code,
+  6808 | 
+  6809 |       draft.analysisSystemCode,
+  6810 |       draft.analysis_system_code,
+  6811 | 
+  6812 |       sortResult.analysisSystemCode,
+  6813 |       sortResult.analysis_system_code,
+  6814 | 
+  6815 |       source.analysisSystemCode,
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=25 | MATCH_LINE=6813 | START_LINE=6810 | END_LINE=6818
+  6810 |       draft.analysis_system_code,
+  6811 | 
+  6812 |       sortResult.analysisSystemCode,
+  6813 |       sortResult.analysis_system_code,
+  6814 | 
+  6815 |       source.analysisSystemCode,
+  6816 |       source.analysis_system_code
+  6817 |     ];
+  6818 | 
+
+CONTEXT_BLOCK | KEYWORD=analysis_system_code | MATCH_NO=26 | MATCH_LINE=6816 | START_LINE=6813 | END_LINE=6821
+  6813 |       sortResult.analysis_system_code,
+  6814 | 
+  6815 |       source.analysisSystemCode,
+  6816 |       source.analysis_system_code
+  6817 |     ];
+  6818 | 
+  6819 |     for (const candidate of candidates) {
+  6820 |       const code = String(candidate || "").trim();
+  6821 | 
+CONTEXT_KEYWORD=bank_transaction_analysis | MATCH_COUNT=3
+
+CONTEXT_BLOCK | KEYWORD=bank_transaction_analysis | MATCH_NO=1 | MATCH_LINE=544 | START_LINE=541 | END_LINE=549
+   541 |         </section>
+   542 |         <input type="hidden"
+   543 |                id="draftAnalysisSystemCode"
+   544 |                value="bank_transaction_analysis">
+   545 | 
+   546 |         <input type="hidden"
+   547 |                id="draftSpecialistAnalysisCode"
+   548 |                value="bank_transaction">
+   549 | 
+
+CONTEXT_BLOCK | KEYWORD=bank_transaction_analysis | MATCH_NO=2 | MATCH_LINE=615 | START_LINE=612 | END_LINE=620
+   612 |     },
+   613 |     bank_transaction: {
+   614 |       specialist_route_label: "銀行取引解析",
+   615 |       analysis_system_code: "bank_transaction_analysis",
+   616 |       analysis_system_label: "銀行取引専門解析システム"
+   617 |     },
+   618 |     needs_review: {
+   619 |       specialist_route_label: "要確認解析",
+   620 |       analysis_system_code: "needs_review_analysis",
+
+CONTEXT_BLOCK | KEYWORD=bank_transaction_analysis | MATCH_NO=3 | MATCH_LINE=3474 | START_LINE=3471 | END_LINE=3479
+  3471 | /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
+  3472 | /* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
+  3473 |   window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
+  3474 |     const expectedAnalysisSystemCode = "bank_transaction_analysis";
+  3475 | 
+  3476 |     function textValue(value) {
+  3477 |       return String(value || "").trim();
+  3478 |     }
+  3479 | 
+CONTEXT_KEYWORD=raw_result_json | MATCH_COUNT=0
+CONTEXT_KEYWORD=draft_json | MATCH_COUNT=0
+CONTEXT_KEYWORD=visible_fields_json | MATCH_COUNT=0
+CONTEXT_KEYWORD=visible_field_labels_json | MATCH_COUNT=0
+CONTEXT_KEYWORD=warnings_json | MATCH_COUNT=0
+CONTEXT_KEYWORD=ai_confidence | MATCH_COUNT=6
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=1 | MATCH_LINE=3080 | START_LINE=3077 | END_LINE=3085
+  3077 |     ]);
+  3078 | 
+  3079 |     const confidenceRaw = window.pickDraftValue(draft, [
+  3080 |       "ai_confidence",
+  3081 |       "confidence",
+  3082 |       "confidence_level",
+  3083 |       "draftAiConfidence"
+  3084 |     ]);
+  3085 | 
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=2 | MATCH_LINE=4996 | START_LINE=4993 | END_LINE=5001
+  4993 |     count += window.hdOriginSetControlValueLoose("draftAiTaxPublicFlag", s.tax_public || d.tax_public || "");
+  4994 |     count += window.hdOriginSetControlValueLoose("draftAiContractFlag", s.contract_insurance_lease || d.contract_insurance_lease || "");
+  4995 | 
+  4996 |     count += window.hdOriginSetControlValueLoose("draftAiConfidence", d.confidence_label || d.ai_confidence || s.confidence_label || d.confidence || "");
+  4997 |     count += window.hdOriginSetControlValueLoose("draftAiReason", d.review_reason || s.reason || d.reason || "");
+  4998 | 
+  4999 |     count += window.hdOriginSetControlValueLoose("draftAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
+  5000 |     count += window.hdOriginSetControlValueLoose("draftDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
+  5001 | 
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=3 | MATCH_LINE=5301 | START_LINE=5298 | END_LINE=5306
+  5298 |       public_utility_label: controlValue("draftAiPublicUtilityFlag"),
+  5299 |       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5300 | 
+  5301 |       ai_confidence_label: controlValue("draftAiConfidence"),
+  5302 |       ai_reason: controlValue("draftAiReason"),
+  5303 |       review_reason: controlValue("draftAiReason"),
+  5304 | 
+  5305 |       needs_review:
+  5306 |         controlLabel("draftAiDestination").includes("要確認") ||
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=4 | MATCH_LINE=5828 | START_LINE=5825 | END_LINE=5833
+  5825 |       public_utility_label: textValue(aiSummary.public_utility),
+  5826 |       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5827 | 
+  5828 |       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5829 |       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5830 |       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5831 |       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5832 |       needs_review: !!(draft.needs_review || root.needs_review),
+  5833 | 
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=5 | MATCH_LINE=5829 | START_LINE=5826 | END_LINE=5834
+  5826 |       contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
+  5827 | 
+  5828 |       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5829 |       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5830 |       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5831 |       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5832 |       needs_review: !!(draft.needs_review || root.needs_review),
+  5833 | 
+  5834 |       ai_summary: aiSummary,
+
+CONTEXT_BLOCK | KEYWORD=ai_confidence | MATCH_NO=6 | MATCH_LINE=6129 | START_LINE=6126 | END_LINE=6134
+  6126 |     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
+  6127 |     pushField(fields, section, "要確認", "public_utility", draft.public_utility_label || summary.public_utility || "");
+  6128 |     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
+  6129 |     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
+  6130 |     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
+  6131 |     pushField(fields, section, "AI判定理由", "review_reason", draft.review_reason || draft.ai_reason || draft.reason || raw.review_reason || raw.ai_reason || raw.reason || "");
+  6132 |   }
+  6133 | 
+  6134 |   function pushObject(fields, section, obj) {
+CONTEXT_KEYWORD=ai_reason | MATCH_COUNT=4
+
+CONTEXT_BLOCK | KEYWORD=ai_reason | MATCH_NO=1 | MATCH_LINE=3093 | START_LINE=3090 | END_LINE=3098
+  3090 |       "confirm_notes",
+  3091 |       "required_confirmation",
+  3092 |       "internal_memo",
+  3093 |       "ai_reason",
+  3094 |       "reason"
+  3095 |     ]);
+  3096 | 
+  3097 |     const kindLabel = window.jpSortingLabel(kindRaw || group, "未判定");
+  3098 |     const destinationLabel = window.jpSortingLabel(destinationRaw, "未判定");
+
+CONTEXT_BLOCK | KEYWORD=ai_reason | MATCH_NO=2 | MATCH_LINE=5302 | START_LINE=5299 | END_LINE=5307
+  5299 |       contract_insurance_lease_label: controlValue("draftAiContractFlag"),
+  5300 | 
+  5301 |       ai_confidence_label: controlValue("draftAiConfidence"),
+  5302 |       ai_reason: controlValue("draftAiReason"),
+  5303 |       review_reason: controlValue("draftAiReason"),
+  5304 | 
+  5305 |       needs_review:
+  5306 |         controlLabel("draftAiDestination").includes("要確認") ||
+  5307 |         controlLabel("draftAccountingCategory").includes("要確認") ||
+
+CONTEXT_BLOCK | KEYWORD=ai_reason | MATCH_NO=3 | MATCH_LINE=5830 | START_LINE=5827 | END_LINE=5835
+  5827 | 
+  5828 |       ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
+  5829 |       ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
+  5830 |       ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
+  5831 |       review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
+  5832 |       needs_review: !!(draft.needs_review || root.needs_review),
+  5833 | 
+  5834 |       ai_summary: aiSummary,
+  5835 |       sortResult: root,
+
+CONTEXT_BLOCK | KEYWORD=ai_reason | MATCH_NO=4 | MATCH_LINE=6131 | START_LINE=6128 | END_LINE=6136
+  6128 |     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
+  6129 |     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
+  6130 |     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
+  6131 |     pushField(fields, section, "AI判定理由", "review_reason", draft.review_reason || draft.ai_reason || draft.reason || raw.review_reason || raw.ai_reason || raw.reason || "");
+  6132 |   }
+  6133 | 
+  6134 |   function pushObject(fields, section, obj) {
+  6135 |     obj = obj && typeof obj === "object" ? obj : {};
+  6136 | 
+CONTEXT_KEYWORD=current_status | MATCH_COUNT=0
+
+==============================================================================
+現物抽出結果
+==============================================================================
+FUNCTION_BODY_EXTRACTION=COMPLETE
+FORMAL_STAGE3_API_CONTEXT_EXTRACTION=COMPLETE
+FORMAL_SAVE_API_CONTEXT_EXTRACTION=COMPLETE
+LEGACY_NAME_REFERENCE_EXTRACTION=COMPLETE
+FORMAL_PAYLOAD_REFERENCE_EXTRACTION=COMPLETE
+PROJECT_FILE_UPDATE=NO
+DATABASE_UPDATE=NO
+MEMO=C:\Users\yossh.2FLABO\Desktop\新しいフォルダー\wix-test\hd-origin-project\00_GPT\bank_transaction_save_blocks_inspection_20260727_161452\BANK_TRANSACTION_SAVE_BLOCKS_INSPECTION.txt
+OVERALL_STATUS=SUCCESS
