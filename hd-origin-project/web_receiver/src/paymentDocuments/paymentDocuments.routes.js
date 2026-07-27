@@ -10767,14 +10767,14 @@ await client.query("COMMIT");
           FROM accounting.payment_document_current_statuses current_master
           CROSS JOIN accounting.payment_document_current_statuses target_master
           WHERE current_master.current_status = $1
-            AND target_master.current_status = '専門解析'
+            AND target_master.current_status = '専門解析待ち'
             AND target_master.is_active = TRUE
           LIMIT 1
         `, [lockedOcrRow.current_status]);
         const nextCurrentStatus = nextStatusResult.rows[0]?.current_status;
 
         if (!nextCurrentStatus) {
-          const error = new Error("既存の専門解析ステータスを取得できません。");
+          const error = new Error("既存の専門解析待ちステータスを取得できません。");
           error.statusCode = 409;
           throw error;
         }
