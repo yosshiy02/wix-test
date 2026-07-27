@@ -99,8 +99,6 @@
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
         <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて仕分け</button>
-        <button type="button" class="action-btn sorting-bulk-save" onclick="runBulkSaveBasicAnalysisResults()">まとめて保存</button>
-<!-- GPT00_AUTOSAVE: 保存ボタン廃止 -->
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -2622,62 +2620,11 @@ function setDocumentPreview(item) {
     };
   }
 
-  function hdOriginAiSpecialistRequestPayload(company, item) {
-    const source = item && typeof item === "object" ? item : {};
-    const basic = source.latestBasicAnalysis || source.latest_basic_analysis || source.basicAnalysis || source.basic_analysis || {};
-    const raw = basic.rawResult || basic.raw_result || source.__aiRawResult || source.aiRawResult || {};
-    const draft = raw.draft || raw.aiDraft || raw.ai_draft || source.__aiDraft || source.aiDraft || {};
-    const firstText = function () {
-      for (const value of arguments) {
-        const text = String(value || "").trim();
-        if (text) return text;
-      }
-      return "";
+  function hdOriginAiBasicAnalysisRequestPayload(company) {
+    return {
+      company_id: company.company_id,
+      company_code: company.company_code
     };
-
-    const analysisSystemCode = firstText(
-      source.analysisSystemCode,
-      source.analysis_system_code,
-      basic.analysisSystemCode,
-      basic.analysis_system_code,
-      draft.analysisSystemCode,
-      draft.analysis_system_code,
-      raw.analysisSystemCode,
-      raw.analysis_system_code
-    );
-    const documentGroup = firstText(
-      source.__documentGroup,
-      source.document_group,
-      basic.documentGroup,
-      basic.document_group,
-      draft.documentGroup,
-      draft.document_group,
-      raw.documentGroup,
-      raw.document_group
-    );
-    const specialistRouteCode = firstText(
-      source.specialistRouteCode,
-      source.specialist_route_code,
-      basic.specialistRouteCode,
-      basic.specialist_route_code,
-      draft.specialistRouteCode,
-      draft.specialist_route_code,
-      raw.specialistRouteCode,
-      raw.specialist_route_code,
-      documentGroup
-    );
-
-    if (!specialistRouteCode && !documentGroup) {
-      throw new Error("専門解析経路が基礎解析結果または画面選択から取得できません。");
-    }
-
-    return Object.assign({}, company, {
-      analysisSystemCode: analysisSystemCode,
-      analysis_system_code: analysisSystemCode,
-      specialist_route_code: specialistRouteCode || documentGroup,
-      document_group: documentGroup || specialistRouteCode,
-      group: documentGroup || specialistRouteCode
-    });
   }
 
   async function runAiDraftFromSelectedOcr() {
@@ -2693,13 +2640,9 @@ function setDocumentPreview(item) {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
-      const requestPayload =
-        hdOriginAiSpecialistRequestPayload(
-          currentCompany,
-          Array.isArray(items) ? items[selectedIndex] : null
-        );
+      const requestPayload = hdOriginAiBasicAnalysisRequestPayload(currentCompany);
 
-      const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
+      const res = await fetch("/api/payment-documents/ai-basic-analysis/" + encodeURIComponent(String(id)), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestPayload)
@@ -2717,24 +2660,24 @@ function setDocumentPreview(item) {
         Array.isArray(data.visible_field_labels)
           ? data.visible_field_labels.slice()
           : (
-              data.draft &&
-              Array.isArray(data.draft.visible_field_labels)
-                ? data.draft.visible_field_labels.slice()
+              data.basicAnalysisResult &&
+              Array.isArray(data.basicAnalysisResult.visibleFieldLabels)
+                ? data.basicAnalysisResult.visibleFieldLabels.slice()
                 : []
             );
 
       if (
-        data.draft &&
-        typeof data.draft === "object" &&
-        !Array.isArray(data.draft)
+        data.basicAnalysisResult &&
+        typeof data.basicAnalysisResult === "object" &&
+        !Array.isArray(data.basicAnalysisResult)
       ) {
-        data.draft.visible_field_labels =
+        data.basicAnalysisResult.visible_field_labels =
           preservedVisibleFieldLabels;
 
 
       }
       /* HD_ORIGIN_PRESERVE_AI_DISPLAY_METADATA_20260721_END */
-      const appliedCount = applyAiDraftToFormHardDebug(data.draft) + applyAiFieldMap(data.draft.fields || {});
+      const appliedCount = applyAiDraftToFormHardDebug(data.basicAnalysisResult.detail || data.basicAnalysisResult) + applyAiFieldMap(data.basicAnalysisResult.detail?.fields || {});
       
       if (data.visible_field_labels && data.visible_field_labels.length > 0) {
         showVisibleFieldsOnly(data.visible_field_labels);
@@ -2746,10 +2689,10 @@ function setDocumentPreview(item) {
         ok: true,
         message: "基礎解析が完了しました。" + savedInfo + "\nAI項目反映件数: " + appliedCount + "件",
         image_used: data.image_used,
-        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        document_group: data.document_group || "",
         visible_field_labels: data.visible_field_labels || [],
         ai_steps: data.ai_steps || [],
-        draft: data.draft
+        basicAnalysisResult: data.basicAnalysisResult
       });
     } catch (error) {
       showResult({
@@ -3013,14 +2956,10 @@ async function runAiDraftForItemIndex(index, options = {}) {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
-      const requestPayload =
-        hdOriginAiSpecialistRequestPayload(
-          currentCompany,
-          item
-        );
+      const requestPayload = hdOriginAiBasicAnalysisRequestPayload(currentCompany);
 
       const res = await fetch(
-        "/api/payment-documents/ai-specialist/" +
+        "/api/payment-documents/ai-basic-analysis/" +
         encodeURIComponent(id),
         {
           method: "POST",
@@ -3060,11 +2999,11 @@ async function runAiDraftForItemIndex(index, options = {}) {
         };
       }
 
-      const draft =
-        data.draft &&
-        typeof data.draft === "object" &&
-        !Array.isArray(data.draft)
-          ? data.draft
+      const basicAnalysisResult =
+        data.basicAnalysisResult &&
+        typeof data.basicAnalysisResult === "object" &&
+        !Array.isArray(data.basicAnalysisResult)
+          ? data.basicAnalysisResult
           : {};
 
       const aiSteps =
@@ -3100,15 +3039,15 @@ async function runAiDraftForItemIndex(index, options = {}) {
           ? data.visible_field_labels
           : (
               Array.isArray(
-                draft.visible_field_labels
+                basicAnalysisResult.visibleFieldLabels
               )
-                ? draft.visible_field_labels
+                ? basicAnalysisResult.visibleFieldLabels
                 : []
             );
 
       item.__documentGroup =
         data.document_group ||
-        draft.document_group ||
+        basicAnalysisResult.documentGroup ||
         "";
 
       item.__aiSteps = aiSteps;
@@ -3124,7 +3063,7 @@ async function runAiDraftForItemIndex(index, options = {}) {
       }
 
       const appliedCount =
-        applyAiDraftToFormHardDebug(draft);
+        applyAiDraftToFormHardDebug(basicAnalysisResult.detail || basicAnalysisResult);
 
       if (
         typeof showVisibleFieldsOnly
@@ -3138,22 +3077,17 @@ async function runAiDraftForItemIndex(index, options = {}) {
       window.__lastAiDraftAppliedCount =
         appliedCount;
 
-      if (
-        typeof window
-          .hdOriginRunBasicAnalysisAutoSave
-        !== "function"
-      ) {
+      if (false) {
         throw new Error(
           "基礎解析自動保存関数が" +
           "見つかりません。"
         );
       }
 
-      const autoSaved =
-        await window
-          .hdOriginRunBasicAnalysisAutoSave(
-            "ai"
-          );
+      const autoSaved = {
+        ok: true,
+        basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null
+      };
 
       if (
         !autoSaved ||
@@ -3192,12 +3126,7 @@ async function runAiDraftForItemIndex(index, options = {}) {
             item.__documentGroup,
           visible_field_labels:
             item.__visibleFieldLabels,
-          specialistAnalysisId:
-            autoSaved
-              .specialistAnalysisId ||
-            autoSaved
-              .specialist_analysis_id ||
-            null,
+          basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null,
           appliedCount
         });
       }
@@ -3211,12 +3140,7 @@ async function runAiDraftForItemIndex(index, options = {}) {
           item.__documentGroup,
         visible_field_labels:
           item.__visibleFieldLabels,
-        specialistAnalysisId:
-          autoSaved
-            .specialistAnalysisId ||
-          autoSaved
-            .specialist_analysis_id ||
-          null,
+        basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null,
         appliedCount
       };
     }
@@ -3672,7 +3596,7 @@ async function runSelectedAiDrafts() {
   window.applySortingAiResultToItem = function(item, data) {
     if (!item || !data) return;
     item.__visibleFieldLabels = ["会計区分", "専門解析先", "発行日", "信頼度", "理由"];
-    item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+    item.__documentGroup = data.document_group || (data.basicAnalysisResult && data.basicAnalysisResult.documentGroup) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
   };
@@ -3736,14 +3660,10 @@ async function runSelectedAiDrafts() {
     try {
       const currentCompany =
         hdOriginGetCurrentCompanyForPaymentDocument();
-      const requestPayload =
-        hdOriginAiSpecialistRequestPayload(
-          currentCompany,
-          item
-        );
+      const requestPayload = hdOriginAiBasicAnalysisRequestPayload(currentCompany);
 
       const res = await fetch(
-        "/api/payment-documents/ai-specialist/" +
+        "/api/payment-documents/ai-basic-analysis/" +
         encodeURIComponent(id),
         {
           method: "POST",
@@ -3783,11 +3703,11 @@ async function runSelectedAiDrafts() {
         };
       }
 
-      const draft =
-        data.draft &&
-        typeof data.draft === "object" &&
-        !Array.isArray(data.draft)
-          ? data.draft
+      const basicAnalysisResult =
+        data.basicAnalysisResult &&
+        typeof data.basicAnalysisResult === "object" &&
+        !Array.isArray(data.basicAnalysisResult)
+          ? data.basicAnalysisResult
           : {};
 
       const aiSteps =
@@ -3827,15 +3747,15 @@ async function runSelectedAiDrafts() {
           ? data.visible_field_labels
           : (
               Array.isArray(
-                draft.visible_field_labels
+                basicAnalysisResult.visibleFieldLabels
               )
-                ? draft.visible_field_labels
+                ? basicAnalysisResult.visibleFieldLabels
                 : []
             );
 
       item.__documentGroup =
         data.document_group ||
-        draft.document_group ||
+        basicAnalysisResult.documentGroup ||
         "";
 
       item.__aiSteps = aiSteps;
@@ -3852,7 +3772,7 @@ async function runSelectedAiDrafts() {
       }
 
       const appliedCount =
-        applyAiDraftToFormHardDebug(draft);
+        applyAiDraftToFormHardDebug(basicAnalysisResult.detail || basicAnalysisResult);
 
       if (
         typeof showVisibleFieldsOnly
@@ -3866,22 +3786,17 @@ async function runSelectedAiDrafts() {
       window.__lastAiDraftAppliedCount =
         appliedCount;
 
-      if (
-        typeof window
-          .hdOriginRunBasicAnalysisAutoSave
-        !== "function"
-      ) {
+      if (false) {
         throw new Error(
           "基礎解析自動保存関数が" +
           "見つかりません。"
         );
       }
 
-      const autoSaved =
-        await window
-          .hdOriginRunBasicAnalysisAutoSave(
-            "ai"
-          );
+      const autoSaved = {
+        ok: true,
+        basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null
+      };
 
       if (
         !autoSaved ||
@@ -3926,12 +3841,7 @@ async function runSelectedAiDrafts() {
             item.__documentGroup,
           visible_field_labels:
             item.__visibleFieldLabels,
-          specialistAnalysisId:
-            autoSaved
-              .specialistAnalysisId ||
-            autoSaved
-              .specialist_analysis_id ||
-            null,
+          basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null,
           appliedCount
         });
       }
@@ -3953,12 +3863,7 @@ async function runSelectedAiDrafts() {
           item.__aiSteps,
         document_group:
           item.__documentGroup,
-        specialistAnalysisId:
-          autoSaved
-            .specialistAnalysisId ||
-          autoSaved
-            .specialist_analysis_id ||
-          null,
+        basicAnalysisId: data.basicAnalysisId || data.basic_analysis_id || null,
         appliedCount
       };
     }
@@ -5658,1468 +5563,8 @@ count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_tar
 
 
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
-(function () {
-  "use strict";
-
-  if (window.__hdOriginBasicAnalysisSaveUiInstalled) {
-    return;
-  }
-
-  window.__hdOriginBasicAnalysisSaveUiInstalled = true;
-
-  function textValue(value) {
-    if (value === null || value === undefined) return "";
-    return String(value).trim();
-  }
-
-  function byId(id) {
-    return document.getElementById(id);
-  }
-
-  function controlValue(id) {
-    const el = byId(id);
-    if (!el) return "";
-
-    if (el.tagName === "SELECT") {
-      return textValue(el.value);
-    }
-
-    return textValue(el.value || el.textContent);
-  }
-
-  function controlLabel(id) {
-    const el = byId(id);
-    if (!el) return "";
-
-    if (el.tagName === "SELECT") {
-      const opt = el.selectedOptions && el.selectedOptions[0];
-
-      if (opt) {
-        return textValue(opt.textContent);
-      }
-
-      return "";
-    }
-
-    return textValue(el.value || el.textContent);
-  }
-
-  function selectedOptionCode(id, fallbackLabel) {
-    const el = byId(id);
-
-    if (el && el.tagName === "SELECT") {
-      const opt = el.selectedOptions && el.selectedOptions[0];
-
-      if (opt) {
-        const dataCode =
-          opt.dataset.code ||
-          opt.dataset.internalCode ||
-          opt.dataset.programCode ||
-          opt.getAttribute("data-code") ||
-          opt.getAttribute("data-internal-code") ||
-          opt.getAttribute("data-program-code") ||
-          "";
-
-        if (textValue(dataCode)) return textValue(dataCode);
-
-        const optionValue = textValue(opt.value);
-
-        if (
-          optionValue &&
-          !/^[0-9]+$/.test(optionValue) &&
-          optionValue !== "0"
-        ) {
-          return optionValue;
-        }
-      }
-    }
-
-    return codeFromLabel(fallbackLabel || controlLabel(id));
-  }
-
-  function codeFromLabel(label) {
-    const s = textValue(label).replace(/[　\s・･／\/（）()]/g, "");
-
-    const map = [
-      ["公共料金通知書", "utility_notice"],
-      ["水道料金通知書", "utility_notice"],
-      ["電気料金", "utility_notice"],
-      ["ガス料金", "utility_notice"],
-      ["通信費", "utility_notice"],
-
-      ["その他証憑", "other"],
-      ["要確認", "needs_review"],
-
-      ["請求書", "invoice"],
-      ["領収書", "receipt"],
-      ["納付書", "tax_payment_notice"],
-      ["納税通知書", "tax_payment_notice"],
-      ["カード利用明細", "card_statement"],
-      ["保険料通知書", "insurance_notice"],
-      ["リース契約書", "lease_contract"],
-      ["契約書", "contract"],
-      ["メール保存", "mail_saved"],
-      ["Web明細", "web_statement"],
-
-      ["経費管理", "expense"],
-      ["経費", "expense"],
-      ["買掛管理", "accounts_payable"],
-      ["買掛", "accounts_payable"],
-      ["未払", "unpaid"],
-      ["税金公的支払い", "tax_public"],
-      ["税金公的支払", "tax_public"],
-      ["カード未払", "card_payable"],
-
-      ["公共料金", "public_utility"],
-      ["保険", "insurance"],
-      ["リース", "lease"],
-      ["税金", "tax"],
-      ["通常", "normal"]
-    ];
-
-    for (const pair of map) {
-      if (s.includes(pair[0])) {
-        return pair[1];
-      }
-    }
-
-    return "";
-  }
-
-  function numericOrNull(value) {
-    const n = Number(value);
-    return Number.isFinite(n) && n > 0 ? n : null;
-  }
-
-  function findSelectedOcrImportId() {
-    /* HD_ORIGIN_SPECIALIST_ANALYSIS_SELECTED_OCR_ID_FIX_GPT00_20260709_START */
-    const functionNames = [
-      "selectedOcrImportId",
-      "getSelectedOcrImportId",
-      "currentOcrImportId",
-      "getCurrentOcrImportId"
-    ];
-
-    for (const name of functionNames) {
-      if (typeof window[name] !== "function") continue;
-
-      try {
-        const n = Number(window[name]());
-
-        if (Number.isInteger(n) && n > 0) {
-          return n;
-        }
-      } catch (error) {}
-    }
-
-    try {
-      if (typeof window.selectedItem === "function") {
-        const item = window.selectedItem();
-
-        if (item && typeof item === "object") {
-          const n = Number(
-            item.paymentDocumentOcrImportId ||
-            item.payment_document_ocr_import_id ||
-            item.ocrImportId ||
-            item.ocr_import_id ||
-            item.id
-          );
-
-          if (Number.isInteger(n) && n > 0) {
-            return n;
-          }
-        }
-      }
-    } catch (error) {}
-
-    try {
-      if (typeof window.ocrImportIdOf === "function" && typeof window.selectedItem === "function") {
-        const n = Number(window.ocrImportIdOf(window.selectedItem()));
-
-        if (Number.isInteger(n) && n > 0) {
-          return n;
-        }
-      }
-    } catch (error) {}
-    /* HD_ORIGIN_SPECIALIST_ANALYSIS_SELECTED_OCR_ID_FIX_GPT00_20260709_END */
-const directNames = [
-      "selectedOcrImportId",
-      "currentOcrImportId",
-      "paymentDocumentOcrImportId"
-    ];
-
-    for (const name of directNames) {
-      if (window[name]) {
-        const n = Number(window[name]);
-        if (Number.isInteger(n) && n > 0) return n;
-      }
-    }
-
-    const currentObjects = [
-      window.selectedOcrImport,
-      window.currentOcrImport,
-      window.selectedPaymentDocument,
-      window.currentPaymentDocument
-    ];
-
-    for (const obj of currentObjects) {
-      if (!obj || typeof obj !== "object") continue;
-
-      const n = Number(
-        obj.paymentDocumentOcrImportId ||
-        obj.payment_document_ocr_import_id ||
-        obj.selectedOcrImportId ||
-        obj.id
-      );
-
-      if (Number.isInteger(n) && n > 0) return n;
-    }
-
-    const hiddenSelectors = [
-      "#selectedOcrImportId",
-      "#paymentDocumentOcrImportId",
-      "input[name='selectedOcrImportId']",
-      "input[name='paymentDocumentOcrImportId']",
-      "input[name='payment_document_ocr_import_id']"
-    ];
-
-    for (const selector of hiddenSelectors) {
-      const el = document.querySelector(selector);
-      if (!el) continue;
-
-      const n = Number(el.value || el.textContent || el.dataset.value);
-      if (Number.isInteger(n) && n > 0) return n;
-    }
-
-    const activeSelectors = [
-      "[data-selected-ocr-import-id]",
-      "[data-payment-document-ocr-import-id].selected",
-      "[data-payment-document-ocr-import-id].active",
-      "[data-ocr-import-id].selected",
-      "[data-ocr-import-id].active",
-      ".selected[data-id]",
-      ".active[data-id]"
-    ];
-
-    for (const selector of activeSelectors) {
-      const el = document.querySelector(selector);
-      if (!el) continue;
-
-      const n = Number(
-        el.dataset.selectedOcrImportId ||
-        el.dataset.paymentDocumentOcrImportId ||
-        el.dataset.ocrImportId ||
-        el.dataset.id
-      );
-
-      if (Number.isInteger(n) && n > 0) return n;
-    }
-
-    const params = new URLSearchParams(location.search);
-    const fromUrl = Number(
-      params.get("ocr_import_id") ||
-      params.get("ocrImportId") ||
-      params.get("selectedOcrImportId") ||
-      params.get("id")
-    );
-
-    if (Number.isInteger(fromUrl) && fromUrl > 0) {
-      return fromUrl;
-    }
-
-    return 0;
-  }
-
-  function getDisplayRotation() {
-    const candidates = [
-      window.paymentDocumentDisplayRotation,
-      window.currentDisplayRotation,
-      window.imageRotation,
-      window.previewRotation
-    ];
-
-    for (const value of candidates) {
-      const n = Number(value);
-      if ([0, 90, 180, 270].includes(n)) return n;
-    }
-
-    const el = document.querySelector("[data-display-rotation]");
-
-    if (el) {
-      const n = Number(el.dataset.displayRotation);
-      if ([0, 90, 180, 270].includes(n)) return n;
-    }
-
-    return 0;
-  }
-
-  function collectBasicAnalysisResultPayload() {
-    const ocrId = findSelectedOcrImportId();
-
-    if (!ocrId) {
-      throw new Error("選択中OCR IDが取得できません。");
-    }
-
-    const selectedItem =
-      typeof selectedIndex !== "undefined" &&
-      Array.isArray(items) &&
-      items[selectedIndex]
-        ? items[selectedIndex]
-        : null;
-
-    const currentDraft = {};
-
-    document
-      .querySelectorAll("[id^='draft']")
-      .forEach(function (element) {
-        const name = String(element.id || "")
-          .replace(/^draft/, "");
-
-        if (!name) {
-          return;
-        }
-
-        const key = name
-          .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-          .toLowerCase();
-
-        currentDraft[key] =
-          element.type === "checkbox"
-            ? !!element.checked
-            : (
-                "value" in element
-                  ? element.value
-                  : element.textContent || ""
-              );
-      });
-
-    function selectedText(id) {
-      const element =
-        document.getElementById(id);
-
-      if (
-        !element ||
-        element.tagName !== "SELECT"
-      ) {
-        return "";
-      }
-
-      const option =
-        element.options[element.selectedIndex];
-
-      return option
-        ? String(option.text || "").trim()
-        : "";
-    }
-
-    currentDraft.accounting_category_code =
-      currentDraft.accounting_category || "";
-
-    currentDraft.accounting_category_label =
-      selectedText("draftAccountingCategory");
-
-    currentDraft.payment_destination_code =
-      currentDraft.ai_destination ||
-      currentDraft.destination ||
-      "";
-
-    currentDraft.payment_destination_label =
-      selectedText("draftAiDestination") ||
-      selectedText("draftDestination");
-
-    currentDraft.document_type_code =
-      currentDraft.ai_document_kind ||
-      currentDraft.evidence_type ||
-      "";
-
-    currentDraft.document_type_label =
-      selectedText("draftAiDocumentKind") ||
-      selectedText("draftEvidenceType");
-
-    const currentFields =
-      Object.assign({}, currentDraft);
-
-    currentDraft.fields =
-      Object.assign({}, currentFields);
-
-    const aiSummary = {
-      analysis_system_code:
-        currentDraft.analysis_system_code || "",
-
-      confidence_label:
-        currentDraft.ai_confidence ||
-        currentDraft.analysis_system_confidence ||
-        "",
-
-      reason:
-        currentDraft.ai_reason ||
-        currentDraft.analysis_system_reason ||
-        ""
-    };
-
-    function firstText() {
-      for (const value of arguments) {
-        if (value === null || value === undefined) {
-          continue;
-        }
-
-        const text = String(value).trim();
-
-        if (text) {
-          return text;
-        }
-      }
-
-      return "";
-    }
-
-    function meaningfulControlLabel(id) {
-      const label = controlLabel(id);
-
-      if (!label) {
-        return "";
-      }
-
-      if (
-        label.includes("を選択") ||
-        label.includes("マスタ未登録") ||
-        label.includes("マスタ接続エラー") ||
-        label.includes("マスタ未接続")
-      ) {
-        return "";
-      }
-
-      return label;
-    }
-
-    function masterRowForCode(type, code) {
-      const wanted = String(code || "").trim();
-
-      if (
-        !wanted ||
-        typeof getDraftMasterRows !== "function"
-      ) {
-        return null;
-      }
-
-      const rows = getDraftMasterRows(type);
-
-      if (!Array.isArray(rows)) {
-        return null;
-      }
-
-      return rows.find(function (row) {
-        if (!row) return false;
-
-        const rowCode =
-          typeof masterRowCode === "function"
-            ? masterRowCode(row)
-            : (
-                row.code ||
-                row.document_type_code ||
-                row.payable_kind_code ||
-                ""
-              );
-
-        return String(rowCode || "").trim() === wanted;
-      }) || null;
-    }
-
-    function masterId(row) {
-      if (!row) return null;
-
-      const value =
-        typeof masterRowValue === "function"
-          ? masterRowValue(row)
-          : (
-              row.id ||
-              row.document_type_id ||
-              row.payable_kind_id ||
-              ""
-            );
-
-      return numericOrNull(value);
-    }
-
-    function masterName(row) {
-      if (!row) return "";
-
-      return firstText(
-        typeof masterRowName === "function"
-          ? masterRowName(row)
-          : "",
-        row.name,
-        row.document_type_name,
-        row.payable_kind_name
-      );
-    }
-
-    function numberFromField(value) {
-      if (
-        value === null ||
-        value === undefined ||
-        value === ""
-      ) {
-        return null;
-      }
-
-      const normalized = String(value)
-        .replace(/[,￥円\s]/g, "")
-        .trim();
-
-      if (!normalized) {
-        return null;
-      }
-
-      const number = Number(normalized);
-
-      return Number.isFinite(number)
-        ? number
-        : null;
-    }
-
-    const documentTypeCode = firstText(currentDraft.document_type_code);
-
-    const documentTypeMaster =
-      masterRowForCode(
-        "document_types",
-        documentTypeCode
-      );
-
-    const documentTypeLabel = firstText(
-      currentDraft.document_type_label,
-      masterName(documentTypeMaster)
-    );
-
-    const payableKindCode = "";
-    const payableKindMaster = null;
-    const payableKindLabel = "";
-
-    const destinationMaster =
-      masterRowForCode(
-        "payment_destinations",
-        currentDraft.payment_destination_code
-      );
-
-    const destinationLabel = firstText(
-      currentDraft.payment_destination_label,
-      masterName(destinationMaster)
-    );
-
-    const accountingCategoryMaster =
-      masterRowForCode(
-        "accounting_categories",
-        currentDraft.accounting_category_code
-      );
-
-    const accountingCategoryLabel = firstText(
-      currentDraft.accounting_category_label,
-      masterName(accountingCategoryMaster)
-    );
-
-    const analysisSystemCode = firstText(
-      currentDraft.analysis_system_code,
-      aiSummary.analysis_system_code
-    );
-
-    const analysisSystemMaster =
-      masterRowForCode(
-        "analysis_systems",
-        analysisSystemCode
-      );
-
-    const analysisSystemLabel = firstText(
-      currentDraft.analysis_system_label,
-      masterName(analysisSystemMaster)
-    );
-
-    const visibleFieldLabels =
-      selectedItem &&
-      Array.isArray(selectedItem.__visibleFieldLabels)
-        ? selectedItem.__visibleFieldLabels.slice()
-        : (
-            Array.isArray(currentDraft.visible_field_labels)
-              ? currentDraft.visible_field_labels.slice()
-              : []
-          );
-
-const analysisResult = Object.assign(
-      {},
-      currentDraft,
-      {
-        fields: Object.assign({}, currentFields),
-
-        document_type_code: documentTypeCode,
-        document_type_label: documentTypeLabel,
-
-        payable_kind_code: payableKindCode,
-        payable_kind_label: payableKindLabel,
-
-        analysis_system_code: analysisSystemCode,
-        analysis_system_label: analysisSystemLabel,
-        visible_field_labels: visibleFieldLabels
-      }
-    );
-
-
-      /* STAGE2_10_FIELDS_SAVE_20260722 */
-      analysisResult.fields.document_number = controlValue("draftDocumentNumber");
-      analysisResult.fields.reference_number = controlValue("draftReferenceNumber");
-      analysisResult.fields.issuer_name = controlValue("draftIssuer");
-      analysisResult.fields.issuer_registration_number = controlValue("draftRegistrationNo");
-      analysisResult.fields.issuer_postal_code = controlValue("draftIssuerPostalCode");
-      analysisResult.fields.issuer_address = controlValue("draftAddress");
-      analysisResult.fields.issuer_phone = controlValue("draftPhone");
-      analysisResult.fields.recipient_name = controlValue("draftRecipient");
-      analysisResult.fields.recipient_code = controlValue("draftRecipientCode");
-      analysisResult.fields.document_date = controlValue("draftIssueDate");
-    const fieldIssueDate = firstText(
-      currentFields.document_date,
-      currentDraft.document_date
-    );
-
-    if (fieldIssueDate) {
-      analysisResult.issue_date = fieldIssueDate;
-    }
-
-
-
-
-    const confidenceText = firstText(
-      controlValue("draftAiConfidence"),
-      currentDraft.analysis_system_confidence,
-      currentDraft.ai_confidence,
-      currentDraft.confidence,
-      aiSummary.confidence_label
-    ).toLowerCase();
-
-    const needsReview = currentDraft.needs_review === true;
-
-    return {
-      paymentDocumentOcrImportId: ocrId,
-
-      issue_date: analysisResult.issue_date || null,
-
-      document_type_id:
-        masterId(documentTypeMaster) ||
-        numericOrNull(currentDraft.document_type_id),
-
-      document_type_code:
-        documentTypeCode,
-
-      document_type_label:
-        documentTypeLabel,
-
-      payment_destination_id: null,
-
-      payment_destination_code: currentDraft.payment_destination_code,
-
-      payment_destination_label:
-        destinationLabel,
-
-      accounting_category_id: null,
-
-      accounting_category_code: currentDraft.accounting_category_code,
-
-      accounting_category_label:
-        accountingCategoryLabel,
-
-      payable_kind_id: null,
-
-      payable_kind_code:
-        payableKindCode,
-
-      payable_kind_label:
-        payableKindLabel,
-
-      specialist_route_code: "",
-      specialist_route_label: "",
-
-      analysis_system_code:
-        analysisSystemCode,
-
-      analysis_system_label:
-        analysisSystemLabel,
-
-      analysis_system_reason: currentDraft.analysis_system_reason,
-
-      analysis_system_confidence: currentDraft.analysis_system_confidence,
-
-      payment_target_label:
-        firstText(aiSummary.payment_target),
-
-      payable_target_label:
-        firstText(aiSummary.payable_target),
-
-      expense_target_label:
-        firstText(aiSummary.expense_target),
-
-      tax_public_label:
-        firstText(aiSummary.tax_public),
-
-      public_utility_label:
-        firstText(aiSummary.public_utility),
-
-      contract_insurance_lease_label:
-        firstText(
-          aiSummary.contract_insurance_lease
-        ),
-
-      ai_confidence:
-        firstText(
-          currentDraft.ai_confidence,
-          currentDraft.confidence
-        ),
-
-      ai_confidence_label:
-        firstText(
-          controlValue("draftAiConfidence"),
-          currentDraft.ai_confidence_label,
-          currentDraft.confidence_label,
-          aiSummary.confidence_label
-        ),
-
-      ai_reason:
-        firstText(
-          controlValue("draftAiReason"),
-          currentDraft.ai_reason,
-          currentDraft.reason,
-          aiSummary.reason
-        ),
-
-      review_reason:
-        firstText(
-          currentDraft.review_reason,
-          aiSummary.reason
-        ),
-
-      needs_review:
-        needsReview,
-
-      display_rotation:
-        getDisplayRotation(),
-
-      memo:
-        controlValue("draftMemo") ||
-        "payment-document-review 画面から下書き保存",
-
-      sortResult:
-        analysisResult,
-
-      aiDraft:
-        analysisResult,
-
-      draft:
-        analysisResult,
-
-      ai_summary:
-        aiSummary,
-
-      visible_field_labels:
-        visibleFieldLabels,
-
-      visibleFields:
-        analysisResult.fields,
-
-      fields:
-        analysisResult.fields,
-
-      warnings:
-        Array.isArray(analysisResult.warnings)
-          ? analysisResult.warnings
-          : []
-    };
-  }
-
-  async function saveBasicAnalysisResultFromReviewPage() {
-    const payload = collectBasicAnalysisResultPayload();
-    const currentCompany =
-      hdOriginGetCurrentCompanyForPaymentDocument();
-
-    payload.company_id = Number(
-      currentCompany.company_id ||
-      currentCompany.companyId ||
-      0
-    );
-
-    payload.company_code = String(
-      currentCompany.company_code ||
-      currentCompany.companyCode ||
-      ""
-    ).trim();
-
-    const res = await fetch("/api/payment-documents/basic-analysis-results/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(json.error || "下書き保存に失敗しました。");
-    }
-
-    return json;
-  }
-
-  function looksLikeDraftSaveButton(el) {
-    if (!el) return false;
-
-    const button = el.closest("button, input[type='button'], input[type='submit'], a");
-
-    if (!button) return false;
-
-    const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
-
-    if (!text) return false;
-
-    return text.includes("下書き保存") || text.includes("下書き");
-  }
-
-  document.addEventListener("click", async function (event) {
-    const button = event.target.closest("button, input[type='button'], input[type='submit'], a");
-
-    if (!looksLikeDraftSaveButton(button)) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (button.dataset.hdOriginBasicAnalysisSaving === "1") {
-      return;
-    }
-
-    button.dataset.hdOriginBasicAnalysisSaving = "1";
-
-    const originalText = button.textContent;
-
-    try {
-      if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = "下書き保存中...";
-      }
-
-      const result = await saveBasicAnalysisResultFromReviewPage();
-
-      if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = "下書き保存済み";
-      }
-
-      console.log("HD Origin specialist analysis saved:", result);
-
-      alert("基礎解析結果を保存しました。\n専門解析ID: " + (result.specialistAnalysisId || ""));
-    } catch (err) {
-      console.error("HD Origin specialist analysis save failed:", err);
-
-      if (button.tagName === "BUTTON" || button.tagName === "A") {
-        button.textContent = originalText || "下書き保存";
-      }
-
-      alert("下書き保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
-    } finally {
-      setTimeout(function () {
-        button.dataset.hdOriginBasicAnalysisSaving = "0";
-
-        if ((button.textContent || "").includes("保存中")) {
-          button.textContent = originalText || "下書き保存";
-        }
-      }, 800);
-    }
-  }, true);
-
-  window.hdOriginSaveBasicAnalysisResultFromReviewPage = saveBasicAnalysisResultFromReviewPage;
-})();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
-</script>
-<script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
-(function () {
-  "use strict";
-
-  if (window.__hdOriginBulkBasicAnalysisSaveInstalled) {
-    return;
-  }
-
-  window.__hdOriginBulkBasicAnalysisSaveInstalled = true;
-  window.hdOriginBasicAnalysisBulkCache = window.hdOriginBasicAnalysisBulkCache || {};
-
-  function textValue(value) {
-    if (value === null || value === undefined) return "";
-    return String(value).trim();
-  }
-
-  function numberId(value) {
-    const n = Number(value);
-    return Number.isInteger(n) && n > 0 ? n : 0;
-  }
-
-  function firstObject() {
-    for (const item of arguments) {
-      if (item && typeof item === "object" && !Array.isArray(item)) {
-        return item;
-      }
-    }
-
-    return {};
-  }
-
-  function aiSortIdFromUrl(url) {
-    const path = String(url || "").split("?")[0];
-    const match = path.match(/\/api\/payment-documents\/ai-sort\/([0-9]+)/);
-
-    if (!match) return 0;
-
-    return numberId(match[1]);
-  }
-
-  function cacheAiSortResult(id, json) {
-    id = numberId(id);
-
-    if (!id || !json || typeof json !== "object") {
-      return;
-    }
-
-    window.hdOriginBasicAnalysisBulkCache[String(id)] = {
-      paymentDocumentOcrImportId: id,
-      result: json,
-      cachedAt: new Date().toISOString()
-    };
-  }
-
-  if (!window.__hdOriginBulkBasicAnalysisFetchPatched && window.fetch) {
-    window.__hdOriginBulkBasicAnalysisFetchPatched = true;
-
-    const originalFetch = window.fetch.bind(window);
-
-    window.fetch = async function () {
-      const requestUrl = arguments[0] && arguments[0].url ? arguments[0].url : arguments[0];
-      const id = aiSortIdFromUrl(requestUrl);
-
-      const response = await originalFetch.apply(null, arguments);
-
-      if (id && response && response.clone) {
-        response.clone().json().then(function (json) {
-          cacheAiSortResult(id, json);
-        }).catch(function () {});
-      }
-
-      return response;
-    };
-  }
-
-  function getSelectedOcrIds() {
-    const ids = [];
-
-    function pushId(value) {
-      const id = numberId(value);
-
-      if (id && !ids.includes(id)) {
-        ids.push(id);
-      }
-    }
-
-    document.querySelectorAll("input[type='checkbox']:checked").forEach(function (el) {
-      pushId(
-        el.dataset.paymentDocumentOcrImportId ||
-        el.dataset.ocrImportId ||
-        el.dataset.id ||
-        el.value
-      );
-
-      const row = el.closest("[data-payment-document-ocr-import-id], [data-ocr-import-id], [data-id], tr, li, .item, .card");
-
-      if (row) {
-        pushId(
-          row.dataset.paymentDocumentOcrImportId ||
-          row.dataset.ocrImportId ||
-          row.dataset.id
-        );
-      }
-    });
-
-    document.querySelectorAll(".selected[data-payment-document-ocr-import-id], .active[data-payment-document-ocr-import-id], .selected[data-ocr-import-id], .active[data-ocr-import-id]").forEach(function (el) {
-      pushId(el.dataset.paymentDocumentOcrImportId || el.dataset.ocrImportId || el.dataset.id);
-    });
-
-    return ids;
-  }
-
-  function getIdsFromCache() {
-    return Object.keys(window.hdOriginBasicAnalysisBulkCache || {})
-      .map(numberId)
-      .filter(Boolean);
-  }
-
-  function buildBasicAnalysisPayloadFromCachedResult(id, cached) {
-    const result = cached && cached.result ? cached.result : cached;
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.aiDraft, result);
-    const draft = firstObject(result.draft, result.aiDraft, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
-    const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
-
-    return {
-      paymentDocumentOcrImportId: id,
-
-      document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
-      document_type_label: textValue(draft.document_type_label || root.document_type_label || aiSummary.document_kind_label),
-
-      payment_destination_code: textValue(draft.payment_destination_code || root.payment_destination_code || aiSummary.destination),
-      payment_destination_label: textValue(draft.payment_destination_label || root.payment_destination_label || aiSummary.destination_label),
-
-      accounting_category_code: textValue(draft.accounting_category_code || root.accounting_category_code),
-      accounting_category_label: textValue(draft.accounting_category_label || root.accounting_category_label),
-
-      payable_kind_code: textValue(draft.payable_kind_code || root.payable_kind_code),
-      payable_kind_label: textValue(draft.payable_kind_label || root.payable_kind_label),
-
-      specialist_route_code: textValue(draft.specialist_route_code || root.specialist_route_code || root.document_group),
-      specialist_route_label: textValue(draft.specialist_route_label || root.specialist_route_label),
-
-      payment_target_label: textValue(aiSummary.payment_target),
-      payable_target_label: textValue(aiSummary.payable_target),
-      expense_target_label: textValue(aiSummary.expense_target),
-      tax_public_label: textValue(aiSummary.tax_public),
-      public_utility_label: textValue(aiSummary.public_utility),
-      contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
-
-      ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
-      ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
-      ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
-      review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
-      needs_review: !!(draft.needs_review || root.needs_review),
-
-      ai_summary: aiSummary,
-      sortResult: root,
-      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
-      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
-
-      display_rotation: 0,
-      memo: "まとめて保存ボタンから基礎解析結果保存"
-    };
-  }
-
-  async function postBasicAnalysisResult(payload) {
-    const res = await fetch("/api/payment-documents/basic-analysis-results/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(json.error || "下書き保存に失敗しました。");
-    }
-
-    return json;
-  }
-
-  async function bulkSaveBasicAnalysisResults() {
-    let ids = getSelectedOcrIds();
-
-    if (ids.length === 0) {
-      ids = getIdsFromCache();
-    }
-
-    if (ids.length === 0) {
-      throw new Error("まとめて保存する対象が見つかりません。先にまとめて仕分けを実行してください。");
-    }
-
-    const ok = [];
-    const ng = [];
-
-    for (const id of ids) {
-      const cached = window.hdOriginBasicAnalysisBulkCache[String(id)];
-
-      if (!cached) {
-        ng.push({
-          id,
-          error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
-        });
-        continue;
-      }
-
-      try {
-        const payload = buildBasicAnalysisPayloadFromCachedResult(id, cached);
-        const saved = await postBasicAnalysisResult(payload);
-
-        ok.push({
-          id,
-          specialistAnalysisId: saved.specialistAnalysisId || ""
-        });
-      } catch (err) {
-        ng.push({
-          id,
-          error: err && err.message ? err.message : String(err)
-        });
-      }
-    }
-
-    return { ok, ng };
-  }
-
-  function ensureBulkSaveButton() {
-    if (document.getElementById("bulkSaveBasicAnalysisButton")) {
-      return document.getElementById("bulkSaveBasicAnalysisButton");
-    }
-
-    const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
-    const sortButton = buttons.find(function (button) {
-      const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
-      return text.includes("まとめて仕分け");
-    });
-
-    if (!sortButton || !sortButton.parentNode) {
-      return null;
-    }
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.id = "bulkSaveBasicAnalysisButton";
-    button.className = "btn btn-primary hd-origin-bulk-save-specialist-analysis";
-    button.textContent = "まとめて保存";
-
-    sortButton.insertAdjacentElement("afterend", button);
-
-    return button;
-  }
-
-  document.addEventListener("click", async function (event) {
-    const button = event.target.closest("#bulkSaveBasicAnalysisButton");
-
-    if (!button) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (button.dataset.saving === "1") {
-      return;
-    }
-
-    const originalText = button.textContent;
-
-    try {
-      button.dataset.saving = "1";
-      button.textContent = "まとめて保存中...";
-
-      const result = await bulkSaveBasicAnalysisResults();
-
-      button.textContent = "まとめて保存";
-
-      alert(
-        "まとめて保存が完了しました。\n" +
-        "成功: " + result.ok.length + "件\n" +
-        "失敗: " + result.ng.length + "件"
-      );
-
-      if (result.ng.length > 0) {
-        console.warn("HD Origin bulk save draft errors:", result.ng);
-      }
-    } catch (err) {
-      button.textContent = originalText || "まとめて保存";
-
-      alert("まとめて保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
-    } finally {
-      button.dataset.saving = "0";
-    }
-  }, true);
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureBulkSaveButton);
-  } else {
-    ensureBulkSaveButton();
-  }
-
-  window.hdOriginBulkSaveBasicAnalysisResults = bulkSaveBasicAnalysisResults;
-})();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
-</script>
-<script>
 </script>
 
-<!-- HD_ORIGIN_SPECIALIST_ANALYSIS_AUTOSAVE_GPT00_20260709_START -->
-<script>
-(function () {
-  "use strict";
-
-  if (window.__hdOriginBasicAnalysisAutoSaveGpt00FixedInstalled) return;
-  window.__hdOriginBasicAnalysisAutoSaveGpt00FixedInstalled = true;
-
-  var autoSaveTimer = null;
-  var autoSaveRunning = false;
-  var autoSaveQueued = false;
-  var suppressAutoSave = false;
-
-  function textValue(value) {
-    return String(value || "").replace(/\s+/g, "").trim();
-  }
-
-  function statusBox() {
-    var box = document.getElementById("sortingAutoSaveStatus");
-
-    if (box) return box;
-
-    box = document.createElement("span");
-    box.id = "sortingAutoSaveStatus";
-    box.className = "muted sorting-auto-save-status";
-    box.style.marginLeft = "0.5rem";
-    box.style.fontWeight = "800";
-    box.textContent = "自動保存: 待機";
-
-    var title = document.querySelector(".draft-panel .panel-title");
-
-    if (title) {
-      title.appendChild(box);
-    } else {
-      document.body.appendChild(box);
-    }
-
-    return box;
-  }
-
-  function setStatus(message, isError) {
-    var box = statusBox();
-
-    box.textContent = message;
-    box.style.color = isError ? "#991b1b" : "#166534";
-  }
-
-  function selectedIdExists() {
-    try {
-      if (typeof selectedOcrImportId === "function" && selectedOcrImportId()) return true;
-    } catch (error) {}
-
-    try {
-      if (typeof findSelectedOcrImportId === "function" && findSelectedOcrImportId()) return true;
-    } catch (error) {}
-
-    try {
-      if (typeof selectedItem === "function") {
-        var item = selectedItem();
-
-        if (
-          item &&
-          (
-            item.paymentDocumentOcrImportId ||
-            item.payment_document_ocr_import_id ||
-            item.ocrImportId ||
-            item.ocr_import_id
-          )
-        ) {
-          return true;
-        }
-      }
-    } catch (error) {}
-
-    return false;
-  }
-
-  function saveFunctionReady() {
-    return typeof window.hdOriginSaveBasicAnalysisResultFromReviewPage === "function";
-  }
-
-  async function runAutoSave(reason) {
-    return { ok: true, skipped: true, reason: "manual_save_only" };
-    if (suppressAutoSave) {
-      return { ok: false, skipped: true, reason: "suppressed" };
-    }
-
-    if (!selectedIdExists()) {
-      return { ok: false, skipped: true, reason: "no_selected_ocr" };
-    }
-
-    if (!saveFunctionReady()) {
-      setStatus("自動保存待機: 保存関数の読込待ち", false);
-
-      setTimeout(function () {
-        runAutoSave(reason || "human");
-      }, 500);
-
-      return { ok: false, skipped: true, reason: "save_function_not_ready" };
-    }
-
-    if (autoSaveRunning) {
-      autoSaveQueued = true;
-      return { ok: false, queued: true };
-    }
-
-    autoSaveRunning = true;
-    setStatus(reason === "ai" ? "AI結果を自動保存中..." : "修正内容を自動保存中...", false);
-
-    try {
-      /*
-        重要:
-        collectBasicAnalysisResultPayload は既存IIFE内のローカル関数なので、ここから直接呼ばない。
-        既存側が window に公開している hdOriginSaveBasicAnalysisResultFromReviewPage を呼ぶ。
-      */
-      var saved = await window.hdOriginSaveBasicAnalysisResultFromReviewPage();
-
-      setStatus("自動保存済み " + new Date().toLocaleTimeString("ja-JP", { hour12: false }), false);
-
-      return Object.assign({ ok: true }, saved || {});
-    } catch (error) {
-      var message = error && error.message ? error.message : String(error);
-
-      console.error("HD Origin specialist analysis autosave failed:", error);
-      setStatus("自動保存失敗: " + message, true);
-
-      return { ok: false, error: message };
-    } finally {
-      autoSaveRunning = false;
-
-      if (autoSaveQueued) {
-        autoSaveQueued = false;
-        scheduleAutoSave("human");
-      }
-    }
-  }
-
-  function scheduleAutoSave(reason) {
-    if (suppressAutoSave) return;
-    if (!selectedIdExists()) return;
-
-    clearTimeout(autoSaveTimer);
-    setStatus("自動保存待機中...", false);
-
-    autoSaveTimer = setTimeout(function () {
-      runAutoSave(reason || "human");
-    }, 700);
-  }
-
-  function isDraftControl(target) {
-    if (!target || !target.closest) return false;
-
-    return !!target.closest(".draft-field, .master-select");
-  }
-
-  function isSaveButton(button) {
-    if (
-      button &&
-      button.classList &&
-      button.classList.contains("sorting-bulk-save")
-    ) {
-      return false;
-    }
-
-    if (
-      button &&
-      button.getAttribute &&
-      button.getAttribute("onclick") === "runBulkSaveBasicAnalysisResults()"
-    ) {
-      return false;
-    }
-    if (!button) return false;
-
-    if (button.id === "bulkSaveBasicAnalysisButton") return true;
-    if (button.classList && button.classList.contains("hd-origin-bulk-save-specialist-analysis")) return true;
-
-    var t = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
-
-    if (!t) return false;
-
-    return t.includes("まとめて保存") || t.includes("下書き保存");
-  }
-
-  function removeSaveButtons() {
-    Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a")).forEach(function (button) {
-      if (isSaveButton(button)) {
-        button.remove();
-      }
-    });
-  }
-
-  document.addEventListener("input", function (event) {
-    if (isDraftControl(event.target)) {
-      scheduleAutoSave("human");
-    }
-  }, true);
-
-  document.addEventListener("change", function (event) {
-    if (isDraftControl(event.target)) {
-      scheduleAutoSave("human");
-    }
-  }, true);
-
-  document.addEventListener("click", function (event) {
-    var button = event.target && event.target.closest
-      ? event.target.closest("button, input[type='button'], input[type='submit'], a")
-      : null;
-
-    if (!isSaveButton(button)) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-
-    removeSaveButtons();
-    setStatus("保存ボタンは廃止済みです。自動保存します。", false);
-  }, true);
-
-  function wrapAnalyzer(name) {
-    var original = window[name];
-
-    if (typeof original !== "function" || original.__hdOriginAutoSaveGpt00FixedWrapped) {
-      return;
-    }
-
-    var wrapped = async function () {
-      suppressAutoSave = true;
-
-      try {
-        return await original.apply(this, arguments);
-      } finally {
-        suppressAutoSave = false;
-
-        setTimeout(function () {
-          runAutoSave("ai");
-        }, 0);
-      }
-    };
-
-    wrapped.__hdOriginAutoSaveGpt00FixedWrapped = true;
-    window[name] = wrapped;
-  }
-
-  function installAnalyzerWraps() {
-    wrapAnalyzer("runAiDraftFromSelectedOcr");
-    /* runAiDraftForItemIndexは関数内でDB保存完了まで待機するため自動保存ラッパー対象外 */
-  }
-
-  removeSaveButtons();
-  installAnalyzerWraps();
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      removeSaveButtons();
-      installAnalyzerWraps();
-    });
-  }
-
-  var observer = new MutationObserver(function () {
-    removeSaveButtons();
-    installAnalyzerWraps();
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
-
-  window.hdOriginRunBasicAnalysisAutoSave = runAutoSave;
-  window.hdOriginScheduleBasicAnalysisAutoSave = scheduleAutoSave;
-})();
-</script>
 <!-- HD_ORIGIN_SPECIALIST_ANALYSIS_AUTOSAVE_GPT00_20260709_END -->
 <!-- PAYMENT_DOCUMENT_REVIEW_ALL_ITEMS_MEMO_20260708_START -->
 <script>
@@ -8338,102 +6783,6 @@ const analysisResult = Object.assign(
   }
 })();
 
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_START */
-async function runBulkSaveBasicAnalysisResults() {
-  const button = document.querySelector(".sorting-bulk-save");
-
-  if (button) {
-    button.disabled = true;
-    button.dataset.originalText =
-      button.dataset.originalText ||
-      button.textContent ||
-      "まとめて保存";
-    button.textContent = "保存中...";
-  }
-
-  try {
-    const selectedIndexes =
-      typeof selectedSortingIndexes === "function"
-        ? selectedSortingIndexes()
-        : [];
-
-    if (!selectedIndexes.length) {
-      showResult(
-        "まとめて保存する書類にチェックを入れてください。"
-      );
-      return;
-    }
-
-    showResult(
-      "まとめて保存中: " +
-      selectedIndexes.length +
-      "件"
-    );
-
-    const result = await bulkSaveBasicAnalysisResults();
-
-    const succeeded =
-      result && Array.isArray(result.ok)
-        ? result.ok
-        : [];
-
-    const failed =
-      result && Array.isArray(result.ng)
-        ? result.ng
-        : [];
-
-    const failedText = failed.map(function (row) {
-      return (
-        "ID " +
-        String(row.id || "") +
-        ": " +
-        String(row.error || "保存失敗")
-      );
-    }).join("\n");
-
-    showResult({
-      ok: failed.length === 0,
-      message:
-        "まとめて保存が完了しました。",
-      total:
-        succeeded.length + failed.length,
-      success:
-        succeeded.length,
-      failed:
-        failed.length,
-      errors:
-        failedText
-    });
-
-    if (failed.length === 0) {
-      if (
-        typeof clearSortingSelection === "function"
-      ) {
-        clearSortingSelection();
-      }
-
-      if (typeof loadItems === "function") {
-        await loadItems();
-      }
-    }
-  } catch (error) {
-    showResult({
-      ok: false,
-      message:
-        error && error.message
-          ? error.message
-          : String(error)
-    });
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent =
-        button.dataset.originalText ||
-        "まとめて保存";
-    }
-  }
-}
-/* HD_ORIGIN_BULK_SORT_SAVE_BUTTON_20260726_END */
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>

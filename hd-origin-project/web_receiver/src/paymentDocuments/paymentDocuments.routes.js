@@ -10640,6 +10640,243 @@ await client.query("COMMIT");
     return true;
   }
   /* HD_ORIGIN_BASIC_ANALYSIS_SAVE_ROUTE_20260726_END */
+  /* HD_ORIGIN_BASIC_ANALYSIS_DIRECT_SAVE_ROUTE_20260727_START */
+  if (req.method === "POST") {
+    const basicAnalysisUrlPath = String(req.url || "").split("?")[0];
+
+    if (basicAnalysisUrlPath.startsWith("/api/payment-documents/ai-basic-analysis/")) {
+      let client;
+
+      try {
+        const idText = decodeURIComponent(
+          basicAnalysisUrlPath.replace("/api/payment-documents/ai-basic-analysis/", "")
+        ).trim();
+        const ocrImportId = Number(idText);
+        const body = await readBody(req);
+        const companyId = Number(body.company_id || body.companyId || 0);
+        const companyCode = String(body.company_code || body.companyCode || "").trim();
+
+        if (!Number.isInteger(ocrImportId) || ocrImportId < 1) {
+          const error = new Error("OCR取込IDが不正です。");
+          error.statusCode = 400;
+          throw error;
+        }
+
+        if (!Number.isInteger(companyId) || companyId < 1 || !companyCode) {
+          const error = new Error("company_id と company_code が必要です。");
+          error.statusCode = 422;
+          throw error;
+        }
+
+        const ocrResult = await db.query(`
+          SELECT
+            payment_document_ocr_import_id,
+            ocr_raw_text,
+            source_type
+          FROM accounting.payment_document_ocr_imports
+          WHERE payment_document_ocr_import_id = $1
+            AND deleted_at IS NULL
+          LIMIT 1
+        `, [ocrImportId]);
+        const ocrRow = ocrResult.rows[0];
+
+        if (!ocrRow) {
+          const error = new Error("OCR取込レコードが見つかりません。");
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const ocrText = String(ocrRow.ocr_raw_text || "").trim();
+        const sourceTypeCode = String(ocrRow.source_type || "").trim();
+
+        if (!ocrText) {
+          const error = new Error("OCR本文が空です。");
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const aiResult = await createTwoStepAiDraftFromOcrText(ocrText, {
+          company_id: companyId,
+          company_code: companyCode,
+          source_type_code: sourceTypeCode
+        });
+        const classification = aiResult.classification || {};
+        const detail = aiResult.draft || {};
+        const warnings = Array.isArray(detail.warnings) ? detail.warnings : [];
+        const documentGroup = String(
+          detail.document_group ||
+          detail.specialist_route_code ||
+          classification.document_group ||
+          ""
+        ).trim();
+        const analysisSystemCode = String(
+          detail.analysis_system_code ||
+          classification.analysis_system_code ||
+          ""
+        ).trim();
+        const analysisSystemLabel = String(
+          detail.analysis_system_label ||
+          classification.analysis_system_label ||
+          ""
+        ).trim();
+        const visibleFieldLabels = Array.isArray(aiResult.visible_field_labels)
+          ? aiResult.visible_field_labels
+          : [];
+        const confidenceValue = Number(
+          classification.analysis_system_confidence ?? detail.ai_confidence
+        );
+        const aiConfidence = Number.isFinite(confidenceValue)
+          ? confidenceValue
+          : null;
+        const basicAnalysisResult = {
+          paymentDocumentOcrImportId: ocrImportId,
+          companyId,
+          companyCode,
+          analysisSystemCode,
+          analysisSystemLabel,
+          documentGroup,
+          visibleFieldLabels,
+          classification,
+          detail,
+          warnings,
+          issuedAt: detail.document_date || ""
+        };
+
+        client = await db.connect();
+        await client.query("BEGIN");
+
+        const lockedOcrResult = await client.query(`
+          SELECT payment_document_ocr_import_id, current_status
+          FROM accounting.payment_document_ocr_imports
+          WHERE payment_document_ocr_import_id = $1
+            AND deleted_at IS NULL
+          FOR UPDATE
+        `, [ocrImportId]);
+        const lockedOcrRow = lockedOcrResult.rows[0];
+
+        if (!lockedOcrRow) {
+          const error = new Error("OCR取込レコードが見つかりません。");
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const nextStatusResult = await client.query(`
+          SELECT CASE
+            WHEN current_master.display_order >= target_master.display_order
+              THEN current_master.current_status
+            ELSE target_master.current_status
+          END AS current_status
+          FROM accounting.payment_document_current_statuses current_master
+          CROSS JOIN accounting.payment_document_current_statuses target_master
+          WHERE current_master.current_status = $1
+            AND target_master.current_status = '基礎解析済み'
+            AND target_master.is_active = TRUE
+          LIMIT 1
+        `, [lockedOcrRow.current_status]);
+        const nextCurrentStatus = nextStatusResult.rows[0]?.current_status;
+
+        if (!nextCurrentStatus) {
+          const error = new Error("既存の基礎解析済みステータスを取得できません。");
+          error.statusCode = 409;
+          throw error;
+        }
+
+        await client.query(`
+          UPDATE accounting.payment_document_basic_analysis_results
+          SET is_current = FALSE, updated_at = CURRENT_TIMESTAMP
+          WHERE payment_document_ocr_import_id = $1
+            AND is_current = TRUE
+        `, [ocrImportId]);
+        await client.query(`
+          LOCK TABLE accounting.payment_document_basic_analysis_results
+          IN SHARE ROW EXCLUSIVE MODE
+        `);
+
+        const inserted = await client.query(`
+          INSERT INTO accounting.payment_document_basic_analysis_results (
+            payment_document_ocr_import_id, company_id, document_type_id,
+            specialist_analysis_id, ai_confidence, ai_reason, needs_review,
+            warnings_json, raw_result_json, candidate_masters_snapshot_json,
+            output_schema_snapshot_json, prompt_snapshot, model_name,
+            prompt_version, is_current, analysis_completed, started_at,
+            completed_at, created_at, updated_at
+          ) VALUES (
+            $1, $2, NULL, NULL, $3, $4, $5, $6::jsonb, $7::jsonb,
+            $8::jsonb, $9::jsonb, NULL, NULL, NULL, TRUE, TRUE,
+            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+          )
+          RETURNING basic_analysis_id, payment_document_ocr_import_id,
+            is_current, analysis_completed, completed_at
+        `, [
+          ocrImportId,
+          companyId,
+          aiConfidence,
+          classification.analysis_system_reason || detail.ai_reason || "",
+          detail.needs_review === true || classification.needs_review === true,
+          JSON.stringify(warnings),
+          JSON.stringify(basicAnalysisResult),
+          JSON.stringify({ classification }),
+          JSON.stringify({ detail, visibleFieldLabels })
+        ]);
+        const saved = inserted.rows[0];
+
+        const statusUpdated = await client.query(`
+          UPDATE accounting.payment_document_ocr_imports
+          SET latest_basic_analysis_id = $2,
+              current_status = $3,
+              sorted_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE payment_document_ocr_import_id = $1
+            AND deleted_at IS NULL
+          RETURNING payment_document_ocr_import_id, current_status, sorted_at
+        `, [ocrImportId, saved.basic_analysis_id, nextCurrentStatus]);
+
+        if (statusUpdated.rowCount !== 1) {
+          throw new Error("OCR取込状態を更新できませんでした。");
+        }
+
+        await client.query("COMMIT");
+
+        sendJson(res, 200, {
+          ok: true,
+          basicAnalysisId: saved.basic_analysis_id,
+          basic_analysis_id: saved.basic_analysis_id,
+          paymentDocumentOcrImportId: saved.payment_document_ocr_import_id,
+          payment_document_ocr_import_id: saved.payment_document_ocr_import_id,
+          basicAnalysisResult,
+          visibleFieldLabels,
+          visible_field_labels: visibleFieldLabels,
+          aiSteps: aiResult.steps || [],
+          ai_steps: aiResult.steps || [],
+          documentGroup,
+          document_group: documentGroup,
+          analysisSystemCode,
+          analysis_system_code: analysisSystemCode,
+          analysisSystemLabel,
+          analysis_system_label: analysisSystemLabel,
+          currentStatus: statusUpdated.rows[0].current_status,
+          current_status: statusUpdated.rows[0].current_status
+        });
+      } catch (error) {
+        if (client) {
+          try {
+            await client.query("ROLLBACK");
+          } catch {}
+        }
+
+        sendJson(res, error.statusCode || 500, {
+          ok: false,
+          error: error.message || String(error)
+        });
+      } finally {
+        if (client) client.release();
+      }
+
+      return true;
+    }
+  }
+  /* HD_ORIGIN_BASIC_ANALYSIS_DIRECT_SAVE_ROUTE_20260727_END */
   /* PAYMENT_DOCUMENT_AI_SORT_ONLY_ROUTE_20260707_START */
   if (req.method === "POST") {
     const sortUrlPath = String(req.url || "").split("?")[0];
