@@ -3920,7 +3920,7 @@ async function runSelectedAiDrafts() {
       window.renderSortingList();
     }
 
-    window.renderSortingList();
+    await loadItems();
 
     const grouped = results
       .filter(row => row && row.ok)
