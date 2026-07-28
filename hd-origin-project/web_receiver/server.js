@@ -260,9 +260,6 @@ function hdOriginRestartPathIsExcluded(filePath) {
   }
 
   const excludedExtensions = [
-    ".accdb",
-    ".laccdb",
-    ".mdb",
     ".backup",
     ".data.backup",
     ".bak",

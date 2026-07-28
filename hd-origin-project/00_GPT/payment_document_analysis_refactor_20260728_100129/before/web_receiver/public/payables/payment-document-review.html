@@ -14,8 +14,8 @@
      * 人間向け画面には表示しない。
      */
 
-    label:has(#analysisAiDestination),
-    label:has(#analysisDestination) {
+    label:has(#draftAiDestination),
+    label:has(#draftDestination) {
       display: none !important;
     }
 
@@ -130,7 +130,7 @@
       </div>
     </section>
 
-    <section class="panel analysis-panel">
+    <section class="panel draft-panel">
       <div class="panel-title">
         <span>AI候補・仕分け確認</span>
         <div class="record-navigation">
@@ -151,15 +151,15 @@
         </div>
       </div>
 
-            <div class="analysis-form-scroll">
+            <div class="draft-form-scroll">
         <!-- HD_ORIGIN_BASIC_ANALYSIS_LAYOUT_20260711_START -->
-        <section class="analysis-section stage1-sorting-block">
-          <div class="analysis-section-title">基礎解析</div>
+        <section class="draft-section stage1-sorting-block">
+          <div class="draft-section-title">基礎解析</div>
           <div class="form-grid">
             <label>
               会計区分
-              <select class="analysis-field master-select"
-                      id="analysisAccountingCategory"
+              <select class="draft-field master-select"
+                      id="draftAccountingCategory"
                       data-master-type="accounting_categories"
                       data-master-label="会計区分">
                 <option value="">マスタ読込中...</option>
@@ -168,8 +168,8 @@
 
             <label>
               取込媒体
-              <select class="analysis-field master-select"
-                      id="analysisPaymentSourceType"
+              <select class="draft-field master-select"
+                      id="draftPaymentSourceType"
                       data-master-type="payment_source_types"
                       data-master-label="取込媒体">
                 <option value="">マスタ読込中.</option>
@@ -178,8 +178,8 @@
 
             <label hidden aria-hidden="true" data-internal-field="payment-destination">
               処理先
-              <select class="analysis-field master-select"
-                      id="analysisAiDestination"
+              <select class="draft-field master-select"
+                      id="draftAiDestination"
                       data-master-type="payment_destinations"
                       data-master-label="処理先">
                 <option value="">マスタ読込中...</option>
@@ -188,550 +188,550 @@
 
             <label>
               専門解析先
-              <select class="analysis-field master-select"
-                      id="analysisAnalysisSystemLabel"
+              <select class="draft-field master-select"
+                      id="draftAnalysisSystemLabel"
                       data-master-type="analysis_systems"
                       data-master-label="専門解析先">
                 <option value="">マスタ読込中.</option>
               </select>
-              <input class="analysis-field"
+              <input class="draft-field"
                      type="hidden"
-                     id="analysisAnalysisSystemCode">
-              <input class="analysis-field"
+                     id="draftAnalysisSystemCode">
+              <input class="draft-field"
                      type="hidden"
-                     id="analysisAnalysisSystemReason">
-              <input class="analysis-field"
+                     id="draftAnalysisSystemReason">
+              <input class="draft-field"
                      type="hidden"
-                     id="analysisAnalysisSystemConfidence">
+                     id="draftAnalysisSystemConfidence">
             </label>
 
             <label>
               発行日
-              <input class="analysis-field"
-                     id="analysisIssueDate"
+              <input class="draft-field"
+                     id="draftIssueDate"
                      placeholder="例：2026-07-01">
             </label>
 
             <label>
               信頼度
-              <input class="analysis-field"
-                     id="analysisAiConfidence"
+              <input class="draft-field"
+                     id="draftAiConfidence"
                      placeholder="例：高 / 中 / 低">
             </label>
 
             <label class="span2">
               理由
-              <textarea class="analysis-field small-textarea"
-                        id="analysisAiReason"
+              <textarea class="draft-field small-textarea"
+                        id="draftAiReason"
                         placeholder="会計区分・専門解析先・発行日を判断した理由"></textarea>
             </label>
           </div>
         </section>
         <!-- HD_ORIGIN_BASIC_ANALYSIS_LAYOUT_20260711_END -->
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">基本情報</div>
+        <section class="draft-section">
+          <div class="draft-section-title">基本情報</div>
           <div class="form-grid">
                         <label>
               証憑区分
-              <select class="analysis-field master-select" id="analysisEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               書類名
-              <input class="analysis-field" id="analysisDocumentTitle" placeholder="例：法人市民税納付書">
+              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
             </label>
                           <label>
                 書類番号
-                <input class="analysis-field" id="analysisDocumentNumber">
+                <input class="draft-field" id="draftDocumentNumber">
               </label>
               <label>
                 参照番号
-                <input class="analysis-field" id="analysisReferenceNumber">
+                <input class="draft-field" id="draftReferenceNumber">
               </label>
               <label>
                 発行元郵便番号
-                <input class="analysis-field" id="analysisIssuerPostalCode">
+                <input class="draft-field" id="draftIssuerPostalCode">
               </label>
 <label>
               発行元
-              <input class="analysis-field" id="analysisIssuer" placeholder="例：大阪市あべの市税事務所">
+              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
             </label>
             <label>
               支払先
-              <input class="analysis-field" id="analysisVendorName" placeholder="例：株式会社〇〇">
+              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
             </label>
             <label>
               宛名
-              <input class="analysis-field" id="analysisRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
+              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
             </label>
               <label>
                 宛先コード
-                <input class="analysis-field" id="analysisRecipientCode">
+                <input class="draft-field" id="draftRecipientCode">
               </label>
             <label>
               会社名
-              <input class="analysis-field" id="analysisCompanyName" placeholder="例：株式会社HDオリジンスタイル">
+              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
             </label>
             <label>
               個人名
-              <input class="analysis-field" id="analysisPersonName" placeholder="例：坂口 喜康">
+              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
             </label>
             <label>
               部署名
-              <input class="analysis-field" id="analysisDepartmentName" placeholder="例：経理部 / 総務">
+              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
             </label>
             <label>
               担当者名
-              <input class="analysis-field" id="analysisContactName" placeholder="例：山田 太郎">
+              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
             </label>
             <label class="span2">
               住所
-              <input class="analysis-field" id="analysisAddress" placeholder="例：大阪市...">
+              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
             </label>
             <label>
               電話番号
-              <input class="analysis-field" id="analysisPhone" placeholder="例：06-0000-0000">
+              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
             </label>
             <label>
               メール
-              <input class="analysis-field" id="analysisEmail" placeholder="例：info@example.com">
+              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
             </label>
             <label class="span2">
               Webサイト
-              <input class="analysis-field" id="analysisWebsite" placeholder="例：https://...">
+              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">番号・識別情報</div>
+        <section class="draft-section">
+          <div class="draft-section-title">番号・識別情報</div>
           <div class="form-grid">
             <label>
               請求書番号
-              <input class="analysis-field" id="analysisInvoiceNo" placeholder="例：INV-202607-001">
+              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
             </label>
             <label>
               領収書番号
-              <input class="analysis-field" id="analysisReceiptNo" placeholder="例：R-0001">
+              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
             </label>
             <label>
               納付番号
-              <input class="analysis-field" id="analysisPaymentNo" placeholder="例：納付番号">
+              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
             </label>
             <label>
               通知書番号
-              <input class="analysis-field" id="analysisNoticeNo" placeholder="例：通知番号">
+              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
             </label>
             <label>
               管理番号
-              <input class="analysis-field" id="analysisManagementNo" placeholder="例：管理番号">
+              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
             </label>
             <label>
               お客様番号
-              <input class="analysis-field" id="analysisCustomerNo" placeholder="例：お客様番号">
+              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
             </label>
             <label>
               契約番号
-              <input class="analysis-field" id="analysisContractNo" placeholder="例：契約番号">
+              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
             </label>
             <label>
               会員番号
-              <input class="analysis-field" id="analysisMemberNo" placeholder="例：会員番号">
+              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
             </label>
             <label>
               注文番号
-              <input class="analysis-field" id="analysisOrderNo" placeholder="例：注文番号">
+              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
             </label>
             <label>
               取引番号
-              <input class="analysis-field" id="analysisTransactionNo" placeholder="例：取引番号">
+              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
             </label>
             <label>
               登録番号
-              <input class="analysis-field" id="analysisRegistrationNo" placeholder="例：T1234567890123">
+              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
             </label>
             <label>
               法人番号
-              <input class="analysis-field" id="analysisCorporateNo" placeholder="例：法人番号">
+              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
             </label>
             <label>
               カード番号下4桁
-              <input class="analysis-field" id="analysisCardLast4" placeholder="例：1234">
+              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">日付・期限</div>
+        <section class="draft-section">
+          <div class="draft-section-title">日付・期限</div>
           <div class="form-grid">
             <label>
               書類日付
-              <input class="analysis-field" id="analysisDocumentDate" placeholder="例：2026-07-01">
+              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
             </label>
             <label>
               請求日
-              <input class="analysis-field" id="analysisBillingDate" placeholder="例：2026-07-01">
+              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
             </label>
             <label>
               取引日・利用日
-              <input class="analysis-field" id="analysisTransactionDate" placeholder="例：2026-07-01">
+              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
             </label>
             <label>
               納品日
-              <input class="analysis-field" id="analysisDeliveryDate" placeholder="例：2026-07-01">
+              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
             </label>
             <label>
               締日
-              <input class="analysis-field" id="analysisClosingDate" placeholder="例：2026-07-20">
+              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
             </label>
             <label>
               支払期限・納期限
-              <input class="analysis-field" id="analysisDueDate" placeholder="例：2026-07-31">
+              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
             </label>
             <label>
               支払予定日
-              <input class="analysis-field" id="analysisPaymentPlanDate" placeholder="例：2026-08-10">
+              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
             </label>
             <label>
               引落日
-              <input class="analysis-field" id="analysisWithdrawalDate" placeholder="例：2026-08-27">
+              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
             </label>
             <label>
               決済日
-              <input class="analysis-field" id="analysisSettlementDate" placeholder="例：2026-07-05">
+              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
             </label>
             <label>
               対象開始日
-              <input class="analysis-field" id="analysisServicePeriodStart" placeholder="例：2026-06-01">
+              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
             </label>
             <label>
               対象終了日
-              <input class="analysis-field" id="analysisServicePeriodEnd" placeholder="例：2026-06-30">
+              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
             </label>
             <label>
               契約開始日
-              <input class="analysis-field" id="analysisContractStartDate" placeholder="例：2026-04-01">
+              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
             </label>
             <label>
               契約終了日
-              <input class="analysis-field" id="analysisContractEndDate" placeholder="例：2027-03-31">
+              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
             </label>
             <label>
               更新日
-              <input class="analysis-field" id="analysisRenewalDate" placeholder="例：2027-04-01">
+              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">金額・税</div>
+        <section class="draft-section">
+          <div class="draft-section-title">金額・税</div>
           <div class="form-grid">
             <label>
               請求・支払金額
-              <input class="analysis-field" id="analysisAmount" placeholder="例：98,800">
+              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
             </label>
             <label>
               合計金額
-              <input class="analysis-field" id="analysisTotalAmount" placeholder="例：98,800">
+              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
             </label>
             <label>
               税込金額
-              <input class="analysis-field" id="analysisAmountInTax" placeholder="例：98,800">
+              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
             </label>
             <label>
               税抜金額
-              <input class="analysis-field" id="analysisAmountExTax" placeholder="例：89,818">
+              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
             </label>
             <label>
               消費税額
-              <input class="analysis-field" id="analysisTaxAmount" placeholder="例：8,982">
+              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
             </label>
             <label>
               10%対象金額
-              <input class="analysis-field" id="analysisAmount10" placeholder="例：89,818">
+              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
             </label>
             <label>
               10%消費税
-              <input class="analysis-field" id="analysisTax10" placeholder="例：8,982">
+              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
             </label>
             <label>
               8%対象金額
-              <input class="analysis-field" id="analysisAmount8" placeholder="例：10,000">
+              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
             </label>
             <label>
               8%消費税
-              <input class="analysis-field" id="analysisTax8" placeholder="例：800">
+              <input class="draft-field" id="draftTax8" placeholder="例：800">
             </label>
             <label>
               非課税・不課税
-              <input class="analysis-field" id="analysisNonTaxAmount" placeholder="例：非課税 5,000">
+              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
             </label>
             <label>
               源泉徴収額
-              <input class="analysis-field" id="analysisWithholdingAmount" placeholder="例：10,210">
+              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
             </label>
             <label>
               手数料
-              <input class="analysis-field" id="analysisFeeAmount" placeholder="例：330">
+              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
             </label>
             <label>
               延滞金
-              <input class="analysis-field" id="analysisLateFeeAmount" placeholder="例：0">
+              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
             </label>
             <label>
               値引・割引
-              <input class="analysis-field" id="analysisDiscountAmount" placeholder="例：-1,000">
+              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
             </label>
             <label>
               前回残高
-              <input class="analysis-field" id="analysisPreviousBalance" placeholder="例：0">
+              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
             </label>
             <label>
               今回利用額
-              <input class="analysis-field" id="analysisCurrentChargeAmount" placeholder="例：98,800">
+              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
             </label>
             <label>
               入金額
-              <input class="analysis-field" id="analysisPaidAmount" placeholder="例：0">
+              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
             </label>
             <label>
               未払残高
-              <input class="analysis-field" id="analysisBalanceAmount" placeholder="例：98,800">
+              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">支払情報</div>
+        <section class="draft-section">
+          <div class="draft-section-title">支払情報</div>
           <div class="form-grid">
             <label>
               支払方法
-              <select class="analysis-field master-select" id="analysisPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               支払状態
-              <input class="analysis-field" id="analysisPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
+              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
             </label>
             <label>
               振込先銀行
-              <input class="analysis-field" id="analysisBankName" placeholder="例：三菱UFJ銀行">
+              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
             </label>
             <label>
               銀行コード
-              <input class="analysis-field" id="analysisBankCode" placeholder="例：0005">
+              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
             </label>
             <label>
               支店名
-              <input class="analysis-field" id="analysisBankBranchName" placeholder="例：梅田支店">
+              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
             </label>
             <label>
               支店コード
-              <input class="analysis-field" id="analysisBranchCode" placeholder="例：123">
+              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
             </label>
             <label>
               口座種別
-              <input class="analysis-field" id="analysisBankAccountType" placeholder="例：普通 / 当座">
+              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
             </label>
             <label>
               口座番号
-              <input class="analysis-field" id="analysisBankAccountNo" placeholder="例：1234567">
+              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
             </label>
             <label class="span2">
               口座名義
-              <input class="analysis-field" id="analysisBankAccountName" placeholder="例：カ）〇〇">
+              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
             </label>
             <label>
               引落銀行
-              <input class="analysis-field" id="analysisDebitBankName" placeholder="例：引落口座の銀行">
+              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
             </label>
             <label>
               カード会社
-              <input class="analysis-field" id="analysisCreditCardCompany" placeholder="例：三井住友カード">
+              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
             </label>
             <label>
               カード名
-              <input class="analysis-field" id="analysisCardName" placeholder="例：法人カード">
+              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
             </label>
             <label>
               決済サービス
-              <input class="analysis-field" id="analysisSettlementService" placeholder="例：Square / PayPay / Stripe">
+              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
             </label>
             <label>
               コンビニ支払番号
-              <input class="analysis-field" id="analysisConveniencePaymentNo" placeholder="例：支払番号">
+              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
             </label>
             <label>
               バーコード番号
-              <input class="analysis-field" id="analysisBarcodeNo" placeholder="例：バーコード番号">
+              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
             </label>
             <label>
               QR決済情報
-              <input class="analysis-field" id="analysisQrPaymentInfo" placeholder="例：QRコード情報">
+              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">会計・管理</div>
+        <section class="draft-section">
+          <div class="draft-section-title">会計・管理</div>
           <div class="form-grid">
             <label hidden aria-hidden="true" data-internal-field="payment-destination">
               処理先
-              <select class="analysis-field master-select" id="analysisDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
             </label>
             
             <label>
               支払先マスタ候補
-              <select class="analysis-field master-select" id="analysisVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               勘定科目
-              <select class="analysis-field master-select" id="analysisAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               税区分
-              <select class="analysis-field master-select" id="analysisTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               インボイス区分
-              <select class="analysis-field master-select" id="analysisInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               支払方法マスタ
-              <select class="analysis-field master-select" id="analysisPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               対象者
-              <select class="analysis-field master-select" id="analysisTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               目的
-              <select class="analysis-field master-select" id="analysisPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               案件
-              <select class="analysis-field master-select" id="analysisProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
             </label>
             <label>
               部門
-              <select class="analysis-field master-select" id="analysisDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
+              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
             </label>
             <label class="span2">
               摘要
-              <input class="analysis-field" id="analysisSummary" placeholder="例：7月分 電気料金">
+              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
             </label>
             <label>
               会社負担可否
-              <input class="analysis-field" id="analysisCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
+              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
             </label>
             <label>
               個人負担混在
-              <input class="analysis-field" id="analysisMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
+              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
             </label>
             <label>
               立替
-              <input class="analysis-field" id="analysisAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
+              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
             </label>
             <label>
               精算
-              <input class="analysis-field" id="analysisSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
+              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
             </label>
             <label>
               未払登録
-              <input class="analysis-field" id="analysisPayableRegistrationFlag" placeholder="例：登録する / しない">
+              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
             </label>
             <label>
               買掛登録
-              <input class="analysis-field" id="analysisAccountsPayableFlag" placeholder="例：登録する / しない">
+              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
             </label>
             <label class="span2">
               社内メモ
-              <textarea class="analysis-field small-textarea" id="analysisMemo" placeholder="社内メモ"></textarea>
+              <textarea class="draft-field small-textarea" id="draftMemo" placeholder="社内メモ"></textarea>
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">明細</div>
+        <section class="draft-section">
+          <div class="draft-section-title">明細</div>
           <div class="form-grid">
             <label class="span2">
               明細候補
-              <textarea class="analysis-field line-textarea" id="analysisLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
+              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">書類別追加情報</div>
+        <section class="draft-section">
+          <div class="draft-section-title">書類別追加情報</div>
           <div class="form-grid">
             <label>
               税目
-              <input class="analysis-field" id="analysisTaxItem" placeholder="例：法人市民税 / 消費税">
+              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
             </label>
             <label>
               納付先
-              <input class="analysis-field" id="analysisTaxOffice" placeholder="例：税務署 / 市税事務所">
+              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
             </label>
             <label>
               年度
-              <input class="analysis-field" id="analysisFiscalYear" placeholder="例：2026年度">
+              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
             </label>
             <label>
               期別
-              <input class="analysis-field" id="analysisTaxTerm" placeholder="例：第1期">
+              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
             </label>
             <label>
               公共料金お客様番号
-              <input class="analysis-field" id="analysisUtilityCustomerNo" placeholder="例：お客様番号">
+              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
             </label>
             <label>
               使用期間
-              <input class="analysis-field" id="analysisUsagePeriod" placeholder="例：6/1〜6/30">
+              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
             </label>
             <label>
               使用量
-              <input class="analysis-field" id="analysisUsageAmount" placeholder="例：120kWh / 35㎥">
+              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
             </label>
             <label>
               保険種類
-              <input class="analysis-field" id="analysisInsuranceType" placeholder="例：火災保険 / 自動車保険">
+              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
             </label>
             <label>
               リース物件
-              <input class="analysis-field" id="analysisLeaseItemName" placeholder="例：複合機 / 車両">
+              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
             </label>
             <label>
               支払回数
-              <input class="analysis-field" id="analysisPaymentCount" placeholder="例：12回">
+              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
             </label>
             <label>
               メール件名
-              <input class="analysis-field" id="analysisEmailSubject" placeholder="例：請求書をお送りします">
+              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
             </label>
             <label>
               メール送信者
-              <input class="analysis-field" id="analysisEmailFrom" placeholder="例：billing@example.com">
+              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
             </label>
             <label>
               メール受信日時
-              <input class="analysis-field" id="analysisEmailReceivedAt" placeholder="例：2026-07-01 10:00">
+              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
             </label>
             <label>
               添付ファイル名
-              <input class="analysis-field" id="analysisAttachmentFileName" placeholder="例：invoice.pdf">
+              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
             </label>
             <label>
               ダウンロード日
-              <input class="analysis-field" id="analysisDownloadDate" placeholder="例：2026-07-07">
+              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
             </label>
           </div>
         </section>
 
-        <section class="analysis-section">
-          <div class="analysis-section-title">要確認</div>
+        <section class="draft-section">
+          <div class="draft-section-title">要確認</div>
           <div class="form-grid">
             <label class="span2">
               要確認メモ
-              <textarea class="analysis-field" id="analysisWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
+              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
             </label>
           </div>
         </section>
@@ -1029,7 +1029,7 @@ function setDocumentPreview(item) {
       '</div>';
   }
 /* PAYMENT_DOCUMENT_REVIEW_IMAGE_PREVIEW_20260707_END */
-/* PAYMENT_DOCUMENT_OPENAI_OCR_ANALYSIS_CLIENT_20260707_START */
+/* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_CLIENT_20260707_START */
 /* PAYMENT_DOCUMENT_SELECTED_ITEM_HELPER_20260707_START */
   function selectedItem() {
     if (!Array.isArray(items)) {
@@ -1071,7 +1071,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    setAnalysisMasterSelectValue(select, value || "");
+    setDraftMasterSelectValue(select, value || "");
   }
 
   function setInputValue(selector, value) {
@@ -1084,34 +1084,34 @@ function setDocumentPreview(item) {
     el.value = value === null || value === undefined ? "" : String(value);
   }
 
-  function applyAnalysisResultToForm(analysis) {
-    if (!analysis) {
+  function applyAnalysisResultToForm(draft) {
+    if (!draft) {
       return;
     }
 
-    setMasterSelectByCodeOrText('[data-master-type="document_types"]', analysis.document_type_code);
-    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', analysis.payment_destination_code);
-    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', analysis.accounting_category_code);
-    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', analysis.payable_kind_code);
-    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', analysis.source_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="document_types"]', draft.document_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', draft.payment_destination_code);
+    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', draft.accounting_category_code);
+    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', draft.payable_kind_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', draft.source_type_code);
 
-    setInputValue('[name="vendor_name"], #vendorName', analysis.vendor_name);
-    setInputValue('[name="issue_date"], #issueDate', analysis.issue_date);
-    setInputValue('[name="due_date"], #dueDate', analysis.due_date);
-    setInputValue('[name="invoice_number"], #invoiceNumber', analysis.invoice_number);
-    setInputValue('[name="total_amount"], #totalAmount', analysis.total_amount);
-    setInputValue('[name="tax_amount"], #taxAmount', analysis.tax_amount);
-    setInputValue('[name="summary"], #summary', analysis.summary);
-    setInputValue('[name="memo"], #memo', analysis.memo);
+    setInputValue('[name="vendor_name"], #vendorName', draft.vendor_name);
+    setInputValue('[name="issue_date"], #issueDate', draft.issue_date);
+    setInputValue('[name="due_date"], #dueDate', draft.due_date);
+    setInputValue('[name="invoice_number"], #invoiceNumber', draft.invoice_number);
+    setInputValue('[name="total_amount"], #totalAmount', draft.total_amount);
+    setInputValue('[name="tax_amount"], #taxAmount', draft.tax_amount);
+    setInputValue('[name="summary"], #summary', draft.summary);
+    setInputValue('[name="memo"], #memo', draft.memo);
   }
 
 /* PAYMENT_DOCUMENT_AI_APPLY_BY_ID_20260707_START */
-  function analysisResultField(analysis, label) {
-    if (!analysis || !analysis.fields || typeof analysis.fields !== "object") {
+  function analysisResultField(draft, label) {
+    if (!draft || !draft.fields || typeof draft.fields !== "object") {
       return "";
     }
 
-    return analysis.fields[label] || "";
+    return draft.fields[label] || "";
   }
 
     function setById(id, value) {
@@ -1216,155 +1216,155 @@ function setDocumentPreview(item) {
     return setControlValue(control, value);
   }
 
-  function applyAnalysisResultToForm(analysis) {
-    if (!analysis) {
+  function applyAnalysisResultToForm(draft) {
+    if (!draft) {
       return;
     }
 
-    const fields = analysis.fields || {};
+    const fields = draft.fields || {};
     let appliedCount = 0;
 
     // マスタselect。コード優先。
-    if (setById("analysisPaymentDestination", analysis.payment_destination_code || fields["処理先"])) appliedCount++;
-    if (setById("analysisAccountingCategory", analysis.accounting_category_code || fields["会計区分"])) appliedCount++;
-    if (setById("analysisPaymentSourceType", analysis.source_type_code || fields["入手元区分"])) appliedCount++;
+    if (setById("draftPaymentDestination", draft.payment_destination_code || fields["処理先"])) appliedCount++;
+    if (setById("draftAccountingCategory", draft.accounting_category_code || fields["会計区分"])) appliedCount++;
+    if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
     // AI判定サマリー
-    if (analysis.ai_summary) {
-      if (setById("analysisAiDocumentKind", analysis.document_type_code || (analysis.ai_summary && analysis.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
-      if (setById("analysisAiDestination", analysis.ai_summary.destination || fields["処理先"])) appliedCount++;
-      if (setById("analysisAiPaymentTarget", analysis.ai_summary.payment_target || (fields.payment_target || fields["支払対象"]))) appliedCount++;
-      if (setById("analysisAiPayableTarget", analysis.ai_summary.payable_target || (fields.payable_target || fields["未払登録対象"]))) appliedCount++;
-      if (setById("analysisAiExpenseTarget", analysis.ai_summary.expense_target || (fields.expense_target || fields["経費登録対象"]))) appliedCount++;
-      if (setById("analysisAiTaxPublic", analysis.ai_summary.tax_public || fields["税金・公的支払"])) appliedCount++;
-      if (setById("analysisAiContractInsuranceLease", analysis.ai_summary.contract_insurance_lease || fields["契約・保険・リース"])) appliedCount++;
-      if (setById("analysisAiConfidence", analysis.ai_summary.confidence_label || fields["AI信頼度"])) appliedCount++;
-      if (setById("analysisAiReason", analysis.ai_summary.reason || fields["AI判定理由"])) appliedCount++;
+    if (draft.ai_summary) {
+      if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
+      if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
+      if (setById("draftAiPaymentTarget", draft.ai_summary.payment_target || (fields.payment_target || fields["支払対象"]))) appliedCount++;
+      if (setById("draftAiPayableTarget", draft.ai_summary.payable_target || (fields.payable_target || fields["未払登録対象"]))) appliedCount++;
+      if (setById("draftAiExpenseTarget", draft.ai_summary.expense_target || (fields.expense_target || fields["経費登録対象"]))) appliedCount++;
+      if (setById("draftAiTaxPublic", draft.ai_summary.tax_public || fields["税金・公的支払"])) appliedCount++;
+      if (setById("draftAiContractInsuranceLease", draft.ai_summary.contract_insurance_lease || fields["契約・保険・リース"])) appliedCount++;
+      if (setById("draftAiConfidence", draft.ai_summary.confidence_label || fields["AI信頼度"])) appliedCount++;
+      if (setById("draftAiReason", draft.ai_summary.reason || fields["AI判定理由"])) appliedCount++;
     }
 
     // 基本情報
-    if (setById("analysisDocumentName", fields["書類名"] || analysis.summary)) appliedCount++;
-    if (setById("analysisIssuer", fields["発行元"] || analysis.vendor_name)) appliedCount++;
-    if (setById("analysisVendorName", fields["支払先"] || analysis.vendor_name)) appliedCount++;
-    if (setById("analysisRecipient", fields["宛名"])) appliedCount++;
-    if (setById("analysisCompanyName", fields["会社名"])) appliedCount++;
-    if (setById("analysisPersonalName", fields["個人名"])) appliedCount++;
-    if (setById("analysisDepartmentName", fields["部署名"])) appliedCount++;
-    if (setById("analysisContactPerson", fields["担当者名"])) appliedCount++;
-    if (setById("analysisAddress", fields["住所"])) appliedCount++;
-    if (setById("analysisPhone", fields["電話番号"])) appliedCount++;
-    if (setById("analysisEmail", fields["メール"])) appliedCount++;
-    if (setById("analysisWebsite", fields["Webサイト"])) appliedCount++;
+    if (setById("draftDocumentName", fields["書類名"] || draft.summary)) appliedCount++;
+    if (setById("draftIssuer", fields["発行元"] || draft.vendor_name)) appliedCount++;
+    if (setById("draftVendorName", fields["支払先"] || draft.vendor_name)) appliedCount++;
+    if (setById("draftRecipient", fields["宛名"])) appliedCount++;
+    if (setById("draftCompanyName", fields["会社名"])) appliedCount++;
+    if (setById("draftPersonalName", fields["個人名"])) appliedCount++;
+    if (setById("draftDepartmentName", fields["部署名"])) appliedCount++;
+    if (setById("draftContactPerson", fields["担当者名"])) appliedCount++;
+    if (setById("draftAddress", fields["住所"])) appliedCount++;
+    if (setById("draftPhone", fields["電話番号"])) appliedCount++;
+    if (setById("draftEmail", fields["メール"])) appliedCount++;
+    if (setById("draftWebsite", fields["Webサイト"])) appliedCount++;
 
     // 番号・識別情報
-    if (setById("analysisInvoiceNumber", analysis.invoice_number || fields["請求書番号"])) appliedCount++;
-    if (setById("analysisReceiptNumber", fields["領収書番号"])) appliedCount++;
-    if (setById("analysisPaymentNumber", fields["納付番号"])) appliedCount++;
-    if (setById("analysisNoticeNumber", fields["通知書番号"])) appliedCount++;
-    if (setById("analysisManagementNumber", fields["管理番号"])) appliedCount++;
-    if (setById("analysisCustomerNumber", fields["お客様番号"])) appliedCount++;
-    if (setById("analysisContractNumber", fields["契約番号"])) appliedCount++;
-    if (setById("analysisMemberNumber", fields["会員番号"])) appliedCount++;
-    if (setById("analysisOrderNumber", fields["注文番号"])) appliedCount++;
-    if (setById("analysisTransactionNumber", fields["取引番号"])) appliedCount++;
-    if (setById("analysisInvoiceRegistrationNumber", fields["登録番号"])) appliedCount++;
-    if (setById("analysisCorporateNumber", fields["法人番号"])) appliedCount++;
-    if (setById("analysisCardLast4", fields["カード番号下4桁"])) appliedCount++;
+    if (setById("draftInvoiceNumber", draft.invoice_number || fields["請求書番号"])) appliedCount++;
+    if (setById("draftReceiptNumber", fields["領収書番号"])) appliedCount++;
+    if (setById("draftPaymentNumber", fields["納付番号"])) appliedCount++;
+    if (setById("draftNoticeNumber", fields["通知書番号"])) appliedCount++;
+    if (setById("draftManagementNumber", fields["管理番号"])) appliedCount++;
+    if (setById("draftCustomerNumber", fields["お客様番号"])) appliedCount++;
+    if (setById("draftContractNumber", fields["契約番号"])) appliedCount++;
+    if (setById("draftMemberNumber", fields["会員番号"])) appliedCount++;
+    if (setById("draftOrderNumber", fields["注文番号"])) appliedCount++;
+    if (setById("draftTransactionNumber", fields["取引番号"])) appliedCount++;
+    if (setById("draftInvoiceRegistrationNumber", fields["登録番号"])) appliedCount++;
+    if (setById("draftCorporateNumber", fields["法人番号"])) appliedCount++;
+    if (setById("draftCardLast4", fields["カード番号下4桁"])) appliedCount++;
 
     // 日付・期限
-    if (setById("analysisDocumentDate", fields["書類日付"] || analysis.issue_date)) appliedCount++;
-    if (setById("analysisIssueDate", fields["発行日"] || analysis.issue_date)) appliedCount++;
-    if (setById("analysisBillingDate", fields["請求日"] || analysis.issue_date)) appliedCount++;
-    if (setById("analysisTransactionDate", fields["取引日・利用日"])) appliedCount++;
-    if (setById("analysisDeliveryDate", fields["納品日"])) appliedCount++;
-    if (setById("analysisClosingDate", fields["締日"])) appliedCount++;
-    if (setById("analysisDueDate", fields["支払期限・納期限"] || analysis.due_date)) appliedCount++;
-    if (setById("analysisPaymentPlanDate", fields["支払予定日"])) appliedCount++;
-    if (setById("analysisWithdrawalDate", fields["引落日"])) appliedCount++;
-    if (setById("analysisSettlementDate", fields["決済日"])) appliedCount++;
-    if (setById("analysisServicePeriodStart", fields["対象開始日"])) appliedCount++;
-    if (setById("analysisServicePeriodEnd", fields["対象終了日"])) appliedCount++;
-    if (setById("analysisContractStartDate", fields["契約開始日"])) appliedCount++;
-    if (setById("analysisContractEndDate", fields["契約終了日"])) appliedCount++;
-    if (setById("analysisRenewalDate", fields["更新日"])) appliedCount++;
+    if (setById("draftDocumentDate", fields["書類日付"] || draft.issue_date)) appliedCount++;
+    if (setById("draftIssueDate", fields["発行日"] || draft.issue_date)) appliedCount++;
+    if (setById("draftBillingDate", fields["請求日"] || draft.issue_date)) appliedCount++;
+    if (setById("draftTransactionDate", fields["取引日・利用日"])) appliedCount++;
+    if (setById("draftDeliveryDate", fields["納品日"])) appliedCount++;
+    if (setById("draftClosingDate", fields["締日"])) appliedCount++;
+    if (setById("draftDueDate", fields["支払期限・納期限"] || draft.due_date)) appliedCount++;
+    if (setById("draftPaymentPlanDate", fields["支払予定日"])) appliedCount++;
+    if (setById("draftWithdrawalDate", fields["引落日"])) appliedCount++;
+    if (setById("draftSettlementDate", fields["決済日"])) appliedCount++;
+    if (setById("draftServicePeriodStart", fields["対象開始日"])) appliedCount++;
+    if (setById("draftServicePeriodEnd", fields["対象終了日"])) appliedCount++;
+    if (setById("draftContractStartDate", fields["契約開始日"])) appliedCount++;
+    if (setById("draftContractEndDate", fields["契約終了日"])) appliedCount++;
+    if (setById("draftRenewalDate", fields["更新日"])) appliedCount++;
 
     // 金額・税
-    if (setById("analysisAmount", fields["請求・支払金額"] || fields["合計金額"] || analysis.total_amount)) appliedCount++;
-    if (setById("analysisTotalAmount", fields["合計金額"] || analysis.total_amount)) appliedCount++;
-    if (setById("analysisTaxIncludedAmount", fields["税込金額"] || analysis.total_amount)) appliedCount++;
-    if (setById("analysisTaxExcludedAmount", fields["税抜金額"])) appliedCount++;
-    if (setById("analysisTaxAmount", fields["消費税額"] || analysis.tax_amount)) appliedCount++;
-    if (setById("analysisTaxable10Amount", fields["10%対象金額"])) appliedCount++;
-    if (setById("analysisTax10Amount", fields["10%消費税"])) appliedCount++;
-    if (setById("analysisTaxable8Amount", fields["8%対象金額"])) appliedCount++;
-    if (setById("analysisTax8Amount", fields["8%消費税"])) appliedCount++;
-    if (setById("analysisNonTaxableAmount", fields["非課税・不課税"])) appliedCount++;
-    if (setById("analysisWithholdingAmount", fields["源泉徴収額"])) appliedCount++;
-    if (setById("analysisFeeAmount", fields["手数料"])) appliedCount++;
-    if (setById("analysisLateFeeAmount", fields["延滞金"])) appliedCount++;
-    if (setById("analysisDiscountAmount", fields["値引・割引"])) appliedCount++;
-    if (setById("analysisPreviousBalance", fields["前回残高"])) appliedCount++;
-    if (setById("analysisCurrentUsageAmount", fields["今回利用額"])) appliedCount++;
-    if (setById("analysisPaidAmount", fields["入金額"])) appliedCount++;
-    if (setById("analysisUnpaidBalance", fields["未払残高"])) appliedCount++;
+    if (setById("draftAmount", fields["請求・支払金額"] || fields["合計金額"] || draft.total_amount)) appliedCount++;
+    if (setById("draftTotalAmount", fields["合計金額"] || draft.total_amount)) appliedCount++;
+    if (setById("draftTaxIncludedAmount", fields["税込金額"] || draft.total_amount)) appliedCount++;
+    if (setById("draftTaxExcludedAmount", fields["税抜金額"])) appliedCount++;
+    if (setById("draftTaxAmount", fields["消費税額"] || draft.tax_amount)) appliedCount++;
+    if (setById("draftTaxable10Amount", fields["10%対象金額"])) appliedCount++;
+    if (setById("draftTax10Amount", fields["10%消費税"])) appliedCount++;
+    if (setById("draftTaxable8Amount", fields["8%対象金額"])) appliedCount++;
+    if (setById("draftTax8Amount", fields["8%消費税"])) appliedCount++;
+    if (setById("draftNonTaxableAmount", fields["非課税・不課税"])) appliedCount++;
+    if (setById("draftWithholdingAmount", fields["源泉徴収額"])) appliedCount++;
+    if (setById("draftFeeAmount", fields["手数料"])) appliedCount++;
+    if (setById("draftLateFeeAmount", fields["延滞金"])) appliedCount++;
+    if (setById("draftDiscountAmount", fields["値引・割引"])) appliedCount++;
+    if (setById("draftPreviousBalance", fields["前回残高"])) appliedCount++;
+    if (setById("draftCurrentUsageAmount", fields["今回利用額"])) appliedCount++;
+    if (setById("draftPaidAmount", fields["入金額"])) appliedCount++;
+    if (setById("draftUnpaidBalance", fields["未払残高"])) appliedCount++;
 
     // 支払情報
-    if (setById("analysisPaymentMethod", fields["支払方法"] || fields["支払方法マスタ"])) appliedCount++;
-    if (setById("analysisPaymentStatus", fields["支払状態"])) appliedCount++;
-    if (setById("analysisBankName", fields["振込先銀行"])) appliedCount++;
-    if (setById("analysisBankCode", fields["銀行コード"])) appliedCount++;
-    if (setById("analysisBankBranchName", fields["支店名"])) appliedCount++;
-    if (setById("analysisBranchCode", fields["支店コード"])) appliedCount++;
-    if (setById("analysisBankAccountType", fields["口座種別"])) appliedCount++;
-    if (setById("analysisBankAccountNo", fields["口座番号"])) appliedCount++;
-    if (setById("analysisBankAccountName", fields["口座名義"])) appliedCount++;
-    if (setById("analysisWithdrawalBank", fields["引落銀行"])) appliedCount++;
-    if (setById("analysisCardCompany", fields["カード会社"])) appliedCount++;
-    if (setById("analysisCardName", fields["カード名"])) appliedCount++;
-    if (setById("analysisSettlementService", fields["決済サービス"])) appliedCount++;
-    if (setById("analysisConveniencePaymentNumber", fields["コンビニ支払番号"])) appliedCount++;
-    if (setById("analysisBarcodeNumber", fields["バーコード番号"])) appliedCount++;
-    if (setById("analysisQrPaymentInfo", fields["QR決済情報"])) appliedCount++;
+    if (setById("draftPaymentMethod", fields["支払方法"] || fields["支払方法マスタ"])) appliedCount++;
+    if (setById("draftPaymentStatus", fields["支払状態"])) appliedCount++;
+    if (setById("draftBankName", fields["振込先銀行"])) appliedCount++;
+    if (setById("draftBankCode", fields["銀行コード"])) appliedCount++;
+    if (setById("draftBankBranchName", fields["支店名"])) appliedCount++;
+    if (setById("draftBranchCode", fields["支店コード"])) appliedCount++;
+    if (setById("draftBankAccountType", fields["口座種別"])) appliedCount++;
+    if (setById("draftBankAccountNo", fields["口座番号"])) appliedCount++;
+    if (setById("draftBankAccountName", fields["口座名義"])) appliedCount++;
+    if (setById("draftWithdrawalBank", fields["引落銀行"])) appliedCount++;
+    if (setById("draftCardCompany", fields["カード会社"])) appliedCount++;
+    if (setById("draftCardName", fields["カード名"])) appliedCount++;
+    if (setById("draftSettlementService", fields["決済サービス"])) appliedCount++;
+    if (setById("draftConveniencePaymentNumber", fields["コンビニ支払番号"])) appliedCount++;
+    if (setById("draftBarcodeNumber", fields["バーコード番号"])) appliedCount++;
+    if (setById("draftQrPaymentInfo", fields["QR決済情報"])) appliedCount++;
 
     // 会計・管理
-    if (setById("analysisSummary", fields["摘要"] || analysis.summary)) appliedCount++;
-    if (setById("analysisCompanyBurden", fields["会社負担可否"])) appliedCount++;
-    if (setById("analysisMixedPersonalFlag", fields["個人負担混在"])) appliedCount++;
-    if (setById("analysisAdvancePaymentFlag", fields["立替"])) appliedCount++;
-    if (setById("analysisSettlementFlag", fields["精算"])) appliedCount++;
-    if (setById("analysisPayableRegistrationFlag", fields["未払登録"])) appliedCount++;
-    if (setById("analysisAccountsPayableFlag", fields["買掛登録"])) appliedCount++;
-    if (setById("analysisMemo", fields["社内メモ"] || analysis.memo)) appliedCount++;
-    if (setById("analysisLinesRaw", fields["明細候補"])) appliedCount++;
+    if (setById("draftSummary", fields["摘要"] || draft.summary)) appliedCount++;
+    if (setById("draftCompanyBurden", fields["会社負担可否"])) appliedCount++;
+    if (setById("draftMixedPersonalFlag", fields["個人負担混在"])) appliedCount++;
+    if (setById("draftAdvancePaymentFlag", fields["立替"])) appliedCount++;
+    if (setById("draftSettlementFlag", fields["精算"])) appliedCount++;
+    if (setById("draftPayableRegistrationFlag", fields["未払登録"])) appliedCount++;
+    if (setById("draftAccountsPayableFlag", fields["買掛登録"])) appliedCount++;
+    if (setById("draftMemo", fields["社内メモ"] || draft.memo)) appliedCount++;
+    if (setById("draftLinesRaw", fields["明細候補"])) appliedCount++;
 
     // 書類別追加情報
-    if (setById("analysisTaxItem", fields["税目"])) appliedCount++;
-    if (setById("analysisTaxPaymentDestination", fields["納付先"])) appliedCount++;
-    if (setById("analysisFiscalYear", fields["年度"])) appliedCount++;
-    if (setById("analysisPeriodName", fields["期別"])) appliedCount++;
-    if (setById("analysisUtilityCustomerNumber", fields["公共料金お客様番号"])) appliedCount++;
-    if (setById("analysisUsagePeriod", fields["使用期間"])) appliedCount++;
-    if (setById("analysisUsageAmount", fields["使用量"])) appliedCount++;
-    if (setById("analysisInsuranceType", fields["保険種類"])) appliedCount++;
-    if (setById("analysisLeaseItem", fields["リース物件"])) appliedCount++;
-    if (setById("analysisPaymentCount", fields["支払回数"])) appliedCount++;
-    if (setById("analysisMailSubject", fields["メール件名"])) appliedCount++;
-    if (setById("analysisMailFrom", fields["メール送信者"])) appliedCount++;
-    if (setById("analysisMailReceivedAt", fields["メール受信日時"])) appliedCount++;
-    if (setById("analysisAttachmentFileName", fields["添付ファイル名"])) appliedCount++;
-    if (setById("analysisDownloadedAt", fields["ダウンロード日"])) appliedCount++;
+    if (setById("draftTaxItem", fields["税目"])) appliedCount++;
+    if (setById("draftTaxPaymentDestination", fields["納付先"])) appliedCount++;
+    if (setById("draftFiscalYear", fields["年度"])) appliedCount++;
+    if (setById("draftPeriodName", fields["期別"])) appliedCount++;
+    if (setById("draftUtilityCustomerNumber", fields["公共料金お客様番号"])) appliedCount++;
+    if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
+    if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
+    if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
+    if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
+    if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
+    if (setById("draftMailSubject", fields["メール件名"])) appliedCount++;
+    if (setById("draftMailFrom", fields["メール送信者"])) appliedCount++;
+    if (setById("draftMailReceivedAt", fields["メール受信日時"])) appliedCount++;
+    if (setById("draftAttachmentFileName", fields["添付ファイル名"])) appliedCount++;
+    if (setById("draftDownloadedAt", fields["ダウンロード日"])) appliedCount++;
 
     // 要確認
     const warningText = [
       fields["要確認メモ"] || "",
-      ...(Array.isArray(analysis.warnings) ? analysis.warnings : [])
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
     ].filter(Boolean).join("\n");
 
-    if (setById("analysisWarnings", warningText)) appliedCount++;
+    if (setById("draftWarnings", warningText)) appliedCount++;
 
     // IDが違う/未追加の項目があっても、最後にラベル名でも拾う。
-    if (analysis.ai_summary) {
-      for (const [key, value] of Object.entries(analysis.ai_summary)) {
+    if (draft.ai_summary) {
+      for (const [key, value] of Object.entries(draft.ai_summary)) {
         if (value) {
           setFieldByLabel(key, value);
         }
@@ -1596,13 +1596,13 @@ function setDocumentPreview(item) {
     return setDebugControlValue(control, label, value);
   }
 
-  function applyAnalysisResultToForm(analysis) {
-    if (!analysis) {
+  function applyAnalysisResultToForm(draft) {
+    if (!draft) {
       return 0;
     }
 
-    const fields = analysis.fields && typeof analysis.fields === "object" ? analysis.fields : {};
-    const summary = analysis.ai_summary && typeof analysis.ai_summary === "object" ? analysis.ai_summary : {};
+    const fields = draft.fields && typeof draft.fields === "object" ? draft.fields : {};
+    const summary = draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
     let appliedCount = 0;
     const missingControls = [];
 
@@ -1615,149 +1615,149 @@ function setDocumentPreview(item) {
     }
 
     // AI判定サマリー
-    put("analysisAiDocumentKind", "書類区分", analysis.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
-    put("analysisAiDestination", "処理先", analysis.payment_destination_code || fields["処理先"] || summary.destination);
-    put("analysisAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
-    put("analysisAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
-    put("analysisAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
-    put("analysisAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
-    put("analysisAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    put("analysisAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
-    put("analysisAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
+    put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
+    put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
+    put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
+    put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
+    put("draftAiConfidence", "AI信頼度", summary.confidence_label || fields["AI信頼度"]);
+    put("draftAiReason", "AI判定理由", summary.reason || fields["AI判定理由"]);
 
     // 基本情報
-    put("analysisEvidenceType", "証憑区分", fields["証憑区分"]);
-    put("analysisDocumentTitle", "書類名", fields["書類名"] || analysis.summary);
-    put("analysisIssuer", "発行元", fields["発行元"] || analysis.vendor_name);
-    put("analysisVendorName", "支払先", fields["支払先"] || analysis.vendor_name);
-    put("analysisRecipient", "宛名", fields["宛名"]);
-    put("analysisCompanyName", "会社名", fields["会社名"]);
-    put("analysisPersonName", "個人名", fields["個人名"]);
-    put("analysisDepartmentName", "部署名", fields["部署名"]);
-    put("analysisContactName", "担当者名", fields["担当者名"]);
-    put("analysisAddress", "住所", fields["住所"]);
-    put("analysisPhone", "電話番号", fields["電話番号"]);
-    put("analysisEmail", "メール", fields["メール"]);
-    put("analysisWebsite", "Webサイト", fields["Webサイト"]);
+    put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
+    put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
+    put("draftIssuer", "発行元", fields["発行元"] || draft.vendor_name);
+    put("draftVendorName", "支払先", fields["支払先"] || draft.vendor_name);
+    put("draftRecipient", "宛名", fields["宛名"]);
+    put("draftCompanyName", "会社名", fields["会社名"]);
+    put("draftPersonName", "個人名", fields["個人名"]);
+    put("draftDepartmentName", "部署名", fields["部署名"]);
+    put("draftContactName", "担当者名", fields["担当者名"]);
+    put("draftAddress", "住所", fields["住所"]);
+    put("draftPhone", "電話番号", fields["電話番号"]);
+    put("draftEmail", "メール", fields["メール"]);
+    put("draftWebsite", "Webサイト", fields["Webサイト"]);
 
     // 番号・識別情報
-    put("analysisInvoiceNo", "請求書番号", analysis.invoice_number || fields["請求書番号"]);
-    put("analysisReceiptNo", "領収書番号", fields["領収書番号"]);
-    put("analysisPaymentNo", "納付番号", fields["納付番号"]);
-    put("analysisNoticeNo", "通知書番号", fields["通知書番号"]);
-    put("analysisManagementNo", "管理番号", fields["管理番号"]);
-    put("analysisCustomerNo", "お客様番号", fields["お客様番号"]);
-    put("analysisContractNo", "契約番号", fields["契約番号"]);
-    put("analysisMemberNo", "会員番号", fields["会員番号"]);
-    put("analysisOrderNo", "注文番号", fields["注文番号"]);
-    put("analysisTransactionNo", "取引番号", fields["取引番号"]);
-    put("analysisRegistrationNo", "登録番号", fields["登録番号"]);
-    put("analysisCorporateNo", "法人番号", fields["法人番号"]);
-    put("analysisCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
+    put("draftInvoiceNo", "請求書番号", draft.invoice_number || fields["請求書番号"]);
+    put("draftReceiptNo", "領収書番号", fields["領収書番号"]);
+    put("draftPaymentNo", "納付番号", fields["納付番号"]);
+    put("draftNoticeNo", "通知書番号", fields["通知書番号"]);
+    put("draftManagementNo", "管理番号", fields["管理番号"]);
+    put("draftCustomerNo", "お客様番号", fields["お客様番号"]);
+    put("draftContractNo", "契約番号", fields["契約番号"]);
+    put("draftMemberNo", "会員番号", fields["会員番号"]);
+    put("draftOrderNo", "注文番号", fields["注文番号"]);
+    put("draftTransactionNo", "取引番号", fields["取引番号"]);
+    put("draftRegistrationNo", "登録番号", fields["登録番号"]);
+    put("draftCorporateNo", "法人番号", fields["法人番号"]);
+    put("draftCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
 
     // 日付・期限
-    put("analysisDocumentDate", "書類日付", fields["書類日付"] || analysis.issue_date);
-    put("analysisIssueDate", "発行日", fields["発行日"] || analysis.issue_date);
-    put("analysisBillingDate", "請求日", fields["請求日"] || analysis.issue_date);
-    put("analysisTransactionDate", "取引日・利用日", fields["取引日・利用日"]);
-    put("analysisDeliveryDate", "納品日", fields["納品日"]);
-    put("analysisClosingDate", "締日", fields["締日"]);
-    put("analysisDueDate", "支払期限・納期限", fields["支払期限・納期限"] || analysis.due_date);
-    put("analysisPaymentPlanDate", "支払予定日", fields["支払予定日"]);
-    put("analysisWithdrawalDate", "引落日", fields["引落日"]);
-    put("analysisSettlementDate", "決済日", fields["決済日"]);
-    put("analysisServicePeriodStart", "対象開始日", fields["対象開始日"]);
-    put("analysisServicePeriodEnd", "対象終了日", fields["対象終了日"]);
-    put("analysisContractStartDate", "契約開始日", fields["契約開始日"]);
-    put("analysisContractEndDate", "契約終了日", fields["契約終了日"]);
-    put("analysisRenewalDate", "更新日", fields["更新日"]);
+    put("draftDocumentDate", "書類日付", fields["書類日付"] || draft.issue_date);
+    put("draftIssueDate", "発行日", fields["発行日"] || draft.issue_date);
+    put("draftBillingDate", "請求日", fields["請求日"] || draft.issue_date);
+    put("draftTransactionDate", "取引日・利用日", fields["取引日・利用日"]);
+    put("draftDeliveryDate", "納品日", fields["納品日"]);
+    put("draftClosingDate", "締日", fields["締日"]);
+    put("draftDueDate", "支払期限・納期限", fields["支払期限・納期限"] || draft.due_date);
+    put("draftPaymentPlanDate", "支払予定日", fields["支払予定日"]);
+    put("draftWithdrawalDate", "引落日", fields["引落日"]);
+    put("draftSettlementDate", "決済日", fields["決済日"]);
+    put("draftServicePeriodStart", "対象開始日", fields["対象開始日"]);
+    put("draftServicePeriodEnd", "対象終了日", fields["対象終了日"]);
+    put("draftContractStartDate", "契約開始日", fields["契約開始日"]);
+    put("draftContractEndDate", "契約終了日", fields["契約終了日"]);
+    put("draftRenewalDate", "更新日", fields["更新日"]);
 
     // 金額・税
-    put("analysisAmount", "請求・支払金額", fields["請求・支払金額"] || fields["合計金額"] || analysis.total_amount);
-    put("analysisTotalAmount", "合計金額", fields["合計金額"] || analysis.total_amount);
-    put("analysisAmountInTax", "税込金額", fields["税込金額"] || analysis.total_amount);
-    put("analysisAmountExTax", "税抜金額", fields["税抜金額"]);
-    put("analysisTaxAmount", "消費税額", fields["消費税額"] || analysis.tax_amount);
-    put("analysisAmount10", "10%対象金額", fields["10%対象金額"]);
-    put("analysisTax10", "10%消費税", fields["10%消費税"]);
-    put("analysisAmount8", "8%対象金額", fields["8%対象金額"]);
-    put("analysisTax8", "8%消費税", fields["8%消費税"]);
-    put("analysisNonTaxAmount", "非課税・不課税", fields["非課税・不課税"]);
-    put("analysisWithholdingAmount", "源泉徴収額", fields["源泉徴収額"]);
-    put("analysisFeeAmount", "手数料", fields["手数料"]);
-    put("analysisLateFeeAmount", "延滞金", fields["延滞金"]);
-    put("analysisDiscountAmount", "値引・割引", fields["値引・割引"]);
-    put("analysisPreviousBalance", "前回残高", fields["前回残高"]);
-    put("analysisCurrentChargeAmount", "今回利用額", fields["今回利用額"]);
-    put("analysisPaidAmount", "入金額", fields["入金額"]);
-    put("analysisBalanceAmount", "未払残高", fields["未払残高"]);
+    put("draftAmount", "請求・支払金額", fields["請求・支払金額"] || fields["合計金額"] || draft.total_amount);
+    put("draftTotalAmount", "合計金額", fields["合計金額"] || draft.total_amount);
+    put("draftAmountInTax", "税込金額", fields["税込金額"] || draft.total_amount);
+    put("draftAmountExTax", "税抜金額", fields["税抜金額"]);
+    put("draftTaxAmount", "消費税額", fields["消費税額"] || draft.tax_amount);
+    put("draftAmount10", "10%対象金額", fields["10%対象金額"]);
+    put("draftTax10", "10%消費税", fields["10%消費税"]);
+    put("draftAmount8", "8%対象金額", fields["8%対象金額"]);
+    put("draftTax8", "8%消費税", fields["8%消費税"]);
+    put("draftNonTaxAmount", "非課税・不課税", fields["非課税・不課税"]);
+    put("draftWithholdingAmount", "源泉徴収額", fields["源泉徴収額"]);
+    put("draftFeeAmount", "手数料", fields["手数料"]);
+    put("draftLateFeeAmount", "延滞金", fields["延滞金"]);
+    put("draftDiscountAmount", "値引・割引", fields["値引・割引"]);
+    put("draftPreviousBalance", "前回残高", fields["前回残高"]);
+    put("draftCurrentChargeAmount", "今回利用額", fields["今回利用額"]);
+    put("draftPaidAmount", "入金額", fields["入金額"]);
+    put("draftBalanceAmount", "未払残高", fields["未払残高"]);
 
     // 支払情報
-    put("analysisPaymentMethod", "支払方法", fields["支払方法"] || fields["支払方法マスタ"]);
-    put("analysisPaymentStatus", "支払状態", fields["支払状態"]);
-    put("analysisBankName", "振込先銀行", fields["振込先銀行"]);
-    put("analysisBankCode", "銀行コード", fields["銀行コード"]);
-    put("analysisBankBranchName", "支店名", fields["支店名"]);
-    put("analysisBranchCode", "支店コード", fields["支店コード"]);
-    put("analysisBankAccountType", "口座種別", fields["口座種別"]);
-    put("analysisBankAccountNo", "口座番号", fields["口座番号"]);
-    put("analysisBankAccountName", "口座名義", fields["口座名義"]);
-    put("analysisDebitBankName", "引落銀行", fields["引落銀行"]);
-    put("analysisCreditCardCompany", "カード会社", fields["カード会社"]);
-    put("analysisCardName", "カード名", fields["カード名"]);
-    put("analysisSettlementService", "決済サービス", fields["決済サービス"]);
-    put("analysisConveniencePaymentNo", "コンビニ支払番号", fields["コンビニ支払番号"]);
-    put("analysisBarcodeNo", "バーコード番号", fields["バーコード番号"]);
-    put("analysisQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
+    put("draftPaymentMethod", "支払方法", fields["支払方法"] || fields["支払方法マスタ"]);
+    put("draftPaymentStatus", "支払状態", fields["支払状態"]);
+    put("draftBankName", "振込先銀行", fields["振込先銀行"]);
+    put("draftBankCode", "銀行コード", fields["銀行コード"]);
+    put("draftBankBranchName", "支店名", fields["支店名"]);
+    put("draftBranchCode", "支店コード", fields["支店コード"]);
+    put("draftBankAccountType", "口座種別", fields["口座種別"]);
+    put("draftBankAccountNo", "口座番号", fields["口座番号"]);
+    put("draftBankAccountName", "口座名義", fields["口座名義"]);
+    put("draftDebitBankName", "引落銀行", fields["引落銀行"]);
+    put("draftCreditCardCompany", "カード会社", fields["カード会社"]);
+    put("draftCardName", "カード名", fields["カード名"]);
+    put("draftSettlementService", "決済サービス", fields["決済サービス"]);
+    put("draftConveniencePaymentNo", "コンビニ支払番号", fields["コンビニ支払番号"]);
+    put("draftBarcodeNo", "バーコード番号", fields["バーコード番号"]);
+    put("draftQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
 
     // 会計・管理
-    put("analysisAccountingCategory", "会計区分", analysis.accounting_category_code || fields["会計区分"]);
-    put("analysisDestination", "処理先", analysis.payment_destination_code || fields["処理先"] || summary.destination);
-    put("analysisVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
-    put("analysisAccountTitle", "勘定科目", fields["勘定科目"]);
-    put("analysisTaxCategory", "税区分", fields["税区分"]);
-    put("analysisInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("analysisPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
-    put("analysisTargetPerson", "対象者", fields["対象者"]);
-    put("analysisPurpose", "目的", fields["目的"]);
-    put("analysisProject", "案件", fields["案件"]);
-    put("analysisDepartment", "部門", fields["部門"]);
-    put("analysisSummary", "摘要", fields["摘要"] || analysis.summary);
-    put("analysisCompanyBurden", "会社負担可否", fields["会社負担可否"]);
-    put("analysisMixedPersonalFlag", "個人負担混在", fields["個人負担混在"]);
-    put("analysisAdvancePaymentFlag", "立替", fields["立替"]);
-    put("analysisSettlementFlag", "精算", fields["精算"]);
-    put("analysisPayableRegistrationFlag", "未払登録", fields["未払登録"]);
-    put("analysisAccountsPayableFlag", "買掛登録", fields["買掛登録"]);
-    put("analysisMemo", "社内メモ", fields["社内メモ"] || analysis.memo);
+    put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
+    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
+    put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
+    put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
+    put("draftTaxCategory", "税区分", fields["税区分"]);
+    put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
+    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
+    put("draftTargetPerson", "対象者", fields["対象者"]);
+    put("draftPurpose", "目的", fields["目的"]);
+    put("draftProject", "案件", fields["案件"]);
+    put("draftDepartment", "部門", fields["部門"]);
+    put("draftSummary", "摘要", fields["摘要"] || draft.summary);
+    put("draftCompanyBurden", "会社負担可否", fields["会社負担可否"]);
+    put("draftMixedPersonalFlag", "個人負担混在", fields["個人負担混在"]);
+    put("draftAdvancePaymentFlag", "立替", fields["立替"]);
+    put("draftSettlementFlag", "精算", fields["精算"]);
+    put("draftPayableRegistrationFlag", "未払登録", fields["未払登録"]);
+    put("draftAccountsPayableFlag", "買掛登録", fields["買掛登録"]);
+    put("draftMemo", "社内メモ", fields["社内メモ"] || draft.memo);
 
     // 明細
-    put("analysisLinesRaw", "明細候補", fields["明細候補"]);
+    put("draftLinesRaw", "明細候補", fields["明細候補"]);
 
     // 書類別追加情報
-    put("analysisTaxItem", "税目", fields["税目"]);
-    put("analysisTaxOffice", "納付先", fields["納付先"]);
-    put("analysisFiscalYear", "年度", fields["年度"]);
-    put("analysisTaxTerm", "期別", fields["期別"]);
-    put("analysisUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("analysisUsagePeriod", "使用期間", fields["使用期間"]);
-    put("analysisUsageAmount", "使用量", fields["使用量"]);
-    put("analysisInsuranceType", "保険種類", fields["保険種類"]);
-    put("analysisLeaseItemName", "リース物件", fields["リース物件"]);
-    put("analysisPaymentCount", "支払回数", fields["支払回数"]);
-    put("analysisEmailSubject", "メール件名", fields["メール件名"]);
-    put("analysisEmailFrom", "メール送信者", fields["メール送信者"]);
-    put("analysisEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
-    put("analysisAttachmentFileName", "添付ファイル名", fields["添付ファイル名"]);
-    put("analysisDownloadDate", "ダウンロード日", fields["ダウンロード日"]);
+    put("draftTaxItem", "税目", fields["税目"]);
+    put("draftTaxOffice", "納付先", fields["納付先"]);
+    put("draftFiscalYear", "年度", fields["年度"]);
+    put("draftTaxTerm", "期別", fields["期別"]);
+    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
+    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
+    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftInsuranceType", "保険種類", fields["保険種類"]);
+    put("draftLeaseItemName", "リース物件", fields["リース物件"]);
+    put("draftPaymentCount", "支払回数", fields["支払回数"]);
+    put("draftEmailSubject", "メール件名", fields["メール件名"]);
+    put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
+    put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
+    put("draftAttachmentFileName", "添付ファイル名", fields["添付ファイル名"]);
+    put("draftDownloadDate", "ダウンロード日", fields["ダウンロード日"]);
 
     // 要確認
     const warningText = [
       fields["要確認メモ"] || "",
-      ...(Array.isArray(analysis.warnings) ? analysis.warnings : [])
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
     ].filter(Boolean).join("\n");
 
-    put("analysisWarnings", "要確認メモ", warningText);
+    put("draftWarnings", "要確認メモ", warningText);
 
     // ID不一致の救済。ラベルで探せた項目にも印を入れる。
     for (const [label, value] of Object.entries(fields)) {
@@ -2114,8 +2114,8 @@ function setDocumentPreview(item) {
         return true;
       }
 
-      if (typeof setAnalysisMasterSelectValue === "function") {
-        setAnalysisMasterSelectValue(control, candidate);
+      if (typeof setDraftMasterSelectValue === "function") {
+        setDraftMasterSelectValue(control, candidate);
 
         if (String(control.value || "").trim()) {
           return true;
@@ -2161,7 +2161,7 @@ function setDocumentPreview(item) {
 
     if (knownCodes.includes(raw)) return raw;
 
-    if (type === "document_types" || id === "analysisAiDocumentKind" || labelNorm.includes("書類区分") || labelNorm.includes("書類種別")) {
+    if (type === "document_types" || id === "draftAiDocumentKind" || labelNorm.includes("書類区分") || labelNorm.includes("書類種別")) {
       if (norm.includes("リース")) return "lease_contract";
       if (norm.includes("納付") || norm.includes("納税") || norm.includes("税金") || norm.includes("税務署")) return "tax_payment_notice";
       if (norm.includes("カード")) return "card_statement";
@@ -2174,7 +2174,7 @@ function setDocumentPreview(item) {
       if (norm.includes("web") || norm.includes("ウェブ")) return "web_statement";
     }
 
-    if (type === "payment_destinations" || id === "analysisAiDestination" || id === "analysisDestination" || labelNorm.includes("処理先")) {
+    if (type === "payment_destinations" || id === "draftAiDestination" || id === "draftDestination" || labelNorm.includes("処理先")) {
       if (norm.includes("税") || norm.includes("公的") || norm.includes("納付")) return "tax_public";
       if (norm.includes("リース") || norm.includes("保険") || norm.includes("契約")) return "contract_insurance_lease";
       if (norm.includes("カード")) return "card_payable";
@@ -2185,7 +2185,7 @@ function setDocumentPreview(item) {
       if (norm.includes("確認")) return "needs_review";
     }
 
-    if (type === "accounting_categories" || id === "analysisAccountingCategory" || labelNorm.includes("会計区分")) {
+    if (type === "accounting_categories" || id === "draftAccountingCategory" || labelNorm.includes("会計区分")) {
       if (norm.includes("リース")) return "lease";
       if (norm.includes("税")) return "tax";
       if (norm.includes("公共")) return "public_utility";
@@ -2196,7 +2196,7 @@ function setDocumentPreview(item) {
       if (norm.includes("通常")) return "normal";
     }
 
-    if (type === "payable_kinds" || id === "analysisPayableKind" || labelNorm.includes("未払種別")) {
+    if (type === "payable_kinds" || id === "draftPayableKind" || labelNorm.includes("未払種別")) {
       if (norm.includes("買掛")) return "accounts_payable";
       if (norm.includes("カード")) return "card_payable";
       if (norm.includes("未払費用")) return "accrued_expense";
@@ -2232,8 +2232,8 @@ function setDocumentPreview(item) {
     const candidates = Array.from(new Set([raw, alias].filter(Boolean)));
 
     for (const candidate of candidates) {
-      if (typeof setAnalysisMasterSelectValue === "function") {
-        setAnalysisMasterSelectValue(select, candidate);
+      if (typeof setDraftMasterSelectValue === "function") {
+        setDraftMasterSelectValue(select, candidate);
         if (String(select.value || "").trim()) {
           return true;
         }
@@ -2297,9 +2297,9 @@ function setDocumentPreview(item) {
     return 0;
   }
 
-  function applyAnalysisResultToFormHardDebug(analysis) {
-    const fields = analysis && analysis.fields && typeof analysis.fields === "object" ? analysis.fields : {};
-    const summary = analysis && analysis.ai_summary && typeof analysis.ai_summary === "object" ? analysis.ai_summary : {};
+  function applyAnalysisResultToFormHardDebug(draft) {
+    const fields = draft && draft.fields && typeof draft.fields === "object" ? draft.fields : {};
+    const summary = draft && draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
     const missingControls = [];
     let appliedCount = 0;
 
@@ -2307,147 +2307,147 @@ function setDocumentPreview(item) {
       appliedCount += aiHardDebugPut(id, label, value, missingControls);
     }
 
-    put("analysisAiDocumentKind", "書類区分", analysis.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
-    put("analysisAiDestination", "処理先", analysis.payment_destination_code || fields["処理先"] || summary.destination);
+    put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
+    put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
 
-    put("analysisPaymentSourceType", "取込媒体", analysis.source_type_code || fields["入手元区分"]);
-    put("analysisAnalysisSystemLabel", "専門解析先", analysis.analysis_system_code || analysis.analysis_system_label || fields["専門解析先"] || summary.analysis_system);
-    put("analysisAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
-    put("analysisAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
-    put("analysisAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
-    put("analysisAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
-    put("analysisAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
-    put("analysisAiConfidence", "AI信頼度", analysis.analysis_system_confidence);
-    put("analysisAiReason", "AI判定理由", analysis.analysis_system_reason);
+    put("draftPaymentSourceType", "取込媒体", draft.source_type_code || fields["入手元区分"]);
+    put("draftAnalysisSystemLabel", "専門解析先", draft.analysis_system_code || draft.analysis_system_label || fields["専門解析先"] || summary.analysis_system);
+    put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
+    put("draftAiUnpaidFlag", "未払登録対象", summary.payable_target || (fields.payable_target || fields["未払登録対象"]));
+    put("draftAiExpenseFlag", "経費登録対象", summary.expense_target || (fields.expense_target || fields["経費登録対象"]));
+    put("draftAiTaxPublicFlag", "税金・公的支払", summary.tax_public || fields["税金・公的支払"]);
+    put("draftAiContractFlag", "契約・保険・リース", summary.contract_insurance_lease || fields["契約・保険・リース"]);
+    put("draftAiConfidence", "AI信頼度", draft.analysis_system_confidence);
+    put("draftAiReason", "AI判定理由", draft.analysis_system_reason);
 
-    put("analysisEvidenceType", "証憑区分", fields["証憑区分"]);
-    put("analysisDocumentTitle", "書類名", fields["書類名"] || analysis.summary);
-    put("analysisDocumentNumber", "書類番号", fields.document_number);
-    put("analysisReferenceNumber", "参照番号", fields.reference_number);
-    put("analysisIssuer", "発行元", fields.issuer_name || fields["発行元"] || analysis.vendor_name);
-    put("analysisVendorName", "支払先", fields["支払先"] || analysis.vendor_name);
-    put("analysisRecipient", "宛名", fields.recipient_name || fields["宛名"]);
-    put("analysisRecipientCode", "宛先コード", fields.recipient_code);
-    put("analysisCompanyName", "会社名", fields["会社名"]);
-    put("analysisPersonName", "個人名", fields["個人名"]);
-    put("analysisDepartmentName", "部署名", fields["部署名"]);
-    put("analysisContactName", "担当者名", fields["担当者名"]);
-    put("analysisIssuerPostalCode", "発行元郵便番号", fields.issuer_postal_code);
-    put("analysisAddress", "住所", fields.issuer_address || fields["住所"]);
-    put("analysisPhone", "電話番号", fields.issuer_phone || fields["電話番号"]);
-    put("analysisEmail", "メール", fields["メール"]);
-    put("analysisWebsite", "Webサイト", fields["Webサイト"]);
+    put("draftEvidenceType", "証憑区分", fields["証憑区分"]);
+    put("draftDocumentTitle", "書類名", fields["書類名"] || draft.summary);
+    put("draftDocumentNumber", "書類番号", fields.document_number);
+    put("draftReferenceNumber", "参照番号", fields.reference_number);
+    put("draftIssuer", "発行元", fields.issuer_name || fields["発行元"] || draft.vendor_name);
+    put("draftVendorName", "支払先", fields["支払先"] || draft.vendor_name);
+    put("draftRecipient", "宛名", fields.recipient_name || fields["宛名"]);
+    put("draftRecipientCode", "宛先コード", fields.recipient_code);
+    put("draftCompanyName", "会社名", fields["会社名"]);
+    put("draftPersonName", "個人名", fields["個人名"]);
+    put("draftDepartmentName", "部署名", fields["部署名"]);
+    put("draftContactName", "担当者名", fields["担当者名"]);
+    put("draftIssuerPostalCode", "発行元郵便番号", fields.issuer_postal_code);
+    put("draftAddress", "住所", fields.issuer_address || fields["住所"]);
+    put("draftPhone", "電話番号", fields.issuer_phone || fields["電話番号"]);
+    put("draftEmail", "メール", fields["メール"]);
+    put("draftWebsite", "Webサイト", fields["Webサイト"]);
 
-    put("analysisInvoiceNo", "請求書番号", analysis.invoice_number || fields["請求書番号"]);
-    put("analysisReceiptNo", "領収書番号", fields["領収書番号"]);
-    put("analysisPaymentNo", "納付番号", fields["納付番号"]);
-    put("analysisNoticeNo", "通知書番号", fields["通知書番号"]);
-    put("analysisManagementNo", "管理番号", fields["管理番号"]);
-    put("analysisCustomerNo", "お客様番号", fields["お客様番号"]);
-    put("analysisContractNo", "契約番号", fields["契約番号"]);
-    put("analysisMemberNo", "会員番号", fields["会員番号"]);
-    put("analysisOrderNo", "注文番号", fields["注文番号"]);
-    put("analysisTransactionNo", "取引番号", fields["取引番号"]);
-    put("analysisRegistrationNo", "登録番号", fields.issuer_registration_number || fields["登録番号"]);
-    put("analysisCorporateNo", "法人番号", fields["法人番号"]);
-    put("analysisCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
+    put("draftInvoiceNo", "請求書番号", draft.invoice_number || fields["請求書番号"]);
+    put("draftReceiptNo", "領収書番号", fields["領収書番号"]);
+    put("draftPaymentNo", "納付番号", fields["納付番号"]);
+    put("draftNoticeNo", "通知書番号", fields["通知書番号"]);
+    put("draftManagementNo", "管理番号", fields["管理番号"]);
+    put("draftCustomerNo", "お客様番号", fields["お客様番号"]);
+    put("draftContractNo", "契約番号", fields["契約番号"]);
+    put("draftMemberNo", "会員番号", fields["会員番号"]);
+    put("draftOrderNo", "注文番号", fields["注文番号"]);
+    put("draftTransactionNo", "取引番号", fields["取引番号"]);
+    put("draftRegistrationNo", "登録番号", fields.issuer_registration_number || fields["登録番号"]);
+    put("draftCorporateNo", "法人番号", fields["法人番号"]);
+    put("draftCardLast4", "カード番号下4桁", fields["カード番号下4桁"]);
 
-    put("analysisDocumentDate", "書類日付", fields["書類日付"] || analysis.issue_date);
-    put("analysisIssueDate", "発行日", fields.document_date || analysis.document_date);
-    put("analysisBillingDate", "請求日", fields["請求日"] || analysis.issue_date);
-    put("analysisTransactionDate", "取引日・利用日", fields["取引日・利用日"]);
-    put("analysisDeliveryDate", "納品日", fields["納品日"]);
-    put("analysisClosingDate", "締日", fields["締日"]);
-    put("analysisDueDate", "支払期限・納期限", fields["支払期限・納期限"] || analysis.due_date);
-    put("analysisPaymentPlanDate", "支払予定日", fields["支払予定日"]);
-    put("analysisWithdrawalDate", "引落日", fields["引落日"]);
-    put("analysisSettlementDate", "決済日", fields["決済日"]);
-    put("analysisServicePeriodStart", "対象開始日", fields["対象開始日"]);
-    put("analysisServicePeriodEnd", "対象終了日", fields["対象終了日"]);
-    put("analysisContractStartDate", "契約開始日", fields["契約開始日"]);
-    put("analysisContractEndDate", "契約終了日", fields["契約終了日"]);
-    put("analysisRenewalDate", "更新日", fields["更新日"]);
+    put("draftDocumentDate", "書類日付", fields["書類日付"] || draft.issue_date);
+    put("draftIssueDate", "発行日", fields.document_date || draft.document_date);
+    put("draftBillingDate", "請求日", fields["請求日"] || draft.issue_date);
+    put("draftTransactionDate", "取引日・利用日", fields["取引日・利用日"]);
+    put("draftDeliveryDate", "納品日", fields["納品日"]);
+    put("draftClosingDate", "締日", fields["締日"]);
+    put("draftDueDate", "支払期限・納期限", fields["支払期限・納期限"] || draft.due_date);
+    put("draftPaymentPlanDate", "支払予定日", fields["支払予定日"]);
+    put("draftWithdrawalDate", "引落日", fields["引落日"]);
+    put("draftSettlementDate", "決済日", fields["決済日"]);
+    put("draftServicePeriodStart", "対象開始日", fields["対象開始日"]);
+    put("draftServicePeriodEnd", "対象終了日", fields["対象終了日"]);
+    put("draftContractStartDate", "契約開始日", fields["契約開始日"]);
+    put("draftContractEndDate", "契約終了日", fields["契約終了日"]);
+    put("draftRenewalDate", "更新日", fields["更新日"]);
 
-    put("analysisAmount", "請求・支払金額", fields["請求・支払金額"] || fields["合計金額"] || analysis.total_amount);
-    put("analysisTotalAmount", "合計金額", fields["合計金額"] || analysis.total_amount);
-    put("analysisAmountInTax", "税込金額", fields["税込金額"] || analysis.total_amount);
-    put("analysisAmountExTax", "税抜金額", fields["税抜金額"]);
-    put("analysisTaxAmount", "消費税額", fields["消費税額"] || analysis.tax_amount);
-    put("analysisAmount10", "10%対象金額", fields["10%対象金額"]);
-    put("analysisTax10", "10%消費税", fields["10%消費税"]);
-    put("analysisAmount8", "8%対象金額", fields["8%対象金額"]);
-    put("analysisTax8", "8%消費税", fields["8%消費税"]);
-    put("analysisNonTaxAmount", "非課税・不課税", fields["非課税・不課税"]);
-    put("analysisWithholdingAmount", "源泉徴収額", fields["源泉徴収額"]);
-    put("analysisFeeAmount", "手数料", fields["手数料"]);
-    put("analysisLateFeeAmount", "延滞金", fields["延滞金"]);
-    put("analysisDiscountAmount", "値引・割引", fields["値引・割引"]);
-    put("analysisPreviousBalance", "前回残高", fields["前回残高"]);
-    put("analysisCurrentChargeAmount", "今回利用額", fields["今回利用額"]);
-    put("analysisPaidAmount", "入金額", fields["入金額"]);
-    put("analysisBalanceAmount", "未払残高", fields["未払残高"]);
+    put("draftAmount", "請求・支払金額", fields["請求・支払金額"] || fields["合計金額"] || draft.total_amount);
+    put("draftTotalAmount", "合計金額", fields["合計金額"] || draft.total_amount);
+    put("draftAmountInTax", "税込金額", fields["税込金額"] || draft.total_amount);
+    put("draftAmountExTax", "税抜金額", fields["税抜金額"]);
+    put("draftTaxAmount", "消費税額", fields["消費税額"] || draft.tax_amount);
+    put("draftAmount10", "10%対象金額", fields["10%対象金額"]);
+    put("draftTax10", "10%消費税", fields["10%消費税"]);
+    put("draftAmount8", "8%対象金額", fields["8%対象金額"]);
+    put("draftTax8", "8%消費税", fields["8%消費税"]);
+    put("draftNonTaxAmount", "非課税・不課税", fields["非課税・不課税"]);
+    put("draftWithholdingAmount", "源泉徴収額", fields["源泉徴収額"]);
+    put("draftFeeAmount", "手数料", fields["手数料"]);
+    put("draftLateFeeAmount", "延滞金", fields["延滞金"]);
+    put("draftDiscountAmount", "値引・割引", fields["値引・割引"]);
+    put("draftPreviousBalance", "前回残高", fields["前回残高"]);
+    put("draftCurrentChargeAmount", "今回利用額", fields["今回利用額"]);
+    put("draftPaidAmount", "入金額", fields["入金額"]);
+    put("draftBalanceAmount", "未払残高", fields["未払残高"]);
 
-    put("analysisPaymentMethod", "支払方法", fields["支払方法"] || fields["支払方法マスタ"]);
-    put("analysisPaymentStatus", "支払状態", fields["支払状態"]);
-    put("analysisBankName", "振込先銀行", fields["振込先銀行"]);
-    put("analysisBankCode", "銀行コード", fields["銀行コード"]);
-    put("analysisBankBranchName", "支店名", fields["支店名"]);
-    put("analysisBranchCode", "支店コード", fields["支店コード"]);
-    put("analysisBankAccountType", "口座種別", fields["口座種別"]);
-    put("analysisBankAccountNo", "口座番号", fields["口座番号"]);
-    put("analysisBankAccountName", "口座名義", fields["口座名義"]);
-    put("analysisDebitBankName", "引落銀行", fields["引落銀行"]);
-    put("analysisCreditCardCompany", "カード会社", fields["カード会社"]);
-    put("analysisCardName", "カード名", fields["カード名"]);
-    put("analysisSettlementService", "決済サービス", fields["決済サービス"]);
-    put("analysisConveniencePaymentNo", "コンビニ支払番号", fields["コンビニ支払番号"]);
-    put("analysisBarcodeNo", "バーコード番号", fields["バーコード番号"]);
-    put("analysisQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
+    put("draftPaymentMethod", "支払方法", fields["支払方法"] || fields["支払方法マスタ"]);
+    put("draftPaymentStatus", "支払状態", fields["支払状態"]);
+    put("draftBankName", "振込先銀行", fields["振込先銀行"]);
+    put("draftBankCode", "銀行コード", fields["銀行コード"]);
+    put("draftBankBranchName", "支店名", fields["支店名"]);
+    put("draftBranchCode", "支店コード", fields["支店コード"]);
+    put("draftBankAccountType", "口座種別", fields["口座種別"]);
+    put("draftBankAccountNo", "口座番号", fields["口座番号"]);
+    put("draftBankAccountName", "口座名義", fields["口座名義"]);
+    put("draftDebitBankName", "引落銀行", fields["引落銀行"]);
+    put("draftCreditCardCompany", "カード会社", fields["カード会社"]);
+    put("draftCardName", "カード名", fields["カード名"]);
+    put("draftSettlementService", "決済サービス", fields["決済サービス"]);
+    put("draftConveniencePaymentNo", "コンビニ支払番号", fields["コンビニ支払番号"]);
+    put("draftBarcodeNo", "バーコード番号", fields["バーコード番号"]);
+    put("draftQrPaymentInfo", "QR決済情報", fields["QR決済情報"]);
 
-    put("analysisAccountingCategory", "会計区分", analysis.accounting_category_code || fields["会計区分"]);
-    put("analysisDestination", "処理先", analysis.payment_destination_code || fields["処理先"] || summary.destination);
-    put("analysisVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
-    put("analysisAccountTitle", "勘定科目", fields["勘定科目"]);
-    put("analysisTaxCategory", "税区分", fields["税区分"]);
-    put("analysisInvoiceType", "インボイス区分", fields["インボイス区分"]);
-    put("analysisPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
-    put("analysisTargetPerson", "対象者", fields["対象者"]);
-    put("analysisPurpose", "目的", fields["目的"]);
-    put("analysisProject", "案件", fields["案件"]);
-    put("analysisDepartment", "部門", fields["部門"]);
-    put("analysisSummary", "摘要", fields["摘要"] || analysis.summary);
-    put("analysisCompanyBurden", "会社負担可否", fields["会社負担可否"]);
-    put("analysisMixedPersonalFlag", "個人負担混在", fields["個人負担混在"]);
-    put("analysisAdvancePaymentFlag", "立替", fields["立替"]);
-    put("analysisSettlementFlag", "精算", fields["精算"]);
-    put("analysisPayableRegistrationFlag", "未払登録", fields["未払登録"]);
-    put("analysisAccountsPayableFlag", "買掛登録", fields["買掛登録"]);
-    put("analysisMemo", "社内メモ", fields["社内メモ"] || analysis.memo);
+    put("draftAccountingCategory", "会計区分", draft.accounting_category_code || fields["会計区分"]);
+    put("draftDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
+    put("draftVendorMasterCandidate", "支払先マスタ候補", fields["支払先マスタ候補"]);
+    put("draftAccountTitle", "勘定科目", fields["勘定科目"]);
+    put("draftTaxCategory", "税区分", fields["税区分"]);
+    put("draftInvoiceType", "インボイス区分", fields["インボイス区分"]);
+    put("draftPaymentMethodMaster", "支払方法マスタ", fields["支払方法マスタ"] || fields["支払方法"]);
+    put("draftTargetPerson", "対象者", fields["対象者"]);
+    put("draftPurpose", "目的", fields["目的"]);
+    put("draftProject", "案件", fields["案件"]);
+    put("draftDepartment", "部門", fields["部門"]);
+    put("draftSummary", "摘要", fields["摘要"] || draft.summary);
+    put("draftCompanyBurden", "会社負担可否", fields["会社負担可否"]);
+    put("draftMixedPersonalFlag", "個人負担混在", fields["個人負担混在"]);
+    put("draftAdvancePaymentFlag", "立替", fields["立替"]);
+    put("draftSettlementFlag", "精算", fields["精算"]);
+    put("draftPayableRegistrationFlag", "未払登録", fields["未払登録"]);
+    put("draftAccountsPayableFlag", "買掛登録", fields["買掛登録"]);
+    put("draftMemo", "社内メモ", fields["社内メモ"] || draft.memo);
 
-    put("analysisLinesRaw", "明細候補", fields["明細候補"]);
+    put("draftLinesRaw", "明細候補", fields["明細候補"]);
 
-    put("analysisTaxItem", "税目", fields["税目"]);
-    put("analysisTaxOffice", "納付先", fields["納付先"]);
-    put("analysisFiscalYear", "年度", fields["年度"]);
-    put("analysisTaxTerm", "期別", fields["期別"]);
-    put("analysisUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("analysisUsagePeriod", "使用期間", fields["使用期間"]);
-    put("analysisUsageAmount", "使用量", fields["使用量"]);
-    put("analysisInsuranceType", "保険種類", fields["保険種類"]);
-    put("analysisLeaseItemName", "リース物件", fields["リース物件"]);
-    put("analysisPaymentCount", "支払回数", fields["支払回数"]);
-    put("analysisEmailSubject", "メール件名", fields["メール件名"]);
-    put("analysisEmailFrom", "メール送信者", fields["メール送信者"]);
-    put("analysisEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
-    put("analysisAttachmentFileName", "添付ファイル名", fields["添付ファイル名"]);
-    put("analysisDownloadDate", "ダウンロード日", fields["ダウンロード日"]);
+    put("draftTaxItem", "税目", fields["税目"]);
+    put("draftTaxOffice", "納付先", fields["納付先"]);
+    put("draftFiscalYear", "年度", fields["年度"]);
+    put("draftTaxTerm", "期別", fields["期別"]);
+    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
+    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
+    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftInsuranceType", "保険種類", fields["保険種類"]);
+    put("draftLeaseItemName", "リース物件", fields["リース物件"]);
+    put("draftPaymentCount", "支払回数", fields["支払回数"]);
+    put("draftEmailSubject", "メール件名", fields["メール件名"]);
+    put("draftEmailFrom", "メール送信者", fields["メール送信者"]);
+    put("draftEmailReceivedAt", "メール受信日時", fields["メール受信日時"]);
+    put("draftAttachmentFileName", "添付ファイル名", fields["添付ファイル名"]);
+    put("draftDownloadDate", "ダウンロード日", fields["ダウンロード日"]);
 
     const warningText = [
       fields["要確認メモ"] || "",
-      ...(Array.isArray(analysis.warnings) ? analysis.warnings : [])
+      ...(Array.isArray(draft.warnings) ? draft.warnings : [])
     ].filter(Boolean).join("\n");
 
-    put("analysisWarnings", "要確認メモ", warningText);
+    put("draftWarnings", "要確認メモ", warningText);
 
     window.__lastAnalysisResultAppliedCount = appliedCount;
     window.__lastAnalysisResultMissingControls = missingControls;
@@ -2508,7 +2508,7 @@ function setDocumentPreview(item) {
       button.style.display = "none";
     });
 
-    document.querySelectorAll(".analysis-form-scroll .analysis-section").forEach(section => {
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
       section.classList.add("ai-section-hidden");
     });
 
@@ -2525,9 +2525,9 @@ function setDocumentPreview(item) {
       button.style.display = "";
     });
 
-    document.querySelectorAll(".analysis-form-scroll .analysis-section").forEach(section => {
+    document.querySelectorAll(".draft-form-scroll .draft-section").forEach(section => {
       let sectionHasVisibleField = false;
-      const title = section.querySelector(".analysis-section-title");
+      const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
       if (section.classList.contains("stage1-sorting-block")) {
@@ -2701,8 +2701,8 @@ function setDocumentPreview(item) {
       });
     }
   }
-/* PAYMENT_DOCUMENT_OPENAI_OCR_ANALYSIS_CLIENT_20260707_END */
-/* PAYMENT_DOCUMENT_OPENAI_WIDE_ANALYSIS_CLIENT_20260707_START */
+/* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_CLIENT_20260707_END */
+/* PAYMENT_DOCUMENT_OPENAI_WIDE_DRAFT_CLIENT_20260707_START */
   function normalizeLabelText(value) {
     return String(value || "")
       .replace(/\s+/g, "")
@@ -2763,7 +2763,7 @@ function setDocumentPreview(item) {
 
     if (control.tagName === "SELECT") {
       resetAiMasterSelectState(control);
-      setAnalysisMasterSelectValue(control, text);
+      setDraftMasterSelectValue(control, text);
     } else {
       control.value = text;
     }
@@ -2816,30 +2816,30 @@ function setDocumentPreview(item) {
     return count;
   }
 
-  function applyAnalysisResultToForm(analysis) {
-    if (!analysis) {
+  function applyAnalysisResultToForm(draft) {
+    if (!draft) {
       return;
     }
 
-    setMasterSelectByCodeOrText('[data-master-type="document_types"]', analysis.document_type_code);
-    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', analysis.payment_destination_code);
-    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', analysis.accounting_category_code);
-    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', analysis.payable_kind_code);
-    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', analysis.source_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="document_types"]', draft.document_type_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_destinations"]', draft.payment_destination_code);
+    setMasterSelectByCodeOrText('[data-master-type="accounting_categories"]', draft.accounting_category_code);
+    setMasterSelectByCodeOrText('[data-master-type="payable_kinds"]', draft.payable_kind_code);
+    setMasterSelectByCodeOrText('[data-master-type="payment_source_types"]', draft.source_type_code);
 
-    setInputValue('[name="vendor_name"], #vendorName', analysis.vendor_name);
-    setInputValue('[name="issue_date"], #issueDate', analysis.issue_date);
-    setInputValue('[name="due_date"], #dueDate', analysis.due_date);
-    setInputValue('[name="invoice_number"], #invoiceNumber', analysis.invoice_number);
-    setInputValue('[name="total_amount"], #totalAmount', analysis.total_amount);
-    setInputValue('[name="tax_amount"], #taxAmount', analysis.tax_amount);
-    setInputValue('[name="summary"], #summary', analysis.summary);
-    setInputValue('[name="memo"], #memo', analysis.memo);
+    setInputValue('[name="vendor_name"], #vendorName', draft.vendor_name);
+    setInputValue('[name="issue_date"], #issueDate', draft.issue_date);
+    setInputValue('[name="due_date"], #dueDate', draft.due_date);
+    setInputValue('[name="invoice_number"], #invoiceNumber', draft.invoice_number);
+    setInputValue('[name="total_amount"], #totalAmount', draft.total_amount);
+    setInputValue('[name="tax_amount"], #taxAmount', draft.tax_amount);
+    setInputValue('[name="summary"], #summary', draft.summary);
+    setInputValue('[name="memo"], #memo', draft.memo);
 
-    applyAiSummaryFields(analysis.ai_summary);
-    applyAiFieldMap(analysis.fields);
+    applyAiSummaryFields(draft.ai_summary);
+    applyAiFieldMap(draft.fields);
   }
-/* PAYMENT_DOCUMENT_OPENAI_WIDE_ANALYSIS_CLIENT_20260707_END */
+/* PAYMENT_DOCUMENT_OPENAI_WIDE_DRAFT_CLIENT_20260707_END */
 
   function ocrImportIdOf(item) {
     if (!item) return "";
@@ -3290,19 +3290,19 @@ async function runSelectedAnalyses() {
     return "other";
   };
 
-  window.pickAnalysisValue = function(analysis, keys) {
-    if (!analysis || typeof analysis !== "object") return "";
+  window.pickDraftValue = function(draft, keys) {
+    if (!draft || typeof draft !== "object") return "";
 
     for (const key of keys) {
-      if (analysis[key] !== undefined && analysis[key] !== null && String(analysis[key]).trim() !== "") {
-        return analysis[key];
+      if (draft[key] !== undefined && draft[key] !== null && String(draft[key]).trim() !== "") {
+        return draft[key];
       }
     }
 
-    if (analysis.fields && typeof analysis.fields === "object") {
+    if (draft.fields && typeof draft.fields === "object") {
       for (const key of keys) {
-        if (analysis.fields[key] !== undefined && analysis.fields[key] !== null && String(analysis.fields[key]).trim() !== "") {
-          return analysis.fields[key];
+        if (draft.fields[key] !== undefined && draft.fields[key] !== null && String(draft.fields[key]).trim() !== "") {
+          return draft.fields[key];
         }
       }
     }
@@ -3324,7 +3324,7 @@ async function runSelectedAnalyses() {
     const draft = formalBasicAnalysisResult;
     const group = window.firstText(item && item.__documentGroup, draft.document_group, draft.documentGroup);
 
-    const kindRaw = window.pickAnalysisValue(draft, [
+    const kindRaw = window.pickDraftValue(draft, [
       "document_type_label",
       "document_type_name",
       "document_type_code",
@@ -3332,10 +3332,10 @@ async function runSelectedAnalyses() {
       "documentKind",
       "document_kind",
       "ai_document_kind",
-      "analysisAiDocumentKind"
+      "draftAiDocumentKind"
     ]);
 
-    const destinationRaw = window.pickAnalysisValue(draft, [
+    const destinationRaw = window.pickDraftValue(draft, [
       "payment_destination_label",
       "payment_destination_name",
       "payment_destination_code",
@@ -3343,10 +3343,10 @@ async function runSelectedAnalyses() {
       "destination_code",
       "paymentDestination",
       "ai_destination",
-      "analysisAiDestination"
+      "draftAiDestination"
     ]);
 
-    const accountingRaw = window.pickAnalysisValue(draft, [
+    const accountingRaw = window.pickDraftValue(draft, [
       "accounting_category_label",
       "accounting_category_name",
       "accounting_category_code",
@@ -3357,14 +3357,14 @@ async function runSelectedAnalyses() {
       "accountingCategory"
     ]);
 
-    const confidenceRaw = window.pickAnalysisValue(draft, [
+    const confidenceRaw = window.pickDraftValue(draft, [
       "ai_confidence",
       "confidence",
       "confidence_level",
-      "analysisAiConfidence"
+      "draftAiConfidence"
     ]);
 
-    const reasonRaw = window.pickAnalysisValue(draft, [
+    const reasonRaw = window.pickDraftValue(draft, [
       "review_reason",
       "needs_review_reason",
       "confirmation_notes",
@@ -3959,7 +3959,7 @@ async function loadItems() {
 
     document.getElementById("ocrText").value = "";
     setBottomOcrText("");
-    clearAnalysisFields();
+    clearDraftFields();
     setInitialAiOnlyView();
 
     try {
@@ -4006,15 +4006,15 @@ async function loadItems() {
       bottom.value = value || "";
     }
   }
-  function clearAnalysisFields() {
-    document.querySelectorAll(".analysis-field").forEach(field => {
+  function clearDraftFields() {
+    document.querySelectorAll(".draft-field").forEach(field => {
       field.value = "";
     });
     resetCompactEvidenceInfo();
     showResult("");
   }
 
-  function setAnalysisValue(id, value) {
+  function setDraftValue(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
 
@@ -4027,7 +4027,7 @@ async function loadItems() {
     el.value = String(value);
   }
 
-  function formatAnalysisBytes(bytes) {
+  function formatDraftBytes(bytes) {
     const n = Number(bytes) || 0;
 
     if (n >= 1024 * 1024) {
@@ -4077,31 +4077,31 @@ async function loadItems() {
     setCompactEvidenceText("compactEvidenceSavedStatus", savedStatus);
     setCompactEvidenceText("compactEvidenceDuplicateStatus", duplicateStatus);
   }
-  function fillAnalysisFromItem(item) {
+  function fillDraftFromItem(item) {
     if (!item) return;
 
     updateCompactEvidenceInfo(item);
 
-    setAnalysisValue("analysisAiDocumentKind", item.documentType || "");
-    setAnalysisValue("analysisDestination", item.destination || "");
-    setAnalysisValue("analysisAiDestination", item.destination || "");
-    setAnalysisValue("analysisIssuer", item.vendorName || "");
-    setAnalysisValue("analysisVendorName", item.vendorName || "");
-    setAnalysisValue("analysisVendorMasterCandidate", item.vendorName || "");
-    setAnalysisValue("analysisMemo", item.note || "");
-    setAnalysisValue("analysisEmailSubject", item.emailSubject || "");
-    setAnalysisValue("analysisEmailFrom", item.emailFrom || "");
+    setDraftValue("draftAiDocumentKind", item.documentType || "");
+    setDraftValue("draftDestination", item.destination || "");
+    setDraftValue("draftAiDestination", item.destination || "");
+    setDraftValue("draftIssuer", item.vendorName || "");
+    setDraftValue("draftVendorName", item.vendorName || "");
+    setDraftValue("draftVendorMasterCandidate", item.vendorName || "");
+    setDraftValue("draftMemo", item.note || "");
+    setDraftValue("draftEmailSubject", item.emailSubject || "");
+    setDraftValue("draftEmailFrom", item.emailFrom || "");
 
-    setAnalysisValue("analysisOriginalFileName", item.originalFileName || "");
-    setAnalysisValue("analysisSavedFileName", item.fileName || "");
-    setAnalysisValue("analysisMimeType", item.mimeType || "");
-    setAnalysisValue("analysisFileSize", formatAnalysisBytes(item.sizeBytes));
-    setAnalysisValue("analysisSha256", item.sha256 || "");
-    setAnalysisValue("analysisOcrStatus", item.ocrStatus || "");
-    setAnalysisValue("analysisOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
-    setAnalysisValue("analysisSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
-    setAnalysisValue("analysisSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
-    setAnalysisValue("analysisDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
+    setDraftValue("draftOriginalFileName", item.originalFileName || "");
+    setDraftValue("draftSavedFileName", item.fileName || "");
+    setDraftValue("draftMimeType", item.mimeType || "");
+    setDraftValue("draftFileSize", formatDraftBytes(item.sizeBytes));
+    setDraftValue("draftSha256", item.sha256 || "");
+    setDraftValue("draftOcrStatus", item.ocrStatus || "");
+    setDraftValue("draftOcrAt", item.ocrAt ? formatJapanDateTime(item.ocrAt) : "");
+    setDraftValue("draftSavedStatus", item.processStatus || item.saveStatus || item.savedStatus || "");
+    setDraftValue("draftSavedAt", item.savedAt ? formatJapanDateTime(item.savedAt) : "");
+    setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
 
   /* HD_ORIGIN_RECORD_NAVIGATION_20260712_START */
@@ -4179,19 +4179,19 @@ async function loadItems() {
     document.getElementById("ocrText").value = ocrValue;
     resetDocumentPreviewRotation(false);
     setDocumentPreview(item);
-    clearAnalysisFields();
+    clearDraftFields();
     setInitialAiOnlyView();
-    fillAnalysisFromItem(item);
-    const savedBasicAnalysis =
+    fillDraftFromItem(item);
+    const savedBasicDraft =
       restoreSavedBasicAnalysisToItem(item);
 
-    if (savedBasicAnalysis) {
+    if (savedBasicDraft) {
       if (
         typeof applyAnalysisResultToFormHardDebug ===
         "function"
       ) {
         applyAnalysisResultToFormHardDebug(
-          savedBasicAnalysis
+          savedBasicDraft
         );
       }
 
@@ -4251,27 +4251,27 @@ async function loadItems() {
     }
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_START */
-  let analysisMasters = {};
+  let draftMasters = {};
 
-  const ANALYSIS_MASTER_FIELDS = [
-    { id: "analysisAiDocumentKind", type: "document_types", label: "書類区分" },
-    { id: "analysisAnalysisSystemLabel", type: "analysis_systems", label: "専門解析先" },
-    { id: "analysisAiDestination", type: "payment_destinations", label: "処理先" },
-    { id: "analysisDestination", type: "payment_destinations", label: "処理先" },
-    { id: "analysisAccountingCategory", type: "accounting_categories", label: "会計区分" },
-    { id: "analysisPaymentSourceType", type: "payment_source_types", label: "取込媒体" },
+  const DRAFT_MASTER_FIELDS = [
+    { id: "draftAiDocumentKind", type: "document_types", label: "書類区分" },
+    { id: "draftAnalysisSystemLabel", type: "analysis_systems", label: "専門解析先" },
+    { id: "draftAiDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftDestination", type: "payment_destinations", label: "処理先" },
+    { id: "draftAccountingCategory", type: "accounting_categories", label: "会計区分" },
+    { id: "draftPaymentSourceType", type: "payment_source_types", label: "取込媒体" },
 
-    { id: "analysisEvidenceType", type: "evidence_types", label: "証憑区分" },
-    { id: "analysisVendorMasterCandidate", type: "vendors", label: "支払先" },
-    { id: "analysisPaymentMethod", type: "payment_methods", label: "支払方法" },
-    { id: "analysisPaymentMethodMaster", type: "payment_methods", label: "支払方法" },
-    { id: "analysisAccountTitle", type: "account_titles", label: "勘定科目" },
-    { id: "analysisTaxCategory", type: "tax_categories", label: "税区分" },
-    { id: "analysisInvoiceType", type: "invoice_types", label: "インボイス区分" },
-    { id: "analysisTargetPerson", type: "target_people", label: "対象者" },
-    { id: "analysisPurpose", type: "purposes", label: "目的" },
-    { id: "analysisProject", type: "projects", label: "案件" },
-    { id: "analysisDepartment", type: "departments", label: "部門" }
+    { id: "draftEvidenceType", type: "evidence_types", label: "証憑区分" },
+    { id: "draftVendorMasterCandidate", type: "vendors", label: "支払先" },
+    { id: "draftPaymentMethod", type: "payment_methods", label: "支払方法" },
+    { id: "draftPaymentMethodMaster", type: "payment_methods", label: "支払方法" },
+    { id: "draftAccountTitle", type: "account_titles", label: "勘定科目" },
+    { id: "draftTaxCategory", type: "tax_categories", label: "税区分" },
+    { id: "draftInvoiceType", type: "invoice_types", label: "インボイス区分" },
+    { id: "draftTargetPerson", type: "target_people", label: "対象者" },
+    { id: "draftPurpose", type: "purposes", label: "目的" },
+    { id: "draftProject", type: "projects", label: "案件" },
+    { id: "draftDepartment", type: "departments", label: "部門" }
   ];
 
   function normalizeMasterText(value) {
@@ -4281,8 +4281,8 @@ async function loadItems() {
       .toLowerCase();
   }
 
-  function getAnalysisMasterRows(type) {
-    const source = analysisMasters || {};
+  function getDraftMasterRows(type) {
+    const source = draftMasters || {};
 
     if (Array.isArray(source[type])) {
       return source[type];
@@ -4374,7 +4374,7 @@ async function loadItems() {
 
     const type = select.dataset.masterType || "";
     const label = select.dataset.masterLabel || type || "マスタ";
-    const rows = getAnalysisMasterRows(type).filter(row => row && row.is_active !== false);
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
 
     const previousValue = select.value;
     select.innerHTML = "";
@@ -4417,15 +4417,15 @@ async function loadItems() {
     }
 
     if (previousValue) {
-      setAnalysisMasterSelectValue(select, previousValue);
+      setDraftMasterSelectValue(select, previousValue);
     }
   }
 
-  function populateAnalysisMasterSelects() {
+  function populateDraftMasterSelects() {
     document.querySelectorAll("select[data-master-type]").forEach(populateOneMasterSelect);
   }
 
-  function setAnalysisMasterSelectValue(select, value) {
+  function setDraftMasterSelectValue(select, value) {
     const raw = String(value || "").trim();
 
     if (!raw) {
@@ -4449,7 +4449,7 @@ async function loadItems() {
     select.value = match ? match.value : "";
   }
 
-  function setAnalysisValue(id, value) {
+  function setDraftValue(id, value) {
     const el = document.getElementById(id);
 
     if (!el) {
@@ -4458,7 +4458,7 @@ async function loadItems() {
     }
 
     if (el.tagName === "SELECT") {
-      setAnalysisMasterSelectValue(el, value);
+      setDraftMasterSelectValue(el, value);
       scheduleDocumentPreviewFit();
       return;
     }
@@ -4472,7 +4472,7 @@ async function loadItems() {
     el.value = String(value);
   }
 
-  async function loadAnalysisMasters() {
+  async function loadDraftMasters() {
     try {
       const res = await fetch("/api/expenses/masters");
       const data = await res.json();
@@ -4481,11 +4481,11 @@ async function loadItems() {
         throw new Error(data.error || "マスタ読込失敗");
       }
 
-      analysisMasters = data.masters || data.items || data;
-      populateAnalysisMasterSelects();
+      draftMasters = data.masters || data.items || data;
+      populateDraftMasterSelects();
     } catch (error) {
-      analysisMasters = {};
-      populateAnalysisMasterSelects();
+      draftMasters = {};
+      populateDraftMasterSelects();
 
       const message =
         "マスタ読込に失敗しました。\n" +
@@ -4601,7 +4601,7 @@ async function loadItems() {
 
     const type = select.dataset.masterType || "";
     const label = select.dataset.masterLabel || type || "マスタ";
-    const rows = getAnalysisMasterRows(type).filter(row => row && row.is_active !== false);
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
 
     const previousValue = select.value;
     select.innerHTML = "";
@@ -4651,11 +4651,11 @@ async function loadItems() {
     }
 
     if (previousValue) {
-      setAnalysisMasterSelectValue(select, previousValue);
+      setDraftMasterSelectValue(select, previousValue);
     }
   }
 
-  function setAnalysisMasterSelectValue(select, value) {
+  function setDraftMasterSelectValue(select, value) {
     const raw = String(value || "").trim();
 
     if (!raw) {
@@ -4679,7 +4679,7 @@ async function loadItems() {
     select.value = match ? match.value : "";
   }
 
-  async function fetchAnalysisMasterRows(type) {
+  async function fetchDraftMasterRows(type) {
     if (type === "analysis_systems") {
       const res = await fetch("/api/expenses/masters", {
         cache: "no-store"
@@ -4725,9 +4725,9 @@ async function loadItems() {
     return data.rows || data.items || data.masters || [];
   }
 
-  async function loadAnalysisMasters() {
+  async function loadDraftMasters() {
     const types = Array.from(new Set(
-      ANALYSIS_MASTER_FIELDS
+      DRAFT_MASTER_FIELDS
         .map(field => field.type)
         .filter(Boolean)
     ));
@@ -4737,15 +4737,15 @@ async function loadItems() {
 
     for (const type of types) {
       try {
-        nextMasters[type] = await fetchAnalysisMasterRows(type);
+        nextMasters[type] = await fetchDraftMasterRows(type);
       } catch (error) {
         nextMasters[type] = [];
         errors.push(error.message || String(error));
       }
     }
 
-    analysisMasters = nextMasters;
-    populateAnalysisMasterSelects();
+    draftMasters = nextMasters;
+    populateDraftMasterSelects();
 
     if (errors.length) {
       showResult(
@@ -4757,14 +4757,14 @@ async function loadItems() {
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_API_20260707_END */
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_EMPTY_STATUS_20260707_START */
-  let analysisMasterLoadStatus = {};
+  let draftMasterLoadStatus = {};
 
   function populateOneMasterSelect(select) {
     if (!select) return;
 
     const type = select.dataset.masterType || "";
     const label = select.dataset.masterLabel || type || "マスタ";
-    const rows = getAnalysisMasterRows(type).filter(row => row && row.is_active !== false);
+    const rows = getDraftMasterRows(type).filter(row => row && row.is_active !== false);
     const previousValue = select.value;
 
     select.innerHTML = "";
@@ -4782,7 +4782,7 @@ async function loadItems() {
       const option = document.createElement("option");
       option.value = "";
 
-      if (analysisMasterLoadStatus[type] === false) {
+      if (draftMasterLoadStatus[type] === false) {
         option.textContent = label + "マスタ接続エラー";
         select.classList.add("master-missing");
       } else {
@@ -4821,13 +4821,13 @@ async function loadItems() {
     }
 
     if (previousValue) {
-      setAnalysisMasterSelectValue(select, previousValue);
+      setDraftMasterSelectValue(select, previousValue);
     }
   }
 
-  async function loadAnalysisMasters() {
+  async function loadDraftMasters() {
     const types = Array.from(new Set(
-      ANALYSIS_MASTER_FIELDS
+      DRAFT_MASTER_FIELDS
         .map(field => field.type)
         .filter(Boolean)
     ));
@@ -4838,7 +4838,7 @@ async function loadItems() {
 
     for (const type of types) {
       try {
-        nextMasters[type] = await fetchAnalysisMasterRows(type);
+        nextMasters[type] = await fetchDraftMasterRows(type);
         nextStatus[type] = true;
       } catch (error) {
         nextMasters[type] = [];
@@ -4847,10 +4847,10 @@ async function loadItems() {
       }
     }
 
-    analysisMasters = nextMasters;
-    analysisMasterLoadStatus = nextStatus;
+    draftMasters = nextMasters;
+    draftMasterLoadStatus = nextStatus;
 
-    populateAnalysisMasterSelects();
+    populateDraftMasterSelects();
 
     if (errors.length) {
       showResult(
@@ -4862,7 +4862,7 @@ async function loadItems() {
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_EMPTY_STATUS_20260707_END */
   async function initPaymentDocumentReview() {
-    await loadAnalysisMasters();
+    await loadDraftMasters();
     await loadItems();
   }
 /* PAYMENT_DOCUMENT_REVIEW_MASTER_SELECTS_20260707_END */
@@ -4940,13 +4940,13 @@ async function loadItems() {
   }
 
   function sectionFor(control) {
-    var section = control && control.closest(".analysis-section");
+    var section = control && control.closest(".draft-section");
 
     if (!section) {
       return "未分類";
     }
 
-    var title = section.querySelector(".analysis-section-title");
+    var title = section.querySelector(".draft-section-title");
 
     return title ? cleanText(title.textContent) : "未分類";
   }
@@ -4977,12 +4977,12 @@ async function loadItems() {
   }
 
   function collectVisibleFieldsOnly() {
-    var controls = Array.from(document.querySelectorAll(".analysis-panel .analysis-field"))
+    var controls = Array.from(document.querySelectorAll(".draft-panel .draft-field"))
       .filter(function (control) {
         if (!control || control.type === "hidden") return false;
 
         var label = control.closest("label") || control;
-        var section = control.closest(".analysis-section");
+        var section = control.closest(".draft-section");
 
         if (!isElementActuallyVisible(section || label)) return false;
         if (!isElementActuallyVisible(label)) return false;
@@ -5523,39 +5523,39 @@ async function loadItems() {
     return 1;
   };
 
-  window.applySortingOnlyAnalysisToForm = function (draft) {
+  window.applySortingOnlyDraftToForm = function (draft) {
     const d = draft && typeof draft === "object" ? draft : {};
     const s = d.ai_summary && typeof d.ai_summary === "object" ? d.ai_summary : {};
 
     let count = 0;
 
-    count += window.hdOriginSetControlValueLoose("analysisAiDocumentKind", d.document_type_code || d.document_type_label || d.document_type_name, d.document_type_label || d.document_type_name || s.document_kind);
-    count += window.hdOriginSetControlValueLoose("analysisAiDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
+    count += window.hdOriginSetControlValueLoose("draftAiDocumentKind", d.document_type_code || d.document_type_label || d.document_type_name, d.document_type_label || d.document_type_name || s.document_kind);
+    count += window.hdOriginSetControlValueLoose("draftAiDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
     
-    count += window.hdOriginSetControlValueLoose("analysisAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemCode", d.analysis_system_code || s.analysis_system_code || "");
     count += window.hdOriginSetControlValueLoose(
-      "analysisAnalysisSystemLabel",
+      "draftAnalysisSystemLabel",
       d.analysis_system_code || s.analysis_system_code || "",
       d.analysis_system_label ||
         s.analysis_system ||
         s.analysis_system_label ||
         ""
     );
-    count += window.hdOriginSetControlValueLoose("analysisAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
-    count += window.hdOriginSetControlValueLoose("analysisAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
-count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_target || d.payment_target || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiUnpaidFlag", s.payable_target || d.payable_target || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiExpenseFlag", s.expense_target || d.expense_target || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiTaxPublicFlag", s.tax_public || d.tax_public || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiContractFlag", s.contract_insurance_lease || d.contract_insurance_lease || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemConfidence", d.analysis_system_confidence || s.analysis_system_confidence || "");
+    count += window.hdOriginSetControlValueLoose("draftAnalysisSystemReason", d.analysis_system_reason || s.analysis_system_reason || "");
+count += window.hdOriginSetControlValueLoose("draftAiPayableFlag", s.payment_target || d.payment_target || "");
+    count += window.hdOriginSetControlValueLoose("draftAiUnpaidFlag", s.payable_target || d.payable_target || "");
+    count += window.hdOriginSetControlValueLoose("draftAiExpenseFlag", s.expense_target || d.expense_target || "");
+    count += window.hdOriginSetControlValueLoose("draftAiTaxPublicFlag", s.tax_public || d.tax_public || "");
+    count += window.hdOriginSetControlValueLoose("draftAiContractFlag", s.contract_insurance_lease || d.contract_insurance_lease || "");
 
-    count += window.hdOriginSetControlValueLoose("analysisIssueDate", d.issue_date || s.issue_date || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiConfidence", d.confidence_label || d.ai_confidence || s.confidence_label || d.confidence || "");
-    count += window.hdOriginSetControlValueLoose("analysisAiReason", d.review_reason || s.reason || d.reason || d.analysis_system_reason || s.analysis_system_reason || "");
+    count += window.hdOriginSetControlValueLoose("draftIssueDate", d.issue_date || s.issue_date || "");
+    count += window.hdOriginSetControlValueLoose("draftAiConfidence", d.confidence_label || d.ai_confidence || s.confidence_label || d.confidence || "");
+    count += window.hdOriginSetControlValueLoose("draftAiReason", d.review_reason || s.reason || d.reason || d.analysis_system_reason || s.analysis_system_reason || "");
 
-    count += window.hdOriginSetControlValueLoose("analysisAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
-    count += window.hdOriginSetControlValueLoose("analysisDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
+    count += window.hdOriginSetControlValueLoose("draftAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
+    count += window.hdOriginSetControlValueLoose("draftDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
     window.__lastAnalysisResultAppliedCount = count;
 
@@ -5649,8 +5649,8 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
 
     return item.analysisResult ||
       item.analysis_result ||
-      basicRawResult.analysis ||
-      item.analysis ||
+      basicRawResult.draft ||
+      item.draft ||
       {};
   }
 
@@ -6152,7 +6152,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
 
     if (!style || style.display === "none" || style.visibility === "hidden") return false;
 
-    var parent = control.closest("label, .field, .form-field, .analysis-section");
+    var parent = control.closest("label, .field, .form-field, .draft-section");
 
     if (parent) {
       var pstyle = window.getComputedStyle(parent);
@@ -6164,11 +6164,11 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
   }
 
   function sectionForControl(control) {
-    var section = control.closest(".analysis-section");
+    var section = control.closest(".draft-section");
 
     if (!section) return "画面表示中項目";
 
-    var title = section.querySelector(".analysis-section-title");
+    var title = section.querySelector(".draft-section-title");
 
     return textValue(title ? title.textContent : "") || "画面表示中項目";
   }
@@ -6176,7 +6176,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
   function collectScreenVisibleFields() {
     var fields = [];
 
-    Array.from(document.querySelectorAll(".analysis-field, .master-select")).forEach(function (control) {
+    Array.from(document.querySelectorAll(".draft-field, .master-select")).forEach(function (control) {
       if (!isVisibleControl(control)) return;
 
       fields.push({
@@ -6215,12 +6215,12 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
     });
   }
 
-  function basicAnalysisResultOf(item, fetchedAnalysis) {
+  function basicAnalysisResultOf(item, fetchedDraft) {
     var basicAnalysis = item && item.latestBasicAnalysis;
-    return fetchedAnalysis || (basicAnalysis && basicAnalysis.sortResult) || null;
+    return fetchedDraft || (basicAnalysis && basicAnalysis.sortResult) || null;
   }
 
-  function addDbAnalysisFields(fields, item, draft, prefix) {
+  function addDbDraftFields(fields, item, draft, prefix) {
     var name = itemName(item);
     var id = itemId(item);
     var base = prefix || "DB正式基礎解析結果";
@@ -6316,7 +6316,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
 
       var basicAnalysis = item && item.latestBasicAnalysis && typeof item.latestBasicAnalysis === "object" ? item.latestBasicAnalysis : {};
       var basicRawResult = basicAnalysis.rawResult && typeof basicAnalysis.rawResult === "object" ? basicAnalysis.rawResult : (basicAnalysis.raw_result && typeof basicAnalysis.raw_result === "object" ? basicAnalysis.raw_result : {});
-      var dbAnalysis = basicRawResult.analysis && typeof basicRawResult.analysis === "object" ? basicRawResult.analysis : {};
+      var dbDraft = basicRawResult.draft && typeof basicRawResult.draft === "object" ? basicRawResult.draft : {};
 
       var screenFields = collectScreenVisibleFields();
       var fields = [];
@@ -6325,7 +6325,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
         fields.push(field);
       });
 
-      addDbAnalysisFields(fields, item, dbAnalysis, "DB正式基礎解析結果");
+      addDbDraftFields(fields, item, dbDraft, "DB正式基礎解析結果");
 
       var ocr = itemOcrText(item);
 
@@ -6346,7 +6346,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
         } : null,
         ocrRawText: ocr,
         ocrTextLength: ocr.length,
-        dbLatestBasicAnalysisFound: !!dbAnalysis,
+        dbLatestBasicAnalysisFound: !!dbDraft,
         screenVisibleFieldCount: screenFields.length,
         fields: fields
       };
@@ -6397,7 +6397,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
 
       var fields = [];
       var allOcrParts = [];
-      var dbAnalysisCount = 0;
+      var dbDraftCount = 0;
       var ocrCount = 0;
 
       list.forEach(function (item, index) {
@@ -6407,12 +6407,12 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
         var draft = basicAnalysisResultOf(item, null);
         var ocr = itemOcrText(item);
 
-        if (draft) dbAnalysisCount++;
+        if (draft) dbDraftCount++;
         if (ocr) ocrCount++;
 
         var section = "全件DB正式基礎解析結果 / " + no + " / " + name;
 
-        addDbAnalysisFields(fields, item, draft, section);
+        addDbDraftFields(fields, item, draft, section);
 
         allOcrParts.push(
           "==============================\n" +
@@ -6444,7 +6444,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
         ocrRawText: allOcrText,
         ocrTextLength: allOcrText.length,
         allItemCount: list.length,
-        allDbLatestBasicAnalysisCount: dbAnalysisCount,
+        allDbLatestBasicAnalysisCount: dbDraftCount,
         allOcrCount: ocrCount,
         fields: fields
       };
@@ -6455,7 +6455,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
         ok: true,
         message: "DB全件正式基礎解析結果をmemoへ出しました。",
         itemCount: list.length,
-        dbAnalysisCount: dbAnalysisCount,
+        dbDraftCount: dbDraftCount,
         ocrCount: ocrCount,
         fieldCount: fields.length,
         memoPath: memo.memoPath,
@@ -6547,14 +6547,14 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
     );
 
     const latest = objectValue(
-      basicRawResult.analysis
+      basicRawResult.draft
     );
 
     const saved = {};
 
     const draft = objectValue(
       source.analysisResult ||
-      source.analysis
+      source.draft
     );
 
     const sortResult = objectValue(

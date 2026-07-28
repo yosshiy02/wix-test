@@ -27,7 +27,7 @@
 
         <p>
           商品、得意先別単価、売上、請求、入金、
-          売掛残高、Access受注取込を管理します。
+          売掛残高を管理します。
         </p>
       </div>
 
@@ -80,11 +80,6 @@
         <span>未消込入金</span>
         <strong id="summaryUnappliedTotal">0円</strong>
       </article>
-
-      <article class="summary-card">
-        <span>Access取込待ち</span>
-        <strong id="summaryAccessWaiting">0</strong>
-      </article>
     </section>
 
     <nav class="function-menu">
@@ -95,7 +90,7 @@
       <a href="#invoices">請求書</a>
       <a href="#payments">入金</a>
       <a href="#allocations">入金消込</a>
-      <a href="#accessOrders">Access受注</a>
+
     </nav>
 
     <section
@@ -712,7 +707,7 @@
           <input
             id="salesSearch"
             type="search"
-            placeholder="伝票番号・得意先名・Access受注番号で検索"
+            placeholder="伝票番号・得意先名で検索"
           >
 
           <select id="salesStatusFilter">
@@ -1223,79 +1218,7 @@
       </div>
     </section>
 
-    <section
-      id="accessOrders"
-      class="panel"
-    >
-      <div class="panel-header">
-        <div>
-          <h2>Access受注取込待ち</h2>
-          <p>
-            現行Access受注システムから受け取るデータの待機場所です。
-          </p>
-        </div>
-      </div>
-
-      <div class="panel-body">
-        <form id="accessOrderForm">
-          <div class="form-grid">
-            <div class="field wide">
-              <label for="source_file_name">
-                元ファイル名
-              </label>
-
-              <input id="source_file_name">
-            </div>
-
-            <div class="field">
-              <label for="access_order_no">
-                Access受注番号
-              </label>
-
-              <input id="access_order_no">
-            </div>
-
-            <div class="field full">
-              <label for="access_payload">
-                受注データJSON
-              </label>
-
-              <textarea
-                id="access_payload"
-                placeholder='{"customer_name":"得意先名","items":[]}'
-              ></textarea>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button
-              class="button primary"
-              type="submit"
-            >
-              取込待ちへ登録
-            </button>
-          </div>
-        </form>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>受注番号</th>
-                <th>元ファイル</th>
-                <th>状態</th>
-                <th>登録日時</th>
-                <th>エラー</th>
-              </tr>
-            </thead>
-
-            <tbody id="accessOrderRows"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
+    </main>
 
   <script src="/sales/sales-dashboard.js"></script>
   <script src="/hd-origin-exit-guard.js?v=20260706"></script>

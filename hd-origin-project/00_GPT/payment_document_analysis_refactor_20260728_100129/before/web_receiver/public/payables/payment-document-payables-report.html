@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>請求書・未払一覧帳票 | HD Origin</title>
+<style>
+:root {
+  --ink:#111827;
+  --muted:#667085;
+  --line:#d0d5dd;
+  --soft:#f2f4f7;
+  --blue:#2348c7;
+  --danger:#b42318;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  color:var(--ink);
+  background:#eef2f7;
+  font-family:"Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+}
+.toolbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 18px;
+  background:rgba(255,255,255,.94);
+  border-bottom:1px solid rgba(35,48,76,.12);
+  box-shadow:0 8px 24px rgba(32,44,72,.08);
+}
+.toolbar-title{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.toolbar-title strong{
+  font-size:14px;
+}
+.toolbar-title span{
+  font-size:12px;
+  color:var(--muted);
+}
+.toolbar-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.btn{
+  min-height:36px;
+  padding:8px 13px;
+  border:0;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:900;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn.primary{background:#172033;color:#fff}
+.btn.secondary{background:#eef3ff;color:#2348c7}
+.btn.ghost{background:#f2f4f7;color:#344054}
+.btn:hover{filter:brightness(1.03);transform:translateY(-1px)}
+.page{
+  width:min(1180px, calc(100% - 32px));
+  margin:22px auto 42px;
+}
+.paper{
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 16px 44px rgba(32,44,72,.12);
+  padding:28px;
+}
+.report-header{
+  display:grid;
+  grid-template-columns:1fr 310px;
+  gap:20px;
+  align-items:start;
+  border-bottom:3px solid #111827;
+  padding-bottom:16px;
+}
+.report-title h1{
+  margin:0;
+  font-size:28px;
+  letter-spacing:.02em;
+}
+.report-title p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.7;
+}
+.meta{
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  font-size:12px;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:92px 1fr;
+  border-bottom:1px solid var(--line);
+}
+.meta-row:last-child{border-bottom:0}
+.meta-label{
+  background:var(--soft);
+  font-weight:900;
+  padding:7px 8px;
+}
+.meta-value{
+  padding:7px 8px;
+}
+.filter-box{
+  margin-top:16px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 12px;
+  background:#fcfcfd;
+  font-size:12px;
+  color:#344054;
+  line-height:1.7;
+}
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  margin-top:16px;
+}
+.summary-card{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px;
+  background:#fcfcfd;
+}
+.summary-card .label{
+  color:var(--muted);
+  font-size:11px;
+}
+.summary-card .value{
+  margin-top:4px;
+  font-size:16px;
+  font-weight:900;
+  text-align:right;
+}
+.section-title{
+  margin:22px 0 8px;
+  font-size:15px;
+  font-weight:900;
+  border-left:5px solid var(--blue);
+  padding-left:9px;
+}
+.table-wrap{
+  border:1px solid var(--line);
+  overflow:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+  background:#fff;
+}
+th,td{
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:6px 7px;
+  vertical-align:top;
+  white-space:nowrap;
+}
+th:last-child,td:last-child{border-right:0}
+th{
+  background:#f2f4f7;
+  font-weight:900;
+  text-align:center;
+}
+td.num{text-align:right}
+td.center{text-align:center}
+.status{
+  display:inline-block;
+  min-width:64px;
+  text-align:center;
+  border-radius:999px;
+  padding:2px 6px;
+  font-size:10px;
+  font-weight:900;
+  background:#eef2f7;
+}
+.status.unpaid{background:#fff3d6;color:#8a5200}
+.status.paid{background:#e9f8f2;color:#05603a}
+.status.alert{background:#fff0ed;color:#b42318}
+.empty,.error{
+  margin-top:18px;
+  padding:16px;
+  border-radius:10px;
+  line-height:1.8;
+  font-size:13px;
+}
+.empty{background:#fff7e6;color:#8a5200;border:1px solid #fedf89}
+.error{background:#fff0ed;color:#b42318;border:1px solid #fecdca}
+.footer{
+  display:grid;
+  grid-template-columns:1fr 180px 180px;
+  gap:12px;
+  margin-top:24px;
+  align-items:end;
+}
+.note{
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.7;
+}
+.stamp{
+  border:1px solid var(--line);
+  height:58px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:6px;
+  font-size:11px;
+  color:#344054;
+}
+@media(max-width:900px){
+  .report-header{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .footer{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  html,body{background:#fff}
+  .toolbar{display:none!important}
+  .page{width:100%;margin:0}
+  .paper{border:0;box-shadow:none;padding:0}
+  .table-wrap{overflow:visible}
+  table{font-size:9.5px}
+  th,td{padding:4px 5px}
+}
+</style>
+<!-- GPT00_PAYABLES_REPORT_VISIBILITY_TUNE_START -->
+<style>
+  /* GPT00: 請求書・未払帳票 視認性アップ */
+  .toolbar {
+    padding: 16px 24px !important;
+  }
+
+  .toolbar-title strong {
+    font-size: 18px !important;
+  }
+
+  .toolbar-title span {
+    font-size: 14px !important;
+  }
+
+  .btn {
+    min-height: 46px !important;
+    padding: 11px 18px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+  }
+
+  .page {
+    width: min(1320px, calc(100% - 24px)) !important;
+    margin: 24px auto 48px !important;
+  }
+
+  .paper {
+    padding: 34px !important;
+  }
+
+  .report-header {
+    grid-template-columns: 1fr 360px !important;
+    gap: 26px !important;
+    padding-bottom: 20px !important;
+  }
+
+  .report-title h1 {
+    font-size: 36px !important;
+    line-height: 1.18 !important;
+  }
+
+  .report-title p {
+    font-size: 14px !important;
+    line-height: 1.9 !important;
+  }
+
+  .meta {
+    font-size: 14px !important;
+  }
+
+  .meta-row {
+    grid-template-columns: 110px 1fr !important;
+  }
+
+  .meta-label,
+  .meta-value {
+    padding: 10px 11px !important;
+  }
+
+  .filter-box {
+    margin-top: 20px !important;
+    padding: 13px 15px !important;
+    font-size: 14px !important;
+  }
+
+  .summary-grid {
+    gap: 10px !important;
+    margin-top: 20px !important;
+  }
+
+  .summary-card {
+    padding: 13px !important;
+  }
+
+  .summary-card .label {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+  }
+
+  .summary-card .value {
+    font-size: 22px !important;
+  }
+
+  .section-title {
+    margin: 28px 0 12px !important;
+    font-size: 20px !important;
+    border-left-width: 7px !important;
+    padding-left: 12px !important;
+  }
+
+  table {
+    font-size: 13px !important;
+  }
+
+  th,
+  td {
+    padding: 9px 10px !important;
+  }
+
+  th {
+    font-size: 13px !important;
+  }
+
+  .status {
+    min-width: 76px !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+  }
+
+  .empty,
+  .error {
+    font-size: 15px !important;
+    padding: 20px !important;
+  }
+
+  .note {
+    font-size: 12px !important;
+  }
+
+  .stamp {
+    height: 72px !important;
+    font-size: 13px !important;
+  }
+
+  @media print {
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
+    .paper {
+      padding: 0 !important;
+    }
+
+    .report-title h1 {
+      font-size: 24px !important;
+    }
+
+    .report-title p,
+    .filter-box,
+    .meta,
+    .summary-card .label {
+      font-size: 10.5px !important;
+    }
+
+    .summary-card .value {
+      font-size: 15px !important;
+    }
+
+    .section-title {
+      font-size: 13px !important;
+      margin: 14px 0 6px !important;
+    }
+
+    table {
+      font-size: 9.8px !important;
+    }
+
+    th,
+    td {
+      padding: 4.2px 4.8px !important;
+    }
+
+    .status {
+      min-width: 52px !important;
+      padding: 1px 4px !important;
+      font-size: 8.8px !important;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .report-header {
+      grid-template-columns: 1fr !important;
+    }
+
+    .summary-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .report-title h1 {
+      font-size: 30px !important;
+    }
+  }
+</style>
+<!-- GPT00_PAYABLES_REPORT_VISIBILITY_TUNE_END -->
+<!-- GPT00_PAYABLES_SUB_OUTPUT_STYLE_START -->
+<style>
+  .hd-payables-sub-output-links {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .hd-payables-sub-output-button {
+    min-height: 44px;
+    padding: 10px 17px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 900;
+    background: #fff7e6;
+    color: #8a5200 !important;
+    border: 1px solid #fedf89;
+  }
+
+  .hd-payables-sub-output-button.voucher {
+    background: #eef3ff;
+    color: #2348c7 !important;
+    border-color: rgba(50,100,255,.20);
+  }
+
+  .hd-payables-sub-output-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+  }
+</style>
+<!-- GPT00_PAYABLES_SUB_OUTPUT_STYLE_END -->
+</head>
+<body>
+<div class="toolbar">
+  <div class="toolbar-title">
+    <strong>請求書・未払一覧帳票</strong>
+    <span>請求書・未払管理から出力する正式帳票です。</span>
+  </div>
+  <div class="toolbar-actions">
+<!-- GPT00_PAYABLES_SUB_OUTPUT_LINKS_START -->
+<span class="hd-payables-sub-output-links">
+  <a class="hd-payables-sub-output-button voucher" href="/payables/payment-document-journal-voucher-output.html">振替伝票出力</a>
+  <a class="hd-payables-sub-output-button" href="/payables/payment-document-transfer-request-output.html">振込依頼書</a>
+</span>
+<!-- GPT00_PAYABLES_SUB_OUTPUT_LINKS_END -->
+
+    <a class="btn secondary" href="/payables/payable-list.html">単票形式へ戻る</a>
+    <button type="button" class="btn ghost" id="reloadBtn">再読込</button>
+    <button type="button" class="btn primary" id="printBtn">印刷</button>
+  </div>
+</div>
+
+<main class="page">
+  <section class="paper">
+    <header class="report-header">
+      <div class="report-title">
+        <h1>請求書・未払一覧帳票</h1>
+        <p>
+          支払前後の請求書・未払情報を、確認・印刷・承認に使うための帳票形式で表示します。
+          単票編集ではなく、一覧・集計・確認用の固定レイアウトです。
+        </p>
+      </div>
+      <div class="meta">
+        <div class="meta-row"><div class="meta-label">会社</div><div class="meta-value" id="metaCompany">-</div></div>
+        <div class="meta-row"><div class="meta-label">出力日時</div><div class="meta-value" id="metaPrintedAt">-</div></div>
+        <div class="meta-row"><div class="meta-label">対象件数</div><div class="meta-value" id="metaCount">-</div></div>
+        <div class="meta-row"><div class="meta-label">帳票区分</div><div class="meta-value">請求書・未払一覧</div></div>
+      </div>
+    </header>
+
+    <div class="filter-box" id="filterBox">検索条件: 読込中</div>
+
+    <section class="summary-grid" aria-label="集計">
+      <div class="summary-card"><div class="label">件数</div><div class="value" id="sumCount">0</div></div>
+      <div class="summary-card"><div class="label">税抜合計</div><div class="value" id="sumNet">0</div></div>
+      <div class="summary-card"><div class="label">消費税</div><div class="value" id="sumTax">0</div></div>
+      <div class="summary-card"><div class="label">税込合計</div><div class="value" id="sumTotal">0</div></div>
+      <div class="summary-card"><div class="label">支払済額</div><div class="value" id="sumPaid">0</div></div>
+      <div class="summary-card"><div class="label">未払残高</div><div class="value" id="sumBalance">0</div></div>
+    </section>
+
+    <h2 class="section-title">明細</h2>
+    <div id="message"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>管理番号</th>
+            <th>状態</th>
+            <th>書類区分</th>
+            <th>会計区分</th>
+            <th>支払先</th>
+            <th>請求書番号</th>
+            <th>請求日</th>
+            <th>計上日</th>
+            <th>支払期限</th>
+            <th>支払予定日</th>
+            <th>税抜</th>
+            <th>消費税</th>
+            <th>税込</th>
+            <th>支払済</th>
+            <th>未払残高</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      <div class="note">
+        ※この帳票は請求書・未払管理の一覧データを帳票形式に整形して出力します。<br>
+        ※APIが未検出または未対応の場合は、次工程で既存APIに合わせて取得処理を接続します。
+      </div>
+      <div class="stamp">確認</div>
+      <div class="stamp">承認</div>
+    </footer>
+  </section>
+</main>
+
+<script>
+const ENDPOINT_CANDIDATES = ["/api/payment-documents/payables","/api/payment-documents/payables/list","/api/payment-documents/unpaid","/api/payment-documents/unpaid/list","/api/payables","/api/payables/list","/api/invoices/payables","/api/invoices/unpaid"];
+
+function yen(value){
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return '';
+  return n.toLocaleString('ja-JP');
+}
+
+function text(value){
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
+
+function num(value){
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const cleaned = String(value).replace(/[^\d.-]/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function first(obj, keys){
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+  }
+  return '';
+}
+
+function normalize(row){
+  const total = num(first(row, ['total_amount','total','amount_total','amount','税込合計','税込金額','gross_amount']));
+  const paid = num(first(row, ['paid_amount','payment_amount','支払済額','paid_total']));
+  const balanceRaw = first(row, ['unpaid_balance','balance','remaining_amount','未払残高']);
+  const balance = balanceRaw === '' ? Math.max(total - paid, 0) : num(balanceRaw);
+
+  return {
+    management_no: text(first(row, ['management_no','management_number','control_no','document_no','payment_document_no','管理番号','id'])),
+    status: text(first(row, ['status','state','payment_status','状態'])),
+    document_type: text(first(row, ['document_type','doc_type','document_category','書類区分'])),
+    accounting_type: text(first(row, ['accounting_type','accounting_category','会計区分'])),
+    vendor_name: text(first(row, ['vendor_name','payee_name','supplier_name','partner_name','支払先','取引先'])),
+    invoice_no: text(first(row, ['invoice_no','invoice_number','bill_no','請求書番号','先方書類番号'])),
+    invoice_date: text(first(row, ['invoice_date','billing_date','issue_date','請求日'])),
+    posting_date: text(first(row, ['posting_date','recorded_date','accrual_date','計上日'])),
+    due_date: text(first(row, ['due_date','payment_due_date','支払期限'])),
+    scheduled_payment_date: text(first(row, ['scheduled_payment_date','payment_scheduled_date','支払予定日'])),
+    net_amount: num(first(row, ['net_amount','subtotal','tax_excluded_amount','amount_without_tax','税抜合計','税抜金額'])),
+    tax_amount: num(first(row, ['tax_amount','consumption_tax','消費税','消費税額'])),
+    total_amount: total,
+    paid_amount: paid,
+    unpaid_balance: balance,
+    note: text(first(row, ['note','memo','remarks','備考']))
+  };
+}
+
+function statusClass(status){
+  const s = String(status || '');
+  if (/済|paid|完了/i.test(s)) return 'status paid';
+  if (/超過|遅|alert|error|要確認/i.test(s)) return 'status alert';
+  if (/未|unpaid|予定|確定/i.test(s)) return 'status unpaid';
+  return 'status';
+}
+
+function escapeHtml(value){
+  return String(value || '').replace(/[&<>"']/g, function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+
+function findArray(payload){
+  if (Array.isArray(payload)) return payload;
+
+  const keys = ['rows','items','data','results','list','payables','documents','invoices','records'];
+  for (const key of keys) {
+    if (Array.isArray(payload && payload[key])) return payload[key];
+  }
+
+  if (payload && payload.data) {
+    const nested = findArray(payload.data);
+    if (nested.length) return nested;
+  }
+
+  return [];
+}
+
+function buildQuery(){
+  const current = new URL(window.location.href);
+  const params = new URLSearchParams();
+
+  for (const [key, value] of current.searchParams.entries()) {
+    if (['view','format'].includes(key)) continue;
+    if (value) params.set(key, value);
+  }
+
+  params.set('format', 'report');
+  params.set('view', 'report');
+
+  return params;
+}
+
+async function fetchFromEndpoint(endpoint){
+  const query = buildQuery();
+  const url = endpoint + (endpoint.includes('?') ? '&' : '?') + query.toString();
+
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+    credentials: 'same-origin'
+  });
+
+  if (!response.ok) {
+    throw new Error(response.status + ' ' + response.statusText);
+  }
+
+  return response.json();
+}
+
+async function loadRows(){
+  const errors = [];
+
+  for (const endpoint of ENDPOINT_CANDIDATES) {
+    try {
+      const payload = await fetchFromEndpoint(endpoint);
+      const rows = findArray(payload);
+      if (rows.length || payload) {
+        return { endpoint, rows };
+      }
+    } catch (error) {
+      errors.push(endpoint + ': ' + error.message);
+    }
+  }
+
+  throw new Error(errors.join('\\n'));
+}
+
+function renderRows(rows, endpoint){
+  const normalized = rows.map(normalize);
+  const tbody = document.getElementById('detailBody');
+  tbody.innerHTML = '';
+
+  let sumNet = 0;
+  let sumTax = 0;
+  let sumTotal = 0;
+  let sumPaid = 0;
+  let sumBalance = 0;
+
+  normalized.forEach(function(row, index){
+    sumNet += row.net_amount;
+    sumTax += row.tax_amount;
+    sumTotal += row.total_amount;
+    sumPaid += row.paid_amount;
+    sumBalance += row.unpaid_balance;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="center">' + (index + 1) + '</td>' +
+      '<td>' + escapeHtml(row.management_no) + '</td>' +
+      '<td class="center"><span class="' + statusClass(row.status) + '">' + escapeHtml(row.status) + '</span></td>' +
+      '<td>' + escapeHtml(row.document_type) + '</td>' +
+      '<td>' + escapeHtml(row.accounting_type) + '</td>' +
+      '<td>' + escapeHtml(row.vendor_name) + '</td>' +
+      '<td>' + escapeHtml(row.invoice_no) + '</td>' +
+      '<td>' + escapeHtml(row.invoice_date) + '</td>' +
+      '<td>' + escapeHtml(row.posting_date) + '</td>' +
+      '<td>' + escapeHtml(row.due_date) + '</td>' +
+      '<td>' + escapeHtml(row.scheduled_payment_date) + '</td>' +
+      '<td class="num">' + yen(row.net_amount) + '</td>' +
+      '<td class="num">' + yen(row.tax_amount) + '</td>' +
+      '<td class="num">' + yen(row.total_amount) + '</td>' +
+      '<td class="num">' + yen(row.paid_amount) + '</td>' +
+      '<td class="num">' + yen(row.unpaid_balance) + '</td>' +
+      '<td>' + escapeHtml(row.note) + '</td>';
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('sumCount').textContent = normalized.length.toLocaleString('ja-JP');
+  document.getElementById('sumNet').textContent = yen(sumNet);
+  document.getElementById('sumTax').textContent = yen(sumTax);
+  document.getElementById('sumTotal').textContent = yen(sumTotal);
+  document.getElementById('sumPaid').textContent = yen(sumPaid);
+  document.getElementById('sumBalance').textContent = yen(sumBalance);
+  document.getElementById('metaCount').textContent = normalized.length.toLocaleString('ja-JP');
+
+  const params = new URLSearchParams(window.location.search);
+  const company = params.get('company') || '-';
+  document.getElementById('metaCompany').textContent = company;
+  document.getElementById('filterBox').textContent =
+    '検索条件: ' + (window.location.search ? window.location.search.replace(/^\\?/, '') : '指定なし') +
+    ' / 取得API: ' + endpoint;
+
+  if (!normalized.length) {
+    document.getElementById('message').innerHTML =
+      '<div class="empty">対象データがありません。</div>';
+  } else {
+    document.getElementById('message').innerHTML = '';
+  }
+}
+
+async function main(){
+  document.getElementById('metaPrintedAt').textContent = new Date().toLocaleString('ja-JP');
+
+  try {
+    const result = await loadRows();
+    renderRows(result.rows, result.endpoint);
+  } catch (error) {
+    document.getElementById('message').innerHTML =
+      '<div class="error">請求書・未払一覧APIからデータを取得できませんでした。<br>' +
+      'この帳票HTMLは作成済みですが、既存APIの実URLに合わせた接続調整が必要です。<br><pre>' +
+      escapeHtml(error.message) +
+      '</pre></div>';
+    document.getElementById('filterBox').textContent = '検索条件: API未接続';
+  }
+}
+
+document.getElementById('printBtn').addEventListener('click', function(){
+  window.print();
+});
+
+document.getElementById('reloadBtn').addEventListener('click', function(){
+  window.location.reload();
+});
+
+main();
+</script>
+</body>
+</html>

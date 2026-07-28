@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>カード明細専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-card-statement.css">
+  <title>公共料金・通信費専門解析システム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-specialist-utility-communication.css">
   <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
-<body class="specialist-card-statement-page" data-specialist-route-code="card_statement">
+<body class="specialist-utility-communication-page" data-specialist-route-code="utility_communication">
 <!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
 <!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>カード明細専門解析システム</h1>
+      <h1>公共料金・通信費専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/ledgers/reports/utility-communication-ledger-report.html'">台帳へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
@@ -52,10 +53,10 @@
                 data-base-label="契約・保険・リース"
                 onclick="location.href='./payment-document-specialist-contract-insurance-lease.html'">契約・保険・リース（0）</button>
         <button type="button"
-                class="specialist-system-button specialist-utility"
-                data-analysis-system-code="utility_communication_analysis"
-                data-base-label="公共料金・通信費"
-                onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
+                class="specialist-system-button specialist-card"
+                data-analysis-system-code="card_statement_analysis"
+                data-base-label="カード明細"
+                onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細（0）</button>
         <button type="button"
                 class="specialist-system-button specialist-reference"
                 data-analysis-system-code="delivery_note_analysis"
@@ -68,19 +69,30 @@
                 onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けでカード明細へ送った書類を、カード明細として専門解析する画面です。</span>
+<span class="muted">1回目仕分けで公共料金・通信費へ送った書類を、公共料金・通信費として専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>カード明細 対象書類</span>
+        <span>公共料金・通信費 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
-        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAnalyses()">まとめて専門解析</button>
-<button type="button" id="bulkSaveSpecialistAnalysisResultButton" class="btn btn-primary hd-origin-bulk-save-specialist-analysis">まとめて保存</button>
+        <button type="button"
+        class="action-btn action-ai sorting-bulk-analyze"
+        onclick="runSelectedAnalyses()">
+  まとめて専門解析
+</button>
+
+<button type="button"
+        id="utilityBulkSaveAnalyzedButton"
+        class="btn btn-primary utility-bulk-save-analyzed"
+        onclick="runSelectedUtilitySaves()">
+  まとめて保存
+</button>
+
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -88,7 +100,7 @@
         <span class="legend-chip legend-expense">レシート・領収書</span>
         <span class="legend-chip legend-tax">税金・公的支払</span>
         <span class="legend-chip legend-contract">契約・保険・リース</span>
-        <span class="legend-chip legend-utility">カード明細</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
         <span class="legend-chip legend-card">カード</span>
         <span class="legend-chip legend-reference">納品書・照合</span>
         <span class="legend-chip legend-review">要確認</span>
@@ -114,7 +126,7 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>カード明細 解析確認</span>
+        <span>公共料金・通信費 解析確認</span>
         <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
 <div class="specialist-panel-actions">
   <div class="specialist-record-controls" aria-label="専門解析レコード移動">
@@ -152,551 +164,754 @@
       </div>
 
             <div class="draft-form-scroll">
-        <section class="draft-section">
-          <div class="draft-section-title">カード明細 解析サマリー</div>
-          <div class="form-grid">
-            <label>
-              書類区分
-              <select class="draft-field master-select" id="draftAiDocumentKind" data-master-type="document_types" data-master-label="書類区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftAiDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払対象
-              <input class="draft-field" id="draftAiPayableFlag" placeholder="例：支払対象 / 対象外 / 要確認">
-            </label>
-            <label>
-              未払登録対象
-              <input class="draft-field" id="draftAiUnpaidFlag" placeholder="例：登録する / しない / 要確認">
-            </label>
-            <label>
-              経費登録対象
-              <input class="draft-field" id="draftAiExpenseFlag" placeholder="例：経費 / 立替 / 対象外">
-            </label>
-            <label>
-              税金・公的支払
-              <input class="draft-field" id="draftAiTaxPublicFlag" placeholder="例：税金 / 社保 / 公共料金 / 対象外">
-            </label>
-            <label>
-              契約・保険・リース
-              <input class="draft-field" id="draftAiContractFlag" placeholder="例：契約系 / 保険 / リース / 対象外">
-            </label>
-            <label>
-              AI信頼度
-              <input class="draft-field" id="draftAiConfidence" placeholder="例：高 / 中 / 低">
-            </label>
-            <label class="span2">
-              AI判定理由
-              <textarea class="draft-field small-textarea" id="draftAiReason" placeholder="例：OCR本文内に請求金額、支払期限、振込先があるため請求書と判断。"></textarea>
-            </label>
-          </div>
-        </section>
+        <!-- GPT3_UTILITY_DEDICATED_SCREEN_START -->
+<section class="draft-section utility-dedicated-section utility-screen-intro">
+  <div class="draft-section-title utility-title-row">
+    <div>
+      <strong>公共料金・通信費 専門解析</strong>
+      <span>
+        電気、ガス、水道、固定電話、携帯電話、インターネット、
+        通信回線、クラウド・SaaS利用料等に対応します。
+      </span>
+    </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">基本情報</div>
-          <div class="form-grid">
-                        <label>
-              証憑区分
-              <select class="draft-field master-select" id="draftEvidenceType" data-master-type="evidence_types" data-master-label="証憑区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              書類名
-              <input class="draft-field" id="draftDocumentTitle" placeholder="例：法人市民税納付書">
-            </label>
-            <label>
-              発行元
-              <input class="draft-field" id="draftIssuer" placeholder="例：大阪市あべの市税事務所">
-            </label>
-            <label>
-              支払先
-              <input class="draft-field" id="draftVendorName" placeholder="例：株式会社〇〇">
-            </label>
-            <label>
-              宛名
-              <input class="draft-field" id="draftRecipient" placeholder="例：株式会社HDオリジンスタイル / 坂口 喜康">
-            </label>
-            <label>
-              会社名
-              <input class="draft-field" id="draftCompanyName" placeholder="例：株式会社HDオリジンスタイル">
-            </label>
-            <label>
-              個人名
-              <input class="draft-field" id="draftPersonName" placeholder="例：坂口 喜康">
-            </label>
-            <label>
-              部署名
-              <input class="draft-field" id="draftDepartmentName" placeholder="例：経理部 / 総務">
-            </label>
-            <label>
-              担当者名
-              <input class="draft-field" id="draftContactName" placeholder="例：山田 太郎">
-            </label>
-            <label class="span2">
-              住所
-              <input class="draft-field" id="draftAddress" placeholder="例：大阪市...">
-            </label>
-            <label>
-              電話番号
-              <input class="draft-field" id="draftPhone" placeholder="例：06-0000-0000">
-            </label>
-            <label>
-              メール
-              <input class="draft-field" id="draftEmail" placeholder="例：info@example.com">
-            </label>
-            <label class="span2">
-              Webサイト
-              <input class="draft-field" id="draftWebsite" placeholder="例：https://...">
-            </label>
-          </div>
-        </section>
+    <button type="button" id="utilityShowAllFieldsButton"
+            class="utility-show-all-button"
+            aria-pressed="false">
+      全項目を表示
+    </button>
+  </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">番号・識別情報</div>
-          <div class="form-grid">
-            <label>
-              請求書番号
-              <input class="draft-field" id="draftInvoiceNo" placeholder="例：INV-202607-001">
-            </label>
-            <label>
-              領収書番号
-              <input class="draft-field" id="draftReceiptNo" placeholder="例：R-0001">
-            </label>
-            <label>
-              納付番号
-              <input class="draft-field" id="draftPaymentNo" placeholder="例：納付番号">
-            </label>
-            <label>
-              通知書番号
-              <input class="draft-field" id="draftNoticeNo" placeholder="例：通知番号">
-            </label>
-            <label>
-              管理番号
-              <input class="draft-field" id="draftManagementNo" placeholder="例：管理番号">
-            </label>
-            <label>
-              お客様番号
-              <input class="draft-field" id="draftCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              契約番号
-              <input class="draft-field" id="draftContractNo" placeholder="例：契約番号">
-            </label>
-            <label>
-              会員番号
-              <input class="draft-field" id="draftMemberNo" placeholder="例：会員番号">
-            </label>
-            <label>
-              注文番号
-              <input class="draft-field" id="draftOrderNo" placeholder="例：注文番号">
-            </label>
-            <label>
-              取引番号
-              <input class="draft-field" id="draftTransactionNo" placeholder="例：取引番号">
-            </label>
-            <label>
-              登録番号
-              <input class="draft-field" id="draftRegistrationNo" placeholder="例：T1234567890123">
-            </label>
-            <label>
-              法人番号
-              <input class="draft-field" id="draftCorporateNo" placeholder="例：法人番号">
-            </label>
-            <label>
-              カード番号下4桁
-              <input class="draft-field" id="draftCardLast4" placeholder="例：1234">
-            </label>
-          </div>
-        </section>
+  <p class="utility-guidance">
+    AIがOCR本文から確認できた項目だけを通常表示します。
+    OCRに存在しない値は作成せず、料金明細は証憑の記載単位で保存します。
+  </p>
+</section>
 
-        <section class="draft-section">
-          <div class="draft-section-title">日付・期限</div>
-          <div class="form-grid">
-            <label>
-              書類日付
-              <input class="draft-field" id="draftDocumentDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              発行日
-              <input class="draft-field" id="draftIssueDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              請求日
-              <input class="draft-field" id="draftBillingDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              取引日・利用日
-              <input class="draft-field" id="draftTransactionDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              納品日
-              <input class="draft-field" id="draftDeliveryDate" placeholder="例：2026-07-01">
-            </label>
-            <label>
-              締日
-              <input class="draft-field" id="draftClosingDate" placeholder="例：2026-07-20">
-            </label>
-            <label>
-              支払期限・納期限
-              <input class="draft-field" id="draftDueDate" placeholder="例：2026-07-31">
-            </label>
-            <label>
-              支払予定日
-              <input class="draft-field" id="draftPaymentPlanDate" placeholder="例：2026-08-10">
-            </label>
-            <label>
-              引落日
-              <input class="draft-field" id="draftWithdrawalDate" placeholder="例：2026-08-27">
-            </label>
-            <label>
-              決済日
-              <input class="draft-field" id="draftSettlementDate" placeholder="例：2026-07-05">
-            </label>
-            <label>
-              対象開始日
-              <input class="draft-field" id="draftServicePeriodStart" placeholder="例：2026-06-01">
-            </label>
-            <label>
-              対象終了日
-              <input class="draft-field" id="draftServicePeriodEnd" placeholder="例：2026-06-30">
-            </label>
-            <label>
-              契約開始日
-              <input class="draft-field" id="draftContractStartDate" placeholder="例：2026-04-01">
-            </label>
-            <label>
-              契約終了日
-              <input class="draft-field" id="draftContractEndDate" placeholder="例：2027-03-31">
-            </label>
-            <label>
-              更新日
-              <input class="draft-field" id="draftRenewalDate" placeholder="例：2027-04-01">
-            </label>
-          </div>
-        </section>
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">サービス・契約情報</div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">金額・税</div>
-          <div class="form-grid">
-            <label>
-              請求・支払金額
-              <input class="draft-field" id="draftAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              合計金額
-              <input class="draft-field" id="draftTotalAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              税込金額
-              <input class="draft-field" id="draftAmountInTax" placeholder="例：98,800">
-            </label>
-            <label>
-              税抜金額
-              <input class="draft-field" id="draftAmountExTax" placeholder="例：89,818">
-            </label>
-            <label>
-              消費税額
-              <input class="draft-field" id="draftTaxAmount" placeholder="例：8,982">
-            </label>
-            <label>
-              10%対象金額
-              <input class="draft-field" id="draftAmount10" placeholder="例：89,818">
-            </label>
-            <label>
-              10%消費税
-              <input class="draft-field" id="draftTax10" placeholder="例：8,982">
-            </label>
-            <label>
-              8%対象金額
-              <input class="draft-field" id="draftAmount8" placeholder="例：10,000">
-            </label>
-            <label>
-              8%消費税
-              <input class="draft-field" id="draftTax8" placeholder="例：800">
-            </label>
-            <label>
-              非課税・不課税
-              <input class="draft-field" id="draftNonTaxAmount" placeholder="例：非課税 5,000">
-            </label>
-            <label>
-              源泉徴収額
-              <input class="draft-field" id="draftWithholdingAmount" placeholder="例：10,210">
-            </label>
-            <label>
-              手数料
-              <input class="draft-field" id="draftFeeAmount" placeholder="例：330">
-            </label>
-            <label>
-              延滞金
-              <input class="draft-field" id="draftLateFeeAmount" placeholder="例：0">
-            </label>
-            <label>
-              値引・割引
-              <input class="draft-field" id="draftDiscountAmount" placeholder="例：-1,000">
-            </label>
-            <label>
-              前回残高
-              <input class="draft-field" id="draftPreviousBalance" placeholder="例：0">
-            </label>
-            <label>
-              今回利用額
-              <input class="draft-field" id="draftCurrentChargeAmount" placeholder="例：98,800">
-            </label>
-            <label>
-              入金額
-              <input class="draft-field" id="draftPaidAmount" placeholder="例：0">
-            </label>
-            <label>
-              未払残高
-              <input class="draft-field" id="draftBalanceAmount" placeholder="例：98,800">
-            </label>
-          </div>
-        </section>
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="document_type_code,document_type_label">
+      書類区分
+      <select class="draft-field master-select"
+              id="draftAiDocumentKind"
+              data-analysis-item-code="document_type_label"
+              data-analysis-code-target="document_type_code">
+        <option value="">未選択</option>
+     >
 
-        <section class="draft-section">
-          <div class="draft-section-title">支払情報</div>
-          <div class="form-grid">
-            <label>
-              支払方法
-              <select class="draft-field master-select" id="draftPaymentMethod" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払状態
-              <input class="draft-field" id="draftPaymentStatus" placeholder="例：未払 / 支払済 / 要確認">
-            </label>
-            <label>
-              振込先銀行
-              <input class="draft-field" id="draftBankName" placeholder="例：三菱UFJ銀行">
-            </label>
-            <label>
-              銀行コード
-              <input class="draft-field" id="draftBankCode" placeholder="例：0005">
-            </label>
-            <label>
-              支店名
-              <input class="draft-field" id="draftBankBranchName" placeholder="例：梅田支店">
-            </label>
-            <label>
-              支店コード
-              <input class="draft-field" id="draftBranchCode" placeholder="例：123">
-            </label>
-            <label>
-              口座種別
-              <input class="draft-field" id="draftBankAccountType" placeholder="例：普通 / 当座">
-            </label>
-            <label>
-              口座番号
-              <input class="draft-field" id="draftBankAccountNo" placeholder="例：1234567">
-            </label>
-            <label class="span2">
-              口座名義
-              <input class="draft-field" id="draftBankAccountName" placeholder="例：カ）〇〇">
-            </label>
-            <label>
-              引落銀行
-              <input class="draft-field" id="draftDebitBankName" placeholder="例：引落口座の銀行">
-            </label>
-            <label>
-              カード会社
-              <input class="draft-field" id="draftCreditCardCompany" placeholder="例：三井住友カード">
-            </label>
-            <label>
-              カード名
-              <input class="draft-field" id="draftCardName" placeholder="例：法人カード">
-            </label>
-            <label>
-              決済サービス
-              <input class="draft-field" id="draftSettlementService" placeholder="例：Square / PayPay / Stripe">
-            </label>
-            <label>
-              コンビニ支払番号
-              <input class="draft-field" id="draftConveniencePaymentNo" placeholder="例：支払番号">
-            </label>
-            <label>
-              バーコード番号
-              <input class="draft-field" id="draftBarcodeNo" placeholder="例：バーコード番号">
-            </label>
-            <label>
-              QR決済情報
-              <input class="draft-field" id="draftQrPaymentInfo" placeholder="例：QRコード情報">
-            </label>
-          </div>
-        </section>
+    <button type="button" id="utilityShowAllFieldsButton"
+            class="utility-show-all-button"
+            aria-pressed="false">
+      全項目を表示
+    </button>
+  </div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">会計・管理</div>
-          <div class="form-grid">
-            <label>
-              会計区分
-              <select class="draft-field master-select" id="draftAccountingCategory" data-master-type="accounting_categories" data-master-label="会計区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              処理先
-              <select class="draft-field master-select" id="draftDestination" data-master-type="payment_destinations" data-master-label="処理先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              未払種別
-              <select class="draft-field master-select" id="draftPayableKind" data-master-type="payable_kinds" data-master-label="未払種別"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払先マスタ候補
-              <select class="draft-field master-select" id="draftVendorMasterCandidate" data-master-type="vendors" data-master-label="支払先"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              勘定科目
-              <select class="draft-field master-select" id="draftAccountTitle" data-master-type="account_titles" data-master-label="勘定科目"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              税区分
-              <select class="draft-field master-select" id="draftTaxCategory" data-master-type="tax_categories" data-master-label="税区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              インボイス区分
-              <select class="draft-field master-select" id="draftInvoiceType" data-master-type="invoice_types" data-master-label="インボイス区分"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              支払方法マスタ
-              <select class="draft-field master-select" id="draftPaymentMethodMaster" data-master-type="payment_methods" data-master-label="支払方法"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              対象者
-              <select class="draft-field master-select" id="draftTargetPerson" data-master-type="target_people" data-master-label="対象者"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              目的
-              <select class="draft-field master-select" id="draftPurpose" data-master-type="purposes" data-master-label="目的"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              案件
-              <select class="draft-field master-select" id="draftProject" data-master-type="projects" data-master-label="案件"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label>
-              部門
-              <select class="draft-field master-select" id="draftDepartment" data-master-type="departments" data-master-label="部門"><option value="">マスタ読込中...</option></select>
-            </label>
-            <label class="span2">
-              摘要
-              <input class="draft-field" id="draftSummary" placeholder="例：7月分 電気料金">
-            </label>
-            <label>
-              会社負担可否
-              <input class="draft-field" id="draftCompanyBurden" placeholder="例：会社負担 / 個人負担 / 要確認">
-            </label>
-            <label>
-              個人負担混在
-              <input class="draft-field" id="draftMixedPersonalFlag" placeholder="例：なし / あり / 要確認">
-            </label>
-            <label>
-              立替
-              <input class="draft-field" id="draftAdvancePaymentFlag" placeholder="例：立替なし / 立替あり">
-            </label>
-            <label>
-              精算
-              <input class="draft-field" id="draftSettlementFlag" placeholder="例：未精算 / 精算済 / 対象外">
-            </label>
-            <label>
-              未払登録
-              <input class="draft-field" id="draftPayableRegistrationFlag" placeholder="例：登録する / しない">
-            </label>
-            <label>
-              買掛登録
-              <input class="draft-field" id="draftAccountsPayableFlag" placeholder="例：登録する / しない">
-            </label>
-            <label class="span2">
-              社内メモ
-              <textarea class="draft-field small-textarea" id="draftMemo" placeholder="社内メモ"></textarea>
-            </label>
-          </div>
-        </section>
+  <p class="utility-guidance">
+    AIがOCR本文から確認できた項目だけを通常表示します。
+    OCRに存在しない値は作成せず、料金明細は証憑の記載単位で保存します。
+  </p>
+</section>
 
-        <section class="draft-section">
-          <div class="draft-section-title">明細</div>
-          <div class="form-grid">
-            <label class="span2">
-              明細候補
-              <textarea class="draft-field line-textarea" id="draftLinesRaw" placeholder="明細日付 / 品名 / 数量 / 単価 / 金額 / 税率 / 税区分 / 勘定科目候補などをAIで展開予定"></textarea>
-            </label>
-          </div>
-        </section>
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">サービス・契約情報</div>
 
-        <section class="draft-section">
-          <div class="draft-section-title">書類別追加情報</div>
-          <div class="form-grid">
-            <label>
-              税目
-              <input class="draft-field" id="draftTaxItem" placeholder="例：法人市民税 / 消費税">
-            </label>
-            <label>
-              納付先
-              <input class="draft-field" id="draftTaxOffice" placeholder="例：税務署 / 市税事務所">
-            </label>
-            <label>
-              年度
-              <input class="draft-field" id="draftFiscalYear" placeholder="例：2026年度">
-            </label>
-            <label>
-              期別
-              <input class="draft-field" id="draftTaxTerm" placeholder="例：第1期">
-            </label>
-            <label>
-              公共料金お客様番号
-              <input class="draft-field" id="draftUtilityCustomerNo" placeholder="例：お客様番号">
-            </label>
-            <label>
-              使用期間
-              <input class="draft-field" id="draftUsagePeriod" placeholder="例：6/1〜6/30">
-            </label>
-            <label>
-              使用量
-              <input class="draft-field" id="draftUsageAmount" placeholder="例：120kWh / 35㎥">
-            </label>
-            <label>
-              保険種類
-              <input class="draft-field" id="draftInsuranceType" placeholder="例：火災保険 / 自動車保険">
-            </label>
-            <label>
-              リース物件
-              <input class="draft-field" id="draftLeaseItemName" placeholder="例：複合機 / 車両">
-            </label>
-            <label>
-              支払回数
-              <input class="draft-field" id="draftPaymentCount" placeholder="例：12回">
-            </label>
-            <label>
-              メール件名
-              <input class="draft-field" id="draftEmailSubject" placeholder="例：請求書をお送りします">
-            </label>
-            <label>
-              メール送信者
-              <input class="draft-field" id="draftEmailFrom" placeholder="例：billing@example.com">
-            </label>
-            <label>
-              メール受信日時
-              <input class="draft-field" id="draftEmailReceivedAt" placeholder="例：2026-07-01 10:00">
-            </label>
-            <label>
-              添付ファイル名
-              <input class="draft-field" id="draftAttachmentFileName" placeholder="例：invoice.pdf">
-            </label>
-            <label>
-              ダウンロード日
-              <input class="draft-field" id="draftDownloadDate" placeholder="例：2026-07-07">
-            </label>
-          </div>
-        </section>
+  <div class="form-grid utility-dedicated-grid">
+    <label class </select>
+      <input type="hidden"
+             id="draftUtilityDocumentTypeCode"
+             data-analysis-item-code="document_type_code">
+    </label>
 
-        <section class="draft-section">
-          <div class="draft-section-title">要確認</div>
-          <div class="form-grid">
-            <label class="span2">
-              要確認メモ
-              <textarea class="draft-field" id="draftWarnings" placeholder="例：宛名が個人名。会社負担可否を確認。"></textarea>
-            </label>
-          </div>
-        </section>
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="document_title">
+      書類名・明細名
+      <input class="draft-field"
+             id="draftDocumentTitle"
+             data-analysis-item-code="document_title">
+    </label>
 
-                <details class="compact-evidence-details" id="compactEvidenceInfo">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="provider_name">
+      供給会社・通信会社
+      <input class="draft-field"
+             id="draftVendorName"
+             data-analysis-item-code="provider_name">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="provider_code">
+      供給会社コード
+      <input class="draft-field"
+             id="draftUtilityProviderCode"
+             data-analysis-item-code="provider_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="service_type_code,service_type_label">
+      サービス種別
+      <input class="draft-field"
+             id="draftUtilityServiceTypeLabel"
+             data-analysis-item-code="service_type_label"
+             placeholder="例：電気、ガス、水道、携帯電話、光回線">
+      <input type="hidden"
+             id="draftUtilityServiceTypeCode"
+             data-analysis-item-code="service_type_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="customer_number">
+      お客様番号
+      <input class="draft-field"
+             id="draftUtilityCustomerNo"
+             data-analysis-item-code="customer_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="contract_number">
+      契約番号
+      <input class="draft-field"
+             id="draftContractNo"
+             data-analysis-item-code="contract_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="supply_point_number">
+      供給地点番号
+      <input class="draft-field"
+             id="draftSupplyPointNumber"
+             data-analysis-item-code="supply_point_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="meter_number">
+      メーター番号
+      <input class="draft-field"
+             id="draftUtilityMeterNumber"
+             data-analysis-item-code="meter_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="line_number">
+      回線番号
+      <input class="draft-field"
+             id="draftUtilityLineNumber"
+             data-analysis-item-code="line_number">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="telephone_number">
+      電話番号
+      <input class="draft-field"
+             id="draftPhone"
+             data-analysis-item-code="telephone_number">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="account_name">
+      契約名義・アカウント名
+      <input class="draft-field"
+             id="draftUtilityAccountName"
+             data-analysis-item-code="account_name">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="service_address">
+      利用場所・供給先住所
+      <input class="draft-field"
+             id="draftUtilityServiceAddress"
+             data-analysis-item-code="service_address">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="billing_address">
+      請求先住所
+      <input class="draft-field"
+             id="draftUtilityBillingAddress"
+             data-analysis-item-code="billing_address">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">請求日・利用期間</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="issue_date">
+      発行日
+      <input class="draft-field"
+             id="draftIssueDate"
+             type="date"
+             data-analysis-item-code="issue_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="billing_date">
+      請求日
+      <input class="draft-field"
+             id="draftBillingDate"
+             type="date"
+             data-analysis-item-code="billing_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_period_start">
+      利用期間開始
+      <input class="draft-field"
+             id="draftServicePeriodStart"
+             type="date"
+             data-analysis-item-code="usage_period_start">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_period_end">
+      利用期間終了
+      <input class="draft-field"
+             id="draftServicePeriodEnd"
+             type="date"
+             data-analysis-item-code="usage_period_end">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="meter_reading_date">
+      検針日
+      <input class="draft-field"
+             id="draftMeterReadingDate"
+             type="date"
+             data-analysis-item-code="meter_reading_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="due_date">
+      支払期限
+      <input class="draft-field"
+             id="draftDueDate"
+             type="date"
+             data-analysis-item-code="due_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="scheduled_withdrawal_date">
+      口座振替予定日
+      <input class="draft-field"
+             id="draftWithdrawalDate"
+             type="date"
+             data-analysis-item-code="scheduled_withdrawal_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_date">
+      支払日
+      <input class="draft-field"
+             id="draftPaymentPlanDate"
+             type="date"
+             data-analysis-item-code="payment_date">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="download_date">
+      ダウンロード日
+      <input class="draft-field"
+             id="draftUtilityDownloadDate"
+             type="date"
+             data-analysis-item-code="download_date">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">使用量・契約プラン</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_quantity">
+      使用量
+      <input class="draft-field"
+             id="draftUsageAmount"
+             inputmode="decimal"
+             data-analysis-item-code="usage_quantity">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_unit">
+      使用量単位
+      <input class="draft-field"
+             id="draftUsageUnit"
+             data-analysis-item-code="usage_unit"
+             placeholder="例：kWh、m³、GB、回線">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="previous_meter_value">
+      前回指示数
+      <input class="draft-field"
+             id="draftUtilityPreviousMeterValue"
+             inputmode="decimal"
+             data-analysis-item-code="previous_meter_value">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="current_meter_value">
+      今回指示数
+      <input class="draft-field"
+             id="draftUtilityCurrentMeterValue"
+             inputmode="decimal"
+             data-analysis-item-code="current_meter_value">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="contract_capacity">
+      契約容量・契約回線
+      <input class="draft-field"
+             id="draftUtilityContractCapacity"
+             data-analysis-item-code="contract_capacity">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="plan_name">
+      料金プラン
+      <input class="draft-field"
+             id="draftUtilityPlanName"
+             data-analysis-item-code="plan_name">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">請求金額</div>
+
+  <div class="form-grid utility-dedicated-grid utility-amount-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="base_charge">
+      基本料金
+      <input class="draft-field"
+             id="draftUtilityBaseCharge"
+             inputmode="decimal"
+             data-analysis-item-code="base_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="usage_charge">
+      従量・使用料金
+      <input class="draft-field"
+             id="draftUtilityUsageCharge"
+             inputmode="decimal"
+             data-analysis-item-code="usage_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="option_charge">
+      オプション料金
+      <input class="draft-field"
+             id="draftUtilityOptionCharge"
+             inputmode="decimal"
+             data-analysis-item-code="option_charge">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="fuel_adjustment_amount">
+      燃料費調整額
+      <input class="draft-field"
+             id="draftUtilityFuelAdjustmentAmount"
+             inputmode="decimal"
+             data-analysis-item-code="fuel_adjustment_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="renewable_energy_amount">
+      再エネ賦課金
+      <input class="draft-field"
+             id="draftUtilityRenewableEnergyAmount"
+             inputmode="decimal"
+             data-analysis-item-code="renewable_energy_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="discount_amount">
+      割引額
+      <input class="draft-field"
+             id="draftDiscountAmount"
+             inputmode="decimal"
+             data-analysis-item-code="discount_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="adjustment_amount">
+      調整額
+      <input class="draft-field"
+             id="draftUtilityAdjustmentAmount"
+             inputmode="decimal"
+             data-analysis-item-code="adjustment_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="subtotal_amount">
+      小計
+      <input class="draft-field"
+             id="draftAmountExTax"
+             inputmode="decimal"
+             data-analysis-item-code="subtotal_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="tax_amount">
+      記載消費税額
+      <input class="draft-field"
+             id="draftTaxAmount"
+             inputmode="decimal"
+             data-analysis-item-code="tax_amount">
+    </label>
+
+    <label class="utility-dedicated-field utility-primary-amount"
+           data-utility-field-codes="total_amount">
+      請求合計
+      <input class="draft-field"
+             id="draftTotalAmount"
+             inputmode="decimal"
+             data-analysis-item-code="total_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="paid_amount">
+      支払済金額
+      <input class="draft-field"
+             id="draftPaidAmount"
+             inputmode="decimal"
+             data-analysis-item-code="paid_amount">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="unpaid_balance">
+      未払残高
+      <input class="draft-field"
+             id="draftBalanceAmount"
+             inputmode="decimal"
+             data-analysis-item-code="unpaid_balance">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="currency">
+      通貨
+      <input class="draft-field"
+             id="draftUtilityCurrency"
+             data-analysis-item-code="currency">
+    </label>
+  </div>
+</section>
+
+<section id="utilityLineItemsPanel"
+         class="draft-section utility-dedicated-section utility-line-items-panel"
+         data-utility-section
+         data-utility-field-codes="line_items">
+  <div class="draft-section-title utility-title-row">
+    <div>
+      <strong>料金明細</strong>
+      <span>
+        基本料金、従量料金、通話料、通信料、端末代、
+        燃料費調整額、再エネ賦課金、割引、税額等を行単位で保存します。
+      </span>
+    </div>
+
+    <button type="button"
+            id="utilityLineItemsOpenButton">
+      明細内訳を開く
+    </button>
+  </div>
+
+  <div class="utility-line-items-summary">
+    <strong>証憑記載の料金明細</strong>
+    <span id="utilityLineItemsCount">現在 0 行</span>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">支払情報</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_status_code,payment_status_label">
+      支払状態
+      <input class="draft-field"
+             id="draftPaymentStatus"
+             data-analysis-item-code="payment_status_label">
+      <input type="hidden"
+             id="draftUtilityPaymentStatusCode"
+             data-analysis-item-code="payment_status_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_method_code,payment_method_label">
+      支払方法
+      <select class="draft-field master-select"
+              id="draftPaymentMethodMaster"
+              data-analysis-item-code="payment_method_label"
+              data-analysis-code-target="payment_method_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPaymentMethodCode"
+             data-analysis-item-code="payment_method_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="bank_name">
+      引落金融機関
+      <input class="draft-field"
+             id="draftBankName"
+             data-analysis-item-code="bank_name">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="bank_account_masked">
+      引落口座表示
+      <input class="draft-field"
+             id="draftUtilityBankAccountMasked"
+             data-analysis-item-code="bank_account_masked">
+    </label>
+
+    <label class="utility-dedicated-field utility-checkbox-field"
+           data-utility-field-codes="recurring_payment_flag">
+      <span>継続支払</span>
+      <input class="draft-field"
+             id="draftUtilityRecurringPaymentFlag"
+             type="checkbox"
+             data-analysis-item-code="recurring_payment_flag">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payable_target">
+      未払登録対象
+      <input class="draft-field"
+             id="draftUtilityPayableTarget"
+             data-analysis-item-code="payable_target">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="expense_target">
+      経費登録対象
+      <input class="draft-field"
+             id="draftUtilityExpenseTarget"
+             data-analysis-item-code="expense_target">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">会計候補</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payment_destination_code,payment_destination_label">
+      処理先
+      <select class="draft-field master-select"
+              id="draftAiDestination"
+              data-analysis-item-code="payment_destination_label"
+              data-analysis-code-target="payment_destination_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPaymentDestinationCode"
+             data-analysis-item-code="payment_destination_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="accounting_category_code,accounting_category_label">
+      会計区分
+      <select class="draft-field master-select"
+              id="draftAccountingCategory"
+              data-analysis-item-code="accounting_category_label"
+              data-analysis-code-target="accounting_category_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityAccountingCategoryCode"
+             data-analysis-item-code="accounting_category_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="payable_kind_code,payable_kind_label">
+      未払種別
+      <select class="draft-field master-select"
+              id="draftPayableKind"
+              data-analysis-item-code="payable_kind_label"
+              data-analysis-code-target="payable_kind_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPayableKindCode"
+             data-analysis-item-code="payable_kind_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="account_code,account_label">
+      勘定科目候補
+      <select class="draft-field master-select"
+              id="draftAccountTitle"
+              data-analysis-item-code="account_label"
+              data-analysis-code-target="account_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityAccountCode"
+             data-analysis-item-code="account_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="tax_category_code,tax_category_label">
+      税区分候補
+      <select class="draft-field master-select"
+              id="draftTaxCategory"
+              data-analysis-item-code="tax_category_label"
+              data-analysis-code-target="tax_category_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityTaxCategoryCode"
+             data-analysis-item-code="tax_category_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="department_code,department_label">
+      部門候補
+      <select class="draft-field master-select"
+              id="draftDepartment"
+              data-analysis-item-code="department_label"
+              data-analysis-code-target="department_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityDepartmentCode"
+             data-analysis-item-code="department_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="project_code,project_label">
+      プロジェクト候補
+      <select class="draft-field master-select"
+              id="draftProject"
+              data-analysis-item-code="project_label"
+              data-analysis-code-target="project_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityProjectCode"
+             data-analysis-item-code="project_code">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="purpose_code,purpose_label">
+      用途候補
+      <select class="draft-field master-select"
+              id="draftPurpose"
+              data-analysis-item-code="purpose_label"
+              data-analysis-code-target="purpose_code">
+        <option value="">未選択</option>
+      </select>
+      <input type="hidden"
+             id="draftUtilityPurposeCode"
+             data-analysis-item-code="purpose_code">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">電子証憑情報</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="email_subject">
+      メール件名
+      <input class="draft-field"
+             id="draftEmailSubject"
+             data-analysis-item-code="email_subject">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="email_from">
+      メール送信者
+      <input class="draft-field"
+             id="draftEmailFrom"
+             data-analysis-item-code="email_from">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="email_received_at">
+      メール受信日時
+      <input class="draft-field"
+             id="draftUtilityEmailReceivedAt"
+             type="datetime-local"
+             data-analysis-item-code="email_received_at">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="attachment_file_name">
+      添付ファイル名
+      <input class="draft-field"
+             id="draftUtilityAttachmentFileName"
+             data-analysis-item-code="attachment_file_name">
+    </label>
+  </div>
+</section>
+
+<section class="draft-section utility-dedicated-section"
+         data-utility-section>
+  <div class="draft-section-title">確認事項</div>
+
+  <div class="form-grid utility-dedicated-grid">
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="duplicate_risk">
+      重複リスク
+      <input class="draft-field"
+             id="draftUtilityDuplicateRisk"
+             data-analysis-item-code="duplicate_risk">
+    </label>
+
+    <label class="utility-dedicated-field"
+           data-utility-field-codes="ai_confidence">
+      AI信頼度
+      <input class="draft-field"
+             id="draftAiConfidence"
+             data-analysis-item-code="ai_confidence">
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="confirmation_notes">
+      人間確認事項
+      <textarea class="draft-field"
+                id="draftUtilityConfirmationNotes"
+                data-analysis-item-code="confirmation_notes"></textarea>
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="ai_reason">
+      AI解析理由
+      <textarea class="draft-field"
+                id="draftAiReason"
+                data-analysis-item-code="ai_reason"></textarea>
+    </label>
+
+    <label class="utility-dedicated-field span2"
+           data-utility-field-codes="warnings">
+      要確認・警告
+      <textarea class="draft-field"
+                id="draftWarnings"
+                data-analysis-item-code="warnings"></textarea>
+    </label>
+  </div>
+</section>
+<!-- GPT3_UTILITY_DEDICATED_SCREEN_END -->
+<details class="compact-evidence-details" id="compactEvidenceInfo">
           <summary>証憑情報（必要最低限）</summary>
           <div class="compact-evidence-grid">
             <div>
@@ -758,10 +973,10 @@
       analysis_system_code: "tax_public_analysis",
       analysis_system_label: "税金・公的支払専門解析システム"
     },
-    card_statement: {
-      specialist_route_label: "カード明細解析",
-      analysis_system_code: "card_statement_analysis",
-      analysis_system_label: "カード明細専門解析システム"
+    utility_communication: {
+      specialist_route_label: "公共料金・通信費解析",
+      analysis_system_code: "utility_communication_analysis",
+      analysis_system_label: "公共料金・通信費専門解析システム"
     },
     contract_insurance_lease: {
       specialist_route_label: "契約・保険・リース解析",
@@ -1319,7 +1534,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // カード明細 解析サマリー
+    // 公共料金・通信費 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1432,9 +1647,11 @@ function setDocumentPreview(item) {
     if (setById("draftTaxPaymentDestination", fields["納付先"])) appliedCount++;
     if (setById("draftFiscalYear", fields["年度"])) appliedCount++;
     if (setById("draftPeriodName", fields["期別"])) appliedCount++;
-    if (setById("draftUtilityCustomerNumber", fields["公共料金お客様番号"])) appliedCount++;
-    if (setById("draftUsagePeriod", fields["使用期間"])) appliedCount++;
-    if (setById("draftUsageAmount", fields["使用量"])) appliedCount++;
+    if (setById("draftUtilityCustomerNo", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"])) appliedCount++;
+    if (setById("draftSupplyPointNumber", fields["supply_point_number"] || fields["供給地点番号"])) appliedCount++;
+    if (setById("draftMeterReadingDate", fields["meter_reading_date"] || fields["検針日"])) appliedCount++;
+    if (setById("draftUsageAmount", fields["usage_quantity"] ?? fields["使用量"])) appliedCount++;
+    if (setById("draftUsageUnit", fields["usage_unit"] || fields["使用量単位"])) appliedCount++;
     if (setById("draftInsuranceType", fields["保険種類"])) appliedCount++;
     if (setById("draftLeaseItem", fields["リース物件"])) appliedCount++;
     if (setById("draftPaymentCount", fields["支払回数"])) appliedCount++;
@@ -1704,7 +1921,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // カード明細 解析サマリー
+    // 公共料金・通信費 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -1830,9 +2047,11 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
-    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
+    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
+    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
+    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
+    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
@@ -2043,7 +2262,7 @@ function setDocumentPreview(item) {
       "receipt",
       "tax_payment_notice",
       "card_statement",
-      "card_statement_analysis",
+      "utility_notice",
       "insurance_notice",
       "lease_contract",
       "contract",
@@ -2080,7 +2299,7 @@ function setDocumentPreview(item) {
       if (valueNorm.includes("リース")) return "lease_contract";
       if (valueNorm.includes("納付") || valueNorm.includes("納税") || valueNorm.includes("税金")) return "tax_payment_notice";
       if (valueNorm.includes("カード")) return "card_statement";
-      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "card_statement_analysis";
+      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "utility_notice";
       if (valueNorm.includes("保険")) return "insurance_notice";
       if (valueNorm.includes("請求")) return "invoice";
       if (valueNorm.includes("領収")) return "receipt";
@@ -2242,7 +2461,7 @@ function setDocumentPreview(item) {
     if (!raw) return "";
 
     const knownCodes = [
-      "invoice", "receipt", "tax_payment_notice", "card_statement", "card_statement_analysis",
+      "invoice", "receipt", "tax_payment_notice", "card_statement", "utility_notice",
       "insurance_notice", "lease_contract", "contract", "web_statement", "mail_saved", "other",
       "payable", "accounts_payable", "expense", "tax_public", "card_payable",
       "contract_insurance_lease", "no_process", "needs_review",
@@ -2256,7 +2475,7 @@ function setDocumentPreview(item) {
       if (norm.includes("リース")) return "lease_contract";
       if (norm.includes("納付") || norm.includes("納税") || norm.includes("税金") || norm.includes("税務署")) return "tax_payment_notice";
       if (norm.includes("カード")) return "card_statement";
-      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "card_statement_analysis";
+      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "utility_notice";
       if (norm.includes("保険")) return "insurance_notice";
       if (norm.includes("請求")) return "invoice";
       if (norm.includes("領収")) return "receipt";
@@ -2515,9 +2734,11 @@ function setDocumentPreview(item) {
     put("draftTaxOffice", "納付先", fields["納付先"]);
     put("draftFiscalYear", "年度", fields["年度"]);
     put("draftTaxTerm", "期別", fields["期別"]);
-    put("draftUtilityCustomerNo", "公共料金お客様番号", fields["公共料金お客様番号"]);
-    put("draftUsagePeriod", "使用期間", fields["使用期間"]);
-    put("draftUsageAmount", "使用量", fields["使用量"]);
+    put("draftUtilityCustomerNo", "お客様番号", fields["customer_number"] || fields["お客様番号"] || fields["公共料金お客様番号"]);
+    put("draftSupplyPointNumber", "供給地点番号", fields["supply_point_number"] || fields["供給地点番号"]);
+    put("draftMeterReadingDate", "検針日", fields["meter_reading_date"] || fields["検針日"]);
+    put("draftUsageAmount", "使用量", fields["usage_quantity"] ?? fields["使用量"]);
+    put("draftUsageUnit", "使用量単位", fields["usage_unit"] || fields["使用量単位"]);
     put("draftInsuranceType", "保険種類", fields["保険種類"]);
     put("draftLeaseItemName", "リース物件", fields["リース物件"]);
     put("draftPaymentCount", "支払回数", fields["支払回数"]);
@@ -2615,7 +2836,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("カード明細 解析サマリー")) {
+      if (titleText === normalizeLabelText("公共料金・通信費 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2653,7 +2874,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("カード明細の専門解析を実行しています。画像は送信しません。");
+    showResult("公共料金・通信費の専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2669,16 +2890,16 @@ function setDocumentPreview(item) {
         showResult(data);
         return;
       }
-      const appliedCount = applyAnalysisResultToFormHardDebug(data.analysis);
-      showVisibleFieldsOnly(data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || []);
+      const appliedCount = applyAnalysisResultToFormHardDebug(data.draft);
+      showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "カード明細の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "公共料金・通信費の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
-        document_group: data.document_group || (data.analysis && data.analysis.document_group) || "",
-        visible_field_labels: data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [],
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
         ai_steps: data.ai_steps || [],
-        draft: data.analysis
+        draft: data.draft
       });
     } catch (error) {
       showResult({
@@ -2917,7 +3138,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nカード明細の専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n公共料金・通信費の専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -2936,9 +3157,9 @@ function setDocumentPreview(item) {
         return { ok: false, name, error };
       }
 
-      item.__analysisResult = data.analysis || {};
-      item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
-      item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
+      item.__analysisResult = data.draft || {};
+      item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+      item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
       item.__aiSteps = data.ai_steps || [];
 
       const appliedCount = applySortingOnlyDraftToForm(item.__analysisResult);
@@ -3378,9 +3599,9 @@ function setDocumentPreview(item) {
   window.applySortingAiResultToItem = function(item, data) {
     if (!item || !data) return;
 
-    item.__analysisResult = data.analysis || {};
-    item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
-    item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
+    item.__analysisResult = data.draft || {};
+    item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+    item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
   };
@@ -3405,7 +3626,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、カード明細の専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、公共料金・通信費の専門解析をしています。");
     }
 
     try {
@@ -3552,7 +3773,7 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
 /* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
   window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
-    const expectedAnalysisSystemCode = "card_statement_analysis";
+    const expectedAnalysisSystemCode = "utility_communication_analysis";
 
     function textValue(value) {
       return String(value || "").trim();
@@ -3586,7 +3807,7 @@ function setDocumentPreview(item) {
       const draft = objectValue(
         source.__analysisResult ||
         source.analysisResult ||
-        source.analysis
+        source.draft
       );
 
       const sortResult = objectValue(
@@ -3658,16 +3879,80 @@ function setDocumentPreview(item) {
       items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
 
       summary.textContent =
-        "カード明細専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "公共料金・通信費専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">カード明細の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">公共料金・通信費の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
 
       window.renderSortingList();
       window.updateSelectedSortingSummary();
+      /* GPT3_UTILITY_URL_AUTO_SELECT_START */
+      const requestedParams =
+        new URLSearchParams(location.search);
+
+      const requestedOcrId =
+        Number(
+          requestedParams.get("ocr_import_id") ||
+          requestedParams.get("ocrImportId") ||
+          requestedParams.get("selectedOcrImportId") ||
+          requestedParams.get("id") ||
+          0
+        );
+
+      if (
+        Number.isInteger(requestedOcrId) &&
+        requestedOcrId > 0
+      ) {
+        const requestedIndex =
+          items.findIndex(function (item) {
+            return Number(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.ocrImportId ||
+              item.ocr_import_id ||
+              item.id ||
+              0
+            ) === requestedOcrId;
+          });
+
+        if (requestedIndex >= 0) {
+          selectItem(requestedIndex);
+
+          const selectedElement =
+            list.querySelectorAll(".item")[requestedIndex];
+
+          if (
+            selectedElement &&
+            typeof selectedElement.scrollIntoView ===
+              "function"
+          ) {
+            selectedElement.scrollIntoView({
+              block: "nearest"
+            });
+          }
+
+          window.__hdOriginUtilityUrlAutoSelectLast = {
+            ok: true,
+            requestedOcrImportId:
+              requestedOcrId,
+            selectedIndex:
+              requestedIndex
+          };
+        }
+        else {
+          window.__hdOriginUtilityUrlAutoSelectLast = {
+            ok: false,
+            requestedOcrImportId:
+              requestedOcrId,
+            reason:
+              "指定されたOCR IDは公共料金・通信費一覧にありません。"
+          };
+        }
+      }
+      /* GPT3_UTILITY_URL_AUTO_SELECT_END */
     } catch (error) {
       summary.textContent = "読込エラー: " + (error.message || String(error));
     }
@@ -3777,6 +4062,184 @@ function setDocumentPreview(item) {
     setDraftValue("draftDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
 
+  /* GPT3_UTILITY_SAVED_RESULT_RESTORE_START */
+  let hdOriginUtilitySavedRestoreRequestNo = 0;
+
+  function hdOriginUtilitySavedOcrId(item) {
+    if (!item) {
+      return 0;
+    }
+
+    return Number(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.ocr_import_id ||
+      item.id ||
+      0
+    ) || 0;
+  }
+
+  async function hdOriginUtilityRestoreSavedResult(item, index) {
+    const ocrId =
+      hdOriginUtilitySavedOcrId(item);
+
+    if (!ocrId) {
+      return false;
+    }
+
+    const requestNo =
+      ++hdOriginUtilitySavedRestoreRequestNo;
+
+    try {
+      const response =
+        await fetch(
+          "/api/payment-documents/utility-communication/saved/" +
+          encodeURIComponent(String(ocrId)),
+          {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+              Accept: "application/json"
+            }
+          }
+        );
+
+      if (response.status === 404) {
+        return false;
+      }
+
+      const data =
+        await response.json().catch(function () {
+          return {};
+        });
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          "保存済み公共料金・通信費データの読込に失敗しました。"
+        );
+      }
+
+      if (
+        requestNo !==
+        hdOriginUtilitySavedRestoreRequestNo
+      ) {
+        return false;
+      }
+
+      const currentItem =
+        Array.isArray(items)
+          ? items[index]
+          : null;
+
+      if (
+        !currentItem ||
+        selectedIndex !== index ||
+        hdOriginUtilitySavedOcrId(currentItem) !== ocrId
+      ) {
+        return false;
+      }
+
+      const draft =
+        data.draft &&
+        typeof data.draft === "object"
+          ? data.draft
+          : {};
+
+      const visibleFieldLabels =
+        Array.isArray(data.visible_field_labels)
+          ? data.visible_field_labels
+          : Array.isArray(draft.visible_field_labels)
+            ? draft.visible_field_labels
+            : [];
+
+      currentItem.__analysisResult =
+        draft;
+
+      currentItem.__visibleFieldLabels =
+        visibleFieldLabels;
+
+      currentItem.__aiRawResult =
+        data;
+
+      currentItem.__utilitySavedResultLoaded =
+        true;
+
+      if (
+        typeof applySortingOnlyDraftToForm ===
+        "function"
+      ) {
+        applySortingOnlyDraftToForm(draft);
+      }
+      else if (
+        typeof applyAnalysisResultToFormHardDebug ===
+        "function"
+      ) {
+        applyAnalysisResultToFormHardDebug(draft);
+      }
+
+      if (
+        typeof showVisibleFieldsOnly ===
+        "function"
+      ) {
+        showVisibleFieldsOnly(
+          visibleFieldLabels
+        );
+      }
+
+      if (
+        typeof window.hdOriginApplyUtilityLineItems ===
+        "function"
+      ) {
+        window.hdOriginApplyUtilityLineItems(
+          draft
+        );
+      }
+
+      window.__hdOriginUtilitySavedRestoreLast = {
+        ok: true,
+        paymentDocumentOcrImportId:
+          ocrId,
+        specialistAnalysisId:
+          data.specialistAnalysisId || null,
+        lineItemCount:
+          Array.isArray(data.line_items)
+            ? data.line_items.length
+            : 0,
+        aiExecution:
+          false
+      };
+
+      console.log(
+        "HD Origin utility saved result restored:",
+        window.__hdOriginUtilitySavedRestoreLast
+      );
+
+      return true;
+    }
+    catch (error) {
+      window.__hdOriginUtilitySavedRestoreLast = {
+        ok: false,
+        paymentDocumentOcrImportId:
+          ocrId,
+        error:
+          error && error.message
+            ? error.message
+            : String(error),
+        aiExecution:
+          false
+      };
+
+      console.warn(
+        "公共料金・通信費の保存済み結果再表示に失敗しました。",
+        error
+      );
+
+      return false;
+    }
+  }
+  /* GPT3_UTILITY_SAVED_RESULT_RESTORE_END */
   function selectItem(index) {
     selectedIndex = index;
     const item = items[index];
@@ -3792,6 +4255,7 @@ function setDocumentPreview(item) {
     clearDraftFields();
     setInitialAiOnlyView();
     fillDraftFromItem(item);
+    void hdOriginUtilityRestoreSavedResult(item, index);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
     if (item && item.__analysisResult) {
       if (typeof applySortingOnlyDraftToForm === "function") {
@@ -4999,15 +5463,7 @@ function setDocumentPreview(item) {
     installAnalyzeBusyHooks();
   }
 
-  let retryCount = 0;
-  const timer = window.setInterval(function () {
-    retryCount++;
-    installAnalyzeBusyHooks();
 
-    if (retryCount >= 20) {
-      window.clearInterval(timer);
-    }
-  }, 250);
 })();
 </script>
 <!-- HD_ORIGIN_PAYMENT_ANALYZE_BUSY_20260707_END -->
@@ -5174,11 +5630,11 @@ function setDocumentPreview(item) {
     const s = textValue(label).replace(/[　\s・･／\/（）()]/g, "");
 
     const map = [
-      ["公共料金通知書", "card_statement_analysis"],
-      ["水道料金通知書", "card_statement_analysis"],
-      ["電気料金", "card_statement_analysis"],
-      ["ガス料金", "card_statement_analysis"],
-      ["通信費", "card_statement_analysis"],
+      ["公共料金通知書", "utility_notice"],
+      ["水道料金通知書", "utility_notice"],
+      ["電気料金", "utility_notice"],
+      ["ガス料金", "utility_notice"],
+      ["通信費", "utility_notice"],
 
       ["その他証憑", "other"],
       ["要確認", "needs_review"],
@@ -5548,6 +6004,33 @@ function setDocumentPreview(item) {
       analysisRoot.specialist_route_label ||
       "";
 
+    const currentFields = {
+      customer_number: textValue(byId("draftUtilityCustomerNo")?.value),
+      supply_point_number: textValue(byId("draftSupplyPointNumber")?.value),
+      meter_reading_date: textValue(byId("draftMeterReadingDate")?.value),
+      usage_quantity: textValue(byId("draftUsageAmount")?.value),
+      usage_unit: textValue(byId("draftUsageUnit")?.value)
+    };
+
+    payload.analysisSystemCode = payload.analysis_system_code;
+    payload.analysisSystemLabel = payload.analysis_system_label;
+    payload.specialistFields = currentFields;
+    payload.fields = currentFields;
+    payload.visibleFields = currentFields;
+    payload.humanCorrections = currentFields;
+    payload.rawResult = analysisResult;
+    payload.lineItems =
+      typeof window.hdOriginGetUtilityLineItems === "function"
+        ? window.hdOriginGetUtilityLineItems()
+        : [];
+    payload.warnings = Array.isArray(analysisResult.warnings)
+      ? analysisResult.warnings
+      : Array.isArray(analysisDraft.warnings)
+        ? analysisDraft.warnings
+        : Array.isArray(analysisRoot.warnings)
+          ? analysisRoot.warnings
+          : [];
+
     const specialistRawResult = Object.assign(
       {},
       analysisResult,
@@ -5670,331 +6153,6 @@ function setDocumentPreview(item) {
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
 </script>
 <script>
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_START */
-(function () {
-  "use strict";
-
-  if (window.__hdOriginBulkSpecialistAnalysisSaveInstalled) {
-    return;
-  }
-
-  window.__hdOriginBulkSpecialistAnalysisSaveInstalled = true;
-  window.hdOriginSpecialistAnalysisBulkCache = window.hdOriginSpecialistAnalysisBulkCache || {};
-
-  function textValue(value) {
-    if (value === null || value === undefined) return "";
-    return String(value).trim();
-  }
-
-  function numberId(value) {
-    const n = Number(value);
-    return Number.isInteger(n) && n > 0 ? n : 0;
-  }
-
-  function firstObject() {
-    for (const item of arguments) {
-      if (item && typeof item === "object" && !Array.isArray(item)) {
-        return item;
-      }
-    }
-
-    return {};
-  }
-
-  function aiSortIdFromUrl(url) {
-    const path = String(url || "").split("?")[0];
-    const match = path.match(/\/api\/payment-documents\/ai-sort\/([0-9]+)/);
-
-    if (!match) return 0;
-
-    return numberId(match[1]);
-  }
-
-  function cacheAiSortResult(id, json) {
-    id = numberId(id);
-
-    if (!id || !json || typeof json !== "object") {
-      return;
-    }
-
-    window.hdOriginSpecialistAnalysisBulkCache[String(id)] = {
-      paymentDocumentOcrImportId: id,
-      result: json,
-      cachedAt: new Date().toISOString()
-    };
-  }
-
-  if (!window.__hdOriginBulkSpecialistAnalysisFetchPatched && window.fetch) {
-    window.__hdOriginBulkSpecialistAnalysisFetchPatched = true;
-
-    const originalFetch = window.fetch.bind(window);
-
-    window.fetch = async function () {
-      const requestUrl = arguments[0] && arguments[0].url ? arguments[0].url : arguments[0];
-      const id = aiSortIdFromUrl(requestUrl);
-
-      const response = await originalFetch.apply(null, arguments);
-
-      if (id && response && response.clone) {
-        response.clone().json().then(function (json) {
-          cacheAiSortResult(id, json);
-        }).catch(function () {});
-      }
-
-      return response;
-    };
-  }
-
-  function getSelectedOcrIds() {
-    const ids = [];
-
-    function pushId(value) {
-      const id = numberId(value);
-
-      if (id && !ids.includes(id)) {
-        ids.push(id);
-      }
-    }
-
-    document.querySelectorAll("input[type='checkbox']:checked").forEach(function (el) {
-      pushId(
-        el.dataset.paymentDocumentOcrImportId ||
-        el.dataset.ocrImportId ||
-        el.dataset.id ||
-        el.value
-      );
-
-      const row = el.closest("[data-payment-document-ocr-import-id], [data-ocr-import-id], [data-id], tr, li, .item, .card");
-
-      if (row) {
-        pushId(
-          row.dataset.paymentDocumentOcrImportId ||
-          row.dataset.ocrImportId ||
-          row.dataset.id
-        );
-      }
-    });
-
-    document.querySelectorAll(".selected[data-payment-document-ocr-import-id], .active[data-payment-document-ocr-import-id], .selected[data-ocr-import-id], .active[data-ocr-import-id]").forEach(function (el) {
-      pushId(el.dataset.paymentDocumentOcrImportId || el.dataset.ocrImportId || el.dataset.id);
-    });
-
-    return ids;
-  }
-
-  function getIdsFromCache() {
-    return Object.keys(window.hdOriginSpecialistAnalysisBulkCache || {})
-      .map(numberId)
-      .filter(Boolean);
-  }
-
-  function buildPayloadFromCachedResult(id, cached) {
-    const result = cached && cached.result ? cached.result : cached;
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.analysis, result.analysisResult, result);
-    const draft = firstObject(result.analysis, result.analysisResult, result.sorting, result.classification, root.analysis, root.sorting, root.classification, root);
-    const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
-
-    return {
-      paymentDocumentOcrImportId: id,
-
-      document_type_code: textValue(draft.document_type_code || root.document_type_code || aiSummary.document_kind),
-      document_type_label: textValue(draft.document_type_label || root.document_type_label || aiSummary.document_kind_label),
-
-      payment_destination_code: textValue(draft.payment_destination_code || root.payment_destination_code || aiSummary.destination),
-      payment_destination_label: textValue(draft.payment_destination_label || root.payment_destination_label || aiSummary.destination_label),
-
-      accounting_category_code: textValue(draft.accounting_category_code || root.accounting_category_code),
-      accounting_category_label: textValue(draft.accounting_category_label || root.accounting_category_label),
-
-      payable_kind_code: textValue(draft.payable_kind_code || root.payable_kind_code),
-      payable_kind_label: textValue(draft.payable_kind_label || root.payable_kind_label),
-
-      specialist_route_code: textValue(draft.specialist_route_code || root.specialist_route_code || root.document_group),
-      specialist_route_label: textValue(draft.specialist_route_label || root.specialist_route_label),
-
-      payment_target_label: textValue(aiSummary.payment_target),
-      payable_target_label: textValue(aiSummary.payable_target),
-      expense_target_label: textValue(aiSummary.expense_target),
-      tax_public_label: textValue(aiSummary.tax_public),
-      public_utility_label: textValue(aiSummary.public_utility),
-      contract_insurance_lease_label: textValue(aiSummary.contract_insurance_lease),
-
-      ai_confidence: textValue(draft.ai_confidence || draft.confidence || root.confidence),
-      ai_confidence_label: textValue(draft.ai_confidence_label || draft.confidence_label || root.confidence_label || aiSummary.confidence_label),
-      ai_reason: textValue(draft.ai_reason || draft.reason || root.review_reason || aiSummary.reason),
-      review_reason: textValue(draft.review_reason || root.review_reason || aiSummary.reason),
-      needs_review: !!(draft.needs_review || root.needs_review),
-
-      ai_summary: aiSummary,
-      sortResult: root,
-      visibleFields: firstObject(result.visibleFields, result.visible_fields, draft.fields, root.fields),
-      warnings: Array.isArray(result.warnings) ? result.warnings : Array.isArray(draft.warnings) ? draft.warnings : [],
-
-      display_rotation: 0,
-      memo: "まとめて保存ボタンから仕分け下書き保存"
-    };
-  }
-
-  async function postSpecialistAnalysis(payload) {
-    payload.analysisSystemCode =
-      payload.analysisSystemCode ||
-      payload.analysis_system_code ||
-      textValue((payload.sortResult || {}).analysis_system_code || (payload.sortResult || {}).analysisSystemCode);
-    payload.analysis_system_code = payload.analysisSystemCode;
-    payload.analysisSystemLabel =
-      payload.analysisSystemLabel ||
-      payload.analysis_system_label ||
-      textValue((payload.sortResult || {}).analysis_system_label || (payload.sortResult || {}).analysisSystemLabel);
-    payload.analysis_system_label = payload.analysisSystemLabel;
-    payload.rawResult =
-      payload.rawResult ||
-      payload.raw_result ||
-      payload.sortResult ||
-      {};
-    payload.raw_result = payload.rawResult;
-    payload.warnings = Array.isArray(payload.warnings)
-      ? payload.warnings
-      : [];
-    const res = await fetch("/api/payment-documents/specialist-analysis-results/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const json = await res.json().catch(function () {
-      return {};
-    });
-
-    if (!res.ok || !json.ok) {
-      throw new Error(json.error || "下書き保存に失敗しました。");
-    }
-
-    return json;
-  }
-
-  async function bulkSaveSpecialistAnalysisResults() {
-    let ids = getSelectedOcrIds();
-
-    if (ids.length === 0) {
-      ids = getIdsFromCache();
-    }
-
-    if (ids.length === 0) {
-      throw new Error("まとめて保存する対象が見つかりません。先にまとめて専門解析を実行してください。");
-    }
-
-    const ok = [];
-    const ng = [];
-
-    for (const id of ids) {
-      const cached = window.hdOriginSpecialistAnalysisBulkCache[String(id)];
-
-      if (!cached) {
-        ng.push({
-          id,
-          error: "AI仕分け結果キャッシュがありません。先にこの書類を仕分けしてください。"
-        });
-        continue;
-      }
-
-      try {
-        const payload = buildPayloadFromCachedResult(id, cached);
-        const saved = await postSpecialistAnalysis(payload);
-
-        ok.push({
-          id,
-          specialistAnalysisId: saved.specialistAnalysisId || ""
-        });
-      } catch (err) {
-        ng.push({
-          id,
-          error: err && err.message ? err.message : String(err)
-        });
-      }
-    }
-
-    return { ok, ng };
-  }
-
-  function ensureBulkSaveButton() {
-    if (document.getElementById("bulkSaveSpecialistAnalysisResultButton")) {
-      return document.getElementById("bulkSaveSpecialistAnalysisResultButton");
-    }
-
-    const buttons = Array.from(document.querySelectorAll("button, input[type='button'], input[type='submit'], a"));
-    const sortButton = buttons.find(function (button) {
-      const text = textValue(button.textContent || button.value || button.getAttribute("aria-label") || button.title);
-      return text.includes("まとめて専門解析");
-    });
-
-    if (!sortButton || !sortButton.parentNode) {
-      return null;
-    }
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.id = "bulkSaveSpecialistAnalysisResultButton";
-    button.className = "btn btn-primary hd-origin-bulk-save-specialist-analysis";
-    button.textContent = "まとめて保存";
-
-    sortButton.insertAdjacentElement("afterend", button);
-
-    return button;
-  }
-
-  document.addEventListener("click", async function (event) {
-    const button = event.target.closest("#bulkSaveSpecialistAnalysisResultButton");
-
-    if (!button) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (button.dataset.saving === "1") {
-      return;
-    }
-
-    const originalText = button.textContent;
-
-    try {
-      button.dataset.saving = "1";
-      button.textContent = "まとめて保存中...";
-
-      const result = await bulkSaveSpecialistAnalysisResults();
-
-      button.textContent = "まとめて保存";
-
-      alert(
-        "まとめて保存が完了しました。\n" +
-        "成功: " + result.ok.length + "件\n" +
-        "失敗: " + result.ng.length + "件"
-      );
-
-      if (result.ng.length > 0) {
-        console.warn("HD Origin bulk save draft errors:", result.ng);
-      }
-    } catch (err) {
-      button.textContent = originalText || "まとめて保存";
-
-      alert("まとめて保存に失敗しました。\n" + (err && err.message ? err.message : String(err)));
-    } finally {
-      button.dataset.saving = "0";
-    }
-  }, true);
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureBulkSaveButton);
-  } else {
-    ensureBulkSaveButton();
-  }
-
-  window.hdOriginBulkSaveSpecialistAnalysiss = bulkSaveSpecialistAnalysisResults;
-})();
-/* HD_ORIGIN_PAYMENT_DOCUMENT_BULK_SPECIALIST_ANALYSIS_SAVE_UI_20260707_END */
 </script>
 <script>
 </script>
@@ -6078,7 +6236,7 @@ function setDocumentPreview(item) {
       item.analysis_result ||
       item.specialistAnalysis ||
       item.specialist_analysis ||
-      item.analysis ||
+      item.draft ||
       {};
   }
 
@@ -6137,7 +6295,7 @@ function setDocumentPreview(item) {
     pushField(fields, section, "未払登録対象", "payable_target", draft.payable_target_label || summary.payable_target || "");
     pushField(fields, section, "経費登録対象", "expense_target", draft.expense_target_label || summary.expense_target || "");
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
-    pushField(fields, section, "カード明細", "public_utility", draft.public_utility_label || summary.public_utility || "");
+    pushField(fields, section, "公共料金・通信費", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
@@ -6803,7 +6961,7 @@ function setDocumentPreview(item) {
     const draft = objectValue(
       source.__analysisResult ||
       source.analysisResult ||
-      source.analysis
+      source.draft
     );
 
     const sortResult = objectValue(
@@ -7036,6 +7194,254 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
+
+<div id="utilityLineItemsModal" class="utility-line-modal" aria-hidden="true">
+  <div class="utility-line-modal-window" role="dialog" aria-modal="true"
+       aria-labelledby="utilityLineItemsModalTitle">
+    <div class="utility-line-modal-head">
+      <h3 id="utilityLineItemsModalTitle">公共料金・通信費 明細内訳</h3>
+      <button type="button" id="utilityLineItemsCloseButton">閉じる</button>
+    </div>
+    <div class="utility-line-modal-actions">
+      <button type="button" id="utilityLineItemAddButton">明細行追加</button>
+    </div>
+    <div class="utility-line-modal-body">
+      <table class="utility-line-modal-table">
+        <thead>
+          <tr>
+            <th>項目名</th>
+            <th>説明</th>
+            <th>使用量</th>
+            <th>単位</th>
+            <th>単価</th>
+            <th>小計</th>
+            <th>税区分</th>
+            <th>税率</th>
+            <th>税額</th>
+            <th>合計</th>
+            <th>元記載</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="utilityLineItemsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div><script>
+/* GPT3_UTILITY_LINE_ITEMS_JS_START */
+(function () {
+  "use strict";
+
+  const rows = [];
+  const byId = id => document.getElementById(id);
+  const esc = value => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  function taxOptions(selected) {
+    const masters = typeof getDraftMasterRows === "function"
+      ? getDraftMasterRows("tax_categories").filter(row => row && row.is_active !== false)
+      : [];
+
+    let html = '<option value="">税区分を選択</option>';
+
+    for (const row of masters) {
+      const value = masterRowValue(row);
+      const name = masterRowName(row);
+      const label = masterRowLabel(row);
+      const rate = row.tax_rate ?? "";
+
+      html += '<option value="' + esc(value) +
+        '" data-name="' + esc(name) +
+        '" data-rate="' + esc(rate) + '"' +
+        (String(selected || "") === String(value) ? " selected" : "") +
+        ">" + esc(label) + "</option>";
+    }
+
+    return html;
+  }
+
+  function input(index, field, value, type) {
+    return '<input data-index="' + index +
+      '" data-field="' + field +
+      '" type="' + (type || "text") +
+      '" step="any" value="' + esc(value) + '">';
+  }
+
+  function render() {
+    const body = byId("utilityLineItemsTableBody");
+    const count = byId("utilityLineItemsCount");
+
+    if (count) count.textContent = "現在 " + rows.length + " 行";
+    if (!body) return;
+
+    body.innerHTML = rows.map((row, index) => `
+      <tr>
+        <td>${input(index,"item_name",row.item_name)}</td>
+        <td>${input(index,"description",row.description)}</td>
+        <td>${input(index,"usage_quantity",row.usage_quantity,"number")}</td>
+        <td>${input(index,"usage_unit",row.usage_unit)}</td>
+        <td>${input(index,"unit_price",row.unit_price,"number")}</td>
+        <td>${input(index,"subtotal_amount",row.subtotal_amount,"number")}</td>
+        <td>
+          <select data-index="${index}" data-field="tax_category_id">
+            ${taxOptions(row.tax_category_id)}
+          </select>
+        </td>
+        <td>${input(index,"tax_rate",row.tax_rate,"number")}</td>
+        <td>${input(index,"tax_amount",row.tax_amount,"number")}</td>
+        <td>${input(index,"total_amount",row.total_amount,"number")}</td>
+        <td>${input(index,"source_text",row.source_text)}</td>
+        <td><button type="button" class="danger" data-remove="${index}">削除</button></td>
+      </tr>
+    `).join("");
+  }
+
+  function open() {
+    const modal = byId("utilityLineItemsModal");
+    if (!modal) return;
+    render();
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function close() {
+    const modal = byId("utilityLineItemsModal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function add() {
+    rows.push({
+      item_name: "",
+      description: "",
+      usage_quantity: "",
+      usage_unit: "",
+      unit_price: "",
+      subtotal_amount: "",
+      tax_category_id: "",
+      tax_category_label: "",
+      tax_rate: "",
+      tax_amount: "",
+      total_amount: "",
+      source_text: ""
+    });
+    render();
+  }
+
+  const body = byId("utilityLineItemsTableBody");
+
+  body?.addEventListener("input", event => {
+    const target = event.target;
+    const index = Number(target.dataset.index);
+    const field = target.dataset.field;
+
+    if (rows[index] && field) rows[index][field] = target.value;
+  });
+
+  body?.addEventListener("change", event => {
+    const target = event.target;
+    const index = Number(target.dataset.index);
+
+    if (!rows[index] || target.dataset.field !== "tax_category_id") return;
+
+    const option = target.selectedOptions[0];
+    rows[index].tax_category_id = target.value;
+    rows[index].tax_category_label = option?.dataset.name || "";
+    rows[index].tax_rate = option?.dataset.rate || rows[index].tax_rate || "";
+    render();
+  });
+
+  body?.addEventListener("click", event => {
+    const button = event.target.closest("[data-remove]");
+    if (!button) return;
+    rows.splice(Number(button.dataset.remove), 1);
+    render();
+  });
+
+  byId("utilityLineItemsOpenButton")?.addEventListener("click", open);
+  byId("utilityLineItemsCloseButton")?.addEventListener("click", close);
+  byId("utilityLineItemAddButton")?.addEventListener("click", add);
+
+  byId("utilityLineItemsModal")?.addEventListener("click", event => {
+    if (event.target.id === "utilityLineItemsModal") close();
+  });
+
+  window.hdOriginGetUtilityLineItems = () => rows.map(row => ({ ...row }));
+  window.hdOriginSetUtilityLineItems = value => {
+    rows.splice(0, rows.length, ...(Array.isArray(value) ? value : []));
+    render();
+  };
+
+  render();
+})();
+/* GPT3_UTILITY_LINE_ITEMS_JS_END */
+</script>
+<script>
+/* GPT3_UTILITY_AI_LINE_ITEMS_START */
+(function () {
+  "use strict";
+
+  function lineItemsOf(draft) {
+    const root = draft && typeof draft === "object" ? draft : {};
+    const fields = root.specialist_fields || root.specialistFields || root.fields || {};
+
+    return [
+      root.line_items,
+      root.lineItems,
+      fields.line_items,
+      fields.lineItems
+    ].find(Array.isArray) || [];
+  }
+
+  function applyLines(draft) {
+    if (typeof window.hdOriginSetUtilityLineItems !== "function") return;
+
+    const rows = lineItemsOf(draft).map((line, index) => ({
+      line_no: line.line_no ?? index + 1,
+      item_name: line.item_name ?? line.name ?? "",
+      description: line.description ?? "",
+      usage_quantity: line.usage_quantity ?? line.quantity ?? "",
+      usage_unit: line.usage_unit ?? line.unit ?? "",
+      unit_price: line.unit_price ?? line.unitPrice ?? "",
+      subtotal_amount: line.subtotal_amount ?? line.amount ?? "",
+      tax_category_id: line.tax_category_id ?? "",
+      tax_category_code: line.tax_category_code ?? "",
+      tax_category_label: line.tax_category_label ?? "",
+      tax_rate: line.tax_rate ?? line.taxRate ?? "",
+      tax_amount: line.tax_amount ?? line.taxAmount ?? "",
+      total_amount: line.total_amount ?? "",
+      source_text: line.source_text ?? line.memo ?? ""
+    }));
+
+    window.hdOriginSetUtilityLineItems(rows);
+  }
+
+  function wrap(name) {
+    const original = window[name];
+    if (typeof original !== "function" || original.__utilityLinesWrapped) return;
+
+    const wrapped = function (draft) {
+      const result = original.apply(this, arguments);
+      applyLines(draft);
+      return result;
+    };
+
+    wrapped.__utilityLinesWrapped = true;
+    window[name] = wrapped;
+  }
+
+  wrap("applyAnalysisResultToFormHardDebug");
+  wrap("applySortingOnlyDraftToForm");
+
+  window.hdOriginApplyUtilityLineItems = applyLines;
+})();
+/* GPT3_UTILITY_AI_LINE_ITEMS_END */
+</script>
+  <script src="/payables/payment-document-specialist-utility-communication-dedicated.js"></script>
 </body>
 </html>
 

@@ -25,8 +25,8 @@
       objectValue(source.specialistFields),
       objectValue(source.specialist_fields),
       objectValue(
-        source.analysis &&
-        source.analysis.fields
+        source.draft &&
+        source.draft.fields
       ),
       objectValue(
         source.specialist &&
@@ -220,8 +220,8 @@
     const candidates = [
       source.visible_field_labels,
       source.visibleFieldLabels,
-      source.analysis &&
-        source.analysis.visible_field_labels,
+      source.draft &&
+        source.draft.visible_field_labels,
       source.specialist &&
         source.specialist.visible_field_labels,
       source.specialist &&
@@ -1682,7 +1682,7 @@
     const draft =
       objectValue(
         firstValue(
-          root.analysis,
+          root.draft,
           root.savedDraft,
           root.utilityDraft
         )
@@ -2238,7 +2238,7 @@
               data;
 
             item.__analysisResult =
-              data.analysis || {};
+              data.draft || {};
 
             item.__visibleFieldLabels =
               visibleLabelsOf(
@@ -2621,7 +2621,7 @@
       );
 
     if (Object.keys(specialistDraft).length) {
-      data.analysis =
+      data.draft =
         specialistDraft;
     }
 

@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>カード明細専門解析システム - HD Origin Project</title>
-  <link rel="stylesheet" href="./payment-document-specialist-card-statement.css">
+  <title>請求・未払系専門解析システム - HD Origin Project</title>
+  <link rel="stylesheet" href="./payment-document-specialist-invoice-payable.css">
   <link rel="stylesheet" href="./payment-document-specialist-record-navigation.css">
 </head>
-<body class="specialist-card-statement-page" data-specialist-route-code="card_statement">
-<!-- HD_ORIGIN_GPT2_UTILITY_COMMUNICATION_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
-<!-- HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
+<body class="specialist-invoice-payable-page" data-specialist-route-code="invoice_payable">
+<!-- HD_ORIGIN_GPT2_INVOICE_PAYABLE_SPECIALIST_COMMON_SAVE_API_20260710 : save endpoint connected to specialist-analysis-results/save -->
+<!-- HD_ORIGIN_SPECIALIST_INVOICE_PAYABLE_BASED_ON_REVIEW_GPT2_AFTER_20260708 -->
   <div class="wrap">
     <header class="top">
-      <h1>カード明細専門解析システム</h1>
+      <h1>請求・未払系専門解析システム</h1>
       <button type="button" onclick="location.href='./payment-document-inbox.html'">OCR取込へ戻る</button>
       <button type="button" onclick="location.href='/payables/payable-list.html'">請求書・未払管理へ</button>
+      <button type="button" onclick="location.href='/ledgers/reports/invoice-payable-ledger-report.html'">台帳へ</button>
       <button type="button" onclick="location.href='/'">メインページ</button>
       <button type="button" class="warn" onclick="restartServer()">サーバー再起動</button>
             <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_START -->
@@ -32,11 +33,6 @@
                 data-base-label="銀行取引専門解析"
                 onclick="location.href='./payment-document-specialist-bank-transaction.html'">銀行取引専門解析（0）</button>
         <!-- HD_ORIGIN_SPECIALIST_COMMON_ENTRY_BUTTONS_20260727_END --><button type="button"
-                class="specialist-system-button specialist-invoice"
-                data-analysis-system-code="invoice_payable_analysis"
-                data-base-label="請求・未払系"
-                onclick="location.href='./payment-document-specialist-invoice-payable.html'">請求・未払系（0）</button>
-        <button type="button"
                 class="specialist-system-button specialist-receipt"
                 data-analysis-system-code="receipt_evidence_analysis"
                 data-base-label="レシート・領収書"
@@ -57,6 +53,11 @@
                 data-base-label="公共料金・通信費"
                 onclick="location.href='./payment-document-specialist-utility-communication.html'">公共料金・通信費（0）</button>
         <button type="button"
+                class="specialist-system-button specialist-card"
+                data-analysis-system-code="card_statement_analysis"
+                data-base-label="カード明細"
+                onclick="location.href='./payment-document-specialist-card-statement.html'">カード明細（0）</button>
+        <button type="button"
                 class="specialist-system-button specialist-reference"
                 data-analysis-system-code="delivery_note_analysis"
                 data-base-label="納品書・照合"
@@ -68,12 +69,12 @@
                 onclick="location.href='./payment-document-specialist-needs-review.html'" style="background-color:#ffc107;color:#000;">要確認（0）</button>
       </nav>
       <!-- HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_HEADER_BUTTONS_20260708_END -->
-<span class="muted">1回目仕分けでカード明細へ送った書類を、カード明細として専門解析する画面です。</span>
+<span class="muted">1回目仕分けで請求・未払系へ送った書類を、請求・未払系として専門解析する画面です。</span>
     </header>
 
     <section class="panel list-panel">
       <div class="panel-title">
-        <span>カード明細 対象書類</span>
+        <span>請求・未払系 対象書類</span>
         <button type="button" class="light" onclick="loadItems()">更新</button>
       </div>
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
@@ -88,7 +89,7 @@
         <span class="legend-chip legend-expense">レシート・領収書</span>
         <span class="legend-chip legend-tax">税金・公的支払</span>
         <span class="legend-chip legend-contract">契約・保険・リース</span>
-        <span class="legend-chip legend-utility">カード明細</span>
+        <span class="legend-chip legend-utility">公共料金・通信費</span>
         <span class="legend-chip legend-card">カード</span>
         <span class="legend-chip legend-reference">納品書・照合</span>
         <span class="legend-chip legend-review">要確認</span>
@@ -114,7 +115,7 @@
 
     <section class="panel draft-panel">
       <div class="panel-title">
-        <span>カード明細 解析確認</span>
+        <span>請求・未払系 解析確認</span>
         <!-- HD_ORIGIN_SPECIALIST_RECORD_CONTROLS_GPT2_20260712_START -->
 <div class="specialist-panel-actions">
   <div class="specialist-record-controls" aria-label="専門解析レコード移動">
@@ -153,7 +154,7 @@
 
             <div class="draft-form-scroll">
         <section class="draft-section">
-          <div class="draft-section-title">カード明細 解析サマリー</div>
+          <div class="draft-section-title">請求・未払系 解析サマリー</div>
           <div class="form-grid">
             <label>
               書類区分
@@ -720,6 +721,15 @@
 </div>
 <div class="button-row action-button-row">
         
+
+        <!-- HD_ORIGIN_INVOICE_SPECIALIST_TO_PAYABLES_20260710_START -->
+        <button
+          type="button"
+          id="registerSelectedToPayablesButton"
+          class="action-btn post-ai-action"
+          onclick="registerSelectedSpecialistToPayables()"
+        >未払管理へ登録</button>
+        <!-- HD_ORIGIN_INVOICE_SPECIALIST_TO_PAYABLES_20260710_END -->
       </div>
 
       <details class="ocr-details">
@@ -758,10 +768,10 @@
       analysis_system_code: "tax_public_analysis",
       analysis_system_label: "税金・公的支払専門解析システム"
     },
-    card_statement: {
-      specialist_route_label: "カード明細解析",
-      analysis_system_code: "card_statement_analysis",
-      analysis_system_label: "カード明細専門解析システム"
+    utility_communication: {
+      specialist_route_label: "公共料金・通信費解析",
+      analysis_system_code: "utility_communication_analysis",
+      analysis_system_label: "公共料金・通信費専門解析システム"
     },
     contract_insurance_lease: {
       specialist_route_label: "契約・保険・リース解析",
@@ -1319,7 +1329,7 @@ function setDocumentPreview(item) {
     if (setById("draftPayableKind", draft.payable_kind_code || fields["未払種別"])) appliedCount++;
     if (setById("draftPaymentSourceType", draft.source_type_code || fields["入手元区分"])) appliedCount++;
 
-    // カード明細 解析サマリー
+    // 請求・未払系 解析サマリー
     if (draft.ai_summary) {
       if (setById("draftAiDocumentKind", draft.document_type_code || (draft.ai_summary && draft.ai_summary.document_kind) || fields["書類区分"] || fields["書類種別"])) appliedCount++;
       if (setById("draftAiDestination", draft.ai_summary.destination || fields["処理先"])) appliedCount++;
@@ -1704,7 +1714,7 @@ function setDocumentPreview(item) {
       }
     }
 
-    // カード明細 解析サマリー
+    // 請求・未払系 解析サマリー
     put("draftAiDocumentKind", "書類区分", draft.document_type_code || summary.document_kind || fields["書類区分"] || fields["書類種別"]);
     put("draftAiDestination", "処理先", draft.payment_destination_code || fields["処理先"] || summary.destination);
     put("draftAiPayableFlag", "支払対象", summary.payment_target || (fields.payment_target || fields["支払対象"]));
@@ -2043,7 +2053,7 @@ function setDocumentPreview(item) {
       "receipt",
       "tax_payment_notice",
       "card_statement",
-      "card_statement_analysis",
+      "utility_notice",
       "insurance_notice",
       "lease_contract",
       "contract",
@@ -2080,7 +2090,7 @@ function setDocumentPreview(item) {
       if (valueNorm.includes("リース")) return "lease_contract";
       if (valueNorm.includes("納付") || valueNorm.includes("納税") || valueNorm.includes("税金")) return "tax_payment_notice";
       if (valueNorm.includes("カード")) return "card_statement";
-      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "card_statement_analysis";
+      if (valueNorm.includes("公共") || valueNorm.includes("電気") || valueNorm.includes("ガス") || valueNorm.includes("水道")) return "utility_notice";
       if (valueNorm.includes("保険")) return "insurance_notice";
       if (valueNorm.includes("請求")) return "invoice";
       if (valueNorm.includes("領収")) return "receipt";
@@ -2242,7 +2252,7 @@ function setDocumentPreview(item) {
     if (!raw) return "";
 
     const knownCodes = [
-      "invoice", "receipt", "tax_payment_notice", "card_statement", "card_statement_analysis",
+      "invoice", "receipt", "tax_payment_notice", "card_statement", "utility_notice",
       "insurance_notice", "lease_contract", "contract", "web_statement", "mail_saved", "other",
       "payable", "accounts_payable", "expense", "tax_public", "card_payable",
       "contract_insurance_lease", "no_process", "needs_review",
@@ -2256,7 +2266,7 @@ function setDocumentPreview(item) {
       if (norm.includes("リース")) return "lease_contract";
       if (norm.includes("納付") || norm.includes("納税") || norm.includes("税金") || norm.includes("税務署")) return "tax_payment_notice";
       if (norm.includes("カード")) return "card_statement";
-      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "card_statement_analysis";
+      if (norm.includes("公共") || norm.includes("電気") || norm.includes("ガス") || norm.includes("水道")) return "utility_notice";
       if (norm.includes("保険")) return "insurance_notice";
       if (norm.includes("請求")) return "invoice";
       if (norm.includes("領収")) return "receipt";
@@ -2615,7 +2625,7 @@ function setDocumentPreview(item) {
       const title = section.querySelector(".draft-section-title");
       const titleText = normalizeLabelText(title ? title.textContent : "");
 
-      if (titleText === normalizeLabelText("カード明細 解析サマリー")) {
+      if (titleText === normalizeLabelText("請求・未払系 解析サマリー")) {
         section.classList.remove("ai-section-hidden");
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
@@ -2653,7 +2663,7 @@ function setDocumentPreview(item) {
       return;
     }
 
-    showResult("カード明細の専門解析を実行しています。画像は送信しません。");
+    showResult("請求・未払系の専門解析を実行しています。画像は送信しません。");
 
     try {
       const res = await fetch("/api/payment-documents/ai-specialist/" + encodeURIComponent(String(id)), {
@@ -2669,16 +2679,16 @@ function setDocumentPreview(item) {
         showResult(data);
         return;
       }
-      const appliedCount = applyAnalysisResultToFormHardDebug(data.analysis);
-      showVisibleFieldsOnly(data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || []);
+      const appliedCount = applyAnalysisResultToFormHardDebug(data.draft);
+      showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
       showResult({
         ok: true,
-        message: "カード明細の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
+        message: "請求・未払系の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
-        document_group: data.document_group || (data.analysis && data.analysis.document_group) || "",
-        visible_field_labels: data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [],
+        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
+        visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
         ai_steps: data.ai_steps || [],
-        draft: data.analysis
+        draft: data.draft
       });
     } catch (error) {
       showResult({
@@ -2917,7 +2927,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nカード明細の専門解析を実行しています。画像は送信しません。");
+      showResult("単品専門解析中: " + name + "\n請求・未払系の専門解析を実行しています。画像は送信しません。");
     }
 
     try {
@@ -2936,9 +2946,9 @@ function setDocumentPreview(item) {
         return { ok: false, name, error };
       }
 
-      item.__analysisResult = data.analysis || {};
-      item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
-      item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
+      item.__analysisResult = data.draft || {};
+      item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+      item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
       item.__aiSteps = data.ai_steps || [];
 
       const appliedCount = applySortingOnlyDraftToForm(item.__analysisResult);
@@ -3350,7 +3360,7 @@ function setDocumentPreview(item) {
               </span>
               <span class="sorting-summary-chips">
                 <span class="${visual.kindClass}">種類:${esc(visual.kindLabel)}</span>
-                
+
                 ${reviewBadge}
                 <span class="visual-chip visual-chip-status">${esc(analyzedText)}</span>
               </span>
@@ -3362,7 +3372,7 @@ function setDocumentPreview(item) {
             <div class="sorting-detail-grid">
               <div><span class="detail-label">OCR日時</span><span class="detail-value">${esc(time || "不明")}</span></div>
               <div><span class="detail-label">種類</span><span class="${visual.kindClass}">${esc(visual.kindLabel)}</span></div>
-              
+
               <div><span class="detail-label">会計候補</span>${categoryBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">AI信頼度</span>${confidenceBadge || `<span class="detail-value">未判定</span>`}</div>
               <div><span class="detail-label">要確認理由</span><span class="detail-value">${reasonText}</span></div>
@@ -3378,9 +3388,9 @@ function setDocumentPreview(item) {
   window.applySortingAiResultToItem = function(item, data) {
     if (!item || !data) return;
 
-    item.__analysisResult = data.analysis || {};
-    item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
-    item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
+    item.__analysisResult = data.draft || {};
+    item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
+    item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
   };
@@ -3405,7 +3415,7 @@ function setDocumentPreview(item) {
     }
 
     if (!options.silent) {
-      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、カード明細の専門解析をしています。");
+      showResult("単品専門解析中: " + name + "\nOCR本文と1回目仕分け結果を元に、請求・未払系の専門解析をしています。");
     }
 
     try {
@@ -3550,9 +3560,9 @@ function setDocumentPreview(item) {
     );
   };
 /* HD_ORIGIN_PAYMENT_SORTING_LIST_FUNCTIONS_20260707_END */
-/* HD_ORIGIN_SPECIALIST_UTILITY_COMMUNICATION_FILTER_GPT2_AFTER_20260708_START */
-  window.hdOriginUtilityCommunicationSpecialistFilter = function(allItems) {
-    const expectedAnalysisSystemCode = "card_statement_analysis";
+/* HD_ORIGIN_SPECIALIST_INVOICE_PAYABLE_FILTER_GPT2_AFTER_20260708_START */
+  window.hdOriginInvoicePayableSpecialistFilter = function(allItems) {
+    const expectedAnalysisSystemCode = "invoice_payable_analysis";
 
     function textValue(value) {
       return String(value || "").trim();
@@ -3586,7 +3596,7 @@ function setDocumentPreview(item) {
       const draft = objectValue(
         source.__analysisResult ||
         source.analysisResult ||
-        source.analysis
+        source.draft
       );
 
       const sortResult = objectValue(
@@ -3655,13 +3665,13 @@ function setDocumentPreview(item) {
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
+      items = window.hdOriginInvoicePayableSpecialistFilter(allItems);
 
       summary.textContent =
-        "カード明細専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
+        "請求・未払系専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
 
       if (!items.length) {
-        list.innerHTML = '<div class="empty">カード明細の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
+        list.innerHTML = '<div class="empty">請求・未払系の対象書類がありません。仕分けページで1回目仕分けを保存してください。</div>';
         scheduleDocumentPreviewFit();
       return;
       }
@@ -5174,11 +5184,11 @@ function setDocumentPreview(item) {
     const s = textValue(label).replace(/[　\s・･／\/（）()]/g, "");
 
     const map = [
-      ["公共料金通知書", "card_statement_analysis"],
-      ["水道料金通知書", "card_statement_analysis"],
-      ["電気料金", "card_statement_analysis"],
-      ["ガス料金", "card_statement_analysis"],
-      ["通信費", "card_statement_analysis"],
+      ["公共料金通知書", "utility_notice"],
+      ["水道料金通知書", "utility_notice"],
+      ["電気料金", "utility_notice"],
+      ["ガス料金", "utility_notice"],
+      ["通信費", "utility_notice"],
 
       ["その他証憑", "other"],
       ["要確認", "needs_review"],
@@ -5790,8 +5800,8 @@ function setDocumentPreview(item) {
 
   function buildPayloadFromCachedResult(id, cached) {
     const result = cached && cached.result ? cached.result : cached;
-    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.analysis, result.analysisResult, result);
-    const draft = firstObject(result.analysis, result.analysisResult, result.sorting, result.classification, root.analysis, root.sorting, root.classification, root);
+    const root = firstObject(result.sortResult, result.sort_result, result.sorting, result.classification, result.draft, result.analysisResult, result);
+    const draft = firstObject(result.draft, result.analysisResult, result.sorting, result.classification, root.draft, root.sorting, root.classification, root);
     const aiSummary = firstObject(result.ai_summary, result.aiSummary, draft.ai_summary, draft.aiSummary, root.ai_summary, root.aiSummary);
 
     return {
@@ -6078,7 +6088,7 @@ function setDocumentPreview(item) {
       item.analysis_result ||
       item.specialistAnalysis ||
       item.specialist_analysis ||
-      item.analysis ||
+      item.draft ||
       {};
   }
 
@@ -6137,7 +6147,7 @@ function setDocumentPreview(item) {
     pushField(fields, section, "未払登録対象", "payable_target", draft.payable_target_label || summary.payable_target || "");
     pushField(fields, section, "経費登録対象", "expense_target", draft.expense_target_label || summary.expense_target || "");
     pushField(fields, section, "税金・公的支払", "tax_public", draft.tax_public_label || summary.tax_public || "");
-    pushField(fields, section, "カード明細", "public_utility", draft.public_utility_label || summary.public_utility || "");
+    pushField(fields, section, "公共料金・通信費", "public_utility", draft.public_utility_label || summary.public_utility || "");
     pushField(fields, section, "契約・保険・リース", "contract_insurance_lease", draft.contract_insurance_lease_label || summary.contract_insurance_lease || "");
     pushField(fields, section, "AI信頼度", "confidence", draft.confidence_label || draft.ai_confidence_label || draft.ai_confidence || draft.confidence || raw.confidence_label || raw.confidence || "");
     pushField(fields, section, "要確認", "needs_review", draft.needs_review === true ? "あり" : (draft.needs_review === false ? "なし" : ""));
@@ -6767,6 +6777,833 @@ function setDocumentPreview(item) {
 })();
 </script>
 <!-- HD_ORIGIN_GPT2_SPECIALIST_FULL_AUTOSAVE_20260710_END -->
+
+<!-- HD_ORIGIN_INVOICE_SPECIALIST_PAYABLE_MAPPING_20260710_START -->
+<script>
+(function () {
+  "use strict";
+
+  function elementById(id) {
+    return document.getElementById(id);
+  }
+
+  function fieldValue(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.value === null ||
+      element.value === undefined
+    ) {
+      return "";
+    }
+
+    return String(element.value).trim();
+  }
+
+  function selectedText(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.tagName === "SELECT" &&
+      element.selectedIndex >= 0 &&
+      element.options &&
+      element.options[element.selectedIndex]
+    ) {
+      var option =
+        element.options[element.selectedIndex];
+
+      var text = String(
+        option.textContent || ""
+      ).trim();
+
+      if (
+        text &&
+        text !== "マスタ読込中..." &&
+        text !== "選択"
+      ) {
+        return text;
+      }
+    }
+
+    return fieldValue(id);
+  }
+
+  function selectedCode(id) {
+    var element = elementById(id);
+
+    if (!element) {
+      return "";
+    }
+
+    if (
+      element.tagName === "SELECT" &&
+      element.selectedIndex >= 0 &&
+      element.options &&
+      element.options[element.selectedIndex]
+    ) {
+      var option =
+        element.options[element.selectedIndex];
+
+      var dataCode =
+        option.dataset.code ||
+        option.dataset.programCode ||
+        option.dataset.internalCode ||
+        option.getAttribute("data-code") ||
+        option.getAttribute("data-program-code") ||
+        option.getAttribute("data-internal-code") ||
+        "";
+
+      if (String(dataCode || "").trim()) {
+        return String(dataCode).trim();
+      }
+
+      var optionValue =
+        String(option.value || "").trim();
+
+      if (
+        optionValue &&
+        !/^[0-9]+$/.test(optionValue)
+      ) {
+        return optionValue;
+      }
+    }
+
+    return fieldValue(id);
+  }
+
+  function moneyValue(id) {
+    var raw = fieldValue(id)
+      .replace(/,/g, "")
+      .replace(/[^\d.-]/g, "");
+
+    if (!raw) {
+      return 0;
+    }
+
+    var value = Number(raw);
+
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return value;
+  }
+
+  function normalizeDateValue(value) {
+    var text = String(value || "").trim();
+
+    if (!text) {
+      return "";
+    }
+
+    var match = text.match(
+      /(\d{4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})/
+    );
+
+    if (!match) {
+      return "";
+    }
+
+    return (
+      match[1] +
+      "-" +
+      String(match[2]).padStart(2, "0") +
+      "-" +
+      String(match[3]).padStart(2, "0")
+    );
+  }
+
+  function firstDate() {
+    for (
+      var index = 0;
+      index < arguments.length;
+      index++
+    ) {
+      var value =
+        normalizeDateValue(
+          fieldValue(arguments[index])
+        );
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return "";
+  }
+
+  function currentItem() {
+    try {
+      if (
+        typeof selectedItem === "function"
+      ) {
+        var selected = selectedItem();
+
+        if (selected) {
+          return selected;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "selectedItem取得失敗:",
+        error
+      );
+    }
+
+    try {
+      if (
+        Array.isArray(items) &&
+        Number.isInteger(selectedIndex) &&
+        selectedIndex >= 0 &&
+        items[selectedIndex]
+      ) {
+        return items[selectedIndex];
+      }
+    } catch (error) {
+      console.warn(
+        "items取得失敗:",
+        error
+      );
+    }
+
+    return null;
+  }
+
+  function currentOcrImportId(item) {
+    if (!item) {
+      return "";
+    }
+
+    return String(
+      item.paymentDocumentOcrImportId ||
+      item.payment_document_ocr_import_id ||
+      item.ocrImportId ||
+      item.id ||
+      ""
+    ).trim();
+  }
+
+  function currentFileName(item) {
+    if (!item) {
+      return "";
+    }
+
+    return String(
+      item.originalFileName ||
+      item.savedFileName ||
+      item.fileName ||
+      item.saved_file_name ||
+      ""
+    ).trim();
+  }
+
+  function normalizeDocumentType() {
+    var text = [
+      selectedCode("draftAiDocumentKind"),
+      selectedText("draftAiDocumentKind"),
+      selectedCode("draftEvidenceType"),
+      selectedText("draftEvidenceType"),
+      fieldValue("draftDocumentTitle")
+    ].join(" ").toLowerCase();
+
+    if (
+      text.includes("delivery_note") ||
+      text.includes("納品書")
+    ) {
+      return "delivery_note";
+    }
+
+    if (
+      text.includes("credit_note") ||
+      text.includes("値引") ||
+      text.includes("返金")
+    ) {
+      return "credit_note";
+    }
+
+    if (
+      text.includes("statement") ||
+      text.includes("明細書")
+    ) {
+      return "statement";
+    }
+
+    if (
+      text.includes("invoice") ||
+      text.includes("請求書")
+    ) {
+      return "invoice";
+    }
+
+    return "other";
+  }
+
+  function normalizePayableKind() {
+    var text = [
+      selectedCode("draftPayableKind"),
+      selectedText("draftPayableKind"),
+      selectedCode("draftAccountingCategory"),
+      selectedText("draftAccountingCategory"),
+      fieldValue("draftAccountsPayableFlag")
+    ].join(" ").toLowerCase();
+
+    if (
+      text.includes("accounts_payable") ||
+      text.includes("買掛")
+    ) {
+      return "accounts_payable";
+    }
+
+    if (
+      text.includes("accrued_expense") ||
+      text.includes("未払費用")
+    ) {
+      return "accrued_expense";
+    }
+
+    if (
+      text.includes("card_payable") ||
+      text.includes("カード未払")
+    ) {
+      return "card_payable";
+    }
+
+    if (
+      text.includes("other") ||
+      text.includes("その他")
+    ) {
+      return "other";
+    }
+
+    return "unpaid";
+  }
+
+  function calculateAmounts() {
+    var amountExTax =
+      moneyValue("draftAmountExTax");
+
+    var taxAmount =
+      moneyValue("draftTaxAmount");
+
+    var amountInTax =
+      moneyValue("draftAmountInTax") ||
+      moneyValue("draftTotalAmount") ||
+      moneyValue("draftAmount");
+
+    if (
+      amountInTax <= 0 &&
+      (
+        amountExTax > 0 ||
+        taxAmount > 0
+      )
+    ) {
+      amountInTax =
+        amountExTax +
+        taxAmount;
+    }
+
+    if (
+      amountExTax <= 0 &&
+      amountInTax > 0
+    ) {
+      amountExTax = Math.max(
+        amountInTax - taxAmount,
+        0
+      );
+    }
+
+    if (
+      taxAmount <= 0 &&
+      amountInTax > amountExTax
+    ) {
+      taxAmount =
+        amountInTax -
+        amountExTax;
+    }
+
+    var taxRate = 0;
+
+    if (
+      amountExTax > 0 &&
+      taxAmount > 0
+    ) {
+      taxRate = Math.round(
+        (
+          taxAmount /
+          amountExTax *
+          100
+        ) *
+        100
+      ) / 100;
+    }
+
+    return {
+      amountExTax: amountExTax,
+      taxAmount: taxAmount,
+      amountInTax: amountInTax,
+      taxRate: taxRate
+    };
+  }
+
+  function buildPayload(item) {
+    var amounts =
+      calculateAmounts();
+
+    var ocrImportId =
+      currentOcrImportId(item);
+
+    var fileName =
+      currentFileName(item);
+
+    var warnings =
+      fieldValue("draftWarnings");
+
+    var aiReason =
+      fieldValue("draftAiReason");
+
+    var linesRaw =
+      fieldValue("draftLinesRaw");
+
+    var title =
+      fieldValue("draftDocumentTitle");
+
+    var summary =
+      fieldValue("draftSummary") ||
+      title ||
+      "請求・未払系専門解析から登録";
+
+    var sourceMemo = [
+      "請求・未払系専門解析から登録",
+      "payment_document_ocr_import_id=" +
+        ocrImportId,
+      "analysis_system_code=invoice_payable_analysis"
+    ];
+
+    if (aiReason) {
+      sourceMemo.push(
+        "AI判定理由: " +
+        aiReason
+      );
+    }
+
+    var documentData = {
+      document_type:
+        normalizeDocumentType(),
+
+      payable_kind:
+        normalizePayableKind(),
+
+      status: "draft",
+
+      vendor_name:
+        fieldValue("draftVendorName") ||
+        fieldValue("draftIssuer"),
+
+      invoice_number:
+        fieldValue("draftInvoiceNo"),
+
+      supplier_document_no:
+        fieldValue("draftManagementNo") ||
+        fieldValue("draftOrderNo") ||
+        fieldValue("draftTransactionNo"),
+
+      document_date:
+        firstDate(
+          "draftBillingDate",
+          "draftDocumentDate",
+          "draftIssueDate"
+        ),
+
+      posting_date:
+        firstDate(
+          "draftBillingDate",
+          "draftDocumentDate",
+          "draftIssueDate"
+        ),
+
+      due_date:
+        firstDate(
+          "draftDueDate"
+        ),
+
+      payment_plan_date:
+        firstDate(
+          "draftPaymentPlanDate",
+          "draftDueDate"
+        ),
+
+      currency_code: "JPY",
+
+      summary: summary,
+
+      memo:
+        fieldValue("draftMemo"),
+
+      internal_note:
+        linesRaw,
+
+      evidence_type:
+        selectedText(
+          "draftEvidenceType"
+        ),
+
+      evidence_file_name:
+        fileName,
+
+      source_memo:
+        sourceMemo.join("\n"),
+
+      journal_status:
+        "not_created",
+
+      created_by:
+        "payment-document-specialist-invoice-payable",
+
+      updated_by:
+        "payment-document-specialist-invoice-payable",
+
+      company_code: "",
+
+      company_name:
+        fieldValue("draftCompanyName"),
+
+      evidence_status:
+        fileName
+          ? "received"
+          : "missing",
+
+      evidence_due_date: "",
+
+      evidence_received_date:
+        fileName
+          ? new Date()
+              .toISOString()
+              .slice(0, 10)
+          : "",
+
+      review_status:
+        warnings
+          ? "needs_review"
+          : "unreviewed",
+
+      review_reason:
+        warnings,
+
+      warning_level:
+        warnings
+          ? "warning"
+          : "none",
+
+      professional_review_required:
+        false,
+
+      professional_review_status:
+        "not_required",
+
+      professional_reviewer: "",
+
+      professional_reviewed_at: null,
+
+      professional_review_result: ""
+    };
+
+    var lineDescription =
+      linesRaw ||
+      title ||
+      summary;
+
+    var lineData = {
+      account_title_id: null,
+      tax_category_id: null,
+
+      item_name:
+        fieldValue("draftSummary") ||
+        title ||
+        "専門解析明細",
+
+      description:
+        lineDescription,
+
+      quantity: 1,
+
+      unit_price:
+        amounts.amountExTax,
+
+      amount_ex_tax:
+        amounts.amountExTax,
+
+      tax_rate:
+        amounts.taxRate,
+
+      tax_amount:
+        amounts.taxAmount,
+
+      amount_in_tax:
+        amounts.amountInTax,
+
+      target_person_id: null,
+      purpose_id: null,
+      project_id: null,
+      department_id: null,
+
+      memo:
+        linesRaw
+    };
+
+    return {
+      document: documentData,
+      lines: [lineData]
+    };
+  }
+
+  async function findExisting(
+    ocrImportId
+  ) {
+    if (!ocrImportId) {
+      return null;
+    }
+
+    var response = await fetch(
+      "/api/payables",
+      {
+        cache: "no-store"
+      }
+    );
+
+    var json = await response
+      .json()
+      .catch(function () {
+        return {};
+      });
+
+    if (
+      !response.ok ||
+      !json.ok ||
+      !Array.isArray(json.items)
+    ) {
+      return null;
+    }
+
+    var marker =
+      "payment_document_ocr_import_id=" +
+      ocrImportId;
+
+    return json.items.find(
+      function (row) {
+        var sourceMemo = String(
+          row.source_memo ||
+          row.sourceMemo ||
+          ""
+        );
+
+        return sourceMemo.includes(
+          marker
+        );
+      }
+    ) || null;
+  }
+
+  window.registerSelectedSpecialistToPayables =
+    async function () {
+      var item = currentItem();
+
+      if (!item) {
+        alert(
+          "左の一覧から登録対象を選択してください。"
+        );
+        return;
+      }
+
+      var button = elementById(
+        "registerSelectedToPayablesButton"
+      );
+
+      if (
+        button &&
+        button.dataset.saving === "1"
+      ) {
+        return;
+      }
+
+      var vendorName =
+        fieldValue("draftVendorName") ||
+        fieldValue("draftIssuer");
+
+      var amounts =
+        calculateAmounts();
+
+      if (!vendorName) {
+        alert(
+          "支払先が空欄です。\n専門解析結果を確認してください。"
+        );
+        return;
+      }
+
+      if (
+        amounts.amountInTax <= 0
+      ) {
+        alert(
+          "税込合計金額が取得できません。\n金額欄を確認してください。"
+        );
+        return;
+      }
+
+      var confirmed = confirm(
+        "現在表示中の専門解析結果を未払管理へ登録します。\n\n" +
+        "支払先: " +
+        vendorName +
+        "\n税込金額: " +
+        amounts.amountInTax.toLocaleString(
+          "ja-JP"
+        ) +
+        "円\n\n" +
+        "登録状態は「下書き」です。"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      var originalText =
+        button
+          ? button.textContent
+          : "未払管理へ登録";
+
+      try {
+        if (button) {
+          button.dataset.saving = "1";
+          button.disabled = true;
+          button.textContent =
+            "登録確認中...";
+        }
+
+        var ocrImportId =
+          currentOcrImportId(item);
+
+        var existing =
+          await findExisting(
+            ocrImportId
+          );
+
+        if (existing) {
+          alert(
+            "このOCR書類は、すでに未払管理へ登録されています。\n\n" +
+            "管理番号: " +
+            (
+              existing.payable_no ||
+              existing.payableNo ||
+              ""
+            ) +
+            "\n支払先: " +
+            (
+              existing.vendor_name ||
+              existing.vendorName ||
+              ""
+            )
+          );
+
+          return;
+        }
+
+        if (button) {
+          button.textContent =
+            "未払管理へ登録中...";
+        }
+
+        var payload =
+          buildPayload(item);
+
+        var response = await fetch(
+          "/api/payables",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(
+              payload
+            )
+          }
+        );
+
+        var json = await response
+          .json()
+          .catch(function () {
+            return {};
+          });
+
+        if (
+          !response.ok ||
+          !json.ok
+        ) {
+          throw new Error(
+            json.error ||
+            json.message ||
+            (
+              "HTTP " +
+              response.status
+            )
+          );
+        }
+
+        var result =
+          json.result || {};
+
+        alert(
+          "未払管理へ登録しました。\n\n" +
+          "管理番号: " +
+          (
+            result.payable_no ||
+            result.payableNo ||
+            ""
+          ) +
+          "\n支払先: " +
+          vendorName +
+          "\n税込金額: " +
+          amounts.amountInTax.toLocaleString(
+            "ja-JP"
+          ) +
+          "円"
+        );
+
+        location.href =
+          "/payables/payable-list.html";
+      } catch (error) {
+        console.error(
+          "未払管理登録失敗:",
+          error
+        );
+
+        alert(
+          "未払管理への登録に失敗しました。\n\n" +
+          (
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+          )
+        );
+      } finally {
+        if (button) {
+          delete button.dataset.saving;
+          button.disabled = false;
+          button.textContent =
+            originalText;
+        }
+      }
+    };
+})();
+</script>
+<!-- HD_ORIGIN_INVOICE_SPECIALIST_PAYABLE_MAPPING_20260710_END -->
 <script src="./payment-document-specialist-record-navigation.js"></script>
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_START -->
 <script>
@@ -6803,7 +7640,7 @@ function setDocumentPreview(item) {
     const draft = objectValue(
       source.__analysisResult ||
       source.analysisResult ||
-      source.analysis
+      source.draft
     );
 
     const sortResult = objectValue(
@@ -7038,6 +7875,8 @@ function setDocumentPreview(item) {
 <!-- HD_ORIGIN_SPECIALIST_NAV_COUNTS_20260722_END -->
 </body>
 </html>
+
+
 
 
 

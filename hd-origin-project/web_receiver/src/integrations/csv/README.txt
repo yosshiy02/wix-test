@@ -5,7 +5,7 @@ CSV Integration Foundation
 [Purpose]
 Independent CSV import/export foundation for future integrations.
 This module is intentionally separated from:
-- Access
+- legacy
 - OCR
 - paymentDocuments existing AI
 - receipts
@@ -45,7 +45,7 @@ This scaffolding does NOT install dependencies and does NOT modify existing pack
 - existing routes
 - existing repositories
 - PostgreSQL
-- Access
+- legacy
 
 [Test]
 csv.test.js writes summary to:

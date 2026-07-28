@@ -79,7 +79,7 @@
             <div class="sorting-bulk-row" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin:0.5rem 0;">
         <button type="button" class="light" onclick="selectAllSortingItems()">全選択</button>
         <button type="button" class="light" onclick="clearSortingSelection()">全解除</button>
-        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAiDrafts()">まとめて専門解析</button>
+        <button type="button" class="action-btn action-ai sorting-bulk-analyze" onclick="runSelectedAnalyses()">まとめて専門解析</button>
 </div>
       <div id="selectedSortingSummary" class="selected-summary">選択: 0件</div>
       <div id="sortingColorLegend" class="sorting-color-legend">
@@ -1039,7 +1039,7 @@ function setDocumentPreview(item) {
     el.value = value === null || value === undefined ? "" : String(value);
   }
 
-  function applyAiDraftToForm(draft) {
+  function applyAnalysisResultToForm(draft) {
     if (!draft) {
       return;
     }
@@ -1061,7 +1061,7 @@ function setDocumentPreview(item) {
   }
 
 /* PAYMENT_DOCUMENT_AI_APPLY_BY_ID_20260707_START */
-  function aiDraftField(draft, label) {
+  function analysisResultField(draft, label) {
     if (!draft || !draft.fields || typeof draft.fields !== "object") {
       return "";
     }
@@ -1171,7 +1171,7 @@ function setDocumentPreview(item) {
     return setControlValue(control, value);
   }
 
-  function applyAiDraftToForm(draft) {
+  function applyAnalysisResultToForm(draft) {
     if (!draft) {
       return;
     }
@@ -1552,7 +1552,7 @@ function setDocumentPreview(item) {
     return setDebugControlValue(control, label, value);
   }
 
-  function applyAiDraftToForm(draft) {
+  function applyAnalysisResultToForm(draft) {
     if (!draft) {
       return 0;
     }
@@ -1725,8 +1725,8 @@ function setDocumentPreview(item) {
       console.warn("AI連動確認: 見つからない画面項目", missingControls);
     }
 
-    window.__lastAiDraftAppliedCount = appliedCount;
-    window.__lastAiDraftMissingControls = missingControls;
+    window.__lastAnalysisResultAppliedCount = appliedCount;
+    window.__lastAnalysisResultMissingControls = missingControls;
 
     return appliedCount;
   }
@@ -2249,7 +2249,7 @@ function setDocumentPreview(item) {
     return 0;
   }
 
-  function applyAiDraftToFormHardDebug(draft) {
+  function applyAnalysisResultToFormHardDebug(draft) {
     const fields = draft && draft.fields && typeof draft.fields === "object" ? draft.fields : {};
     const summary = draft && draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {};
     const missingControls = [];
@@ -2443,8 +2443,8 @@ function setDocumentPreview(item) {
 
     put("draftWarnings", "要確認メモ", warningText);
 
-    window.__lastAiDraftAppliedCount = appliedCount;
-    window.__lastAiDraftMissingControls = missingControls;
+    window.__lastAnalysisResultAppliedCount = appliedCount;
+    window.__lastAnalysisResultMissingControls = missingControls;
 
     if (missingControls.length) {
       console.warn("AI連動確認 見つからない項目", missingControls);
@@ -2554,7 +2554,7 @@ function setDocumentPreview(item) {
     });
   }
 /* PAYMENT_DOCUMENT_REVIEW_VISIBLE_FIELDS_ONLY_20260707_END */
-  async function runAiDraftFromSelectedOcr() {
+  async function runAnalysisFromSelectedOcr() {
     const id = selectedOcrImportId();
 
     if (!id) {
@@ -2578,16 +2578,16 @@ function setDocumentPreview(item) {
         showResult(data);
         return;
       }
-      const appliedCount = applyAiDraftToFormHardDebug(data.draft);
-      showVisibleFieldsOnly(data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || []);
+      const appliedCount = applyAnalysisResultToFormHardDebug(data.analysis);
+      showVisibleFieldsOnly(data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || []);
       showResult({
         ok: true,
         message: "要確認の専門解析が完了しました。画像はOpenAIへ送信していません。AIサマリー反映件数: " + appliedCount + "件",
         image_used: data.image_used,
-        document_group: data.document_group || (data.draft && data.draft.document_group) || "",
-        visible_field_labels: data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [],
+        document_group: data.document_group || (data.analysis && data.analysis.document_group) || "",
+        visible_field_labels: data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [],
         ai_steps: data.ai_steps || [],
-        draft: data.draft
+        draft: data.analysis
       });
     } catch (error) {
       showResult({
@@ -2730,7 +2730,7 @@ function setDocumentPreview(item) {
     return count;
   }
 
-  function applyAiDraftToForm(draft) {
+  function applyAnalysisResultToForm(draft) {
     if (!draft) {
       return;
     }
@@ -2825,7 +2825,7 @@ function setDocumentPreview(item) {
 
     updateSelectedSortingSummary();
   }
-  async function runAiDraftForItemIndex(index, options = {}) {
+  async function runAnalysisForItemIndex(index, options = {}) {
     if (!Array.isArray(items) || index < 0 || index >= items.length) {
       showResult("解析する書類が見つかりません。");
       return { ok: false, error: "解析する書類が見つかりません。" };
@@ -2864,14 +2864,14 @@ function setDocumentPreview(item) {
         return { ok: false, name, error };
       }
 
-      item.__aiDraft = data.draft || {};
-      item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
-      item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+      item.__analysisResult = data.analysis || {};
+      item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
+      item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
       item.__aiSteps = data.ai_steps || [];
 
-      const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft);
+      const appliedCount = applySortingOnlyDraftToForm(item.__analysisResult);
       showVisibleFieldsOnly(item.__visibleFieldLabels);
-      window.__lastAiDraftAppliedCount = appliedCount;
+      window.__lastAnalysisResultAppliedCount = appliedCount;
 
       renderSortingList();
 
@@ -2900,7 +2900,7 @@ function setDocumentPreview(item) {
     }
   }
 
-  async function runSelectedAiDrafts() {
+  async function runSelectedAnalyses() {
     const indexes = selectedSortingIndexes();
 
     if (!indexes.length) {
@@ -2919,7 +2919,7 @@ function setDocumentPreview(item) {
 
       showResult("まとめて専門解析中: " + (i + 1) + " / " + indexes.length + "\n" + name);
 
-      const result = await runAiDraftForItemIndex(index, { silent: true });
+      const result = await runAnalysisForItemIndex(index, { silent: true });
 
       results.push(result);
 
@@ -3049,7 +3049,7 @@ function setDocumentPreview(item) {
   };
 
   window.buildSortingVisual = function(item) {
-    const draft = item && item.__aiDraft ? item.__aiDraft : {};
+    const draft = item && item.__analysisResult ? item.__analysisResult : {};
     const group = window.firstText(item && item.__documentGroup, draft.document_group, draft.documentGroup);
 
     const kindRaw = window.pickDraftValue(draft, [
@@ -3126,7 +3126,7 @@ function setDocumentPreview(item) {
     }
 
     return {
-      analyzed: !!(item && item.__aiDraft),
+      analyzed: !!(item && item.__analysisResult),
       theme,
       rowClass: "visual-row-" + theme,
       kindClass: "visual-chip visual-kind visual-chip-" + window.detectSortingTheme(kindRaw || group),
@@ -3150,8 +3150,8 @@ function setDocumentPreview(item) {
     window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
     window.__expandedOcrImportIds = new Set(Array.from(window.__expandedOcrImportIds).filter(id => validIds.has(String(id))));
 
-    const analyzedCount = (items || []).filter(item => item && item.__aiDraft).length;
-    const reviewCount = (items || []).filter(item => item && item.__aiDraft && window.buildSortingVisual(item).needsReview).length;
+    const analyzedCount = (items || []).filter(item => item && item.__analysisResult).length;
+    const reviewCount = (items || []).filter(item => item && item.__analysisResult && window.buildSortingVisual(item).needsReview).length;
 
     summary.textContent =
       "選択: " + window.__checkedOcrImportIds.size + "件" +
@@ -3306,14 +3306,14 @@ function setDocumentPreview(item) {
   window.applySortingAiResultToItem = function(item, data) {
     if (!item || !data) return;
 
-    item.__aiDraft = data.draft || {};
-    item.__visibleFieldLabels = data.visible_field_labels || (data.draft && data.draft.visible_field_labels) || [];
-    item.__documentGroup = data.document_group || (data.draft && data.draft.document_group) || "";
+    item.__analysisResult = data.analysis || {};
+    item.__visibleFieldLabels = data.visible_field_labels || (data.analysis && data.analysis.visible_field_labels) || [];
+    item.__documentGroup = data.document_group || (data.analysis && data.analysis.document_group) || "";
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
   };
 
-  window.runAiDraftForItemIndex = async function(index, options = {}) {
+  window.runAnalysisForItemIndex = async function(index, options = {}) {
     if (!Array.isArray(items) || index < 0 || index >= items.length) {
       showResult("解析する書類が見つかりません。");
       return { ok: false, error: "解析する書類が見つかりません。" };
@@ -3354,7 +3354,7 @@ function setDocumentPreview(item) {
 
       window.applySortingAiResultToItem(item, data);
 
-      if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__aiDraft); window.__lastAiDraftAppliedCount = appliedCount; }
+      if (typeof applySortingOnlyDraftToForm === "function") { const appliedCount = applySortingOnlyDraftToForm(item.__analysisResult); window.__lastAnalysisResultAppliedCount = appliedCount; }
 
       if (typeof window.hdOriginSpecialistAutoSaveNow === "function") {
         try {
@@ -3418,7 +3418,7 @@ function setDocumentPreview(item) {
     }
   };
 
-  window.runSelectedAiDrafts = async function() {
+  window.runSelectedAnalyses = async function() {
     const indexes = window.selectedSortingIndexes();
 
     if (!indexes.length) {
@@ -3438,7 +3438,7 @@ function setDocumentPreview(item) {
 
       showResult("まとめて専門解析中: " + (i + 1) + " / " + indexes.length + "\n" + name);
 
-      const result = await window.runAiDraftForItemIndex(index, { silent: true });
+      const result = await window.runAnalysisForItemIndex(index, { silent: true });
 
       results.push(result);
 
@@ -3512,9 +3512,9 @@ function setDocumentPreview(item) {
       );
 
       const draft = objectValue(
-        source.__aiDraft ||
-        source.aiDraft ||
-        source.draft
+        source.__analysisResult ||
+        source.analysisResult ||
+        source.analysis
       );
 
       const sortResult = objectValue(
@@ -3721,11 +3721,11 @@ function setDocumentPreview(item) {
     setInitialAiOnlyView();
     fillDraftFromItem(item);
     // DB専用review-itemsの保存済み下書きがあれば、単品専門解析と同じ項目表示へ戻す
-    if (item && item.__aiDraft) {
+    if (item && item.__analysisResult) {
       if (typeof applySortingOnlyDraftToForm === "function") {
-        applySortingOnlyDraftToForm(item.__aiDraft);
-      } else if (typeof applyAiDraftToFormHardDebug === "function") {
-        applyAiDraftToFormHardDebug(item.__aiDraft);
+        applySortingOnlyDraftToForm(item.__analysisResult);
+      } else if (typeof applyAnalysisResultToFormHardDebug === "function") {
+        applyAnalysisResultToFormHardDebug(item.__analysisResult);
       }
 
       if (typeof showVisibleFieldsOnly === "function") {
@@ -4548,8 +4548,8 @@ function setDocumentPreview(item) {
           updatedAt: item.updatedAt || ""
         } : null,
                 ocrRawText: item ? String(item.ocrRawText || item.ocr_raw_text || item.ocrText || "") : "",
-        ocrTextLength: item ? Number(item.ocrTextLength || item.ocr_text_length || String(item.ocrRawText || item.ocr_raw_text || item.ocrText || "").length || 0) : 0,sortingAppliedCount: window.__lastAiDraftAppliedCount || 0,
-        aiMissingControls: Array.isArray(window.__lastAiDraftMissingControls) ? window.__lastAiDraftMissingControls : [],
+        ocrTextLength: item ? Number(item.ocrTextLength || item.ocr_text_length || String(item.ocrRawText || item.ocr_raw_text || item.ocrText || "").length || 0) : 0,sortingAppliedCount: window.__lastAnalysisResultAppliedCount || 0,
+        aiMissingControls: Array.isArray(window.__lastAnalysisResultMissingControls) ? window.__lastAnalysisResultMissingControls : [],
         fields: fields
       };
 
@@ -4674,9 +4674,9 @@ function setDocumentPreview(item) {
 
   function setAnalyzeButtonsDisabled(disabled) {
     const selector = [
-      'button[onclick*="runSelectedAiDrafts"]',
-      'button[onclick*="runAiDraftForItemIndex"]',
-      'button[onclick*="runAiDraftFromSelectedOcr"]',
+      'button[onclick*="runSelectedAnalyses"]',
+      'button[onclick*="runAnalysisForItemIndex"]',
+      'button[onclick*="runAnalysisFromSelectedOcr"]',
       '.sorting-bulk-analyze',
       '.sorting-single-analyze',
       '.action-ai'
@@ -4868,7 +4868,7 @@ function setDocumentPreview(item) {
     const original = fn;
 
     const wrapped = async function () {
-      const isBulk = name === "runSelectedAiDrafts";
+      const isBulk = name === "runSelectedAnalyses";
       const wasBulkRunning = window.__hdOriginPaymentBulkBusyRunning;
 
       if (isBulk) {
@@ -4916,9 +4916,9 @@ function setDocumentPreview(item) {
     ensureAnalyzeBusyPanel();
 
     wrapShowResult();
-    wrapAnalyzerFunction("runSelectedAiDrafts");
-    wrapAnalyzerFunction("runAiDraftForItemIndex");
-    wrapAnalyzerFunction("runAiDraftFromSelectedOcr");
+    wrapAnalyzerFunction("runSelectedAnalyses");
+    wrapAnalyzerFunction("runAnalysisForItemIndex");
+    wrapAnalyzerFunction("runAnalysisFromSelectedOcr");
   }
 
   if (document.readyState === "loading") {
@@ -5008,7 +5008,7 @@ function setDocumentPreview(item) {
     count += window.hdOriginSetControlValueLoose("draftAccountingCategory", d.accounting_category_code || d.accounting_category_label || d.accounting_category_name, d.accounting_category_label || d.accounting_category_name || "");
     count += window.hdOriginSetControlValueLoose("draftDestination", d.payment_destination_code || d.payment_destination_label || d.payment_destination_name, d.payment_destination_label || d.payment_destination_name || s.destination);
 
-    window.__lastAiDraftAppliedCount = count;
+    window.__lastAnalysisResultAppliedCount = count;
 
     return count;
   };
@@ -5511,8 +5511,8 @@ function setDocumentPreview(item) {
     const analysisDraft =
       analysisResult.draft && typeof analysisResult.draft === "object"
         ? analysisResult.draft
-        : context && context.item && context.item.__aiDraft
-          ? context.item.__aiDraft
+        : context && context.item && context.item.__analysisResult
+          ? context.item.__analysisResult
           : {};
 
     const analysisRoot =
@@ -5729,15 +5729,15 @@ function setDocumentPreview(item) {
     );
   }
 
-  function aiDraftOf(item) {
+  function analysisResultOf(item) {
     if (!item) return {};
 
-    return item.__aiDraft ||
-      item.aiDraft ||
-      item.ai_draft ||
+    return item.__analysisResult ||
+      item.analysisResult ||
+      item.analysis_result ||
       item.specialistAnalysis ||
       item.specialist_analysis ||
-      item.draft ||
+      item.analysis ||
       {};
   }
 
@@ -5830,7 +5830,7 @@ function setDocumentPreview(item) {
       var name = fileNameOf(item, index);
       var id = ocrIdOf(item);
       var ocr = ocrTextOf(item);
-      var draft = aiDraftOf(item);
+      var draft = analysisResultOf(item);
       var raw = aiRawOf(item);
       var steps = aiStepsOf(item);
       var labels = visibleLabelsOf(item);
@@ -6461,9 +6461,9 @@ function setDocumentPreview(item) {
     );
 
     const draft = objectValue(
-      source.__aiDraft ||
-      source.aiDraft ||
-      source.draft
+      source.__analysisResult ||
+      source.analysisResult ||
+      source.analysis
     );
 
     const sortResult = objectValue(

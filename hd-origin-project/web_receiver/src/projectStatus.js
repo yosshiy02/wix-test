@@ -390,7 +390,7 @@ function writeProjectStatus() {
     "現在の正規構成",
     [
       "- 正規システムはWebブラウザ、Node.js、PostgreSQLで構成する。",
-      "- 現在の支払書類フローではAccessを使用しない。",
+      "- 現在の支払書類フローではlegacyを使用しない。",
       "- OCR結果、AI結果、共通下書き、専門解析結果はPostgreSQLで管理する。",
       "- AIプロンプトはPostgreSQLのai_prompt_definitionsとai_prompt_compositionsを正とする。",
       "- 古い外部テキストプロンプト固定読込方式を正規方式として復活させない。",
@@ -524,7 +524,7 @@ function writeProjectStatus() {
       "- 旧『これから根本設計』という説明を復活させない。",
       "- 専門解析ボタンでStage1・Stage2を再実行しない。",
       "- 外部プロンプトファイル固定読込方式を正規入口として復活させない。",
-      "- Web支払書類フローの原因説明にAccessを持ち出さない。"
+      "- Web支払書類フローの原因説明にlegacyを持ち出さない。"
     ]
   );
 

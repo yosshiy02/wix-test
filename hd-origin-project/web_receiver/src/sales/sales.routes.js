@@ -685,30 +685,7 @@ async function handleSalesRoutes(req, res) {
     });
     return true;
   }
-
-  if (req.method === "GET" && pathname === "/api/sales/access-order-queue") {
-    const companyId = companyIdFrom(parsed);
-    sendJson(res, 200, {
-      ok: true,
-      company_id: companyId,
-      queue: await repo.listAccessOrderQueue(companyId)
-    });
-    return true;
-  }
-
-  if (req.method === "POST" && pathname === "/api/sales/access-order-queue") {
-    const body = await readJsonBody(req);
-    const companyId = companyIdFrom(parsed, body);
-    body.company_id = companyId;
-    sendJson(res, 201, {
-      ok: true,
-      company_id: companyId,
-      queue_item: await repo.addAccessOrderQueue(body)
-    });
-    return true;
-  }
-
-  return false;
+return false;
 }
 
 module.exports = {
