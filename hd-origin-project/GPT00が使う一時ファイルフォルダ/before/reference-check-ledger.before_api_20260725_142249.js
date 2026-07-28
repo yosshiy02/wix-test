@@ -1,0 +1,387 @@
+"use strict";
+
+(function () {
+  const ledgerBody = document.getElementById("ledgerBody");
+  const ledgerStatus = document.getElementById("ledgerStatus");
+  const recordCount = document.getElementById("recordCount");
+  const matchedCount = document.getElementById("matchedCount");
+  const reviewCount = document.getElementById("reviewCount");
+  const ledgerSearch = document.getElementById("ledgerSearch");
+  const reloadButton = document.getElementById("reloadButton");
+  const otherModal = document.getElementById("otherModal");
+  const otherModalBody = document.getElementById("otherModalBody");
+  const otherModalClose = document.getElementById("otherModalClose");
+
+  let rows = [];
+
+  function text(value) {
+    return value === null || value === undefined
+      ? ""
+      : String(value).trim();
+  }
+
+  function escapeHtml(value) {
+    return text(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function amount(value) {
+    const number = Number(
+      text(value).replace(/[￥¥円,\s]/g, "")
+    );
+
+    if (!Number.isFinite(number)) {
+      return "";
+    }
+
+    return number.toLocaleString("ja-JP") + "円";
+  }
+
+  function rowValue(row, names) {
+    for (const name of names) {
+      if (
+        Object.prototype.hasOwnProperty.call(row, name) &&
+        text(row[name])
+      ) {
+        return row[name];
+      }
+    }
+
+    return "";
+  }
+
+  function rowId(row, index) {
+    return text(
+      rowValue(row, [
+        "paymentDocumentOcrImportId",
+        "payment_document_ocr_import_id",
+        "ocrImportId",
+        "id"
+      ])
+    ) || String(index + 1);
+  }
+
+  function detailHtml(row) {
+    const details = [
+      ["照合元書類", rowValue(row, ["sourceDocument", "source_document", "照合元書類"])],
+      ["照合先書類", rowValue(row, ["targetDocument", "target_document", "照合先書類"])],
+      ["請求書番号", rowValue(row, ["invoiceNumber", "invoice_number", "請求書番号"])],
+      ["納品書番号", rowValue(row, ["deliveryNoteNumber", "delivery_note_number", "納品書番号"])],
+      ["取引番号", rowValue(row, ["transactionNumber", "transaction_number", "取引番号"])],
+      ["照合金額", amount(rowValue(row, ["matchedAmount", "matched_amount", "照合金額"]))],
+      ["差額", amount(rowValue(row, ["differenceAmount", "difference_amount", "差額"]))],
+      ["照合メモ", rowValue(row, ["matchingMemo", "matching_memo", "照合メモ", "humanMemo"])]
+    ];
+
+    return (
+      '<div class="detail-panel">' +
+        '<div class="detail-grid">' +
+          details.map(function (item) {
+            return (
+              '<div class="detail-item">' +
+                "<span>" + escapeHtml(item[0]) + "</span>" +
+                "<strong>" + escapeHtml(item[1] || "登録なし") + "</strong>" +
+              "</div>"
+            );
+          }).join("") +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function renderOther(row) {
+    const entries = [
+      ["OCR取込ID", rowValue(row, ["paymentDocumentOcrImportId", "payment_document_ocr_import_id"])],
+      ["専門解析ID", rowValue(row, ["specialistAnalysisId", "specialist_analysis_id"])],
+      ["元ファイル名", rowValue(row, ["originalFileName", "original_file_name"])],
+      ["AI信頼度", rowValue(row, ["aiConfidence", "ai_confidence"])],
+      ["AI判定理由", rowValue(row, ["aiReason", "ai_reason"])],
+      ["警告", rowValue(row, ["warnings", "warnings_json"])],
+      ["登録日時", rowValue(row, ["createdAt", "created_at"])],
+      ["更新日時", rowValue(row, ["updatedAt", "updated_at"])]
+    ];
+
+    otherModalBody.innerHTML =
+      '<dl class="other-list">' +
+      entries.map(function (item) {
+        let value = item[1];
+
+        if (typeof value === "object" && value !== null) {
+          try {
+            value = JSON.stringify(value, null, 2);
+          } catch (error) {
+            value = String(value);
+          }
+        }
+
+        return (
+          "<dt>" + escapeHtml(item[0]) + "</dt>" +
+          "<dd>" + escapeHtml(value || "登録なし") + "</dd>"
+        );
+      }).join("") +
+      "</dl>";
+
+    otherModal.hidden = false;
+  }
+
+  function closeOtherModal() {
+    otherModal.hidden = true;
+    otherModalBody.innerHTML = "";
+  }
+
+  function render(inputRows) {
+    rows = Array.isArray(inputRows)
+      ? inputRows.slice()
+      : [];
+
+    const query = text(ledgerSearch.value).toLowerCase();
+
+    const filteredRows = rows.filter(function (row) {
+      if (!query) {
+        return true;
+      }
+
+      return JSON.stringify(row)
+        .toLowerCase()
+        .includes(query);
+    });
+
+    const matched = rows.filter(function (row) {
+      const status = text(
+        rowValue(row, [
+          "matchingStatus",
+          "matching_status",
+          "照合状態"
+        ])
+      );
+
+      return (
+        status.includes("一致") ||
+        status.includes("照合済")
+      );
+    }).length;
+
+    const reviews = rows.filter(function (row) {
+      const status = text(
+        rowValue(row, [
+          "matchingStatus",
+          "matching_status",
+          "currentStatus",
+          "current_status",
+          "照合状態"
+        ])
+      );
+
+      return (
+        status.includes("未照合") ||
+        status.includes("要確認") ||
+        status.includes("不一致")
+      );
+    }).length;
+
+    recordCount.textContent = String(rows.length);
+    matchedCount.textContent = String(matched);
+    reviewCount.textContent = String(reviews);
+
+    if (filteredRows.length === 0) {
+      ledgerBody.innerHTML =
+        '<tr class="empty-row">' +
+          '<td colspan="11">' +
+            (
+              rows.length === 0
+                ? "登録済みデータはありません。"
+                : "検索条件に一致するデータはありません。"
+            ) +
+          "</td>" +
+        "</tr>";
+
+      ledgerStatus.textContent =
+        rows.length === 0
+          ? "照合用台帳は作成済みです。現在、登録済みデータはありません。"
+          : "検索結果は0件です。";
+
+      return;
+    }
+
+    ledgerStatus.textContent =
+      filteredRows.length + "件を表示しています。";
+
+    ledgerBody.innerHTML = filteredRows.map(function (row, index) {
+      const id = rowId(row, index);
+      const detailId = "reference-check-detail-" + id;
+
+      const managementNumber = rowValue(row, [
+        "managementNumber",
+        "management_number",
+        "管理番号"
+      ]);
+
+      const companyName = rowValue(row, [
+        "companyName",
+        "company_name",
+        "会社名",
+        "宛名"
+      ]);
+
+      const documentType = rowValue(row, [
+        "documentType",
+        "document_type",
+        "書類区分"
+      ]);
+
+      const issuer = rowValue(row, [
+        "issuer",
+        "vendorName",
+        "vendor_name",
+        "発行元",
+        "取引先"
+      ]);
+
+      const targetDate = rowValue(row, [
+        "documentDate",
+        "document_date",
+        "issueDate",
+        "issue_date",
+        "対象日"
+      ]);
+
+      const total = amount(
+        rowValue(row, [
+          "totalAmount",
+          "total_amount",
+          "amount",
+          "金額"
+        ])
+      );
+
+      const matchingStatus = rowValue(row, [
+        "matchingStatus",
+        "matching_status",
+        "照合状態"
+      ]);
+
+      const matchingTarget = rowValue(row, [
+        "matchingTarget",
+        "matching_target",
+        "照合先"
+      ]);
+
+      return (
+        "<tr>" +
+          "<td>" + escapeHtml(managementNumber || "-") + "</td>" +
+          "<td>" + escapeHtml(companyName || "-") + "</td>" +
+          "<td>" + escapeHtml(documentType || "-") + "</td>" +
+          "<td>" + escapeHtml(issuer || "-") + "</td>" +
+          "<td>" + escapeHtml(targetDate || "-") + "</td>" +
+          '<td class="amount-column">' + escapeHtml(total || "-") + "</td>" +
+          '<td><span class="status-badge">' + escapeHtml(matchingStatus || "台帳") + "</span></td>" +
+          "<td>" + escapeHtml(matchingTarget || "-") + "</td>" +
+          '<td class="action-column">' +
+            '<button type="button" class="row-button detail" ' +
+              'data-action="detail" data-detail-target="' + escapeHtml(detailId) + '">' +
+              "明細" +
+            "</button>" +
+          "</td>" +
+          '<td class="action-column">' +
+            '<button type="button" class="row-button other" ' +
+              'data-action="other" data-row-index="' + index + '">' +
+              "その他" +
+            "</button>" +
+          "</td>" +
+          '<td class="action-column">' +
+            '<button type="button" class="row-button edit" ' +
+              'data-action="edit" data-row-index="' + index + '">' +
+              "編集" +
+            "</button>" +
+          "</td>" +
+        "</tr>" +
+        '<tr id="' + escapeHtml(detailId) + '" class="detail-row" hidden>' +
+          '<td colspan="11">' + detailHtml(row) + "</td>" +
+        "</tr>"
+      );
+    }).join("");
+  }
+
+  ledgerBody.addEventListener("click", function (event) {
+    const button = event.target.closest("button[data-action]");
+
+    if (!button) {
+      return;
+    }
+
+    const action = button.dataset.action;
+
+    if (action === "detail") {
+      const detailRow = document.getElementById(
+        button.dataset.detailTarget
+      );
+
+      if (!detailRow) {
+        return;
+      }
+
+      const opening = detailRow.hidden;
+      detailRow.hidden = !opening;
+      button.textContent = opening ? "閉じる" : "明細";
+      return;
+    }
+
+    const index = Number(button.dataset.rowIndex);
+    const row = rows[index];
+
+    if (!row) {
+      return;
+    }
+
+    if (action === "other") {
+      renderOther(row);
+      return;
+    }
+
+    if (action === "edit") {
+      const ocrId = rowValue(row, [
+        "paymentDocumentOcrImportId",
+        "payment_document_ocr_import_id",
+        "ocrImportId"
+      ]);
+
+      location.href =
+        "/payables/payment-document-specialist-reference-check.html" +
+        (
+          ocrId
+            ? "?ocrImportId=" + encodeURIComponent(String(ocrId))
+            : ""
+        );
+    }
+  });
+
+  ledgerSearch.addEventListener("input", function () {
+    render(rows);
+  });
+
+  reloadButton.addEventListener("click", function () {
+    render(rows);
+  });
+
+  otherModalClose.addEventListener("click", closeOtherModal);
+
+  otherModal.addEventListener("click", function (event) {
+    if (event.target === otherModal) {
+      closeOtherModal();
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !otherModal.hidden) {
+      closeOtherModal();
+    }
+  });
+
+  window.renderReferenceCheckLedger = render;
+
+  render([]);
+})();
