@@ -8,6 +8,58 @@ const { loadPaymentDocumentPromptText, loadPaymentDocumentPromptTextFromDb, appe
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
 const AZURE_API_VERSION = "2024-11-30";
 
+/*
+ * Evidence status transitions are resolved from the active master by its
+ * formal display order.  Stage names below are internal symbols only: the
+ * value written to current_status always comes from the master query.
+ */
+const PAYMENT_DOCUMENT_STATUS_STAGE_ORDER = Object.freeze({
+  OCR_WAITING: 1,
+  OCR_PROCESSING: 2,
+  BASIC_ANALYSIS_WAITING: 3,
+  BASIC_ANALYSIS_PROCESSING: 4,
+  SPECIALIST_ANALYSIS_WAITING: 5,
+  SPECIALIST_ANALYSIS_PROCESSING: 6,
+  HUMAN_REVIEW_WAITING: 7,
+  LEDGER: 8,
+  ERROR: 9
+});
+
+async function getActivePaymentDocumentStatusFlow(client) {
+  const stageEntries = Object.entries(PAYMENT_DOCUMENT_STATUS_STAGE_ORDER);
+  const displayOrders = stageEntries.map(([, displayOrder]) => displayOrder);
+  const result = await client.query(`
+    SELECT current_status, display_order
+    FROM accounting.payment_document_current_statuses
+    WHERE is_active = TRUE
+      AND display_order = ANY($1::integer[])
+    ORDER BY display_order
+  `, [displayOrders]);
+
+  const statusByDisplayOrder = new Map(
+    result.rows.map(row => [Number(row.display_order), row.current_status])
+  );
+  const flow = {};
+
+  for (const [stageName, displayOrder] of stageEntries) {
+    const currentStatus = statusByDisplayOrder.get(displayOrder);
+
+    if (!currentStatus) {
+      throw new Error(
+        "有効な証憑ステータスマスタ工程を取得できません: " + stageName
+      );
+    }
+
+    flow[stageName] = currentStatus;
+  }
+
+  if (result.rowCount !== stageEntries.length) {
+    throw new Error("証憑ステータスマスタの有効な工程定義が一意ではありません。");
+  }
+
+  return Object.freeze(flow);
+}
+
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
@@ -1291,36 +1343,10 @@ async function saveOneInboxItem(fileName) {
       );
     }
 
-    const reviewStatusResult = await db.query(`
-      WITH ocr_phase AS (
-        SELECT MAX(display_order) AS last_ocr_order
-        FROM accounting.payment_document_current_statuses
-        WHERE is_active = TRUE
-          AND (
-            current_status LIKE 'OCR%'
-            OR COALESCE(description, '') LIKE '%OCR%'
-          )
-      )
-      SELECT current_status
-      FROM accounting.payment_document_current_statuses
-      CROSS JOIN ocr_phase
-      WHERE is_active = TRUE
-        AND is_processing = FALSE
-        AND is_terminal = FALSE
-        AND is_error = FALSE
-        AND display_order > ocr_phase.last_ocr_order
-      ORDER BY display_order
-      LIMIT 1
-    `);
-
+    const paymentDocumentStatusFlow =
+      await getActivePaymentDocumentStatusFlow(db);
     const reviewCurrentStatus =
-      reviewStatusResult.rows[0]?.current_status;
-
-    if (!reviewCurrentStatus) {
-      throw new Error(
-        "ステータスマスタからOCR後の表示先を解決できませんでした。"
-      );
-    }
+      paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
 
     const statusUpdateResult = await db.query(`
       UPDATE accounting.payment_document_ocr_imports
@@ -1781,6 +1807,11 @@ async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileN
 /* HD_ORIGIN_OCR_AUTO_DB_SAVE_MIN_V4_20260708_END */
 
 async function listPaymentDocumentOcrImportsFromDb() {
+  const paymentDocumentStatusFlow =
+    await getActivePaymentDocumentStatusFlow(db);
+  const basicAnalysisWaitingStatus =
+    paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+
   const result = await db.query(`
     SELECT
       o.payment_document_ocr_import_id,
@@ -1876,29 +1907,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
 
     WHERE o.deleted_at IS NULL
       AND COALESCE(o.ocr_raw_text, '') <> ''
-      AND (
-        o.current_status = (
-          WITH ocr_phase AS (
-            SELECT MAX(display_order) AS last_ocr_order
-            FROM accounting.payment_document_current_statuses
-            WHERE is_active = TRUE
-              AND (
-                current_status LIKE 'OCR%'
-                OR COALESCE(description, '') LIKE '%OCR%'
-              )
-          )
-          SELECT current_status
-          FROM accounting.payment_document_current_statuses
-          CROSS JOIN ocr_phase
-          WHERE is_active = TRUE
-            AND is_processing = FALSE
-            AND is_terminal = FALSE
-            AND is_error = FALSE
-            AND display_order > ocr_phase.last_ocr_order
-          ORDER BY display_order
-          LIMIT 1
-        )
-      )
+      AND o.current_status = $1
 
     ORDER BY
       o.sorted_at DESC NULLS LAST,
@@ -1907,7 +1916,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
       o.payment_document_ocr_import_id DESC
 
     LIMIT 500
-  `);
+  `, [basicAnalysisWaitingStatus]);
 
   return result.rows.map(row => {
     const latestSpecialistAnalysis = row.specialist_analysis_id
@@ -7635,6 +7644,12 @@ async function handlePaymentDocumentRoutes(req, res) {
         return true;
       }
 
+      const paymentDocumentStatusFlow =
+        await getActivePaymentDocumentStatusFlow(db);
+      const reviewScopeStatus = specialistScope
+        ? paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
+        : paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+
       const result = await db.query(`
         SELECT
           o.payment_document_ocr_import_id,
@@ -7696,36 +7711,13 @@ async function handlePaymentDocumentRoutes(req, res) {
           AND COALESCE(o.ocr_raw_text, '') <> ''
           AND (
             (
-              $1 <> ''
-              AND o.current_status = '専門解析待ち'
-              AND b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code' = $1
+              $1::boolean = TRUE
+              AND o.current_status = $2
+              AND b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code' = $3
             )
             OR (
-              $1 = ''
-              AND (
-                o.current_status = '基礎解析済み'
-                OR o.current_status = (
-                  WITH ocr_phase AS (
-                    SELECT MAX(display_order) AS last_ocr_order
-                    FROM accounting.payment_document_current_statuses
-                    WHERE is_active = TRUE
-                      AND (
-                        current_status LIKE 'OCR%'
-                        OR COALESCE(description, '') LIKE '%OCR%'
-                      )
-                  )
-                  SELECT current_status
-                  FROM accounting.payment_document_current_statuses
-                  CROSS JOIN ocr_phase
-                  WHERE is_active = TRUE
-                    AND is_processing = FALSE
-                    AND is_terminal = FALSE
-                    AND is_error = FALSE
-                    AND display_order > ocr_phase.last_ocr_order
-                  ORDER BY display_order
-                  LIMIT 1
-                )
-              )
+              $1::boolean = FALSE
+              AND o.current_status = $2
             )
           )
 
@@ -7736,7 +7728,11 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.payment_document_ocr_import_id DESC
 
         LIMIT 500
-      `, [specialistScope ? specialistAnalysisSystemCode : ""]);
+      `, [
+        specialistScope,
+        reviewScopeStatus,
+        specialistScope ? specialistAnalysisSystemCode : ""
+      ]);
 
       const objectOrEmpty = value =>
         value &&
@@ -8070,6 +8066,13 @@ async function handlePaymentDocumentRoutes(req, res) {
         throw error;
       }
 
+      const paymentDocumentStatusFlow =
+        await getActivePaymentDocumentStatusFlow(db);
+      const basicAnalysisWaitingStatus =
+        paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+      const specialistAnalysisWaitingStatus =
+        paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING;
+
       const activeSystemsResult = await db.query(`
         SELECT analysis_system_code
         FROM expenses.analysis_systems
@@ -8122,8 +8125,8 @@ async function handlePaymentDocumentRoutes(req, res) {
             throw new Error("対象会社が一致しません。");
           }
 
-          if (row.current_status !== "基礎解析済み") {
-            throw new Error("current_statusが基礎解析済みではありません。");
+          if (row.current_status !== basicAnalysisWaitingStatus) {
+            throw new Error("現在の証憑ステータスでは専門解析へ振り分けできません。");
           }
 
           if (!row.basic_analysis_id || row.analysis_completed !== true) {
@@ -8145,17 +8148,21 @@ async function handlePaymentDocumentRoutes(req, res) {
           const updatedResult = await client.query(`
             UPDATE accounting.payment_document_ocr_imports
             SET
-              current_status = '専門解析待ち',
+              current_status = $2,
               sorted_at = CURRENT_TIMESTAMP,
               updated_at = CURRENT_TIMESTAMP
             WHERE payment_document_ocr_import_id = $1
               AND deleted_at IS NULL
-              AND current_status = '基礎解析済み'
+              AND current_status = $3
             RETURNING payment_document_ocr_import_id, current_status
-          `, [ocrImportId]);
+          `, [
+            ocrImportId,
+            specialistAnalysisWaitingStatus,
+            basicAnalysisWaitingStatus
+          ]);
 
           if (updatedResult.rowCount !== 1) {
-            throw new Error("専門解析待ちへの振り分け更新に失敗しました。");
+            throw new Error("専門解析工程への振り分け更新に失敗しました。");
           }
 
           await client.query("COMMIT");
@@ -8263,6 +8270,15 @@ async function handlePaymentDocumentRoutes(req, res) {
     try {
       await client.query("BEGIN");
 
+      const paymentDocumentStatusFlow =
+        await getActivePaymentDocumentStatusFlow(client);
+      const specialistAnalysisWaitingStatus =
+        paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING;
+      const specialistAnalysisProcessingStatus =
+        paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_PROCESSING;
+      const humanReviewWaitingStatus =
+        paymentDocumentStatusFlow.HUMAN_REVIEW_WAITING;
+
       let ocrImportRow = null;
 
       const fallbackAnalysisSystemCode = hdOriginSpecialistFirstText(
@@ -8312,6 +8328,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           payment_document_ocr_import_id,
           latest_basic_analysis_id,
           latest_specialist_analysis_id,
+          current_status,
           original_file_name,
           saved_file_name,
           saved_relative_path,
@@ -8336,6 +8353,29 @@ async function handlePaymentDocumentRoutes(req, res) {
       ocrImportId = Number(
         ocrImportRow.payment_document_ocr_import_id
       );
+
+      if (ocrImportRow.current_status === specialistAnalysisWaitingStatus) {
+        const statusStarted = await client.query(`
+          UPDATE accounting.payment_document_ocr_imports
+          SET current_status = $2,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE payment_document_ocr_import_id = $1
+            AND current_status = $3
+            AND deleted_at IS NULL
+        `, [
+          ocrImportId,
+          specialistAnalysisProcessingStatus,
+          specialistAnalysisWaitingStatus
+        ]);
+
+        if (statusStarted.rowCount !== 1) {
+          throw new Error("専門解析の開始状態を更新できませんでした。");
+        }
+      } else if (ocrImportRow.current_status !== specialistAnalysisProcessingStatus) {
+        const err = new Error("現在の証憑ステータスでは専門解析結果を保存できません。");
+        err.statusCode = 409;
+        throw err;
+      }
 
       /* HD_ORIGIN_SPECIALIST_BASIC_LINK_20260726 */
       const requestedBasicAnalysisId =
@@ -8563,13 +8603,14 @@ analysis_system_code,
         SET
           latest_basic_analysis_id = $1,
           latest_specialist_analysis_id = $2,
-          current_status = '専門解析',
+          current_status = $3,
           updated_at = now()
-        WHERE payment_document_ocr_import_id = $3
+        WHERE payment_document_ocr_import_id = $4
           AND deleted_at IS NULL
       `, [
         basicAnalysisId,
         saved.specialist_analysis_id,
+        humanReviewWaitingStatus,
         ocrImportId
       ]);
 
@@ -8651,6 +8692,9 @@ await client.query("COMMIT");
 
     if (basicAnalysisUrlPath.startsWith("/api/payment-documents/ai-basic-analysis/")) {
       let client;
+      let basicAnalysisOcrImportId = null;
+      let basicAnalysisProcessingStatus = null;
+      let basicAnalysisErrorStatus = null;
 
       try {
         const idText = decodeURIComponent(
@@ -8673,12 +8717,21 @@ await client.query("COMMIT");
           throw error;
         }
 
+        const paymentDocumentStatusFlow =
+          await getActivePaymentDocumentStatusFlow(db);
+        const basicAnalysisWaitingStatus =
+          paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+        basicAnalysisProcessingStatus =
+          paymentDocumentStatusFlow.BASIC_ANALYSIS_PROCESSING;
+        basicAnalysisErrorStatus = paymentDocumentStatusFlow.ERROR;
+
         const ocrResult = await db.query(`
           SELECT
             payment_document_ocr_import_id,
             ocr_raw_text,
             source_type,
-            mime_type
+            mime_type,
+            current_status
           FROM accounting.payment_document_ocr_imports
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
@@ -8700,6 +8753,34 @@ await client.query("COMMIT");
           error.statusCode = 400;
           throw error;
         }
+
+        if (ocrRow.current_status !== basicAnalysisWaitingStatus) {
+          const error = new Error("現在の証憑ステータスでは基礎解析を開始できません。");
+          error.statusCode = 409;
+          throw error;
+        }
+
+        const statusStarted = await db.query(`
+          UPDATE accounting.payment_document_ocr_imports
+          SET current_status = $2,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE payment_document_ocr_import_id = $1
+            AND deleted_at IS NULL
+            AND current_status = $3
+          RETURNING payment_document_ocr_import_id
+        `, [
+          ocrImportId,
+          basicAnalysisProcessingStatus,
+          basicAnalysisWaitingStatus
+        ]);
+
+        if (statusStarted.rowCount !== 1) {
+          const error = new Error("基礎解析の開始状態を更新できませんでした。");
+          error.statusCode = 409;
+          throw error;
+        }
+
+        basicAnalysisOcrImportId = ocrImportId;
 
         const aiResult = await createTwoStepBasicAnalysisFromOcrText(ocrText, {
           company_id: companyId,
@@ -8820,8 +8901,14 @@ await client.query("COMMIT");
               updated_at = CURRENT_TIMESTAMP
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
+            AND current_status = $4
           RETURNING payment_document_ocr_import_id, current_status, sorted_at
-        `, [ocrImportId, saved.basic_analysis_id, "基礎解析済み"]);
+        `, [
+          ocrImportId,
+          saved.basic_analysis_id,
+          basicAnalysisWaitingStatus,
+          basicAnalysisProcessingStatus
+        ]);
 
         if (statusUpdated.rowCount !== 1) {
           throw new Error("OCR取込状態を更新できませんでした。");
@@ -8853,6 +8940,27 @@ await client.query("COMMIT");
         if (client) {
           try {
             await client.query("ROLLBACK");
+          } catch {}
+        }
+
+        if (
+          basicAnalysisOcrImportId !== null &&
+          basicAnalysisProcessingStatus &&
+          basicAnalysisErrorStatus
+        ) {
+          try {
+            await db.query(`
+              UPDATE accounting.payment_document_ocr_imports
+              SET current_status = $2,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE payment_document_ocr_import_id = $1
+                AND deleted_at IS NULL
+                AND current_status = $3
+            `, [
+              basicAnalysisOcrImportId,
+              basicAnalysisErrorStatus,
+              basicAnalysisProcessingStatus
+            ]);
           } catch {}
         }
 
@@ -9714,6 +9822,10 @@ await client.query("COMMIT");
   }
   /* GPT3_UTILITY_SAVED_RELOAD_API_END */
   if (req.method === "POST" && urlPath.startsWith("/api/payment-documents/ai-specialist/")) {
+    let specialistAnalysisOcrImportId = null;
+    let specialistAnalysisProcessingStatus = null;
+    let specialistAnalysisErrorStatus = null;
+
     try {
       const idText = decodeURIComponent(urlPath.replace("/api/payment-documents/ai-specialist/", ""));
       const id = Number(idText);
@@ -9795,6 +9907,36 @@ await client.query("COMMIT");
         return true;
       }
 
+      const paymentDocumentStatusFlow =
+        await getActivePaymentDocumentStatusFlow(db);
+      specialistAnalysisProcessingStatus =
+        paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_PROCESSING;
+      specialistAnalysisErrorStatus = paymentDocumentStatusFlow.ERROR;
+
+      const statusStarted = await db.query(`
+        UPDATE accounting.payment_document_ocr_imports
+        SET current_status = $2,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE payment_document_ocr_import_id = $1
+          AND deleted_at IS NULL
+          AND current_status = $3
+        RETURNING payment_document_ocr_import_id
+      `, [
+        id,
+        specialistAnalysisProcessingStatus,
+        paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
+      ]);
+
+      if (statusStarted.rowCount !== 1) {
+        const statusError = new Error(
+          "現在の証憑ステータスでは専門解析を開始できません。"
+        );
+        statusError.statusCode = 409;
+        throw statusError;
+      }
+
+      specialistAnalysisOcrImportId = id;
+
       const aiResult =
         await createPaymentDocumentSpecialistAnalysisFromOcrText(
           ocrText,
@@ -9858,6 +10000,27 @@ await client.query("COMMIT");
         specialist_analysis_id: specialistSaved.specialistAnalysisId
       });
     } catch (err) {
+      if (
+        specialistAnalysisOcrImportId !== null &&
+        specialistAnalysisProcessingStatus &&
+        specialistAnalysisErrorStatus
+      ) {
+        try {
+          await db.query(`
+            UPDATE accounting.payment_document_ocr_imports
+            SET current_status = $2,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE payment_document_ocr_import_id = $1
+              AND deleted_at IS NULL
+              AND current_status = $3
+          `, [
+            specialistAnalysisOcrImportId,
+            specialistAnalysisErrorStatus,
+            specialistAnalysisProcessingStatus
+          ]);
+        } catch {}
+      }
+
       sendJson(res, err.statusCode || 500, {
         ok: false,
         source: "openai_ocr_text_only",

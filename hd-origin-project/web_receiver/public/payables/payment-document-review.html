@@ -3979,17 +3979,8 @@ async function runSelectedAnalyses() {
           ""
         )
       ).trim();
-      const currentStatus = String(
-        item.currentStatus || item.current_status || ""
-      ).trim();
-
       if (!id) {
         excluded.push("OCR取込IDを取得できない書類");
-        return null;
-      }
-
-      if (currentStatus !== "基礎解析済み") {
-        excluded.push("OCR取込ID " + id + ": current_statusが基礎解析済みではありません。");
         return null;
       }
 
@@ -4011,7 +4002,7 @@ async function runSelectedAnalyses() {
 
     if (!routeable.length) {
       showResult(
-        "振り分け対象の基礎解析済み書類がありません。\n" +
+        "振り分け対象の正式基礎解析完了書類がありません。\n" +
         (excluded.length ? excluded.join("\n") : "")
       );
       return;
@@ -4029,7 +4020,7 @@ async function runSelectedAnalyses() {
       }
 
       showResult(
-        "選択した基礎解析済み書類を専門解析待ちへ振り分けます。\n" +
+        "選択した正式基礎解析完了書類を専門解析工程へ振り分けます。\n" +
         "専門解析そのものはまだ実行しません。\n" +
         "対象: " + routeable.length + "件"
       );
@@ -4086,7 +4077,7 @@ async function runSelectedAnalyses() {
         "成功: " + Number(data.success || 0) + "件\n" +
         "失敗: " + Number(data.failed || 0) + "件\n" +
         "除外: " + excluded.length + "件\n" +
-        "成功した書類は専門解析待ちへ移動しました。\n" +
+        "成功した書類は専門解析工程へ移動しました。\n" +
         "専門解析そのものはまだ実行していません。" +
         (
           excluded.length

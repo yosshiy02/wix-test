@@ -113,12 +113,17 @@
   }
 
   function ocrLabel(item) {
+    const currentStatus = String(
+      item.currentStatus || item.current_status || ""
+    ).trim();
+
+    if (currentStatus) return currentStatus;
     if (String(item.processStatus || item.saveStatus || item.savedStatus || "").toLowerCase() === "saved") return "保存済";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "OCR済";
     if (item.ocrStatus === "ocr_error") return "OCR失敗";
     if (item.ocrStatus === "ocr_skipped") return "対象外";
     if (item.ocrStatus === "ocr_empty") return "空";
-    return "OCR待ち";
+    return "状態未判定";
   }
 
   function ocrClass(item) {
