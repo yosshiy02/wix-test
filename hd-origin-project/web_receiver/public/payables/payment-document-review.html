@@ -3313,17 +3313,7 @@ async function runSelectedAnalyses() {
       item &&
       (item.latestBasicAnalysis || item.latest_basic_analysis);
 
-    if (
-      !basic ||
-      !(
-        basic.basicAnalysisId ||
-        basic.basic_analysis_id
-      ) ||
-      !(
-        basic.analysisCompleted === true ||
-        basic.analysis_completed === true
-      )
-    ) {
+    if (!basic) {
       return null;
     }
 
@@ -3970,34 +3960,21 @@ async function runSelectedAnalyses() {
     const routeable = indexes.map(index => {
       const item = items[index] || {};
       const id = Number(window.ocrImportIdOf(item) || 0);
-      const result = getSavedBasicAnalysisResult(item);
-      const analysisSystemCode = String(
-        result && (
-          result.analysis_system_code ||
-          (result.detail && result.detail.analysis_system_code) ||
-          (result.classification && result.classification.analysis_system_code) ||
-          ""
-        )
-      ).trim();
+
       if (!id) {
         excluded.push("OCR取込IDを取得できない書類");
         return null;
       }
 
-      if (!result) {
-        excluded.push("OCR取込ID " + id + ": 正式基礎解析結果が未完了です。");
+      if (item.canRouteToSpecialist !== true) {
+        excluded.push(
+          "OCR取込ID " + id +
+          ": current_statusが専門解析への振り分け可能状態ではありません。"
+        );
         return null;
       }
 
-      if (!analysisSystemCode) {
-        excluded.push("OCR取込ID " + id + ": analysis_system_codeがありません。");
-        return null;
-      }
-
-      return {
-        id,
-        analysisSystemCode
-      };
+      return { id };
     }).filter(Boolean);
 
     if (!routeable.length) {

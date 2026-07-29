@@ -8,59 +8,48 @@ const { loadPaymentDocumentPromptText, loadPaymentDocumentPromptTextFromDb, appe
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
 const AZURE_API_VERSION = "2024-11-30";
 
-/*
- * Evidence status transitions are resolved from the active master by its
- * formal display order.  Stage names below are internal symbols only: the
- * value written to current_status always comes from the master query.
- */
-const PAYMENT_DOCUMENT_STATUS_STAGE_KEYS = Object.freeze([
-  "OCR_WAITING",
-  "OCR_PROCESSING",
-  "BASIC_ANALYSIS_WAITING",
-  "BASIC_ANALYSIS_PROCESSING",
-  "SPECIALIST_ANALYSIS_WAITING",
-  "SPECIALIST_ANALYSIS_PROCESSING",
-  "HUMAN_REVIEW_WAITING",
-  "LEDGER",
-  "ERROR"
-]);
+const PAYMENT_DOCUMENT_STATUS_NAMES = Object.freeze({
+  OCR_WAITING: "OCR待ち",
+  OCR_PROCESSING: "OCR処理中",
+  BASIC_ANALYSIS_WAITING: "基礎解析待ち",
+  BASIC_ANALYSIS_PROCESSING: "基礎解析中",
+  BASIC_ANALYSIS_COMPLETED: "基礎解析済み",
+  SPECIALIST_ANALYSIS_WAITING: "専門解析待ち",
+  SPECIALIST_ANALYSIS_PROCESSING: "専門解析中",
+  HUMAN_REVIEW_WAITING: "人間確認待ち",
+  LEDGER: "台帳",
+  ERROR: "エラー"
+});
 
-async function getActivePaymentDocumentStatusFlow(client) {
+async function getActivePaymentDocumentStatus(client, statusName) {
   const result = await client.query(`
-    SELECT
-      current_status,
-      display_order
+    SELECT current_status
     FROM accounting.payment_document_current_statuses
-    WHERE is_active = TRUE
-    ORDER BY display_order
-  `);
+    WHERE current_status = $1
+      AND is_active = TRUE
+    LIMIT 2
+  `, [statusName]);
 
-  if (result.rowCount !== PAYMENT_DOCUMENT_STATUS_STAGE_KEYS.length) {
+  if (result.rowCount !== 1) {
     throw new Error(
-      "証憑ステータスマスタの有効工程数が想定と一致しません。"
+      "有効な証憑ステータスマスタ値ではありません: " + statusName
     );
   }
 
+  return String(result.rows[0].current_status).trim();
+}
+
+async function getActivePaymentDocumentStatusFlow(client) {
   const flow = {};
 
-  PAYMENT_DOCUMENT_STATUS_STAGE_KEYS.forEach(
-    (stageKey, index) => {
-      const row = result.rows[index];
-
-      if (
-        !row ||
-        !String(row.current_status || "").trim()
-      ) {
-        throw new Error(
-          "証憑ステータスマスタの工程値を取得できません: " +
-          stageKey
-        );
-      }
-
-      flow[stageKey] =
-        String(row.current_status).trim();
-    }
-  );
+  for (const [stageKey, statusName] of Object.entries(
+    PAYMENT_DOCUMENT_STATUS_NAMES
+  )) {
+    flow[stageKey] = await getActivePaymentDocumentStatus(
+      client,
+      statusName
+    );
+  }
 
   return Object.freeze(flow);
 }
@@ -7658,7 +7647,9 @@ async function handlePaymentDocumentRoutes(req, res) {
         : [
             paymentDocumentStatusFlow.OCR_WAITING,
             paymentDocumentStatusFlow.OCR_PROCESSING,
-            paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING,
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_PROCESSING,
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED
           ];
 
       const result = await db.query(`
@@ -7849,10 +7840,10 @@ async function handlePaymentDocumentRoutes(req, res) {
                   aiSummary,
 
                 analysisCompleted:
-                  row.basic_analysis_completed === true,
+                  row.basic_analysis_completed,
 
                 analysis_completed:
-                  row.basic_analysis_completed === true,
+                  row.basic_analysis_completed,
 
                 completedAt:
                   row.basic_completed_at,
@@ -7996,6 +7987,14 @@ async function handlePaymentDocumentRoutes(req, res) {
           resultStatus:
             row.current_status,
 
+          canRouteToSpecialist:
+            row.current_status ===
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED,
+
+          can_route_to_specialist:
+            row.current_status ===
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED,
+
           sortedAt:
             row.sorted_at,
 
@@ -8079,8 +8078,8 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const paymentDocumentStatusFlow =
         await getActivePaymentDocumentStatusFlow(db);
-      const basicAnalysisWaitingStatus =
-        paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+      const basicAnalysisCompletedStatus =
+        paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED;
       const specialistAnalysisWaitingStatus =
         paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING;
 
@@ -8109,7 +8108,6 @@ async function handlePaymentDocumentRoutes(req, res) {
               b.basic_analysis_id,
               b.company_id,
               c.company_code,
-              b.analysis_completed,
               b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code'
                 AS analysis_system_code
             FROM accounting.payment_document_ocr_imports o
@@ -8136,12 +8134,8 @@ async function handlePaymentDocumentRoutes(req, res) {
             throw new Error("対象会社が一致しません。");
           }
 
-          if (row.current_status !== basicAnalysisWaitingStatus) {
+          if (row.current_status !== basicAnalysisCompletedStatus) {
             throw new Error("現在の証憑ステータスでは専門解析へ振り分けできません。");
-          }
-
-          if (!row.basic_analysis_id || row.analysis_completed !== true) {
-            throw new Error("最新の正式基礎解析結果が未完了です。");
           }
 
           const analysisSystemCode = String(
@@ -8169,7 +8163,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           `, [
             ocrImportId,
             specialistAnalysisWaitingStatus,
-            basicAnalysisWaitingStatus
+            basicAnalysisCompletedStatus
           ]);
 
           if (updatedResult.rowCount !== 1) {
@@ -8732,6 +8726,8 @@ await client.query("COMMIT");
           await getActivePaymentDocumentStatusFlow(db);
         const basicAnalysisWaitingStatus =
           paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+        const basicAnalysisCompletedStatus =
+          paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED;
         basicAnalysisProcessingStatus =
           paymentDocumentStatusFlow.BASIC_ANALYSIS_PROCESSING;
         basicAnalysisErrorStatus = paymentDocumentStatusFlow.ERROR;
@@ -8917,7 +8913,7 @@ await client.query("COMMIT");
         `, [
           ocrImportId,
           saved.basic_analysis_id,
-          basicAnalysisWaitingStatus,
+          basicAnalysisCompletedStatus,
           basicAnalysisProcessingStatus
         ]);
 
