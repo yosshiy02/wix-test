@@ -13,49 +13,54 @@ const AZURE_API_VERSION = "2024-11-30";
  * formal display order.  Stage names below are internal symbols only: the
  * value written to current_status always comes from the master query.
  */
-const PAYMENT_DOCUMENT_STATUS_STAGE_ORDER = Object.freeze({
-  OCR_WAITING: 1,
-  OCR_PROCESSING: 2,
-  BASIC_ANALYSIS_WAITING: 3,
-  BASIC_ANALYSIS_PROCESSING: 4,
-  SPECIALIST_ANALYSIS_WAITING: 5,
-  SPECIALIST_ANALYSIS_PROCESSING: 6,
-  HUMAN_REVIEW_WAITING: 7,
-  LEDGER: 8,
-  ERROR: 9
-});
+const PAYMENT_DOCUMENT_STATUS_STAGE_KEYS = Object.freeze([
+  "OCR_WAITING",
+  "OCR_PROCESSING",
+  "BASIC_ANALYSIS_WAITING",
+  "BASIC_ANALYSIS_PROCESSING",
+  "SPECIALIST_ANALYSIS_WAITING",
+  "SPECIALIST_ANALYSIS_PROCESSING",
+  "HUMAN_REVIEW_WAITING",
+  "LEDGER",
+  "ERROR"
+]);
 
 async function getActivePaymentDocumentStatusFlow(client) {
-  const stageEntries = Object.entries(PAYMENT_DOCUMENT_STATUS_STAGE_ORDER);
-  const displayOrders = stageEntries.map(([, displayOrder]) => displayOrder);
   const result = await client.query(`
-    SELECT current_status, display_order
+    SELECT
+      current_status,
+      display_order
     FROM accounting.payment_document_current_statuses
     WHERE is_active = TRUE
-      AND display_order = ANY($1::integer[])
     ORDER BY display_order
-  `, [displayOrders]);
+  `);
 
-  const statusByDisplayOrder = new Map(
-    result.rows.map(row => [Number(row.display_order), row.current_status])
-  );
+  if (result.rowCount !== PAYMENT_DOCUMENT_STATUS_STAGE_KEYS.length) {
+    throw new Error(
+      "証憑ステータスマスタの有効工程数が想定と一致しません。"
+    );
+  }
+
   const flow = {};
 
-  for (const [stageName, displayOrder] of stageEntries) {
-    const currentStatus = statusByDisplayOrder.get(displayOrder);
+  PAYMENT_DOCUMENT_STATUS_STAGE_KEYS.forEach(
+    (stageKey, index) => {
+      const row = result.rows[index];
 
-    if (!currentStatus) {
-      throw new Error(
-        "有効な証憑ステータスマスタ工程を取得できません: " + stageName
-      );
+      if (
+        !row ||
+        !String(row.current_status || "").trim()
+      ) {
+        throw new Error(
+          "証憑ステータスマスタの工程値を取得できません: " +
+          stageKey
+        );
+      }
+
+      flow[stageKey] =
+        String(row.current_status).trim();
     }
-
-    flow[stageName] = currentStatus;
-  }
-
-  if (result.rowCount !== stageEntries.length) {
-    throw new Error("証憑ステータスマスタの有効な工程定義が一意ではありません。");
-  }
+  );
 
   return Object.freeze(flow);
 }
@@ -7646,9 +7651,15 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const paymentDocumentStatusFlow =
         await getActivePaymentDocumentStatusFlow(db);
-      const reviewScopeStatus = specialistScope
-        ? paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
-        : paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
+      const reviewScopeStatuses = specialistScope
+        ? [
+            paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
+          ]
+        : [
+            paymentDocumentStatusFlow.OCR_WAITING,
+            paymentDocumentStatusFlow.OCR_PROCESSING,
+            paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING
+          ];
 
       const result = await db.query(`
         SELECT
@@ -7712,12 +7723,12 @@ async function handlePaymentDocumentRoutes(req, res) {
           AND (
             (
               $1::boolean = TRUE
-              AND o.current_status = $2
+              AND o.current_status = ANY($2::text[])
               AND b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code' = $3
             )
             OR (
               $1::boolean = FALSE
-              AND o.current_status = $2
+              AND o.current_status = ANY($2::text[])
             )
           )
 
@@ -7730,7 +7741,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         LIMIT 500
       `, [
         specialistScope,
-        reviewScopeStatus,
+        reviewScopeStatuses,
         specialistScope ? specialistAnalysisSystemCode : ""
       ]);
 
