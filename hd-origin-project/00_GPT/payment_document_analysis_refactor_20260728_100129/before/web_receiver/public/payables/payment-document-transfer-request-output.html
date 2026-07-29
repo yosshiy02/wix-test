@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>振込依頼書 | HD Origin</title>
+<style>
+:root{
+  --ink:#111827;
+  --muted:#667085;
+  --line:#d0d5dd;
+  --soft:#f2f4f7;
+  --paper:#fff;
+  --blue:#2348c7;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:#eef2f7;
+  color:var(--ink);
+  font-family:"Yu Gothic","YuGothic","Meiryo",system-ui,sans-serif;
+}
+.toolbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:16px 24px;
+  background:rgba(255,255,255,.95);
+  border-bottom:1px solid rgba(35,48,76,.12);
+  box-shadow:0 8px 24px rgba(32,44,72,.08);
+}
+.toolbar-title{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.toolbar-title strong{font-size:18px}
+.toolbar-title span{font-size:13px;color:var(--muted)}
+.toolbar-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.btn{
+  min-height:44px;
+  padding:10px 17px;
+  border:0;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:900;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.btn.primary{background:#172033;color:#fff}
+.btn.secondary{background:#eef3ff;color:#2348c7}
+.btn.ghost{background:#f2f4f7;color:#344054}
+.page{
+  width:min(1180px, calc(100% - 24px));
+  margin:24px auto 48px;
+}
+.paper{
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 16px 44px rgba(32,44,72,.12);
+  padding:34px;
+}
+.report-header{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:26px;
+  align-items:start;
+  border-bottom:3px solid #111827;
+  padding-bottom:20px;
+}
+.report-title h1{
+  margin:0;
+  font-size:34px;
+  line-height:1.18;
+  letter-spacing:.02em;
+}
+.report-title p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.85;
+}
+.meta{
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  font-size:13px;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:110px 1fr;
+  border-bottom:1px solid var(--line);
+}
+.meta-row:last-child{border-bottom:0}
+.meta-label{
+  background:var(--soft);
+  font-weight:900;
+  padding:9px 10px;
+}
+.meta-value{
+  padding:9px 10px;
+}
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:18px;
+}
+.summary-card{
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px;
+  background:#fcfcfd;
+}
+.summary-card .label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.summary-card .value{
+  margin-top:5px;
+  font-size:20px;
+  font-weight:900;
+  text-align:right;
+}
+.filter-box{
+  margin-top:18px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px 14px;
+  background:#fcfcfd;
+  font-size:13px;
+  color:#344054;
+  line-height:1.7;
+}
+.section-title{
+  margin:26px 0 10px;
+  font-size:20px;
+  font-weight:900;
+  border-left:7px solid var(--blue);
+  padding-left:12px;
+}
+.table-wrap{
+  border:1px solid var(--line);
+  overflow:visible;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:12.5px;
+  background:#fff;
+}
+th,td{
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:8px 8px;
+  vertical-align:top;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  line-height:1.5;
+}
+th:last-child,td:last-child{border-right:0}
+th{
+  background:#f2f4f7;
+  font-weight:900;
+  text-align:center;
+}
+td.num{text-align:right}
+td.center{text-align:center}
+.error,.empty{
+  margin-top:16px;
+  padding:18px;
+  border-radius:10px;
+  line-height:1.8;
+  font-size:14px;
+}
+.empty{background:#fff7e6;color:#8a5200;border:1px solid #fedf89}
+.error{background:#fff0ed;color:#b42318;border:1px solid #fecdca}
+.footer{
+  display:grid;
+  grid-template-columns:1fr 180px 180px;
+  gap:12px;
+  margin-top:24px;
+  align-items:end;
+}
+.note{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.7;
+}
+.stamp{
+  border:1px solid var(--line);
+  height:70px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:7px;
+  font-size:13px;
+  color:#344054;
+}
+@media(max-width:900px){
+  .report-header{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .footer{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  html,body{background:#fff}
+  .toolbar{display:none!important}
+  .page{width:100%;margin:0}
+  .paper{border:0;box-shadow:none;padding:0}
+  .report-title h1{font-size:24px}
+  .report-title p,.filter-box,.meta,.summary-card .label{font-size:10.5px}
+  .summary-card .value{font-size:15px}
+  .section-title{font-size:13px;margin:14px 0 6px}
+  table{font-size:9.4px}
+  th,td{padding:4px 4.5px}
+  .stamp{height:48px;font-size:10px}
+}
+</style>
+<style>
+.request-box{
+  margin-top:18px;
+  border:2px solid #111827;
+  padding:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  font-size:13px;
+}
+.request-box div{
+  border-bottom:1px solid #d0d5dd;
+  padding:6px 0;
+}
+@media print{
+  .request-box{font-size:10px;padding:8px}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div class="toolbar-title">
+    <strong>振込依頼書</strong>
+    <span>請求書・未払データから支払実行用の振込依頼書を出力します。</span>
+  </div>
+  <div class="toolbar-actions">
+    <a class="btn secondary" href="/payables/payment-document-payables-report.html">請求書・未払帳面へ戻る</a>
+    <a class="btn ghost" href="/payables/payment-document-journal-voucher-output.html">振替伝票へ</a>
+    <button type="button" class="btn ghost" id="reloadBtn">再読込</button>
+    <button type="button" class="btn primary" id="printBtn">印刷</button>
+  </div>
+</div>
+
+<main class="page">
+  <section class="paper">
+    <header class="report-header">
+      <div class="report-title">
+        <h1>振込依頼書</h1>
+        <p>請求書・未払を支払実行へ回すためのサブ出力です。支払先・振込先・金額・支払予定日を一覧で確認します。</p>
+      </div>
+      <div class="meta">
+        <div class="meta-row"><div class="meta-label">会社</div><div class="meta-value" id="metaCompany">-</div></div>
+        <div class="meta-row"><div class="meta-label">出力日時</div><div class="meta-value" id="metaPrintedAt">-</div></div>
+        <div class="meta-row"><div class="meta-label">対象件数</div><div class="meta-value" id="metaCount">-</div></div>
+        <div class="meta-row"><div class="meta-label">出力区分</div><div class="meta-value">振込依頼書</div></div>
+      </div>
+    </header>
+
+    <div class="request-box">
+      <div>依頼日:　　　　　　年　　　月　　　日</div>
+      <div>依頼部署:　　　　　　　　　　　　　</div>
+      <div>確認者:　　　　　　　　　　　　　　</div>
+      <div>承認者:　　　　　　　　　　　　　　</div>
+    </div>
+
+    <div class="filter-box" id="filterBox">検索条件: 読込中</div>
+
+    <section class="summary-grid">
+      <div class="summary-card"><div class="label">振込件数</div><div class="value" id="sumCount">0</div></div>
+      <div class="summary-card"><div class="label">振込依頼額</div><div class="value" id="sumAmount">0</div></div>
+      <div class="summary-card"><div class="label">支払済額</div><div class="value" id="sumPaid">0</div></div>
+      <div class="summary-card"><div class="label">未払残高</div><div class="value" id="sumBalance">0</div></div>
+    </section>
+
+    <h2 class="section-title">振込明細</h2>
+    <div id="message"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:42px">No.</th>
+            <th>支払予定日</th>
+            <th>支払先</th>
+            <th>銀行</th>
+            <th>支店</th>
+            <th>種別</th>
+            <th>口座番号</th>
+            <th>口座名義</th>
+            <th>振込金額</th>
+            <th>請求書番号</th>
+            <th>管理番号</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      <div class="note">
+        ※銀行・支店・口座番号・口座名義が未取得の場合は空欄で出力します。<br>
+        ※正式な振込データ作成は、次工程で支払先マスタ・銀行口座マスタと接続します。
+      </div>
+      <div class="stamp">確認</div>
+      <div class="stamp">承認</div>
+    </footer>
+  </section>
+</main>
+
+<script>
+const ENDPOINT_CANDIDATES = ["/api/payment-documents/payables","/api/payment-documents/payables/list","/api/payment-documents/unpaid","/api/payment-documents/unpaid/list","/api/payables","/api/payables/list","/api/invoices/payables","/api/invoices/unpaid"];
+
+function yen(value){
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return '';
+  return n.toLocaleString('ja-JP');
+}
+
+function num(value){
+  if (value === null || value === undefined || value === '') return 0;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const cleaned = String(value).replace(/[^\d.-]/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function text(value){
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'boolean') return value ? 'はい' : 'いいえ';
+  return String(value);
+}
+
+function escapeHtml(value){
+  return String(value || '').replace(/[&<>"']/g, function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
+}
+
+function first(row, keys){
+  for (const key of keys) {
+    if (row && row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  }
+  return '';
+}
+
+function findArray(payload){
+  if (Array.isArray(payload)) return payload;
+
+  const keys = ['rows','items','data','results','list','payables','documents','invoices','records'];
+  for (const key of keys) {
+    if (Array.isArray(payload && payload[key])) return payload[key];
+  }
+
+  if (payload && payload.data) {
+    const nested = findArray(payload.data);
+    if (nested.length) return nested;
+  }
+
+  return [];
+}
+
+function buildQuery(){
+  const current = new URL(window.location.href);
+  const params = new URLSearchParams();
+
+  for (const [key, value] of current.searchParams.entries()) {
+    if (['view','format'].includes(key)) continue;
+    if (value) params.set(key, value);
+  }
+
+  params.set('format', 'sub-output');
+  params.set('view', 'sub-output');
+
+  return params;
+}
+
+async function fetchFromEndpoint(endpoint){
+  const query = buildQuery();
+  const url = endpoint + (endpoint.includes('?') ? '&' : '?') + query.toString();
+
+  const response = await fetch(url, {
+    headers: { 'Accept': 'application/json' },
+    credentials: 'same-origin'
+  });
+
+  if (!response.ok) {
+    throw new Error(response.status + ' ' + response.statusText);
+  }
+
+  return response.json();
+}
+
+async function loadRows(){
+  const errors = [];
+
+  for (const endpoint of ENDPOINT_CANDIDATES) {
+    try {
+      const payload = await fetchFromEndpoint(endpoint);
+      const rows = findArray(payload);
+      if (rows.length || payload) {
+        return { endpoint, rows };
+      }
+    } catch (error) {
+      errors.push(endpoint + ': ' + error.message);
+    }
+  }
+
+  throw new Error(errors.join('\\n'));
+}
+
+function normalizePayable(row){
+  const total = num(first(row, ['total_amount','total','amount_total','amount','税込合計','税込金額','gross_amount']));
+  const paid = num(first(row, ['paid_amount','payment_amount','支払済額','paid_total']));
+  const balanceRaw = first(row, ['unpaid_balance','balance','remaining_amount','未払残高']);
+  const balance = balanceRaw === '' ? Math.max(total - paid, 0) : num(balanceRaw);
+
+  return {
+    id: text(first(row, ['id','payment_document_id','document_id'])),
+    management_no: text(first(row, ['management_no','management_number','control_no','document_no','payment_document_no','管理番号','id'])),
+    status: text(first(row, ['status','state','payment_status','状態'])),
+    document_type: text(first(row, ['document_type','doc_type','document_category','書類区分'])),
+    accounting_type: text(first(row, ['accounting_type','accounting_category','会計区分'])),
+    vendor_name: text(first(row, ['vendor_name','payee_name','supplier_name','partner_name','支払先','取引先'])),
+    invoice_no: text(first(row, ['invoice_no','invoice_number','bill_no','請求書番号','先方書類番号'])),
+    invoice_date: text(first(row, ['invoice_date','billing_date','issue_date','請求日'])),
+    posting_date: text(first(row, ['posting_date','recorded_date','accrual_date','計上日'])),
+    due_date: text(first(row, ['due_date','payment_due_date','支払期限'])),
+    scheduled_payment_date: text(first(row, ['scheduled_payment_date','payment_scheduled_date','支払予定日'])),
+    net_amount: num(first(row, ['net_amount','subtotal','tax_excluded_amount','amount_without_tax','税抜合計','税抜金額'])),
+    tax_amount: num(first(row, ['tax_amount','consumption_tax','消費税','消費税額'])),
+    total_amount: total,
+    paid_amount: paid,
+    unpaid_balance: balance,
+    debit_account: text(first(row, ['debit_account','expense_account','account_title','勘定科目','借方科目'])),
+    credit_account: text(first(row, ['credit_account','payable_account','貸方科目'])),
+    department: text(first(row, ['department','department_name','部門'])),
+    project: text(first(row, ['project','project_name','案件'])),
+    bank_name: text(first(row, ['bank_name','振込先銀行','銀行名'])),
+    branch_name: text(first(row, ['branch_name','bank_branch_name','支店名'])),
+    account_type: text(first(row, ['bank_account_type','account_type','預金種別'])),
+    account_no: text(first(row, ['bank_account_no','account_no','account_number','口座番号'])),
+    account_holder: text(first(row, ['bank_account_holder','account_holder','口座名義'])),
+    note: text(first(row, ['note','memo','remarks','備考']))
+  };
+}
+
+function setCommonMeta(count, endpoint){
+  const params = new URLSearchParams(window.location.search);
+  const company = params.get('company') || '-';
+
+  document.getElementById('metaCompany').textContent = company;
+  document.getElementById('metaPrintedAt').textContent = new Date().toLocaleString('ja-JP');
+  document.getElementById('metaCount').textContent = count.toLocaleString('ja-JP');
+  document.getElementById('filterBox').textContent =
+    '検索条件: ' + (window.location.search ? window.location.search.replace(/^\\?/, '') : '指定なし') +
+    ' / 取得API: ' + endpoint;
+}
+
+document.getElementById('printBtn').addEventListener('click', function(){
+  window.print();
+});
+
+document.getElementById('reloadBtn').addEventListener('click', function(){
+  window.location.reload();
+});
+</script>
+<script>
+function renderTransfer(rows, endpoint){
+  const normalized = rows.map(normalizePayable);
+  const tbody = document.getElementById('detailBody');
+  tbody.innerHTML = '';
+
+  let amountTotal = 0;
+  let paidTotal = 0;
+  let balanceTotal = 0;
+
+  normalized.forEach(function(row, index){
+    const amount = row.unpaid_balance || row.total_amount;
+
+    amountTotal += amount;
+    paidTotal += row.paid_amount;
+    balanceTotal += row.unpaid_balance;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="center">' + (index + 1) + '</td>' +
+      '<td>' + escapeHtml(row.scheduled_payment_date || row.due_date) + '</td>' +
+      '<td>' + escapeHtml(row.vendor_name) + '</td>' +
+      '<td>' + escapeHtml(row.bank_name) + '</td>' +
+      '<td>' + escapeHtml(row.branch_name) + '</td>' +
+      '<td>' + escapeHtml(row.account_type) + '</td>' +
+      '<td>' + escapeHtml(row.account_no) + '</td>' +
+      '<td>' + escapeHtml(row.account_holder) + '</td>' +
+      '<td class="num">' + yen(amount) + '</td>' +
+      '<td>' + escapeHtml(row.invoice_no) + '</td>' +
+      '<td>' + escapeHtml(row.management_no) + '</td>' +
+      '<td>' + escapeHtml(row.note) + '</td>';
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('sumCount').textContent = normalized.length.toLocaleString('ja-JP');
+  document.getElementById('sumAmount').textContent = yen(amountTotal);
+  document.getElementById('sumPaid').textContent = yen(paidTotal);
+  document.getElementById('sumBalance').textContent = yen(balanceTotal);
+
+  setCommonMeta(normalized.length, endpoint);
+
+  if (!normalized.length) {
+    document.getElementById('message').innerHTML = '<div class="empty">対象データがありません。</div>';
+  } else {
+    document.getElementById('message').innerHTML = '';
+  }
+}
+
+async function main(){
+  document.getElementById('metaPrintedAt').textContent = new Date().toLocaleString('ja-JP');
+
+  try {
+    const result = await loadRows();
+    renderTransfer(result.rows, result.endpoint);
+  } catch (error) {
+    document.getElementById('message').innerHTML =
+      '<div class="error">振込依頼データを取得できませんでした。<br>サブ出力HTMLは作成済みです。次工程で実APIまたは支払先銀行マスタへ接続調整してください。<br><pre>' +
+      escapeHtml(error.message) +
+      '</pre></div>';
+    document.getElementById('filterBox').textContent = '検索条件: API未接続';
+  }
+}
+
+main();
+</script>
+</body>
+</html>

@@ -72,8 +72,8 @@ const state = {
   sales: [],
   billingCloses: [],
   invoices: [],
-  payments: [],
-  accessQueue: []
+  payments: []
+
 };
 
 function element(id) {
@@ -254,9 +254,6 @@ async function loadSummary() {
 
   element("summaryUnappliedTotal").textContent =
     formatMoney(summary.unapplied_payment_total);
-
-  element("summaryAccessWaiting").textContent =
-    formatNumber(summary.access_waiting_count);
 }
 
 async function loadProducts() {
@@ -1414,91 +1411,6 @@ async function saveAllocation(event) {
   }
 }
 
-async function loadAccessQueue() {
-  const data = await requestJson(
-    "/api/sales/access-order-queue"
-  );
-
-  state.accessQueue = data.queue || [];
-
-  const rows =
-    element("accessOrderRows");
-
-  if (!state.accessQueue.length) {
-    rows.innerHTML = `
-      <tr>
-        <td class="empty" colspan="6">
-          Access受注取込待ちはありません。
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  rows.innerHTML = state.accessQueue
-    .map(item => `
-      <tr>
-        <td>${escapeHtml(item.import_queue_id)}</td>
-        <td>${escapeHtml(item.access_order_no)}</td>
-        <td>${escapeHtml(item.source_file_name)}</td>
-        <td>${escapeHtml(item.import_status)}</td>
-        <td>${escapeHtml(item.created_at)}</td>
-        <td>${escapeHtml(item.error_message)}</td>
-      </tr>
-    `)
-    .join("");
-}
-
-async function saveAccessOrder(event) {
-  event.preventDefault();
-
-  try {
-    hideMessage();
-
-    let payload = {};
-    const rawPayload =
-      formValue("access_payload").trim();
-
-    if (rawPayload) {
-      try {
-        payload = JSON.parse(rawPayload);
-      } catch {
-        throw new Error(
-          "受注データJSONの形式が正しくありません。"
-        );
-      }
-    }
-
-    await requestJson(
-      "/api/sales/access-order-queue",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          source_file_name:
-            formValue("source_file_name"),
-          access_order_no:
-            formValue("access_order_no"),
-          payload
-        })
-      }
-    );
-
-    element("accessOrderForm").reset();
-
-    showMessage(
-      "Access受注データを取込待ちへ登録しました。"
-    );
-
-    await Promise.all([
-      loadAccessQueue(),
-      loadSummary()
-    ]);
-  } catch (error) {
-    showMessage(error.message, "error");
-  }
-}
-
 async function loadAll() {
   try {
     hideMessage();
@@ -1512,7 +1424,6 @@ async function loadAll() {
       loadBillingCloses(),
       loadInvoices(),
       loadPayments(),
-      loadAccessQueue()
     ]);
   } catch (error) {
     showMessage(
@@ -1611,12 +1522,6 @@ function bindEvents() {
     .addEventListener(
       "submit",
       saveAllocation
-    );
-
-  element("accessOrderForm")
-    .addEventListener(
-      "submit",
-      saveAccessOrder
     );
 
   element("reloadAllButton")

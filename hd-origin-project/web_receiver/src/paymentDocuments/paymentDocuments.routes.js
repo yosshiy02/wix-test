@@ -648,143 +648,6 @@ async function analyzeFileWithAzure(filePath, mimeType) {
   throw new Error("Azure OCRがタイムアウトしました。最後の状態: " + JSON.stringify(lastJson || {}).slice(0, 800));
 }
 
-/* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_20260717_START */
-function isLocalAccessOcrRequest(req) {
-  const remoteAddress = String(
-    req &&
-    req.socket &&
-    req.socket.remoteAddress
-      ? req.socket.remoteAddress
-      : ""
-  ).toLowerCase();
-
-  return (
-    remoteAddress === "127.0.0.1" ||
-    remoteAddress === "::1" ||
-    remoteAddress === "::ffff:127.0.0.1"
-  );
-}
-
-function validateAccessOcrLocalFilePath(value) {
-  const requestedPath = String(value || "").trim();
-
-  if (!requestedPath) {
-    throw new Error("OCR対象ファイルパスが空です。");
-  }
-
-  if (requestedPath.includes("\0")) {
-    throw new Error("OCR対象ファイルパスが不正です。");
-  }
-
-  const resolvedPath = path.resolve(requestedPath);
-
-  if (!path.isAbsolute(resolvedPath)) {
-    throw new Error("OCR対象には絶対パスを指定してください。");
-  }
-
-  if (!fs.existsSync(resolvedPath)) {
-    throw new Error("OCR対象ファイルが見つかりません。");
-  }
-
-  const stat = fs.statSync(resolvedPath);
-
-  if (!stat.isFile()) {
-    throw new Error("OCR対象はファイルではありません。");
-  }
-
-  if (stat.size > MAX_UPLOAD_BYTES) {
-    throw new Error("30MBを超えるファイルはOCRできません。");
-  }
-
-  const mimeType = getMimeType(resolvedPath);
-  const extensionName = path.extname(resolvedPath).toLowerCase();
-
-  const allowed =
-    mimeType.startsWith("image/") ||
-    mimeType.includes("pdf") ||
-    [".pdf", ".png", ".jpg", ".jpeg", ".webp"].includes(extensionName);
-
-  if (!allowed) {
-    throw new Error("このファイル形式はOCR対象外です。");
-  }
-
-  return {
-    filePath: resolvedPath,
-    fileName: path.basename(resolvedPath),
-    mimeType,
-    sizeBytes: stat.size
-  };
-}
-
-async function importAccessLocalFileAndRunOcr(body) {
-  const validated = validateAccessOcrLocalFilePath(
-    body.localFilePath ||
-    body.filePath
-  );
-
-  const fileHash = sha256File(validated.filePath);
-
-  /* PAYMENT_DOCUMENT_FIRST_IMPORT_DUPLICATE_CHECK_20260720_START */
-  const duplicateItem = findDuplicateInboxItem(
-    fileHash,
-    validated.sizeBytes
-  );
-
-  if (duplicateItem) {
-    throw new Error(
-      "同じ画像はすでに取り込まれています。既存ファイル: " +
-      (
-        duplicateItem.originalFileName ||
-        duplicateItem.fileName ||
-        "不明"
-      )
-    );
-  }
-  /* PAYMENT_DOCUMENT_FIRST_IMPORT_DUPLICATE_CHECK_20260720_END */
-
-  const safeOriginal = safeFileName(validated.fileName);
-  const saveName = timestampPrefix() + "_" + safeOriginal;
-  const inboxFilePath = path.join(inboxDir(), saveName);
-
-  fs.copyFileSync(
-    validated.filePath,
-    inboxFilePath
-  );
-
-  const uploadedAt = new Date().toISOString();
-
-  writeJson(metaPathFor(inboxFilePath), {
-    originalFileName: validated.fileName,
-    originalFilePath: validated.filePath,
-    savedFileName: saveName,
-    mimeType: validated.mimeType,
-    sizeBytes: validated.sizeBytes,
-    sha256: fileHash,
-    fileSha256: fileHash,
-    sourceType: String(body.sourceType || "access_ocr_form"),
-    note: String(body.note || "Access F_OCR取込解析から送信"),
-    accessOcrId:
-      Number.isInteger(Number(body.accessOcrId))
-        ? Number(body.accessOcrId)
-        : null,
-    ocrStatus: "ocr_waiting",
-    processStatus: "inbox",
-    uploadedAt
-  });
-
-  const ocrResult = await ocrOneFile(saveName);
-
-  return {
-    ...ocrResult,
-    accessOcrId:
-      Number.isInteger(Number(body.accessOcrId))
-        ? Number(body.accessOcrId)
-        : null,
-    sourceFilePath: validated.filePath,
-    storedFileName: saveName
-  };
-}
-/* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_20260717_END */
 async function ocrOneFile(fileName) {
   const filePath = filePathFromName(fileName);
 
@@ -864,7 +727,7 @@ async function ocrOneFile(fileName) {
       contentHash: fileHash,
       dbSaved: false,
       paymentDocumentOcrImportId: null,
-      storageTarget: "access"
+      storageTarget: "postgresql"
     };
 
     writeJson(metaPath, next);
@@ -891,7 +754,7 @@ async function ocrOneFile(fileName) {
       azureResult: analyzed.rawJson || null,
       dbSaved: false,
       paymentDocumentOcrImportId: null,
-      storageTarget: "access"
+      storageTarget: "postgresql"
     };
   } catch (err) {
     const next = {
@@ -905,7 +768,7 @@ async function ocrOneFile(fileName) {
       processStatus: "ocr_error",
       dbSaved: false,
       paymentDocumentOcrImportId: null,
-      storageTarget: "access"
+      storageTarget: "postgresql"
     };
 
     writeJson(metaPath, next);
@@ -917,7 +780,7 @@ async function ocrOneFile(fileName) {
       error: err.message || String(err),
       dbSaved: false,
       paymentDocumentOcrImportId: null,
-      storageTarget: "access"
+      storageTarget: "postgresql"
     };
   }
 }
@@ -1972,9 +1835,9 @@ async function listPaymentDocumentOcrImportsFromDb() {
       s.warnings_json,
       s.raw_result_json,
       COALESCE(
-        s.raw_result_json->'draft',
+        s.raw_result_json->'analysis',
         '{}'::jsonb
-      ) AS draft_json,
+      ) AS analysis_json,
       COALESCE(
         s.raw_result_json->'visible_fields',
         s.raw_result_json->'visibleFields',
@@ -2035,7 +1898,6 @@ async function listPaymentDocumentOcrImportsFromDb() {
           ORDER BY display_order
           LIMIT 1
         )
-        OR o.current_status = '専門解析待ち'
       )
 
     ORDER BY
@@ -2060,7 +1922,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
           needsReview: !!row.needs_review,
           warnings: row.warnings_json || [],
           rawResult: row.raw_result_json || {},
-          draft: row.draft_json || {},
+          analysis: row.analysis_json || {},
           visibleFields: row.visible_fields_json || {},
           visibleFieldLabels:
             row.visible_field_labels_json || {},
@@ -2075,11 +1937,11 @@ async function listPaymentDocumentOcrImportsFromDb() {
         ? row.basic_raw_result_json
         : {};
 
-    const basicDraft =
-      basicRawResult.draft &&
-      typeof basicRawResult.draft === "object"
-        ? basicRawResult.draft
-        : basicRawResult;
+    const basicAnalysis =
+      basicRawResult.analysis &&
+      typeof basicRawResult.analysis === "object"
+        ? basicRawResult.analysis
+        : {};
 
     const latestBasicAnalysis = row.basic_analysis_id
       ? {
@@ -2112,30 +1974,30 @@ async function listPaymentDocumentOcrImportsFromDb() {
           raw_result:
             basicRawResult,
           sortResult:
-            basicDraft.sortResult ||
-            basicDraft.sort_result ||
-            basicDraft.classification ||
-            basicDraft,
+            basicAnalysis.sortResult ||
+            basicAnalysis.sort_result ||
+            basicAnalysis.classification ||
+            basicAnalysis,
           sort_result:
-            basicDraft.sort_result ||
-            basicDraft.sortResult ||
-            basicDraft.classification ||
-            basicDraft,
+            basicAnalysis.sort_result ||
+            basicAnalysis.sortResult ||
+            basicAnalysis.classification ||
+            basicAnalysis,
           visibleFields:
-            basicDraft.visibleFields ||
-            basicDraft.visible_fields ||
+            basicAnalysis.visibleFields ||
+            basicAnalysis.visible_fields ||
             {},
           visible_fields:
-            basicDraft.visible_fields ||
-            basicDraft.visibleFields ||
+            basicAnalysis.visible_fields ||
+            basicAnalysis.visibleFields ||
             {},
           aiSummary:
-            basicDraft.aiSummary ||
-            basicDraft.ai_summary ||
+            basicAnalysis.aiSummary ||
+            basicAnalysis.ai_summary ||
             {},
           ai_summary:
-            basicDraft.ai_summary ||
-            basicDraft.aiSummary ||
+            basicAnalysis.ai_summary ||
+            basicAnalysis.aiSummary ||
             {},
           analysisCompleted:
             row.basic_analysis_completed,
@@ -2312,56 +2174,56 @@ function normalizePaymentDestinationCodeFromText(value) {
   return "";
 }
 /* PAYMENT_DOCUMENT_AI_CODE_NORMALIZE_20260707_END */
-function normalizeAiDraftCandidate(value) {
-  const draft = value && typeof value === "object" ? value : {};
+function normalizeBasicAnalysisCandidate(value) {
+  const analysis = value && typeof value === "object" ? value : {};
 
   return {
-    document_type_code: String(draft.document_type_code || "").trim(),
-    payment_destination_code: String(draft.payment_destination_code || "").trim(),
-    accounting_category_code: String(draft.accounting_category_code || "").trim(),
-    payable_kind_code: String(draft.payable_kind_code || "").trim(),
-    source_type_code: String(draft.source_type_code || "").trim(),
+    document_type_code: String(analysis.document_type_code || "").trim(),
+    payment_destination_code: String(analysis.payment_destination_code || "").trim(),
+    accounting_category_code: String(analysis.accounting_category_code || "").trim(),
+    payable_kind_code: String(analysis.payable_kind_code || "").trim(),
+    source_type_code: String(analysis.source_type_code || "").trim(),
 
     // --- ここから追加: AIが返した重要なシステム情報を消失させずに維持する ---
-    analysis_system_code: String(draft.analysis_system_code || "").trim(),
-    analysis_system_label: String(draft.analysis_system_label || "").trim(),
-    analysis_system_reason: String(draft.analysis_system_reason || "").trim(),
-    analysis_system_confidence: String(draft.analysis_system_confidence || "").trim(),
-    specialist_route_code: String(draft.specialist_route_code || "").trim(),
-    specialist_route_label: String(draft.specialist_route_label || "").trim(),
+    analysis_system_code: String(analysis.analysis_system_code || "").trim(),
+    analysis_system_label: String(analysis.analysis_system_label || "").trim(),
+    analysis_system_reason: String(analysis.analysis_system_reason || "").trim(),
+    analysis_system_confidence: String(analysis.analysis_system_confidence || "").trim(),
+    specialist_route_code: String(analysis.specialist_route_code || "").trim(),
+    specialist_route_label: String(analysis.specialist_route_label || "").trim(),
     
-    ai_summary: draft.ai_summary && typeof draft.ai_summary === "object" ? draft.ai_summary : {},
-    fields: draft.fields && typeof draft.fields === "object" ? draft.fields : {},
-    visible_field_labels: Array.isArray(draft.visible_field_labels) ? draft.visible_field_labels : [],
-    document_group: String(draft.document_group || "").trim(),
+    ai_summary: analysis.ai_summary && typeof analysis.ai_summary === "object" ? analysis.ai_summary : {},
+    fields: analysis.fields && typeof analysis.fields === "object" ? analysis.fields : {},
+    visible_field_labels: Array.isArray(analysis.visible_field_labels) ? analysis.visible_field_labels : [],
+    document_group: String(analysis.document_group || "").trim(),
     // --- 追加ここまで ---
 
-    vendor_name: String(draft.vendor_name || "").trim(),
-    issue_date: String(draft.issue_date || "").trim(),
-    due_date: String(draft.due_date || "").trim(),
-    invoice_number: String(draft.invoice_number || "").trim(),
+    vendor_name: String(analysis.vendor_name || "").trim(),
+    issue_date: String(analysis.issue_date || "").trim(),
+    due_date: String(analysis.due_date || "").trim(),
+    invoice_number: String(analysis.invoice_number || "").trim(),
 
-    total_amount: draft.total_amount === null || draft.total_amount === undefined || draft.total_amount === ""
+    total_amount: analysis.total_amount === null || analysis.total_amount === undefined || analysis.total_amount === ""
       ? null
-      : Number(draft.total_amount),
+      : Number(analysis.total_amount),
 
-    tax_amount: draft.tax_amount === null || draft.tax_amount === undefined || draft.tax_amount === ""
+    tax_amount: analysis.tax_amount === null || analysis.tax_amount === undefined || analysis.tax_amount === ""
       ? null
-      : Number(draft.tax_amount),
+      : Number(analysis.tax_amount),
 
-    currency: String(draft.currency || "JPY").trim(),
-    summary: String(draft.summary || "").trim(),
-    memo: String(draft.memo || "").trim(),
+    currency: String(analysis.currency || "JPY").trim(),
+    summary: String(analysis.summary || "").trim(),
+    memo: String(analysis.memo || "").trim(),
 
     confidence: {
-      document_type: Number(draft.confidence && draft.confidence.document_type || 0),
-      payment_destination: Number(draft.confidence && draft.confidence.payment_destination || 0),
-      vendor_name: Number(draft.confidence && draft.confidence.vendor_name || 0),
-      total_amount: Number(draft.confidence && draft.confidence.total_amount || 0)
+      document_type: Number(analysis.confidence && analysis.confidence.document_type || 0),
+      payment_destination: Number(analysis.confidence && analysis.confidence.payment_destination || 0),
+      vendor_name: Number(analysis.confidence && analysis.confidence.vendor_name || 0),
+      total_amount: Number(analysis.confidence && analysis.confidence.total_amount || 0)
     },
 
-    warnings: Array.isArray(draft.warnings)
-      ? draft.warnings.map(item => String(item || "").trim()).filter(Boolean)
+    warnings: Array.isArray(analysis.warnings)
+      ? analysis.warnings.map(item => String(item || "").trim()).filter(Boolean)
       : []
   };
 }
@@ -2421,7 +2283,7 @@ function applyPaymentDocumentRuleFallbackFromOcr(ocrText, draft) {
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
 
-  const base = draft && typeof draft === "object" ? { ...draft } : {};
+  const base = draft && typeof draft === "object" ? { ...analysis } : {};
   base.fields = base.fields && typeof base.fields === "object" ? { ...base.fields } : {};
   base.ai_summary = base.ai_summary && typeof base.ai_summary === "object" ? { ...base.ai_summary } : {};
   base.warnings = Array.isArray(base.warnings) ? [...base.warnings] : [];
@@ -2531,7 +2393,7 @@ function applyPaymentDocumentOtherEvidenceFallbackFromOcr(ocrText, draft) {
   return draft;
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
-  const base = draft && typeof draft === "object" ? { ...draft } : {};
+  const base = draft && typeof draft === "object" ? { ...analysis } : {};
 
   base.fields = base.fields && typeof base.fields === "object" ? { ...base.fields } : {};
   base.ai_summary = base.ai_summary && typeof base.ai_summary === "object" ? { ...base.ai_summary } : {};
@@ -2639,7 +2501,7 @@ function buildPaymentDocumentAiPrompt(ocrText) {
   ].join("\n");
 }
 
-async function createAiDraftFromOcrText(ocrText) {
+async function createBasicAnalysisFromOcrText(ocrText) {
   const apiKey = getOpenAiApiKey();
 
   if (!apiKey) {
@@ -2705,7 +2567,7 @@ async function createAiDraftFromOcrText(ocrText) {
     throw error;
   }
 
-  const normalized = normalizeAiDraftCandidate(parsed);
+  const normalized = normalizeBasicAnalysisCandidate(parsed);
   return applyPaymentDocumentRuleFallbackFromOcr(ocrText, normalized);
 }
 /* PAYMENT_DOCUMENT_OPENAI_OCR_DRAFT_20260707_END */
@@ -2804,7 +2666,7 @@ function normalizePaymentDestinationCodeFromText(value) {
   return "";
 }
 /* PAYMENT_DOCUMENT_AI_CODE_NORMALIZE_20260707_END */
-/* 重複した古い normalizeAiDraftCandidate を削除しました */
+/* 重複した古い normalizeBasicAnalysisCandidate を削除しました */
 
 
 
@@ -2860,7 +2722,7 @@ function applyPaymentDocumentRuleFallbackFromOcr(ocrText, draft) {
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
 
-  const base = draft && typeof draft === "object" ? { ...draft } : {};
+  const base = draft && typeof draft === "object" ? { ...analysis } : {};
   base.fields = base.fields && typeof base.fields === "object" ? { ...base.fields } : {};
   base.ai_summary = base.ai_summary && typeof base.ai_summary === "object" ? { ...base.ai_summary } : {};
   base.warnings = Array.isArray(base.warnings) ? [...base.warnings] : [];
@@ -2968,7 +2830,7 @@ function applyPaymentDocumentRuleFallbackFromOcr(ocrText, draft) {
 function applyPaymentDocumentOtherEvidenceFallbackFromOcr(ocrText, draft) {
   const text = String(ocrText || "");
   const compact = text.replace(/\s+/g, "");
-  const base = draft && typeof draft === "object" ? { ...draft } : {};
+  const base = draft && typeof draft === "object" ? { ...analysis } : {};
 
   base.fields = base.fields && typeof base.fields === "object" ? { ...base.fields } : {};
   base.ai_summary = base.ai_summary && typeof base.ai_summary === "object" ? { ...base.ai_summary } : {};
@@ -3238,7 +3100,7 @@ function applyPaymentDocumentInvoiceTitlePriorityFromOcr(ocrText, draft) {
   /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
   return draft;
   const text = String(ocrText || "");
-  const out = draft && typeof draft === "object" ? { ...draft } : {};
+  const out = draft && typeof draft === "object" ? { ...analysis } : {};
   const fields = out.fields && typeof out.fields === "object" ? { ...out.fields } : {};
 
   if (!paymentDocumentInvoiceTitleSaysInvoice(text)) {
@@ -3291,37 +3153,37 @@ function applyPaymentDocumentInvoiceTitlePriorityFromOcr(ocrText, draft) {
       : "OCR本文の表題に「請求書」と明記されているため、書類区分は請求書として補正しました。"
   };
 
-  paymentDocumentInvoiceTitleSetField(fields, "document_title", "draftDocumentTitle", "請求書");
-  paymentDocumentInvoiceTitleSetField(fields, "issuer", "draftIssuer", issuer);
-  paymentDocumentInvoiceTitleSetField(fields, "vendor_name", "draftVendorName", issuer);
-  paymentDocumentInvoiceTitleSetField(fields, "recipient", "draftRecipient", recipient);
-  paymentDocumentInvoiceTitleSetField(fields, "company_name", "draftCompanyName", recipient.replace(/\s*御中\s*$/, ""));
-  paymentDocumentInvoiceTitleSetField(fields, "invoice_no", "draftInvoiceNo", invoiceNo);
-  paymentDocumentInvoiceTitleSetField(fields, "registration_no", "draftRegistrationNo", registrationNo);
-  paymentDocumentInvoiceTitleSetField(fields, "document_date", "draftDocumentDate", billingDate);
-  paymentDocumentInvoiceTitleSetField(fields, "issue_date", "draftIssueDate", billingDate);
-  paymentDocumentInvoiceTitleSetField(fields, "billing_date", "draftBillingDate", billingDate);
-  paymentDocumentInvoiceTitleSetField(fields, "due_date", "draftDueDate", dueDate);
-  paymentDocumentInvoiceTitleSetField(fields, "amount", "draftAmount", totalAmount);
-  paymentDocumentInvoiceTitleSetField(fields, "total_amount", "draftTotalAmount", totalAmount);
-  paymentDocumentInvoiceTitleSetField(fields, "amount_in_tax", "draftAmountInTax", totalAmount);
-  paymentDocumentInvoiceTitleSetField(fields, "tax_excluded_amount", "draftTaxExcludedAmount", taxExcluded);
-  paymentDocumentInvoiceTitleSetField(fields, "amount_without_tax", "draftAmountWithoutTax", taxExcluded);
-  paymentDocumentInvoiceTitleSetField(fields, "tax_amount", "draftTaxAmount", taxAmount);
-  paymentDocumentInvoiceTitleSetField(fields, "summary", "draftSummary", itemName || "請求書");
-  paymentDocumentInvoiceTitleSetField(fields, "payable_registration_flag", "draftPayableRegistrationFlag", true);
-  paymentDocumentInvoiceTitleSetField(fields, "accounts_payable_flag", "draftAccountsPayableFlag", !!isMaterialPurchase);
+  paymentDocumentInvoiceTitleSetField(fields, "document_title", "analysisDocumentTitle", "請求書");
+  paymentDocumentInvoiceTitleSetField(fields, "issuer", "analysisIssuer", issuer);
+  paymentDocumentInvoiceTitleSetField(fields, "vendor_name", "analysisVendorName", issuer);
+  paymentDocumentInvoiceTitleSetField(fields, "recipient", "analysisRecipient", recipient);
+  paymentDocumentInvoiceTitleSetField(fields, "company_name", "analysisCompanyName", recipient.replace(/\s*御中\s*$/, ""));
+  paymentDocumentInvoiceTitleSetField(fields, "invoice_no", "analysisInvoiceNo", invoiceNo);
+  paymentDocumentInvoiceTitleSetField(fields, "registration_no", "analysisRegistrationNo", registrationNo);
+  paymentDocumentInvoiceTitleSetField(fields, "document_date", "analysisDocumentDate", billingDate);
+  paymentDocumentInvoiceTitleSetField(fields, "issue_date", "analysisIssueDate", billingDate);
+  paymentDocumentInvoiceTitleSetField(fields, "billing_date", "analysisBillingDate", billingDate);
+  paymentDocumentInvoiceTitleSetField(fields, "due_date", "analysisDueDate", dueDate);
+  paymentDocumentInvoiceTitleSetField(fields, "amount", "analysisAmount", totalAmount);
+  paymentDocumentInvoiceTitleSetField(fields, "total_amount", "analysisTotalAmount", totalAmount);
+  paymentDocumentInvoiceTitleSetField(fields, "amount_in_tax", "analysisAmountInTax", totalAmount);
+  paymentDocumentInvoiceTitleSetField(fields, "tax_excluded_amount", "analysisTaxExcludedAmount", taxExcluded);
+  paymentDocumentInvoiceTitleSetField(fields, "amount_without_tax", "analysisAmountWithoutTax", taxExcluded);
+  paymentDocumentInvoiceTitleSetField(fields, "tax_amount", "analysisTaxAmount", taxAmount);
+  paymentDocumentInvoiceTitleSetField(fields, "summary", "analysisSummaryField", itemName || "請求書");
+  paymentDocumentInvoiceTitleSetField(fields, "payable_registration_flag", "analysisPayableRegistrationFlag", true);
+  paymentDocumentInvoiceTitleSetField(fields, "accounts_payable_flag", "analysisAccountsPayableFlag", !!isMaterialPurchase);
 
   const dummyNote = paymentDocumentInvoiceTitleHasAny(text, ["ダミー証憑", "開発テスト用", "実在の取引ではありません"])
     ? "これは開発テスト用のダミー証憑です。実在の取引ではありません。"
     : "";
 
   if (dummyNote) {
-    const currentMemo = String(fields.memo || fields.draftMemo || "").trim();
+    const currentMemo = String(fields.memo || fields.analysisMemo || "").trim();
     paymentDocumentInvoiceTitleSetField(
       fields,
       "memo",
-      "draftMemo",
+      "analysisMemo",
       currentMemo ? currentMemo + "\n" + dummyNote : dummyNote
     );
   }
@@ -3493,7 +3355,7 @@ function applyPaymentDocumentInvoiceCleanupFromOcr(ocrText, draft) {
   /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
   return draft;
   const text = String(ocrText || "");
-  const out = draft && typeof draft === "object" ? { ...draft } : {};
+  const out = draft && typeof draft === "object" ? { ...analysis } : {};
   const fields = out.fields && typeof out.fields === "object" ? { ...out.fields } : {};
 
   if (!paymentDocumentInvoiceCleanupTitleSaysInvoice(text)) {
@@ -3538,59 +3400,59 @@ function applyPaymentDocumentInvoiceCleanupFromOcr(ocrText, draft) {
       : "OCR本文の表題に「請求書」と明記されているため、書類区分は請求書として補正しました。"
   };
 
-  paymentDocumentInvoiceCleanupSet(fields, "ai_tax_public_flag", "draftAiTaxPublicFlag", "対象外");
-  paymentDocumentInvoiceCleanupSet(fields, "ai_contract_flag", "draftAiContractFlag", "対象外");
-  paymentDocumentInvoiceCleanupSet(fields, "ai_expense_flag", "draftAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
-  paymentDocumentInvoiceCleanupSet(fields, "ai_unpaid_flag", "draftAiUnpaidFlag", "登録する");
+  paymentDocumentInvoiceCleanupSet(fields, "ai_tax_public_flag", "analysisAiTaxPublicFlag", "対象外");
+  paymentDocumentInvoiceCleanupSet(fields, "ai_contract_flag", "analysisAiContractFlag", "対象外");
+  paymentDocumentInvoiceCleanupSet(fields, "ai_expense_flag", "analysisAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
+  paymentDocumentInvoiceCleanupSet(fields, "ai_unpaid_flag", "analysisAiUnpaidFlag", "登録する");
 
   if (issuer) {
-    paymentDocumentInvoiceCleanupSet(fields, "issuer", "draftIssuer", issuer);
-    paymentDocumentInvoiceCleanupSet(fields, "vendor_name", "draftVendorName", issuer);
+    paymentDocumentInvoiceCleanupSet(fields, "issuer", "analysisIssuer", issuer);
+    paymentDocumentInvoiceCleanupSet(fields, "vendor_name", "analysisVendorName", issuer);
   }
 
   if (recipient) {
-    paymentDocumentInvoiceCleanupSet(fields, "recipient", "draftRecipient", recipient);
+    paymentDocumentInvoiceCleanupSet(fields, "recipient", "analysisRecipient", recipient);
   }
 
   if (companyName) {
-    paymentDocumentInvoiceCleanupSet(fields, "company_name", "draftCompanyName", companyName);
+    paymentDocumentInvoiceCleanupSet(fields, "company_name", "analysisCompanyName", companyName);
     fields.companyName = companyName;
     fields.recipient_company_name = companyName;
   }
 
-  paymentDocumentInvoiceCleanupSet(fields, "payable_registration_flag", "draftPayableRegistrationFlag", true);
-  paymentDocumentInvoiceCleanupSet(fields, "accounts_payable_flag", "draftAccountsPayableFlag", !!isMaterialPurchase);
+  paymentDocumentInvoiceCleanupSet(fields, "payable_registration_flag", "analysisPayableRegistrationFlag", true);
+  paymentDocumentInvoiceCleanupSet(fields, "accounts_payable_flag", "analysisAccountsPayableFlag", !!isMaterialPurchase);
 
   /*
     税金系の残骸を空にする。
     表示対象から外すのが主目的だが、残値も掃除する。
   */
-  paymentDocumentInvoiceCleanupSet(fields, "tax_item", "draftTaxItem", "");
-  paymentDocumentInvoiceCleanupSet(fields, "tax_office", "draftTaxOffice", "");
-  paymentDocumentInvoiceCleanupSet(fields, "fiscal_year", "draftFiscalYear", "");
-  paymentDocumentInvoiceCleanupSet(fields, "tax_term", "draftTaxTerm", "");
-  paymentDocumentInvoiceCleanupSet(fields, "payment_no", "draftPaymentNo", "");
-  paymentDocumentInvoiceCleanupSet(fields, "notice_no", "draftNoticeNo", "");
-  paymentDocumentInvoiceCleanupSet(fields, "management_no", "draftManagementNo", "");
-  paymentDocumentInvoiceCleanupSet(fields, "late_fee_amount", "draftLateFeeAmount", "");
-  paymentDocumentInvoiceCleanupSet(fields, "non_tax_amount", "draftNonTaxAmount", "");
+  paymentDocumentInvoiceCleanupSet(fields, "tax_item", "analysisTaxItem", "");
+  paymentDocumentInvoiceCleanupSet(fields, "tax_office", "analysisTaxOffice", "");
+  paymentDocumentInvoiceCleanupSet(fields, "fiscal_year", "analysisFiscalYear", "");
+  paymentDocumentInvoiceCleanupSet(fields, "tax_term", "analysisTaxTerm", "");
+  paymentDocumentInvoiceCleanupSet(fields, "payment_no", "analysisPaymentNo", "");
+  paymentDocumentInvoiceCleanupSet(fields, "notice_no", "analysisNoticeNo", "");
+  paymentDocumentInvoiceCleanupSet(fields, "management_no", "analysisManagementNo", "");
+  paymentDocumentInvoiceCleanupSet(fields, "late_fee_amount", "analysisLateFeeAmount", "");
+  paymentDocumentInvoiceCleanupSet(fields, "non_tax_amount", "analysisNonTaxAmount", "");
 
-  if (fields.memo || fields.draftMemo) {
-    const memo = paymentDocumentInvoiceCleanupUniqueLines(fields.memo || fields.draftMemo);
+  if (fields.memo || fields.analysisMemo) {
+    const memo = paymentDocumentInvoiceCleanupUniqueLines(fields.memo || fields.analysisMemo);
     fields.memo = memo;
-    fields.draftMemo = memo;
+    fields.analysisMemo = memo;
   }
 
-  if (fields.warnings || fields.draftWarnings) {
+  if (fields.warnings || fields.analysisWarnings) {
     const warningText = paymentDocumentInvoiceCleanupUniqueLines(
-      String(fields.warnings || fields.draftWarnings || "")
+      String(fields.warnings || fields.analysisWarnings || "")
         .split(/\r?\n/)
         .filter((line) => !String(line || "").includes("納付書ルール補正"))
         .join("\n")
     );
 
     fields.warnings = warningText;
-    fields.draftWarnings = warningText;
+    fields.analysisWarnings = warningText;
   }
 
   out.fields = fields;
@@ -3761,7 +3623,7 @@ function applyPaymentDocumentInvoiceFinalCleanupFromOcr(ocrText, draft) {
   /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
   return draft;
   const text = String(ocrText || "");
-  const out = draft && typeof draft === "object" ? draft : {};
+  const out = draft && typeof draft === "object" ? analysis : {};
 
   if (!paymentDocumentInvoiceFinalTitleSaysInvoice(text)) {
     return out;
@@ -3829,70 +3691,70 @@ function applyPaymentDocumentInvoiceFinalCleanupFromOcr(ocrText, draft) {
   out.accounts_payable_flag = !!isMaterialPurchase;
   out.accountsPayableFlag = !!isMaterialPurchase;
 
-  paymentDocumentInvoiceFinalSet(fields, "ai_tax_public_flag", "draftAiTaxPublicFlag", "対象外");
-  paymentDocumentInvoiceFinalSet(fields, "tax_public_flag", "draftAiTaxPublicFlag", "対象外");
+  paymentDocumentInvoiceFinalSet(fields, "ai_tax_public_flag", "analysisAiTaxPublicFlag", "対象外");
+  paymentDocumentInvoiceFinalSet(fields, "tax_public_flag", "analysisAiTaxPublicFlag", "対象外");
 
-  paymentDocumentInvoiceFinalSet(fields, "ai_contract_flag", "draftAiContractFlag", "対象外");
-  paymentDocumentInvoiceFinalSet(fields, "contract_flag", "draftAiContractFlag", "対象外");
+  paymentDocumentInvoiceFinalSet(fields, "ai_contract_flag", "analysisAiContractFlag", "対象外");
+  paymentDocumentInvoiceFinalSet(fields, "contract_flag", "analysisAiContractFlag", "対象外");
 
-  paymentDocumentInvoiceFinalSet(fields, "ai_expense_flag", "draftAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
-  paymentDocumentInvoiceFinalSet(fields, "expense_flag", "draftAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
+  paymentDocumentInvoiceFinalSet(fields, "ai_expense_flag", "analysisAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
+  paymentDocumentInvoiceFinalSet(fields, "expense_flag", "analysisAiExpenseFlag", isMaterialPurchase ? "対象外" : "経費");
 
   if (issuer) {
-    paymentDocumentInvoiceFinalSet(fields, "issuer", "draftIssuer", issuer);
-    paymentDocumentInvoiceFinalSet(fields, "vendor_name", "draftVendorName", issuer);
+    paymentDocumentInvoiceFinalSet(fields, "issuer", "analysisIssuer", issuer);
+    paymentDocumentInvoiceFinalSet(fields, "vendor_name", "analysisVendorName", issuer);
   }
 
   if (recipient) {
-    paymentDocumentInvoiceFinalSet(fields, "recipient", "draftRecipient", recipient);
+    paymentDocumentInvoiceFinalSet(fields, "recipient", "analysisRecipient", recipient);
   }
 
   if (companyName) {
-    paymentDocumentInvoiceFinalSet(fields, "company_name", "draftCompanyName", companyName);
+    paymentDocumentInvoiceFinalSet(fields, "company_name", "analysisCompanyName", companyName);
     fields.companyName = companyName;
     fields.recipient_company_name = companyName;
     out.company_name = companyName;
     out.companyName = companyName;
   }
 
-  paymentDocumentInvoiceFinalSet(fields, "payable_registration_flag", "draftPayableRegistrationFlag", true);
-  paymentDocumentInvoiceFinalSet(fields, "accounts_payable_flag", "draftAccountsPayableFlag", !!isMaterialPurchase);
+  paymentDocumentInvoiceFinalSet(fields, "payable_registration_flag", "analysisPayableRegistrationFlag", true);
+  paymentDocumentInvoiceFinalSet(fields, "accounts_payable_flag", "analysisAccountsPayableFlag", !!isMaterialPurchase);
 
   /*
     税金系の空欄項目を残さない。
   */
   const emptyPairs = [
-    ["tax_item", "draftTaxItem"],
-    ["tax_office", "draftTaxOffice"],
-    ["fiscal_year", "draftFiscalYear"],
-    ["tax_term", "draftTaxTerm"],
-    ["payment_no", "draftPaymentNo"],
-    ["notice_no", "draftNoticeNo"],
-    ["management_no", "draftManagementNo"],
-    ["late_fee_amount", "draftLateFeeAmount"],
-    ["non_tax_amount", "draftNonTaxAmount"]
+    ["tax_item", "analysisTaxItem"],
+    ["tax_office", "analysisTaxOffice"],
+    ["fiscal_year", "analysisFiscalYear"],
+    ["tax_term", "analysisTaxTerm"],
+    ["payment_no", "analysisPaymentNo"],
+    ["notice_no", "analysisNoticeNo"],
+    ["management_no", "analysisManagementNo"],
+    ["late_fee_amount", "analysisLateFeeAmount"],
+    ["non_tax_amount", "analysisNonTaxAmount"]
   ];
 
   for (const pair of emptyPairs) {
     paymentDocumentInvoiceFinalSet(fields, pair[0], pair[1], "");
   }
 
-  if (fields.memo || fields.draftMemo) {
-    const memo = paymentDocumentInvoiceFinalUniqueLines(fields.memo || fields.draftMemo);
+  if (fields.memo || fields.analysisMemo) {
+    const memo = paymentDocumentInvoiceFinalUniqueLines(fields.memo || fields.analysisMemo);
     fields.memo = memo;
-    fields.draftMemo = memo;
+    fields.analysisMemo = memo;
   }
 
-  if (fields.warnings || fields.draftWarnings) {
+  if (fields.warnings || fields.analysisWarnings) {
     const warningText = paymentDocumentInvoiceFinalUniqueLines(
-      String(fields.warnings || fields.draftWarnings || "")
+      String(fields.warnings || fields.analysisWarnings || "")
         .split(/\r?\n/)
         .filter((line) => !String(line || "").includes("納付書ルール補正"))
         .join("\n")
     );
 
     fields.warnings = warningText;
-    fields.draftWarnings = warningText;
+    fields.analysisWarnings = warningText;
   }
 
   out.warnings = paymentDocumentInvoiceFinalUniqueArray(
@@ -4217,7 +4079,7 @@ function applyPaymentDocumentInvoiceDisplayCleanupFromOcr(ocrText, draft) {
   /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
   return draft;
   const text = String(ocrText || "");
-  const out = draft && typeof draft === "object" ? draft : {};
+  const out = draft && typeof draft === "object" ? analysis : {};
 
   if (!paymentDocumentInvoiceDisplayTitleSaysInvoice(text)) {
     return out;
@@ -4240,13 +4102,13 @@ function applyPaymentDocumentInvoiceDisplayCleanupFromOcr(ocrText, draft) {
   );
 
   if (registrationNo) {
-    paymentDocumentInvoiceDisplaySet(fields, "登録番号", "draftRegistrationNo", registrationNo);
+    paymentDocumentInvoiceDisplaySet(fields, "登録番号", "analysisRegistrationNo", registrationNo);
     fields.registration_no = registrationNo;
     fields.invoice_registration_no = registrationNo;
   }
 
   if (taxExcluded) {
-    paymentDocumentInvoiceDisplaySet(fields, "税抜金額", "draftAmountExTax", taxExcluded);
+    paymentDocumentInvoiceDisplaySet(fields, "税抜金額", "analysisAmountExTax", taxExcluded);
     fields.amount_ex_tax = taxExcluded;
     fields.tax_excluded_amount = taxExcluded;
     fields.amount_without_tax = taxExcluded;
@@ -4287,7 +4149,7 @@ function applyPaymentDocumentInvoiceDisplayCleanupFromOcr(ocrText, draft) {
     fields側は空にして warnings側に1本化する。
   */
   fields["要確認メモ"] = "";
-  fields.draftWarnings = "";
+  fields.analysisWarnings = "";
   fields.warnings = "";
 
   out.warnings = paymentDocumentInvoiceDisplayMakeWarning(text, out.warnings);
@@ -4368,8 +4230,8 @@ function paymentDocumentAiVisibleFieldLabels(group) {
   return Array.from(new Set([...common, ...extra]));
 }
 
-function paymentDocumentAiGroupFromDraft(draft) {
-  const d = draft && typeof draft === "object" ? draft : {};
+function paymentDocumentAiGroupFromAnalysis(draft) {
+  const d = draft && typeof draft === "object" ? analysis : {};
   const summary = d.ai_summary && typeof d.ai_summary === "object" ? d.ai_summary : {};
   const fields = d.fields && typeof d.fields === "object" ? d.fields : {};
 
@@ -5060,7 +4922,7 @@ function normalizeStage2CommonFieldsCandidate(value) {
   };
 }
 
-async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
+async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
   const companyId = Number(
     context && context.company_id || 0
   );
@@ -5172,7 +5034,7 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
     buildPaymentDocumentDetailPrompt(ocrText, classification),
     await selectPaymentDocumentPromptFiles({
       ocrText,
-      draft: classification,
+      analysis: classification,
       phase: "detail"
     })
   );
@@ -5191,7 +5053,7 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
 
   const { warnings: detailWarnings, ...stage2Fields } = detail;
 
-  const draft = {
+  const analysis = {
     ...stage2Fields,
     company_id: classification.company_id,
     company_code: classification.company_code,
@@ -5211,11 +5073,11 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
   };
 
   // 画面の表示項目は、ここで生成した visibleLabels をそのまま保存・利用する
-  draft.visible_field_labels = visibleLabels;
+  analysis.visible_field_labels = visibleLabels;
   return {
-    draft,
+    analysis,
     classification,
-    visible_field_labels: draft.visible_field_labels || visibleLabels,
+    visible_field_labels: analysis.visible_field_labels || visibleLabels,
     display_mode: "visible_fields_only",
     prompt_rule_files: {
       classification: await selectPaymentDocumentPromptFiles({
@@ -5224,7 +5086,7 @@ async function createTwoStepAiDraftFromOcrText(ocrText, context = {}) {
       }),
       detail: await selectPaymentDocumentPromptFiles({
         ocrText,
-        draft: classification,
+        analysis: classification,
         phase: "detail"
       })
     },
@@ -5255,7 +5117,7 @@ function hdOriginAiOnlyObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context = {}) {
+async function createPaymentDocumentSpecialistAnalysisFromOcrText(ocrText, context = {}) {
   const specialistRouteCode = String(
     context.specialist_route_code ||
     context.specialistRouteCode ||
@@ -5328,8 +5190,8 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
     analysis_system_label: analysisSystemLabel,
     group: String(context.group || "").trim(),
     master_options: specialistMasterOptions,
-    draft: hdOriginAiOnlyObject(
-      context.draft ||
+    analysis: hdOriginAiOnlyObject(
+      context.analysis ||
       context.classification
     )
   };
@@ -5349,7 +5211,7 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
       "",
       "返すJSON形式:",
       "{",
-      '  "draft": {',
+      '  "analysis": {',
       '    "analysis_system_code": "",',
       '    "analysis_system_label": "",',
       '    "analysis_system_reason": "",',
@@ -5381,43 +5243,43 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
   );
 
   const parsed = hdOriginAiOnlyObject(response.parsed);
-  const rawDraft = hdOriginAiOnlyObject(parsed.draft || parsed.ai_draft || parsed);
-  const draft = { ...rawDraft };
-  const fields = hdOriginAiOnlyObject(rawDraft.fields || parsed.fields);
+  const rawAnalysis = hdOriginAiOnlyObject(parsed.analysis || parsed);
+  const analysis = { ...rawAnalysis };
+  const fields = hdOriginAiOnlyObject(rawAnalysis.fields || parsed.fields);
 
-  draft.fields = fields;
+  analysis.fields = fields;
 
-  draft.visible_field_labels = hdOriginAiOnlyArray(
+  analysis.visible_field_labels = hdOriginAiOnlyArray(
     parsed.visible_field_labels ||
     parsed.visibleFieldLabels ||
-    rawDraft.visible_field_labels ||
-    rawDraft.visibleFieldLabels
+    rawAnalysis.visible_field_labels ||
+    rawAnalysis.visibleFieldLabels
   );
 
-  draft.document_group = String(
-    rawDraft.document_group || ""
+  analysis.document_group = String(
+    rawAnalysis.document_group || ""
   ).trim();
 
-  draft.specialist_route_code = String(
-    rawDraft.specialist_route_code || ""
+  analysis.specialist_route_code = String(
+    rawAnalysis.specialist_route_code || ""
   ).trim();
 
-  draft.specialist_route_label = String(
-    rawDraft.specialist_route_label || ""
+  analysis.specialist_route_label = String(
+    rawAnalysis.specialist_route_label || ""
   ).trim();
 
-  draft.analysis_system_code = String(
-    rawDraft.analysis_system_code || ""
+  analysis.analysis_system_code = String(
+    rawAnalysis.analysis_system_code || ""
   ).trim();
 
-  draft.analysis_system_label = String(
-    rawDraft.analysis_system_label || ""
+  analysis.analysis_system_label = String(
+    rawAnalysis.analysis_system_label || ""
   ).trim();
 
   const requiredAiFields = [
-    ["draft.document_group", draft.document_group],
-    ["draft.specialist_route_code", draft.specialist_route_code],
-    ["draft.analysis_system_code", draft.analysis_system_code]
+    ["analysis.document_group", analysis.document_group],
+    ["analysis.specialist_route_code", analysis.specialist_route_code],
+    ["analysis.analysis_system_code", analysis.analysis_system_code]
   ];
 
   const missingAiFields = requiredAiFields
@@ -5434,15 +5296,15 @@ async function createPaymentDocumentSpecialistDraftFromOcrText(ocrText, context 
   }
 
   if (Array.isArray(parsed.warnings) && parsed.warnings.length) {
-    draft.warnings = parsed.warnings;
+    analysis.warnings = parsed.warnings;
   }
 
   return {
-    draft,
-    classification: specialistContext.draft,
+    analysis,
+    classification: specialistContext.analysis,
     specialist: parsed,
-    document_group: draft.document_group,
-    visible_field_labels: draft.visible_field_labels,
+    document_group: analysis.document_group,
+    visible_field_labels: analysis.visible_field_labels,
     display_mode: "ai_decides_visible_fields",
     image_used: false,
     prompt_rule_files: {
@@ -5794,10 +5656,10 @@ function paymentDocumentDefaultExpenseTargetForSort(destinationCode, documentTyp
 
 /* HD_ORIGIN_NO_POST_ANALYSIS_SYSTEM_FIX_GPT00_20260709: analysis_system_* の後付け推測補完ブロックを撤去。AI返却値・人間修正値のみ扱う。 */
 /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
-function normalizePaymentDocumentSortCandidate(value) {
+function normalizePaymentDocumentAnalysisCandidate(value) {
   const raw = value && typeof value === "object" ? value : {};
   const source =
-    raw.draft && typeof raw.draft === "object" ? raw.draft :
+    raw.analysis && typeof raw.analysis === "object" ? raw.analysis :
     raw.sorting && typeof raw.sorting === "object" ? raw.sorting :
     raw.classification && typeof raw.classification === "object" ? raw.classification :
     raw;
@@ -6004,979 +5866,6 @@ function normalizePaymentDocumentSortCandidate(value) {
 }
 /* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
 
-/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
-function applyPaymentDocumentSortRuleFallbackFromOcr(ocrText, draft) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return draft;
-  /*
-    基礎解析ではOCR本文の固定語句による後付け分類を禁止する。
-    この関数は旧フォールバック互換名だけ残し、AI返却値の基礎解析正規化だけ行う。
-  */
-  return normalizePaymentDocumentSortCandidate(draft);
-}
-/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
-
-async function createPaymentDocumentSortFromOcrText(ocrText) {
-  const prompt = buildPaymentDocumentSortPrompt(ocrText);
-
-  const response = await callPaymentDocumentOpenAiJson(
-    prompt,
-    loadPaymentDocumentPromptText(
-      "sorting.system.txt",
-      "OCR本文だけから支払書類の1回目仕分けJSONを作成してください。詳細項目は抽出せず、必ずJSONのみを返してください。"
-    )
-  );
-
-  const draft = normalizePaymentDocumentSortCandidate(response.parsed);
-
-  return {
-    draft,
-    classification: draft,
-    sorting: draft,
-    document_group: draft.analysis_system_code || draft.analysis_system_label || "",
-    visible_field_labels: draft.visible_field_labels || ["会計区分", "専門解析先", "発行日", "信頼度", "理由"],
-    display_mode: "sorting_only",
-    image_used: false,
-    prompt_rule_files: {
-      sorting: ["sorting.system.txt"]
-    },
-    steps: [
-      {
-        name: "sorting",
-        usage: response.usage
-      }
-    ],
-    ai_steps: [
-      {
-        name: "sorting",
-        usage: response.usage
-      }
-    ]
-  };
-}
-/* PAYMENT_DOCUMENT_AI_SORT_ONLY_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_POLISH_20260707_START */
-function hdOriginSortGrowText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginSortGrowHasAny(text, words) {
-  const s = String(text || "").replace(/\s+/g, "").toLowerCase();
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_START */
-function hdOriginPolishPaymentDocumentSortResult(sortResult, ocrText) {
-  /*
-    基礎解析ではAI結果をOCR本文の固定分類で上書きしない。
-    ここでは、AI返却JSONを基礎解析形式へ揃えるだけにする。
-  */
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = normalizePaymentDocumentSortCandidate(
-    result.draft ||
-    result.sorting ||
-    result.classification ||
-    result
-  );
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.analysis_system_code || draft.analysis_system_label || "";
-  result.visible_field_labels = draft.visible_field_labels;
-  result.display_mode = result.display_mode || "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* HD_ORIGIN_BASIC_ANALYSIS_ROUTES_AI_ONLY_20260711_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_CARD_POLISH_20260707_START */
-function hdOriginCardSortGrowText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginCardSortGrowHasAny(text, words) {
-  const s = String(text || "").replace(/\s+/g, "").toLowerCase();
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentCardSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isCardStatement = hdOriginCardSortGrowHasAny(text, [
-    "カード利用明細",
-    "カード会社明細",
-    "クレジットカード",
-    "ご利用明細",
-    "カード明細",
-    "カード会社",
-    "利用日",
-    "利用店名",
-    "card",
-    "処理先:カード明細照合へ",
-    "購入先証憑と紐付ける",
-    "カード明細は照合用"
-  ]);
-
-  if (isCardStatement) {
-    draft.document_type_code = "card_statement";
-    draft.document_type_label = "カード利用明細";
-    draft.document_type_name = "カード利用明細";
-
-    draft.payment_destination_code = "card_payable";
-    draft.payment_destination_label = "カード未払";
-    draft.payment_destination_name = "カード未払";
-
-    draft.specialist_route_code = "card_statement";
-    draft.specialist_route_label = "カード明細照合";
-    draft.source_type_code = "card_statement";
-
-    if (!hdOriginCardSortGrowText(draft.payable_kind_code)) {
-      draft.payable_kind_code = "card_payable";
-    }
-
-    if (!hdOriginCardSortGrowText(draft.accounting_category_code)) {
-      draft.accounting_category_code = "normal";
-    }
-
-    draft.confidence = draft.confidence || "high";
-    draft.confidence_level = draft.confidence_level || "high";
-    draft.confidence_label = draft.confidence_label || "高";
-    draft.ai_confidence = draft.ai_confidence || "高";
-
-    if (!hdOriginCardSortGrowText(draft.review_reason)) {
-      draft.review_reason = "カード利用明細、カード会社明細等の記載があり、購入先証憑との照合対象であるため。";
-    }
-
-    if (draft.confidence === "low" || draft.confidence_label === "低") {
-      draft.needs_review = true;
-    } else if (draft.needs_review !== true) {
-      draft.needs_review = false;
-    }
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "カード利用明細";
-    draft.ai_summary.destination = "カード未払";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
-    draft.ai_summary.expense_target = "対象外";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.contract_insurance_lease = "対象外";
-    draft.ai_summary.card_statement = "カード明細照合";
-    draft.ai_summary.confidence_label = draft.confidence_label || draft.ai_confidence || "高";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_CARD_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_MAIL_COMM_POLISH_20260707_START */
-function hdOriginMailCommSortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginMailCommSortHasAny(text, words) {
-  const s = String(text || "").replace(/\s+/g, "").toLowerCase();
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentMailCommSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isMailSaved = hdOriginMailCommSortHasAny(text, [
-    "メール保存証憑",
-    "メール保存ファイル",
-    "from",
-    "subject",
-    "received",
-    "mail",
-    "原本メール保存"
-  ]);
-
-  const isCommunication = hdOriginMailCommSortHasAny(text, [
-    "通信費",
-    "通信費のお知らせ",
-    "電話料金",
-    "インターネット料金",
-    "クラウド利用料",
-    "対象月",
-    "ご請求額"
-  ]);
-
-  const hasCardPaymentOnly = hdOriginMailCommSortHasAny(text, [
-    "支払方法:クレジットカード",
-    "支払方法：クレジットカード",
-    "支払方法クレジットカード"
-  ]);
-
-  const hasStrongCardStatement = hdOriginMailCommSortHasAny(text, [
-    "カード利用明細",
-    "カード会社明細",
-    "ご利用明細",
-    "利用店名",
-    "カード明細は照合用",
-    "購入先証憑と紐付ける",
-    "処理先:カード明細照合へ",
-    "処理先：カード明細照合へ"
-  ]);
-
-  const shouldOverrideCard =
-    isMailSaved &&
-    isCommunication &&
-    (hasCardPaymentOnly || draft.payment_destination_code === "card_payable") &&
-    !hasStrongCardStatement;
-
-  if (shouldOverrideCard) {
-    draft.document_type_code = "mail_saved";
-    draft.document_type_label = "メール保存証憑";
-    draft.document_type_name = "メール保存証憑";
-
-    draft.payment_destination_code = "expense";
-    draft.payment_destination_label = "経費";
-    draft.payment_destination_name = "経費";
-
-    draft.specialist_route_code = "utility";
-    draft.specialist_route_label = "公共料金・通信費確認";
-    draft.source_type_code = "scan_upload";
-
-    draft.accounting_category_code = draft.accounting_category_code || "normal";
-    draft.payable_kind_code = "";
-
-    draft.confidence = draft.confidence || "high";
-    draft.confidence_level = draft.confidence_level || "high";
-    draft.confidence_label = draft.confidence_label || "高";
-    draft.ai_confidence = draft.ai_confidence || "高";
-
-    draft.needs_review = false;
-
-    draft.review_reason = "メール保存証憑であり、通信費のお知らせ・ご請求額・支払方法の記載があるため。支払方法がクレジットカードでもカード明細そのものではない。";
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "メール保存証憑";
-    draft.ai_summary.destination = "経費";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
-    draft.ai_summary.expense_target = "候補";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.public_utility = "公共料金";
-    draft.ai_summary.contract_insurance_lease = "対象外";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = draft.confidence_label || draft.ai_confidence || "高";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_MAIL_COMM_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_RECEIPT_ATTENTION_POLISH_20260707_START */
-function hdOriginReceiptAttentionSortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginReceiptAttentionSortHasAny(text, words) {
-  const s = String(text || "").replace(/\s+/g, "").toLowerCase();
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentReceiptAttentionSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isReceipt = hdOriginReceiptAttentionSortHasAny(text, [
-    "領収書",
-    "領収",
-    "手書き領収書",
-    "支払済",
-    "処理先:経費へ",
-    "処理先：経費へ"
-  ]);
-
-  const needsHumanCheck = hdOriginReceiptAttentionSortHasAny(text, [
-    "上様",
-    "お品代",
-    "但し書き",
-    "但し",
-    "宛名",
-    "インボイス番号",
-    "人間確認",
-    "確認"
-  ]);
-
-  const isReceiptAttention = isReceipt && needsHumanCheck;
-
-  if (isReceiptAttention) {
-    draft.document_type_code = "receipt";
-    draft.document_type_label = "領収書";
-    draft.document_type_name = "領収書";
-
-    draft.payment_destination_code = "expense";
-    draft.payment_destination_label = "経費管理";
-    draft.payment_destination_name = "経費管理";
-
-    draft.specialist_route_code = "paid_evidence";
-    draft.specialist_route_label = "支払済み証憑確認";
-    draft.source_type_code = "paid_evidence";
-
-    draft.accounting_category_code = draft.accounting_category_code || "normal";
-    draft.payable_kind_code = "";
-
-    draft.confidence = "medium";
-    draft.confidence_level = "medium";
-    draft.confidence_label = "中";
-    draft.ai_confidence = "中";
-
-    draft.needs_review = true;
-    draft.review_reason = "領収書だが、宛名が上様で但し書き・インボイス番号の人間確認が必要なため。";
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "領収書";
-    draft.ai_summary.destination = "経費管理";
-    draft.ai_summary.payment_target = "支払済み証憑候補";
-    draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
-    draft.ai_summary.expense_target = "候補";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.contract_insurance_lease = "対象外";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = "中";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_RECEIPT_ATTENTION_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_MATERIAL_INVOICE_POLISH_20260707_START */
-function hdOriginMaterialInvoiceSortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginMaterialInvoiceSortNormalize(text) {
-  return String(text || "").replace(/\s+/g, "").toLowerCase();
-}
-
-function hdOriginMaterialInvoiceSortHasAny(text, words) {
-  const s = hdOriginMaterialInvoiceSortNormalize(text);
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentMaterialInvoiceSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isInvoice = hdOriginMaterialInvoiceSortHasAny(text, [
-    "請求書",
-    "請求番号",
-    "支払期限",
-    "請求先",
-    "請求日",
-    "税抜金額",
-    "消費税",
-    "請求合計",
-    "登録番号"
-  ]);
-
-  const isMaterialPurchase = hdOriginMaterialInvoiceSortHasAny(text, [
-    "靴資材",
-    "靴資材一式",
-    "資材",
-    "材料",
-    "原材料",
-    "仕入",
-    "材料仕入",
-    "品名:靴資材",
-    "品名：靴資材"
-  ]);
-
-  const isRealTaxPublic = hdOriginMaterialInvoiceSortHasAny(text, [
-    "納付書",
-    "納税通知書",
-    "税目",
-    "税務署",
-    "法人税",
-    "固定資産税",
-    "都市計画税",
-    "源泉所得税",
-    "社会保険料"
-  ]);
-
-  const isMaterialInvoice = isInvoice && isMaterialPurchase && !isRealTaxPublic;
-
-  if (isMaterialInvoice) {
-    draft.document_type_code = "invoice";
-    draft.document_type_label = "請求書";
-    draft.document_type_name = "請求書";
-
-    draft.payment_destination_code = "accounts_payable";
-    draft.payment_destination_label = "買掛管理";
-    draft.payment_destination_name = "買掛管理";
-
-    draft.specialist_route_code = "accounts_payable";
-    draft.specialist_route_label = "買掛・仕入請求確認";
-    draft.source_type_code = "accounts_payable";
-
-    draft.accounting_category_code = draft.accounting_category_code || "normal";
-    draft.accounting_category_label = draft.accounting_category_label || "通常";
-    draft.accounting_category_name = draft.accounting_category_name || "通常";
-
-    draft.payable_kind_code = "purchase_payable";
-    draft.payable_kind_label = "仕入買掛";
-    draft.payable_kind_name = "仕入買掛";
-
-    draft.confidence = "high";
-    draft.confidence_level = "high";
-    draft.confidence_label = "高";
-    draft.ai_confidence = "高";
-
-    draft.needs_review = false;
-    draft.review_reason = "請求書であり、靴資材一式・支払期限・請求番号・請求合計の記載があるため、材料仕入の買掛候補と判断。";
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "請求書";
-    draft.ai_summary.destination = "買掛管理";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = "候補";
-    draft.ai_summary.expense_target = "対象外";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.contract_insurance_lease = "対象外";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = "高";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_MATERIAL_INVOICE_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_INSURANCE_POLISH_20260707_START */
-function hdOriginInsuranceSortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginInsuranceSortNormalize(text) {
-  return String(text || "").replace(/\s+/g, "").toLowerCase();
-}
-
-function hdOriginInsuranceSortHasAny(text, words) {
-  const s = hdOriginInsuranceSortNormalize(text);
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentInsuranceSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isPublicInsuranceOrTax = hdOriginInsuranceSortHasAny(text, [
-    "社会保険料",
-    "厚生年金",
-    "健康保険料",
-    "労働保険料",
-    "年金事務所",
-    "納付書",
-    "税務署",
-    "税目",
-    "法人税",
-    "固定資産税",
-    "都市計画税"
-  ]);
-
-  const isInsuranceNotice =
-    !isPublicInsuranceOrTax &&
-    (
-      hdOriginInsuranceSortHasAny(text, ["保険料通知書"]) ||
-      (
-        hdOriginInsuranceSortHasAny(text, ["保険料", "保険"]) &&
-        hdOriginInsuranceSortHasAny(text, ["契約番号", "契約者", "口座振替", "支払日"])
-      )
-    );
-
-  if (isInsuranceNotice) {
-    draft.document_type_code = "insurance_notice";
-    draft.document_type_label = "保険料通知書";
-    draft.document_type_name = "保険料通知書";
-
-    draft.payment_destination_code = "contract_insurance_lease";
-    draft.payment_destination_label = "契約・保険・リース";
-    draft.payment_destination_name = "契約・保険・リース";
-
-    draft.specialist_route_code = "contract_insurance_lease";
-    draft.specialist_route_label = "契約・保険・リース確認";
-    draft.source_type_code = "scan_upload";
-
-    draft.accounting_category_code = "insurance";
-    draft.accounting_category_label = "保険";
-    draft.accounting_category_name = "保険";
-
-    draft.payable_kind_code = "unpaid";
-    draft.payable_kind_label = "未払金";
-    draft.payable_kind_name = "未払金";
-
-    draft.confidence = "high";
-    draft.confidence_level = "high";
-    draft.confidence_label = "高";
-    draft.ai_confidence = "高";
-
-    draft.needs_review = false;
-    draft.review_reason = "保険料通知書であり、契約番号・支払日・保険料・口座振替の記載があるため。買掛ではなく契約・保険系の未払金候補として扱う。";
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "保険料通知書";
-    draft.ai_summary.destination = "契約・保険・リース";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = "候補";
-    draft.ai_summary.expense_target = "対象外";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.public_utility = "対象外";
-    draft.ai_summary.contract_insurance_lease = "保険";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = "高";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_INSURANCE_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_LEASE_POLISH_20260707_START */
-function hdOriginLeaseSortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginLeaseSortNormalize(text) {
-  return String(text || "").replace(/\s+/g, "").toLowerCase();
-}
-
-function hdOriginLeaseSortHasAny(text, words) {
-  const s = hdOriginLeaseSortNormalize(text);
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginPolishPaymentDocumentLeaseSortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isPublicTax = hdOriginLeaseSortHasAny(text, [
-    "納付書",
-    "納税通知書",
-    "税目",
-    "税務署",
-    "法人税",
-    "固定資産税",
-    "都市計画税",
-    "源泉所得税",
-    "社会保険料"
-  ]);
-
-  const isLeaseContract =
-    !isPublicTax &&
-    (
-      hdOriginLeaseSortHasAny(text, ["リース契約書", "リース契約"]) ||
-      (
-        hdOriginLeaseSortHasAny(text, ["リース"]) &&
-        hdOriginLeaseSortHasAny(text, ["貸主", "借主", "契約期間", "月額リース料", "毎月末日", "支払日"])
-      )
-    );
-
-  if (isLeaseContract) {
-    draft.document_type_code = "lease_contract";
-    draft.document_type_label = "リース契約書";
-    draft.document_type_name = "リース契約書";
-
-    draft.payment_destination_code = "contract_insurance_lease";
-    draft.payment_destination_label = "契約・保険・リース";
-    draft.payment_destination_name = "契約・保険・リース";
-
-    draft.specialist_route_code = "contract_insurance_lease";
-    draft.specialist_route_label = "契約・保険・リース確認";
-    draft.source_type_code = "scan_upload";
-
-    draft.accounting_category_code = "lease";
-    draft.accounting_category_label = "リース";
-    draft.accounting_category_name = "リース";
-
-    draft.payable_kind_code = "unpaid";
-    draft.payable_kind_label = "未払金";
-    draft.payable_kind_name = "未払金";
-
-    draft.confidence = "high";
-    draft.confidence_level = "high";
-    draft.confidence_label = "高";
-    draft.ai_confidence = "高";
-
-    draft.needs_review = false;
-    draft.review_reason = "リース契約書であり、貸主・借主・契約期間・月額リース料・支払日の記載があるため。買掛ではなく契約・リース系の未払金候補として扱う。";
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "リース契約書";
-    draft.ai_summary.destination = "契約・保険・リース";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = "候補";
-    draft.ai_summary.expense_target = "対象外";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.public_utility = "対象外";
-    draft.ai_summary.contract_insurance_lease = "リース";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = "高";
-    draft.ai_summary.reason = draft.review_reason;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_LEASE_POLISH_20260707_END */
-/* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_START */
-function hdOriginUtilitySortText(value) {
-  /* HD_ORIGIN_AI_PRIORITY_NO_POST_CLASSIFY_20260708
-     AI重視方針:
-     この関数はOCR本文ベースの後追い分類補正を行っていたため、
-     AIが返した分類・登録対象を壊さないよう入力オブジェクトをそのまま返す。
-     保存API・表示処理ではなく、AI後の補正だけを止める。
-  */
-  return value;
-
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function hdOriginUtilitySortNormalize(text) {
-  return String(text || "").replace(/\s+/g, "").toLowerCase();
-}
-
-function hdOriginUtilitySortHasAny(text, words) {
-  const s = hdOriginUtilitySortNormalize(text);
-  return words.some(word => s.includes(String(word || "").replace(/\s+/g, "").toLowerCase()));
-}
-
-function hdOriginUtilitySortCountAny(text, words) {
-  const s = hdOriginUtilitySortNormalize(text);
-  let count = 0;
-
-  words.forEach(word => {
-    const w = String(word || "").replace(/\s+/g, "").toLowerCase();
-    if (w && s.includes(w)) count++;
-  });
-
-  return count;
-}
-
-function hdOriginDetectUtilityKindForReason(ocrText) {
-  const text = String(ocrText || "");
-
-  if (hdOriginUtilitySortHasAny(text, ["水道料金通知書", "水道料金", "水道局", "水道"])) {
-    return {
-      label: "水道料金通知書",
-      reason: "水道料金通知書であり、水道局・対象期間・支払期限・請求合計の記載があるため。税金ではなく公共料金として扱う。"
-    };
-  }
-
-  if (hdOriginUtilitySortHasAny(text, ["電気料金", "電力"])) {
-    return {
-      label: "電気料金Web明細",
-      reason: "電気料金のWeb明細であり、発行元・契約名義・対象月・請求合計の記載があるため。税金ではなく公共料金として扱う。"
-    };
-  }
-
-  if (hdOriginUtilitySortHasAny(text, ["ガス料金", "ガス会社"])) {
-    return {
-      label: "ガス料金通知書",
-      reason: "ガス料金通知書であり、発行元・対象期間・支払期限・請求合計の記載があるため。税金ではなく公共料金として扱う。"
-    };
-  }
-
-  if (hdOriginUtilitySortHasAny(text, ["通信費", "通信費のお知らせ", "電話料金", "インターネット料金", "クラウド利用料"])) {
-    return {
-      label: "通信費通知書",
-      reason: "通信費系の通知書であり、対象月・請求額・支払方法等の記載があるため。税金ではなく通信費系の経費として扱う。"
-    };
-  }
-
-  return {
-    label: "公共料金通知書",
-    reason: "公共料金の通知書であり、料金種別・対象期間または使用期間・請求合計の記載があるため。税金ではなく公共料金として扱う。"
-  };
-}
-
-function hdOriginPolishPaymentDocumentUtilitySortResult(sortResult, ocrText) {
-  /* HD_ORIGIN_AI_ONLY_NO_POST_JUDGMENT_20260716 */
-  return sortResult &&
-    typeof sortResult === "object"
-      ? sortResult
-      : {};
-  const result = sortResult && typeof sortResult === "object" ? { ...sortResult } : {};
-  const draft = result.draft && typeof result.draft === "object" ? { ...result.draft } : {};
-  const text = String(ocrText || "");
-
-  draft.fields = {};
-
-  const isMaterialInvoice =
-    hdOriginUtilitySortHasAny(text, ["請求書", "請求番号", "支払期限", "請求先"]) &&
-    hdOriginUtilitySortHasAny(text, ["靴資材", "資材", "材料", "原材料", "仕入"]);
-
-  const utilityCoreCount = hdOriginUtilitySortCountAny(text, [
-    "電気料金",
-    "ガス料金",
-    "水道料金",
-    "水道料金通知書",
-    "水道局",
-    "水道",
-    "通信費",
-    "電話料金",
-    "インターネット料金",
-    "クラウド利用料",
-    "電力",
-    "ガス会社"
-  ]);
-
-  const utilityContextCount = hdOriginUtilitySortCountAny(text, [
-    "web明細",
-    "ｗｅｂ明細",
-    "web 明細",
-    "対象月",
-    "対象期間",
-    "使用期間",
-    "使用者",
-    "契約名義",
-    "通知日",
-    "支払期限",
-    "請求日",
-    "請求合計",
-    "消費税相当額",
-    "発行元",
-    "処理先:経費へ",
-    "処理先：経費へ"
-  ]);
-
-  const isUtility = utilityCoreCount >= 1 && utilityContextCount >= 1 && !isMaterialInvoice;
-
-  const isRealTaxPublic = hdOriginUtilitySortHasAny(text, [
-    "納付書",
-    "納税通知書",
-    "税目",
-    "税務署",
-    "市税",
-    "府税",
-    "県税",
-    "固定資産税",
-    "都市計画税",
-    "法人税",
-    "消費税納付",
-    "源泉所得税",
-    "社会保険料",
-    "年税額",
-    "納期限"
-  ]);
-
-  if (isUtility && !isRealTaxPublic) {
-    const utilityKind = hdOriginDetectUtilityKindForReason(text);
-
-    draft.document_type_code = "utility_notice";
-    draft.document_type_label = "公共料金通知書";
-    draft.document_type_name = "公共料金通知書";
-
-    draft.payment_destination_code = "expense";
-    draft.payment_destination_label = "経費管理";
-    draft.payment_destination_name = "経費管理";
-
-    draft.specialist_route_code = "utility";
-    draft.specialist_route_label = "公共料金・通信費確認";
-    draft.source_type_code = "scan_upload";
-
-    draft.accounting_category_code = "public_utility";
-    draft.accounting_category_label = "公共料金";
-    draft.accounting_category_name = "公共料金";
-    draft.payable_kind_code = "";
-
-    draft.confidence = "high";
-    draft.confidence_level = "high";
-    draft.confidence_label = "高";
-    draft.ai_confidence = "高";
-
-    draft.needs_review = false;
-    draft.review_reason = utilityKind.reason;
-
-    draft.ai_summary = draft.ai_summary && typeof draft.ai_summary === "object" ? { ...draft.ai_summary } : {};
-    draft.ai_summary.document_kind = "公共料金通知書";
-    draft.ai_summary.destination = "経費管理";
-    draft.ai_summary.payment_target = "支払対象候補";
-    draft.ai_summary.payable_target = draft.ai_summary.payable_target || "候補";
-    draft.ai_summary.expense_target = "候補";
-    draft.ai_summary.tax_public = "対象外";
-    draft.ai_summary.public_utility = "公共料金";
-    draft.ai_summary.contract_insurance_lease = "対象外";
-    draft.ai_summary.card_statement = "対象外";
-    draft.ai_summary.confidence_label = "高";
-    draft.ai_summary.reason = draft.review_reason;
-    draft.ai_summary.utility_kind = utilityKind.label;
-  }
-
-  result.draft = draft;
-  result.classification = draft;
-  result.sorting = draft;
-  result.document_group = draft.specialist_route_code || draft.document_type_code || result.document_group || "";
-  result.visible_field_labels = [];
-  result.display_mode = "sorting_only";
-  result.image_used = false;
-
-  return result;
-}
-/* PAYMENT_DOCUMENT_SORT_GROW_UTILITY_POLISH_20260707_END */
 /* HD_ORIGIN_PAYMENT_DOCUMENT_SPECIALIST_ANALYSIS_SAVE_API_20260707_START */
 function hdOriginCilText(value) {
   if (value === null || value === undefined) return "";
@@ -7807,671 +6696,7 @@ async function hdOriginSuggestBusinessFlowImprovements(payload) {
 /* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_20260709_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_END */
 
-/* HD_ORIGIN_ACCESS_FIRST_AI_20260718_START */
-function hdOriginAccessFirstAiArray(value) {
-  return Array.isArray(value)
-    ? value
-        .map((item) => {
-          const source =
-            item && typeof item === "object"
-              ? item
-              : {};
-
-          return {
-            code: String(source.code || "").trim(),
-            label: String(source.label || source.name || "").trim()
-          };
-        })
-        .filter((item) => item.code)
-    : [];
-}
-
-function hdOriginAccessFirstAiText(value) {
-  return String(
-    value === null || value === undefined
-      ? ""
-      : value
-  ).trim();
-}
-
-function hdOriginAccessFirstAiWarnings(value) {
-  return Array.isArray(value)
-    ? value
-        .map((item) => String(item || "").trim())
-        .filter(Boolean)
-    : [];
-}
-
-function hdOriginAccessFirstAiConfidence(value) {
-  const number = Number(value);
-
-  if (!Number.isFinite(number)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(1, number));
-}
-
-function hdOriginAccessFirstAiFindCandidate(candidates, code) {
-  const target = String(code || "").trim();
-
-  return candidates.find(
-    (item) => item.code === target
-  ) || null;
-}
-
-async function callHdOriginAccessFirstAiOpenAiJson(
-  userPrompt,
-  systemPrompt,
-  allowedCodes
-) {
-  const apiKey = getOpenAiApiKey();
-
-  const companyCodes = Array.isArray(
-    allowedCodes && allowedCodes.companyCodes
-  )
-    ? allowedCodes.companyCodes
-        .map((value) => String(value || "").trim())
-        .filter(Boolean)
-    : [];
-
-  const documentTypeCodes = Array.isArray(
-    allowedCodes && allowedCodes.documentTypeCodes
-  )
-    ? allowedCodes.documentTypeCodes
-        .map((value) => String(value || "").trim())
-        .filter(Boolean)
-    : [];
-
-  const analysisSystemCodes = Array.isArray(
-    allowedCodes && allowedCodes.analysisSystemCodes
-  )
-    ? allowedCodes.analysisSystemCodes
-        .map((value) => String(value || "").trim())
-        .filter(Boolean)
-    : [];
-
-  if (
-    !companyCodes.length ||
-    !documentTypeCodes.length ||
-    !analysisSystemCodes.length
-  ) {
-    const error = new Error(
-      "Access一次判定AIの候補コードが不足しています。"
-    );
-
-    error.statusCode = 500;
-    throw error;
-  }
-
-  if (!apiKey) {
-    const error = new Error(
-      "OPENAI_API_KEY が未設定です。"
-    );
-
-    error.statusCode = 500;
-    throw error;
-  }
-
-  const response = await fetch(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + apiKey,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: getOpenAiModel(),
-        temperature: 0,
-        messages: [
-          {
-            role: "system",
-            content: String(
-              systemPrompt || ""
-            )
-          },
-          {
-            role: "user",
-            content: String(
-              userPrompt || ""
-            )
-          }
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "hd_origin_access_first_decision",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                company_code: {
-                  type: "string",
-                  enum: companyCodes
-                },
-                document_type_code: {
-                  type: "string",
-                  enum: documentTypeCodes
-                },
-                analysis_system_code: {
-                  type: "string",
-                  enum: analysisSystemCodes
-                },
-                confidence: {
-                  type: "number",
-                  minimum: 0,
-                  maximum: 1
-                },
-                reason: {
-                  type: "string"
-                },
-                needs_review: {
-                  type: "boolean"
-                },
-                warnings: {
-                  type: "array",
-                  items: {
-                    type: "string"
-                  }
-                }
-              },
-              required: [
-                "company_code",
-                "document_type_code",
-                "analysis_system_code",
-                "confidence",
-                "reason",
-                "needs_review",
-                "warnings"
-              ]
-            }
-          }
-        }
-      })
-    }
-  );
-
-  const data = await response
-    .json()
-    .catch(() => null);
-
-  if (!response.ok) {
-    const message =
-      data &&
-      data.error &&
-      data.error.message
-        ? data.error.message
-        : "OpenAI API error: " +
-          String(response.status);
-
-    const error = new Error(message);
-    error.statusCode =
-      response.status || 500;
-
-    throw error;
-  }
-
-  const content =
-    data &&
-    data.choices &&
-    data.choices[0] &&
-    data.choices[0].message &&
-    data.choices[0].message.content
-      ? data.choices[0].message.content
-      : "";
-
-  const parsed = safeJsonParse(content);
-
-  if (
-    !parsed ||
-    typeof parsed !== "object" ||
-    Array.isArray(parsed)
-  ) {
-    const error = new Error(
-      "Access一次判定AI応答をJSONとして解析できませんでした。"
-    );
-
-    error.statusCode = 500;
-    throw error;
-  }
-
-  return {
-    parsed,
-    usage:
-      data && data.usage
-        ? data.usage
-        : null
-  };
-}
-async function createHdOriginAccessFirstAiDecision(body) {
-  const ocrText = hdOriginAccessFirstAiText(
-    body.ocr_text ||
-    body.ocrText
-  );
-
-  if (!ocrText) {
-    const error = new Error("OCR本文が空です。");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const companies = hdOriginAccessFirstAiArray(
-    body.candidate_companies ||
-    body.candidateCompanies
-  );
-
-  const documentTypes = hdOriginAccessFirstAiArray(
-    body.candidate_document_types ||
-    body.candidateDocumentTypes
-  );
-
-  const specialists = hdOriginAccessFirstAiArray(
-    body.candidate_specialists ||
-    body.candidateSpecialists
-  );
-
-  if (!companies.length) {
-    const error = new Error("会社候補がありません。");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  if (!documentTypes.length) {
-    const error = new Error("文書種別候補がありません。");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  if (!specialists.length) {
-    const error = new Error("専門解析候補がありません。");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const userPrompt = [
-    "次のOCR本文を一次判定してください。",
-    "",
-    "candidate_companies:",
-    JSON.stringify(companies, null, 2),
-    "",
-    "candidate_document_types:",
-    JSON.stringify(documentTypes, null, 2),
-    "",
-    "candidate_specialists:",
-    JSON.stringify(specialists, null, 2),
-    "",
-    "OCR本文:",
-    ocrText
-  ].join("\n");
-
-  const systemPrompt =
-    loadPaymentDocumentPromptText(
-      "access-first-decision.system.txt",
-      ""
-    );
-
-  if (!String(systemPrompt || "").trim()) {
-    const error = new Error(
-      "Access一次判定プロンプトを読み込めません。"
-    );
-
-    error.statusCode = 500;
-    throw error;
-  }
-
-  const response =
-    await callHdOriginAccessFirstAiOpenAiJson(
-      userPrompt,
-      systemPrompt,
-      {
-        companyCodes:
-          companies.map((item) => item.code),
-        documentTypeCodes:
-          documentTypes.map((item) => item.code),
-        analysisSystemCodes:
-          specialists.map((item) => item.code)
-      }
-    );
-
-  const parsed =
-    response &&
-    response.parsed &&
-    typeof response.parsed === "object"
-      ? response.parsed
-      : {};
-
-  const companyCode =
-    hdOriginAccessFirstAiText(
-      parsed.company_code ||
-      parsed.companyCode
-    );
-
-  const documentTypeCode =
-    hdOriginAccessFirstAiText(
-      parsed.document_type_code ||
-      parsed.documentTypeCode
-    );
-
-  const analysisSystemCode =
-    hdOriginAccessFirstAiText(
-      parsed.analysis_system_code ||
-      parsed.analysisSystemCode
-    );
-
-  const company =
-    hdOriginAccessFirstAiFindCandidate(
-      companies,
-      companyCode
-    );
-
-  const documentType =
-    hdOriginAccessFirstAiFindCandidate(
-      documentTypes,
-      documentTypeCode
-    );
-
-  const specialist =
-    hdOriginAccessFirstAiFindCandidate(
-      specialists,
-      analysisSystemCode
-    );
-
-  if (!company) {
-    const error = new Error(
-      "AIが会社候補外のコードを返しました: " +
-      companyCode
-    );
-
-    error.statusCode = 422;
-    throw error;
-  }
-
-  if (!documentType) {
-    const error = new Error(
-      "AIが文書種別候補外のコードを返しました: " +
-      documentTypeCode
-    );
-
-    error.statusCode = 422;
-    throw error;
-  }
-
-  if (!specialist) {
-    const error = new Error(
-      "AIが専門解析候補外のコードを返しました: " +
-      analysisSystemCode
-    );
-
-    error.statusCode = 422;
-    throw error;
-  }
-
-  return {
-    company_code: company.code,
-    company_label: company.label,
-    document_type_code: documentType.code,
-    document_type_label: documentType.label,
-    analysis_system_code: specialist.code,
-    analysis_system_label: specialist.label,
-    confidence:
-      hdOriginAccessFirstAiConfidence(
-        parsed.confidence
-      ),
-    reason:
-      hdOriginAccessFirstAiText(
-        parsed.reason
-      ),
-    needs_review:
-      parsed.needs_review === true ||
-      parsed.needsReview === true,
-    warnings:
-      hdOriginAccessFirstAiWarnings(
-        parsed.warnings
-      ),
-    model: getOpenAiModel(),
-    prompt_version:
-      "access-first-decision-v1",
-    raw_result: parsed,
-    usage:
-      response && response.usage
-        ? response.usage
-        : null
-  };
-}
-/* HD_ORIGIN_ACCESS_FIRST_AI_20260718_END */
-
 async function handlePaymentDocumentRoutes(req, res) {
-  /* HD_ORIGIN_ACCESS_FIRST_AI_ROUTE_20260718 */
-  if (
-    req.method === "POST" &&
-    String(req.url || "").split("?")[0] ===
-      "/api/payment-documents/access-ai/first-decision"
-  ) {
-    try {
-      const body =
-        await readBody(req);
-
-      const decision =
-        await createHdOriginAccessFirstAiDecision(
-          body
-        );
-
-      sendJson(res, 200, {
-        ok: true,
-        source:
-          "access_openai_first_decision_text_only",
-        image_used: false,
-        access_ocr_id:
-          body.access_ocr_id ||
-          body.accessOcrId ||
-          null,
-        company_code:
-          decision.company_code,
-        company_label:
-          decision.company_label,
-        document_type_code:
-          decision.document_type_code,
-        document_type_label:
-          decision.document_type_label,
-        analysis_system_code:
-          decision.analysis_system_code,
-        analysis_system_label:
-          decision.analysis_system_label,
-        confidence:
-          decision.confidence,
-        reason:
-          decision.reason,
-        needs_review:
-          decision.needs_review,
-        warnings:
-          decision.warnings,
-        warnings_json:
-          JSON.stringify(
-            decision.warnings || []
-          ),
-        model:
-          decision.model,
-        prompt_version:
-          decision.prompt_version,
-        raw_result:
-          decision.raw_result,
-        usage:
-          decision.usage
-      });
-    } catch (error) {
-      sendJson(
-        res,
-        error.statusCode || 500,
-        {
-          ok: false,
-          source:
-            "access_openai_first_decision_text_only",
-          image_used: false,
-          error:
-            error.message ||
-            String(error)
-        }
-      );
-    }
-
-    return true;
-  }
-
-  /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_START */
-  if (
-    req.method === "POST" &&
-    String(req.url || "").split("?")[0] ===
-      "/api/payment-documents/access-ai-specialist"
-  ) {
-    try {
-      const body = await readBody(req);
-      const ocrText = String(
-        body.ocr_text ||
-        body.ocrText ||
-        ""
-      ).trim();
-
-      if (!ocrText) {
-        sendJson(res, 400, {
-          ok: false,
-          source: "access_openai_ocr_text_only",
-          image_used: false,
-          error: "OCR text is empty."
-        });
-        return true;
-      }
-
-      if (ocrText.length > 50000) {
-        sendJson(res, 400, {
-          ok: false,
-          source: "access_openai_ocr_text_only",
-          image_used: false,
-          error: "OCR text is too long."
-        });
-        return true;
-      }
-
-      const specialistRouteCode = String(
-        body.specialist_route_code ||
-        body.specialistRouteCode ||
-        body.group ||
-        ""
-      )
-        .trim()
-        .toLowerCase()
-        .replace(/_analysis$/, "");
-
-      const definitions = {
-        invoice_payable: {
-          analysisSystemCode: "invoice_payable"
-        },
-        tax_public: {
-          analysisSystemCode: "tax_public"
-        },
-        utility_communication: {
-          analysisSystemCode: "utility_communication"
-        },
-        contract_insurance_lease: {
-          analysisSystemCode: "contract_insurance_lease"
-        },
-        receipt_evidence: {
-          analysisSystemCode: "receipt_evidence"
-        },
-        card_statement: {
-          analysisSystemCode: "card_statement"
-        },
-        reference_check: {
-          analysisSystemCode: "delivery_note"
-        },
-        needs_review: {
-          analysisSystemCode: "needs_review"
-        }
-      };
-
-      const definition = definitions[specialistRouteCode];
-
-      if (!definition) {
-        sendJson(res, 400, {
-          ok: false,
-          source: "access_openai_ocr_text_only",
-          image_used: false,
-          error: "Unsupported specialist route code.",
-          received_specialist_route_code:
-            specialistRouteCode
-        });
-        return true;
-      }
-
-      const aiResult =
-        await createPaymentDocumentSpecialistDraftFromOcrText(
-          ocrText,
-          {
-            ...body,
-            specialist_route_code:
-              specialistRouteCode,
-            analysis_system_code:
-              body.analysis_system_code ||
-              body.analysisSystemCode ||
-              definition.analysisSystemCode,
-            group:
-              specialistRouteCode,
-            draft:
-              body.draft ||
-              body.classification ||
-              {}
-          }
-        );
-
-      sendJson(res, 200, {
-        ok: true,
-        source: "access_openai_ocr_text_only",
-        image_used: false,
-        access_ocr_id:
-          body.access_ocr_id ||
-          body.accessOcrId ||
-          null,
-        specialist_route_code:
-          specialistRouteCode,
-        analysis_system_code:
-          definition.analysisSystemCode,
-        ai_steps:
-          aiResult.steps,
-        display_mode:
-          aiResult.display_mode,
-        document_group:
-          aiResult.document_group,
-        visible_field_labels:
-          aiResult.visible_field_labels,
-        prompt_rule_files:
-          aiResult.prompt_rule_files,
-        classification:
-          aiResult.classification,
-        specialist:
-          aiResult.specialist,
-        draft:
-          aiResult.draft
-      });
-    } catch (error) {
-      sendJson(
-        res,
-        error.statusCode || 500,
-        {
-          ok: false,
-          source: "access_openai_ocr_text_only",
-          image_used: false,
-          error:
-            error.message ||
-            String(error)
-        }
-      );
-    }
-
-    return true;
-  }
-  /* HD_ORIGIN_ACCESS_AI_SPECIALIST_ROUTE_20260715_END */
-
   /* HD_ORIGIN_WITHHOLDING_TAX_RULE_MANAGEMENT_API_20260711_START */
   if (
     req.method === "GET" &&
@@ -9392,6 +7617,24 @@ async function handlePaymentDocumentRoutes(req, res) {
       "/api/payment-documents/review-items"
   ) {
     try {
+      const reviewItemsUrl = new URL(
+        req.url || "/api/payment-documents/review-items",
+        "http://localhost"
+      );
+      const specialistScope =
+        reviewItemsUrl.searchParams.get("scope") === "specialist";
+      const specialistAnalysisSystemCode = String(
+        reviewItemsUrl.searchParams.get("analysis_system_code") || ""
+      ).trim();
+
+      if (specialistScope && !specialistAnalysisSystemCode) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "専門解析一覧にはanalysis_system_codeが必要です。"
+        });
+        return true;
+      }
+
       const result = await db.query(`
         SELECT
           o.payment_document_ocr_import_id,
@@ -9451,6 +7694,40 @@ async function handlePaymentDocumentRoutes(req, res) {
         WHERE
           o.deleted_at IS NULL
           AND COALESCE(o.ocr_raw_text, '') <> ''
+          AND (
+            (
+              $1 <> ''
+              AND o.current_status = '専門解析待ち'
+              AND b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code' = $1
+            )
+            OR (
+              $1 = ''
+              AND (
+                o.current_status = '基礎解析済み'
+                OR o.current_status = (
+                  WITH ocr_phase AS (
+                    SELECT MAX(display_order) AS last_ocr_order
+                    FROM accounting.payment_document_current_statuses
+                    WHERE is_active = TRUE
+                      AND (
+                        current_status LIKE 'OCR%'
+                        OR COALESCE(description, '') LIKE '%OCR%'
+                      )
+                  )
+                  SELECT current_status
+                  FROM accounting.payment_document_current_statuses
+                  CROSS JOIN ocr_phase
+                  WHERE is_active = TRUE
+                    AND is_processing = FALSE
+                    AND is_terminal = FALSE
+                    AND is_error = FALSE
+                    AND display_order > ocr_phase.last_ocr_order
+                  ORDER BY display_order
+                  LIMIT 1
+                )
+              )
+            )
+          )
 
         ORDER BY
           o.sorted_at DESC NULLS LAST,
@@ -9459,7 +7736,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.payment_document_ocr_import_id DESC
 
         LIMIT 500
-      `);
+      `, [specialistScope ? specialistAnalysisSystemCode : ""]);
 
       const objectOrEmpty = value =>
         value &&
@@ -9479,54 +7756,15 @@ async function handlePaymentDocumentRoutes(req, res) {
             row.basic_raw_result_json
           );
 
-        const basicDraft =
-          objectOrEmpty(
-            basicRawResult.draft
-          );
-
-        const effectiveDraft =
-          Object.keys(basicDraft).length
-            ? basicDraft
-            : objectOrEmpty(
-                basicRawResult.aiDraft ||
-                basicRawResult.ai_draft ||
-                basicRawResult.sortResult ||
-                basicRawResult.sort_result ||
-                basicRawResult
-              );
-
-        const sortResult =
-          objectOrEmpty(
-            basicRawResult.sortResult ||
-            basicRawResult.sort_result ||
-            effectiveDraft.sortResult ||
-            effectiveDraft.sort_result ||
-            effectiveDraft
-          );
-
-        const visibleFields =
-          objectOrEmpty(
-            basicRawResult.visibleFields ||
-            basicRawResult.visible_fields ||
-            effectiveDraft.visibleFields ||
-            effectiveDraft.visible_fields
-          );
-
-        const visibleFieldLabels =
-          arrayOrEmpty(
-            basicRawResult.visibleFieldLabels ||
-            basicRawResult.visible_field_labels ||
-            effectiveDraft.visibleFieldLabels ||
-            effectiveDraft.visible_field_labels
-          );
-
-        const aiSummary =
-          objectOrEmpty(
-            basicRawResult.aiSummary ||
-            basicRawResult.ai_summary ||
-            effectiveDraft.aiSummary ||
-            effectiveDraft.ai_summary
-          );
+        // Basic-analysis data is exposed only from the formal table schema.
+        // Do not merge legacy or in-memory values into the review response.
+        const basicAnalysis = objectOrEmpty(basicRawResult.analysis);
+        const sortResult = objectOrEmpty(basicAnalysis.sortResult);
+        const visibleFields = objectOrEmpty(basicAnalysis.visibleFields);
+        const visibleFieldLabels = arrayOrEmpty(
+          basicAnalysis.visibleFieldLabels
+        );
+        const aiSummary = objectOrEmpty(basicAnalysis.aiSummary);
 
         const latestBasicAnalysis =
           row.basic_analysis_id
@@ -9578,9 +7816,6 @@ async function handlePaymentDocumentRoutes(req, res) {
 
                 raw_result:
                   basicRawResult,
-
-                draft:
-                  effectiveDraft,
 
                 sortResult:
                   sortResult,
@@ -9634,8 +7869,6 @@ async function handlePaymentDocumentRoutes(req, res) {
 
         const analysisSystemCode =
           String(
-            effectiveDraft.analysis_system_code ||
-            effectiveDraft.analysisSystemCode ||
             sortResult.analysis_system_code ||
             sortResult.analysisSystemCode ||
             ""
@@ -9766,26 +7999,6 @@ async function handlePaymentDocumentRoutes(req, res) {
 
           analysisSystemCode,
 
-          __aiDraft:
-            latestBasicAnalysis
-              ? effectiveDraft
-              : null,
-
-          __visibleFieldLabels:
-            latestBasicAnalysis
-              ? visibleFieldLabels
-              : [],
-
-          __documentGroup:
-            latestBasicAnalysis
-              ? analysisSystemCode
-              : "",
-
-          __aiRawResult:
-            latestBasicAnalysis
-              ? basicRawResult
-              : null,
-
           createdAt:
             row.created_at,
 
@@ -9797,7 +8010,9 @@ async function handlePaymentDocumentRoutes(req, res) {
       sendJson(res, 200, {
         ok: true,
         source:
-          "database-review-items-basic-analysis",
+          specialistScope
+            ? "database-specialist-waiting-items"
+            : "database-review-items-basic-analysis",
         items
       });
     } catch (err) {
@@ -9814,6 +8029,182 @@ async function handlePaymentDocumentRoutes(req, res) {
     return true;
   }
   /* HD_ORIGIN_PAYMENT_DOCUMENT_REVIEW_ITEMS_DB_ONLY_20260708_END */
+
+  /* HD_ORIGIN_BASIC_ANALYSIS_BULK_ROUTE_TO_SPECIALIST_20260729_START */
+  if (
+    req.method === "POST" &&
+    String(req.url || "").split("?")[0] ===
+      "/api/payment-documents/basic-analysis/route-to-specialist-bulk"
+  ) {
+    const results = [];
+    let body;
+
+    try {
+      body = await readBody(req);
+      const companyId = Number(body.company_id || body.companyId || 0);
+      const companyCode = String(
+        body.company_code || body.companyCode || ""
+      ).trim();
+      const requestedIds = Array.isArray(
+        body.payment_document_ocr_import_ids
+      )
+        ? body.payment_document_ocr_import_ids
+        : [];
+      const ocrImportIds = [
+        ...new Set(
+          requestedIds
+            .map(value => Number(value))
+            .filter(value => Number.isInteger(value) && value > 0)
+        )
+      ];
+
+      if (!Number.isInteger(companyId) || companyId < 1 || !companyCode) {
+        const error = new Error("company_id と company_code が必要です。");
+        error.statusCode = 422;
+        throw error;
+      }
+
+      if (!ocrImportIds.length) {
+        const error = new Error("振り分け対象のOCR取込IDがありません。");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const activeSystemsResult = await db.query(`
+        SELECT analysis_system_code
+        FROM expenses.analysis_systems
+        WHERE is_active = TRUE
+      `);
+      const activeAnalysisSystemCodes = new Set(
+        activeSystemsResult.rows
+          .map(row => String(row.analysis_system_code || "").trim())
+          .filter(Boolean)
+      );
+
+      for (const ocrImportId of ocrImportIds) {
+        let client;
+
+        try {
+          client = await db.connect();
+          await client.query("BEGIN");
+
+          const lockedResult = await client.query(`
+            SELECT
+              o.payment_document_ocr_import_id,
+              o.current_status,
+              b.basic_analysis_id,
+              b.company_id,
+              c.company_code,
+              b.analysis_completed,
+              b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code'
+                AS analysis_system_code
+            FROM accounting.payment_document_ocr_imports o
+            LEFT JOIN accounting.payment_document_basic_analysis_results b
+              ON b.payment_document_ocr_import_id =
+                 o.payment_document_ocr_import_id
+             AND b.is_current = TRUE
+            LEFT JOIN expenses.companies c
+              ON c.company_id = b.company_id
+            WHERE o.payment_document_ocr_import_id = $1
+              AND o.deleted_at IS NULL
+            FOR UPDATE OF o
+          `, [ocrImportId]);
+          const row = lockedResult.rows[0];
+
+          if (!row) {
+            throw new Error("OCR取込レコードが見つかりません。");
+          }
+
+          if (
+            Number(row.company_id) !== companyId ||
+            String(row.company_code || "").trim() !== companyCode
+          ) {
+            throw new Error("対象会社が一致しません。");
+          }
+
+          if (row.current_status !== "基礎解析済み") {
+            throw new Error("current_statusが基礎解析済みではありません。");
+          }
+
+          if (!row.basic_analysis_id || row.analysis_completed !== true) {
+            throw new Error("最新の正式基礎解析結果が未完了です。");
+          }
+
+          const analysisSystemCode = String(
+            row.analysis_system_code || ""
+          ).trim();
+
+          if (!analysisSystemCode) {
+            throw new Error("analysis_system_codeがありません。");
+          }
+
+          if (!activeAnalysisSystemCodes.has(analysisSystemCode)) {
+            throw new Error("analysis_system_codeが有効な専門解析システムではありません。");
+          }
+
+          const updatedResult = await client.query(`
+            UPDATE accounting.payment_document_ocr_imports
+            SET
+              current_status = '専門解析待ち',
+              sorted_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE payment_document_ocr_import_id = $1
+              AND deleted_at IS NULL
+              AND current_status = '基礎解析済み'
+            RETURNING payment_document_ocr_import_id, current_status
+          `, [ocrImportId]);
+
+          if (updatedResult.rowCount !== 1) {
+            throw new Error("専門解析待ちへの振り分け更新に失敗しました。");
+          }
+
+          await client.query("COMMIT");
+          results.push({
+            payment_document_ocr_import_id: ocrImportId,
+            ok: true,
+            analysis_system_code: analysisSystemCode,
+            current_status: updatedResult.rows[0].current_status
+          });
+        } catch (error) {
+          if (client) {
+            try {
+              await client.query("ROLLBACK");
+            } catch {}
+          }
+
+          results.push({
+            payment_document_ocr_import_id: ocrImportId,
+            ok: false,
+            error: error.message || String(error)
+          });
+        } finally {
+          if (client) client.release();
+        }
+      }
+
+      const success = results.filter(row => row.ok).length;
+
+      sendJson(res, 200, {
+        ok: true,
+        total: ocrImportIds.length,
+        success,
+        failed: ocrImportIds.length - success,
+        results
+      });
+    } catch (error) {
+      sendJson(res, error.statusCode || 500, {
+        ok: false,
+        error: error.message || String(error),
+        total: results.length,
+        success: results.filter(row => row.ok).length,
+        failed: results.filter(row => !row.ok).length,
+        results
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_BASIC_ANALYSIS_BULK_ROUTE_TO_SPECIALIST_20260729_END */
 
   /* HD_ORIGIN_GPT2_SPECIALIST_ANALYSIS_RESULT_SAVE_ROUTE_20260710_START */
   function hdOriginSpecialistSaveText(value) {
@@ -9856,9 +8247,9 @@ async function handlePaymentDocumentRoutes(req, res) {
 
   async function hdOriginSavePaymentDocumentSpecialistAnalysisResult(body) {
     const root = hdOriginSpecialistFirstObject(body);
-    const draft = hdOriginSpecialistFirstObject(root.draft, root.aiDraft, root.ai_draft, root.sorting, root.classification);
-    const sortResult = hdOriginSpecialistFirstObject(root.sortResult, root.sort_result, root.result, draft.sortResult, draft.sort_result);
-    const aiSummary = hdOriginSpecialistFirstObject(root.ai_summary, root.aiSummary, draft.ai_summary, draft.aiSummary, sortResult.ai_summary, sortResult.aiSummary);
+    const analysis = hdOriginSpecialistFirstObject(root.analysis, root.analysisResult, root.analysis_result, root.sorting, root.classification);
+    const sortResult = hdOriginSpecialistFirstObject(root.sortResult, root.sort_result, root.result, analysis.sortResult, analysis.sort_result);
+    const aiSummary = hdOriginSpecialistFirstObject(root.ai_summary, root.aiSummary, analysis.ai_summary, analysis.aiSummary, sortResult.ai_summary, sortResult.aiSummary);
 
     let ocrImportId = hdOriginSpecialistSaveNumber(
       root.paymentDocumentOcrImportId ||
@@ -9877,7 +8268,7 @@ async function handlePaymentDocumentRoutes(req, res) {
       const fallbackAnalysisSystemCode = hdOriginSpecialistFirstText(
         root.analysisSystemCode,
         root.analysis_system_code,
-        draft.analysis_system_code,
+        analysis.analysis_system_code,
         sortResult.analysis_system_code,
         aiSummary.analysis_system_code
       );
@@ -9885,8 +8276,8 @@ async function handlePaymentDocumentRoutes(req, res) {
       const fallbackAnalysisSystemLabel = hdOriginSpecialistFirstText(
         root.analysisSystemLabel,
         root.analysis_system_label,
-        draft.analysis_system_label,
-        draft.specialist_route_label,
+        analysis.analysis_system_label,
+        analysis.specialist_route_label,
         sortResult.analysis_system_label,
         sortResult.specialist_route_label,
         aiSummary.analysis_system_label,
@@ -9896,7 +8287,7 @@ async function handlePaymentDocumentRoutes(req, res) {
       const fallbackSpecialistRouteCode = hdOriginSpecialistFirstText(
         root.specialistRouteCode,
         root.specialist_route_code,
-        draft.specialist_route_code,
+        analysis.specialist_route_code,
         sortResult.specialist_route_code,
         fallbackAnalysisSystemCode
       );
@@ -9904,7 +8295,7 @@ async function handlePaymentDocumentRoutes(req, res) {
       const fallbackSpecialistRouteLabel = hdOriginSpecialistFirstText(
         root.specialistRouteLabel,
         root.specialist_route_label,
-        draft.specialist_route_label,
+        analysis.specialist_route_label,
         sortResult.specialist_route_label,
         fallbackAnalysisSystemLabel
       );
@@ -9986,7 +8377,7 @@ async function handlePaymentDocumentRoutes(req, res) {
       const analysisSystemCode = hdOriginSpecialistFirstText(
         root.analysisSystemCode,
         root.analysis_system_code,
-        draft.analysis_system_code,
+        analysis.analysis_system_code,
         sortResult.analysis_system_code,
         aiSummary.analysis_system_code,
         null,
@@ -10001,8 +8392,8 @@ async function handlePaymentDocumentRoutes(req, res) {
       const analysisSystemLabel = hdOriginSpecialistFirstText(
         root.analysisSystemLabel,
         root.analysis_system_label,
-        draft.analysis_system_label,
-        draft.specialist_route_label,
+        analysis.analysis_system_label,
+        analysis.specialist_route_label,
         sortResult.analysis_system_label,
         sortResult.specialist_route_label,
         aiSummary.analysis_system_label,
@@ -10014,8 +8405,8 @@ async function handlePaymentDocumentRoutes(req, res) {
       const aiConfidence = hdOriginSpecialistSaveNumber(
         root.aiConfidence ||
         root.ai_confidence ||
-        draft.ai_confidence ||
-        draft.confidence ||
+        analysis.ai_confidence ||
+        analysis.confidence ||
         sortResult.ai_confidence ||
         sortResult.confidence
       );
@@ -10024,8 +8415,8 @@ async function handlePaymentDocumentRoutes(req, res) {
         root.aiReason,
         root.ai_reason,
         root.reason,
-        draft.ai_reason,
-        draft.reason,
+        analysis.ai_reason,
+        analysis.reason,
         sortResult.ai_reason,
         sortResult.reason,
         aiSummary.reason
@@ -10033,7 +8424,7 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const warningsJson = hdOriginSpecialistSaveArray(
         root.warnings ||
-        draft.warnings ||
+        analysis.warnings ||
         sortResult.warnings
       );
 
@@ -10043,7 +8434,7 @@ async function handlePaymentDocumentRoutes(req, res) {
        * 契約・保険・リース画面で人間が修正した専門項目を、
        * 同じ専門解析結果のraw_result_jsonへ統合する。
        */
-      const rawResultBaseJson = hdOriginSpecialistSaveObject(
+      const analysisResult = hdOriginSpecialistSaveObject(
         root.rawResult ||
         root.raw_result_json ||
         root.specialistResult ||
@@ -10064,23 +8455,20 @@ async function handlePaymentDocumentRoutes(req, res) {
         root.visible_field_labels
       );
 
-      const cilBaseDraft = hdOriginSpecialistFirstObject(
-        rawResultBaseJson.draft,
-        rawResultBaseJson.aiDraft,
-        rawResultBaseJson.ai_draft
-      );
-
       const rawResultJson =
-        analysisSystemCode === "contract_insurance_lease_analysis" &&
-        Object.keys(cilHumanFields).length > 0
-          ? {
-              ...rawResultBaseJson,
+        {
+          analysis:
+            analysisSystemCode === "contract_insurance_lease_analysis" &&
+            Object.keys(cilHumanFields).length > 0
+              ? {
+                  ...analysisResult,
+                  ...cilHumanFields
+                }
+              : analysisResult,
 
-              draft: {
-                ...cilBaseDraft,
-                ...cilHumanFields
-              },
-
+          ...(analysisSystemCode === "contract_insurance_lease_analysis" &&
+          Object.keys(cilHumanFields).length > 0
+            ? {
               specialist_fields:
                 cilHumanFields,
 
@@ -10098,8 +8486,9 @@ async function handlePaymentDocumentRoutes(req, res) {
 
               visibleFieldLabels:
                 cilVisibleFieldLabels
-            }
-          : rawResultBaseJson;
+              }
+            : {})
+        };
 const humanMemo = hdOriginSpecialistFirstText(
         root.humanMemo,
         root.human_memo,
@@ -10255,389 +8644,7 @@ await client.query("COMMIT");
   }
   /* HD_ORIGIN_GPT2_SPECIALIST_ANALYSIS_RESULT_SAVE_ROUTE_20260710_END */
 
-  /* HD_ORIGIN_BASIC_ANALYSIS_SAVE_ROUTE_20260726_START */
-  if (
-    req.method === "POST" &&
-    String(req.url || "").split("?")[0] ===
-      "/api/payment-documents/basic-analysis-results/save"
-  ) {
-    let client;
-
-    try {
-      const body = await readBody(req);
-
-      const ocrImportId = Number(
-        body.paymentDocumentOcrImportId ||
-        body.payment_document_ocr_import_id ||
-        body.ocrImportId ||
-        body.ocr_import_id ||
-        body.id
-      );
-
-      if (
-        !Number.isInteger(ocrImportId) ||
-        ocrImportId < 1
-      ) {
-        sendJson(res, 400, {
-          ok: false,
-          error: "OCR取込IDが不正です。"
-        });
-
-        return true;
-      }
-
-      const root =
-        body.sortResult &&
-        typeof body.sortResult === "object"
-          ? body.sortResult
-          : (
-              body.aiDraft &&
-              typeof body.aiDraft === "object"
-                ? body.aiDraft
-                : (
-                    body.draft &&
-                    typeof body.draft === "object"
-                      ? body.draft
-                      : body
-                  )
-            );
-
-      const saveCompanyId = Number(
-        root.company_id ||
-        root.companyId ||
-        body.company_id ||
-        body.companyId ||
-        0
-      );
-
-      if (
-        !Number.isInteger(saveCompanyId) ||
-        saveCompanyId < 1
-      ) {
-        sendJson(res, 400, {
-          ok: false,
-          error:
-            "基礎解析保存用company_idがありません。"
-        });
-
-        return true;
-      }
-
-      const aiSummary =
-        root.ai_summary &&
-        typeof root.ai_summary === "object"
-          ? root.ai_summary
-          : (
-              body.ai_summary &&
-              typeof body.ai_summary === "object"
-                ? body.ai_summary
-                : {}
-            );
-
-      const confidenceValue = Number(
-        root.ai_confidence ??
-        root.confidence ??
-        aiSummary.ai_confidence ??
-        aiSummary.confidence ??
-        body.ai_confidence ??
-        body.confidence
-      );
-
-      const aiConfidence =
-        Number.isFinite(confidenceValue)
-          ? confidenceValue
-          : null;
-
-      const aiReason = String(
-        root.ai_reason ||
-        root.reason ||
-        aiSummary.ai_reason ||
-        aiSummary.reason ||
-        body.ai_reason ||
-        body.reason ||
-        ""
-      ).trim();
-
-      const needsReview =
-        root.needs_review === true ||
-        body.needs_review === true ||
-        String(
-          root.needs_review ??
-          body.needs_review ??
-          ""
-        ).toLowerCase() === "true";
-
-      const warnings =
-        Array.isArray(body.warnings)
-          ? body.warnings
-          : (
-              Array.isArray(root.warnings)
-                ? root.warnings
-                : []
-            );
-
-      const candidateMasters =
-        body.candidateMastersSnapshot &&
-        typeof body.candidateMastersSnapshot === "object"
-          ? body.candidateMastersSnapshot
-          : (
-              body.candidate_masters_snapshot &&
-              typeof body.candidate_masters_snapshot === "object"
-                ? body.candidate_masters_snapshot
-                : {}
-            );
-
-      const outputSchema =
-        body.outputSchemaSnapshot &&
-        typeof body.outputSchemaSnapshot === "object"
-          ? body.outputSchemaSnapshot
-          : (
-              body.output_schema_snapshot &&
-              typeof body.output_schema_snapshot === "object"
-                ? body.output_schema_snapshot
-                : {}
-            );
-
-      const promptSnapshot = String(
-        body.promptSnapshot ||
-        body.prompt_snapshot ||
-        root.prompt_snapshot ||
-        ""
-      );
-
-      const modelName = String(
-        body.modelName ||
-        body.model_name ||
-        root.model_name ||
-        root.model ||
-        ""
-      ).trim();
-
-      const promptVersion = String(
-        body.promptVersion ||
-        body.prompt_version ||
-        root.prompt_version ||
-        ""
-      ).trim();
-
-      client = await db.connect();
-      await client.query("BEGIN");
-
-      const ocrResult = await client.query(`
-        SELECT
-          payment_document_ocr_import_id,
-          current_status
-        FROM accounting.payment_document_ocr_imports
-        WHERE payment_document_ocr_import_id = $1
-          AND deleted_at IS NULL
-        FOR UPDATE
-      `, [ocrImportId]);
-
-      if (!ocrResult.rows.length) {
-        const error = new Error(
-          "OCR取込データが見つかりません。"
-        );
-
-        error.statusCode = 404;
-        throw error;
-      }
-
-      const ocrRow = ocrResult.rows[0];
-
-      const nextStatusResult = await client.query(`
-        SELECT
-          CASE
-            WHEN current_master.display_order >=
-                 target_master.display_order
-              THEN current_master.current_status
-            ELSE target_master.current_status
-          END AS current_status
-        FROM
-          accounting.payment_document_current_statuses
-            current_master
-        CROSS JOIN
-          accounting.payment_document_current_statuses
-            target_master
-        WHERE
-          current_master.current_status = $1
-          AND target_master.current_status =
-              '専門解析待ち'
-          AND target_master.is_active = TRUE
-        LIMIT 1
-      `, [ocrRow.current_status]);
-
-      const nextCurrentStatus =
-        nextStatusResult.rows[0]?.current_status;
-
-      if (!nextCurrentStatus) {
-        const error = new Error(
-          "現在状態または専門解析待ちをステータスマスタから取得できませんでした。" +
-          " current_status=" +
-          String(ocrRow.current_status || "")
-        );
-
-        error.statusCode = 409;
-        throw error;
-      }
-
-      await client.query(`
-        UPDATE accounting.payment_document_basic_analysis_results
-        SET
-          is_current = FALSE,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE payment_document_ocr_import_id = $1
-          AND is_current = TRUE
-      `, [ocrImportId]);
-
-      await client.query(`
-        LOCK TABLE accounting.payment_document_basic_analysis_results
-        IN SHARE ROW EXCLUSIVE MODE
-      `);
-
-      const inserted = await client.query(`
-        INSERT INTO accounting.payment_document_basic_analysis_results (
-          payment_document_ocr_import_id,
-          company_id,
-          document_type_id,
-          specialist_analysis_id,
-          ai_confidence,
-          ai_reason,
-          needs_review,
-          warnings_json,
-          raw_result_json,
-          candidate_masters_snapshot_json,
-          output_schema_snapshot_json,
-          prompt_snapshot,
-          model_name,
-          prompt_version,
-          is_current,
-          analysis_completed,
-          started_at,
-          completed_at,
-          created_at,
-          updated_at
-        )
-        VALUES (
-          $1,
-          $2,
-          NULL,
-          NULL,
-          $3,
-          $4,
-          $5,
-          $6::jsonb,
-          $7::jsonb,
-          $8::jsonb,
-          $9::jsonb,
-          NULLIF($10, ''),
-          NULLIF($11, ''),
-          NULLIF($12, ''),
-          TRUE,
-          TRUE,
-          CURRENT_TIMESTAMP,
-          CURRENT_TIMESTAMP,
-          CURRENT_TIMESTAMP,
-          CURRENT_TIMESTAMP
-        )
-        RETURNING
-          basic_analysis_id,
-          payment_document_ocr_import_id,
-          is_current,
-          analysis_completed,
-          completed_at
-      `, [
-        ocrImportId,
-        saveCompanyId,
-        aiConfidence,
-        aiReason,
-        needsReview,
-        JSON.stringify(warnings),
-        JSON.stringify(body),
-        JSON.stringify(candidateMasters),
-        JSON.stringify(outputSchema),
-        promptSnapshot,
-        modelName,
-        promptVersion
-      ]);
-
-      const statusUpdated = await client.query(`
-        UPDATE accounting.payment_document_ocr_imports
-        SET
-          current_status = $2,
-          sorted_at = CURRENT_TIMESTAMP,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE payment_document_ocr_import_id = $1
-          AND deleted_at IS NULL
-        RETURNING
-          payment_document_ocr_import_id,
-          current_status,
-          sorted_at
-      `, [
-        ocrImportId,
-        nextCurrentStatus
-      ]);
-
-      if (statusUpdated.rowCount !== 1) {
-        throw new Error(
-          "OCR取込データのcurrent_statusを更新できませんでした。"
-        );
-      }
-
-      await client.query("COMMIT");
-
-      const saved = inserted.rows[0];
-      const statusRow = statusUpdated.rows[0];
-
-      sendJson(res, 200, {
-        ok: true,
-        message: "基礎解析結果を保存しました。",
-        paymentDocumentOcrImportId:
-          saved.payment_document_ocr_import_id,
-        payment_document_ocr_import_id:
-          saved.payment_document_ocr_import_id,
-        basicAnalysisId:
-          saved.basic_analysis_id,
-        basic_analysis_id:
-          saved.basic_analysis_id,
-        specialistAnalysisId: null,
-        currentStatus:
-          statusRow.current_status,
-        current_status:
-          statusRow.current_status,
-        analysisCompleted:
-          saved.analysis_completed,
-        completedAt:
-          saved.completed_at,
-        saved
-      });
-    } catch (error) {
-      if (client) {
-        try {
-          await client.query("ROLLBACK");
-        } catch {
-          // 元エラーを優先する
-        }
-      }
-
-      sendJson(
-        res,
-        error.statusCode || 500,
-        {
-          ok: false,
-          error:
-            error.message ||
-            String(error)
-        }
-      );
-    } finally {
-      if (client) {
-        client.release();
-      }
-    }
-
-    return true;
-  }
-  /* HD_ORIGIN_BASIC_ANALYSIS_SAVE_ROUTE_20260726_END */
+  
   /* HD_ORIGIN_BASIC_ANALYSIS_DIRECT_SAVE_ROUTE_20260727_START */
   if (req.method === "POST") {
     const basicAnalysisUrlPath = String(req.url || "").split("?")[0];
@@ -10694,13 +8701,13 @@ await client.query("COMMIT");
           throw error;
         }
 
-        const aiResult = await createTwoStepAiDraftFromOcrText(ocrText, {
+        const aiResult = await createTwoStepBasicAnalysisFromOcrText(ocrText, {
           company_id: companyId,
           company_code: companyCode,
           source_type_code: sourceTypeCode
         });
         const classification = aiResult.classification || {};
-        const detail = aiResult.draft || {};
+        const detail = aiResult.analysis || {};
         const warnings = Array.isArray(detail.warnings) ? detail.warnings : [];
         const documentGroup = String(
           detail.document_group ||
@@ -10738,6 +8745,13 @@ await client.query("COMMIT");
           classification,
           detail,
           warnings,
+          sortResult: detail,
+          visibleFields: detail.fields || {},
+          aiSummary: classification,
+          rawResult: {
+            classification,
+            detail
+          },
           issuedAt: detail.document_date || ""
         };
 
@@ -10756,27 +8770,6 @@ await client.query("COMMIT");
         if (!lockedOcrRow) {
           const error = new Error("OCR取込レコードが見つかりません。");
           error.statusCode = 404;
-          throw error;
-        }
-
-        const nextStatusResult = await client.query(`
-          SELECT CASE
-            WHEN current_master.display_order >= target_master.display_order
-              THEN current_master.current_status
-            ELSE target_master.current_status
-          END AS current_status
-          FROM accounting.payment_document_current_statuses current_master
-          CROSS JOIN accounting.payment_document_current_statuses target_master
-          WHERE current_master.current_status = $1
-            AND target_master.current_status = '専門解析待ち'
-            AND target_master.is_active = TRUE
-          LIMIT 1
-        `, [lockedOcrRow.current_status]);
-        const nextCurrentStatus = nextStatusResult.rows[0]?.current_status;
-
-        if (!nextCurrentStatus) {
-          const error = new Error("既存の専門解析待ちステータスを取得できません。");
-          error.statusCode = 409;
           throw error;
         }
 
@@ -10814,7 +8807,7 @@ await client.query("COMMIT");
           classification.analysis_system_reason || detail.ai_reason || "",
           detail.needs_review === true || classification.needs_review === true,
           JSON.stringify(warnings),
-          JSON.stringify(basicAnalysisResult),
+          JSON.stringify({ analysis: basicAnalysisResult }),
           JSON.stringify({ classification }),
           JSON.stringify({ detail, visibleFieldLabels })
         ]);
@@ -10824,12 +8817,11 @@ await client.query("COMMIT");
           UPDATE accounting.payment_document_ocr_imports
           SET latest_basic_analysis_id = $2,
               current_status = $3,
-              sorted_at = CURRENT_TIMESTAMP,
               updated_at = CURRENT_TIMESTAMP
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
           RETURNING payment_document_ocr_import_id, current_status, sorted_at
-        `, [ocrImportId, saved.basic_analysis_id, nextCurrentStatus]);
+        `, [ocrImportId, saved.basic_analysis_id, "基礎解析済み"]);
 
         if (statusUpdated.rowCount !== 1) {
           throw new Error("OCR取込状態を更新できませんでした。");
@@ -10876,84 +8868,7 @@ await client.query("COMMIT");
     }
   }
   /* HD_ORIGIN_BASIC_ANALYSIS_DIRECT_SAVE_ROUTE_20260727_END */
-  /* PAYMENT_DOCUMENT_AI_SORT_ONLY_ROUTE_20260707_START */
-  if (req.method === "POST") {
-    const sortUrlPath = String(req.url || "").split("?")[0];
-
-    if (sortUrlPath.startsWith("/api/payment-documents/ai-sort/")) {
-      try {
-        const idText = decodeURIComponent(sortUrlPath.replace("/api/payment-documents/ai-sort/", "")).trim();
-        const id = Number(idText);
-
-        if (!Number.isFinite(id) || id <= 0) {
-          sendJson(res, 400, {
-            ok: false,
-            error: "OCR保存IDが不正です。"
-          });
-          return true;
-        }
-
-        const result = await db.query(`
-          SELECT
-            payment_document_ocr_import_id,
-            original_file_name,
-            saved_file_name,
-            ocr_raw_text,
-            ocr_text_length
-          FROM accounting.payment_document_ocr_imports
-          WHERE deleted_at IS NULL
-            AND payment_document_ocr_import_id = $1
-          LIMIT 1
-        `, [id]);
-
-        const row = result.rows[0];
-
-        if (!row) {
-          sendJson(res, 404, {
-            ok: false,
-            error: "OCR保存データが見つかりません。"
-          });
-          return true;
-        }
-
-        const ocrText = String(row.ocr_raw_text || "").trim();
-
-        if (!ocrText) {
-          sendJson(res, 400, {
-            ok: false,
-            error: "OCR本文が空のため仕分けできません。"
-          });
-          return true;
-        }
-
-        let sortResult = hdOriginPolishPaymentDocumentSortResult(await createPaymentDocumentSortFromOcrText(ocrText), ocrText);
-        
-        sortResult.draft = sortResult.draft || sortResult.sorting || sortResult.classification || {};
-        sortResult.classification = sortResult.draft;
-        sortResult.sorting = sortResult.draft;
-
-        sendJson(res, 200, {
-          ok: true,
-          mode: "sorting_only",
-          message: "1回目仕分けのみ完了しました。詳細項目抽出は行っていません。",
-          paymentDocumentOcrImportId: id,
-          originalFileName: row.original_file_name || "",
-          savedFileName: row.saved_file_name || "",
-          image_used: false,
-          ...sortResult
-        });
-      } catch (err) {
-        sendJson(res, err.statusCode || 500, {
-          ok: false,
-          error: err.message || String(err),
-          mode: "sorting_only"
-        });
-      }
-
-      return true;
-    }
-  }
-  /* PAYMENT_DOCUMENT_AI_SORT_ONLY_ROUTE_20260707_END */
+  
 
   const urlObj = new URL(req.url, "http://localhost");
   const urlPath = urlObj.pathname;
@@ -11276,7 +9191,7 @@ await client.query("COMMIT");
           moveStatus:
             "returned_to_analysis",
 
-          movedCilDraftCount:
+          movedCilAnalysisCount:
             cilMoved.rowCount,
 
           movedSpecialistResultCount:
@@ -11656,13 +9571,13 @@ await client.query("COMMIT");
           rawResult.specialist
         );
 
-      const savedDraft =
+      const savedAnalysis =
         Object.keys(
-          objectOrEmpty(rawResult.draft)
+          objectOrEmpty(rawResult.analysis)
         ).length
-          ? objectOrEmpty(rawResult.draft)
+          ? objectOrEmpty(rawResult.analysis)
           : objectOrEmpty(
-              rawSpecialist.draft
+              rawSpecialist.analysis
             );
 
       const specialistFields =
@@ -11689,7 +9604,7 @@ await client.query("COMMIT");
         });
 
       const fields = {
-        ...objectOrEmpty(savedDraft.fields),
+        ...objectOrEmpty(savedAnalysis.fields),
         ...specialistFields,
         line_items:
           lineItems
@@ -11705,9 +9620,9 @@ await client.query("COMMIT");
             )
             ? rawSpecialist.visible_field_labels
             : Array.isArray(
-                savedDraft.visible_field_labels
+                savedAnalysis.visible_field_labels
               )
-              ? savedDraft.visible_field_labels
+              ? savedAnalysis.visible_field_labels
               : [];
 
       const warnings =
@@ -11715,8 +9630,8 @@ await client.query("COMMIT");
           row.specialist_warnings_json
         )
           ? row.specialist_warnings_json
-          : Array.isArray(savedDraft.warnings)
-            ? savedDraft.warnings
+          : Array.isArray(savedAnalysis.warnings)
+            ? savedAnalysis.warnings
             : Array.isArray(
                 row.utility_warnings_json
               )
@@ -11724,26 +9639,26 @@ await client.query("COMMIT");
               : [];
 
       const draft = {
-        ...savedDraft,
+        ...savedAnalysis,
 
         analysis_system_code:
           row.analysis_system_code ||
-          savedDraft.analysis_system_code ||
+          savedAnalysis.analysis_system_code ||
           "",
 
         analysis_system_label:
           row.analysis_system_label ||
-          savedDraft.analysis_system_label ||
+          savedAnalysis.analysis_system_label ||
           "",
 
         analysis_system_reason:
           row.ai_reason ||
-          savedDraft.analysis_system_reason ||
+          savedAnalysis.analysis_system_reason ||
           "",
 
         analysis_system_confidence:
           row.ai_confidence ||
-          savedDraft.analysis_system_confidence ||
+          savedAnalysis.analysis_system_confidence ||
           "",
 
         fields,
@@ -11769,7 +9684,7 @@ await client.query("COMMIT");
         specialistAnalysisId:
           row.specialist_analysis_id,
 
-        draftVersion:
+        analysisVersion:
           row.result_version,
 
         draft,
@@ -11881,7 +9796,7 @@ await client.query("COMMIT");
       }
 
       const aiResult =
-        await createPaymentDocumentSpecialistDraftFromOcrText(
+        await createPaymentDocumentSpecialistAnalysisFromOcrText(
           ocrText,
           {
             ...body,
@@ -11901,12 +9816,28 @@ await client.query("COMMIT");
               specialistRouteDefinition.analysisSystemLabel,
             group:
               specialistRouteCode,
-            draft:
-              body.draft ||
+            analysis:
+              body.analysis ||
               body.classification ||
               {}
           }
         );
+
+      const specialistSaved = await hdOriginSavePaymentDocumentSpecialistAnalysisResult({
+        ...body,
+        paymentDocumentOcrImportId: id,
+        payment_document_ocr_import_id: id,
+        analysis: aiResult.analysis,
+        classification: aiResult.classification,
+        specialistResult: aiResult.specialist,
+        rawResult: {
+          analysis: aiResult.analysis,
+          classification: aiResult.classification,
+          specialist: aiResult.specialist
+        },
+        visibleFieldLabels: aiResult.visible_field_labels,
+        warnings: aiResult.analysis.warnings || []
+      });
 
       sendJson(res, 200, {
         ok: true,
@@ -11922,7 +9853,9 @@ await client.query("COMMIT");
         prompt_rule_files: aiResult.prompt_rule_files,
         classification: aiResult.classification,
         specialist: aiResult.specialist,
-        draft: aiResult.draft
+        analysis: aiResult.analysis,
+        specialistAnalysisId: specialistSaved.specialistAnalysisId,
+        specialist_analysis_id: specialistSaved.specialistAnalysisId
       });
     } catch (err) {
       sendJson(res, err.statusCode || 500, {
@@ -11994,38 +9927,6 @@ await client.query("COMMIT");
     return true;
   }
 
-  /* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_ROUTE_20260717_START */
-  if (
-    req.method === "POST" &&
-    urlPath === "/api/payment-documents/access-ocr/local-file"
-  ) {
-    if (!isLocalAccessOcrRequest(req)) {
-      sendJson(res, 403, {
-        ok: false,
-        error: "このOCR APIはlocalhostからのみ利用できます。"
-      });
-      return true;
-    }
-
-    try {
-      const body = await readBody(req);
-      const result = await importAccessLocalFileAndRunOcr(body);
-
-      sendJson(
-        res,
-        result.ok ? 200 : 422,
-        result
-      );
-    } catch (err) {
-      sendJson(res, 400, {
-        ok: false,
-        error: err.message || String(err)
-      });
-    }
-
-    return true;
-  }
-  /* HD_ORIGIN_ACCESS_OCR_LOCAL_PATH_ROUTE_20260717_END */
   if (req.method === "POST" && urlPath === "/api/payment-documents/scan-inbox/upload") {
     try {
       const body = await readBody(req);

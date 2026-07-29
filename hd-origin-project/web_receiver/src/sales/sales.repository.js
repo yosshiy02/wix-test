@@ -618,7 +618,6 @@ async function listSales(filters = {}) {
       sh.sales_no ILIKE $${values.length}
       OR COALESCE(sh.customer_code,'') ILIKE $${values.length}
       OR sh.customer_name ILIKE $${values.length}
-      OR COALESCE(sh.access_order_no,'') ILIKE $${values.length}
     )`);
   }
   if (text(filters.status)) {
@@ -762,19 +761,18 @@ async function createSale(body) {
     const header = (
       await client.query(
         `INSERT INTO sales.sales_headers (
-           company_id, sales_no, order_source, access_order_no,
+           company_id, sales_no, order_source,
            sales_date, shipment_date, customer_id, customer_code,
            customer_name, delivery_name, closing_day, status,
            subtotal_amount, discount_amount, freight_amount,
            tax_amount, total_amount, note
          ) VALUES (
-           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
+           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
          ) RETURNING *`,
         [
           companyId,
           salesNo,
           text(body.order_source) || "manual",
-          nullableText(body.access_order_no),
           dateValue(body.sales_date) || new Date().toISOString().slice(0, 10),
           dateValue(body.shipment_date),
           nullableNumber(body.customer_id),
@@ -1182,42 +1180,6 @@ async function allocatePayment(body) {
   }
 }
 
-async function listAccessOrderQueue(companyIdValue) {
-  const companyId = requireCompanyId(companyIdValue);
-  return (
-    await pool.query(
-      `SELECT *
-       FROM sales.access_order_import_queue
-       WHERE company_id=$1
-       ORDER BY created_at DESC, import_queue_id DESC
-       LIMIT 1000`,
-      [companyId]
-    )
-  ).rows;
-}
-
-async function addAccessOrderQueue(body) {
-  const companyId = requireCompanyId(body.company_id);
-  return (
-    await pool.query(
-      `INSERT INTO sales.access_order_import_queue (
-         company_id, source_file_name, access_order_no, payload, import_status
-       ) VALUES ($1,$2,$3,$4::jsonb,'waiting')
-       RETURNING *`,
-      [
-        companyId,
-        nullableText(body.source_file_name),
-        nullableText(body.access_order_no),
-        JSON.stringify(
-          body.payload && typeof body.payload === "object"
-            ? body.payload
-            : {}
-        )
-      ]
-    )
-  ).rows[0];
-}
-
 async function getSummary(companyIdValue) {
   const companyId = requireCompanyId(companyIdValue);
   return (
@@ -1235,9 +1197,8 @@ async function getSummary(companyIdValue) {
          (SELECT COALESCE(SUM(balance_amount),0) FROM sales.invoices
           WHERE company_id=$1 AND issue_status<>'cancelled') AS receivable_total,
          (SELECT COALESCE(SUM(unapplied_amount),0) FROM sales.payments
-          WHERE company_id=$1) AS unapplied_payment_total,
-         (SELECT COUNT(*) FROM sales.access_order_import_queue
-          WHERE company_id=$1 AND import_status='waiting') AS access_waiting_count`,
+          WHERE company_id=$1) AS unapplied_payment_total
+      `,
       [companyId]
     )
   ).rows[0];
@@ -1264,8 +1225,8 @@ module.exports = {
   listPayments,
   createPayment,
   allocatePayment,
-  listAccessOrderQueue,
-  addAccessOrderQueue,
+
+
   getSummary
 };
 

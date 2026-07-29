@@ -7,7 +7,7 @@
 
   let showAllFields = false;
   let lastVisibleFieldLabels = [];
-  let lastDraft = null;
+  let lastAnalysis = null;
 
   function objectValue(value) {
     return value &&
@@ -25,13 +25,13 @@
       objectValue(source.specialistFields),
       objectValue(source.specialist_fields),
       objectValue(
-        source.draft &&
-        source.draft.fields
+        source.analysis &&
+        source.analysis.fields
       ),
       objectValue(
         source.specialist &&
-        source.specialist.draft &&
-        source.specialist.draft.fields
+        source.specialist.analysis &&
+        source.specialist.analysis.fields
       )
     ];
   }
@@ -45,7 +45,7 @@
       : undefined;
   }
 
-  function draftValue(draft, code) {
+  function analysisValue(draft, code) {
     for (const source of fieldSources(draft)) {
       const value =
         ownValue(source, code);
@@ -213,20 +213,20 @@
         : String(value);
   }
 
-  function visibleLabelsFromDraft(draft) {
+  function visibleLabelsFromAnalysis(draft) {
     const source =
       objectValue(draft);
 
     const candidates = [
       source.visible_field_labels,
       source.visibleFieldLabels,
-      source.draft &&
-        source.draft.visible_field_labels,
+      source.analysis &&
+        source.analysis.visible_field_labels,
       source.specialist &&
         source.specialist.visible_field_labels,
       source.specialist &&
-        source.specialist.draft &&
-        source.specialist.draft.visible_field_labels
+        source.specialist.analysis &&
+        source.specialist.analysis.visible_field_labels
     ];
 
     return (
@@ -284,8 +284,8 @@
       const hasValue =
         codes.some(function (code) {
           return valueExists(
-            lastDraft
-              ? draftValue(lastDraft, code)
+            lastAnalysis
+              ? analysisValue(lastAnalysis, code)
               : undefined
           );
         });
@@ -346,9 +346,9 @@
     }
   }
 
-  function lineItemsFromDraft(draft) {
+  function lineItemsFromAnalysis(draft) {
     const candidates = [
-      draftValue(draft, "line_items"),
+      analysisValue(draft, "line_items"),
       objectValue(draft).line_items,
       objectValue(draft).lineItems
     ];
@@ -359,16 +359,16 @@
     );
   }
 
-  function applyDraft(draft) {
+  function applyUtilityAnalysisToForm(analysisInput) {
     if (
-      !draft ||
-      typeof draft !== "object"
+      !analysisInput ||
+      typeof analysisInput !== "object"
     ) {
       return;
     }
 
-    lastDraft =
-      draft;
+    lastAnalysis =
+      analysisInput;
 
     document.querySelectorAll(
       "[data-analysis-item-code]"
@@ -381,8 +381,8 @@
       }
 
       const value =
-        draftValue(
-          draft,
+        analysisValue(
+          analysisInput,
           code
         );
 
@@ -397,7 +397,7 @@
     });
 
     const lineItems =
-      lineItemsFromDraft(draft);
+      lineItemsFromAnalysis(analysisInput);
 
     if (
       typeof window.hdOriginSetUtilityLineItems ===
@@ -409,7 +409,7 @@
     }
 
     const labels =
-      visibleLabelsFromDraft(draft);
+      visibleLabelsFromAnalysis(analysisInput);
 
     if (labels.length) {
       lastVisibleFieldLabels =
@@ -476,16 +476,16 @@
 
   function patchApplicationFunctions() {
     patchAfter(
-      "applyAiDraftToFormHardDebug",
-      function (draft) {
-        applyDraft(draft);
+      "applyAnalysisResultToFormHardDebug",
+      function (analysisInput) {
+        applyUtilityAnalysisToForm(analysisInput);
       }
     );
 
     patchAfter(
-      "applySortingOnlyDraftToForm",
-      function (draft) {
-        applyDraft(draft);
+      "applySortingOnlyAnalysisToForm",
+      function (analysisInput) {
+        applyUtilityAnalysisToForm(analysisInput);
       }
     );
 
@@ -619,11 +619,11 @@
       objectValue(payload.rawResult);
 
     const candidates = [
-      raw.draft &&
-        raw.draft.fields,
+      raw.analysis &&
+        raw.analysis.fields,
       raw.specialist &&
-        raw.specialist.draft &&
-        raw.specialist.draft.fields,
+        raw.specialist.analysis &&
+        raw.specialist.analysis.fields,
       raw.fields,
       payload.specialistFields,
       payload.specialist_fields
@@ -765,7 +765,7 @@
 
             const warningControl =
               document.getElementById(
-                "draftWarnings"
+                "analysisWarnings"
               );
 
             if (warningControl) {
@@ -845,8 +845,8 @@
     );
   }
 
-  window.hdOriginApplyUtilityDedicatedDraft =
-    applyDraft;
+  window.hdOriginApplyUtilityDedicatedAnalysis =
+    applyUtilityAnalysisToForm;
 
   window.hdOriginCollectUtilityDedicatedFields =
     collectFields;
@@ -879,8 +879,8 @@
     function () {
       patchApplicationFunctions();
 
-      if (lastDraft) {
-        applyDraft(lastDraft);
+      if (lastAnalysis) {
+        applyUtilityAnalysisToForm(lastAnalysis);
       }
     },
     1000
@@ -1026,8 +1026,8 @@
     const draft =
       objectValue(
         firstValue(
-          raw.draft,
-          source.__aiDraft
+          raw.analysis,
+          source.__analysisResult
         )
       );
 
@@ -1148,7 +1148,7 @@
     );
   }
 
-  function draftOf(item, rawResult) {
+  function analysisOf(item, rawResult) {
     const source =
       objectValue(item);
 
@@ -1157,12 +1157,12 @@
 
     return objectValue(
       firstValue(
-        raw.draft,
-        raw.aiDraft,
-        raw.ai_draft,
-        source.__aiDraft,
-        source.aiDraft,
-        source.ai_draft
+        raw.analysis,
+        raw.analysisResult,
+        raw.analysis_result,
+        source.__analysisResult,
+        source.analysisResult,
+        source.analysis_result
       )
     );
   }
@@ -1181,7 +1181,7 @@
       objectValue(rawResult);
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         raw
       );
@@ -1270,7 +1270,7 @@
       objectValue(rawResult);
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         raw
       );
@@ -1292,7 +1292,7 @@
       objectValue(rawResult);
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         raw
       );
@@ -1311,7 +1311,7 @@
       objectValue(rawResult);
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         raw
       );
@@ -1512,7 +1512,7 @@
       objectValue(rawResult);
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         raw
       );
@@ -1682,9 +1682,9 @@
     const draft =
       objectValue(
         firstValue(
-          root.draft,
-          root.savedDraft,
-          root.utilityDraft
+          root.analysis,
+          root.savedAnalysis,
+          root.utilityAnalysis
         )
       );
 
@@ -1912,7 +1912,7 @@
     );
 
     const draft =
-      draftOf(
+      analysisOf(
         item,
         rawResult
       );
@@ -1981,10 +1981,10 @@
       human_memo:
         "公共料金・通信費まとめて保存（AI結果直接保存）",
 
-      draft:
+      analysis:
         draft,
 
-      aiDraft:
+      analysisResult:
         draft,
 
       fields:
@@ -2110,7 +2110,7 @@
   }
 
   /* GPT3_UTILITY_BULK_ANALYZE_ONLY_START */
-  window.runSelectedAiDrafts =
+  window.runSelectedAnalyses =
     async function () {
       const indexes =
         selectedIndexes();
@@ -2237,8 +2237,8 @@
             item.__aiRawResult =
               data;
 
-            item.__aiDraft =
-              data.draft || {};
+            item.__analysisResult =
+              data.analysis || {};
 
             item.__visibleFieldLabels =
               visibleLabelsOf(
@@ -2615,14 +2615,14 @@
         )
       );
 
-    const specialistDraft =
+    const specialistAnalysisPayload =
       objectValue(
-        specialist.draft
+        specialist.analysis
       );
 
-    if (Object.keys(specialistDraft).length) {
-      data.draft =
-        specialistDraft;
+    if (Object.keys(specialistAnalysisPayload).length) {
+      data.analysis =
+        specialistAnalysisPayload;
     }
 
     if (
@@ -2690,7 +2690,7 @@
     );
   }
 
-  function getDraft(item) {
+  function getAnalysis(item) {
     const source =
       objectValue(item);
 
@@ -2703,8 +2703,8 @@
 
     return objectValue(
       firstValue(
-        raw.draft,
-        source.__aiDraft
+        raw.analysis,
+        source.__analysisResult
       )
     );
   }
@@ -2736,7 +2736,7 @@
     }
 
     const draft =
-      getDraft(item);
+      getAnalysis(item);
 
     const labels =
       getVisibleLabels(item);
@@ -2749,20 +2749,20 @@
 
     try {
       if (
-        typeof applySortingOnlyDraftToForm ===
+        typeof applySortingOnlyAnalysisToForm ===
         "function"
       ) {
         appliedCount =
-          applySortingOnlyDraftToForm(
+          applySortingOnlyAnalysisToForm(
             draft
           ) || 0;
       }
       else if (
-        typeof applyAiDraftToFormHardDebug ===
+        typeof applyAnalysisResultToFormHardDebug ===
         "function"
       ) {
         appliedCount =
-          applyAiDraftToFormHardDebug(
+          applyAnalysisResultToFormHardDebug(
             draft
           ) || 0;
       }
@@ -2771,10 +2771,10 @@
     }
 
     if (
-      typeof window.hdOriginApplyUtilityDedicatedDraft ===
+      typeof window.hdOriginApplyUtilityDedicatedAnalysis ===
       "function"
     ) {
-      window.hdOriginApplyUtilityDedicatedDraft(
+      window.hdOriginApplyUtilityDedicatedAnalysis(
         draft
       );
     }
@@ -2810,7 +2810,7 @@
       paymentDocumentOcrImportId:
         getOcrId(item),
 
-      draftKeys:
+      analysisKeys:
         Object.keys(draft),
 
       fieldKeys:
@@ -2825,7 +2825,7 @@
         appliedCount,
 
       source:
-        "specialist.draft"
+        "specialist.analysis"
     };
 
     return true;
@@ -2891,7 +2891,7 @@
 
   function installAnalyzeWrapper() {
     const original =
-      window.runSelectedAiDrafts;
+      window.runSelectedAnalyses;
 
     if (
       typeof original !== "function" ||
@@ -2952,8 +2952,8 @@
                   item.__aiRawResult
                 );
 
-              item.__aiDraft =
-                getDraft(item);
+              item.__analysisResult =
+                getAnalysis(item);
 
               item.__visibleFieldLabels =
                 getVisibleLabels(item);
@@ -2980,7 +2980,7 @@
     wrapped.__utilityCommunicationDisplayWrapped =
       true;
 
-    window.runSelectedAiDrafts =
+    window.runSelectedAnalyses =
       wrapped;
   }
 
