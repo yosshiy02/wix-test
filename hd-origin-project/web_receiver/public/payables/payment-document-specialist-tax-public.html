@@ -3660,7 +3660,7 @@ const res = await fetch("/api/payment-documents/review-items?scope=specialist&an
       }
 
       const allItems = data.items || [];
-      items = window.hdOriginUtilityCommunicationSpecialistFilter(allItems);
+      items = allItems;
 
       summary.textContent =
         "税金・公的支払専門解析対象: " + items.length + "件 / 全体: " + allItems.length + "件";
@@ -6880,98 +6880,68 @@ const res = await fetch("/api/payment-documents/review-items?scope=specialist&an
   }
 
   async function refreshSpecialistNavigationCounts() {
-    if (refreshRunning) {
-      return;
-    }
+    if (refreshRunning) return;
 
     refreshRunning = true;
 
     try {
-      const response = await fetch(reviewItemsUrl, {
-        cache: "no-store"
-      });
+      const buttons = Array.from(
+        document.querySelectorAll(
+          ".specialist-system-button[data-analysis-system-code]"
+        )
+      );
 
-      const data = await response.json();
+      const counts = Object.create(null);
 
-      if (!response.ok || !data.ok) {
-        throw new Error(
-          data.error || "専門画面件数の取得に失敗しました。"
-        );
-      }
+      await Promise.all(
+        buttons.map(async function (button) {
+          const code = String(
+            button.dataset.analysisSystemCode || ""
+          ).trim();
 
-            /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_START */
-      const countSourceItems=Array.isArray(data.items)
-        ? data.items
-        : [];
+          if (!code) return;
 
-      let countVisibleItems=countSourceItems;
-
-      try {
-        const cilResponse=await fetch(
-          "/api/payment-documents/contract-insurance-lease/list",
-          { cache:"no-store" }
-        );
-
-        if (cilResponse.ok) {
-          const cilData=await cilResponse.json();
-
-          const cilRows=Array.isArray(cilData)
-            ? cilData
-            : Array.isArray(cilData.items)
-              ? cilData.items
-              : Array.isArray(cilData.rows)
-                ? cilData.rows
-                : [];
-
-          const savedCilIds=new Set(
-            cilRows
-              .map(function (row) {
-                return Number(
-                  row.payment_document_ocr_import_id ||
-                  row.paymentDocumentOcrImportId ||
-                  row.ocrImportId ||
-                  row.id ||
-                  0
-                );
-              })
-              .filter(function (id) {
-                return Number.isInteger(id) && id > 0;
-              })
+          const response = await fetch(
+            "/api/payment-documents/review-items" +
+            "?scope=specialist&analysis_system_code=" +
+            encodeURIComponent(code),
+            { cache: "no-store" }
           );
 
-          countVisibleItems=countSourceItems.filter(function (item) {
-            const id=Number(
-              item.paymentDocumentOcrImportId ||
-              item.payment_document_ocr_import_id ||
-              item.ocrImportId ||
-              item.ocr_import_id ||
-              item.id ||
-              0
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            throw new Error(
+              data.error || "専門解析待ち件数を取得できません: " + code
             );
+          }
 
-            const code=analysisSystemCodeOf(item);
+          counts[code] = Array.isArray(data.items)
+            ? data.items.length
+            : 0;
+        })
+      );
 
-            return !(
-              code==="contract_insurance_lease_analysis" &&
-              savedCilIds.has(id)
-            );
-          });
-        }
-      } catch (error) {
-        console.warn(
-          "契約・保険・リース保存済み件数の除外に失敗しました。",
-          error
-        );
-      }
+      buttons.forEach(function (button) {
+        const code = String(
+          button.dataset.analysisSystemCode || ""
+        ).trim();
 
-      applySpecialistNavigationCounts(countVisibleItems);
-      /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_END */
+        const label = String(
+          button.dataset.baseLabel ||
+          button.textContent ||
+          ""
+        )
+          .replace(/\s*（\d+）\s*$/, "")
+          .trim();
+
+        button.dataset.baseLabel = label;
+        button.textContent =
+          label + "（" + (counts[code] || 0) + "）";
+      });
     }
     catch (error) {
-      console.warn(
-        "専門画面件数更新失敗:",
-        error
-      );
+      console.warn("専門解析待ち件数更新失敗:", error);
     }
     finally {
       refreshRunning = false;
