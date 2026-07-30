@@ -8003,7 +8003,15 @@ async function handlePaymentDocumentRoutes(req, res) {
 
           latestBasicAnalysis,
 
-          analysisSystemCode,
+          analysisSystemCode:
+            [
+              paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING,
+              paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_PROCESSING,
+              paymentDocumentStatusFlow.HUMAN_REVIEW_WAITING,
+              paymentDocumentStatusFlow.LEDGER
+            ].includes(row.current_status)
+              ? analysisSystemCode
+              : "",
 
           createdAt:
             row.created_at,
