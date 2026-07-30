@@ -3652,7 +3652,12 @@ function setDocumentPreview(item) {
     setInitialAiOnlyView();
 
     try {
-const res = await fetch("/api/payment-documents/review-items?scope=specialist&analysis_system_code=" + encodeURIComponent(expectedAnalysisSystemCode));
+const res = await fetch(
+        "/api/payment-documents/review-items?scope=specialist&analysis_system_code=" +
+        encodeURIComponent(expectedAnalysisSystemCode) +
+        "&_=" + Date.now(),
+        { cache: "no-store" }
+      );
       const data = await res.json();
 
       if (!data.ok) {

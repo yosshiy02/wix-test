@@ -557,7 +557,11 @@
       list.innerHTML = "読込中...";
 
       // レシート専用APIから、全専門画面共通の仕分け済みAPIへ変更
-      const res = await fetch("/api/payment-documents/review-items?scope=specialist&analysis_system_code=receipt_evidence_analysis");
+      const res = await fetch(
+        "/api/payment-documents/review-items?scope=specialist&analysis_system_code=receipt_evidence_analysis&_=" +
+        Date.now(),
+        { cache: "no-store" }
+      );
       const data = await res.json();
 
       if (!data.ok) {
