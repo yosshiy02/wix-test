@@ -3309,6 +3309,20 @@ async function runSelectedAnalyses() {
   };
 
   function getSavedBasicAnalysisResult(item) {
+    const status = String(
+      item && (item.currentStatus || item.current_status) || ""
+    ).trim();
+
+    if (![
+      "基礎解析済み",
+      "専門解析待ち",
+      "専門解析中",
+      "人間確認待ち",
+      "台帳"
+    ].includes(status)) {
+      return null;
+    }
+
     const basic =
       item &&
       (item.latestBasicAnalysis || item.latest_basic_analysis);
@@ -6701,85 +6715,64 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
     refreshRunning = true;
 
     try {
-      const response = await fetch(reviewItemsUrl, {
-        cache: "no-store"
-      });
+      const buttons = Array.from(
+        document.querySelectorAll(
+          ".specialist-system-nav " +
+          ".specialist-system-button[data-analysis-system-code]"
+        )
+      );
 
-      const data = await response.json();
+      const counts = Object.create(null);
 
-      if (!response.ok || !data.ok) {
-        throw new Error(
-          data.error || "専門画面件数の取得に失敗しました。"
-        );
-      }
+      await Promise.all(
+        buttons.map(async function (button) {
+          const code = String(
+            button.dataset.analysisSystemCode || ""
+          ).trim();
 
-            /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_START */
-      const countSourceItems=Array.isArray(data.items)
-        ? data.items
-        : [];
+          if (!code) {
+            return;
+          }
 
-      let countVisibleItems=countSourceItems;
-
-      try {
-        const cilResponse=await fetch(
-          "/api/payment-documents/contract-insurance-lease/list",
-          { cache:"no-store" }
-        );
-
-        if (cilResponse.ok) {
-          const cilData=await cilResponse.json();
-
-          const cilRows=Array.isArray(cilData)
-            ? cilData
-            : Array.isArray(cilData.items)
-              ? cilData.items
-              : Array.isArray(cilData.rows)
-                ? cilData.rows
-                : [];
-
-          const savedCilIds=new Set(
-            cilRows
-              .map(function (row) {
-                return Number(
-                  row.payment_document_ocr_import_id ||
-                  row.paymentDocumentOcrImportId ||
-                  row.ocrImportId ||
-                  row.id ||
-                  0
-                );
-              })
-              .filter(function (id) {
-                return Number.isInteger(id) && id > 0;
-              })
+          const response = await fetch(
+            reviewItemsUrl +
+            "?scope=specialist&analysis_system_code=" +
+            encodeURIComponent(code),
+            { cache: "no-store" }
           );
 
-          countVisibleItems=countSourceItems.filter(function (item) {
-            const id=Number(
-              item.paymentDocumentOcrImportId ||
-              item.payment_document_ocr_import_id ||
-              item.ocrImportId ||
-              item.ocr_import_id ||
-              item.id ||
-              0
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            throw new Error(
+              data.error ||
+              "専門画面件数の取得に失敗しました: " + code
             );
+          }
 
-            const code=analysisSystemCodeOf(item);
+          counts[code] = Array.isArray(data.items)
+            ? data.items.length
+            : 0;
+        })
+      );
 
-            return !(
-              code==="contract_insurance_lease_analysis" &&
-              savedCilIds.has(id)
-            );
-          });
-        }
-      } catch (error) {
-        console.warn(
-          "契約・保険・リース保存済み件数の除外に失敗しました。",
-          error
-        );
-      }
+      buttons.forEach(function (button) {
+        const code = String(
+          button.dataset.analysisSystemCode || ""
+        ).trim();
 
-      applySpecialistNavigationCounts(countVisibleItems);
-      /* HD_ORIGIN_CIL_SAVED_COUNT_FILTER_20260723_END */
+        const label = String(
+          button.dataset.baseLabel ||
+          button.textContent ||
+          ""
+        )
+          .replace(/\s*（\d+）\s*$/, "")
+          .trim();
+
+        button.dataset.baseLabel = label;
+        button.textContent =
+          label + "（" + (counts[code] || 0) + "）";
+      });
     }
     catch (error) {
       console.warn(
