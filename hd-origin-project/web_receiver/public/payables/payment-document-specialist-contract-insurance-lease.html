@@ -4631,9 +4631,8 @@ async function loadItems() {
 
     try {
 const res = await fetch(
-        "/api/payment-documents/review-items?scope=specialist&analysis_system_code=" +
-        encodeURIComponent(expectedAnalysisSystemCode) +
-        "&_=" + Date.now(),
+        "/api/payment-documents/review-items?scope=specialist&analysis_system_code=contract_insurance_lease_analysis&_=" +
+        Date.now(),
         { cache: "no-store" }
       );
       const data = await res.json();
