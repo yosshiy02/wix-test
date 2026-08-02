@@ -46,9 +46,10 @@
       const PAGE_CONTENT_BOTTOM = 202;
       const SIDE_SUFFIXES = ["original", "copy"];
       const TEMPLATE_STORAGE_KEY = "hato_shipping_delivery_note_designer_template_v1";
+      const TEMPLATE_LAYOUT_VERSION = 4;
+      const TEMPLATE_LAYOUT_VERSION_STORAGE_KEY = `${TEMPLATE_STORAGE_KEY}_layout_version`;
       const TEMPLATE_SAVE_DEBOUNCE_MS = 300;
       const FOOTER_NAME_PREFIXES = [
-        "amount_rule_top_", "amount_label_", "amount_value_", "amount_rule_bottom_",
         "remarks_label_", "remarks_", "receiver_label_", "receiver_"
       ];
 
@@ -67,33 +68,34 @@
       ];
       const sizeFields = ["出215", "出220", "出225", "出230", "出235", "出240", "出245", "出250"];
       const subtotal = detail => sizeFields.reduce((total, field) => total + Number(detail[field] || 0), 0);
-      const yen = value => `¥${Number(value || 0).toLocaleString("ja-JP")}`;
+      const numberText = value => Number(value || 0).toLocaleString("ja-JP");
+      const yen = value => `¥${numberText(value)}`;
       const clone = value => JSON.parse(JSON.stringify(value));
-      const buildTableRows = sourceDetails => sourceDetails.map(detail => [
-        detail["商品名"],
-        detail["色名"],
-        ...sizeFields.map(field => Number(detail[field] || 0) === 0 ? "" : String(detail[field])),
-        subtotal(detail) === 0 ? "" : String(subtotal(detail)),
-        yen(detail["納品単価"]),
-        detail["出荷納品書明細摘要"] || ""
-      ]);
+      const buildTableRows = sourceDetails => sourceDetails.map(detail => {
+        const quantity = subtotal(detail);
+        const unitPrice = Number(detail["納品単価"] || 0);
+        return [
+          detail["商品名"],
+          detail["色名"],
+          ...sizeFields.map(field => Number(detail[field] || 0) === 0 ? "" : String(detail[field])),
+          quantity === 0 ? "" : String(quantity),
+          numberText(unitPrice),
+          quantity === 0 ? "" : numberText(quantity * unitPrice),
+          detail["出荷納品書明細摘要"] || ""
+        ];
+      });
       const fillMinimumRows = rows => [
         ...rows.map(row => [...row]),
-        ...Array.from({ length: Math.max(0, MIN_DETAIL_ROWS - rows.length) }, () => Array(13).fill(""))
+        ...Array.from({ length: Math.max(0, MIN_DETAIL_ROWS - rows.length) }, () => Array(14).fill(""))
       ];
       const tableRows = buildTableRows(details);
       const totalAmount = details.reduce((total, detail) => total + subtotal(detail) * Number(detail["納品単価"] || 0), 0);
 
       function pageSchemas(copyLabel, suffix) {
-        const summaryText = String(shippingNote["出荷納品書摘要"] || "").trim();
-        const detailY = summaryText ? 72 : 65;
+        const noteText = String(shippingNote["出荷納品書摘要"] || "").trim();
+        const detailY = 72;
         const tableHeight = 48;
-        const totalY = detailY + 50;
-        const lowerY = detailY + 68;
-        const summarySchemas = summaryText ? [
-          { name: `summary_label_${suffix}`, type: "text", content: "摘要", position: { x: 8, y: 47 }, width: 12, height: 4, fontSize: 6.4, fontName: "NotoSansJP", fontColor: "#59616a" },
-          { name: `summary_${suffix}`, type: "text", content: summaryText, position: { x: 8, y: 52 }, width: 75, height: 13, fontSize: 8, fontName: "NotoSansJP", fontColor: "#252b31", lineHeight: 1.25 }
-        ] : [];
+        const lowerY = 130;
         const copySchemas = copyLabel ? [
           { name: `copy_${suffix}`, type: "text", content: copyLabel, position: { x: 130, y: 10 }, width: 10, height: 6, fontSize: 7.2, fontName: "NotoSansJP", fontColor: "#343b43", alignment: "right" }
         ] : [];
@@ -108,7 +110,7 @@
 
           { name: `document_no_label_${suffix}`, type: "text", content: "納品書 No.", position: { x: 96, y: 24 }, width: 19, height: 5, fontSize: 6.5, fontName: "NotoSansJP", fontColor: "#59616a" },
           { name: `document_no_${suffix}`, type: "text", content: String(shippingNote["出荷納品書ID"] || ""), position: { x: 115, y: 24 }, width: 25, height: 5, fontSize: 8.2, fontName: "NotoSansJP", fontColor: "#252b31", alignment: "right" },
-          { name: `document_date_label_${suffix}`, type: "text", content: "納品日", position: { x: 96, y: 31 }, width: 19, height: 5, fontSize: 6.5, fontName: "NotoSansJP", fontColor: "#59616a" },
+          { name: `document_date_label_${suffix}`, type: "text", content: "伝票日付", position: { x: 96, y: 31 }, width: 19, height: 5, fontSize: 6.5, fontName: "NotoSansJP", fontColor: "#59616a" },
           { name: `document_date_${suffix}`, type: "text", content: String(shippingNote["出荷納品書年月日"] || ""), position: { x: 115, y: 31 }, width: 25, height: 5, fontSize: 8.2, fontName: "NotoSansJP", fontColor: "#252b31", alignment: "right" },
           { name: `document_rule_${suffix}`, type: "line", position: { x: 96, y: 38 }, width: 44, height: 0.18, color: "#c0c5ca", readOnly: false },
 
@@ -118,8 +120,10 @@
           { name: `issuer_email_${suffix}`, type: "text", content: "E-mail  hato88@axel.ocn.ne.jp", position: { x: 84, y: 57 }, width: 56, height: 4, fontSize: 5.8, fontName: "NotoSansJP", fontColor: "#59616a", alignment: "right" },
           { name: `issuer_registration_${suffix}`, type: "text", content: "登録番号　T0000000000000", position: { x: 84, y: 62 }, width: 56, height: 4, fontSize: 5.6, fontName: "NotoSansJP", fontColor: "#59616a", alignment: "right" },
           { name: `issuer_bank_${suffix}`, type: "text", content: "振込先　○○銀行 ○○支店 普通 0000000", position: { x: 84, y: 67 }, width: 56, height: 4, fontSize: 5.4, fontName: "NotoSansJP", fontColor: "#6b737c", alignment: "right" },
-
-          ...summarySchemas,
+          { name: `upper_total_rule_top_${suffix}`, type: "line", position: { x: 45, y: 46 }, width: 38, height: 0.1, color: "#c7ccd1", readOnly: false },
+          { name: `upper_total_label_${suffix}`, type: "text", content: "金額合計", position: { x: 8, y: 49 }, width: 20, height: 6, fontSize: 7.2, fontName: "NotoSansJP", fontColor: "#343b43" },
+          { name: `upper_total_value_${suffix}`, type: "text", content: yen(totalAmount), position: { x: 45, y: 47 }, width: 38, height: 9, fontSize: 13.5, fontName: "NotoSansJP", fontColor: "#15191d", alignment: "right" },
+          { name: `upper_total_rule_bottom_${suffix}`, type: "line", position: { x: 45, y: 59 }, width: 38, height: 0.18, color: "#69717a", readOnly: false },
           {
             name: `details_${suffix}`, type: "table", position: { x: 8, y: detailY }, width: 132, height: tableHeight,
             showHead: true,
@@ -136,19 +140,14 @@
               borderColor: "#d1d5da", borderWidth: { top: 0.06, right: 0.06, bottom: 0.06, left: 0.06 },
               padding: { top: 1.25, right: 0.5, bottom: 1.25, left: 0.5 }
             },
-            head: ["商品名", "色名", "21.5", "22.0\nS", "22.5", "23.0\nM", "23.5", "24.0\nL", "24.5\nLL", "25.0", "小計", "納品単価", "明細摘要"],
+            head: ["商品名", "色名", "21.5", "22.0\nS", "22.5", "23.0\nM", "23.5", "24.0\nL", "24.5\nLL", "25.0", "小計", "単価", "金額", "明細摘要"],
             content: JSON.stringify(fillMinimumRows(tableRows)),
-            headWidthPercentages: [18.9394, 8.3333, 4.5455, 4.5455, 4.5455, 4.5455, 4.5455, 4.5455, 4.5455, 4.5455, 6.0606, 9.8482, 20.4545],
-            columnStyles: { alignment: { 0: "left", 1: "center", 2: "center", 3: "center", 4: "center", 5: "center", 6: "center", 7: "center", 8: "center", 9: "center", 10: "center", 11: "right", 12: "left" } }
+            headWidthPercentages: [18.8, 8.5, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 5.5, 7.6, 10.5, 16.3],
+            columnStyles: { alignment: { 0: "center", 1: "center", 2: "center", 3: "center", 4: "center", 5: "center", 6: "center", 7: "center", 8: "center", 9: "center", 10: "center", 11: "center", 12: "center", 13: "center" } }
           },
 
-          { name: `amount_rule_top_${suffix}`, type: "line", position: { x: 96, y: totalY }, width: 44, height: 0.18, color: "#9ca3aa", readOnly: false },
-          { name: `amount_label_${suffix}`, type: "text", content: "金額合計", position: { x: 96, y: totalY + 3 }, width: 18, height: 6, fontSize: 7.2, fontName: "NotoSansJP", fontColor: "#343b43" },
-          { name: `amount_value_${suffix}`, type: "text", content: yen(totalAmount), position: { x: 113, y: totalY + 2 }, width: 27, height: 8, fontSize: 11.5, fontName: "NotoSansJP", fontColor: "#15191d", alignment: "right" },
-          { name: `amount_rule_bottom_${suffix}`, type: "line", position: { x: 96, y: totalY + 12 }, width: 44, height: 0.35, color: "#4c535b", readOnly: false },
-
           { name: `remarks_label_${suffix}`, type: "text", content: "備考", position: { x: 8, y: lowerY }, width: 14, height: 5, fontSize: 6.5, fontName: "NotoSansJP", fontColor: "#59616a" },
-          { name: `remarks_${suffix}`, type: "text", content: "", position: { x: 9, y: lowerY + 7 }, width: 92, height: 26, fontSize: 7, fontName: "NotoSansJP" },
+          { name: `remarks_${suffix}`, type: "text", content: noteText, position: { x: 9, y: lowerY + 7 }, width: 92, height: 26, fontSize: 7, fontName: "NotoSansJP", lineHeight: 1.25 },
           { name: `remarks_frame_top_${suffix}`, type: "line", position: { x: 8, y: lowerY + 6 }, width: 94, height: 0.16, color: "#b7bdc3" },
           { name: `remarks_frame_bottom_${suffix}`, type: "line", position: { x: 8, y: lowerY + 34 }, width: 94, height: 0.16, color: "#b7bdc3" },
           { name: `remarks_frame_left_${suffix}`, type: "line", position: { x: 8, y: lowerY + 6 }, width: 0.16, height: 28, color: "#b7bdc3" },
@@ -166,6 +165,52 @@
         basePdf: { width: 148, height: 210, padding: [16, 8, 8, 8] },
         schemas: [pageSchemas("", "original"), pageSchemas("控", "copy")]
       };
+
+      const findSchemaByName = (sourceTemplate, name) => sourceTemplate.schemas.flat().find(schema => schema.name === name);
+      const isFourteenColumnTable = table => {
+        try {
+          const content = JSON.parse(table.content || "[]");
+          return Array.isArray(table.head) && table.head.length === 14 &&
+            Array.isArray(table.headWidthPercentages) && table.headWidthPercentages.length === 14 &&
+            Array.isArray(content) && content.every(row => Array.isArray(row) && row.length === 14);
+        } catch (error) {
+          return false;
+        }
+      };
+      function migrateEditableTemplate(savedTemplate, applyCurrentLayout) {
+        const savedSchemas = new Map(savedTemplate.schemas.flat().map(schema => [schema.name, schema]));
+        let migrated = applyCurrentLayout || savedTemplate.schemas.flat().some(schema => /^(summary_|amount_)/.test(schema.name));
+        const migratedTemplate = clone(standardTemplate);
+        migratedTemplate.basePdf = clone(savedTemplate.basePdf);
+        migratedTemplate.schemas = standardTemplate.schemas.map(page => page.map(standardSchema => {
+          const savedSchema = savedSchemas.get(standardSchema.name);
+          if (!savedSchema) {
+            migrated = true;
+            return clone(standardSchema);
+          }
+          const merged = { ...clone(standardSchema), ...clone(savedSchema), name: standardSchema.name, type: standardSchema.type, content: standardSchema.content };
+          if (applyCurrentLayout && standardSchema.name.startsWith("upper_total_")) {
+            return savedSchema.id ? { ...clone(standardSchema), id: savedSchema.id } : clone(standardSchema);
+          }
+          if (standardSchema.type !== "table") return merged;
+          const savedIsFourteenColumn = isFourteenColumnTable(savedSchema);
+          const layoutKeys = ["id", "position", "width", "height", "showHead", "tableStyles", "headStyles", "bodyStyles", "readOnly", "rotate"];
+          layoutKeys.forEach(key => {
+            if (savedSchema[key] !== undefined) merged[key] = clone(savedSchema[key]);
+          });
+          if (savedIsFourteenColumn) {
+            merged.headWidthPercentages = clone(savedSchema.headWidthPercentages);
+          } else {
+            migrated = true;
+            merged.headWidthPercentages = clone(standardSchema.headWidthPercentages);
+          }
+          merged.head = clone(standardSchema.head);
+          merged.content = standardSchema.content;
+          merged.columnStyles = clone(standardSchema.columnStyles);
+          return merged;
+        }));
+        return { template: migratedTemplate, migrated };
+      }
 
       function isEditableSourceTemplate(candidate) {
         if (!candidate || typeof candidate !== "object" || !candidate.basePdf ||
@@ -193,8 +238,14 @@
             console.warn("Saved shipping-note template is not an editable source template; using the standard template.");
             return clone(standardTemplate);
           }
-          templateRestoreStatus = "restored";
-          return savedTemplate;
+          const savedLayoutVersion = Number(localStorage.getItem(TEMPLATE_LAYOUT_VERSION_STORAGE_KEY) || 0);
+          const migration = migrateEditableTemplate(savedTemplate, savedLayoutVersion < TEMPLATE_LAYOUT_VERSION);
+          templateRestoreStatus = migration.migrated ? "migrated" : "restored";
+          if (migration.migrated) {
+            localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(migration.template));
+            localStorage.setItem(TEMPLATE_LAYOUT_VERSION_STORAGE_KEY, String(TEMPLATE_LAYOUT_VERSION));
+          }
+          return migration.template;
         } catch (error) {
           templateRestoreStatus = "unavailable";
           console.error("Unable to restore the shipping-note template from local storage.", error);
@@ -213,11 +264,8 @@
         sourceTemplate.schemas.flat().forEach(schema => { input[schema.name] = schema.content || ""; });
         return input;
       };
-      const calculateRowsAmount = rows => rows.reduce((total, row) => {
-        const quantity = Number(String(row[10] || "").replace(/[^0-9.-]/g, "")) || 0;
-        const unitPrice = Number(String(row[11] || "").replace(/[^0-9.-]/g, "")) || 0;
-        return total + quantity * unitPrice;
-      }, 0);
+      const calculateRowsAmount = rows => rows.reduce((total, row) =>
+        total + (Number(String(row[12] || "").replace(/[^0-9.-]/g, "")) || 0), 0);
 
       async function measureTable(sourceTable, body, basePdf, y) {
         const schema = clone(sourceTable);
@@ -386,7 +434,6 @@
           const prepared = clone(schema);
           prepared.position = { ...prepared.position, y: prepared.position.y + footerOffset };
           prepared.readOnly = true;
-          if (prepared.name === `amount_value_${suffix}`) prepared.content = yen(amount);
           finalPage.push(prepared);
         });
 
@@ -398,11 +445,14 @@
         const workingTemplate = clone(sourceTemplate);
         workingTemplate.basePdf = { ...workingTemplate.basePdf, padding: [16, 8, 8, 8] };
         const displayRows = fillMinimumRows(rows);
+        const amount = calculateRowsAmount(rows);
         SIDE_SUFFIXES.forEach(suffix => {
           const sourcePage = findSourcePage(workingTemplate, suffix);
           const sourceTable = sourcePage && sourcePage.find(schema => schema.name === `details_${suffix}`);
-          if (!sourceTable) throw new Error(`Editable table schema not found: ${suffix}`);
+          const upperTotal = sourcePage && sourcePage.find(schema => schema.name === `upper_total_value_${suffix}`);
+          if (!sourceTable || !upperTotal) throw new Error(`Editable table or upper total schema not found: ${suffix}`);
           sourceTable.content = JSON.stringify(displayRows);
+          upperTotal.content = yen(amount);
         });
         const dynamicTemplate = await getDynamicTemplate({
           template: workingTemplate,
@@ -411,7 +461,6 @@
           _cache: new Map(),
           getDynamicHeights: (value, args) => getDynamicHeightsForTable(value, args)
         });
-        const amount = calculateRowsAmount(rows);
         const originalPages = await buildSidePages(workingTemplate, dynamicTemplate, "original", displayRows, amount);
         const copyPages = await buildSidePages(workingTemplate, dynamicTemplate, "copy", displayRows, amount);
         const prepared = {
@@ -440,6 +489,7 @@
             return false;
           }
           localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(currentTemplate));
+          localStorage.setItem(TEMPLATE_LAYOUT_VERSION_STORAGE_KEY, String(TEMPLATE_LAYOUT_VERSION));
           document.body.dataset.templateStorageStatus = "saved";
           document.body.dataset.templateSavedAt = new Date().toISOString();
           return true;
@@ -518,8 +568,11 @@
 
       async function runPaginationAudit() {
         const results = [];
+        const expectedHeaders = ["商品名", "色名", "21.5", "22.0\nS", "22.5", "23.0\nM", "23.5", "24.0\nL", "24.5\nLL", "25.0", "小計", "単価", "金額", "明細摘要"];
+        const expectedRemarks = String(shippingNote["出荷納品書摘要"] || "").trim();
         for (const count of [3, 8, 12, 20]) {
           const rows = createTestRows(count);
+          const expectedAmount = yen(calculateRowsAmount(rows));
           const { preparedTemplate, pdf } = await createPreviewPdf(designer.getTemplate(), rows);
           const pdfDocument = await PDFDocument.load(pdf);
           const audit = { details: count, pages: preparedTemplate.schemas.length, pdfPages: pdfDocument.getPageCount() };
@@ -533,14 +586,47 @@
               if (tableSchema) {
                 pageIndexes.push(pageIndex);
                 finalTablePage = pageIndex;
+                if (!Array.isArray(tableSchema.head) || tableSchema.head.length !== 14 ||
+                    tableSchema.head.join("\u0000") !== expectedHeaders.join("\u0000")) {
+                  throw new Error(`Fourteen-column header mismatch: ${suffix}/${count}`);
+                }
+                const widths = tableSchema.headWidthPercentages || [];
+                if (widths.length !== 14 || Math.abs(widths.reduce((sum, width) => sum + Number(width), 0) - 100) > 0.001) {
+                  throw new Error(`Fourteen-column width mismatch: ${suffix}/${count}`);
+                }
+                const expectedCenterAlignment = Array.from({ length: 14 }, (_, index) => index).every(index => tableSchema.columnStyles && tableSchema.columnStyles.alignment && tableSchema.columnStyles.alignment[index] === "center");
+                if (!expectedCenterAlignment) throw new Error(`Table body alignment mismatch: ${suffix}/${count}`);
                 const body = JSON.parse(tableSchema.content || "[]");
-                actualRows += body.filter(row => row.some(cell => String(cell || "").trim() !== "")).length;
+                body.forEach(row => {
+                  if (!Array.isArray(row) || row.length !== 14) throw new Error(`Fourteen-column body mismatch: ${suffix}/${count}`);
+                  if (row.some(cell => String(cell || "").trim() !== "")) {
+                    const lineSubtotal = Number(String(row[10] || "").replace(/[^0-9.-]/g, "")) || 0;
+                    const unitPrice = Number(String(row[11] || "").replace(/[^0-9.-]/g, "")) || 0;
+                    if (String(row[11] || "").includes("¥") || String(row[12] || "").includes("¥")) {
+                      throw new Error(`Detail unit price or amount still contains yen marker: ${suffix}/${count}`);
+                    }
+                    if (String(row[12] || "") !== numberText(lineSubtotal * unitPrice)) {
+                      throw new Error(`Line amount mismatch: ${suffix}/${count}`);
+                    }
+                    actualRows++;
+                  }
+                });
                 if (!tableSchema.showHead) throw new Error(`Missing continuation table header: ${suffix}/${count}`);
               }
               if (page.some(schema => isFooterSchema(schema, suffix))) footerPages.add(pageIndex);
             });
             if (actualRows !== count) throw new Error(`Detail loss detected: ${suffix}/${count}/${actualRows}`);
             if (footerPages.size !== 1 || !footerPages.has(finalTablePage)) throw new Error(`Footer is not on the final detail page: ${suffix}/${count}`);
+            const firstTablePage = pageIndexes[0];
+            const upperTotalPages = preparedTemplate.schemas
+              .map((page, pageIndex) => page.some(schema => schema.name === `upper_total_value_${suffix}`) ? pageIndex : -1)
+              .filter(pageIndex => pageIndex >= 0);
+            const upperTotal = preparedTemplate.schemas[firstTablePage].find(schema => schema.name === `upper_total_value_${suffix}`);
+            if (upperTotalPages.length !== 1 || upperTotalPages[0] !== firstTablePage || !upperTotal || upperTotal.content !== expectedAmount) {
+              throw new Error(`Upper total placement or amount mismatch: ${suffix}/${count}`);
+            }
+            const dateLabel = preparedTemplate.schemas[firstTablePage].find(schema => schema.name === `document_date_label_${suffix}`);
+            if (!dateLabel || dateLabel.content !== "伝票日付") throw new Error(`Document date label mismatch: ${suffix}/${count}`);
             const expectedPageTotal = pageIndexes.length;
             const pageNumbers = pageIndexes.map((pageIndex, sidePageIndex) => {
               const expectedContent = `${sidePageIndex + 1} / ${expectedPageTotal}`;
@@ -562,7 +648,7 @@
                 throw new Error(`Copy marker is missing on continuation page: ${count}/${continuationPageIndex}`);
               }
             }
-            for (const finalName of [`amount_value_${suffix}`, `remarks_${suffix}`, `receiver_${suffix}`]) {
+            for (const finalName of [`remarks_${suffix}`, `receiver_${suffix}`]) {
               const matchingPages = preparedTemplate.schemas
                 .map((page, pageIndex) => page.some(schema => schema.name === finalName) ? pageIndex : -1)
                 .filter(pageIndex => pageIndex >= 0);
@@ -570,13 +656,18 @@
                 throw new Error(`Final-page schema placement is invalid: ${finalName}/${count}`);
               }
             }
+            const finalRemarks = preparedTemplate.schemas[finalTablePage].find(schema => schema.name === `remarks_${suffix}`);
+            if (!finalRemarks || finalRemarks.content !== expectedRemarks) throw new Error(`Remarks content mismatch: ${suffix}/${count}`);
             audit[`${suffix}Pages`] = pageIndexes.length;
             audit[`${suffix}Rows`] = actualRows;
             audit[`${suffix}PageNumbers`] = pageNumbers;
+            audit[`${suffix}Amount`] = expectedAmount;
           }
           if (audit.originalRows !== audit.copyRows) throw new Error(`Original/copy mismatch: ${count}`);
           if (audit.pages !== audit.pdfPages) throw new Error(`Prepared/PDF page mismatch: ${count}`);
-          const renderedText = preparedTemplate.schemas.flat().map(schema => String(schema.content || "")).join("\n");
+          const renderedSchemas = preparedTemplate.schemas.flat();
+          if (renderedSchemas.some(schema => /^(summary_|amount_)/.test(schema.name))) throw new Error("Legacy summary or lower-total schema remains.");
+          const renderedText = renderedSchemas.map(schema => String(schema.content || "")).join("\n");
           if (renderedText.includes("正")) throw new Error("The prohibited original-side label remains.");
           if (!renderedText.includes("控")) throw new Error("The copy label is missing.");
           if (renderedText.includes("□")) throw new Error("Unsupported Japanese glyph marker was detected.");
