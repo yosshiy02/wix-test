@@ -1,0 +1,307 @@
+Private Sub 全出荷ボタン_Click()
+    Dim db As DAO.Database
+    Dim rsOrderDetails As DAO.Recordset
+    Dim rsShipping As DAO.Recordset
+    Dim rsShipped As DAO.Recordset
+    Dim rsShippingDetail As DAO.Recordset ' 出荷明細テーブル用のRecordset
+    Dim strSQL As String
+    Dim orderId As Long
+    Dim confirmation As VbMsgBoxResult
+    Dim newShipmentID As Long
+
+    Dim wsDN As DAO.Workspace
+    Dim dbDN As DAO.Database
+    Dim rsDNHeader As DAO.Recordset
+    Dim rsDNShipmentDetails As DAO.Recordset
+    Dim rsDNDetails As DAO.Recordset
+    Dim deliveryTransactionStarted As Boolean
+    Dim currentDeliveryYear As Long
+    Dim currentDeliveryNoteTableID As Long
+    Dim currentDeliveryNoteID As Long
+    Dim deliveryErrorNumber As Long
+    Dim deliveryErrorDescription As String
+    
+    On Error GoTo ErrorHandler
+    
+    ' 0. "全出荷年月日窓"に値が入っているかチェック
+    If IsNull(Me.全出荷年月日窓.Value) Or Trim(Me.全出荷年月日窓.Value) = "" Then
+        MsgBox "全出荷年月日を入力してください。", vbExclamation, "警告"
+        Exit Sub ' 処理を中断
+    End If
+    
+    ' 1. "出荷テーブル"に"受注ID"のレコードがあるかチェック
+    Set db = OpenDatabase(HDDBAD)
+    If DCount("*", "出荷テーブル", "受注ID = " & Me.受注ID窓.Value) > 0 Then
+        MsgBox "警告: 既に出荷された受注です。全出荷処理は中止します。", vbExclamation, "警告"
+        db.Close
+        Exit Sub ' 処理を中断
+    End If
+    db.Close
+    
+    ' 2. 全出荷するかの確認メッセージを表示
+    confirmation = MsgBox("全出荷しますか？", vbQuestion + vbYesNo, "確認")
+    If confirmation = vbNo Then
+        Exit Sub ' 処理を中断
+    End If
+    
+    ' 3. 受注IDを取得
+    orderId = Me.受注ID窓.Value
+    
+    ' 5. 出荷テーブルに新しいレコードを追加
+    Set db = OpenDatabase(HDDBAD)
+    Set rsShipping = db.OpenRecordset("出荷テーブル", dbOpenDynaset)
+    rsShipping.AddNew
+    rsShipping.Fields("出荷年月日").Value = Me.全出荷年月日窓.Value ' 全出荷年月日窓の値を使用
+    rsShipping.Fields("受注ID").Value = orderId
+    ' 他のフィールドも必要に応じて追加
+    rsShipping.Update
+    rsShipping.Close
+
+    ' 今回追加した出荷IDを取得
+    newShipmentID = DMax("出荷ID", "出荷テーブル")
+
+    ' 4. 受注明細のデータを抽出
+    strSQL = "SELECT * FROM 受注明細テーブル WHERE 受注ID = " & orderId
+    Set rsOrderDetails = db.OpenRecordset(strSQL)
+
+    ' 6. 受注明細のデータを処理
+    rsOrderDetails.MoveFirst
+    Do Until rsOrderDetails.EOF
+        ' 7. 受注明細の各フィールドの値を取得
+        Dim fieldValue215 As Variant
+        Dim fieldValue220 As Variant
+        Dim fieldValue225 As Variant
+        Dim fieldValue230 As Variant
+        Dim fieldValue235 As Variant
+        Dim fieldValue240 As Variant
+        Dim fieldValue245 As Variant
+        Dim fieldValue250 As Variant
+        Dim OrderNumber As String
+
+        fieldValue215 = rsOrderDetails.Fields("215").Value
+        fieldValue220 = rsOrderDetails.Fields("220").Value
+        fieldValue225 = rsOrderDetails.Fields("225").Value
+        fieldValue230 = rsOrderDetails.Fields("230").Value
+        fieldValue235 = rsOrderDetails.Fields("235").Value
+        fieldValue240 = rsOrderDetails.Fields("240").Value
+        fieldValue245 = rsOrderDetails.Fields("245").Value
+        fieldValue250 = rsOrderDetails.Fields("250").Value
+        
+        OrderNumber = rsOrderDetails.Fields("受注番号").Value
+        ' 9. 出荷明細テーブルに新しいレコードを追加
+
+        ' 出荷明細テーブルに新しいレコードを追加
+        Set rsShippingDetail = db.OpenRecordset("出荷明細テーブル", dbOpenDynaset)
+        
+        rsShippingDetail.AddNew
+    
+        rsShippingDetail.Fields("出荷ID").Value = DMax("出荷ID", "出荷テーブル") ' 出荷IDを設定
+        rsShippingDetail.Fields("受注明細ID").Value = rsOrderDetails.Fields("受注明細ID").Value
+        rsShippingDetail.Fields("出215").Value = fieldValue215
+        rsShippingDetail.Fields("出220").Value = fieldValue220
+        rsShippingDetail.Fields("出225").Value = fieldValue225
+        rsShippingDetail.Fields("出230").Value = fieldValue230
+        rsShippingDetail.Fields("出235").Value = fieldValue235
+        rsShippingDetail.Fields("出240").Value = fieldValue240
+        rsShippingDetail.Fields("出245").Value = fieldValue245
+        rsShippingDetail.Fields("出250").Value = fieldValue250
+        rsShippingDetail.Fields("受注番号").Value = OrderNumber
+        rsShippingDetail.Update
+        rsShippingDetail.Close
+
+        ' 10. 出荷済テーブルを更新
+        Set rsShipped = db.OpenRecordset("出荷済テーブル", dbOpenDynaset)
+            
+        ' 出荷済テーブルを更新
+        rsShipped.FindFirst "受注番号 = '" & OrderNumber & "'"
+        If Not rsShipped.NoMatch Then
+            rsShipped.Edit
+            rsShipped.Fields("注残計").Value = 0 ' 注残計を 0 に設定
+            rsShipped.Fields("出荷済").Value = True ' 出荷済を True に設定
+            rsShipped.Update
+        End If
+        
+        rsOrderDetails.MoveNext
+    Loop
+    
+    rsOrderDetails.Close
+    rsShipped.Close
+    db.Close
+    
+    ' 11. 処理完了メッセージを表示
+    MsgBox "全出荷処理が完了しました。", vbInformation, "処理完了"
+    
+    ' 12. 出荷受注サブフォームを更新
+    Forms![出荷フォーム]![出荷受注サブフォーム].Form.Requery
+
+    ' 本日の出荷に追加するか確認
+    If MsgBox("本日の出荷に追加しますか？", _
+              vbQuestion + vbYesNo, _
+              "出荷確認") = vbNo Then
+        Exit Sub
+    End If
+
+    On Error GoTo DeliveryNoteError
+
+    currentDeliveryYear = Nz(Me!出荷納品書年度窓, 0)
+
+    If currentDeliveryYear = 0 Then
+        MsgBox "出荷納品書年度を入力してください。", vbExclamation, "エラー"
+        Exit Sub
+    End If
+
+    Set wsDN = DBEngine.Workspaces(0)
+    Set dbDN = wsDN.OpenDatabase(HDDBAD)
+
+    wsDN.BeginTrans
+    deliveryTransactionStarted = True
+
+    ' 最新の出荷納品書テーブルIDを取得
+    Set rsDNHeader = dbDN.OpenRecordset( _
+        "SELECT Max([出荷納品書テーブルID]) AS 最大出荷納品書テーブルID " & _
+        "FROM [出荷納品書テーブル]", _
+        dbOpenSnapshot _
+    )
+
+    currentDeliveryNoteTableID = Nz(rsDNHeader.Fields("最大出荷納品書テーブルID"), 0)
+
+    rsDNHeader.Close
+    Set rsDNHeader = Nothing
+
+    If currentDeliveryNoteTableID = 0 Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+
+        dbDN.Close
+        Set dbDN = Nothing
+        Set wsDN = Nothing
+
+        MsgBox "出荷納品書テーブルの最新レコードがありません。", _
+               vbExclamation, _
+               "出荷納品書登録エラー"
+        Exit Sub
+    End If
+
+    ' 最新の出荷納品書テーブルIDのレコードを取得
+    Set rsDNHeader = dbDN.OpenRecordset("出荷納品書テーブル", dbOpenDynaset)
+
+    rsDNHeader.FindFirst "[出荷納品書テーブルID] = " & currentDeliveryNoteTableID
+
+    If rsDNHeader.NoMatch Then
+        Err.Raise vbObjectError + 1003, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードが見つかりません。"
+    End If
+
+    currentDeliveryNoteID = Nz(rsDNHeader.Fields("出荷納品書ID"), 0)
+
+    If currentDeliveryNoteID = 0 Then
+        Err.Raise vbObjectError + 1004, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードに出荷納品書IDがありません。"
+    End If
+
+    rsDNHeader.Edit
+    rsDNHeader.Fields("受注ID") = orderId
+    rsDNHeader.Update
+    rsDNHeader.Close
+    Set rsDNHeader = Nothing
+
+    ' 今回の出荷IDに属する出荷明細IDを全件取得
+    Set rsDNShipmentDetails = dbDN.OpenRecordset( _
+        "SELECT [出荷明細ID] " & _
+        "FROM [出荷明細テーブル] " & _
+        "WHERE [出荷ID] = " & CStr(newShipmentID), _
+        dbOpenSnapshot _
+    )
+    
+    If rsDNShipmentDetails.EOF Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+
+        rsDNShipmentDetails.Close
+        Set rsDNShipmentDetails = Nothing
+
+        dbDN.Close
+        Set dbDN = Nothing
+        Set wsDN = Nothing
+
+        MsgBox "今回の出荷明細を取得できませんでした。", _
+               vbExclamation, _
+               "出荷納品書登録エラー"
+        Exit Sub
+    End If
+
+    Set rsDNDetails = dbDN.OpenRecordset( _
+        "出荷納品書明細テーブル", _
+        dbOpenDynaset _
+    )
+
+    ' 今回作成した出荷明細IDを全件追加
+    Do Until rsDNShipmentDetails.EOF
+        With rsDNDetails
+            .AddNew
+            .Fields("出荷納品書ID") = currentDeliveryNoteID
+            .Fields("出荷明細ID") = rsDNShipmentDetails.Fields("出荷明細ID")
+            .Update
+        End With
+
+        rsDNShipmentDetails.MoveNext
+    Loop
+
+    rsDNDetails.Close
+    Set rsDNDetails = Nothing
+
+    rsDNShipmentDetails.Close
+    Set rsDNShipmentDetails = Nothing
+
+    wsDN.CommitTrans
+    deliveryTransactionStarted = False
+
+    dbDN.Close
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    MsgBox "出荷に追加しました", vbInformation, "登録完了"
+    
+    Exit Sub
+    
+ErrorHandler:
+    ' エラーメッセージを表示
+    MsgBox "エラーが発生しました: " & Err.Description, vbCritical, "エラー"
+    Exit Sub
+
+DeliveryNoteError:
+
+    deliveryErrorNumber = Err.number
+    deliveryErrorDescription = Err.Description
+
+    On Error Resume Next
+
+    If Not rsDNDetails Is Nothing Then rsDNDetails.Close
+    If Not rsDNShipmentDetails Is Nothing Then rsDNShipmentDetails.Close
+    If Not rsDNHeader Is Nothing Then rsDNHeader.Close
+
+    If deliveryTransactionStarted Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+    End If
+
+    If Not dbDN Is Nothing Then dbDN.Close
+
+    Set rsDNDetails = Nothing
+    Set rsDNShipmentDetails = Nothing
+    Set rsDNHeader = Nothing
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    On Error GoTo 0
+
+    MsgBox "出荷納品書の登録でエラーが発生しました。" & vbCrLf & _
+           "納品書への追加は取り消しました。" & vbCrLf & vbCrLf & _
+           "エラー番号：" & deliveryErrorNumber & vbCrLf & _
+           "内容：" & deliveryErrorDescription, _
+           vbExclamation, "出荷納品書登録エラー"
+
+End Sub
+

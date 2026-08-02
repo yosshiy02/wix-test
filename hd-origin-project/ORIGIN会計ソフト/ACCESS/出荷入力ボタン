@@ -1,0 +1,266 @@
+Private Sub 出荷入力ボタン_Click()
+    ' 出荷詳細フォームを参照
+    Dim CSSF As Form
+    Set CSSF = [Forms]![帳面出荷詳細フォーム]
+
+    If Nz(Me.[出荷年月日窓], "") = "" Then
+        MsgBox "出荷日付を入力してください"
+        Exit Sub
+    End If
+
+    Dim db As DAO.Database
+    Dim SN As DAO.Recordset
+    Dim SNM As DAO.Recordset
+    Dim newShipmentDetailID As Long
+    Dim wsDN As DAO.Workspace
+    Dim dbDN As DAO.Database
+    Dim RSHeader As DAO.Recordset
+    Dim RSDNDetail As DAO.Recordset
+    Dim deliveryTransactionStarted As Boolean
+    Dim currentDeliveryYear As Long
+    Dim currentDeliveryNoteTableID As Long
+    Dim currentDeliveryNoteID As Long
+    Dim deliveryErrorNumber As Long
+    Dim deliveryErrorDescription As String
+
+    Set db = OpenDatabase(HDDBAD)
+    Set SN = db.OpenRecordset("出荷テーブル", dbOpenTable)
+    Set SNM = db.OpenRecordset("出荷明細テーブル", dbOpenTable)
+
+    With SN
+        .AddNew
+        .Fields("出荷年月日") = Me.[出荷年月日窓]
+        .Fields("受注ID") = Forms!帳面出荷詳細フォーム![受注ID]
+        .Update
+    End With
+
+    Dim newShipmentID As Long
+    newShipmentID = DMax("出荷ID", "出荷テーブル")
+
+    With SNM
+        .AddNew
+        .Fields("出荷ID") = newShipmentID
+        .Fields("受注明細ID") = Forms!帳面出荷詳細フォーム![受注明細ID]
+        .Fields("受注番号") = Forms!帳面出荷詳細フォーム![受注番号]
+        .Fields("出215") = Me.[出215窓]
+        .Fields("出220") = Me.[出220窓]
+        .Fields("出225") = Me.[出225窓]
+        .Fields("出230") = Me.[出230窓]
+        .Fields("出235") = Me.[出235窓]
+        .Fields("出240") = Me.[出240窓]
+        .Fields("出245") = Me.[出245窓]
+        .Fields("出250") = Me.[出250窓]
+        .Update
+
+        .Bookmark = .LastModified
+        newShipmentDetailID = .Fields("出荷明細ID")
+
+        .Close
+    End With
+
+    ' 受注明細テーブルの合計を計算
+    Dim targetOrderNo As String
+    Dim totalOrderAmount As Double
+    targetOrderNo = Me![受注番号]
+    totalOrderAmount = DSum("NZ([215],0) + NZ([220],0) + NZ([225],0) + NZ([230],0) + NZ([235],0) + NZ([240],0) + NZ([245],0) + NZ([250],0)", "受注明細テーブル", "[受注番号] = '" & targetOrderNo & "'")
+    ' 出荷明細テーブルの合計を計算
+    Dim totalShippedAmount As Double
+    totalShippedAmount = 0
+
+    Set SNM = db.OpenRecordset("出荷明細テーブル", dbOpenTable)
+    Do While Not SNM.EOF
+        If SNM![受注番号] = targetOrderNo Then
+            totalShippedAmount = totalShippedAmount + Nz(SNM![出215], 0) + Nz(SNM![出220], 0) + Nz(SNM![出225], 0) + Nz(SNM![出230], 0) + Nz(SNM![出235], 0) + Nz(SNM![出240], 0) + Nz(SNM![出245], 0) + Nz(SNM![出250], 0)
+        End If
+        SNM.MoveNext
+    Loop
+    SNM.Close
+
+    ' 注残計の計算
+    Dim remainingAmount As Double
+    remainingAmount = totalOrderAmount - totalShippedAmount
+
+    ' 出荷済みかどうかを判断するフィールドを追加
+    Dim isShipped As Boolean
+    isShipped = (remainingAmount = 0)
+
+    ' 出荷済テーブルを開いてレコードを検索し、注残計と出荷済フィールドを更新
+    Dim SNS2 As DAO.Recordset
+    Set SNS2 = db.OpenRecordset("出荷済テーブル", dbOpenTable)
+    
+    SNS2.MoveFirst ' レコードの先頭に移動
+    Do Until SNS2.EOF ' レコードが終わるまでループ
+        If SNS2![受注番号] = targetOrderNo Then
+            SNS2.Edit
+            SNS2.Fields("注残計") = remainingAmount ' 注残計を計算した値に設定
+            SNS2.Fields("出荷済") = isShipped ' 注残計が0の場合、出荷済をTrueに設定
+            SNS2.Update
+            Exit Do ' マッチするレコードが見つかったらループを終了
+        End If
+        SNS2.MoveNext ' 次のレコードに移動
+    Loop
+    
+    SNS2.Close ' レコードセットを閉じる
+    Set SNS2 = Nothing
+    db.Close
+
+    ' フォームの再取得・更新
+    CSSF.Requery
+    CSSF!残215窓.Requery
+    CSSF!残220窓.Requery
+    CSSF!残225窓.Requery
+    CSSF!残230窓.Requery
+    CSSF!残235窓.Requery
+    CSSF!残240窓.Requery
+    CSSF!残245窓.Requery
+    CSSF!残250窓.Requery
+    CSSF!注残計.Requery
+    DoCmd.Requery
+
+    ' フォームのフィールドをリセット
+    Me.[出荷年月日窓].Value = Null
+    Me.[出215窓].Value = Null
+    Me.[出220窓].Value = Null
+    Me.[出225窓].Value = Null
+    Me.[出230窓].Value = Null
+    Me.[出235窓].Value = Null
+    Me.[出240窓].Value = Null
+    Me.[出245窓].Value = Null
+    Me.[出250窓].Value = Null
+
+    ' フォーム全体の再取得・更新
+    DoCmd.Requery
+
+    ' メッセージボックス表示
+    MsgBox "入力完了"
+
+    ' 本日の出荷に追加するか確認
+    If MsgBox("本日の出荷に追加しますか？", _
+              vbQuestion + vbYesNo, _
+              "出荷確認") = vbNo Then
+        CSSF![出荷年月日窓].SetFocus
+        Exit Sub
+    End If
+
+    On Error GoTo DeliveryNoteError
+
+    currentDeliveryYear = Nz(CSSF![出荷納品書年度窓], 0)
+
+    If currentDeliveryYear = 0 Then
+        MsgBox "出荷納品書年度を入力してください。", vbExclamation, "エラー"
+        CSSF![出荷年月日窓].SetFocus
+        Exit Sub
+    End If
+
+    Set wsDN = DBEngine.Workspaces(0)
+    Set dbDN = wsDN.OpenDatabase(HDDBAD)
+
+    wsDN.BeginTrans
+    deliveryTransactionStarted = True
+
+    Set RSHeader = dbDN.OpenRecordset( _
+        "SELECT Max([出荷納品書テーブルID]) AS 最大出荷納品書テーブルID " & _
+        "FROM [出荷納品書テーブル]", _
+        dbOpenSnapshot _
+    )
+
+    currentDeliveryNoteTableID = Nz(RSHeader.Fields("最大出荷納品書テーブルID"), 0)
+
+    RSHeader.Close
+    Set RSHeader = Nothing
+
+    If currentDeliveryNoteTableID = 0 Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+
+        dbDN.Close
+        Set dbDN = Nothing
+        Set wsDN = Nothing
+
+        MsgBox "出荷納品書テーブルの最新レコードがありません。", vbExclamation, "出荷納品書登録エラー"
+        CSSF![出荷年月日窓].SetFocus
+        Exit Sub
+    End If
+
+    ' 最新の出荷納品書テーブルIDのレコードを取得
+    Set RSHeader = dbDN.OpenRecordset("出荷納品書テーブル", dbOpenDynaset)
+
+    RSHeader.FindFirst "[出荷納品書テーブルID] = " & currentDeliveryNoteTableID
+
+    If RSHeader.NoMatch Then
+        Err.Raise vbObjectError + 1003, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードが見つかりません。"
+    End If
+
+    currentDeliveryNoteID = Nz(RSHeader.Fields("出荷納品書ID"), 0)
+
+    If currentDeliveryNoteID = 0 Then
+        Err.Raise vbObjectError + 1004, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードに出荷納品書IDがありません。"
+    End If
+
+    RSHeader.Edit
+    RSHeader.Fields("受注ID") = Forms!帳面出荷詳細フォーム![受注ID]
+    RSHeader.Update
+    RSHeader.Close
+    Set RSHeader = Nothing
+
+    Set RSDNDetail = dbDN.OpenRecordset("出荷納品書明細テーブル", dbOpenDynaset)
+
+    With RSDNDetail
+        .AddNew
+        .Fields("出荷納品書ID") = currentDeliveryNoteID
+        .Fields("出荷明細ID") = newShipmentDetailID
+        .Update
+        .Close
+    End With
+
+    Set RSDNDetail = Nothing
+
+    wsDN.CommitTrans
+    deliveryTransactionStarted = False
+
+    dbDN.Close
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    MsgBox "出荷に追加しました", vbInformation, "登録完了"
+
+    ' フォームの特定のフィールドにフォーカスをセット
+    CSSF![出荷年月日窓].SetFocus
+    Exit Sub
+
+DeliveryNoteError:
+
+    deliveryErrorNumber = Err.number
+    deliveryErrorDescription = Err.Description
+
+    On Error Resume Next
+
+    If Not RSDNDetail Is Nothing Then RSDNDetail.Close
+    If Not RSHeader Is Nothing Then RSHeader.Close
+
+    If deliveryTransactionStarted Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+    End If
+
+    If Not dbDN Is Nothing Then dbDN.Close
+
+    Set RSDNDetail = Nothing
+    Set RSHeader = Nothing
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    On Error GoTo 0
+
+    MsgBox "出荷納品書の登録でエラーが発生しました。" & vbCrLf & _
+           "納品書への追加は取り消しました。" & vbCrLf & vbCrLf & _
+           "エラー番号：" & deliveryErrorNumber & vbCrLf & _
+           "内容：" & deliveryErrorDescription, _
+           vbExclamation, "出荷納品書登録エラー"
+
+    CSSF![出荷年月日窓].SetFocus
+End Sub

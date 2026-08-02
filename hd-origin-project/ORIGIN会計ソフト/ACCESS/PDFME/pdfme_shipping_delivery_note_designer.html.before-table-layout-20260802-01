@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>出荷納品書（正・控）Designer</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; font-family: sans-serif; overflow: hidden; }
+    #header { height: 42px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: #243447; color: #fff; }
+    #domContainer { height: calc(100vh - 42px); }
+    button { border: 0; border-radius: 4px; padding: 8px 14px; color: #fff; background: #1f8f55; cursor: pointer; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header id="header">
+    <strong>出荷納品書 A5縦（正・控）PDFME Designer</strong>
+    <button id="exportBtn" type="button">テンプレートJSONを保存</button>
+  </header>
+  <main id="domContainer"></main>
+
+  <script src="./pdfme-local.bundle.js"></script>
+  <script src="./pdfme-shipping-fonts.bundle.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const { Designer, plugins: { text, line, table } } = window.PdfmeLocal;
+      const fonts = window.PdfmeShippingFonts;
+      if (!fonts) throw new Error("Local shipping-note fonts failed to load.");
+
+      // Access「出荷納品書クエリ」への接続前に使用する正式フィールド準拠のダミーデータ。
+      const shippingNote = {
+        出荷納品書ID: "DN-20260802-001",
+        出荷納品書年月日: "2026年8月2日",
+        得意先名: "株式会社 サンプル商事",
+        支店名: "大阪本店",
+        出荷納品書摘要: "8月度 出荷分"
+      };
+      const details = [
+        { 商品名: "レディースローファー", 色名: "Black", 納品単価: 4500, 出215: 1, 出220: 2, 出225: 1, 出230: 0, 出235: 0, 出240: 0, 出245: 0, 出250: 0, 出荷納品書明細摘要: "秋冬定番", 出荷納品書明細ID: "1" },
+        { 商品名: "レザースニーカー", 色名: "White", 納品単価: 5200, 出215: 0, 出220: 0, 出225: 1, 出230: 1, 出235: 1, 出240: 0, 出245: 0, 出250: 0, 出荷納品書明細摘要: "新作", 出荷納品書明細ID: "2" },
+        { 商品名: "ショートブーツ", 色名: "Brown", 納品単価: 6800, 出215: 0, 出220: 0, 出225: 0, 出230: 0, 出235: 1, 出240: 1, 出245: 0, 出250: 0, 出荷納品書明細摘要: "", 出荷納品書明細ID: "3" }
+      ];
+      const sizeFields = ["出215", "出220", "出225", "出230", "出235", "出240", "出245", "出250"];
+      const subtotal = detail => sizeFields.reduce((total, field) => total + Number(detail[field] || 0), 0);
+      const yen = value => `¥${Number(value || 0).toLocaleString("ja-JP")}`;
+      const tableBody = details.map(detail => [
+        detail["商品名"], detail["色名"], ...sizeFields.map(field => String(detail[field] || "")),
+        String(subtotal(detail)), yen(detail["納品単価"]), detail["出荷納品書明細摘要"]
+      ]);
+      const totalQuantity = details.reduce((total, detail) => total + subtotal(detail), 0);
+      const totalAmount = details.reduce((total, detail) => total + subtotal(detail) * detail["納品単価"], 0);
+
+      function pageSchemas(copyLabel, suffix) {
+        return [
+          { name: `title_${suffix}`, type: "text", content: "出 荷 納 品 書", position: { x: 42, y: 8 }, width: 64, height: 8, fontSize: 16, fontName: "YuMinchoDemibold", alignment: "center" },
+          { name: `copy_${suffix}`, type: "text", content: copyLabel, position: { x: 128, y: 8 }, width: 12, height: 6, fontSize: 10, fontName: "NotoSansJP", alignment: "right" },
+          { name: `note_id_${suffix}`, type: "text", content: `出荷納品書ID：${shippingNote["出荷納品書ID"]}`, position: { x: 94, y: 18 }, width: 46, height: 4, fontSize: 7, fontName: "NotoSansJP", alignment: "right" },
+          { name: `note_date_${suffix}`, type: "text", content: `出荷納品書年月日：${shippingNote["出荷納品書年月日"]}`, position: { x: 94, y: 23 }, width: 46, height: 4, fontSize: 7, fontName: "NotoSansJP", alignment: "right" },
+          { name: `customer_${suffix}`, type: "text", content: `${shippingNote["得意先名"]}　御中`, position: { x: 8, y: 27 }, width: 74, height: 7, fontSize: 11, fontName: "NotoSansJP" },
+          { name: `branch_${suffix}`, type: "text", content: `支店名：${shippingNote["支店名"]}`, position: { x: 8, y: 35 }, width: 74, height: 5, fontSize: 8, fontName: "NotoSansJP" },
+          { name: `summary_${suffix}`, type: "text", content: `出荷納品書摘要：${shippingNote["出荷納品書摘要"]}`, position: { x: 8, y: 42 }, width: 132, height: 6, fontSize: 8, fontName: "NotoSansJP", backgroundColor: "#f2f2f2" },
+          {
+            name: `details_${suffix}`, type: "table", position: { x: 8, y: 52 }, width: 132, height: 76,
+            showHead: true,
+            tableStyles: { borderWidth: 0.25, borderColor: "#000000" },
+            headStyles: { fillColor: "#e9eef3", textColor: "#000000", fontSize: 5.5, fontName: "NotoSansJP", alignment: "center" },
+            bodyStyles: { fontSize: 5.5, fontName: "NotoSansJP", alignment: "center" },
+            head: [["商品名", "色名", "21.5", "22.0", "22.5", "23.0", "23.5", "24.0", "24.5", "25.0", "小計", "納品単価", "明細摘要"]],
+            body: [...tableBody, ...Array.from({ length: 4 }, () => Array(13).fill(""))],
+            columnWidths: [25, 10, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 8, 12, 14]
+          },
+          { name: `total_${suffix}`, type: "text", content: `数量合計：${totalQuantity}　　合計金額：${yen(totalAmount)}`, position: { x: 80, y: 132 }, width: 60, height: 6, fontSize: 8, fontName: "NotoSansJP", alignment: "right" },
+          { name: `remarks_${suffix}`, type: "text", content: "備考：", position: { x: 8, y: 145 }, width: 132, height: 22, fontSize: 7, fontName: "NotoSansJP", borderWidth: 0.25, borderColor: "#000000" },
+          { name: `receiver_${suffix}`, type: "text", content: "受領印", position: { x: 120, y: 174 }, width: 20, height: 20, fontSize: 8, fontName: "NotoSansJP", alignment: "center", borderWidth: 0.25, borderColor: "#000000" }
+        ];
+      }
+
+      const template = {
+        basePdf: { width: 148, height: 210, padding: [0, 0, 0, 0] },
+        schemas: [pageSchemas("正", "original"), pageSchemas("控", "copy")]
+      };
+      const designer = new Designer({ domContainer: document.getElementById("domContainer"), template, plugins: { text, line, table }, options: { lang: "ja", font: fonts } });
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(designer.getTemplate(), null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = Object.assign(document.createElement("a"), { href: url, download: "shipping_delivery_note_a5_original_copy.json" });
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+    })();
+  </script>
+</body>
+</html>

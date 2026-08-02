@@ -1,0 +1,339 @@
+Private Sub 出荷ボタン_Click()
+
+    ' 出荷日付が入力されているか確認
+    If Nz([Forms]![出荷フォーム]![出荷受注サブフォーム]![出荷年月日窓], "") = "" Then
+        MsgBox "出荷日付を入力してください", vbExclamation, "エラー"
+        Exit Sub
+    End If
+
+    ' DAOオブジェクトの宣言
+    Dim db As DAO.Database
+    Dim SN As DAO.Recordset
+    Dim SNM As DAO.Recordset
+    Dim wsDN As DAO.Workspace
+    Dim dbDN As DAO.Database
+    Dim RSHeader As DAO.Recordset
+    Dim RSShipmentDetail As DAO.Recordset
+    Dim RSDNDetail As DAO.Recordset
+    Dim deliveryTransactionStarted As Boolean
+    Dim currentDeliveryYear As Long
+    Dim currentDeliveryNoteTableID As Long
+    Dim currentDeliveryNoteID As Long
+    Dim currentShipmentDetailID As Long
+    Dim deliveryErrorNumber As Long
+    Dim deliveryErrorDescription As String
+    
+    ' データベースをオープン
+    Set db = OpenDatabase(HDDBAD)
+
+    ' 出荷テーブルと出荷明細テーブルと出荷済テーブルのレコードセットをオープン
+    Set SN = db.OpenRecordset("出荷テーブル", dbOpenTable)
+    Set SNM = db.OpenRecordset("出荷明細テーブル", dbOpenTable)
+    
+    ' 出荷テーブルに新しいレコードを追加
+    With SN
+        .AddNew
+        .Fields("出荷年月日") = [Forms]![出荷フォーム]![出荷受注サブフォーム]![出荷年月日窓]
+        .Fields("受注ID") = Forms!出荷フォーム![受注ID窓]
+        .Update
+        .Close
+    End With
+
+    ' 出荷IDを取得
+    Dim newShipmentID As Long
+    newShipmentID = DMax("出荷ID", "出荷テーブル")
+
+    ' 出荷明細テーブルに新しいレコードを追加
+    With SNM
+        .AddNew
+        .Fields("出荷ID") = newShipmentID
+        .Fields("受注明細ID") = Me.受注明細ID
+        .Fields("受注番号") = Me.受注番号
+        .Fields("出215") = Me.[帳215]
+        .Fields("出220") = Me.[帳220]
+        .Fields("出225") = Me.[帳225]
+        .Fields("出230") = Me.[帳230]
+        .Fields("出235") = Me.[帳235]
+        .Fields("出240") = Me.[帳240]
+        .Fields("出245") = Me.[帳245]
+        .Fields("出250") = Me.[帳250]
+        .Update
+        .Close
+    End With
+  
+   ' 受注明細テーブルの合計を計算
+    Dim targetOrderNo As String
+    Dim totalOrderAmount As Double
+    targetOrderNo = Me![受注番号]
+    totalOrderAmount = DSum("NZ([215],0) + NZ([220],0) + NZ([225],0) + NZ([230],0) + NZ([235],0) + NZ([240],0) + NZ([245],0) + NZ([250],0)", "受注明細テーブル", "[受注番号] = '" & targetOrderNo & "'")
+
+    ' 出荷明細テーブルの合計を計算
+    Dim totalShippedAmount As Double
+    totalShippedAmount = 0
+
+    Set SNM2 = db.OpenRecordset("出荷明細テーブル", dbOpenTable)
+    Do While Not SNM2.EOF
+        If SNM2![受注番号] = targetOrderNo Then
+            totalShippedAmount = totalShippedAmount + Nz(SNM2![出215], 0) + Nz(SNM2![出220], 0) + Nz(SNM2![出225], 0) + Nz(SNM2![出230], 0) + Nz(SNM2![出235], 0) + Nz(SNM2![出240], 0) + Nz(SNM2![出245], 0) + Nz(SNM2![出250], 0)
+        End If
+        SNM2.MoveNext
+    Loop
+    SNM2.Close
+
+    ' 注残計の計算
+    Dim remainingAmount As Double
+    remainingAmount = totalOrderAmount - totalShippedAmount
+
+    ' 注残計が-1以下の場合、出荷テーブルと出荷明細テーブルの最終レコードを削除
+    If remainingAmount < -1 Then
+     
+
+    ' 出荷明細テーブルの最大の出荷明細IDを取得
+    Dim maxShipmentDetailID As Long
+    maxShipmentDetailID = DMax("出荷明細ID", "出荷明細テーブル")
+
+     ' 出荷テーブルの最大の出荷IDを取得
+    Dim maxShipmentID As Long
+    maxShipmentID = DMax("出荷ID", "出荷テーブル")
+
+
+    ' 出荷明細テーブルから最大の出荷明細IDに対応するレコードを削除
+    Dim SNM3 As DAO.Recordset
+    Set SNM3 = db.OpenRecordset("出荷明細テーブル", dbOpenDynaset)
+
+    SNM3.FindFirst "出荷明細ID=" & maxShipmentDetailID
+    If Not SNM3.NoMatch Then
+    SNM3.Delete
+    End If
+
+    SNM3.Close
+    Set SNM3 = Nothing
+    
+
+
+
+' 出荷テーブルから該当するレコードを削除
+
+Dim SNT As DAO.Recordset
+
+Set SNT = db.OpenRecordset("出荷テーブル", dbOpenDynaset)
+
+' 該当するレコードを見つける
+SNT.MoveFirst
+Do While Not SNT.EOF
+    If SNT![出荷ID] = maxShipmentID Then
+        SNT.Delete ' レコードを削除
+        Exit Do
+    End If
+    SNT.MoveNext
+Loop
+
+SNT.Close
+Set SNT = Nothing
+
+' データベースを閉じる
+db.Close
+
+
+
+
+   
+        
+        
+        ' エラーメッセージを表示して処理を中止
+        MsgBox "エラー：注残計が-1以下です。", vbExclamation
+        Exit Sub
+    End If
+
+    ' 出荷済テーブルを開いてレコードを検索し、注残計と出荷済フィールドを更新
+   ' 出荷済みかどうかを判断するフィールドを追加
+    Dim isShipped As Boolean
+    isShipped = (remainingAmount = 0)
+ 
+    Dim SNS2 As DAO.Recordset
+    Set SNS2 = db.OpenRecordset("出荷済テーブル", dbOpenTable)
+    
+    SNS2.MoveFirst ' レコードの先頭に移動
+    Do Until SNS2.EOF ' レコードが終わるまでループ
+        If SNS2![受注番号] = targetOrderNo Then
+            SNS2.Edit
+            SNS2.Fields("注残計") = remainingAmount ' 注残計を計算した値に設定
+             If remainingAmount < 0 Then
+            ' 注残計が-1以下の場合、エラーメッセージを表示して処理を中止
+            SNS2.Close
+            db.Close
+            Set SNS2 = Nothing
+            MsgBox "エラー：注残計が-1以下です。", vbExclamation
+            Exit Sub
+        End If
+            SNS2.Fields("出荷済") = isShipped ' 注残計が0の場合、出荷済をTrueに設定
+            SNS2.Update
+            Exit Do ' マッチするレコードが見つかったらループを終了
+        End If
+        SNS2.MoveNext ' 次のレコードに移動
+    Loop
+    
+    SNS2.Close ' レコードセットを閉じる
+    Set SNS2 = Nothing
+    db.Close
+
+
+   
+
+  
+    MsgBox ("出荷入力完了")
+    
+    
+    Me.出荷済窓.Requery
+
+  
+
+    ' エラーハンドリングを使用して、次のレコードに移動
+    On Error Resume Next
+    DoCmd.GoToRecord , , acNext
+    On Error GoTo 0
+
+    ' 本日の出荷に追加するか確認
+    If MsgBox("本日の出荷に追加しますか？", _
+              vbQuestion + vbYesNo, _
+              "確認") = vbNo Then
+        Exit Sub
+    End If
+
+    On Error GoTo DeliveryNoteError
+
+    currentDeliveryYear = Nz(Forms!出荷フォーム!出荷納品書年度窓, 0)
+
+    If currentDeliveryYear = 0 Then
+        MsgBox "出荷納品書年度を入力してください。", vbExclamation, "エラー"
+        Exit Sub
+    End If
+
+    Set wsDN = DBEngine.Workspaces(0)
+    Set dbDN = wsDN.OpenDatabase(HDDBAD)
+
+    wsDN.BeginTrans
+    deliveryTransactionStarted = True
+
+    Set RSHeader = dbDN.OpenRecordset( _
+        "SELECT Max([出荷納品書テーブルID]) AS 最大出荷納品書テーブルID " & _
+        "FROM [出荷納品書テーブル]", _
+        dbOpenSnapshot _
+    )
+
+    currentDeliveryNoteTableID = Nz(RSHeader.Fields("最大出荷納品書テーブルID"), 0)
+
+    RSHeader.Close
+    Set RSHeader = Nothing
+
+    If currentDeliveryNoteTableID = 0 Then
+        Err.Raise vbObjectError + 1001, _
+                  "出荷納品書登録", _
+                  "出荷納品書テーブルの最新レコードがありません。"
+    End If
+
+    ' 最新の出荷納品書テーブルIDのレコードを取得
+    Set RSHeader = dbDN.OpenRecordset("出荷納品書テーブル", dbOpenDynaset)
+
+    RSHeader.FindFirst "[出荷納品書テーブルID] = " & currentDeliveryNoteTableID
+
+    If RSHeader.NoMatch Then
+        Err.Raise vbObjectError + 1003, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードが見つかりません。"
+    End If
+
+    currentDeliveryNoteID = Nz(RSHeader.Fields("出荷納品書ID"), 0)
+
+    If currentDeliveryNoteID = 0 Then
+        Err.Raise vbObjectError + 1004, _
+                  "出荷納品書登録", _
+                  "最新の出荷納品書レコードに出荷納品書IDがありません。"
+    End If
+
+    RSHeader.Edit
+    RSHeader.Fields("受注ID") = Forms!出荷フォーム![受注ID窓]
+    RSHeader.Update
+    RSHeader.Close
+    Set RSHeader = Nothing
+
+    Set RSShipmentDetail = dbDN.OpenRecordset( _
+        "SELECT Max([出荷明細ID]) AS 最大出荷明細ID " & _
+        "FROM [出荷明細テーブル]", _
+        dbOpenSnapshot _
+    )
+
+    currentShipmentDetailID = Nz(RSShipmentDetail.Fields("最大出荷明細ID"), 0)
+
+    RSShipmentDetail.Close
+    Set RSShipmentDetail = Nothing
+
+    If currentShipmentDetailID = 0 Then
+        Err.Raise vbObjectError + 1002, _
+                  "出荷納品書登録", _
+                  "今回の出荷明細を取得できません。"
+    End If
+
+    Set RSDNDetail = dbDN.OpenRecordset("出荷納品書明細テーブル", dbOpenDynaset)
+
+    With RSDNDetail
+        .AddNew
+        .Fields("出荷納品書ID") = currentDeliveryNoteID
+        .Fields("出荷明細ID") = currentShipmentDetailID
+        .Update
+        .Close
+    End With
+
+    Set RSDNDetail = Nothing
+
+    wsDN.CommitTrans
+    deliveryTransactionStarted = False
+
+    dbDN.Close
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    MsgBox "出荷に追加しました", vbInformation, "登録完了"
+
+    Exit Sub
+
+ 
+
+    
+
+
+
+
+DeliveryNoteError:
+
+    deliveryErrorNumber = Err.number
+    deliveryErrorDescription = Err.Description
+
+    On Error Resume Next
+
+    If Not RSDNDetail Is Nothing Then RSDNDetail.Close
+    If Not RSShipmentDetail Is Nothing Then RSShipmentDetail.Close
+    If Not RSHeader Is Nothing Then RSHeader.Close
+
+    If deliveryTransactionStarted Then
+        wsDN.Rollback
+        deliveryTransactionStarted = False
+    End If
+
+    If Not dbDN Is Nothing Then dbDN.Close
+
+    Set RSDNDetail = Nothing
+    Set RSShipmentDetail = Nothing
+    Set RSHeader = Nothing
+    Set dbDN = Nothing
+    Set wsDN = Nothing
+
+    On Error GoTo 0
+
+    Err.Raise deliveryErrorNumber, _
+              "出荷納品書登録", _
+              "納品書への追加は取り消しました。" & vbCrLf & vbCrLf & _
+              "エラー番号：" & deliveryErrorNumber & vbCrLf & _
+              "内容：" & deliveryErrorDescription
+
+End Sub

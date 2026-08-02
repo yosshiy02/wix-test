@@ -1,3 +1,96 @@
 Private Sub 出荷納品書ボタン_Click()
 
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+    Dim rsNew As DAO.Recordset
+    Dim targetDeliveryNoteTableID As Variant
+    Dim targetDeliveryNoteID As Variant
+
+    On Error GoTo ErrHandler
+
+    If Nz(Me!出荷納品書年度窓, "") = "" Then
+        MsgBox "出荷納品書年度を入力してください", vbExclamation
+        Exit Sub
+    End If
+
+    If Nz(Me!出荷納品書年月日窓, "") = "" Then
+        MsgBox "出荷納品書年月日を入力してください", vbExclamation
+        Exit Sub
+    End If
+
+    If Nz(Me!受注ID窓, "") = "" Then
+        MsgBox "受注IDを選択してください", vbExclamation
+        Exit Sub
+    End If
+
+    If Nz(Me!得意先コード窓, "") = "" Then
+        MsgBox "得意先を選択してください", vbExclamation
+        Exit Sub
+    End If
+
+    If MsgBox("出荷納品書を作成しますか？", vbYesNo + vbQuestion) = vbNo Then
+        Exit Sub
+    End If
+
+    targetDeliveryNoteTableID = DMax("出荷納品書テーブルID", "出荷納品書テーブル")
+
+    If IsNull(targetDeliveryNoteTableID) Then
+        MsgBox "出荷納品書テーブルの最新レコードがありません。", vbExclamation
+        Exit Sub
+    End If
+
+    Set db = CurrentDb
+    Set rs = db.OpenRecordset( _
+        "SELECT * FROM 出荷納品書テーブル " & _
+        "WHERE 出荷納品書テーブルID=" & CLng(targetDeliveryNoteTableID), _
+        dbOpenDynaset)
+
+    If rs.EOF Then
+        MsgBox "最新の出荷納品書レコードが見つかりません。", vbExclamation
+        rs.Close
+        Set rs = Nothing
+        Set db = Nothing
+        Exit Sub
+    End If
+
+    targetDeliveryNoteID = Nz(rs!出荷納品書ID, 0)
+
+    If targetDeliveryNoteID = 0 Then
+        MsgBox "最新の出荷納品書レコードに出荷納品書IDがありません。", vbExclamation
+        rs.Close
+        Set rs = Nothing
+        Set db = Nothing
+        Exit Sub
+    End If
+
+    rs.Edit
+    rs!得意先コード = Me!得意先コード窓
+    rs!出荷納品書年月日 = Me!出荷納品書年月日窓
+    rs!出荷納品書摘要 = Nz(DLookup("様分", "受注テーブル", _
+                            "受注ID=" & CLng(Me!受注ID窓)), "") & vbCrLf & _
+                         Nz(DLookup("摘要", "受注テーブル", _
+                            "受注ID=" & CLng(Me!受注ID窓)), "")
+    rs.Update
+
+    rs.Close
+    Set rs = Nothing
+
+    Set rsNew = db.OpenRecordset("出荷納品書テーブル", dbOpenDynaset)
+
+    rsNew.AddNew
+    rsNew!出荷納品書ID = CLng(targetDeliveryNoteID) + 1
+    rsNew!年度 = CLng(Me!出荷納品書年度窓)
+    rsNew.Update
+
+    rsNew.Close
+    Set rsNew = Nothing
+    Set db = Nothing
+
+    Exit Sub
+
+ErrHandler:
+    MsgBox "出荷納品書処理でエラーが発生しました。" & vbCrLf & _
+           "エラー番号: " & Err.Number & vbCrLf & _
+           "内容: " & Err.Description, vbCritical
+
 End Sub
