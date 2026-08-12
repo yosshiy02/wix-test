@@ -1175,6 +1175,15 @@ async function hdOriginRunStartupRestoreCheckThenOpenProject() {
     return;
   }
 
+  const launchMode = String(process.env.HD_ORIGIN_LAUNCH_MODE || "").toUpperCase();
+  const serverMode = String(process.env.HD_ORIGIN_SERVER_MODE || "").toUpperCase();
+
+  if (launchMode !== "SERVER" || serverMode !== "MIGRATION") {
+    console.log("[STARTUP_RESTORE_CHECK] サーバー引っ越し起動ではないため、起動時リストア確認を省略します。");
+    hdOriginOpenProjectScreenAfterRestoreAnswer();
+    return;
+  }
+
   await hdOriginConfirmRestoreLatestBackupAfterStartup();
   hdOriginOpenProjectScreenAfterRestoreAnswer();
 }

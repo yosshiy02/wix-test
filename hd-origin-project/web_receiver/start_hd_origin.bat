@@ -163,6 +163,43 @@ if not defined HD_ORIGIN_STARTUP_GIT_SYNC_DONE (
 )
 rem HD_ORIGIN_STARTUP_GIT_SYNC_20260715_END
 
+rem --------------------------------
+rem 1-1. Select launch mode
+rem --------------------------------
+set "HD_ORIGIN_LAUNCH_MODE="
+set "HD_ORIGIN_SERVER_MODE="
+
+:HD_ORIGIN_SELECT_LAUNCH_MODE
+echo.
+echo ============================================================
+echo HD Origin Project 起動モード
+echo ============================================================
+echo [1] 通常起動しますか？
+echo [2] サーバー起動しますか？
+echo.
+set "HD_ORIGIN_LAUNCH_CHOICE="
+set /p "HD_ORIGIN_LAUNCH_CHOICE=選択してください [1-2]: "
+
+if "%HD_ORIGIN_LAUNCH_CHOICE%"=="1" (
+    set "HD_ORIGIN_LAUNCH_MODE=NORMAL"
+    goto HD_ORIGIN_LAUNCH_MODE_SELECTED
+)
+
+if "%HD_ORIGIN_LAUNCH_CHOICE%"=="2" (
+    set "HD_ORIGIN_LAUNCH_MODE=SERVER"
+    goto HD_ORIGIN_LAUNCH_MODE_SELECTED
+)
+
+echo.
+echo ERROR: 1 または 2 を入力してください。
+goto HD_ORIGIN_SELECT_LAUNCH_MODE
+
+:HD_ORIGIN_LAUNCH_MODE_SELECTED
+echo.
+echo HD_ORIGIN_LAUNCH_MODE = %HD_ORIGIN_LAUNCH_MODE%
+if defined HD_ORIGIN_SERVER_MODE echo HD_ORIGIN_SERVER_MODE = %HD_ORIGIN_SERVER_MODE%
+echo.
+
 echo COMPUTER_NAME = %COMPUTER_NAME%
 echo USER_NAME     = %USER_NAME%
 echo PC_RULES_FILE = %PC_RULES_FILE%
@@ -185,7 +222,11 @@ rem --------------------------------
 set "PORT=3000"
 set "APP_NAME=HD Origin Project"
 
-set "DB_HOST=127.0.0.1"
+if /I "%HD_ORIGIN_LAUNCH_MODE%"=="NORMAL" (
+    set "DB_HOST=10.250.0.1"
+) else (
+    set "DB_HOST=127.0.0.1"
+)
 set "DB_PORT=5432"
 set "DB_NAME=hd_origin_project"
 set "DB_USER=postgres"
@@ -369,6 +410,52 @@ if errorlevel 1 (
 echo Secret .env loaded.
 echo.
 
+if /I not "%HD_ORIGIN_LAUNCH_MODE%"=="SERVER" goto HD_ORIGIN_SERVER_MODE_DONE
+
+if not defined DB_PASSWORD (
+    echo ERROR: DB_PASSWORD was not found in .env.
+    echo.
+    pause
+    exit /b 1
+)
+
+powershell -NoProfile -Command "$p = Read-Host 'サーバー起動パスワード' -AsSecureString; $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($p); try { $v = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b); if ($v -ceq $env:DB_PASSWORD) { exit 0 } else { exit 1 } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b) }"
+
+if errorlevel 1 (
+    echo.
+    echo ERROR: パスワードが違います。
+    echo.
+    pause
+    exit /b 1
+)
+
+:HD_ORIGIN_SELECT_SERVER_MODE
+echo.
+echo ============================================================
+echo サーバー起動モード
+echo ============================================================
+echo [1] サーバーモード
+echo [2] サーバー引っ越し起動
+echo.
+set "HD_ORIGIN_SERVER_CHOICE="
+set /p "HD_ORIGIN_SERVER_CHOICE=選択してください [1-2]: "
+
+if "%HD_ORIGIN_SERVER_CHOICE%"=="1" (
+    set "HD_ORIGIN_SERVER_MODE=SERVER"
+    goto HD_ORIGIN_SERVER_MODE_DONE
+)
+
+if "%HD_ORIGIN_SERVER_CHOICE%"=="2" (
+    set "HD_ORIGIN_SERVER_MODE=MIGRATION"
+    goto HD_ORIGIN_SERVER_MODE_DONE
+)
+
+echo.
+echo ERROR: 1 または 2 を入力してください。
+goto HD_ORIGIN_SELECT_SERVER_MODE
+
+:HD_ORIGIN_SERVER_MODE_DONE
+
 rem --------------------------------
 rem 12. Start Node server
 rem --------------------------------
@@ -496,6 +583,8 @@ exit /b 0
 >> "%RUNTIME_PATHS_FILE%" echo HD_ORIGIN_ENV_PATH=!HD_ORIGIN_ENV_PATH!
 >> "%RUNTIME_PATHS_FILE%" echo PORT=!PORT!
 >> "%RUNTIME_PATHS_FILE%" echo APP_NAME=!APP_NAME!
+>> "%RUNTIME_PATHS_FILE%" echo HD_ORIGIN_LAUNCH_MODE=!HD_ORIGIN_LAUNCH_MODE!
+>> "%RUNTIME_PATHS_FILE%" echo HD_ORIGIN_SERVER_MODE=!HD_ORIGIN_SERVER_MODE!
 >> "%RUNTIME_PATHS_FILE%" echo DB_HOST=!DB_HOST!
 >> "%RUNTIME_PATHS_FILE%" echo DB_PORT=!DB_PORT!
 >> "%RUNTIME_PATHS_FILE%" echo DB_NAME=!DB_NAME!
