@@ -1,4 +1,5 @@
 @echo off
+chcp 932 >nul
 setlocal EnableExtensions EnableDelayedExpansion
 
 title HD Origin Project Launcher
@@ -27,8 +28,8 @@ for %%I in ("%TEMP_PROJECT_ROOT%") do set "TEMP_PROJECT_DRIVE=%%~dI"
 set "PC_RULES_FILE=%TEMP_PROJECT_ROOT%\HD_ORIGIN_PC_RULES.txt"
 set "RUNTIME_PATHS_FILE=%TEMP_PROJECT_ROOT%\HD_ORIGIN_RUNTIME_PATHS.txt"
 rem HD_ORIGIN_STARTUP_GIT_SYNC_20260715_START
-rem GitHubã®ã‚½ãƒ¼ã‚¹ã‚’å…¨PCã§ä¸€è‡´ã•ã›ã¦ã‹ã‚‰é€šå¸¸èµ·å‹•ã™ã‚‹ã€‚
-rem åŒæœŸå¾Œã¯æœ€æ–°ã®start_hd_origin.batã‚’èª­ã¿ç›´ã™ãŸã‚ä¸€åº¦ã ã‘å†å®Ÿè¡Œã™ã‚‹ã€‚
+rem GitHub‚Ìƒ\[ƒX‚ð‘SPC‚Åˆê’v‚³‚¹‚Ä‚©‚ç’Êí‹N“®‚·‚éB
+rem “¯ŠúŒã‚ÍÅV‚Ìstart_hd_origin.bat‚ð“Ç‚Ý’¼‚·‚½‚ßˆê“x‚¾‚¯ÄŽÀs‚·‚éB
 if not defined HD_ORIGIN_STARTUP_GIT_SYNC_DONE (
     echo.
     echo ============================================================
@@ -172,13 +173,13 @@ set "HD_ORIGIN_SERVER_MODE="
 :HD_ORIGIN_SELECT_LAUNCH_MODE
 echo.
 echo ============================================================
-echo HD Origin Project èµ·å‹•ãƒ¢ãƒ¼ãƒ‰
+echo HD Origin Project ‹N“®ƒ‚[ƒh
 echo ============================================================
-echo [1] é€šå¸¸èµ·å‹•ã—ã¾ã™ã‹ï¼Ÿ
-echo [2] ã‚µãƒ¼ãƒãƒ¼èµ·å‹•ã—ã¾ã™ã‹ï¼Ÿ
+echo [1] ’Êí‹N“®‚µ‚Ü‚·‚©H
+echo [2] ƒT[ƒo[‹N“®‚µ‚Ü‚·‚©H
 echo.
 set "HD_ORIGIN_LAUNCH_CHOICE="
-set /p "HD_ORIGIN_LAUNCH_CHOICE=é¸æŠžã—ã¦ãã ã•ã„ [1-2]: "
+set /p "HD_ORIGIN_LAUNCH_CHOICE=‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢ [1-2]: "
 
 if "%HD_ORIGIN_LAUNCH_CHOICE%"=="1" (
     set "HD_ORIGIN_LAUNCH_MODE=NORMAL"
@@ -191,7 +192,7 @@ if "%HD_ORIGIN_LAUNCH_CHOICE%"=="2" (
 )
 
 echo.
-echo ERROR: 1 ã¾ãŸã¯ 2 ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚
+echo ERROR: 1 ‚Ü‚½‚Í 2 ‚ð“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B
 goto HD_ORIGIN_SELECT_LAUNCH_MODE
 
 :HD_ORIGIN_LAUNCH_MODE_SELECTED
@@ -419,11 +420,11 @@ if not defined DB_PASSWORD (
     exit /b 1
 )
 
-powershell -NoProfile -Command "$p = Read-Host 'ã‚µãƒ¼ãƒãƒ¼èµ·å‹•ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰' -AsSecureString; $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($p); try { $v = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b); if ($v -ceq $env:DB_PASSWORD) { exit 0 } else { exit 1 } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b) }"
+powershell -NoProfile -Command "$p = Read-Host 'ƒT[ƒo[‹N“®ƒpƒXƒ[ƒh' -AsSecureString; $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($p); try { $v = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b); if ($v -ceq $env:DB_PASSWORD) { exit 0 } else { exit 1 } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b) }"
 
 if errorlevel 1 (
     echo.
-    echo ERROR: ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒé•ã„ã¾ã™ã€‚
+    echo ERROR: ƒpƒXƒ[ƒh‚ªˆá‚¢‚Ü‚·B
     echo.
     pause
     exit /b 1
@@ -432,13 +433,13 @@ if errorlevel 1 (
 :HD_ORIGIN_SELECT_SERVER_MODE
 echo.
 echo ============================================================
-echo ã‚µãƒ¼ãƒãƒ¼èµ·å‹•ãƒ¢ãƒ¼ãƒ‰
+echo ƒT[ƒo[‹N“®ƒ‚[ƒh
 echo ============================================================
-echo [1] ã‚µãƒ¼ãƒãƒ¼ãƒ¢ãƒ¼ãƒ‰
-echo [2] ã‚µãƒ¼ãƒãƒ¼å¼•ã£è¶Šã—èµ·å‹•
+echo [1] ƒT[ƒo[ƒ‚[ƒh
+echo [2] ƒT[ƒo[ˆø‚Á‰z‚µ‹N“®
 echo.
 set "HD_ORIGIN_SERVER_CHOICE="
-set /p "HD_ORIGIN_SERVER_CHOICE=é¸æŠžã—ã¦ãã ã•ã„ [1-2]: "
+set /p "HD_ORIGIN_SERVER_CHOICE=‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢ [1-2]: "
 
 if "%HD_ORIGIN_SERVER_CHOICE%"=="1" (
     set "HD_ORIGIN_SERVER_MODE=SERVER"
@@ -451,7 +452,7 @@ if "%HD_ORIGIN_SERVER_CHOICE%"=="2" (
 )
 
 echo.
-echo ERROR: 1 ã¾ãŸã¯ 2 ã‚’å…¥åŠ›ã—ã¦ãã ã•ã„ã€‚
+echo ERROR: 1 ‚Ü‚½‚Í 2 ‚ð“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B
 goto HD_ORIGIN_SELECT_SERVER_MODE
 
 :HD_ORIGIN_SERVER_MODE_DONE
