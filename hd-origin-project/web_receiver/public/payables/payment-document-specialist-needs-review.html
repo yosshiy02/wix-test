@@ -5650,7 +5650,7 @@ const res = await fetch(
 
       console.log("HD Origin specialist analysis saved:", result);
 
-      alert("仕分け下書きを保存しました。\n下書きID: " + (result.specialistAnalysisId || ""));
+      alert("仕分け下書きを保存しました。\n下書きID: " + (result.specialistAnalysisResultId || ""));
     } catch (err) {
       console.error("HD Origin specialist analysis save failed:", err);
 
@@ -5910,7 +5910,7 @@ const res = await fetch(
 
         ok.push({
           id,
-          specialistAnalysisId: saved.specialistAnalysisId || ""
+          specialistAnalysisResultId: saved.specialistAnalysisResultId || ""
         });
       } catch (err) {
         ng.push({

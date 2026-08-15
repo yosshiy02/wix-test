@@ -108,7 +108,7 @@
   function renderOther(row) {
     const entries = [
       ["OCR取込ID", rowValue(row, ["paymentDocumentOcrImportId", "payment_document_ocr_import_id"])],
-      ["専門解析ID", rowValue(row, ["specialistAnalysisId", "specialist_analysis_id"])],
+      ["専門解析ID", rowValue(row, ["specialistAnalysisResultId", "specialist_analysis_result_id"])],
       ["元ファイル名", rowValue(row, ["originalFileName", "original_file_name"])],
       ["AI信頼度", rowValue(row, ["aiConfidence", "ai_confidence"])],
       ["AI判定理由", rowValue(row, ["aiReason", "ai_reason"])],

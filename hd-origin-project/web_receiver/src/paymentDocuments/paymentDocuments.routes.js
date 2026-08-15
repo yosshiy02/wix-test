@@ -1837,12 +1837,12 @@ async function listPaymentDocumentOcrImportsFromDb() {
       o.saved_at,
       o.saved_by_page,
       o.current_status,
-      o.latest_specialist_analysis_id,
+      o.latest_specialist_analysis_result_id,
       o.sorted_at,
       o.created_at,
       o.updated_at,
 
-      s.specialist_analysis_id,
+      s.specialist_analysis_result_id,
       s.analysis_system_code,
       s.analysis_system_label,
       s.ai_confidence,
@@ -1891,7 +1891,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
     FROM accounting.payment_document_ocr_imports o
 
     LEFT JOIN accounting.payment_document_specialist_analysis_results s
-      ON s.specialist_analysis_id = o.latest_specialist_analysis_id
+      ON s.specialist_analysis_result_id = o.latest_specialist_analysis_result_id
      AND s.is_current = TRUE
 
     LEFT JOIN accounting.payment_document_basic_analysis_results b
@@ -1913,9 +1913,9 @@ async function listPaymentDocumentOcrImportsFromDb() {
   `, [basicAnalysisWaitingStatus]);
 
   return result.rows.map(row => {
-    const latestSpecialistAnalysis = row.specialist_analysis_id
+    const latestSpecialistAnalysisResult = row.specialist_analysis_result_id
       ? {
-          specialistAnalysisId: row.specialist_analysis_id,
+          specialistAnalysisResultId: row.specialist_analysis_result_id,
           paymentDocumentOcrImportId:
             row.payment_document_ocr_import_id,
           analysisSystemCode: row.analysis_system_code,
@@ -2068,10 +2068,10 @@ async function listPaymentDocumentOcrImportsFromDb() {
       latestBasicAnalysisId:
         row.basic_analysis_id,
       latestBasicAnalysis,
-      latestSpecialistAnalysisId:
-        row.latest_specialist_analysis_id,
+      latestSpecialistAnalysisResultId:
+        row.latest_specialist_analysis_result_id,
       sortedAt: row.sorted_at,
-      latestSpecialistAnalysis,
+      latestSpecialistAnalysisResult,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
@@ -6046,7 +6046,7 @@ async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactio
     }
 
     const ocr = await client.query(`
-      SELECT latest_specialist_analysis_id
+      SELECT latest_specialist_analysis_result_id
       FROM accounting.payment_document_ocr_imports
       WHERE payment_document_ocr_import_id = $1
         AND deleted_at IS NULL
@@ -6058,12 +6058,12 @@ async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactio
       throw err;
     }
 
-    const specialistAnalysisId = hdOriginCilNumberOrNull(
-      body.specialistAnalysisId ||
-        body.specialist_analysis_id ||
-        body.latestSpecialistAnalysisId ||
-        body.latest_specialist_analysis_id ||
-        ocr.rows[0].latest_specialist_analysis_id
+    const specialistAnalysisResultId = hdOriginCilNumberOrNull(
+      body.specialistAnalysisResultId ||
+        body.specialist_analysis_result_id ||
+        body.latestSpecialistAnalysisResultId ||
+        body.latest_specialist_analysis_result_id ||
+        ocr.rows[0].latest_specialist_analysis_result_id
     );
 
     const fields = hdOriginCilFirstObject(
@@ -6107,7 +6107,7 @@ async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactio
     const saved = await client.query(`
       INSERT INTO accounting.payment_document_utility_communication_results (
         payment_document_ocr_import_id,
-        specialist_analysis_id,
+        specialist_analysis_result_id,
         result_no,
         result_version,
         customer_number,
@@ -6134,7 +6134,7 @@ async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactio
       RETURNING utility_communication_result_id
     `, [
       ocrId,
-      specialistAnalysisId,
+      specialistAnalysisResultId,
       "UCD-" + ocrId + "-" + Date.now(),
       Number(version.rows[0].next_version),
       hdOriginCilText(
@@ -6225,7 +6225,7 @@ async function hdOriginSaveUtilityCommunicationSpecialistResult(body, transactio
 
     return {
       ok: true,
-      specialistAnalysisId
+      specialistAnalysisResultId
     };
   } catch (err) {
     if (ownsTransaction) {
@@ -8340,7 +8340,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         SELECT
           payment_document_ocr_import_id,
           latest_basic_analysis_id,
-          latest_specialist_analysis_id,
+          latest_specialist_analysis_result_id,
           current_status,
           original_file_name,
           saved_file_name,
@@ -8588,7 +8588,7 @@ analysis_system_code,
           $1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,TRUE,now(),now()
         )
         RETURNING
-          specialist_analysis_id,
+          specialist_analysis_result_id,
           payment_document_ocr_import_id,
           basic_analysis_id,
 analysis_system_code,
@@ -8615,14 +8615,14 @@ analysis_system_code,
         UPDATE accounting.payment_document_ocr_imports
         SET
           latest_basic_analysis_id = $1,
-          latest_specialist_analysis_id = $2,
+          latest_specialist_analysis_result_id = $2,
           current_status = $3,
           updated_at = now()
         WHERE payment_document_ocr_import_id = $4
           AND deleted_at IS NULL
       `, [
         basicAnalysisId,
-        saved.specialist_analysis_id,
+        saved.specialist_analysis_result_id,
         humanReviewWaitingStatus,
         ocrImportId
       ]);
@@ -8632,8 +8632,8 @@ analysis_system_code,
           ...root,
           paymentDocumentOcrImportId: ocrImportId,
           payment_document_ocr_import_id: ocrImportId,
-          specialistAnalysisId: saved.specialist_analysis_id,
-          specialist_analysis_id: saved.specialist_analysis_id,
+          specialistAnalysisResultId: saved.specialist_analysis_result_id,
+          specialist_analysis_result_id: saved.specialist_analysis_result_id,
           specialistFields: hdOriginSpecialistFirstObject(
             root.specialistFields,
             root.specialist_fields,
@@ -8652,7 +8652,7 @@ await client.query("COMMIT");
         saved,
         paymentDocumentOcrImportId: ocrImportId,
         basicAnalysisId,
-        specialistAnalysisId: saved.specialist_analysis_id,
+        specialistAnalysisResultId: saved.specialist_analysis_result_id,
         analysisSystemCode,
         analysisSystemLabel,
         specialistAnalysisStatus: specialistStatus
@@ -8679,9 +8679,9 @@ await client.query("COMMIT");
         ok: true,
         message: "専門解析結果を保存しました。",
         paymentDocumentOcrImportId: saved.paymentDocumentOcrImportId,
-        specialistAnalysisId: saved.specialistAnalysisId,
-        specialist_analysis_id: saved.specialistAnalysisId,
-        latestSpecialistAnalysisId: saved.specialistAnalysisId,
+        specialistAnalysisResultId: saved.specialistAnalysisResultId,
+        specialist_analysis_result_id: saved.specialistAnalysisResultId,
+        latestSpecialistAnalysisResultId: saved.specialistAnalysisResultId,
         analysisSystemCode: saved.analysisSystemCode,
         analysisSystemLabel: saved.analysisSystemLabel,
         specialistAnalysisStatus: saved.specialistAnalysisStatus,
@@ -9094,7 +9094,7 @@ await client.query("COMMIT");
         SELECT
           d.utility_communication_result_id,
           d.payment_document_ocr_import_id,
-          d.specialist_analysis_id,
+          d.specialist_analysis_result_id,
           d.result_no,
           d.result_version,
           d.customer_number,
@@ -9174,8 +9174,8 @@ await client.query("COMMIT");
 
         LEFT JOIN
           accounting.payment_document_specialist_analysis_results s
-          ON s.specialist_analysis_id =
-             d.specialist_analysis_id
+          ON s.specialist_analysis_result_id =
+             d.specialist_analysis_result_id
 
         WHERE
           d.is_current = TRUE
@@ -9254,7 +9254,7 @@ await client.query("COMMIT");
             RETURNING
               contract_insurance_lease_result_id,
               payment_document_ocr_import_id,
-              specialist_analysis_id
+              specialist_analysis_result_id
           `,
           [ocrImportId]
         );
@@ -9277,7 +9277,7 @@ await client.query("COMMIT");
         let specialistResultCount = 0;
 
         if (
-          movedRow.specialist_analysis_id
+          movedRow.specialist_analysis_result_id
         ) {
           const specialistMoved =
             await client.query(
@@ -9288,13 +9288,13 @@ await client.query("COMMIT");
                   specialist_analysis_status =
                     'returned_to_analysis'
                 WHERE
-                  specialist_analysis_id = $1
+                  specialist_analysis_result_id = $1
                 RETURNING
-                  specialist_analysis_id
+                  specialist_analysis_result_id
               `,
               [
                 movedRow
-                  .specialist_analysis_id
+                  .specialist_analysis_result_id
               ]
             );
 
@@ -9358,7 +9358,7 @@ await client.query("COMMIT");
         SELECT
           d.contract_insurance_lease_result_id,
           d.payment_document_ocr_import_id,
-          d.specialist_analysis_id,
+          d.specialist_analysis_result_id,
           d.result_no,
           d.result_status,
           d.human_check_status,
@@ -9491,8 +9491,8 @@ await client.query("COMMIT");
 
             LEFT JOIN
               accounting.payment_document_specialist_analysis_results r
-              ON r.specialist_analysis_id =
-                 d.specialist_analysis_id
+              ON r.specialist_analysis_result_id =
+                 d.specialist_analysis_result_id
 
             WHERE
               d.payment_document_ocr_import_id = $1
@@ -9579,7 +9579,7 @@ await client.query("COMMIT");
             SELECT
               d.utility_communication_result_id,
               d.payment_document_ocr_import_id,
-              d.specialist_analysis_id,
+              d.specialist_analysis_result_id,
               d.result_no,
               d.result_version,
 
@@ -9608,8 +9608,8 @@ await client.query("COMMIT");
 
             LEFT JOIN
               accounting.payment_document_specialist_analysis_results r
-              ON r.specialist_analysis_id =
-                 d.specialist_analysis_id
+              ON r.specialist_analysis_result_id =
+                 d.specialist_analysis_result_id
 
             WHERE
               d.payment_document_ocr_import_id = $1
@@ -9804,8 +9804,8 @@ await client.query("COMMIT");
           row.payment_document_ocr_import_id,
 
 
-        specialistAnalysisId:
-          row.specialist_analysis_id,
+        specialistAnalysisResultId:
+          row.specialist_analysis_result_id,
 
         analysisVersion:
           row.result_version,
@@ -10011,8 +10011,8 @@ await client.query("COMMIT");
         classification: aiResult.classification,
         specialist: aiResult.specialist,
         analysis: aiResult.analysis,
-        specialistAnalysisId: specialistSaved.specialistAnalysisId,
-        specialist_analysis_id: specialistSaved.specialistAnalysisId
+        specialistAnalysisResultId: specialistSaved.specialistAnalysisResultId,
+        specialist_analysis_result_id: specialistSaved.specialistAnalysisResultId
       });
     } catch (err) {
       if (

@@ -483,7 +483,7 @@ function writeProjectStatus() {
       "- 専門解析はStage3 specialistだけを実行する。",
       "- 専門解析結果のdraft、fields、visible_field_labels、warningsを保存する。",
       "- 共通保存APIは /api/payment-documents/specialist-analysis-results/save。",
-      "- payment_document_ocr_imports.latest_specialist_analysis_idを更新する。",
+      "- payment_document_ocr_imports.latest_specialist_analysis_result_idを更新する。",
       "- 人間修正時は画面で保持しているanalysis_system_codeを使用する。",
       "- 保存時に専門AI結果を固定フォーム項目だけへ丸め込まない。"
     ]

@@ -1,4 +1,4 @@
-﻿const backupService = require("./src/backups/backup.service");
+const backupService = require("./src/backups/backup.service");
 
 (async () => {
   const result = await backupService.createBackup(process.env.DB_NAME || "hd_origin_project");
@@ -9,7 +9,6 @@
     full_path: result.full_path,
     backup_format: result.backup_format,
     backup_artifacts: result.backup_artifacts,
-    migration_version: result.migration_version,
     clone_backup: result.clone_backup,
     cleanup: result.cleanup
   }, null, 2));

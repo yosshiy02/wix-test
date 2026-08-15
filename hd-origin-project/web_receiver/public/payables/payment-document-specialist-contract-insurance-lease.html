@@ -3903,10 +3903,10 @@ function setDocumentPreview(item) {
     }
 
     const specialistId =
-      item.latestSpecialistAnalysisId ||
-      item.latest_specialist_analysis_id ||
-      item.specialistAnalysisId ||
-      item.specialist_analysis_id ||
+      item.latestSpecialistAnalysisResultId ||
+      item.latest_specialist_analysis_result_id ||
+      item.specialistAnalysisResultId ||
+      item.specialist_analysis_result_id ||
       "";
 
     if (String(specialistId || "").trim()) {
@@ -4376,7 +4376,7 @@ function setDocumentPreview(item) {
       const source = objectValue(item);
 
       const latest = objectValue(
-        source.latestSpecialistAnalysis ||
+        source.latestSpecialistAnalysisResult ||
         source.latest_specialist_analysis
       );
 
@@ -4523,10 +4523,10 @@ function setDocumentPreview(item) {
         : {};
 
     const latest =
-      source.latestSpecialistAnalysis &&
-      typeof source.latestSpecialistAnalysis ===
+      source.latestSpecialistAnalysisResult &&
+      typeof source.latestSpecialistAnalysisResult ===
         "object"
-        ? source.latestSpecialistAnalysis
+        ? source.latestSpecialistAnalysisResult
         : (
             source.latest_specialist_analysis &&
             typeof source.latest_specialist_analysis ===
@@ -4594,10 +4594,10 @@ function setDocumentPreview(item) {
         : {};
 
     const latest =
-      source.latestSpecialistAnalysis &&
-      typeof source.latestSpecialistAnalysis ===
+      source.latestSpecialistAnalysisResult &&
+      typeof source.latestSpecialistAnalysisResult ===
         "object"
-        ? source.latestSpecialistAnalysis
+        ? source.latestSpecialistAnalysisResult
         : (
             source.latest_specialist_analysis &&
             typeof source.latest_specialist_analysis ===
@@ -5780,12 +5780,12 @@ const res = await fetch(
         payment_document_ocr_import_id:
           ocrId,
 
-        specialistAnalysisId:
-          saved.specialist_analysis_id ||
+        specialistAnalysisResultId:
+          saved.specialist_analysis_result_id ||
           "",
 
-        specialist_analysis_id:
-          saved.specialist_analysis_id ||
+        specialist_analysis_result_id:
+          saved.specialist_analysis_result_id ||
           "",
 
         specialist:
@@ -5904,14 +5904,14 @@ const res = await fetch(
       restored
     );
 
-    item.specialistAnalysisId =
-      payload.saved.specialist_analysis_id ||
-      item.specialistAnalysisId ||
+    item.specialistAnalysisResultId =
+      payload.saved.specialist_analysis_result_id ||
+      item.specialistAnalysisResultId ||
       "";
 
-    item.specialist_analysis_id =
-      payload.saved.specialist_analysis_id ||
-      item.specialist_analysis_id ||
+    item.specialist_analysis_result_id =
+      payload.saved.specialist_analysis_result_id ||
+      item.specialist_analysis_result_id ||
       "";
 
     item.__specialistAnalyzed = true;
@@ -6011,12 +6011,12 @@ async function hdOriginCilReloadSavedFromQuery() {
       restored
     );
 
-    item.specialistAnalysisId =
-      payload.saved.specialist_analysis_id ||
+    item.specialistAnalysisResultId =
+      payload.saved.specialist_analysis_result_id ||
       "";
 
-    item.specialist_analysis_id =
-      payload.saved.specialist_analysis_id ||
+    item.specialist_analysis_result_id =
+      payload.saved.specialist_analysis_result_id ||
       "";
 
     item.__specialistAnalyzed = true;
@@ -7187,28 +7187,28 @@ async function hdOriginCilReloadSavedFromQuery() {
   /* HD_ORIGIN_GPT2_CIL_SAVED_SPECIALIST_ANALYSIS_ID_FIX_20260722_START */
 
 
-  function hdOriginCilSavedSpecialistAnalysisId(source) {
+  function hdOriginCilSavedSpecialistAnalysisResultId(source) {
 
 
     const keys = [
 
 
-      "specialistAnalysisId",
+      "specialistAnalysisResultId",
 
 
-      "specialist_analysis_id",
+      "specialist_analysis_result_id",
 
 
-      "specialistAnalysisId",
+      "specialistAnalysisResultId",
 
 
-      "specialist_analysis_id",
+      "specialist_analysis_result_id",
 
 
-      "specialistAnalysisId",
+      "specialistAnalysisResultId",
 
 
-      "specialist_analysis_id"
+      "specialist_analysis_result_id"
 
 
     ];
@@ -7565,7 +7565,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
       console.log("HD Origin specialist analysis saved:", result);
 
-      alert("保存しました。\n専門解析ID: " + (result.specialistAnalysisId || result.specialist_analysis_id || ""));
+      alert("保存しました。\n専門解析ID: " + (result.specialistAnalysisResultId || result.specialist_analysis_result_id || ""));
     } catch (err) {
       console.error("HD Origin specialist analysis save failed:", err);
 
@@ -7800,15 +7800,15 @@ async function saveSpecialistResultFromReviewPage(context) {
 
     // HD_ORIGIN_GPT2_CIL_SAVE_ID_HELPER_20260709_START
   // 後追い判定ではなく、保存APIの返却ID表記ゆれを吸収するだけ。
-  function hdOriginCilSavedSpecialistAnalysisId(saved) {
+  function hdOriginCilSavedSpecialistAnalysisResultId(saved) {
     if (!saved || typeof saved !== "object") return "";
 
-    return saved.specialistAnalysisId ||
-      saved.specialist_analysis_id ||
-      saved.specialistAnalysisId ||
-      saved.specialist_analysis_id ||
-      saved.specialistAnalysisId ||
-      saved.specialist_analysis_id ||
+    return saved.specialistAnalysisResultId ||
+      saved.specialist_analysis_result_id ||
+      saved.specialistAnalysisResultId ||
+      saved.specialist_analysis_result_id ||
+      saved.specialistAnalysisResultId ||
+      saved.specialist_analysis_result_id ||
       saved.id ||
       "";
   }
@@ -8018,19 +8018,19 @@ async function saveSpecialistResultFromReviewPage(context) {
       typeof item.__savedSpecialistAnalysis === "object"
         ? item.__savedSpecialistAnalysis
         : (
-            item.latestSpecialistAnalysis &&
-            typeof item.latestSpecialistAnalysis === "object"
-              ? item.latestSpecialistAnalysis
+            item.latestSpecialistAnalysisResult &&
+            typeof item.latestSpecialistAnalysisResult === "object"
+              ? item.latestSpecialistAnalysisResult
               : null
           );
 
     const savedId =
-      item.latestSpecialistAnalysisId ||
-      item.latest_specialist_analysis_id ||
-      item.specialistAnalysisId ||
-      item.specialist_analysis_id ||
+      item.latestSpecialistAnalysisResultId ||
+      item.latest_specialist_analysis_result_id ||
+      item.specialistAnalysisResultId ||
+      item.specialist_analysis_result_id ||
       (nested
-        ? hdOriginCilSavedSpecialistAnalysisId(nested)
+        ? hdOriginCilSavedSpecialistAnalysisResultId(nested)
         : "");
 
     if (!savedId) {
@@ -8040,8 +8040,8 @@ async function saveSpecialistResultFromReviewPage(context) {
     return {
       ok: true,
       reusedExistingSpecialistAnalysis: true,
-      specialistAnalysisId: savedId,
-      specialist_analysis_id: savedId
+      specialistAnalysisResultId: savedId,
+      specialist_analysis_result_id: savedId
     };
   }
 
@@ -8086,7 +8086,7 @@ async function saveSpecialistResultFromReviewPage(context) {
 
         ok.push({
           id,
-          specialistAnalysisId: saved.specialistAnalysisId || ""
+          specialistAnalysisResultId: saved.specialistAnalysisResultId || ""
         });
       } catch (err) {
         ng.push({
@@ -9177,7 +9177,7 @@ async function saveSpecialistResultFromReviewPage(context) {
     const source = objectValue(item);
 
     const latest = objectValue(
-      source.latestSpecialistAnalysis ||
+      source.latestSpecialistAnalysisResult ||
       source.latest_specialist_analysis
     );
 

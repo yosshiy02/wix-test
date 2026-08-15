@@ -1016,7 +1016,7 @@
     );
   }
 
-  function specialistAnalysisIdOf(item, rawResult) {
+  function specialistAnalysisResultIdOf(item, rawResult) {
     const source =
       objectValue(item);
 
@@ -1041,19 +1041,19 @@
 
     return Number(
       firstValue(
-        source.specialistAnalysisId,
-        source.specialist_analysis_id,
-        source.latestSpecialistAnalysisId,
-        source.latest_specialist_analysis_id,
+        source.specialistAnalysisResultId,
+        source.specialist_analysis_result_id,
+        source.latestSpecialistAnalysisResultId,
+        source.latest_specialist_analysis_result_id,
 
-        raw.specialistAnalysisId,
-        raw.specialist_analysis_id,
+        raw.specialistAnalysisResultId,
+        raw.specialist_analysis_result_id,
 
-        draft.specialistAnalysisId,
-        draft.specialist_analysis_id,
+        draft.specialistAnalysisResultId,
+        draft.specialist_analysis_result_id,
 
-        sorting.specialistAnalysisId,
-        sorting.specialist_analysis_id,
+        sorting.specialistAnalysisResultId,
+        sorting.specialist_analysis_result_id,
         sorting.id,
         0
       )
@@ -1871,10 +1871,10 @@
     }
 
     return {
-      specialistAnalysisId:
+      specialistAnalysisResultId:
         firstValue(
-          saved.specialistAnalysisId,
-          saved.specialist_analysis_id,
+          saved.specialistAnalysisResultId,
+          saved.specialist_analysis_result_id,
           null
         ),
 
@@ -1938,8 +1938,8 @@
 
     validateLines(lines);
 
-    const existingSpecialistAnalysisId =
-      specialistAnalysisIdOf(
+    const existingSpecialistAnalysisResultId =
+      specialistAnalysisResultIdOf(
         item,
         rawResult
       );
@@ -2030,12 +2030,12 @@
         "公共料金・通信費まとめて保存（AI結果直接保存）"
     };
 
-    if (existingSpecialistAnalysisId > 0) {
-      commonPayload.specialistAnalysisId =
-        existingSpecialistAnalysisId;
+    if (existingSpecialistAnalysisResultId > 0) {
+      commonPayload.specialistAnalysisResultId =
+        existingSpecialistAnalysisResultId;
 
-      commonPayload.specialist_analysis_id =
-        existingSpecialistAnalysisId;
+      commonPayload.specialist_analysis_result_id =
+        existingSpecialistAnalysisResultId;
     }
 
     const commonSaved =
@@ -2044,17 +2044,17 @@
         commonPayload
       );
 
-    const specialistAnalysisId =
+    const specialistAnalysisResultId =
       Number(
         firstValue(
-          commonSaved.specialistAnalysisId,
-          commonSaved.specialist_analysis_id,
-          commonSaved.latestSpecialistAnalysisId,
+          commonSaved.specialistAnalysisResultId,
+          commonSaved.specialist_analysis_result_id,
+          commonSaved.latestSpecialistAnalysisResultId,
           0
         )
       );
 
-    if (!specialistAnalysisId) {
+    if (!specialistAnalysisResultId) {
       throw new Error(
         "共通専門保存後の専門解析IDがありません。"
       );
@@ -2089,8 +2089,8 @@
       paymentDocumentOcrImportId:
         ocrId,
 
-      specialistAnalysisId:
-        specialistAnalysisId,
+      specialistAnalysisResultId:
+        specialistAnalysisResultId,
 
       fieldNames:
         verified.fieldNames,
