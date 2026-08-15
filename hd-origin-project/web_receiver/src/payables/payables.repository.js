@@ -106,7 +106,7 @@ const PAYABLE_MASTER_VALIDATION = {
     label: "未払状態"
   },
   document_type: {
-    table: "expenses.document_types",
+    table: "accounting.payment_document_types",
     codeColumn: "document_type_code",
     fallback: "invoice",
     label: "書類区分"

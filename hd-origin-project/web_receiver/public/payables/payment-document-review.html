@@ -3309,20 +3309,6 @@ async function runSelectedAnalyses() {
   };
 
   function getSavedBasicAnalysisResult(item) {
-    const status = String(
-      item && (item.currentStatus || item.current_status) || ""
-    ).trim();
-
-    if (![
-      "基礎解析済み",
-      "専門解析待ち",
-      "専門解析中",
-      "人間確認待ち",
-      "台帳"
-    ].includes(status)) {
-      return null;
-    }
-
     const basic =
       item &&
       (item.latestBasicAnalysis || item.latest_basic_analysis);
@@ -3983,7 +3969,7 @@ async function runSelectedAnalyses() {
       if (item.canRouteToSpecialist !== true) {
         excluded.push(
           "OCR取込ID " + id +
-          ": current_statusが専門解析への振り分け可能状態ではありません。"
+          ": 解析ステータスIDが専門解析への振り分け可能状態ではありません。"
         );
         return null;
       }
@@ -6377,7 +6363,7 @@ count += window.hdOriginSetControlValueLoose("analysisAiPayableFlag", s.payment_
     pushField(fields, base, "OCR取込ID", "paymentDocumentOcrImportId", id || analysisResult.paymentDocumentOcrImportId || "", source);
     pushField(fields, base, "会社ID", "companyId", analysisResult.companyId || analysisResult.company_id || "", source);
     pushField(fields, base, "会社コード", "companyCode", analysisResult.companyCode || analysisResult.company_code || "", source);
-    pushField(fields, base, "現在ステータス", "currentStatus", item.currentStatus || item.current_status || "", source);
+    pushField(fields, base, "現在ステータス", "analysisStatusName", item.analysisStatusName || "", source);
 
     pushField(fields, base + " / 解析結果", "書類区分コード", "documentTypeCode", analysisResult.documentTypeCode || analysisResult.document_type_code || detail.document_type_code || classification.document_type_code || "", source);
     pushField(fields, base + " / 解析結果", "処理先コード", "paymentDestinationCode", analysisResult.paymentDestinationCode || analysisResult.payment_destination_code || detail.payment_destination_code || classification.payment_destination_code || "", source);

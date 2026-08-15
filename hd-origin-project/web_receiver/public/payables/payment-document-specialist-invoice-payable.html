@@ -7025,19 +7025,20 @@ const res = await fetch(
       return "delivery_note";
     }
 
-    if (
-      text.includes("credit_note") ||
-      text.includes("値引") ||
-      text.includes("返金")
-    ) {
-      return "credit_note";
+    if (text.includes("返金") || text.includes("refund_notice")) {
+      return "refund_notice";
     }
 
-    if (
-      text.includes("statement") ||
-      text.includes("明細書")
-    ) {
-      return "statement";
+    if (text.includes("値引") || text.includes("discount_notice")) {
+      return "discount_notice";
+    }
+
+    if (text.includes("相殺") || text.includes("offset_notice")) {
+      return "offset_notice";
+    }
+
+    if (text.includes("明細書")) {
+      return "unknown";
     }
 
     if (

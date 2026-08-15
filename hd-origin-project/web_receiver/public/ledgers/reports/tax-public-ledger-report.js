@@ -170,11 +170,7 @@
     }, 0);
 
     const reviews = rows.filter(function (row) {
-      return (
-        rowValue(row, ["needsReview", "needs_review"]) === true ||
-        text(rowValue(row, ["currentStatus", "current_status", "状態"]))
-          .includes("要確認")
-      );
+      return rowValue(row, ["needsReview", "needs_review"]) === true;
     }).length;
 
     recordCount.textContent = String(rows.length);
@@ -255,8 +251,7 @@
       );
 
       const status = rowValue(row, [
-        "currentStatus",
-        "current_status",
+        "analysisStatusName",
         "humanConfirmStatus",
         "状態"
       ]);

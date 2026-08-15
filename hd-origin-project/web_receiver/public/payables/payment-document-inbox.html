@@ -113,11 +113,11 @@
   }
 
   function ocrLabel(item) {
-    const currentStatus = String(
-      item.currentStatus || item.current_status || ""
+    const analysisStatusName = String(
+      item.analysisStatusName || ""
     ).trim();
 
-    if (currentStatus) return currentStatus;
+    if (analysisStatusName) return analysisStatusName;
     if (String(item.processStatus || item.saveStatus || item.savedStatus || "").toLowerCase() === "saved") return "保存済";
     if (item.ocrStatus === "ocr_done" || item.ocrRawText) return "OCR済";
     if (item.ocrStatus === "ocr_error") return "OCR失敗";

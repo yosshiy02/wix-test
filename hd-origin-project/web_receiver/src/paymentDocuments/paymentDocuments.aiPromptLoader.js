@@ -28,6 +28,19 @@ const ANALYSIS_SYSTEM_CODE_MAP = Object.freeze({
   needs_review_analysis: "needs_review"
 });
 
+const RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES = Object.freeze([
+  "bank_transfer_notice",
+  "credit_note",
+  "bank_transfer_receipt",
+  "bank_account_statement",
+  "direct_debit_notice",
+  "bank_deposit_notice",
+  "bank_fee_interest_notice",
+  "loan_repayment_statement",
+  "bill_check_settlement_notice",
+  "statement"
+]);
+
 function normalizeText(value) {
   return String(value ?? "").trim();
 }
@@ -110,7 +123,7 @@ async function loadCompositionPromptTexts(compositionCode) {
 async function loadActiveCandidateMasters() {
   const [companyRows, documentTypeRows, specialistRows] = await Promise.all([
     queryRows(`SELECT company_id, company_code, company_name, company_short_name, description FROM accounting.companies WHERE is_active = true ORDER BY display_order, company_id`),
-    queryRows(`SELECT document_type_id, document_type_code, document_type_name, description FROM accounting.payment_document_types WHERE is_active = true ORDER BY display_order, document_type_id`),
+    queryRows(`SELECT document_type_id, document_type_code, document_type_name, description FROM accounting.payment_document_types WHERE is_active = true AND NOT (document_type_code = ANY($1::text[])) ORDER BY display_order, document_type_id`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
     queryRows(`SELECT specialist_analysis_id, specialist_analysis_code, specialist_analysis_name, description FROM accounting.payment_document_specialist_analyses WHERE is_active = true ORDER BY display_order, specialist_analysis_id`)
   ]);
 
@@ -125,7 +138,7 @@ async function loadStage1CandidateMasters() {
   const [companies, documentTypes, destinations, categories, systems] =
     await Promise.all([
       queryRows(`SELECT company_code, company_name FROM expenses.companies WHERE is_active=true ORDER BY sort_order`),
-      queryRows(`SELECT document_type_code, document_type_name FROM expenses.document_types WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT document_type_code, document_type_name FROM accounting.payment_document_types WHERE is_active=true AND NOT (document_type_code = ANY($1::text[])) ORDER BY display_order`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
       queryRows(`SELECT payment_destination_code, payment_destination_name FROM expenses.payment_destinations WHERE is_active=true ORDER BY sort_order`),
       queryRows(`SELECT accounting_category_code, accounting_category_name FROM expenses.accounting_categories WHERE is_active=true ORDER BY sort_order`),
       queryRows(`SELECT analysis_system_code, analysis_system_name, description FROM expenses.analysis_systems WHERE is_active=true ORDER BY sort_order`)

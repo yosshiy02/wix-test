@@ -8,52 +8,105 @@ const { loadPaymentDocumentPromptText, loadPaymentDocumentPromptTextFromDb, appe
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
 const AZURE_API_VERSION = "2024-11-30";
 
-const PAYMENT_DOCUMENT_STATUS_NAMES = Object.freeze({
-  OCR_WAITING: "OCR待ち",
-  OCR_PROCESSING: "OCR処理中",
-  BASIC_ANALYSIS_WAITING: "基礎解析待ち",
-  BASIC_ANALYSIS_PROCESSING: "基礎解析中",
-  BASIC_ANALYSIS_COMPLETED: "基礎解析済み",
-  SPECIALIST_ANALYSIS_WAITING: "専門解析待ち",
-  SPECIALIST_ANALYSIS_PROCESSING: "専門解析中",
-  HUMAN_REVIEW_WAITING: "人間確認待ち",
-  LEDGER: "台帳",
-  ERROR: "エラー"
-});
-
-async function getActivePaymentDocumentStatus(client, statusName) {
+async function getPaymentDocumentStatusMaster(client) {
   const result = await client.query(`
-    SELECT current_status
-    FROM accounting.payment_document_current_statuses
-    WHERE current_status = $1
-      AND is_active = TRUE
-    LIMIT 2
-  `, [statusName]);
+    SELECT
+      "解析ステータスID" AS analysis_status_id,
+      "解析ステータス表示順" AS display_order,
+      "解析ステータス進捗" AS is_processing,
+      "解析ステータス完了" AS is_terminal,
+      "解析ステータスエラー" AS is_error
+    FROM accounting."解析ステータスマスタテーブル"
+    WHERE "解析ステータス有効" = TRUE
+    ORDER BY "解析ステータス表示順", "解析ステータスID"
+  `);
 
-  if (result.rowCount !== 1) {
-    throw new Error(
-      "有効な証憑ステータスマスタ値ではありません: " + statusName
-    );
+  const statuses = result.rows.map(row => ({
+    analysisStatusId: Number(row.analysis_status_id),
+    displayOrder: Number(row.display_order),
+    isProcessing: row.is_processing,
+    isTerminal: row.is_terminal,
+    isError: row.is_error
+  }));
+  const errorStatuses = statuses.filter(status => status.isError);
+  const terminalStatuses = statuses.filter(status => status.isTerminal);
+  const normalStatuses = statuses.filter(status => !status.isError);
+  const displayOrders = new Set(statuses.map(status => status.displayOrder));
+
+  if (
+    statuses.length === 0 ||
+    displayOrders.size !== statuses.length ||
+    errorStatuses.length !== 1 ||
+    terminalStatuses.length !== 1 ||
+    errorStatuses[0].isProcessing ||
+    errorStatuses[0].isTerminal ||
+    terminalStatuses[0].isError ||
+    terminalStatuses[0].isProcessing ||
+    statuses.some(status =>
+      !Number.isInteger(status.analysisStatusId) ||
+      !Number.isInteger(status.displayOrder) ||
+      typeof status.isProcessing !== "boolean" ||
+      typeof status.isTerminal !== "boolean" ||
+      typeof status.isError !== "boolean"
+    )
+  ) {
+    throw new Error("解析ステータスマスタの順序または状態属性が不正です。");
   }
 
-  return String(result.rows[0].current_status).trim();
+  const orderedNormalStatuses = normalStatuses.sort(
+    (left, right) => left.displayOrder - right.displayOrder
+  );
+  const lastNormalStatus = orderedNormalStatuses[orderedNormalStatuses.length - 1];
+
+  if (!lastNormalStatus || lastNormalStatus.analysisStatusId !== terminalStatuses[0].analysisStatusId) {
+    throw new Error("完了解析ステータスは通常フローの最終状態である必要があります。");
+  }
+
+  const byId = new Map(
+    statuses.map(status => [status.analysisStatusId, status])
+  );
+
+  return Object.freeze({
+    initialStatusId: orderedNormalStatuses[0].analysisStatusId,
+    errorStatusId: errorStatuses[0].analysisStatusId,
+    getStatus(statusId) {
+      const status = byId.get(Number(statusId));
+      if (!status) throw new Error("有効な解析ステータスIDではありません。");
+      return status;
+    },
+    getNextStatusId(analysisStatusId) {
+      const current = byId.get(Number(analysisStatusId));
+      if (!current || current.isError || current.isTerminal) {
+        throw new Error("次の解析ステータスへ遷移できません。");
+      }
+      const next = orderedNormalStatuses.find(
+        status => status.displayOrder > current.displayOrder
+      );
+      if (!next) throw new Error("次の解析ステータスが定義されていません。");
+      return next.analysisStatusId;
+    }
+  });
 }
+const PAYMENT_DOCUMENT_STATUS_STAGE_KEYS = Object.freeze([
+  "OCR_WAITING", "OCR_PROCESSING", "BASIC_ANALYSIS_WAITING",
+  "BASIC_ANALYSIS_PROCESSING", "BASIC_ANALYSIS_COMPLETED",
+  "SPECIALIST_ANALYSIS_WAITING", "SPECIALIST_ANALYSIS_PROCESSING",
+  "HUMAN_REVIEW_WAITING", "LEDGER"
+]);
 
 async function getActivePaymentDocumentStatusFlow(client) {
+  const master = await getPaymentDocumentStatusMaster(client);
   const flow = {};
-
-  for (const [stageKey, statusName] of Object.entries(
-    PAYMENT_DOCUMENT_STATUS_NAMES
-  )) {
-    flow[stageKey] = await getActivePaymentDocumentStatus(
-      client,
-      statusName
-    );
+  let statusId = master.initialStatusId;
+  for (const stageKey of PAYMENT_DOCUMENT_STATUS_STAGE_KEYS) {
+    flow[stageKey] = statusId;
+    if (stageKey !== "LEDGER") statusId = master.getNextStatusId(statusId);
   }
-
-  return Object.freeze(flow);
+  if (master.getStatus(flow.LEDGER).isTerminal !== true) {
+    throw new Error("完了解析ステータスが通常フロー終端にありません。");
+  }
+  return Object.freeze({ ...flow, ERROR: master.errorStatusId });
 }
-
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
@@ -1339,32 +1392,32 @@ async function saveOneInboxItem(fileName) {
 
     const paymentDocumentStatusFlow =
       await getActivePaymentDocumentStatusFlow(db);
-    const reviewCurrentStatus =
+    const reviewAnalysisStatusId =
       paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
 
     const statusUpdateResult = await db.query(`
       UPDATE accounting.payment_document_ocr_imports
       SET
-        current_status = $2,
+        "解析ステータスID" = $2,
         updated_at = CURRENT_TIMESTAMP
       WHERE payment_document_ocr_import_id = $1
         AND deleted_at IS NULL
-      RETURNING current_status
+      RETURNING "解析ステータスID" AS analysis_status_id
     `, [
       dbRow.payment_document_ocr_import_id,
-      reviewCurrentStatus
+      reviewAnalysisStatusId
     ]);
 
     if (statusUpdateResult.rowCount !== 1) {
       throw new Error(
-        "OCR取込レコードのcurrent_statusを更新できませんでした。"
+        "OCR取込レコードの解析ステータスIDを更新できませんでした。"
       );
     }
 
     const finalMeta = {
       ...dbMeta,
-      currentStatus: reviewCurrentStatus,
-      current_status: reviewCurrentStatus,
+      analysisStatusId: reviewAnalysisStatusId,
+      analysis_status_id: reviewAnalysisStatusId,
       dbSaved: true,
       paymentDocumentOcrImportId:
         dbRow.payment_document_ocr_import_id,
@@ -1836,7 +1889,8 @@ async function listPaymentDocumentOcrImportsFromDb() {
       o.saved_meta_relative_path,
       o.saved_at,
       o.saved_by_page,
-      o.current_status,
+      o."解析ステータスID" AS analysis_status_id,
+      status_master."解析ステータス状態" AS analysis_status_name,
       o.latest_specialist_analysis_result_id,
       o.sorted_at,
       o.created_at,
@@ -1890,6 +1944,9 @@ async function listPaymentDocumentOcrImportsFromDb() {
 
     FROM accounting.payment_document_ocr_imports o
 
+    LEFT JOIN accounting."解析ステータスマスタテーブル" status_master
+      ON status_master."解析ステータスID" = o."解析ステータスID"
+
     LEFT JOIN accounting.payment_document_specialist_analysis_results s
       ON s.specialist_analysis_result_id = o.latest_specialist_analysis_result_id
      AND s.is_current = TRUE
@@ -1901,7 +1958,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
 
     WHERE o.deleted_at IS NULL
       AND COALESCE(o.ocr_raw_text, '') <> ''
-      AND o.current_status = $1
+      AND o."解析ステータスID" = $1
 
     ORDER BY
       o.sorted_at DESC NULLS LAST,
@@ -2064,7 +2121,8 @@ async function listPaymentDocumentOcrImportsFromDb() {
         row.saved_meta_relative_path,
       savedAt: row.saved_at,
       savedByPage: row.saved_by_page,
-      currentStatus: row.current_status,
+      analysisStatusId: row.analysis_status_id,
+      analysisStatusName: row.analysis_status_name,
       latestBasicAnalysisId:
         row.basic_analysis_id,
       latestBasicAnalysis,
@@ -4739,7 +4797,7 @@ async function validateStage1MasterCodes(
     SELECT
       'document_type_code',
       document_type_code
-    FROM expenses.document_types
+    FROM accounting.payment_document_types
     WHERE is_active = true
 
     UNION ALL
@@ -7682,7 +7740,8 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.saved_meta_relative_path,
           o.saved_at,
           o.saved_by_page,
-          o.current_status,
+          o."解析ステータスID" AS analysis_status_id,
+          status_master."解析ステータス状態" AS analysis_status_name,
           o.sorted_at,
           o.created_at,
           o.updated_at,
@@ -7703,6 +7762,10 @@ async function handlePaymentDocumentRoutes(req, res) {
           accounting.payment_document_ocr_imports o
 
         LEFT JOIN
+          accounting."解析ステータスマスタテーブル" status_master
+          ON status_master."解析ステータスID" = o."解析ステータスID"
+
+        LEFT JOIN
           accounting.payment_document_basic_analysis_results b
           ON b.payment_document_ocr_import_id =
              o.payment_document_ocr_import_id
@@ -7714,12 +7777,12 @@ async function handlePaymentDocumentRoutes(req, res) {
           AND (
             (
               $1::boolean = TRUE
-              AND o.current_status = ANY($2::text[])
+              AND o."解析ステータスID" = ANY($2::bigint[])
               AND b.raw_result_json->'analysis'->'sortResult'->>'analysis_system_code' = $3
             )
             OR (
               $1::boolean = FALSE
-              AND o.current_status = ANY($2::text[])
+              AND o."解析ステータスID" = ANY($2::bigint[])
             )
           )
 
@@ -7981,18 +8044,18 @@ async function handlePaymentDocumentRoutes(req, res) {
           savedByPage:
             row.saved_by_page,
 
-          currentStatus:
-            row.current_status,
+          analysisStatusId:
+            row.analysis_status_id,
 
-          resultStatus:
-            row.current_status,
+          analysisStatusName:
+            row.analysis_status_name,
 
           canRouteToSpecialist:
-            row.current_status ===
+            row.analysis_status_id ===
             paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED,
 
           can_route_to_specialist:
-            row.current_status ===
+            row.analysis_status_id ===
             paymentDocumentStatusFlow.BASIC_ANALYSIS_COMPLETED,
 
           sortedAt:
@@ -8009,7 +8072,7 @@ async function handlePaymentDocumentRoutes(req, res) {
               paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_PROCESSING,
               paymentDocumentStatusFlow.HUMAN_REVIEW_WAITING,
               paymentDocumentStatusFlow.LEDGER
-            ].includes(row.current_status)
+            ].includes(row.analysis_status_id)
               ? analysisSystemCode
               : "",
 
@@ -8112,7 +8175,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           const lockedResult = await client.query(`
             SELECT
               o.payment_document_ocr_import_id,
-              o.current_status,
+              o."解析ステータスID" AS analysis_status_id,
               b.basic_analysis_id,
               b.company_id,
               c.company_code,
@@ -8142,7 +8205,7 @@ async function handlePaymentDocumentRoutes(req, res) {
             throw new Error("対象会社が一致しません。");
           }
 
-          if (row.current_status !== basicAnalysisCompletedStatus) {
+          if (row.analysis_status_id !== basicAnalysisCompletedStatus) {
             throw new Error("現在の証憑ステータスでは専門解析へ振り分けできません。");
           }
 
@@ -8161,13 +8224,13 @@ async function handlePaymentDocumentRoutes(req, res) {
           const updatedResult = await client.query(`
             UPDATE accounting.payment_document_ocr_imports
             SET
-              current_status = $2,
+              "解析ステータスID" = $2,
               sorted_at = CURRENT_TIMESTAMP,
               updated_at = CURRENT_TIMESTAMP
             WHERE payment_document_ocr_import_id = $1
               AND deleted_at IS NULL
-              AND current_status = $3
-            RETURNING payment_document_ocr_import_id, current_status
+              AND "解析ステータスID" = $3
+            RETURNING payment_document_ocr_import_id, "解析ステータスID" AS analysis_status_id
           `, [
             ocrImportId,
             specialistAnalysisWaitingStatus,
@@ -8183,7 +8246,7 @@ async function handlePaymentDocumentRoutes(req, res) {
             payment_document_ocr_import_id: ocrImportId,
             ok: true,
             analysis_system_code: analysisSystemCode,
-            current_status: updatedResult.rows[0].current_status
+            analysis_status_id: updatedResult.rows[0].analysis_status_id
           });
         } catch (error) {
           if (client) {
@@ -8341,7 +8404,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           payment_document_ocr_import_id,
           latest_basic_analysis_id,
           latest_specialist_analysis_result_id,
-          current_status,
+          "解析ステータスID" AS analysis_status_id,
           original_file_name,
           saved_file_name,
           saved_relative_path,
@@ -8367,13 +8430,13 @@ async function handlePaymentDocumentRoutes(req, res) {
         ocrImportRow.payment_document_ocr_import_id
       );
 
-      if (ocrImportRow.current_status === specialistAnalysisWaitingStatus) {
+      if (ocrImportRow.analysis_status_id === specialistAnalysisWaitingStatus) {
         const statusStarted = await client.query(`
           UPDATE accounting.payment_document_ocr_imports
-          SET current_status = $2,
+          SET "解析ステータスID" = $2,
               updated_at = CURRENT_TIMESTAMP
           WHERE payment_document_ocr_import_id = $1
-            AND current_status = $3
+            AND "解析ステータスID" = $3
             AND deleted_at IS NULL
         `, [
           ocrImportId,
@@ -8384,7 +8447,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         if (statusStarted.rowCount !== 1) {
           throw new Error("専門解析の開始状態を更新できませんでした。");
         }
-      } else if (ocrImportRow.current_status !== specialistAnalysisProcessingStatus) {
+      } else if (ocrImportRow.analysis_status_id !== specialistAnalysisProcessingStatus) {
         const err = new Error("現在の証憑ステータスでは専門解析結果を保存できません。");
         err.statusCode = 409;
         throw err;
@@ -8616,7 +8679,7 @@ analysis_system_code,
         SET
           latest_basic_analysis_id = $1,
           latest_specialist_analysis_result_id = $2,
-          current_status = $3,
+          "解析ステータスID" = $3,
           updated_at = now()
         WHERE payment_document_ocr_import_id = $4
           AND deleted_at IS NULL
@@ -8746,7 +8809,7 @@ await client.query("COMMIT");
             ocr_raw_text,
             source_type,
             mime_type,
-            current_status
+            "解析ステータスID" AS analysis_status_id
           FROM accounting.payment_document_ocr_imports
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
@@ -8769,7 +8832,7 @@ await client.query("COMMIT");
           throw error;
         }
 
-        if (ocrRow.current_status !== basicAnalysisWaitingStatus) {
+        if (ocrRow.analysis_status_id !== basicAnalysisWaitingStatus) {
           const error = new Error("現在の証憑ステータスでは基礎解析を開始できません。");
           error.statusCode = 409;
           throw error;
@@ -8777,11 +8840,11 @@ await client.query("COMMIT");
 
         const statusStarted = await db.query(`
           UPDATE accounting.payment_document_ocr_imports
-          SET current_status = $2,
+          SET "解析ステータスID" = $2,
               updated_at = CURRENT_TIMESTAMP
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
-            AND current_status = $3
+            AND "解析ステータスID" = $3
           RETURNING payment_document_ocr_import_id
         `, [
           ocrImportId,
@@ -8855,7 +8918,7 @@ await client.query("COMMIT");
         await client.query("BEGIN");
 
         const lockedOcrResult = await client.query(`
-          SELECT payment_document_ocr_import_id, current_status
+          SELECT payment_document_ocr_import_id, "解析ステータスID" AS analysis_status_id
           FROM accounting.payment_document_ocr_imports
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
@@ -8912,12 +8975,12 @@ await client.query("COMMIT");
         const statusUpdated = await client.query(`
           UPDATE accounting.payment_document_ocr_imports
           SET latest_basic_analysis_id = $2,
-              current_status = $3,
+              "解析ステータスID" = $3,
               updated_at = CURRENT_TIMESTAMP
           WHERE payment_document_ocr_import_id = $1
             AND deleted_at IS NULL
-            AND current_status = $4
-          RETURNING payment_document_ocr_import_id, current_status, sorted_at
+            AND "解析ステータスID" = $4
+          RETURNING payment_document_ocr_import_id, "解析ステータスID" AS analysis_status_id, sorted_at
         `, [
           ocrImportId,
           saved.basic_analysis_id,
@@ -8948,8 +9011,7 @@ await client.query("COMMIT");
           analysis_system_code: analysisSystemCode,
           analysisSystemLabel,
           analysis_system_label: analysisSystemLabel,
-          currentStatus: statusUpdated.rows[0].current_status,
-          current_status: statusUpdated.rows[0].current_status
+          analysisStatusId: statusUpdated.rows[0].analysis_status_id
         });
       } catch (error) {
         if (client) {
@@ -8966,11 +9028,11 @@ await client.query("COMMIT");
           try {
             await db.query(`
               UPDATE accounting.payment_document_ocr_imports
-              SET current_status = $2,
+              SET "解析ステータスID" = $2,
                   updated_at = CURRENT_TIMESTAMP
               WHERE payment_document_ocr_import_id = $1
                 AND deleted_at IS NULL
-                AND current_status = $3
+                AND "解析ステータスID" = $3
             `, [
               basicAnalysisOcrImportId,
               basicAnalysisErrorStatus,
@@ -9930,11 +9992,11 @@ await client.query("COMMIT");
 
       const statusStarted = await db.query(`
         UPDATE accounting.payment_document_ocr_imports
-        SET current_status = $2,
+        SET "解析ステータスID" = $2,
             updated_at = CURRENT_TIMESTAMP
         WHERE payment_document_ocr_import_id = $1
           AND deleted_at IS NULL
-          AND current_status = $3
+          AND "解析ステータスID" = $3
         RETURNING payment_document_ocr_import_id
       `, [
         id,
@@ -10023,11 +10085,11 @@ await client.query("COMMIT");
         try {
           await db.query(`
             UPDATE accounting.payment_document_ocr_imports
-            SET current_status = $2,
+            SET "解析ステータスID" = $2,
                 updated_at = CURRENT_TIMESTAMP
             WHERE payment_document_ocr_import_id = $1
               AND deleted_at IS NULL
-              AND current_status = $3
+              AND "解析ステータスID" = $3
           `, [
             specialistAnalysisOcrImportId,
             specialistAnalysisErrorStatus,

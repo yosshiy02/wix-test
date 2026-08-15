@@ -84,7 +84,7 @@
       ["AI信頼度", rowValue(specialistResult, ["aiConfidence", "ai_confidence"])],
       ["ファイル名", rowValue(row, ["fileName", "originalFileName", "savedFileName"])],
       ["OCR取込ID", rowValue(row, ["paymentDocumentOcrImportId", "payment_document_ocr_import_id"])],
-      ["現在状態", rowValue(row, ["currentStatus", "current_status"])],
+      ["現在状態", rowValue(row, ["analysisStatusName"])],
       ["解析コード", analysisSystemCodeOf(row)],
       ["解析結果", JSON.stringify(draft)]
     ];
@@ -182,8 +182,6 @@
         rowValue(row, [
           "matchingStatus",
           "matching_status",
-          "currentStatus",
-          "current_status",
           "確認状態"
         ])
       );

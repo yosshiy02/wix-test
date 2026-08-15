@@ -170,8 +170,6 @@
         rowValue(row, [
           "matchingStatus",
           "matching_status",
-          "currentStatus",
-          "current_status",
           "照合状態"
         ])
       );

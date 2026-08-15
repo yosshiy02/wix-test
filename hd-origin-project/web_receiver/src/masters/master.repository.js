@@ -99,10 +99,12 @@ const MASTER_DEFS = {
   },  document_types: {
     type: "document_types",
     label: "書類区分",
-    table: "expenses.document_types",
+    table: "accounting.payment_document_types",
     idColumn: "document_type_id",
     nameColumn: "document_type_name",
-    extraColumns: ["document_type_code"]
+    extraColumns: ["document_type_code"],
+    orderColumn: "display_order",
+    conflictColumn: "document_type_code"
   },
   payment_destinations: {
     type: "payment_destinations",
@@ -264,6 +266,7 @@ function quoteTable(tableName) {
 function normalizeRow(def, row) {
   return {
     ...row,
+    sort_order: row.sort_order ?? row[def.orderColumn || "sort_order"],
     id: row[def.idColumn],
     name: row[def.nameColumn],
     type: def.type,
@@ -274,6 +277,7 @@ function normalizeRow(def, row) {
 }
 
 function normalizePayload(def, payload) {
+  const orderColumn = def.orderColumn || "sort_order";
   const name = String(
     payload[def.nameColumn] ??
     payload.name ??
@@ -287,7 +291,7 @@ function normalizePayload(def, payload) {
 
   const data = {
     [def.nameColumn]: name,
-    sort_order: Number(payload.sort_order ?? 0),
+    [orderColumn]: Number(payload.sort_order ?? payload[orderColumn] ?? 0),
     is_active: payload.is_active === undefined ? true : Boolean(payload.is_active)
   };
 
@@ -314,19 +318,22 @@ async function listMasterTypes() {
 async function listMasters(type) {
   const def = getDef(type);
   const table = quoteTable(def.table);
+  const orderColumn = def.orderColumn || "sort_order";
 
   const columns = [
     def.idColumn,
     def.nameColumn,
     "is_active",
-    "sort_order",
     ...def.extraColumns
   ];
+  const orderSelect = orderColumn === "sort_order"
+    ? quoteIdent(orderColumn)
+    : `${quoteIdent(orderColumn)} AS ${quoteIdent("sort_order")}`;
 
   const result = await pool.query(`
-    SELECT ${columns.map(quoteIdent).join(", ")}
+    SELECT ${[...columns.map(quoteIdent), orderSelect].join(", ")}
     FROM ${table}
-    ORDER BY is_active DESC, sort_order, ${quoteIdent(def.idColumn)}
+    ORDER BY is_active DESC, ${quoteIdent(orderColumn)}, ${quoteIdent(def.idColumn)}
   `);
 
   return result.rows.map(row => normalizeRow(def, row));
@@ -335,6 +342,7 @@ async function listMasters(type) {
 async function createMaster(type, payload) {
   const def = getDef(type);
   const table = quoteTable(def.table);
+  const conflictColumn = def.conflictColumn || def.nameColumn;
   const data = normalizePayload(def, payload);
 
   const columns = Object.keys(data);
@@ -353,7 +361,7 @@ async function createMaster(type, payload) {
     `
     INSERT INTO ${table} (${columns.map(quoteIdent).join(", ")})
     VALUES (${params.join(", ")})
-    ON CONFLICT (${quoteIdent(def.nameColumn)})
+    ON CONFLICT (${quoteIdent(conflictColumn)})
     DO UPDATE SET ${updateColumns.join(", ")}
     RETURNING *
     `,
@@ -366,6 +374,7 @@ async function createMaster(type, payload) {
 async function updateMaster(type, id, payload) {
   const def = getDef(type);
   const table = quoteTable(def.table);
+  const orderColumn = def.orderColumn || "sort_order";
 
   const allowed = [
     def.nameColumn,
@@ -382,7 +391,7 @@ async function updateMaster(type, id, payload) {
       if (key === "name") {
         data[def.nameColumn] = String(payload[key] || "").trim();
       } else if (key === "sort_order") {
-        data[key] = Number(payload[key] || 0);
+        data[orderColumn] = Number(payload[key] || 0);
       } else {
         data[key] = payload[key];
       }
