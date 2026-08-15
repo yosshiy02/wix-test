@@ -99,8 +99,8 @@ async function queryRows(sql, values = []) {
 async function loadCompositionPromptTexts(compositionCode) {
   const rows = await queryRows(
     `SELECT apd.prompt_code, apd.prompt_text, apc.is_required
-     FROM accounting.ai_prompt_compositions AS apc
-     INNER JOIN accounting.ai_prompt_definitions AS apd ON apd.prompt_definition_id = apc.prompt_definition_id
+     FROM "マスターテーブル".ai_prompt_compositions AS apc
+     INNER JOIN "マスターテーブル".ai_prompt_definitions AS apd ON apd.prompt_definition_id = apc.prompt_definition_id
      WHERE apc.composition_code = $1 AND apc.is_active = true AND apd.is_active = true
      ORDER BY apc.sequence_no, apd.display_order, apd.prompt_definition_id`,
     [compositionCode]
@@ -122,9 +122,9 @@ async function loadCompositionPromptTexts(compositionCode) {
 
 async function loadActiveCandidateMasters() {
   const [companyRows, documentTypeRows, specialistRows] = await Promise.all([
-    queryRows(`SELECT company_id, company_code, company_name, company_short_name, description FROM accounting.companies WHERE is_active = true ORDER BY display_order, company_id`),
-    queryRows(`SELECT document_type_id, document_type_code, document_type_name, description FROM accounting.payment_document_types WHERE is_active = true AND NOT (document_type_code = ANY($1::text[])) ORDER BY display_order, document_type_id`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
-    queryRows(`SELECT specialist_analysis_id, specialist_analysis_code, specialist_analysis_name, description FROM accounting.payment_document_specialist_analyses WHERE is_active = true ORDER BY display_order, specialist_analysis_id`)
+    queryRows(`SELECT "自社会社ID" AS company_id, "自社会社コード" AS company_code, "自社会社名" AS company_name, "自社会社略称名" AS company_short_name, NULL::text AS description FROM "マスターテーブル"."自社会社マスターテーブル" WHERE "自社会社有効" = true ORDER BY "自社会社表示順", "自社会社ID"`),
+    queryRows(`SELECT "書類種別ID" AS document_type_id, "書類種別英語名" AS document_type_code, "書類種別名" AS document_type_name, "書類種別説明" AS description FROM "マスターテーブル"."書類種別マスタテーブル" WHERE "書類種別有効" = true AND NOT ("書類種別英語名" = ANY($1::text[])) ORDER BY "書類種別表示順", "書類種別ID"`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
+    queryRows(`SELECT specialist_analysis_id, specialist_analysis_code, specialist_analysis_name, description FROM "マスターテーブル".payment_document_specialist_analyses WHERE is_active = true ORDER BY display_order, specialist_analysis_id`)
   ]);
 
   return {
@@ -137,11 +137,11 @@ async function loadActiveCandidateMasters() {
 async function loadStage1CandidateMasters() {
   const [companies, documentTypes, destinations, categories, systems] =
     await Promise.all([
-      queryRows(`SELECT company_code, company_name FROM expenses.companies WHERE is_active=true ORDER BY sort_order`),
-      queryRows(`SELECT document_type_code, document_type_name FROM accounting.payment_document_types WHERE is_active=true AND NOT (document_type_code = ANY($1::text[])) ORDER BY display_order`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
-      queryRows(`SELECT payment_destination_code, payment_destination_name FROM expenses.payment_destinations WHERE is_active=true ORDER BY sort_order`),
-      queryRows(`SELECT accounting_category_code, accounting_category_name FROM expenses.accounting_categories WHERE is_active=true ORDER BY sort_order`),
-      queryRows(`SELECT analysis_system_code, analysis_system_name, description FROM expenses.analysis_systems WHERE is_active=true ORDER BY sort_order`)
+      queryRows(`SELECT "自社会社コード" AS company_code, "自社会社名" AS company_name FROM "マスターテーブル"."自社会社マスターテーブル" WHERE "自社会社有効" = true ORDER BY "自社会社表示順"`),
+      queryRows(`SELECT "書類種別英語名" AS document_type_code, "書類種別名" AS document_type_name FROM "マスターテーブル"."書類種別マスタテーブル" WHERE "書類種別有効" = true AND NOT ("書類種別英語名" = ANY($1::text[])) ORDER BY "書類種別表示順"`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
+      queryRows(`SELECT payment_destination_code, payment_destination_name FROM "マスターテーブル".payment_destinations WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT accounting_category_code, accounting_category_name FROM "マスターテーブル".accounting_categories WHERE is_active=true ORDER BY sort_order`),
+      queryRows(`SELECT analysis_system_code, analysis_system_name, description FROM "マスターテーブル".analysis_systems WHERE is_active=true ORDER BY sort_order`)
     ]);
 
   return {
@@ -232,12 +232,12 @@ async function buildSpecialistJsonSchema(specialistAnalysisCode) {
       ai.description AS analysis_item_description,
       ai.max_length, ai.decimal_places,
       ai.is_multiple, adt.json_type_code
-     FROM accounting.payment_document_specialist_analyses AS psa
-     INNER JOIN accounting.specialist_analysis_items AS sai
+     FROM "マスターテーブル".payment_document_specialist_analyses AS psa
+     INNER JOIN "マスターテーブル".specialist_analysis_items AS sai
        ON sai.specialist_analysis_id = psa.specialist_analysis_id
-     INNER JOIN accounting.analysis_items AS ai
+     INNER JOIN "マスターテーブル".analysis_items AS ai
        ON ai.analysis_item_id = sai.analysis_item_id
-     INNER JOIN accounting.analysis_data_types AS adt
+     INNER JOIN "マスターテーブル".analysis_data_types AS adt
        ON adt.analysis_data_type_id = ai.analysis_data_type_id
      WHERE psa.specialist_analysis_code = $1
        AND psa.is_active = true
@@ -277,10 +277,10 @@ async function buildSpecialistJsonSchema(specialistAnalysisCode) {
           child.decimal_places,
           child.is_multiple,
           adt.json_type_code
-         FROM accounting.analysis_item_child_properties AS aicp
-         INNER JOIN accounting.analysis_items AS child
+         FROM "マスターテーブル".analysis_item_child_properties AS aicp
+         INNER JOIN "マスターテーブル".analysis_items AS child
            ON child.analysis_item_id = aicp.child_analysis_item_id
-         INNER JOIN accounting.analysis_data_types AS adt
+         INNER JOIN "マスターテーブル".analysis_data_types AS adt
            ON adt.analysis_data_type_id = child.analysis_data_type_id
          WHERE aicp.parent_analysis_item_id = ANY($1::bigint[])
            AND aicp.is_active = true
@@ -442,7 +442,7 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
     const paymentMethods = await queryRows(
       `SELECT payment_method_id, payment_method_code,
               method_name AS payment_method_name
-       FROM expenses.payment_methods
+       FROM "マスターテーブル".payment_methods
        WHERE is_active = true
        ORDER BY sort_order, payment_method_id`
     );
@@ -464,7 +464,7 @@ async function selectPaymentDocumentPromptFiles(context = {}) {
          tax_category_id,
          tax_name AS tax_category_label,
          tax_rate
-       FROM expenses.tax_categories
+       FROM "マスターテーブル".tax_categories
        WHERE is_active = true
        ORDER BY sort_order, tax_category_id`
     );
@@ -521,7 +521,7 @@ async function loadPaymentDocumentPromptTextFromDb(
   const rows = await queryRows(
     `SELECT
        prompt_text
-     FROM accounting.ai_prompt_definitions
+     FROM "マスターテーブル".ai_prompt_definitions
      WHERE prompt_name = $1
        AND is_active = true
      ORDER BY

@@ -3,16 +3,21 @@ const pool = require("../db");
 const MASTER_DEFS = {
   account_titles: {
     type: "account_titles",
-    label: "勘定科目",
-    table: "expenses.account_titles",
+    label: "勘定項目",
+    table: "マスターテーブル.勘定項目マスタテーブル",
     idColumn: "account_title_id",
     nameColumn: "account_name",
-    extraColumns: ["account_code"]
+    extraColumns: [],
+    orderColumn: "account_title_id",
+    conflictColumn: "account_name",
+    columnMap: { account_title_id: "勘定項目ID", account_name: "勘定項目名", is_active: "勘定項目有効" },
+    orderAlias: false,
+    skipOrderWrite: true
   },
   payment_methods: {
     type: "payment_methods",
     label: "支払方法",
-    table: "expenses.payment_methods",
+    table: "\"マスターテーブル\".payment_methods",
     idColumn: "payment_method_id",
     nameColumn: "method_name",
     extraColumns: ["payment_method_code", "default_credit_account"]
@@ -20,7 +25,7 @@ const MASTER_DEFS = {
   tax_categories: {
     type: "tax_categories",
     label: "税区分",
-    table: "expenses.tax_categories",
+    table: "\"マスターテーブル\".tax_categories",
     idColumn: "tax_category_id",
     nameColumn: "tax_name",
     extraColumns: ["tax_category_code", "tax_rate"]
@@ -36,7 +41,7 @@ const MASTER_DEFS = {
   target_people: {
     type: "target_people",
     label: "対象者",
-    table: "expenses.target_people",
+    table: "\"マスターテーブル\".target_people",
     idColumn: "target_person_id",
     nameColumn: "target_person_name",
     extraColumns: []
@@ -44,7 +49,7 @@ const MASTER_DEFS = {
   purposes: {
     type: "purposes",
     label: "目的",
-    table: "expenses.purposes",
+    table: "\"マスターテーブル\".purposes",
     idColumn: "purpose_id",
     nameColumn: "purpose_name",
     extraColumns: []
@@ -52,7 +57,7 @@ const MASTER_DEFS = {
   projects: {
     type: "projects",
     label: "案件",
-    table: "expenses.projects",
+    table: "\"マスターテーブル\".projects",
     idColumn: "project_id",
     nameColumn: "project_name",
     extraColumns: []
@@ -60,7 +65,7 @@ const MASTER_DEFS = {
   departments: {
     type: "departments",
     label: "部門",
-    table: "expenses.departments",
+    table: "\"マスターテーブル\".departments",
     idColumn: "department_id",
     nameColumn: "department_name",
     extraColumns: []
@@ -68,15 +73,18 @@ const MASTER_DEFS = {
   companies: {
     type: "companies",
     label: "会社",
-    table: "expenses.companies",
+    table: "マスターテーブル.自社会社マスターテーブル",
     idColumn: "company_id",
     nameColumn: "company_name",
-    extraColumns: ["company_code", "company_type"]
+    extraColumns: ["company_code", "company_short_name"],
+    orderColumn: "sort_order",
+    conflictColumn: "company_code",
+    columnMap: { company_id: "自社会社ID", company_code: "自社会社コード", company_name: "自社会社名", company_short_name: "自社会社略称名", sort_order: "自社会社表示順", is_active: "自社会社有効" }
   },
   people: {
     type: "people",
     label: "人物",
-    table: "expenses.people",
+    table: "\"マスターテーブル\".people",
     idColumn: "person_id",
     nameColumn: "person_name",
     extraColumns: ["person_code"]
@@ -84,7 +92,7 @@ const MASTER_DEFS = {
   positions: {
     type: "positions",
     label: "役職",
-    table: "expenses.positions",
+    table: "\"マスターテーブル\".positions",
     idColumn: "position_id",
     nameColumn: "position_name",
     extraColumns: ["position_code"]
@@ -92,24 +100,25 @@ const MASTER_DEFS = {
   permissions: {
     type: "permissions",
     label: "権限",
-    table: "expenses.permissions",
+    table: "\"マスターテーブル\".permissions",
     idColumn: "permission_id",
     nameColumn: "permission_name",
     extraColumns: ["permission_code", "permission_level"]
   },  document_types: {
     type: "document_types",
     label: "書類区分",
-    table: "accounting.payment_document_types",
+    table: "マスターテーブル.書類種別マスタテーブル",
     idColumn: "document_type_id",
     nameColumn: "document_type_name",
-    extraColumns: ["document_type_code"],
+    extraColumns: ["document_type_code", "description"],
     orderColumn: "display_order",
-    conflictColumn: "document_type_code"
+    conflictColumn: "document_type_code",
+    columnMap: { document_type_id: "書類種別ID", document_type_code: "書類種別英語名", document_type_name: "書類種別名", display_order: "書類種別表示順", is_active: "書類種別有効", description: "書類種別説明" }
   },
   payment_destinations: {
     type: "payment_destinations",
     label: "処理先",
-    table: "expenses.payment_destinations",
+    table: "\"マスターテーブル\".payment_destinations",
     idColumn: "payment_destination_id",
     nameColumn: "payment_destination_name",
     extraColumns: ["payment_destination_code"]
@@ -117,7 +126,7 @@ const MASTER_DEFS = {
     analysis_systems: {
     type: "analysis_systems",
     label: "専門解析先",
-    table: "accounting.payment_document_specialist_analyses",
+    table: "\"マスターテーブル\".payment_document_specialist_analyses",
     idColumn: "specialist_analysis_id",
     nameColumn: "specialist_analysis_name",
     extraColumns: [
@@ -129,7 +138,7 @@ const MASTER_DEFS = {
   accounting_categories: {
     type: "accounting_categories",
     label: "会計区分",
-    table: "expenses.accounting_categories",
+    table: "\"マスターテーブル\".accounting_categories",
     idColumn: "accounting_category_id",
     nameColumn: "accounting_category_name",
     extraColumns: ["accounting_category_code"]
@@ -137,7 +146,7 @@ const MASTER_DEFS = {
   payable_kinds: {
     type: "payable_kinds",
     label: "未払種別",
-    table: "expenses.payable_kinds",
+    table: "\"マスターテーブル\".payable_kinds",
     idColumn: "payable_kind_id",
     nameColumn: "payable_kind_name",
     extraColumns: ["payable_kind_code"]
@@ -145,7 +154,7 @@ const MASTER_DEFS = {
   payment_source_types: {
     type: "payment_source_types",
     label: "入手元区分",
-    table: "expenses.payment_source_types",
+    table: "\"マスターテーブル\".payment_source_types",
     idColumn: "payment_source_type_id",
     nameColumn: "payment_source_type_name",
     extraColumns: ["payment_source_type_code"]
@@ -155,7 +164,7 @@ const MASTER_DEFS = {
   payable_statuses: {
     type: "payable_statuses",
     label: "未払状態",
-    table: "expenses.payable_statuses",
+    table: "\"マスターテーブル\".payable_statuses",
     idColumn: "payable_status_id",
     nameColumn: "payable_status_name",
     extraColumns: [
@@ -165,7 +174,7 @@ const MASTER_DEFS = {
   evidence_statuses: {
     type: "evidence_statuses",
     label: "証憑状態",
-    table: "expenses.evidence_statuses",
+    table: "\"マスターテーブル\".evidence_statuses",
     idColumn: "evidence_status_id",
     nameColumn: "evidence_status_name",
     extraColumns: [
@@ -175,7 +184,7 @@ const MASTER_DEFS = {
   review_statuses: {
     type: "review_statuses",
     label: "確認状態",
-    table: "expenses.review_statuses",
+    table: "\"マスターテーブル\".review_statuses",
     idColumn: "review_status_id",
     nameColumn: "review_status_name",
     extraColumns: [
@@ -185,7 +194,7 @@ const MASTER_DEFS = {
   warning_levels: {
     type: "warning_levels",
     label: "警告レベル",
-    table: "expenses.warning_levels",
+    table: "\"マスターテーブル\".warning_levels",
     idColumn: "warning_level_id",
     nameColumn: "warning_level_name",
     extraColumns: [
@@ -196,7 +205,7 @@ const MASTER_DEFS = {
     type: "professional_review_statuses",
     label: "専門家確認状態",
     table:
-      "expenses.professional_review_statuses",
+      "\"マスターテーブル\".professional_review_statuses",
     idColumn:
       "professional_review_status_id",
     nameColumn:
@@ -209,7 +218,7 @@ const MASTER_DEFS = {
   invoice_types: {
     type: "invoice_types",
     label: "インボイス区分",
-    table: "expenses.invoice_types",
+    table: "\"マスターテーブル\".invoice_types",
     idColumn: "invoice_type_id",
     nameColumn: "invoice_type_name",
     extraColumns: ["invoice_type_code"]
@@ -217,7 +226,7 @@ const MASTER_DEFS = {
   evidence_types: {
     type: "evidence_types",
     label: "証憑区分",
-    table: "expenses.evidence_types",
+    table: "\"マスターテーブル\".evidence_types",
     idColumn: "evidence_type_id",
     nameColumn: "evidence_type_name",
     extraColumns: ["evidence_type_code"]
@@ -225,7 +234,7 @@ const MASTER_DEFS = {
   contract_insurance_lease_kinds: {
     type: "contract_insurance_lease_kinds",
     label: "契約・保険・リース",
-    table: "expenses.contract_insurance_lease_kinds",
+    table: "\"マスターテーブル\".contract_insurance_lease_kinds",
     idColumn: "contract_insurance_lease_kind_id",
     nameColumn: "contract_insurance_lease_kind_name",
     extraColumns: ["contract_insurance_lease_kind_code"]
@@ -233,7 +242,7 @@ const MASTER_DEFS = {
   lease_item_categories: {
     type: "lease_item_categories",
     label: "リース物件区分",
-    table: "expenses.lease_item_categories",
+    table: "\"マスターテーブル\".lease_item_categories",
     idColumn: "lease_item_category_id",
     nameColumn: "lease_item_category_name",
     extraColumns: ["lease_item_category_code"]
@@ -263,6 +272,126 @@ function quoteTable(tableName) {
     .join(".");
 }
 
+function mappedMasterColumn(def, logicalColumn) {
+  return def.columnMap?.[logicalColumn] || logicalColumn;
+}
+
+function mappedMasterSelect(def, logicalColumn) {
+  const physicalColumn = mappedMasterColumn(def, logicalColumn);
+  return `${quoteIdent(physicalColumn)} AS ${quoteIdent(logicalColumn)}`;
+}
+
+function normalizeMappedMasterRow(def, row) {
+  return {
+    ...row,
+    ...(def.orderAlias === false ? {} : {
+      sort_order: row.sort_order ?? row[def.orderColumn || "sort_order"]
+    }),
+    id: row[def.idColumn],
+    name: row[def.nameColumn],
+    type: def.type,
+    label: def.label,
+    id_column: def.idColumn,
+    name_column: def.nameColumn
+  };
+}
+
+async function listMappedMaster(def) {
+  const logicalColumns = [
+    def.idColumn,
+    def.nameColumn,
+    "is_active",
+    ...def.extraColumns
+  ];
+  const orderColumn = def.orderColumn || "sort_order";
+  const physicalOrderColumn = mappedMasterColumn(def, orderColumn);
+  const selectColumns = logicalColumns.map(column => mappedMasterSelect(def, column));
+  if (def.orderAlias !== false) {
+    selectColumns.push(`${quoteIdent(physicalOrderColumn)} AS ${quoteIdent("sort_order")}`);
+  }
+  const result = await pool.query(`
+    SELECT ${selectColumns.join(", ")}
+    FROM ${quoteTable(def.table)}
+    ORDER BY ${quoteIdent(mappedMasterColumn(def, "is_active"))} DESC,
+      ${quoteIdent(physicalOrderColumn)},
+      ${quoteIdent(mappedMasterColumn(def, def.idColumn))}
+  `);
+  return result.rows.map(row => normalizeMappedMasterRow(def, row));
+}
+async function createMappedMaster(def, payload) {
+  const data = normalizePayload(def, payload);
+  if (def.skipOrderWrite) delete data[def.orderColumn];
+  const columns = Object.keys(data);
+  const physicalColumns = columns.map(column => mappedMasterColumn(def, column));
+  const values = Object.values(data);
+  const params = values.map((_, index) => `$${index + 1}`);
+  const updates = columns
+    .filter(column => column !== def.nameColumn)
+    .map(column => {
+      const physical = quoteIdent(mappedMasterColumn(def, column));
+      return `${physical} = EXCLUDED.${physical}`;
+    });
+  const active = quoteIdent(mappedMasterColumn(def, "is_active"));
+  if (!updates.includes(`${active} = EXCLUDED.${active}`)) updates.push(`${active} = TRUE`);
+  const result = await pool.query(`
+    INSERT INTO ${quoteTable(def.table)} (${physicalColumns.map(quoteIdent).join(", ")})
+    VALUES (${params.join(", ")})
+    ON CONFLICT (${quoteIdent(mappedMasterColumn(def, def.conflictColumn || def.nameColumn))})
+    DO UPDATE SET ${updates.join(", ")}
+    RETURNING *
+  `, values);
+  return normalizeMappedMasterRow(def, result.rows[0]);
+}
+
+async function updateMappedMaster(def, id, payload) {
+  const orderColumn = def.orderColumn || "sort_order";
+  const allowed = [
+    def.nameColumn,
+    "name",
+    ...(def.skipOrderWrite ? [] : ["sort_order"]),
+    "is_active",
+    ...def.extraColumns
+  ];
+  const data = {};
+  for (const key of allowed) {
+    if (payload[key] === undefined) continue;
+    if (key === "name") data[def.nameColumn] = String(payload[key] || "").trim();
+    else if (key === "sort_order") data[orderColumn] = Number(payload[key] || 0);
+    else data[key] = payload[key];
+  }
+  if (data[def.nameColumn] !== undefined && !String(data[def.nameColumn]).trim()) throw new Error("名称は必須です。");
+  const columns = Object.keys(data);
+  if (!columns.length) throw new Error("更新対象がありません。");
+  const values = columns.map(column => data[column]);
+  values.push(id);
+  const result = await pool.query(`
+    UPDATE ${quoteTable(def.table)}
+    SET ${columns.map((column, index) => `${quoteIdent(mappedMasterColumn(def, column))} = $${index + 1}`).join(", ")}
+    WHERE ${quoteIdent(mappedMasterColumn(def, def.idColumn))} = $${values.length}
+    RETURNING *
+  `, values);
+  if (!result.rows[0]) {
+    const error = new Error("更新対象がありません。");
+    error.statusCode = 404;
+    throw error;
+  }
+  return normalizeMappedMasterRow(def, result.rows[0]);
+}
+
+async function disableMappedMaster(def, id) {
+  const result = await pool.query(`
+    UPDATE ${quoteTable(def.table)}
+    SET ${quoteIdent(mappedMasterColumn(def, "is_active"))} = FALSE
+    WHERE ${quoteIdent(mappedMasterColumn(def, def.idColumn))} = $1
+    RETURNING *
+  `, [id]);
+  if (!result.rows[0]) {
+    const error = new Error("無効化対象がありません。");
+    error.statusCode = 404;
+    throw error;
+  }
+  return normalizeMappedMasterRow(def, result.rows[0]);
+}
 function normalizeRow(def, row) {
   return {
     ...row,
@@ -317,6 +446,7 @@ async function listMasterTypes() {
 
 async function listMasters(type) {
   const def = getDef(type);
+  if (def.columnMap) return listMappedMaster(def);
   const table = quoteTable(def.table);
   const orderColumn = def.orderColumn || "sort_order";
 
@@ -341,6 +471,7 @@ async function listMasters(type) {
 
 async function createMaster(type, payload) {
   const def = getDef(type);
+  if (def.columnMap) return createMappedMaster(def, payload);
   const table = quoteTable(def.table);
   const conflictColumn = def.conflictColumn || def.nameColumn;
   const data = normalizePayload(def, payload);
@@ -373,6 +504,7 @@ async function createMaster(type, payload) {
 
 async function updateMaster(type, id, payload) {
   const def = getDef(type);
+  if (def.columnMap) return updateMappedMaster(def, id, payload);
   const table = quoteTable(def.table);
   const orderColumn = def.orderColumn || "sort_order";
 
@@ -433,6 +565,7 @@ async function updateMaster(type, id, payload) {
 
 async function disableMaster(type, id) {
   const def = getDef(type);
+  if (def.columnMap) return disableMappedMaster(def, id);
   const table = quoteTable(def.table);
 
   const result = await pool.query(

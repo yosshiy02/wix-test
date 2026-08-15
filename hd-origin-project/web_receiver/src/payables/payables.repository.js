@@ -58,9 +58,7 @@ function normalizeStatus(value) {
   return normalizeMasterCode(value, "draft");
 }
 
-function normalizeDocumentType(value) {
-  return normalizeMasterCode(value, "invoice");
-}
+
 
 function normalizePayableKind(value) {
   return normalizeMasterCode(value, "unpaid");
@@ -100,49 +98,50 @@ function toBoolean(value) {
 /* GPT00_PAYABLE_MASTER_VALIDATION_20260711_START */
 const PAYABLE_MASTER_VALIDATION = {
   status: {
-    table: "expenses.payable_statuses",
+    table: "\"マスターテーブル\".payable_statuses",
     codeColumn: "payable_status_code",
     fallback: "draft",
     label: "未払状態"
   },
   document_type: {
-    table: "accounting.payment_document_types",
-    codeColumn: "document_type_code",
-    fallback: "invoice",
+    table: "マスターテーブル.書類種別マスタテーブル",
+    codeColumn: "書類種別英語名",
+    activeColumn: "書類種別有効",
+    idColumn: "書類種別ID",
     label: "書類区分"
   },
   payable_kind: {
-    table: "expenses.payable_kinds",
+    table: "\"マスターテーブル\".payable_kinds",
     codeColumn: "payable_kind_code",
     fallback: "unpaid",
     label: "未払種別"
   },
   evidence_type: {
-    table: "expenses.evidence_types",
+    table: "\"マスターテーブル\".evidence_types",
     codeColumn: "evidence_type_code",
     fallback: "",
     label: "証憑区分"
   },
   evidence_status: {
-    table: "expenses.evidence_statuses",
+    table: "\"マスターテーブル\".evidence_statuses",
     codeColumn: "evidence_status_code",
     fallback: "pending",
     label: "証憑状態"
   },
   review_status: {
-    table: "expenses.review_statuses",
+    table: "\"マスターテーブル\".review_statuses",
     codeColumn: "review_status_code",
     fallback: "unreviewed",
     label: "確認状態"
   },
   warning_level: {
-    table: "expenses.warning_levels",
+    table: "\"マスターテーブル\".warning_levels",
     codeColumn: "warning_level_code",
     fallback: "none",
     label: "警告レベル"
   },
   professional_review_status: {
-    table: "expenses.professional_review_statuses",
+    table: "\"マスターテーブル\".professional_review_statuses",
     codeColumn: "professional_review_status_code",
     fallback: "not_required",
     label: "専門家確認状態"
@@ -197,7 +196,7 @@ async function requireActiveMasterCode(
     WHERE ${quoteMasterIdentifier(
       definition.codeColumn
     )} = $1
-      AND is_active = TRUE
+      AND ${quoteMasterIdentifier(definition.activeColumn || "is_active")} = TRUE
     LIMIT 1
     `,
     [code]
@@ -215,6 +214,37 @@ async function requireActiveMasterCode(
   }
 
   return code;
+}
+
+async function resolveFormalDocumentTypeId(q, value) {
+  const definition = PAYABLE_MASTER_VALIDATION.document_type;
+  const code = toText(value);
+
+  if (!code) {
+    const error = new Error("書類種別?????????");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const result = await q.query(
+    `
+    SELECT ${quoteMasterIdentifier(definition.idColumn)} AS document_type_master_id
+    FROM ${quoteMasterTable(definition.table)}
+    WHERE ${quoteMasterIdentifier(definition.codeColumn)} = $1
+      AND ${quoteMasterIdentifier(definition.activeColumn)} = TRUE
+    `,
+    [code]
+  );
+
+  if (result.rows.length !== 1) {
+    const error = new Error(
+      "書類種別???????????????????????????: " + code
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return result.rows[0].document_type_master_id;
 }
 /* GPT00_PAYABLE_MASTER_VALIDATION_20260711_END */
 async function nextPayableNo(q) {
@@ -504,7 +534,7 @@ async function getDashboard() {
       a.account_number,
       t.is_cancelled AS bank_transaction_cancelled
     FROM accounting.payable_payments p
-    LEFT JOIN accounting.bank_accounts a
+    LEFT JOIN "マスターテーブル".bank_accounts a
       ON a.bank_account_id = p.bank_account_id
      AND a.company_id = p.company_id
     LEFT JOIN accounting.bank_transactions t
@@ -540,10 +570,9 @@ async function savePayable(payload = {}) {
         document.status
       );
 
-    const validatedDocumentType =
-      await requireActiveMasterCode(
+    const formalDocumentTypeId =
+      await resolveFormalDocumentTypeId(
         q,
-        "document_type",
         document.document_type
       );
 
@@ -590,7 +619,7 @@ const payableId = toInt(document.payable_id);
       const inserted = await q.query(`
         INSERT INTO accounting.payable_documents (
           payable_no,
-          document_type,
+          "書類種別ID",
           payable_kind,
           status,
           vendor_id,
@@ -624,7 +653,7 @@ const payableId = toInt(document.payable_id);
         RETURNING payable_id, payable_no
       `, [
         payableNo,
-        validatedDocumentType,
+        formalDocumentTypeId,
         validatedPayableKind,
         validatedStatus,
         toInt(document.vendor_id),
@@ -676,7 +705,7 @@ const payableId = toInt(document.payable_id);
       const updated = await q.query(`
         UPDATE accounting.payable_documents
         SET
-          document_type = $2,
+          "書類種別ID" = $2,
           payable_kind = $3,
           status = $4,
           vendor_id = $5,
@@ -709,7 +738,7 @@ const payableId = toInt(document.payable_id);
         RETURNING payable_id, payable_no
       `, [
         id,
-        validatedDocumentType,
+        formalDocumentTypeId,
         validatedPayableKind,
         newStatus,
         toInt(document.vendor_id),
@@ -940,7 +969,17 @@ async function addPayment(payableId, payload = {}) {
         company_id,
         company_code,
         company_name
-      FROM expenses.companies
+      FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
       WHERE is_active = TRUE
         AND (
           (
@@ -983,7 +1022,7 @@ async function addPayment(payableId, payload = {}) {
         account_type_name,
         account_number,
         currency_code
-      FROM accounting.bank_accounts
+      FROM "マスターテーブル".bank_accounts
       WHERE bank_account_id = $1
         AND company_id = $2
         AND is_active = TRUE

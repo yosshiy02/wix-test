@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 const pool = require("../db");
 
@@ -271,7 +271,17 @@ async function listCompanies() {
       company_name,
       company_type,
       is_active
-    FROM expenses.companies
+    FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
     ORDER BY
       is_active DESC,
       sort_order,
@@ -316,8 +326,18 @@ async function listRules(filters = {}) {
       c.company_code,
       c.company_name,
       c.company_type
-    FROM expenses.company_transaction_rules r
-    INNER JOIN expenses.companies c
+    FROM "マスターテーブル".company_transaction_rules r
+    INNER JOIN (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) c
       ON c.company_id = r.company_id
     ${where}
     ORDER BY
@@ -341,8 +361,18 @@ async function getRule(id) {
       c.company_code,
       c.company_name,
       c.company_type
-    FROM expenses.company_transaction_rules r
-    INNER JOIN expenses.companies c
+    FROM "マスターテーブル".company_transaction_rules r
+    INNER JOIN (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) c
       ON c.company_id = r.company_id
     WHERE r.company_transaction_rule_id = $1
     `,
@@ -362,7 +392,17 @@ async function saveRule(id, payload) {
     const companyResult = await client.query(
       `
       SELECT company_id
-      FROM expenses.companies
+      FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
       WHERE company_id = $1
       `,
       [data.company_id]
@@ -379,7 +419,7 @@ async function saveRule(id, payload) {
     if (id) {
       result = await client.query(
         `
-        UPDATE expenses.company_transaction_rules
+        UPDATE "マスターテーブル".company_transaction_rules
         SET
           company_id = $1,
           transaction_direction = $2,
@@ -442,7 +482,7 @@ async function saveRule(id, payload) {
     } else {
       result = await client.query(
         `
-        INSERT INTO expenses.company_transaction_rules (
+        INSERT INTO "マスターテーブル".company_transaction_rules (
           company_id,
           transaction_direction,
           rule_name,
@@ -514,7 +554,7 @@ async function saveRule(id, payload) {
 async function disableRule(id) {
   const result = await pool.query(
     `
-    UPDATE expenses.company_transaction_rules
+    UPDATE "マスターテーブル".company_transaction_rules
     SET
       is_active = FALSE,
       updated_at = NOW()
@@ -560,8 +600,18 @@ async function resolveRules({
       r.*,
       c.company_code,
       c.company_name
-    FROM expenses.company_transaction_rules r
-    INNER JOIN expenses.companies c
+    FROM "マスターテーブル".company_transaction_rules r
+    INNER JOIN (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) c
       ON c.company_id = r.company_id
     WHERE r.company_id = $1
       AND r.transaction_direction = $2

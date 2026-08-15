@@ -375,7 +375,7 @@ async function getReceiptMasterOptions() {
       tax_name,
       tax_rate,
       sort_order
-    FROM expenses.tax_categories
+    FROM "マスターテーブル".tax_categories
     WHERE is_active = TRUE
     ORDER BY sort_order, tax_category_id
     `
@@ -389,7 +389,7 @@ async function getReceiptMasterOptions() {
       treatment_code,
       is_tax_included,
       sort_order
-    FROM expenses.tax_treatments
+    FROM "マスターテーブル".tax_treatments
     WHERE is_active = TRUE
     ORDER BY sort_order, tax_treatment_id
     `
@@ -401,7 +401,7 @@ async function getReceiptMasterOptions() {
       payment_method_id,
       method_name AS payment_method_name,
       sort_order
-    FROM expenses.payment_methods
+    FROM "マスターテーブル".payment_methods
     WHERE is_active = TRUE
     ORDER BY sort_order, payment_method_id
     `
@@ -413,7 +413,7 @@ async function getReceiptMasterOptions() {
       target_person_id,
       target_person_name,
       sort_order
-    FROM expenses.target_people
+    FROM "マスターテーブル".target_people
     WHERE is_active = TRUE
     ORDER BY sort_order, target_person_id
     `
@@ -425,7 +425,7 @@ async function getReceiptMasterOptions() {
       purpose_id,
       purpose_name,
       sort_order
-    FROM expenses.purposes
+    FROM "マスターテーブル".purposes
     WHERE is_active = TRUE
     ORDER BY sort_order, purpose_id
     `
@@ -437,7 +437,7 @@ async function getReceiptMasterOptions() {
       project_id,
       project_name,
       sort_order
-    FROM expenses.projects
+    FROM "マスターテーブル".projects
     WHERE is_active = TRUE
     ORDER BY sort_order, project_id
     `
@@ -449,7 +449,7 @@ async function getReceiptMasterOptions() {
       department_id,
       department_name,
       sort_order
-    FROM expenses.departments
+    FROM "マスターテーブル".departments
     WHERE is_active = TRUE
     ORDER BY sort_order, department_id
     `
@@ -461,7 +461,7 @@ async function getReceiptMasterOptions() {
       invoice_type_id,
       invoice_type_name,
       sort_order
-    FROM expenses.invoice_types
+    FROM "マスターテーブル".invoice_types
     WHERE is_active = TRUE
     ORDER BY sort_order, invoice_type_id
     `
@@ -473,7 +473,7 @@ async function getReceiptMasterOptions() {
       evidence_type_id,
       evidence_type_name,
       sort_order
-    FROM expenses.evidence_types
+    FROM "マスターテーブル".evidence_types
     WHERE is_active = TRUE
     ORDER BY sort_order, evidence_type_id
     `
@@ -799,13 +799,12 @@ const __receiptAccountTitlesMasterOptionsPool =
 async function __getReceiptAccountTitlesForMasterOptions() {
   const result = await __receiptAccountTitlesMasterOptionsPool.query(`
     SELECT
-      account_title_id,
-      account_name,
-      account_code,
-      sort_order
-    FROM expenses.account_titles
-    WHERE is_active = TRUE
-    ORDER BY sort_order, account_title_id
+      "勘定項目ID" AS account_title_id,
+      "勘定項目名" AS account_name,
+      "勘定項目有効" AS is_active
+    FROM "マスターテーブル"."勘定項目マスタテーブル"
+    WHERE "勘定項目有効" = TRUE
+    ORDER BY "勘定項目ID"
   `);
 
   return result.rows.map((row) => ({
@@ -849,7 +848,7 @@ async function __getReceiptSummariesForMasterOptions() {
       description,
       account_title_hint,
       sort_order
-    FROM expenses.receipt_summaries
+    FROM "マスターテーブル".receipt_summaries
     WHERE is_active = TRUE
     ORDER BY sort_order, receipt_summary_id
   `);
@@ -1023,7 +1022,7 @@ async function listSavedReceipts(limit = 100, offset = 0) {
       pm.method_name AS payment_method_name,
       d.target_person_id,
       tp.target_person_name,
-      at.account_name AS account_title_name,
+      at."勘定項目名" AS account_title_name,
       p.purpose_name,
       pr.project_name,
       dep.department_name,
@@ -1045,14 +1044,14 @@ async function listSavedReceipts(limit = 100, offset = 0) {
       LIMIT 1
     ) d ON TRUE
     LEFT JOIN accounting.receipt_imports ri ON ri.id = r.receipt_import_id
-    LEFT JOIN expenses.payment_methods pm ON pm.payment_method_id = d.payment_method_id
-    LEFT JOIN expenses.target_people tp ON tp.target_person_id = d.target_person_id
-    LEFT JOIN expenses.account_titles at ON at.account_title_id = d.account_title_id
-    LEFT JOIN expenses.purposes p ON p.purpose_id = d.purpose_id
-    LEFT JOIN expenses.projects pr ON pr.project_id = d.project_id
-    LEFT JOIN expenses.departments dep ON dep.department_id = d.department_id
-    LEFT JOIN expenses.invoice_types it ON it.invoice_type_id = d.invoice_type_id
-    LEFT JOIN expenses.evidence_types et ON et.evidence_type_id = d.evidence_type_id
+    LEFT JOIN "マスターテーブル".payment_methods pm ON pm.payment_method_id = d.payment_method_id
+    LEFT JOIN "マスターテーブル".target_people tp ON tp.target_person_id = d.target_person_id
+    LEFT JOIN "マスターテーブル"."勘定項目マスタテーブル" at ON at."勘定項目ID" = d.account_title_id
+    LEFT JOIN "マスターテーブル".purposes p ON p.purpose_id = d.purpose_id
+    LEFT JOIN "マスターテーブル".projects pr ON pr.project_id = d.project_id
+    LEFT JOIN "マスターテーブル".departments dep ON dep.department_id = d.department_id
+    LEFT JOIN "マスターテーブル".invoice_types it ON it.invoice_type_id = d.invoice_type_id
+    LEFT JOIN "マスターテーブル".evidence_types et ON et.evidence_type_id = d.evidence_type_id
     ORDER BY r.saved_at DESC NULLS LAST, r.receipt_id DESC
     LIMIT $1
     OFFSET $2
@@ -1101,21 +1100,21 @@ async function getSavedReceiptById(receiptId) {
       pm.method_name AS payment_method_name,
       d.target_person_id,
       tp.target_person_name,
-      at.account_name AS account_title_name,
+      at."勘定項目名" AS account_title_name,
       p.purpose_name,
       pr.project_name,
       dep.department_name,
       it.invoice_type_name,
       et.evidence_type_name
     FROM accounting.receipt_details d
-    LEFT JOIN expenses.payment_methods pm ON pm.payment_method_id = d.payment_method_id
-    LEFT JOIN expenses.target_people tp ON tp.target_person_id = d.target_person_id
-    LEFT JOIN expenses.account_titles at ON at.account_title_id = d.account_title_id
-    LEFT JOIN expenses.purposes p ON p.purpose_id = d.purpose_id
-    LEFT JOIN expenses.projects pr ON pr.project_id = d.project_id
-    LEFT JOIN expenses.departments dep ON dep.department_id = d.department_id
-    LEFT JOIN expenses.invoice_types it ON it.invoice_type_id = d.invoice_type_id
-    LEFT JOIN expenses.evidence_types et ON et.evidence_type_id = d.evidence_type_id
+    LEFT JOIN "マスターテーブル".payment_methods pm ON pm.payment_method_id = d.payment_method_id
+    LEFT JOIN "マスターテーブル".target_people tp ON tp.target_person_id = d.target_person_id
+    LEFT JOIN "マスターテーブル"."勘定項目マスタテーブル" at ON at."勘定項目ID" = d.account_title_id
+    LEFT JOIN "マスターテーブル".purposes p ON p.purpose_id = d.purpose_id
+    LEFT JOIN "マスターテーブル".projects pr ON pr.project_id = d.project_id
+    LEFT JOIN "マスターテーブル".departments dep ON dep.department_id = d.department_id
+    LEFT JOIN "マスターテーブル".invoice_types it ON it.invoice_type_id = d.invoice_type_id
+    LEFT JOIN "マスターテーブル".evidence_types et ON et.evidence_type_id = d.evidence_type_id
     WHERE d.receipt_id = $1
     ORDER BY d.receipt_detail_id
     `,
@@ -1129,8 +1128,8 @@ async function getSavedReceiptById(receiptId) {
       tc.tax_name AS tax_category_name,
       tt.treatment_name AS tax_treatment_name
     FROM accounting.receipt_detail_breakdowns b
-    LEFT JOIN expenses.tax_categories tc ON tc.tax_category_id = b.tax_category_id
-    LEFT JOIN expenses.tax_treatments tt ON tt.tax_treatment_id = b.tax_treatment_id
+    LEFT JOIN "マスターテーブル".tax_categories tc ON tc.tax_category_id = b.tax_category_id
+    LEFT JOIN "マスターテーブル".tax_treatments tt ON tt.tax_treatment_id = b.tax_treatment_id
     WHERE b.receipt_id = $1
     ORDER BY b.receipt_detail_id, b.receipt_detail_breakdown_id
     `,

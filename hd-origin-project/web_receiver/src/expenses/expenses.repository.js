@@ -20,27 +20,26 @@ async function getMasters() {
     companyBurdenTypes,
     personalMixFlags,
     payableRegistrationTypes,
-    accountsPayableRegistrationTypes,
     autoRenewalTypes,
     ownershipTransferTypes,
     earlyCancellationTypes,
     analysisSystems
   ] = await Promise.all([
     pool.query(`
-      SELECT account_title_id, account_code, account_name
-      FROM expenses.account_titles
-      WHERE is_active = TRUE
-      ORDER BY sort_order, account_title_id
+      SELECT "勘定項目ID" AS account_title_id, "勘定項目名" AS account_name, "勘定項目有効" AS is_active
+      FROM "マスターテーブル"."勘定項目マスタテーブル"
+      WHERE "勘定項目有効" = TRUE
+      ORDER BY "勘定項目ID"
     `),
     pool.query(`
       SELECT payment_method_id, payment_method_code, method_name, default_credit_account
-      FROM expenses.payment_methods
+      FROM "マスターテーブル".payment_methods
       WHERE is_active = TRUE
       ORDER BY sort_order, payment_method_id
     `),
     pool.query(`
       SELECT tax_category_id, tax_category_code, tax_name, tax_rate
-      FROM expenses.tax_categories
+      FROM "マスターテーブル".tax_categories
       WHERE is_active = TRUE
       ORDER BY sort_order, tax_category_id
     `),
@@ -53,25 +52,25 @@ async function getMasters() {
     `),
     pool.query(`
       SELECT target_person_id, target_person_name
-      FROM expenses.target_people
+      FROM "マスターテーブル".target_people
       WHERE is_active = TRUE
       ORDER BY sort_order, target_person_id
     `),
     pool.query(`
       SELECT purpose_id, purpose_name
-      FROM expenses.purposes
+      FROM "マスターテーブル".purposes
       WHERE is_active = TRUE
       ORDER BY sort_order, purpose_id
     `),
     pool.query(`
       SELECT project_id, project_name
-      FROM expenses.projects
+      FROM "マスターテーブル".projects
       WHERE is_active = TRUE
       ORDER BY sort_order, project_id
     `),
     pool.query(`
       SELECT department_id, department_name
-      FROM expenses.departments
+      FROM "マスターテーブル".departments
       WHERE is_active = TRUE
       ORDER BY sort_order, department_id
     `),
@@ -81,7 +80,7 @@ async function getMasters() {
         contract_insurance_lease_kind_id,
         contract_insurance_lease_kind_code,
         contract_insurance_lease_kind_name
-      FROM expenses.contract_insurance_lease_kinds
+      FROM "マスターテーブル".contract_insurance_lease_kinds
       WHERE is_active = TRUE
       ORDER BY sort_order, contract_insurance_lease_kind_id
     `),
@@ -90,7 +89,7 @@ async function getMasters() {
         insurance_type_id,
         insurance_type_code,
         insurance_type_name
-      FROM expenses.insurance_types
+      FROM "マスターテーブル".insurance_types
       WHERE is_active = TRUE
       ORDER BY sort_order, insurance_type_id
     `),
@@ -99,7 +98,7 @@ async function getMasters() {
         lease_item_category_id,
         lease_item_category_code,
         lease_item_category_name
-      FROM expenses.lease_item_categories
+      FROM "マスターテーブル".lease_item_categories
       WHERE is_active = TRUE
       ORDER BY sort_order, lease_item_category_id
     `),
@@ -108,7 +107,7 @@ async function getMasters() {
         contract_type_id,
         contract_type_code,
         contract_type_name
-      FROM expenses.contract_types
+      FROM "マスターテーブル".contract_types
       WHERE is_active = TRUE
       ORDER BY sort_order, contract_type_id
     `),
@@ -117,7 +116,7 @@ async function getMasters() {
         contract_status_id,
         contract_status_code,
         contract_status_name
-      FROM expenses.contract_statuses
+      FROM "マスターテーブル".contract_statuses
       WHERE is_active = TRUE
       ORDER BY sort_order, contract_status_id
     `),
@@ -126,7 +125,7 @@ async function getMasters() {
         payment_status_id,
         payment_status_code,
         payment_status_name
-      FROM expenses.payment_statuses
+      FROM "マスターテーブル".payment_statuses
       WHERE is_active = TRUE
       ORDER BY sort_order, payment_status_id
     `),
@@ -135,7 +134,7 @@ async function getMasters() {
         payment_cycle_id,
         payment_cycle_code,
         payment_cycle_name
-      FROM expenses.payment_cycles
+      FROM "マスターテーブル".payment_cycles
       WHERE is_active = TRUE
       ORDER BY sort_order, payment_cycle_id
     `),
@@ -144,7 +143,7 @@ async function getMasters() {
         company_burden_type_id,
         company_burden_type_code,
         company_burden_type_name
-      FROM expenses.company_burden_types
+      FROM "マスターテーブル".company_burden_types
       WHERE is_active = TRUE
       ORDER BY sort_order, company_burden_type_id
     `),
@@ -153,7 +152,7 @@ async function getMasters() {
         personal_mix_flag_id,
         personal_mix_flag_code,
         personal_mix_flag_name
-      FROM expenses.personal_mix_flags
+      FROM "マスターテーブル".personal_mix_flags
       WHERE is_active = TRUE
       ORDER BY sort_order, personal_mix_flag_id
     `),
@@ -162,25 +161,16 @@ async function getMasters() {
         payable_registration_type_id,
         payable_registration_type_code,
         payable_registration_type_name
-      FROM expenses.payable_registration_types
+      FROM "マスターテーブル".payable_registration_types
       WHERE is_active = TRUE
       ORDER BY sort_order, payable_registration_type_id
-    `),
-    pool.query(`
-      SELECT
-        accounts_payable_registration_type_id,
-        accounts_payable_registration_type_code,
-        accounts_payable_registration_type_name
-      FROM expenses.accounts_payable_registration_types
-      WHERE is_active = TRUE
-      ORDER BY sort_order, accounts_payable_registration_type_id
     `),
     pool.query(`
       SELECT
         auto_renewal_type_id,
         auto_renewal_type_code,
         auto_renewal_type_name
-      FROM expenses.auto_renewal_types
+      FROM "マスターテーブル".auto_renewal_types
       WHERE is_active = TRUE
       ORDER BY sort_order, auto_renewal_type_id
     `),
@@ -189,7 +179,7 @@ async function getMasters() {
         ownership_transfer_type_id,
         ownership_transfer_type_code,
         ownership_transfer_type_name
-      FROM expenses.ownership_transfer_types
+      FROM "マスターテーブル".ownership_transfer_types
       WHERE is_active = TRUE
       ORDER BY sort_order, ownership_transfer_type_id
     `),
@@ -198,7 +188,7 @@ async function getMasters() {
         early_cancellation_type_id,
         early_cancellation_type_code,
         early_cancellation_type_name
-      FROM expenses.early_cancellation_types
+      FROM "マスターテーブル".early_cancellation_types
       WHERE is_active = TRUE
       ORDER BY sort_order, early_cancellation_type_id
     `),
@@ -207,7 +197,7 @@ async function getMasters() {
         analysis_system_id,
         analysis_system_code,
         analysis_system_name
-      FROM expenses.analysis_systems
+      FROM "マスターテーブル".analysis_systems
       WHERE is_active = TRUE
       ORDER BY sort_order, analysis_system_id
     `)
@@ -233,7 +223,6 @@ async function getMasters() {
     company_burden_types: companyBurdenTypes.rows,
     personal_mix_flags: personalMixFlags.rows,
     payable_registration_types: payableRegistrationTypes.rows,
-    accounts_payable_registration_types: accountsPayableRegistrationTypes.rows,
     auto_renewal_types: autoRenewalTypes.rows,
     ownership_transfer_types: ownershipTransferTypes.rows,
     early_cancellation_types: earlyCancellationTypes.rows,
@@ -247,7 +236,7 @@ async function findPaymentMethod(client, paymentMethodId) {
   const result = await client.query(
     `
     SELECT payment_method_id, method_name
-    FROM expenses.payment_methods
+    FROM "マスターテーブル".payment_methods
     WHERE payment_method_id = $1
     `,
     [paymentMethodId]
@@ -261,9 +250,9 @@ async function findAccountTitle(client, accountTitleId) {
 
   const result = await client.query(
     `
-    SELECT account_title_id, account_name
-    FROM expenses.account_titles
-    WHERE account_title_id = $1
+    SELECT "勘定項目ID" AS account_title_id, "勘定項目名" AS account_name
+    FROM "マスターテーブル"."勘定項目マスタテーブル"
+    WHERE "勘定項目ID" = $1
     `,
     [accountTitleId]
   );
@@ -277,7 +266,7 @@ async function findTaxCategory(client, taxCategoryId) {
   const result = await client.query(
     `
     SELECT tax_category_id, tax_name, tax_rate
-    FROM expenses.tax_categories
+    FROM "マスターテーブル".tax_categories
     WHERE tax_category_id = $1
     `,
     [taxCategoryId]
@@ -292,7 +281,7 @@ async function findTargetPerson(client, targetPersonId) {
   const result = await client.query(
     `
     SELECT target_person_id, target_person_name
-    FROM expenses.target_people
+    FROM "マスターテーブル".target_people
     WHERE target_person_id = $1
     `,
     [targetPersonId]
@@ -307,7 +296,7 @@ async function findPurpose(client, purposeId) {
   const result = await client.query(
     `
     SELECT purpose_id, purpose_name
-    FROM expenses.purposes
+    FROM "マスターテーブル".purposes
     WHERE purpose_id = $1
     `,
     [purposeId]
@@ -322,7 +311,7 @@ async function findProject(client, projectId) {
   const result = await client.query(
     `
     SELECT project_id, project_name
-    FROM expenses.projects
+    FROM "マスターテーブル".projects
     WHERE project_id = $1
     `,
     [projectId]
@@ -337,7 +326,7 @@ async function findDepartment(client, departmentId) {
   const result = await client.query(
     `
     SELECT department_id, department_name
-    FROM expenses.departments
+    FROM "マスターテーブル".departments
     WHERE department_id = $1
     `,
     [departmentId]

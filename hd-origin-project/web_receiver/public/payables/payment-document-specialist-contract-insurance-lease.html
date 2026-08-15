@@ -683,7 +683,7 @@
             </label>
             <label>
               買掛登録
-              <select class="analysis-field master-select" id="analysisAccountsPayableFlag" data-master-type="accounts_payable_registration_types" data-master-label="買掛登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
+              <select class="analysis-field master-select" id="analysisAccountsPayableFlag" data-master-type="payable_registration_types" data-master-label="買掛登録" data-gpt2-extra-master="1"><option value="">マスタ読込中...</option></select>
             </label>
             <label class="span2">
               社内メモ
@@ -8661,11 +8661,6 @@ async function saveSpecialistResultFromReviewPage(context) {
       id: "payable_registration_type_id",
       code: "payable_registration_type_code",
       name: "payable_registration_type_name"
-    },
-    accounts_payable_registration_types: {
-      id: "accounts_payable_registration_type_id",
-      code: "accounts_payable_registration_type_code",
-      name: "accounts_payable_registration_type_name"
     },
     auto_renewal_types: {
       id: "auto_renewal_type_id",

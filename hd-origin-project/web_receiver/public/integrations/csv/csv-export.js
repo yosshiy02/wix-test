@@ -132,7 +132,7 @@
       {
         record_id: '1',
         record_type: 'sample',
-        company_code: 'HATO_DAIYA',
+        company_code: 'HATODAIYA',
         document_no: 'GEN-0001',
         partner_name: '株式会社サンプル',
         record_date: '2026/07/17',
@@ -144,7 +144,7 @@
       {
         record_id: '1',
         record_type: 'legacy',
-        company_code: 'HATO_DAIYA',
+        company_code: 'HATODAIYA',
         document_no: 'SJIS-0001',
         partner_name: '旧会計ソフト向け',
         record_date: '2026/07/17',
@@ -166,7 +166,7 @@
     ],
     'payable-schedule': [
       {
-        company_code: 'HATO_DAIYA',
+        company_code: 'HATODAIYA',
         document_no: 'PD-000001',
         vendor_name: '株式会社サンプル',
         payment_due_date: '2026/07/31',
@@ -190,7 +190,7 @@
     ],
     'sales-invoice': [
       {
-        company_code: 'HATO_DAIYA',
+        company_code: 'HATODAIYA',
         sales_no: 'SL-000001',
         customer_name: '株式会社テスト商事',
         sales_date: '2026/07/17',
@@ -200,7 +200,7 @@
         description: 'モック売上'
       },
       {
-        company_code: 'HATO_DAIYA',
+        company_code: 'HATODAIYA',
         sales_no: 'SL-000001',
         customer_name: '株式会社テスト商事',
         sales_date: '2026/07/17',
@@ -287,7 +287,7 @@
 
   function getMockRows(profileCode) {
     const rows = mockRecords[profileCode] || [];
-    const company = els.companyCode.value || 'HATO_DAIYA';
+    const company = els.companyCode.value || 'HATODAIYA';
     const status = els.status.value || '';
     return rows.map(r => ({
       ...r,

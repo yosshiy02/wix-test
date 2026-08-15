@@ -1,4 +1,4 @@
-﻿"use strict";
+"use strict";
 
 const pool = require("../db");
 
@@ -275,7 +275,7 @@ async function listPartners(type) {
   const bankResult = await pool.query(
     `
     SELECT *
-    FROM expenses.vendor_bank_accounts
+    FROM "マスターテーブル".vendor_bank_accounts
     WHERE is_active = TRUE
     ORDER BY vendor_id, is_primary DESC, sort_order, vendor_bank_account_id
     `
@@ -397,7 +397,7 @@ async function saveVendorBankAccount(
   const existing = await client.query(
     `
     SELECT vendor_bank_account_id
-    FROM expenses.vendor_bank_accounts
+    FROM "マスターテーブル".vendor_bank_accounts
     WHERE vendor_id = $1
       AND is_primary = TRUE
     ORDER BY vendor_bank_account_id
@@ -417,7 +417,7 @@ async function saveVendorBankAccount(
   if (existing.rows[0]) {
     await client.query(
       `
-      UPDATE expenses.vendor_bank_accounts
+      UPDATE "マスターテーブル".vendor_bank_accounts
       SET
         bank_name = $1,
         branch_name = $2,
@@ -436,7 +436,7 @@ async function saveVendorBankAccount(
 
   await client.query(
     `
-    INSERT INTO expenses.vendor_bank_accounts (
+    INSERT INTO "マスターテーブル".vendor_bank_accounts (
       vendor_id,
       bank_name,
       branch_name,

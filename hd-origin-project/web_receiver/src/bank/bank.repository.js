@@ -24,7 +24,17 @@ async function assertActiveCompany(companyId) {
       company_id,
       company_code,
       company_name
-    FROM expenses.companies
+    FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
     WHERE company_id = $1
       AND is_active = TRUE
     `,
@@ -191,7 +201,7 @@ async function getSummary(companyIdValue) {
         0
       ) AS unreconciled_count
 
-    FROM accounting.bank_accounts a
+    FROM "マスターテーブル".bank_accounts a
 
     LEFT JOIN LATERAL (
       SELECT

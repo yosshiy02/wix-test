@@ -115,7 +115,7 @@ async function listProducts(filters = {}) {
   return (
     await pool.query(
       `SELECT *
-       FROM sales.products
+       FROM "マスターテーブル".products
        WHERE ${where.join(" AND ")}
        ORDER BY is_active DESC, product_code, product_id
        LIMIT 1000`,
@@ -128,7 +128,7 @@ async function getProduct(productId, companyIdValue) {
   const companyId = requireCompanyId(companyIdValue);
   const result = await pool.query(
     `SELECT *
-     FROM sales.products
+     FROM "マスターテーブル".products
      WHERE product_id = $1 AND company_id = $2`,
     [productId, companyId]
   );
@@ -154,7 +154,7 @@ async function saveProduct(body) {
     if (productId) {
       const beforeResult = await client.query(
         `SELECT *
-         FROM sales.products
+         FROM "マスターテーブル".products
          WHERE product_id = $1 AND company_id = $2
          FOR UPDATE`,
         [productId, companyId]
@@ -165,7 +165,7 @@ async function saveProduct(body) {
       beforeData = beforeResult.rows[0];
       saved = (
         await client.query(
-          `UPDATE sales.products
+          `UPDATE "マスターテーブル".products
            SET product_code=$3, product_name=$4, brand_name=$5,
                category_name=$6, color_name=$7, size_name=$8,
                unit_name=$9, standard_price=$10, standard_cost=$11,
@@ -193,7 +193,7 @@ async function saveProduct(body) {
     } else {
       saved = (
         await client.query(
-          `INSERT INTO sales.products (
+          `INSERT INTO "マスターテーブル".products (
              company_id, product_code, product_name, brand_name,
              category_name, color_name, size_name, unit_name,
              standard_price, standard_cost, tax_rate, is_active, note
@@ -248,7 +248,7 @@ async function setProductActive(productId, isActive, companyIdValue) {
     await client.query("BEGIN");
     const beforeResult = await client.query(
       `SELECT *
-       FROM sales.products
+       FROM "マスターテーブル".products
        WHERE product_id=$1 AND company_id=$2
        FOR UPDATE`,
       [productId, companyId]
@@ -257,7 +257,7 @@ async function setProductActive(productId, isActive, companyIdValue) {
 
     const saved = (
       await client.query(
-        `UPDATE sales.products
+        `UPDATE "マスターテーブル".products
          SET is_active=$3, updated_at=NOW()
          WHERE product_id=$1 AND company_id=$2
          RETURNING *`,
@@ -358,10 +358,10 @@ async function listCustomerPrices(filters = {}) {
          p.product_code,
          p.product_name,
          p.brand_name
-       FROM sales.customer_prices cp
+       FROM "マスターテーブル".customer_prices cp
        JOIN expenses.customers c
          ON c.customer_id = cp.customer_id
-       JOIN sales.products p
+       JOIN "マスターテーブル".products p
          ON p.product_id = cp.product_id
         AND p.company_id = cp.company_id
        WHERE ${where.join(" AND ")}
@@ -399,10 +399,10 @@ async function resolveCustomerPrice(filters = {}) {
        c.customer_name,
        p.product_code,
        p.product_name
-     FROM sales.customer_prices cp
+     FROM "マスターテーブル".customer_prices cp
      JOIN expenses.customers c
        ON c.customer_id = cp.customer_id
-     JOIN sales.products p
+     JOIN "マスターテーブル".products p
        ON p.product_id = cp.product_id
       AND p.company_id = cp.company_id
      WHERE cp.company_id = $1
@@ -483,7 +483,7 @@ async function saveCustomerPrice(body) {
        product_id,
        product_code,
        product_name
-     FROM sales.products
+     FROM "マスターテーブル".products
      WHERE product_id = $1
        AND company_id = $2`,
     [
@@ -505,7 +505,7 @@ async function saveCustomerPrice(body) {
   try {
     if (customerPriceId) {
       const result = await pool.query(
-        `UPDATE sales.customer_prices
+        `UPDATE "マスターテーブル".customer_prices
          SET
            customer_id = $3,
            product_id = $4,
@@ -545,7 +545,7 @@ async function saveCustomerPrice(body) {
 
     return (
       await pool.query(
-        `INSERT INTO sales.customer_prices (
+        `INSERT INTO "マスターテーブル".customer_prices (
            company_id,
            customer_id,
            product_id,
@@ -735,7 +735,7 @@ async function createSale(body) {
   for (const line of lines) {
     if (!line.product_id) continue;
     const check = await pool.query(
-      `SELECT 1 FROM sales.products
+      `SELECT 1 FROM "マスターテーブル".products
        WHERE product_id=$1 AND company_id=$2`,
       [line.product_id, companyId]
     );
@@ -1185,7 +1185,7 @@ async function getSummary(companyIdValue) {
   return (
     await pool.query(
       `SELECT
-         (SELECT COUNT(*) FROM sales.products
+         (SELECT COUNT(*) FROM "マスターテーブル".products
           WHERE company_id=$1 AND is_active=TRUE) AS product_count,
          (SELECT COUNT(*) FROM sales.sales_headers
           WHERE company_id=$1) AS sales_count,
@@ -1403,7 +1403,7 @@ async function saveProductMasterBasic(body = {}) {
       const result =
         await __salesProductMasterPool.query(
           `
-          UPDATE sales.products
+          UPDATE "マスターテーブル".products
           SET
             product_code = $3,
             product_name = $4,
@@ -1435,7 +1435,7 @@ async function saveProductMasterBasic(body = {}) {
     const result =
       await __salesProductMasterPool.query(
         `
-        INSERT INTO sales.products (
+        INSERT INTO "マスターテーブル".products (
           company_id,
           product_code,
           product_name,
@@ -1518,7 +1518,7 @@ async function listProductColors(
         is_active,
         created_at,
         updated_at
-      FROM sales.colors
+      FROM "マスターテーブル".colors
       WHERE ${where.join(" AND ")}
       ORDER BY
         is_active DESC,
@@ -1579,7 +1579,7 @@ async function saveProductColor(body = {}) {
       const result =
         await __salesProductMasterPool.query(
           `
-          UPDATE sales.colors
+          UPDATE "マスターテーブル".colors
           SET
             color_code = $3,
             color_name = $4,
@@ -1613,7 +1613,7 @@ async function saveProductColor(body = {}) {
     const result =
       await __salesProductMasterPool.query(
         `
-        INSERT INTO sales.colors (
+        INSERT INTO "マスターテーブル".colors (
           company_id,
           color_code,
           color_name,
@@ -1668,7 +1668,7 @@ async function setProductColorActive(
   const result =
     await __salesProductMasterPool.query(
       `
-      UPDATE sales.colors
+      UPDATE "マスターテーブル".colors
       SET
         is_active = $3,
         updated_at = NOW()
@@ -1732,7 +1732,7 @@ async function listProductSizes(
         is_active,
         created_at,
         updated_at
-      FROM sales.product_sizes
+      FROM "マスターテーブル".product_sizes
       ${whereSql}
       ORDER BY
         is_active DESC,
@@ -1804,7 +1804,7 @@ async function saveProductSize(body = {}) {
       const result =
         await __salesProductMasterPool.query(
           `
-          UPDATE sales.product_sizes
+          UPDATE "マスターテーブル".product_sizes
           SET
             size_code = $2,
             size_name = $3,
@@ -1838,7 +1838,7 @@ async function saveProductSize(body = {}) {
     const result =
       await __salesProductMasterPool.query(
         `
-        INSERT INTO sales.product_sizes (
+        INSERT INTO "マスターテーブル".product_sizes (
           size_code,
           size_name,
           size_category,
@@ -1886,7 +1886,7 @@ async function setProductSizeActive(
   const result =
     await __salesProductMasterPool.query(
       `
-      UPDATE sales.product_sizes
+      UPDATE "マスターテーブル".product_sizes
       SET
         is_active = $2,
         updated_at = NOW()
@@ -1929,7 +1929,7 @@ async function getProductVariantMatrix(
     await __salesProductMasterPool.query(
       `
       SELECT *
-      FROM sales.products
+      FROM "マスターテーブル".products
       WHERE product_id = $1
         AND company_id = $2
       `,
@@ -1964,7 +1964,7 @@ async function getProductVariantMatrix(
         variant_code,
         sort_order,
         is_active
-      FROM sales.product_variants
+      FROM "マスターテーブル".product_variants
       WHERE product_id = $1
         AND company_id = $2
       ORDER BY
@@ -2047,7 +2047,7 @@ async function replaceProductVariants(
       await client.query(
         `
         SELECT product_id
-        FROM sales.products
+        FROM "マスターテーブル".products
         WHERE product_id = $1
           AND company_id = $2
         FOR UPDATE
@@ -2088,7 +2088,7 @@ async function replaceProductVariants(
         await client.query(
           `
           SELECT color_id
-          FROM sales.colors
+          FROM "マスターテーブル".colors
           WHERE company_id = $1
             AND color_id = ANY($2::BIGINT[])
           `,
@@ -2113,7 +2113,7 @@ async function replaceProductVariants(
         await client.query(
           `
           SELECT size_id
-          FROM sales.product_sizes
+          FROM "マスターテーブル".product_sizes
           WHERE size_id = ANY($1::BIGINT[])
           `,
           [
@@ -2133,7 +2133,7 @@ async function replaceProductVariants(
 
     await client.query(
       `
-      DELETE FROM sales.product_variants
+      DELETE FROM "マスターテーブル".product_variants
       WHERE product_id = $1
         AND company_id = $2
       `,
@@ -2148,7 +2148,7 @@ async function replaceProductVariants(
     for (const variant of variants) {
       await client.query(
         `
-        INSERT INTO sales.product_variants (
+        INSERT INTO "マスターテーブル".product_variants (
           company_id,
           product_id,
           color_id,

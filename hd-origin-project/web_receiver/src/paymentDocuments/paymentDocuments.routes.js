@@ -16,7 +16,7 @@ async function getPaymentDocumentStatusMaster(client) {
       "解析ステータス進捗" AS is_processing,
       "解析ステータス完了" AS is_terminal,
       "解析ステータスエラー" AS is_error
-    FROM accounting."解析ステータスマスタテーブル"
+    FROM "マスターテーブル"."解析ステータスマスタテーブル"
     WHERE "解析ステータス有効" = TRUE
     ORDER BY "解析ステータス表示順", "解析ステータスID"
   `);
@@ -1944,7 +1944,7 @@ async function listPaymentDocumentOcrImportsFromDb() {
 
     FROM accounting.payment_document_ocr_imports o
 
-    LEFT JOIN accounting."解析ステータスマスタテーブル" status_master
+    LEFT JOIN "マスターテーブル"."解析ステータスマスタテーブル" status_master
       ON status_master."解析ステータスID" = o."解析ステータスID"
 
     LEFT JOIN accounting.payment_document_specialist_analysis_results s
@@ -4744,6 +4744,30 @@ function normalizeStage1ClassificationCandidate(
   };
 }
 
+async function resolveFormalDocumentTypeId(client, documentTypeCode) {
+  const code = String(documentTypeCode || "").trim();
+  if (!code) {
+    const error = new Error("??????????????????ID?????????");
+    error.statusCode = 422;
+    throw error;
+  }
+
+  const result = await client.query(`
+    SELECT "書類種別ID" AS document_type_id
+    FROM "マスターテーブル"."書類種別マスタテーブル"
+    WHERE "書類種別英語名" = $1
+      AND "書類種別有効" = TRUE
+  `, [code]);
+
+  if (result.rowCount !== 1) {
+    const error = new Error("?????????ID???????????: " + code);
+    error.statusCode = 422;
+    throw error;
+  }
+
+  return Number(result.rows[0].document_type_id);
+}
+
 async function validateStage1MasterCodes(
   classification
 ) {
@@ -4789,23 +4813,33 @@ async function validateStage1MasterCodes(
     SELECT
       'company_code' AS field_name,
       company_code AS code
-    FROM expenses.companies
+    FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
     WHERE is_active = true
 
     UNION ALL
 
     SELECT
       'document_type_code',
-      document_type_code
-    FROM accounting.payment_document_types
-    WHERE is_active = true
+      "書類種別英語名"
+    FROM "マスターテーブル"."書類種別マスタテーブル"
+    WHERE "書類種別有効" = true
 
     UNION ALL
 
     SELECT
       'payment_destination_code',
       payment_destination_code
-    FROM expenses.payment_destinations
+    FROM "マスターテーブル".payment_destinations
     WHERE is_active = true
 
     UNION ALL
@@ -4813,7 +4847,7 @@ async function validateStage1MasterCodes(
     SELECT
       'accounting_category_code',
       accounting_category_code
-    FROM expenses.accounting_categories
+    FROM "マスターテーブル".accounting_categories
     WHERE is_active = true
 
     UNION ALL
@@ -4821,7 +4855,7 @@ async function validateStage1MasterCodes(
     SELECT
       'analysis_system_code',
       analysis_system_code
-    FROM expenses.analysis_systems
+    FROM "マスターテーブル".analysis_systems
     WHERE is_active = true
 
     UNION ALL
@@ -4829,7 +4863,7 @@ async function validateStage1MasterCodes(
     SELECT
       'source_type_code',
       payment_source_type_code
-    FROM expenses.payment_source_types
+    FROM "マスターテーブル".payment_source_types
     WHERE is_active = true
   `);
 
@@ -4882,7 +4916,7 @@ async function resolvePaymentDocumentSourceTypeCode(row) {
   const result = await db.query(`
     SELECT
       payment_source_type_code
-    FROM expenses.payment_source_types
+    FROM "マスターテーブル".payment_source_types
     WHERE is_active = true
       AND COALESCE(payment_source_type_code, '') <> ''
     ORDER BY sort_order, payment_source_type_id
@@ -5227,7 +5261,7 @@ async function createPaymentDocumentSpecialistAnalysisFromOcrText(ocrText, conte
       SELECT
         lease_item_category_code,
         lease_item_category_name
-      FROM expenses.lease_item_categories
+      FROM "マスターテーブル".lease_item_categories
       WHERE is_active = TRUE
       ORDER BY sort_order, lease_item_category_id
     `);
@@ -6818,10 +6852,20 @@ async function handlePaymentDocumentRoutes(req, res) {
                 'scheduled'
           )::INTEGER AS scheduled_obligation_count
 
-        FROM expenses.companies c
+        FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) c
 
         LEFT JOIN
-          accounting.company_withholding_tax_rules r
+          "マスターテーブル".company_withholding_tax_rules r
           ON r.company_id = c.company_id
 
         ORDER BY
@@ -6967,7 +7011,17 @@ async function handlePaymentDocumentRoutes(req, res) {
         await db.query(
           `
           SELECT company_id
-          FROM expenses.companies
+          FROM (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) AS company_master
           WHERE company_id = $1
           `,
           [companyId]
@@ -6987,7 +7041,7 @@ async function handlePaymentDocumentRoutes(req, res) {
         await db.query(
           `
           INSERT INTO
-            accounting.company_withholding_tax_rules (
+            "マスターテーブル".company_withholding_tax_rules (
               company_id,
               payment_cycle_code,
               special_approval_status_code,
@@ -7762,7 +7816,7 @@ async function handlePaymentDocumentRoutes(req, res) {
           accounting.payment_document_ocr_imports o
 
         LEFT JOIN
-          accounting."解析ステータスマスタテーブル" status_master
+          "マスターテーブル"."解析ステータスマスタテーブル" status_master
           ON status_master."解析ステータスID" = o."解析ステータスID"
 
         LEFT JOIN
@@ -8156,7 +8210,7 @@ async function handlePaymentDocumentRoutes(req, res) {
 
       const activeSystemsResult = await db.query(`
         SELECT analysis_system_code
-        FROM expenses.analysis_systems
+        FROM "マスターテーブル".analysis_systems
         WHERE is_active = TRUE
       `);
       const activeAnalysisSystemCodes = new Set(
@@ -8186,7 +8240,17 @@ async function handlePaymentDocumentRoutes(req, res) {
               ON b.payment_document_ocr_import_id =
                  o.payment_document_ocr_import_id
              AND b.is_current = TRUE
-            LEFT JOIN expenses.companies c
+            LEFT JOIN (
+      SELECT
+        "自社会社ID" AS company_id,
+        "自社会社コード" AS company_code,
+        "自社会社名" AS company_name,
+        "自社会社略称名" AS company_short_name,
+        NULL::text AS company_type,
+        "自社会社表示順" AS sort_order,
+        "自社会社有効" AS is_active
+      FROM "マスターテーブル"."自社会社マスターテーブル"
+    ) c
               ON c.company_id = b.company_id
             WHERE o.payment_document_ocr_import_id = $1
               AND o.deleted_at IS NULL
@@ -8932,6 +8996,13 @@ await client.query("COMMIT");
           throw error;
         }
 
+        const documentTypeId =
+          await resolveFormalDocumentTypeId(
+            client,
+            classification.document_type_code ||
+              detail.document_type_code
+          );
+
         await client.query(`
           UPDATE accounting.payment_document_basic_analysis_results
           SET is_current = FALSE, updated_at = CURRENT_TIMESTAMP
@@ -8952,8 +9023,8 @@ await client.query("COMMIT");
             prompt_version, is_current, analysis_completed, started_at,
             completed_at, created_at, updated_at
           ) VALUES (
-            $1, $2, NULL, NULL, $3, $4, $5, $6::jsonb, $7::jsonb,
-            $8::jsonb, $9::jsonb, NULL, NULL, NULL, TRUE, TRUE,
+            $1, $2, $3, NULL, $4, $5, $6, $7::jsonb, $8::jsonb,
+            $9::jsonb, $10::jsonb, NULL, NULL, NULL, TRUE, TRUE,
             CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
           )
@@ -8962,6 +9033,7 @@ await client.query("COMMIT");
         `, [
           ocrImportId,
           companyId,
+          documentTypeId,
           aiConfidence,
           classification.analysis_system_reason || detail.ai_reason || "",
           detail.needs_review === true || classification.needs_review === true,
@@ -9219,7 +9291,7 @@ await client.query("COMMIT");
             FROM
               accounting.payment_document_utility_communication_line_items li
             LEFT JOIN
-              expenses.tax_categories tc
+              "マスターテーブル".tax_categories tc
               ON tc.tax_category_id = li.tax_category_id
             WHERE
               li.utility_communication_result_id =

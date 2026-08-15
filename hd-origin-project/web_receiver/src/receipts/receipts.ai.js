@@ -528,20 +528,19 @@ async function getReceiptAiMasterHints() {
   ] = await Promise.all([
     pool.query(`
       SELECT
-        account_title_id,
-        account_name,
-        account_code,
-        sort_order
-      FROM expenses.account_titles
-      WHERE is_active = TRUE
-      ORDER BY sort_order, account_title_id
+        "勘定項目ID" AS account_title_id,
+        "勘定項目名" AS account_name,
+        "勘定項目有効" AS is_active
+      FROM "マスターテーブル"."勘定項目マスタテーブル"
+      WHERE "勘定項目有効" = TRUE
+      ORDER BY "勘定項目ID"
       LIMIT 40
     `),
     pool.query(`
       SELECT
         payment_method_id,
         method_name
-      FROM expenses.payment_methods
+      FROM "マスターテーブル".payment_methods
       WHERE is_active = TRUE
       ORDER BY sort_order, payment_method_id
     `),
@@ -549,7 +548,7 @@ async function getReceiptAiMasterHints() {
       SELECT
         purpose_id,
         purpose_name
-      FROM expenses.purposes
+      FROM "マスターテーブル".purposes
       WHERE is_active = TRUE
       ORDER BY sort_order, purpose_id
     `),
@@ -561,7 +560,7 @@ async function getReceiptAiMasterHints() {
         description,
         account_title_hint,
         sort_order
-      FROM expenses.receipt_summaries
+      FROM "マスターテーブル".receipt_summaries
       WHERE is_active = TRUE
       ORDER BY sort_order, receipt_summary_id
     `),
@@ -570,7 +569,7 @@ async function getReceiptAiMasterHints() {
         tax_treatment_id,
         treatment_name,
         sort_order
-      FROM expenses.tax_treatments
+      FROM "マスターテーブル".tax_treatments
       WHERE is_active = TRUE
       ORDER BY sort_order, tax_treatment_id
     `),
@@ -578,7 +577,7 @@ async function getReceiptAiMasterHints() {
       SELECT
         invoice_type_id,
         invoice_type_name
-      FROM expenses.invoice_types
+      FROM "マスターテーブル".invoice_types
       WHERE is_active = TRUE
       ORDER BY sort_order, invoice_type_id
     `),
@@ -586,7 +585,7 @@ async function getReceiptAiMasterHints() {
       SELECT
         evidence_type_id,
         evidence_type_name
-      FROM expenses.evidence_types
+      FROM "マスターテーブル".evidence_types
       WHERE is_active = TRUE
       ORDER BY sort_order, evidence_type_id
     `)
@@ -615,8 +614,7 @@ function formatReceiptAiMasterHints(masters) {
   for (const item of masters.accountTitles || []) {
     lines.push(receiptAiMasterLine(
       item.account_title_id,
-      item.account_name,
-      item.account_code ? "code=" + item.account_code : ""
+      item.account_name
     ));
   }
 
