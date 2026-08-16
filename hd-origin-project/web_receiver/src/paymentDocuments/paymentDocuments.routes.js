@@ -4474,19 +4474,20 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification) {
     "絶対ルール:",
     "- OCR本文にない情報を作らない。",
     "- 推測や補完をしない。",
-    "- 対応するOCR見出しとvalueの組を確認できない項目は出力しない。",
+    "- 原則として対応するOCR見出しとvalueの組を抽出する。ただしnamesだけは例外とし、会社名・法人名・店舗名・屋号・個人名・部署名・担当者名であることがOCR本文から明確な場合、見出しのない単独名称も抽出する。",
     "- Preserve every date value exactly as written in OCR. Never normalize eras, separators, weekdays, or times.",
     "- 金額、税額、支払期限、支払日、支払方法を抽出しない。",
     "- 明細、摘要、契約内容、保険内容、専門解析項目を抽出しない。",
     "- Stage1のマスタコードを返さない。",
     "- stage2_fields must contain only common OCR facts. Fixed fields and type/role/issuer/recipient are prohibited.",
-    "- label must be the exact OCR label text. Do not invent labels or encode roles such as issuer/recipient.",
+    "- label must be the exact OCR label text. For a standalone name with no OCR label, label must be an empty string. Do not invent labels or encode roles such as issuer/recipient.",
     "- Keep an item when both label and value keys exist, including value: empty string.",
     "- registrations is limited to public or official registration identifiers: registration, qualified-invoice issuer registration, corporate and company-registration numbers.",
     "- Do not put invoice, voucher, order, purchase-order, reception, transaction, receipt, member, terminal or data numbers in registrations.",
     "- Do not absorb legacy document_number or reference_number into registrations.",
-    "- Extract only an OCR heading paired with its corresponding value. If no OCR heading exists, omit the standalone value.",
-    "- Never copy a standalone value into label and never generate semantic labels such as issuer, recipient, store, company, address, phone, or issue date.",
+    "- Except for names, extract only an OCR heading paired with its corresponding value. For names, a clearly identifiable standalone company, corporation, store, trade name, person, department, or contact-person name must also be extracted.",
+    "- For a standalone name with no OCR heading, set label to an empty string, set value to the exact OCR name text, and set source_text to the exact contiguous OCR substring containing that name.",
+    "- Never invent semantic roles such as issuer or recipient. Do not decide who issued or received the document in Stage2.",
     "- Every extracted item must contain exactly label, value, and source_text.",
     "- source_text must be a verbatim contiguous substring copied from the OCR本文.",
     "- source_text must contain the exact label and, when value is not empty, the exact value.",
@@ -4942,7 +4943,7 @@ function validateStage2CommonFieldsAgainstOcr(value, ocrText) {
         const fieldValue = item.value;
         const sourceText = item.source_text;
 
-        if (!label.trim()) {
+        if (!label.trim() && group !== "names") {
           return false;
         }
 
@@ -4954,7 +4955,7 @@ function validateStage2CommonFieldsAgainstOcr(value, ocrText) {
           return false;
         }
 
-        if (!sourceText.includes(label)) {
+        if (label.trim() && !sourceText.includes(label)) {
           return false;
         }
 
@@ -5074,7 +5075,7 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
 
   const { warnings: detailWarnings, stage2_fields: stage2Fields } = detail;
 
-  visibleLabels = Object.values(stage2Fields).flat().map(item => item.label);
+  visibleLabels = Object.values(stage2Fields).flat().map(item => item.label || item.value).filter(Boolean);
 
   const analysis = {
     ...stage2Fields,
@@ -7734,6 +7735,25 @@ async function handlePaymentDocumentRoutes(req, res) {
         reviewItemsUrl.searchParams.get("analysis_system_code") || ""
       ).trim();
 
+      const requestedOcrImportIdText = String(
+        reviewItemsUrl.searchParams.get(
+          "payment_document_ocr_import_id"
+        ) || ""
+      ).trim();
+      const requestedOcrImportId = requestedOcrImportIdText
+        ? Number(requestedOcrImportIdText)
+        : null;
+
+      if (
+        requestedOcrImportIdText &&
+        (!Number.isInteger(requestedOcrImportId) || requestedOcrImportId < 1)
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "payment_document_ocr_import_idが不正です。"
+        });
+        return true;
+      }
       if (specialistScope && !specialistAnalysisSystemCode) {
         sendJson(res, 400, {
           ok: false,
@@ -7745,9 +7765,16 @@ async function handlePaymentDocumentRoutes(req, res) {
       const paymentDocumentStatusFlow =
         await getActivePaymentDocumentStatusFlow(db);
       const reviewScopeStatuses = specialistScope
-        ? [
-            paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
-          ]
+        ? (
+            requestedOcrImportId
+              ? [
+                  paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING,
+                  paymentDocumentStatusFlow.HUMAN_REVIEW_WAITING
+                ]
+              : [
+                  paymentDocumentStatusFlow.SPECIALIST_ANALYSIS_WAITING
+                ]
+          )
         : [
             paymentDocumentStatusFlow.OCR_WAITING,
             paymentDocumentStatusFlow.OCR_PROCESSING,
@@ -7788,6 +7815,16 @@ async function handlePaymentDocumentRoutes(req, res) {
           o.saved_by_page,
           o."解析ステータスID" AS analysis_status_id,
           status_master."解析ステータス状態" AS analysis_status_name,
+          o.latest_specialist_analysis_result_id,
+          s.specialist_analysis_result_id,
+          s.analysis_system_code AS specialist_analysis_system_code,
+          s.analysis_system_label AS specialist_analysis_system_label,
+          s.ai_confidence AS specialist_ai_confidence,
+          s.ai_reason AS specialist_ai_reason,
+          s.warnings_json AS specialist_warnings_json,
+          s.raw_result_json AS specialist_raw_result_json,
+          s.created_at AS specialist_created_at,
+          s.updated_at AS specialist_updated_at,
           o.sorted_at,
           o.created_at,
           o.updated_at,
@@ -7817,9 +7854,20 @@ async function handlePaymentDocumentRoutes(req, res) {
              o.payment_document_ocr_import_id
          AND b.is_current = TRUE
 
+        LEFT JOIN
+          accounting.payment_document_specialist_analysis_results s
+          ON s.specialist_analysis_result_id =
+             o.latest_specialist_analysis_result_id
+         AND s.is_current = TRUE
+         AND (
+           ::boolean = FALSE
+           OR s.analysis_system_code = 
+         )
+
         WHERE
           o.deleted_at IS NULL
           AND COALESCE(o.ocr_raw_text, '') <> ''
+          AND ($4::bigint IS NULL OR o.payment_document_ocr_import_id = $4::bigint)
           AND (
             (
               $1::boolean = TRUE
@@ -7842,7 +7890,8 @@ async function handlePaymentDocumentRoutes(req, res) {
       `, [
         specialistScope,
         reviewScopeStatuses,
-        specialistScope ? specialistAnalysisSystemCode : ""
+        specialistScope ? specialistAnalysisSystemCode : "",
+        requestedOcrImportId
       ]);
 
       const objectOrEmpty = value =>
@@ -7981,6 +8030,27 @@ async function handlePaymentDocumentRoutes(req, res) {
             ""
           ).trim();
 
+        const latestSpecialistAnalysis =
+          row.specialist_analysis_result_id
+            ? {
+                specialistAnalysisResultId: row.specialist_analysis_result_id,
+                specialist_analysis_result_id: row.specialist_analysis_result_id,
+                paymentDocumentOcrImportId: row.payment_document_ocr_import_id,
+                payment_document_ocr_import_id: row.payment_document_ocr_import_id,
+                analysisSystemCode: row.specialist_analysis_system_code,
+                analysis_system_code: row.specialist_analysis_system_code,
+                analysisSystemLabel: row.specialist_analysis_system_label,
+                analysis_system_label: row.specialist_analysis_system_label,
+                aiConfidence: row.specialist_ai_confidence,
+                aiReason: row.specialist_ai_reason,
+                warnings: row.specialist_warnings_json || [],
+                rawResult: row.specialist_raw_result_json || {},
+                raw_result: row.specialist_raw_result_json || {},
+                createdAt: row.specialist_created_at,
+                updatedAt: row.specialist_updated_at
+              }
+            : null;
+
         return {
           source:
             "database-review-items-basic-analysis",
@@ -8111,6 +8181,8 @@ async function handlePaymentDocumentRoutes(req, res) {
             row.basic_analysis_id,
 
           latestBasicAnalysis,
+
+          latestSpecialistAnalysis,
 
           analysisSystemCode:
             [
@@ -10074,6 +10146,11 @@ await client.query("COMMIT");
       ).trim();
 
       const specialistRouteDefinitions = {
+        receipt_evidence: {
+          routeLabel: "領収・レシート解析",
+          analysisSystemCode: "receipt_evidence_analysis",
+          analysisSystemLabel: "領収・レシート専門解析システム"
+        },
         invoice_payable: {
           routeLabel: "請求・未払系解析",
           analysisSystemCode: "invoice_payable",

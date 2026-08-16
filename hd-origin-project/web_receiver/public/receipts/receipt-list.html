@@ -604,13 +604,65 @@
       }).join("");
     }
 
+    function receiptSpecialistResultFromSavedRaw(rawResult) {
+      if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
+        return null;
+      }
+
+      const savedAnalysis = rawResult.analysis;
+      if (!savedAnalysis || typeof savedAnalysis !== "object" || Array.isArray(savedAnalysis)) {
+        return null;
+      }
+
+      if (
+        savedAnalysis.specialist &&
+        typeof savedAnalysis.specialist === "object" &&
+        !Array.isArray(savedAnalysis.specialist)
+      ) {
+        return savedAnalysis.specialist;
+      }
+
+      return savedAnalysis;
+    }
+
+    async function loadSavedReceiptDetailItem(id) {
+      const res = await fetch(
+        "/api/payment-documents/review-items" +
+        "?scope=specialist&analysis_system_code=receipt_evidence_analysis" +
+        "&payment_document_ocr_import_id=" + encodeURIComponent(id),
+        { cache: "no-store" }
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "保存済み専門解析結果を取得できません。");
+      }
+
+      return (data.items || []).find(function (row) {
+        return String(
+          row.paymentDocumentOcrImportId ||
+          row.payment_document_ocr_import_id ||
+          row.id
+        ) === String(id);
+      }) || null;
+    }
     async function loadDetail(id) {
       selectedId = id;
       await loadList();
 
       document.getElementById("formArea").innerHTML = "読込中...";
 
-      const item = currentItems.find(i => String(i.paymentDocumentOcrImportId || i.payment_document_ocr_import_id || i.id) === String(id));
+      let item = currentItems.find(i => String(i.paymentDocumentOcrImportId || i.payment_document_ocr_import_id || i.id) === String(id));
+
+      if (!item) {
+        try {
+          item = await loadSavedReceiptDetailItem(id);
+        } catch (error) {
+          document.getElementById("formArea").innerHTML =
+            '<div class="warn">' + esc(error.message || "保存済み専門解析結果を取得できません。") + '</div>';
+          return;
+        }
+      }
 
       if (!item) {
         document.getElementById("formArea").innerHTML = '<div class="warn">対象データが見つかりません。</div>';
@@ -627,18 +679,17 @@
         item.latest_specialist_analysis ||
         null;
 
-      const formalSpecialistResult =
+      const savedRawResult =
         latestSpecialistAnalysis &&
         typeof latestSpecialistAnalysis === "object"
           ? (
               latestSpecialistAnalysis.rawResult ||
               latestSpecialistAnalysis.raw_result ||
-              latestSpecialistAnalysis.result ||
-              latestSpecialistAnalysis.analysisResult ||
-              latestSpecialistAnalysis.analysis_result ||
               null
             )
           : null;
+      const formalSpecialistResult =
+        receiptSpecialistResultFromSavedRaw(savedRawResult);
 
       renderForm(
         item,
@@ -1604,12 +1655,12 @@ totalAmount: cleanNumber(getInput("totalAmount")),
     
 
 
-    async function deleteReceiptImport(id) {
-      if (!id) return;
+    async function deleteReceiptImport(paymentDocumentOcrImportId) {
+      if (!paymentDocumentOcrImportId) return;
 
       const ok = confirm(
-        "このレシートを削除しますか？\n\n" +
-        "DBの取込データ、専門解析結果、画像ファイルを削除します。"
+        "この操作は旧receipt_importsのブリッジ行と、その行のローカル画像だけを削除します。\\n" +
+        "payment_document_ocr_imports、専門解析結果、保存画像、metaファイルは削除しません。"
       );
 
       if (!ok) return;
@@ -1617,7 +1668,10 @@ totalAmount: cleanNumber(getInput("totalAmount")),
       const formArea = document.getElementById("formArea");
       formArea.innerHTML = '<div class="warn">削除中...</div>';
 
-      const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id), {
+      const res = await fetch(
+        "/api/receipts/payment-document-ocr-imports/" +
+        encodeURIComponent(paymentDocumentOcrImportId) +
+        "/receipt-import", {
         method: "DELETE"
       });
 
@@ -1715,20 +1769,9 @@ totalAmount: cleanNumber(getInput("totalAmount")),
         data;
 
       const specialistResult =
-        data.draft ||
-        data.aiDraft ||
-        data.ai_draft ||
-        data.classification ||
-        (
-          aiResult &&
-          (
-            aiResult.draft ||
-            aiResult.aiDraft ||
-            aiResult.ai_draft ||
-            aiResult.classification
-          )
-        ) ||
-        aiResult;
+        data.specialist ||
+        (aiResult && aiResult.specialist) ||
+        null;
 
       if (
         !specialistResult ||
@@ -1887,20 +1930,9 @@ totalAmount: cleanNumber(getInput("totalAmount")),
               aiData;
 
             const result =
-              aiData.draft ||
-              aiData.aiDraft ||
-              aiData.ai_draft ||
-              aiData.classification ||
-              (
-                aiResult &&
-                (
-                  aiResult.draft ||
-                  aiResult.aiDraft ||
-                  aiResult.ai_draft ||
-                  aiResult.classification
-                )
-              ) ||
-              aiResult;
+              aiData.specialist ||
+              (aiResult && aiResult.specialist) ||
+              null;
 
             if (
               !result ||
@@ -1909,62 +1941,6 @@ totalAmount: cleanNumber(getInput("totalAmount")),
             ) {
               throw new Error(
                 "専門解析AI結果を取得できません。"
-              );
-            }
-
-            const saveRes = await fetch(
-              "/api/payment-documents/specialist-analysis-results/save",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type":
-                    "application/json; charset=utf-8"
-                },
-                body: JSON.stringify({
-                  paymentDocumentOcrImportId:
-                    ocrId,
-                  basicAnalysisId:
-                    basicId,
-                  analysisSystemCode:
-                    "receipt_evidence_analysis",
-                  analysisSystemLabel:
-                    "領収・レシート",
-                  specialistAnalysisStatus:
-                    "保存済み",
-                  aiConfidence:
-                    result.ai_confidence ||
-                    result.confidence ||
-                    null,
-                  aiReason:
-                    result.ai_reason ||
-                    result.reason ||
-                    "レシート専門解析まとめてAI",
-                  warnings:
-                    Array.isArray(result.warnings)
-                      ? result.warnings
-                      : [],
-                  rawResult:
-                    result,
-                  humanConfirmStatus:
-                    "未確認",
-                  humanMemo:
-                    ""
-                })
-              }
-            );
-
-            const saveData =
-              await saveRes.json().catch(function () {
-                return {
-                  ok: false,
-                  error: "保存結果JSON読込失敗"
-                };
-              });
-
-            if (!saveRes.ok || !saveData.ok) {
-              throw new Error(
-                saveData.error ||
-                "正式保存に失敗しました。"
               );
             }
 
@@ -3161,10 +3137,13 @@ loadList();
         const id = idMatch[1];
 
         try {
-          const res = await fetch("/api/receipts/imports/" + encodeURIComponent(id));
-          const data = await res.json();
-
-          const source = data.item || data.receipt || data.data || data;
+          const source = (currentItems || []).find(function (item) {
+            return String(
+              item.paymentDocumentOcrImportId ||
+              item.payment_document_ocr_import_id ||
+              item.id
+            ) === String(id);
+          }) || {};
 
           const summary =
             findValueDeep(source, ["summary", "description", "memo", "vendorName", "vendor_name", "payeeName", "payee_name"]) ||

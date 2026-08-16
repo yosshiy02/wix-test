@@ -1162,6 +1162,81 @@ if (req.method === "GET" && pathname === "/api/receipts/imports") {
   }
 
 
+  const paymentDocumentReceiptImportDeleteMatch = pathname.match(
+    /^\/api\/receipts\/payment-document-ocr-imports\/(\d+)\/receipt-import$/
+  );
+
+  if (req.method === "DELETE" && paymentDocumentReceiptImportDeleteMatch) {
+    try {
+      const paymentDocumentOcrImportId = Number(
+        paymentDocumentReceiptImportDeleteMatch[1]
+      );
+      const ocrImport =
+        await repo.getPaymentDocumentOcrImportForReceiptBridge(
+          paymentDocumentOcrImportId
+        );
+
+      if (!ocrImport) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "支払書類OCRデータが見つかりません。"
+        });
+        return true;
+      }
+
+      const receiptImport = await repo.getImportByUploadId(
+        "payment-document-" + paymentDocumentOcrImportId
+      );
+
+      if (!receiptImport) {
+        sendJson(res, 404, {
+          ok: false,
+          error: "このOCR取込に対応する旧レシート取込が見つかりません。"
+        });
+        return true;
+      }
+
+      const receiptImportId = Number(receiptImport.id);
+      const deleted = await repo.deleteImportById(receiptImportId);
+
+      if (!deleted) {
+        sendJson(res, 409, {
+          ok: false,
+          error: "対応する旧レシート取込を削除できませんでした。"
+        });
+        return true;
+      }
+
+      let imageDeleted = false;
+      let imageDeleteError = "";
+
+      if (deleted.local_image_path && fs.existsSync(deleted.local_image_path)) {
+        try {
+          fs.unlinkSync(deleted.local_image_path);
+          imageDeleted = true;
+        } catch (error) {
+          imageDeleteError = error.message || String(error);
+        }
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        paymentDocumentOcrImportId,
+        receiptImportId,
+        imageDeleted,
+        imageDeleteError,
+        deleted
+      });
+    } catch (error) {
+      sendJson(res, 500, {
+        ok: false,
+        error: error.message || String(error)
+      });
+    }
+
+    return true;
+  }
+
   const deleteMatch = pathname.match(/^\/api\/receipts\/imports\/(\d+)$/);
 
   if (req.method === "DELETE" && deleteMatch) {
