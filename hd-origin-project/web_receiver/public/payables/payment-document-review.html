@@ -2292,6 +2292,7 @@ function setDocumentPreview(item) {
 
   function applyAnalysisResultToFormHardDebug(analysis) {
     const fields = analysis && analysis.fields && typeof analysis.fields === "object" ? analysis.fields : {};
+    if (fields.stage2_fields) return 0;
     const summary = analysis && analysis.ai_summary && typeof analysis.ai_summary === "object" ? analysis.ai_summary : {};
     const missingControls = [];
     let appliedCount = 0;
@@ -2791,7 +2792,7 @@ function setDocumentPreview(item) {
   }
 
   function applyAiFieldMap(fields) {
-    if (!fields || typeof fields !== "object") {
+    if (!fields || typeof fields !== "object" || fields.stage2_fields) {
       return 0;
     }
 

@@ -4464,41 +4464,32 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification) {
     "Stage1結果:",
     JSON.stringify(classification || {}, null, 2),
     "",
-    "抽出する基本10項目:",
-    "- document_number",
-    "- reference_number",
-    "- issuer_name",
-    "- issuer_registration_number",
-    "- issuer_postal_code",
-    "- issuer_address",
-    "- issuer_phone",
-    "- recipient_name",
-    "- recipient_code",
-    "- document_date",
+    "Extract grouped common fields from OCR:",
+    "- names: company, person, department and related names",
+    "- addresses: postal codes and addresses",
+    "- contacts: phone, fax, email and similar contacts",
+    "- dates: document dates found in OCR",
+    "- registrations: registration or corporate numbers",
     "",
     "絶対ルール:",
     "- OCR本文にない情報を作らない。",
     "- 推測や補完をしない。",
     "- 不明な項目は空文字にする。",
-    "- document_dateは明確な場合だけYYYY-MM-DD形式にする。",
+    "- Normalize an unambiguous OCR date to YYYY-MM-DD only when appropriate.",
     "- 金額、税額、支払期限、支払日、支払方法を抽出しない。",
     "- 明細、摘要、契約内容、保険内容、専門解析項目を抽出しない。",
     "- Stage1のマスタコードを返さない。",
-    "- stage2_fieldsには基本10項目以外を入れない。",
+    "- stage2_fields must contain only common OCR facts. Fixed fields and type/role/issuer/recipient are prohibited.",
+    "- Each item uses OCR text as label and OCR value as value. Omit empty values.",
     "",
-    "返すJSON形式:",
+    "Return JSON:",
     "{",
     '  "stage2_fields": {',
-    '    "document_number": "",',
-    '    "reference_number": "",',
-    '    "issuer_name": "",',
-    '    "issuer_registration_number": "",',
-    '    "issuer_postal_code": "",',
-    '    "issuer_address": "",',
-    '    "issuer_phone": "",',
-    '    "recipient_name": "",',
-    '    "recipient_code": "",',
-    '    "document_date": ""',
+    '    "names": [{ "label": "", "value": "" }],',
+    '    "addresses": [{ "label": "", "value": "" }],',
+    '    "contacts": [{ "label": "", "value": "" }],',
+    '    "dates": [{ "label": "", "value": "" }],',
+    '    "registrations": [{ "label": "", "value": "" }]',
     "  },",
     '  "warnings": []',
     "}",
@@ -4880,37 +4871,21 @@ async function resolvePaymentDocumentSourceTypeCode(row) {
 }
 
 function normalizeStage2CommonFieldsCandidate(value) {
-  const source =
-    value && typeof value === "object" && !Array.isArray(value)
-      ? value
-      : {};
-
-  const fields =
-    source.stage2_fields &&
-    typeof source.stage2_fields === "object" &&
-    !Array.isArray(source.stage2_fields)
-      ? source.stage2_fields
-      : source;
-
-  const text = key => String(fields[key] || "").trim();
-
-  return {
-    document_number: text("document_number"),
-    reference_number: text("reference_number"),
-    issuer_name: text("issuer_name"),
-    issuer_registration_number: text("issuer_registration_number"),
-    issuer_postal_code: text("issuer_postal_code"),
-    issuer_address: text("issuer_address"),
-    issuer_phone: text("issuer_phone"),
-    recipient_name: text("recipient_name"),
-    recipient_code: text("recipient_code"),
-    document_date: text("document_date"),
-    warnings: Array.isArray(source.warnings)
-      ? source.warnings.map(item => String(item || "").trim()).filter(Boolean)
-      : []
-  };
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const raw = source.stage2_fields && typeof source.stage2_fields === "object" && !Array.isArray(source.stage2_fields) ? source.stage2_fields : source;
+  const stage2_fields = {};
+  for (const group of ["names", "addresses", "contacts", "dates", "registrations"]) {
+    stage2_fields[group] = (Array.isArray(raw[group]) ? raw[group] : [])
+      .filter(item => item && typeof item === "object" &&
+        Object.prototype.hasOwnProperty.call(item, "label") &&
+        Object.prototype.hasOwnProperty.call(item, "value"))
+      .map(item => ({
+        label: String(item.label || "").trim(),
+        value: String(item.value || "").trim()
+      }));
+  }
+  return { stage2_fields, warnings: Array.isArray(source.warnings) ? source.warnings.map(item => String(item || "").trim()).filter(Boolean) : [] };
 }
-
 async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
   const companyId = Number(
     context && context.company_id || 0
@@ -4973,18 +4948,7 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
   await validateStage1MasterCodes(
     classification
   );
-  const visibleLabels = [
-    "document_number",
-    "reference_number",
-    "issuer_name",
-    "issuer_registration_number",
-    "issuer_postal_code",
-    "issuer_address",
-    "issuer_phone",
-    "recipient_name",
-    "recipient_code",
-    "document_date"
-  ];
+  let visibleLabels = [];
 
   const detailPrompt = await appendPaymentDocumentExternalPrompt(
     buildPaymentDocumentDetailPrompt(ocrText, classification),
@@ -5007,7 +4971,9 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
     detailResponse.parsed
   );
 
-  const { warnings: detailWarnings, ...stage2Fields } = detail;
+  const { warnings: detailWarnings, stage2_fields: stage2Fields } = detail;
+
+  visibleLabels = Object.values(stage2Fields).flat().map(item => item.label);
 
   const analysis = {
     ...stage2Fields,
@@ -5021,7 +4987,8 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
     analysis_system_confidence: classification.analysis_system_confidence,
     needs_review: classification.needs_review,
     source_type_code: classification.source_type_code,
-    fields: { ...stage2Fields },
+    stage2_fields: stage2Fields,
+    fields: { stage2_fields: stage2Fields },
     warnings: [
       ...(Array.isArray(classification.warnings) ? classification.warnings : []),
       ...(Array.isArray(detailWarnings) ? detailWarnings : [])
