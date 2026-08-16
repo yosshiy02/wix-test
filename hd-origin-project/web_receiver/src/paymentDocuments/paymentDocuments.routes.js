@@ -4487,6 +4487,12 @@ function buildPaymentDocumentDetailPrompt(ocrText, classification) {
     "- Do not absorb legacy document_number or reference_number into registrations.",
     "- Extract only an OCR heading paired with its corresponding value. If no OCR heading exists, omit the standalone value.",
     "- Never copy a standalone value into label and never generate semantic labels such as issuer, recipient, store, company, address, phone, or issue date.",
+    "- Every extracted item must contain exactly label, value, and source_text.",
+    "- source_text must be a verbatim contiguous substring copied from the OCR本文.",
+    "- source_text must contain the exact label and, when value is not empty, the exact value.",
+    "- Never invent, normalize, translate, rewrite, summarize, or reconstruct source_text.",
+    "- source_text is validation evidence only and must not be saved as a common field.",
+    "- When an item exists, its exact shape is { label, value, source_text }. Empty groups remain [].",
     "- names: labels and values for person, corporation, company, store, trade name, department, or contact-person names.",
     "- addresses: labels and values for address, location, head-office location, or delivery address. Never put store, company, or person names here.",
     "- contacts: labels and values for TEL, telephone, FAX, email, URL, or contact details. Never put contact labels in names.",
@@ -4885,17 +4891,98 @@ function normalizeStage2CommonFieldsCandidate(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   const raw = source.stage2_fields && typeof source.stage2_fields === "object" && !Array.isArray(source.stage2_fields) ? source.stage2_fields : source;
   const stage2_fields = {};
+
   for (const group of ["names", "addresses", "contacts", "dates", "registrations"]) {
     stage2_fields[group] = (Array.isArray(raw[group]) ? raw[group] : [])
-      .filter(item => item && typeof item === "object" &&
+      .filter(item =>
+        item &&
+        typeof item === "object" &&
         Object.prototype.hasOwnProperty.call(item, "label") &&
-        Object.prototype.hasOwnProperty.call(item, "value"))
+        Object.prototype.hasOwnProperty.call(item, "value") &&
+        Object.prototype.hasOwnProperty.call(item, "source_text")
+      )
       .map(item => ({
         label: String(item.label || "").trim(),
-        value: String(item.value || "").trim()
+        value: String(item.value || "").trim(),
+        source_text: String(item.source_text || "")
       }));
   }
-  return { stage2_fields, warnings: Array.isArray(source.warnings) ? source.warnings.map(item => String(item || "").trim()).filter(Boolean) : [] };
+
+  return {
+    stage2_fields,
+    warnings: Array.isArray(source.warnings)
+      ? source.warnings.map(item => String(item || "").trim()).filter(Boolean)
+      : []
+  };
+}
+
+function validateStage2CommonFieldsAgainstOcr(value, ocrText) {
+  const source = String(ocrText || "");
+  const candidate = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const raw = candidate.stage2_fields && typeof candidate.stage2_fields === "object" && !Array.isArray(candidate.stage2_fields)
+    ? candidate.stage2_fields
+    : {};
+
+  const stage2_fields = {};
+
+  for (const group of ["names", "addresses", "contacts", "dates", "registrations"]) {
+    stage2_fields[group] = (Array.isArray(raw[group]) ? raw[group] : [])
+      .filter(item => {
+        if (
+          !item ||
+          typeof item !== "object" ||
+          typeof item.label !== "string" ||
+          typeof item.value !== "string" ||
+          typeof item.source_text !== "string"
+        ) {
+          return false;
+        }
+
+        const label = item.label;
+        const fieldValue = item.value;
+        const sourceText = item.source_text;
+
+        if (!label.trim()) {
+          return false;
+        }
+
+        if (!sourceText.trim()) {
+          return false;
+        }
+
+        if (!source.includes(sourceText)) {
+          return false;
+        }
+
+        if (!sourceText.includes(label)) {
+          return false;
+        }
+
+        if (fieldValue && !sourceText.includes(fieldValue)) {
+          return false;
+        }
+
+        if (
+          fieldValue &&
+          label.trim() === fieldValue.trim()
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .map(item => ({
+        label: item.label,
+        value: item.value
+      }));
+  }
+
+  return {
+    stage2_fields,
+    warnings: Array.isArray(candidate.warnings)
+      ? candidate.warnings
+      : []
+  };
 }
 async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
   const companyId = Number(
@@ -4978,8 +5065,11 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
     )
   );
 
-  const detail = normalizeStage2CommonFieldsCandidate(
-    detailResponse.parsed
+  const detail = validateStage2CommonFieldsAgainstOcr(
+    normalizeStage2CommonFieldsCandidate(
+      detailResponse.parsed
+    ),
+    ocrText
   );
 
   const { warnings: detailWarnings, stage2_fields: stage2Fields } = detail;
