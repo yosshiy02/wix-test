@@ -7652,6 +7652,71 @@ async function handlePaymentDocumentRoutes(req, res) {
   }
   /* HD_ORIGIN_BUSINESS_FLOW_AI_SUGGEST_HANDLER_20260709_END */
 /* HD_ORIGIN_BUSINESS_FLOW_AI_ROUTE_20260709_HANDLER_END */
+  /* HD_ORIGIN_COMMON_ANALYSIS_DISPLAY_ROUTE_20260816_START */
+  if (
+    req.method === "GET" &&
+    String(req.url || "").split("?")[0].startsWith(
+      "/api/payment-documents/common-analysis-display/"
+    )
+  ) {
+    try {
+      const commonAnalysisUrlPath =
+        String(req.url || "").split("?")[0];
+      const idText = decodeURIComponent(
+        commonAnalysisUrlPath.replace(
+          "/api/payment-documents/common-analysis-display/",
+          ""
+        )
+      ).trim();
+      const paymentDocumentOcrImportId = Number(idText);
+
+      if (
+        !Number.isInteger(paymentDocumentOcrImportId) ||
+        paymentDocumentOcrImportId < 1
+      ) {
+        sendJson(res, 400, {
+          ok: false,
+          error: "不正なOCR取込IDです。"
+        });
+        return true;
+      }
+
+      const result = await db.query(`
+        SELECT
+          payment_document_ocr_import_id,
+          "基礎解析ID",
+          "ファイル名",
+          "会社ID",
+          "書類種別ID",
+          "専門解析ID",
+          "名称",
+          "住所",
+          "連絡先",
+          "日付",
+          "登録情報",
+          "基礎解析作成日時"
+        FROM "表示クエリ"."共通解析表示クエリ"
+        WHERE payment_document_ocr_import_id = $1
+        LIMIT 1
+      `, [paymentDocumentOcrImportId]);
+
+      sendJson(res, 200, {
+        ok: true,
+        source: "common-analysis-display-view",
+        item: result.rows[0] || null
+      });
+    } catch (err) {
+      sendJson(res, 500, {
+        ok: false,
+        source: "common-analysis-display-view",
+        error: err.message || String(err)
+      });
+    }
+
+    return true;
+  }
+  /* HD_ORIGIN_COMMON_ANALYSIS_DISPLAY_ROUTE_20260816_END */
+
   /* HD_ORIGIN_PAYMENT_DOCUMENT_REVIEW_ITEMS_DB_ONLY_20260708_START */
   if (
     req.method === "GET" &&

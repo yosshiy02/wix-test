@@ -153,6 +153,15 @@
       </div>
 
             <div class="analysis-form-scroll">
+        <section class="analysis-section stage2-common-analysis-block">
+          <div class="analysis-section-title">共通解析</div>
+          <div id="commonAnalysisDisplay"
+               class="common-analysis-display"
+               aria-live="polite">
+            左からOCR済み書類を選択してください。
+          </div>
+        </section>
+
         <!-- HD_ORIGIN_BASIC_ANALYSIS_LAYOUT_20260711_START -->
         <section class="analysis-section stage1-sorting-block">
           <div class="analysis-section-title">基礎解析</div>
@@ -1057,6 +1066,135 @@ function setDocumentPreview(item) {
 
     return item.paymentDocumentOcrImportId || item.payment_document_ocr_import_id || "";
   }
+
+  const COMMON_ANALYSIS_DISPLAY_GROUPS = [
+    { key: "名称", label: "名称" },
+    { key: "住所", label: "住所" },
+    { key: "連絡先", label: "連絡先" },
+    { key: "日付", label: "日付" },
+    { key: "登録情報", label: "登録情報" }
+  ];
+  let commonAnalysisDisplayRequestSequence = 0;
+
+  function renderCommonAnalysisDisplay(item, message) {
+    const container = document.getElementById("commonAnalysisDisplay");
+
+    if (!container) return;
+
+    container.replaceChildren();
+
+    if (message) {
+      const messageElement = document.createElement("div");
+      messageElement.className = "common-analysis-message";
+      messageElement.textContent = message;
+      container.appendChild(messageElement);
+      return;
+    }
+
+    COMMON_ANALYSIS_DISPLAY_GROUPS.forEach(group => {
+      const groupElement = document.createElement("div");
+      groupElement.className = "common-analysis-group";
+
+      const heading = document.createElement("div");
+      heading.className = "common-analysis-group-title";
+      heading.textContent = group.label;
+      groupElement.appendChild(heading);
+
+      const rows =
+        item && Array.isArray(item[group.key])
+          ? item[group.key].filter(row =>
+              row &&
+              typeof row === "object" &&
+              !Array.isArray(row) &&
+              Object.prototype.hasOwnProperty.call(row, "label") &&
+              Object.prototype.hasOwnProperty.call(row, "value")
+            )
+          : [];
+
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "common-analysis-empty";
+        empty.textContent = "－";
+        groupElement.appendChild(empty);
+      } else {
+        rows.forEach(row => {
+          const line = document.createElement("div");
+          line.className = "common-analysis-row";
+
+          const label = document.createElement("span");
+          label.className = "common-analysis-label";
+          label.textContent = String(row.label ?? "");
+
+          const separator = document.createElement("span");
+          separator.className = "common-analysis-separator";
+          separator.textContent = " : ";
+
+          const value = document.createElement("span");
+          value.className = "common-analysis-value";
+          value.textContent = String(row.value ?? "");
+
+          line.append(label, separator, value);
+          groupElement.appendChild(line);
+        });
+      }
+
+      container.appendChild(groupElement);
+    });
+  }
+
+  async function loadCommonAnalysisDisplay(paymentDocumentOcrImportId) {
+    const requestedId = String(paymentDocumentOcrImportId || "").trim();
+    const requestSequence = ++commonAnalysisDisplayRequestSequence;
+
+    if (!requestedId) {
+      renderCommonAnalysisDisplay(
+        null,
+        "左からOCR済み書類を選択してください。"
+      );
+      return;
+    }
+
+    renderCommonAnalysisDisplay(null, "共通解析を読込中...");
+
+    try {
+      const res = await fetch(
+        "/api/payment-documents/common-analysis-display/" +
+        encodeURIComponent(requestedId)
+      );
+      const data = await res.json();
+
+      if (
+        requestSequence !== commonAnalysisDisplayRequestSequence ||
+        String(selectedOcrImportId() || "") !== requestedId
+      ) {
+        return;
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          data.message ||
+          "共通解析の読込に失敗しました。"
+        );
+      }
+
+      renderCommonAnalysisDisplay(data.item || null, "");
+    } catch (error) {
+      if (
+        requestSequence !== commonAnalysisDisplayRequestSequence ||
+        String(selectedOcrImportId() || "") !== requestedId
+      ) {
+        return;
+      }
+
+      renderCommonAnalysisDisplay(
+        null,
+        "共通解析の読込エラー: " +
+        (error.message || String(error))
+      );
+    }
+  }
+
   function setMasterSelectByCodeOrText(selector, value) {
     const select = document.querySelector(selector);
 
@@ -2503,6 +2641,11 @@ function setDocumentPreview(item) {
     });
 
     document.querySelectorAll(".analysis-form-scroll .analysis-section").forEach(section => {
+      if (section.classList.contains("stage2-common-analysis-block")) {
+        section.classList.remove("ai-section-hidden");
+        return;
+      }
+
       section.classList.add("ai-section-hidden");
     });
 
@@ -2529,6 +2672,11 @@ function setDocumentPreview(item) {
         section.querySelectorAll("label").forEach(label => {
           label.classList.remove("ai-field-hidden");
         });
+        return;
+      }
+
+      if (section.classList.contains("stage2-common-analysis-block")) {
+        section.classList.remove("ai-section-hidden");
         return;
       }
 
@@ -3674,8 +3822,10 @@ async function runSelectedAnalyses() {
       };
     }
 
-    selectedIndex = index;
-    selectItem(index);
+    if (!options.preserveSelection) {
+      selectedIndex = index;
+      selectItem(index);
+    }
 
     const item = items[index];
 
@@ -3818,30 +3968,34 @@ async function runSelectedAnalyses() {
       item.__aiSteps = aiSteps;
       item.__aiRawResult = data;
 
-      if (
-        typeof applyAnalysisResultToFormHardDebug
-        !== "function"
-      ) {
-        throw new Error(
-          "AI解析結果を画面へ反映する関数が" +
-          "見つかりません。"
-        );
+      let appliedCount = 0;
+
+      if (!options.preserveSelection) {
+        if (
+          typeof applyAnalysisResultToFormHardDebug
+          !== "function"
+        ) {
+          throw new Error(
+            "AI解析結果を画面へ反映する関数が" +
+            "見つかりません。"
+          );
+        }
+
+        appliedCount =
+          applyAnalysisResultToFormHardDebug(basicAnalysisResult.detail || basicAnalysisResult);
+
+        if (
+          typeof showVisibleFieldsOnly
+          === "function"
+        ) {
+          showVisibleFieldsOnly(
+            item.__visibleFieldLabels
+          );
+        }
+
+        window.__lastAnalysisResultAppliedCount =
+          appliedCount;
       }
-
-      const appliedCount =
-        applyAnalysisResultToFormHardDebug(basicAnalysisResult.detail || basicAnalysisResult);
-
-      if (
-        typeof showVisibleFieldsOnly
-        === "function"
-      ) {
-        showVisibleFieldsOnly(
-          item.__visibleFieldLabels
-        );
-      }
-
-      window.__lastAnalysisResultAppliedCount =
-        appliedCount;
 
       if (false) {
         throw new Error(
@@ -3942,10 +4096,77 @@ async function runSelectedAnalyses() {
       };
     }
   };
-  window.runSelectedAnalyses = async function() {
-    const indexes = window.selectedSortingIndexes();
+  window.refreshReviewItemsFromDatabase = async function(
+    completedOcrImportId,
+    preservedSelectedOcrImportId
+  ) {
+    const res = await fetch("/api/payment-documents/review-items");
+    const data = await res.json();
 
-    if (!indexes.length) {
+    if (!res.ok || !data.ok) {
+      throw new Error(
+        data.error ||
+        data.message ||
+        "左リストの最新状態を取得できませんでした。"
+      );
+    }
+
+    const refreshedItems = Array.isArray(data.items) ? data.items : [];
+    const preservedId = String(
+      selectedOcrImportId() ||
+      preservedSelectedOcrImportId ||
+      ""
+    );
+    const completedId = String(completedOcrImportId || "");
+    const summary = document.getElementById("summary");
+    const list = document.getElementById("list");
+
+    items = refreshedItems;
+    selectedIndex = preservedId
+      ? items.findIndex(item =>
+          String(window.ocrImportIdOf(item) || "") === preservedId
+        )
+      : -1;
+
+    if (summary) {
+      summary.textContent =
+        "DB保存済みOCR: " + items.length +
+        "件 / 全体: " + items.length + "件";
+    }
+
+    if (!items.length && list) {
+      list.innerHTML =
+        '<div class="empty">DB保存済みOCRがありません。OCR取込画面でOCR後、保存してください。</div>';
+    } else {
+      window.renderSortingList();
+    }
+
+    if (selectedIndex >= 0 && completedId === preservedId) {
+      selectItem(selectedIndex);
+    } else {
+      if (selectedIndex < 0) {
+        loadCommonAnalysisDisplay("");
+      }
+      updateRecordNavigationControls();
+    }
+
+    return true;
+  };
+
+  window.runSelectedAnalyses = async function() {
+    const targets = window.selectedSortingIndexes().map(index => {
+      const item = items[index] || {};
+
+      return {
+        id: String(window.ocrImportIdOf(item) || ""),
+        name:
+          item.originalFileName ||
+          item.fileName ||
+          ("No." + (index + 1))
+      };
+    }).filter(target => target.id);
+
+    if (!targets.length) {
       showResult("まとめて仕分けする書類にチェックを入れてください。");
       return;
     }
@@ -3954,15 +4175,30 @@ async function runSelectedAnalyses() {
     let success = 0;
     let failed = 0;
     let review = 0;
+    const refreshErrors = [];
 
-    for (let i = 0; i < indexes.length; i++) {
-      const index = indexes[i];
-      const item = items[index] || {};
-      const name = item.originalFileName || item.fileName || ("No." + (index + 1));
+    for (let i = 0; i < targets.length; i++) {
+      const target = targets[i];
+      const index = items.findIndex(item =>
+        String(window.ocrImportIdOf(item) || "") === target.id
+      );
 
-      showResult("まとめて仕分け中: " + (i + 1) + " / " + indexes.length + "\n" + name);
+      showResult(
+        "まとめて仕分け中: " +
+        (i + 1) + " / " + targets.length + "\n" +
+        target.name
+      );
 
-      const result = await window.runAnalysisForItemIndex(index, { silent: true });
+      const result = index >= 0
+        ? await window.runAnalysisForItemIndex(index, {
+            silent: true,
+            preserveSelection: true
+          })
+        : {
+            ok: false,
+            name: target.name,
+            error: "処理対象のOCR取込IDを最新リストから取得できませんでした。"
+          };
 
       results.push(result);
 
@@ -3973,10 +4209,34 @@ async function runSelectedAnalyses() {
         failed++;
       }
 
-      window.renderSortingList();
+      try {
+        await window.refreshReviewItemsFromDatabase(
+          target.id,
+          selectedOcrImportId()
+        );
+      } catch (error) {
+        const refreshError = error.message || String(error);
+        result.refreshError = refreshError;
+        refreshErrors.push(target.name + ": " + refreshError);
+      }
     }
 
-    await loadItems();
+    try {
+      const currentSelectedOcrImportId =
+        String(selectedOcrImportId() || "");
+      const selectedWasProcessed = targets.some(target =>
+        target.id === currentSelectedOcrImportId
+      );
+
+      await window.refreshReviewItemsFromDatabase(
+        selectedWasProcessed ? currentSelectedOcrImportId : "",
+        currentSelectedOcrImportId
+      );
+    } catch (error) {
+      refreshErrors.push(
+        "最終更新: " + (error.message || String(error))
+      );
+    }
 
     const grouped = results
       .filter(row => row && row.ok)
@@ -4009,7 +4269,7 @@ async function runSelectedAnalyses() {
 
     showResult(
       "まとめて仕分けが完了しました。\n" +
-      "対象: " + indexes.length + "件\n" +
+      "対象: " + targets.length + "件\n" +
       "成功: " + success + "件\n" +
       "失敗: " + failed + "件\n" +
       "要確認: " + review + "件\n\n" +
@@ -4018,6 +4278,11 @@ async function runSelectedAnalyses() {
       (
         failedText
           ? "\n\n失敗詳細:\n" + failedText
+          : ""
+      ) +
+      (
+        refreshErrors.length
+          ? "\n\n表示更新エラー:\n" + refreshErrors.join("\n")
           : ""
       )
     );
@@ -4161,6 +4426,7 @@ async function loadItems() {
     summary.textContent = "読込中...";
     list.innerHTML = "";
     selectedIndex = -1;
+    loadCommonAnalysisDisplay("");
 
     document.getElementById("ocrText").value = "";
     setBottomOcrText("");
@@ -4531,6 +4797,10 @@ async function loadItems() {
     }
 
     setBottomOcrText(ocrValue);
+
+    loadCommonAnalysisDisplay(
+      window.ocrImportIdOf(item)
+    );
 
     showResult(
       "原本画像とOCR本文を読み込みました。"
