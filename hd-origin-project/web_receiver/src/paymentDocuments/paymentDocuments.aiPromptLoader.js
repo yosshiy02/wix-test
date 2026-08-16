@@ -135,20 +135,16 @@ async function loadActiveCandidateMasters() {
 }
 
 async function loadStage1CandidateMasters() {
-  const [companies, documentTypes, destinations, categories, systems] =
+  const [companies, documentTypes, systems] =
     await Promise.all([
       queryRows(`SELECT "自社会社コード" AS company_code, "自社会社名" AS company_name FROM "マスターテーブル"."自社会社マスターテーブル" WHERE "自社会社有効" = true ORDER BY "自社会社表示順"`),
       queryRows(`SELECT "書類種別英語名" AS document_type_code, "書類種別名" AS document_type_name FROM "マスターテーブル"."書類種別マスタテーブル" WHERE "書類種別有効" = true AND NOT ("書類種別英語名" = ANY($1::text[])) ORDER BY "書類種別表示順"`, [RETIRED_COMPOSITE_DOCUMENT_TYPE_CODES]),
-      queryRows(`SELECT payment_destination_code, payment_destination_name FROM "マスターテーブル".payment_destinations WHERE is_active=true ORDER BY sort_order`),
-      queryRows(`SELECT accounting_category_code, accounting_category_name FROM "マスターテーブル".accounting_categories WHERE is_active=true ORDER BY sort_order`),
       queryRows(`SELECT analysis_system_code, analysis_system_name, description FROM "マスターテーブル".analysis_systems WHERE is_active=true ORDER BY sort_order`)
     ]);
 
   return {
     companies,
     document_types: documentTypes,
-    payment_destinations: destinations,
-    accounting_categories: categories,
     analysis_systems: systems
   };
 }
@@ -172,8 +168,6 @@ function buildStage1CandidateMasterPrompt(m) {
     "固定値・後付け補完は禁止です。",
     "【会社】\n" + JSON.stringify(m.companies, null, 2),
     "【書類種類】\n" + JSON.stringify(m.document_types, null, 2),
-    "【支払処理先】\n" + JSON.stringify(m.payment_destinations, null, 2),
-    "【会計区分】\n" + JSON.stringify(m.accounting_categories, null, 2),
     "【専門解析先】\n" + JSON.stringify(m.analysis_systems, null, 2)
   ].join("\n");
 }

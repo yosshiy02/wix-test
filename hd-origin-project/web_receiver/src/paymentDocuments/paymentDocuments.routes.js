@@ -4405,25 +4405,19 @@ function buildPaymentDocumentClassificationPrompt(
     "画像は見ていません。OCR本文全体を根拠に仕分けしてください。",
     "選択区分は、後続で提示されるPostgreSQLの有効マスタ候補だけを使用してください。",
     "",
-    "固定会社情報:",
-    "- company_id: " + String(fixedCompanyId),
-    "- company_code: " + fixedCompanyCode,
-    "- この会社情報はプロジェクト入口でユーザーが選択した正式値である。",
-    "- company_idとcompany_codeを再判定・変更してはならない。",
-    "",
+
     "絶対ルール:",
-    "- 文書種別、処理先、会計区分、専門解析先はAIが判断する。",
-    "- company_idは固定入力値と完全に同じ値を返す。",
-    "- company_codeは固定入力値と完全に同じ値を返す。",
+    "- 文書種別、専門解析先はAIが判断する。",
+
     "- document_type_codeは文書種別マスタ候補から必ず1つ選ぶ。",
-    "- payment_destination_codeは処理先マスタ候補から必ず1つ選ぶ。",
-    "- accounting_category_codeは会計区分マスタ候補から必ず1つ選ぶ。",
+
+
     "- analysis_system_codeは専門解析先マスタ候補から必ず1つ選ぶ。",
     "- 選択区分に空文字、null、日本語ラベル、独自コードを返さない。",
 
-    "- payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
+    "- company_id、company_code、payment_destination_code、accounting_category_code、payable_kind_code、source_type_code、specialist_route_code、specialist_route_label、document_groupは返さない。",
     "- analysis_system_reasonは必ず具体的に返す。",
-    "- analysis_system_confidenceはhigh、medium、lowのいずれかを返す。",
+    "- analysis_system_confidenceは0以上1以下の数値で返す。",
     "- needs_reviewは必ずtrueまたはfalseのbooleanで返す。",
     "- 判断に迷う場合も有効なマスタコードを選び、needs_review=trueにする。",
     "- Node.js、SQL、HTML、固定語句、既定値、後付け補正を前提にしない。",
@@ -4431,19 +4425,18 @@ function buildPaymentDocumentClassificationPrompt(
     "",
     "返すJSON形式:",
     "{",
-    '  "company_id": 0,',
-    '  "company_code": "",',
+
     '  "document_type_code": "",',
-    '  "payment_destination_code": "",',
-    '  "accounting_category_code": "",',
+
+
     '  "analysis_system_code": "",',
     '  "analysis_system_reason": "",',
-    '  "analysis_system_confidence": "high",',
+    '  "analysis_system_confidence": 0.95,',
     '  "needs_review": false,',
     '  "warnings": []',
     "}",
     "",
-    "上記10項目以外は返さない。",
+    "上記6項目以外は返さない。",
     "JSON以外の文章は返さない。",
     "",
     "OCR本文:",
@@ -4673,17 +4666,21 @@ function normalizeStage1ClassificationCandidate(
       ? value
       : {};
 
-  const confidence = String(
-    result.analysis_system_confidence || ""
-  ).trim().toLowerCase();
+  const confidenceText = String(
+    result.analysis_system_confidence ?? ""
+  ).trim();
+
+  const confidence = Number(confidenceText);
 
   if (
-    confidence &&
-    !["high", "medium", "low"].includes(confidence)
+    !confidenceText ||
+    !Number.isFinite(confidence) ||
+    confidence < 0 ||
+    confidence > 1
   ) {
     const error = new Error(
-      "Stage1のAI信頼度コードが不正です: " +
-      confidence
+      "Stage1のAI信頼度は0以上1以下の数値必須です: " +
+      confidenceText
     );
 
     error.statusCode = 422;
@@ -4700,21 +4697,12 @@ function normalizeStage1ClassificationCandidate(
   }
 
   return {
-    company_code: String(
-      result.company_code || ""
-    ).trim(),
 
     document_type_code: String(
       result.document_type_code || ""
     ).trim(),
 
-    payment_destination_code: String(
-      result.payment_destination_code || ""
-    ).trim(),
 
-    accounting_category_code: String(
-      result.accounting_category_code || ""
-    ).trim(),
 
     analysis_system_code: String(
       result.analysis_system_code || ""
@@ -4744,172 +4732,68 @@ function normalizeStage1ClassificationCandidate(
   };
 }
 
-async function resolveFormalDocumentTypeId(client, documentTypeCode) {
-  const code = String(documentTypeCode || "").trim();
-  if (!code) {
-    const error = new Error("??????????????????ID?????????");
-    error.statusCode = 422;
-    throw error;
-  }
-
-  const result = await client.query(`
-    SELECT "書類種別ID" AS document_type_id
-    FROM "マスターテーブル"."書類種別マスタテーブル"
-    WHERE "書類種別英語名" = $1
-      AND "書類種別有効" = TRUE
-  `, [code]);
-
-  if (result.rowCount !== 1) {
-    const error = new Error("?????????ID???????????: " + code);
-    error.statusCode = 422;
-    throw error;
-  }
-
-  return Number(result.rows[0].document_type_id);
-}
-
 async function validateStage1MasterCodes(
   classification
 ) {
-  const requiredValues = {
-    company_code: String(
-      classification.company_code || ""
-    ).trim(),
+  const documentTypeCode = String(
+    classification.document_type_code || ""
+  ).trim();
 
-    document_type_code: String(
-      classification.document_type_code || ""
-    ).trim(),
+  const analysisSystemCode = String(
+    classification.analysis_system_code || ""
+  ).trim();
 
-    payment_destination_code: String(
-      classification.payment_destination_code || ""
-    ).trim(),
-
-    accounting_category_code: String(
-      classification.accounting_category_code || ""
-    ).trim(),
-
-    analysis_system_code: String(
-      classification.analysis_system_code || ""
-    ).trim(),
-
-    source_type_code: String(
-      classification.source_type_code || ""
-    ).trim()
-  };
-
-  for (const [fieldName, code] of Object.entries(requiredValues)) {
-    if (!code) {
-      const error = new Error(
-        "Stage1必須マスタコードが空です: " +
-        fieldName
-      );
-
-      error.statusCode = 422;
-      throw error;
-    }
+  if (!documentTypeCode || !analysisSystemCode) {
+    const error = new Error(
+      "Stage1の必須マスタコードがありません。"
+    );
+    error.statusCode = 422;
+    throw error;
   }
 
   const result = await db.query(`
     SELECT
-      'company_code' AS field_name,
-      company_code AS code
-    FROM (
-      SELECT
-        "自社会社ID" AS company_id,
-        "自社会社コード" AS company_code,
-        "自社会社名" AS company_name,
-        "自社会社略称名" AS company_short_name,
-        NULL::text AS company_type,
-        "自社会社表示順" AS sort_order,
-        "自社会社有効" AS is_active
-      FROM "マスターテーブル"."自社会社マスターテーブル"
-    ) AS company_master
-    WHERE is_active = true
+      EXISTS (
+        SELECT 1
+        FROM "マスターテーブル"."書類種別マスタテーブル"
+        WHERE "書類種別英語名" = $1
+          AND "書類種別有効" = TRUE
+      ) AS document_type_exists,
 
-    UNION ALL
+      EXISTS (
+        SELECT 1
+        FROM "マスターテーブル".analysis_systems
+        WHERE analysis_system_code = $2
+          AND is_active = TRUE
+      ) AS analysis_system_exists
+  `, [
+    documentTypeCode,
+    analysisSystemCode
+  ]);
 
-    SELECT
-      'document_type_code',
-      "書類種別英語名"
-    FROM "マスターテーブル"."書類種別マスタテーブル"
-    WHERE "書類種別有効" = true
+  const row = result.rows[0] || {};
+  const invalid = [];
 
-    UNION ALL
-
-    SELECT
-      'payment_destination_code',
-      payment_destination_code
-    FROM "マスターテーブル".payment_destinations
-    WHERE is_active = true
-
-    UNION ALL
-
-    SELECT
-      'accounting_category_code',
-      accounting_category_code
-    FROM "マスターテーブル".accounting_categories
-    WHERE is_active = true
-
-    UNION ALL
-
-    SELECT
-      'analysis_system_code',
-      analysis_system_code
-    FROM "マスターテーブル".analysis_systems
-    WHERE is_active = true
-
-    UNION ALL
-
-    SELECT
-      'source_type_code',
-      payment_source_type_code
-    FROM "マスターテーブル".payment_source_types
-    WHERE is_active = true
-  `);
-
-  const activeCodes = new Map();
-
-  for (const row of result.rows) {
-    const fieldName = String(
-      row.field_name || ""
-    ).trim();
-
-    const code = String(
-      row.code || ""
-    ).trim();
-
-    if (!activeCodes.has(fieldName)) {
-      activeCodes.set(
-        fieldName,
-        new Set()
-      );
-    }
-
-    if (code) {
-      activeCodes
-        .get(fieldName)
-        .add(code);
-    }
+  if (!row.document_type_exists) {
+    invalid.push(
+      "document_type_code=" + documentTypeCode
+    );
   }
 
-  for (const [fieldName, code] of Object.entries(requiredValues)) {
-    const fieldCodes =
-      activeCodes.get(fieldName) ||
-      new Set();
-
-    if (!fieldCodes.has(code)) {
-      const error = new Error(
-        "Stage1の選択値が有効なマスタコードではありません。" +
-        " field=" + fieldName +
-        " code=" + code
-      );
-
-      error.statusCode = 422;
-      throw error;
-    }
+  if (!row.analysis_system_exists) {
+    invalid.push(
+      "analysis_system_code=" + analysisSystemCode
+    );
   }
 
-  return classification;
+  if (invalid.length > 0) {
+    const error = new Error(
+      "Stage1マスタコードが有効マスタに存在しません: " +
+      invalid.join(", ")
+    );
+    error.statusCode = 422;
+    throw error;
+  }
 }
 
 async function resolvePaymentDocumentSourceTypeCode(row) {
@@ -5052,11 +4936,7 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
   }
   const classificationPrompt = await appendPaymentDocumentExternalPrompt(
     buildPaymentDocumentClassificationPrompt(
-      ocrText,
-      {
-        company_id: companyId,
-        company_code: companyCode
-      }
+      ocrText
     ),
     await selectPaymentDocumentPromptFiles({
       ocrText,
@@ -5078,37 +4958,8 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
       sourceTypeCode
     );
 
-  const returnedCompanyId = Number(
-    classificationResponse &&
-    classificationResponse.parsed &&
-    classificationResponse.parsed.company_id ||
-    0
-  );
-
-  const returnedCompanyCode = String(
-    classification &&
-    classification.company_code ||
-    ""
-  ).trim();
-
-  if (
-    returnedCompanyId !== companyId ||
-    returnedCompanyCode !== companyCode
-  ) {
-    const error = new Error(
-      "AI返却会社が入口の正式会社と一致しません。" +
-      " expected_company_id=" + companyId +
-      " returned_company_id=" + returnedCompanyId +
-      " expected_company_code=" + companyCode +
-      " returned_company_code=" + returnedCompanyCode
-    );
-
-    error.statusCode = 422;
-    throw error;
-  }
-
-  classification.company_id = companyId;
-
+    classification.company_id = companyId;
+  classification.company_code = companyCode;
   await validateStage1MasterCodes(
     classification
   );
@@ -5153,8 +5004,8 @@ async function createTwoStepBasicAnalysisFromOcrText(ocrText, context = {}) {
     company_id: classification.company_id,
     company_code: classification.company_code,
     document_type_code: classification.document_type_code,
-    payment_destination_code: classification.payment_destination_code,
-    accounting_category_code: classification.accounting_category_code,
+
+
     analysis_system_code: classification.analysis_system_code,
     analysis_system_reason: classification.analysis_system_reason,
     analysis_system_confidence: classification.analysis_system_confidence,
@@ -5596,16 +5447,14 @@ function buildPaymentDocumentSortPrompt(context) {
   return [
     "次の固定入力情報、正式マスタ候補、OCR本文を使用して、支払書類の1回目解析を行ってください。",
     "判定ルールと返却JSON形式はsystemプロンプトに従ってください。",
-    "company_idとsource_type_codeは取込時に確定済みの固定値です。",
-    "company_idとsource_type_codeを選び直したり変更したりしてはいけません。",
+    "source_type_codeは取込時に確定済みの固定値です。",
+    "source_type_codeを選び直したり変更したりしてはいけません。",
     "document_type_codeはcandidate_document_typesから選んでください。",
     "analysis_system_codeはcandidate_specialistsから選んでください。",
     "候補にないコードを作ってはいけません。",
     "画像は使用せず、OCR本文だけを証憑内容の根拠にしてください。",
     "",
-    "company_id:",
-    String(input.companyId || ""),
-    "",
+
     "source_type_code:",
     String(input.sourceTypeCode || ""),
     "",
@@ -8939,7 +8788,6 @@ await client.query("COMMIT");
           ""
         ).trim();
         const analysisSystemCode = String(
-          detail.analysis_system_code ||
           classification.analysis_system_code ||
           ""
         ).trim();
@@ -8951,12 +8799,22 @@ await client.query("COMMIT");
         const visibleFieldLabels = Array.isArray(aiResult.visible_field_labels)
           ? aiResult.visible_field_labels
           : [];
-        const confidenceValue = Number(
-          classification.analysis_system_confidence ?? detail.ai_confidence
+        const aiConfidence = Number(
+          classification.analysis_system_confidence
         );
-        const aiConfidence = Number.isFinite(confidenceValue)
-          ? confidenceValue
-          : null;
+
+        if (
+          !Number.isFinite(aiConfidence) ||
+          aiConfidence < 0 ||
+          aiConfidence > 1
+        ) {
+          const error = new Error(
+            "Stage1のAI信頼度を保存できません: " +
+            String(classification.analysis_system_confidence ?? "")
+          );
+          error.statusCode = 422;
+          throw error;
+        }
         const basicAnalysisResult = {
           paymentDocumentOcrImportId: ocrImportId,
           companyId,
@@ -8996,12 +8854,10 @@ await client.query("COMMIT");
           throw error;
         }
 
-        const documentTypeId =
-          await resolveFormalDocumentTypeId(
-            client,
-            classification.document_type_code ||
-              detail.document_type_code
-          );
+        const documentTypeCode = String(
+          classification.document_type_code ||
+          ""
+        ).trim();
 
         await client.query(`
           UPDATE accounting.payment_document_basic_analysis_results
@@ -9017,13 +8873,26 @@ await client.query("COMMIT");
         const inserted = await client.query(`
           INSERT INTO accounting.payment_document_basic_analysis_results (
             payment_document_ocr_import_id, company_id, document_type_id,
-            specialist_analysis_id, ai_confidence, ai_reason, needs_review,
+            analysis_system_id, ai_confidence, ai_reason, needs_review,
             warnings_json, raw_result_json, candidate_masters_snapshot_json,
             output_schema_snapshot_json, prompt_snapshot, model_name,
             prompt_version, is_current, analysis_completed, started_at,
             completed_at, created_at, updated_at
           ) VALUES (
-            $1, $2, $3, NULL, $4, $5, $6, $7::jsonb, $8::jsonb,
+            $1, $2,
+            (
+              SELECT "書類種別ID"
+              FROM "マスターテーブル"."書類種別マスタテーブル"
+              WHERE "書類種別英語名" = $3
+                AND "書類種別有効" = TRUE
+            ),
+            (
+              SELECT analysis_system_id
+              FROM "マスターテーブル".analysis_systems
+              WHERE analysis_system_code = $11
+                AND is_active = TRUE
+            ),
+            $4, $5, $6, $7::jsonb, $8::jsonb,
             $9::jsonb, $10::jsonb, NULL, NULL, NULL, TRUE, TRUE,
             CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
             CURRENT_TIMESTAMP
@@ -9033,14 +8902,15 @@ await client.query("COMMIT");
         `, [
           ocrImportId,
           companyId,
-          documentTypeId,
+          documentTypeCode,
           aiConfidence,
           classification.analysis_system_reason || detail.ai_reason || "",
           detail.needs_review === true || classification.needs_review === true,
           JSON.stringify(warnings),
           JSON.stringify({ analysis: basicAnalysisResult }),
           JSON.stringify({ classification }),
-          JSON.stringify({ detail, visibleFieldLabels })
+          JSON.stringify({ detail, visibleFieldLabels }),
+          analysisSystemCode
         ]);
         const saved = inserted.rows[0];
 
