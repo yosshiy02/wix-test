@@ -157,16 +157,16 @@
         <section class="analysis-section stage1-sorting-block">
           <div class="analysis-section-title">基礎解析</div>
           <div class="form-grid">
+
             <label>
-              会計区分
+              書類種別
               <select class="analysis-field master-select"
-                      id="analysisAccountingCategory"
-                      data-master-type="accounting_categories"
-                      data-master-label="会計区分">
+                      id="analysisAiDocumentKind"
+                      data-master-type="document_types"
+                      data-master-label="書類種別">
                 <option value="">マスタ読込中...</option>
               </select>
             </label>
-
             <label>
               取込媒体
               <select class="analysis-field master-select"
@@ -206,12 +206,6 @@
                      id="analysisAnalysisSystemConfidence">
             </label>
 
-            <label>
-              発行日
-              <input class="analysis-field"
-                     id="analysisIssueDate"
-                     placeholder="例：2026-07-01">
-            </label>
 
             <label>
               信頼度
@@ -3326,101 +3320,116 @@ async function runSelectedAnalyses() {
         : null;
   }
 
-  window.buildSortingVisual = function(item) {
-    const formalBasicAnalysisResult =
-      getSavedBasicAnalysisResult(item) || {};
-    const draft = formalBasicAnalysisResult;
-    const group = window.firstText(item && item.__documentGroup, draft.document_group, draft.documentGroup);
+  window.analysisSystemTheme = function(value) {
+    const text = String(value || "").trim().toLowerCase();
 
-    const kindRaw = window.pickAnalysisValue(draft, [
-      "document_type_label",
-      "document_type_name",
-      "document_type_code",
-      "documentType",
-      "documentKind",
-      "document_kind",
-      "ai_document_kind",
-      "analysisAiDocumentKind"
-    ]);
+    if (!text) return "unknown";
 
-    const destinationRaw = window.pickAnalysisValue(draft, [
-      "payment_destination_label",
-      "payment_destination_name",
-      "payment_destination_code",
-      "destination",
-      "destination_code",
-      "paymentDestination",
-      "ai_destination",
-      "analysisAiDestination"
-    ]);
-
-    const accountingRaw = window.pickAnalysisValue(draft, [
-      "accounting_category_label",
-      "accounting_category_name",
-      "accounting_category_code",
-      "payable_kind_label",
-      "payable_kind_name",
-      "payable_kind_code",
-      "category",
-      "accountingCategory"
-    ]);
-
-    const confidenceRaw = window.pickAnalysisValue(draft, [
-      "ai_confidence",
-      "confidence",
-      "confidence_level",
-      "analysisAiConfidence"
-    ]);
-
-    const reasonRaw = window.pickAnalysisValue(draft, [
-      "review_reason",
-      "needs_review_reason",
-      "confirmation_notes",
-      "confirm_notes",
-      "required_confirmation",
-      "internal_memo",
-      "ai_reason",
-      "reason"
-    ]);
-
-    const kindLabel = window.jpSortingLabel(kindRaw || group, "未判定");
-    const destinationLabel = window.jpSortingLabel(destinationRaw, "未判定");
-    const accountingLabel = window.jpSortingLabel(accountingRaw, "");
-    const confidenceLabel = window.jpSortingLabel(confidenceRaw, "");
-
-    let theme = window.detectSortingTheme(destinationRaw || accountingRaw || kindRaw || group);
-
-    const lowConfidence =
-      String(confidenceRaw || "").toLowerCase().includes("low") ||
-      String(confidenceRaw || "").includes("低");
-
-    const needsReview =
-      theme === "review" ||
-      lowConfidence ||
-      String(reasonRaw || "").includes("要確認") ||
-      String(kindLabel || "").includes("要確認") ||
-      String(destinationLabel || "").includes("要確認");
-
-    if (needsReview) {
-      theme = "review";
+    if (
+      text.includes("要確認") ||
+      text.includes("needs_review")
+    ) {
+      return "review";
     }
 
+    if (
+      text.includes("銀行") ||
+      text.includes("bank")
+    ) {
+      return "bank";
+    }
+
+    if (
+      text.includes("公共料金") ||
+      text.includes("通信") ||
+      text.includes("utility")
+    ) {
+      return "utility";
+    }
+
+    if (
+      text.includes("カード") ||
+      text.includes("card")
+    ) {
+      return "card";
+    }
+
+    if (
+      text.includes("契約") ||
+      text.includes("保険") ||
+      text.includes("リース") ||
+      text.includes("contract") ||
+      text.includes("insurance") ||
+      text.includes("lease")
+    ) {
+      return "contract";
+    }
+
+    if (
+      text.includes("税金") ||
+      text.includes("公的") ||
+      text.includes("tax")
+    ) {
+      return "tax";
+    }
+
+    if (
+      text.includes("納品") ||
+      text.includes("照合") ||
+      text.includes("reference")
+    ) {
+      return "reference";
+    }
+
+    if (
+      text.includes("レシート") ||
+      text.includes("領収書") ||
+      text.includes("receipt")
+    ) {
+      return "expense";
+    }
+
+    if (
+      text.includes("請求") ||
+      text.includes("未払") ||
+      text.includes("invoice") ||
+      text.includes("payable")
+    ) {
+      return "invoice";
+    }
+
+    return "unknown";
+  };
+
+  window.buildSortingVisual = function(item) {
+    const display =
+      item &&
+      item.basicAnalysisDisplay &&
+      typeof item.basicAnalysisDisplay === "object"
+        ? item.basicAnalysisDisplay
+        : {};
+
+    const specialist =
+      String(
+        display["専門解析先"] || ""
+      ).trim();
+
+    const theme =
+      window.detectSortingTheme(
+        specialist
+      );
+
     return {
-      analyzed: !!getSavedBasicAnalysisResult(item),
       theme,
-      rowClass: "visual-row-" + theme,
-      kindClass: "visual-chip visual-kind visual-chip-" + window.detectSortingTheme(kindRaw || group),
-      destClass: "visual-chip visual-dest visual-chip-" + window.detectSortingTheme(destinationRaw || accountingRaw),
-      categoryClass: "visual-chip visual-category visual-chip-" + window.detectSortingTheme(accountingRaw),
-      confidenceClass: "visual-chip visual-confidence " + (lowConfidence ? "visual-chip-review" : "visual-chip-confidence"),
-      kindLabel,
-      destinationLabel,
-      accountingLabel,
-      confidenceLabel,
-      needsReview,
-      reasonRaw
+      rowClass:
+        "visual-row-" + theme,
+      markerClass:
+        "sorting-specialist-mark visual-chip-" +
+        theme,
+      specialist
     };
   };
+
   function restoreSavedBasicAnalysisToItem(item) {
     if (!item) {
       return null;
@@ -3448,22 +3457,40 @@ async function runSelectedAnalyses() {
 
     return formalBasicAnalysisResult;
   }
+
   window.updateSelectedSortingSummary = function() {
-    const summary = document.getElementById("selectedSortingSummary");
+    const summary =
+      document.getElementById(
+        "selectedSortingSummary"
+      );
+
     if (!summary) return;
 
-    const validIds = new Set((items || []).map(item => String(window.ocrImportIdOf(item) || "")).filter(Boolean));
-    window.__checkedOcrImportIds = new Set(Array.from(window.__checkedOcrImportIds).filter(id => validIds.has(String(id))));
-    (items || []).forEach(restoreSavedBasicAnalysisToItem);
-    const analyzedCount = (items || []).filter(item => item && window.buildSortingVisual(item).analyzed).length;
-    const reviewCount = (items || []).filter(item => item && window.buildSortingVisual(item).analyzed && window.buildSortingVisual(item).needsReview).length;
+    const validIds =
+      new Set(
+        (items || [])
+          .map(item =>
+            String(
+              window.ocrImportIdOf(item) || ""
+            )
+          )
+          .filter(Boolean)
+      );
+
+    window.__checkedOcrImportIds =
+      new Set(
+        Array.from(
+          window.__checkedOcrImportIds
+        ).filter(id =>
+          validIds.has(String(id))
+        )
+      );
 
     summary.textContent =
-      "選択: " + window.__checkedOcrImportIds.size + "件" +
-      " / 解析済: " + analyzedCount + "件" +
-      (reviewCount ? " / 要確認: " + reviewCount + "件" : "");
+      "選択: " +
+      window.__checkedOcrImportIds.size +
+      "件";
   };
-
   window.toggleSortingChecked = function(index, checked) {
     const item = items[index];
     const id = String(window.ocrImportIdOf(item) || "");
@@ -3520,56 +3547,106 @@ async function runSelectedAnalyses() {
   };
 
   window.renderSortingList = function() {
-    const list = document.getElementById("list");
+    const list =
+      document.getElementById("list");
 
     if (!list) return;
 
-    list.innerHTML = (items || []).map((item, index) => {
+    list.innerHTML =
+      (items || []).map((item, index) => {
 
-      restoreSavedBasicAnalysisToItem(item);
-      const active = index === selectedIndex ? " active" : "";
-      const name = item.originalFileName || item.fileName || "";
-      const id = String(window.ocrImportIdOf(item) || "");
-      const checked = id && window.__checkedOcrImportIds.has(id) ? " checked" : "";
-      const disabled = id ? "" : " disabled";
-      const visual = window.buildSortingVisual(item);
-      const analyzedText = visual.analyzed ? "解析済" : "未解析";
-      const reviewBadge = visual.needsReview
-        ? `<span class="visual-chip visual-chip-review">要確認</span>`
-        : "";
+        const display =
+          item &&
+          item.basicAnalysisDisplay &&
+          typeof item.basicAnalysisDisplay === "object"
+            ? item.basicAnalysisDisplay
+            : {};
 
-      return `
-        <div class="sorting-item-card ${visual.rowClass}${active}">
-          <div class="sorting-row-head">
-            <input
-              type="checkbox"
-              class="sorting-check"
-              aria-label="仕分け対象に選択"
-              data-index="${index}"
-              ${checked}
-              ${disabled}
-              onclick="event.stopPropagation()"
-              onchange="toggleSortingChecked(${index}, this.checked)"
-            >
-            <button
-              type="button"
-              class="sorting-summary-button item${active}"
-              onclick="selectSortingSummary(${index}, event)"
-            >
-              <span class="sorting-summary-main">
-                <span class="no">${index + 1}</span>
-                <span class="name">${esc(name)}</span>
-              </span>
-              <span class="sorting-summary-chips">
-                <span class="${visual.kindClass}">種類:${esc(visual.kindLabel)}</span>
-                ${reviewBadge}
-                <span class="visual-chip visual-chip-status">${esc(analyzedText)}</span>
-              </span>
-            </button>
+        const active =
+          index === selectedIndex
+            ? " active"
+            : "";
+
+        const id =
+          String(
+            display.payment_document_ocr_import_id ||
+            ""
+          );
+
+        const name =
+          String(
+            display["ファイル名"] ||
+            ""
+          );
+
+        const documentType =
+          String(
+            display["書類種別"] ||
+            ""
+          );
+
+        const analysisStatus =
+          String(
+            display["解析ステータス状態"] ||
+            ""
+          );
+
+        const checked =
+          id &&
+          window.__checkedOcrImportIds.has(id)
+            ? " checked"
+            : "";
+
+        const disabled =
+          id ? "" : " disabled";
+
+        const visual =
+          window.buildSortingVisual(item);
+
+        return `
+          <div class="sorting-item-card ${visual.rowClass}${active}">
+            <div class="sorting-row-head">
+              <input
+                type="checkbox"
+                class="sorting-check"
+                aria-label="仕分け対象に選択"
+                data-index="${index}"
+                ${checked}
+                ${disabled}
+                onclick="event.stopPropagation()"
+                onchange="toggleSortingChecked(${index}, this.checked)"
+              >
+
+              <button
+                type="button"
+                class="sorting-summary-button item${active}"
+                onclick="selectSortingSummary(${index}, event)"
+              >
+                <span class="sorting-summary-main">
+                  <span class="no">${esc(id)}</span>
+                  <span class="name">${esc(name)}</span>
+                </span>
+
+                <span class="sorting-summary-chips">
+                  <span
+                    class="${visual.markerClass}"
+                    title="${esc(visual.specialist)}"
+                    aria-hidden="true"
+                  >●</span>
+
+                  <span class="visual-chip visual-chip-status">
+                    ${esc(documentType)}
+                  </span>
+
+                  <span class="visual-chip visual-chip-status">
+                    ${esc(analysisStatus)}
+                  </span>
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
-      `;
-    }).join("");
+        `;
+      }).join("");
 
     window.updateSelectedSortingSummary();
   };
@@ -3581,7 +3658,6 @@ async function runSelectedAnalyses() {
     item.__aiSteps = data.ai_steps || [];
     item.__aiRawResult = data;
   };
-
   window.runAnalysisForItemIndex = async function(index, options = {}) {
     if (
       !Array.isArray(items) ||
@@ -3721,6 +3797,7 @@ async function runSelectedAnalyses() {
           JSON.stringify(stepNames)
         );
       }
+
       item.__visibleFieldLabels =
         Array.isArray(
           data.visible_field_labels
@@ -3866,7 +3943,6 @@ async function runSelectedAnalyses() {
       };
     }
   };
-
   window.runSelectedAnalyses = async function() {
     const indexes = window.selectedSortingIndexes();
 
@@ -3947,7 +4023,6 @@ async function runSelectedAnalyses() {
       )
     );
   };
-
   window.runSelectedSpecialistRouting = async function() {
     const indexes = window.selectedSortingIndexes();
 
@@ -4235,6 +4310,48 @@ async function loadItems() {
     setAnalysisValue("analysisDuplicateStatus", item.duplicateOfFileName ? ("重複元: " + item.duplicateOfFileName) : "");
   }
 
+  function applyBasicAnalysisDisplayFromItem(item) {
+    const display =
+      item &&
+      item.basicAnalysisDisplay &&
+      typeof item.basicAnalysisDisplay === "object"
+        ? item.basicAnalysisDisplay
+        : {};
+
+    setAiSelectByMaster(
+      document.getElementById(
+        "analysisAiDocumentKind"
+      ),
+      "書類種別",
+      display["書類種別"] || ""
+    );
+
+    setAiSelectByMaster(
+      document.getElementById(
+        "analysisPaymentSourceType"
+      ),
+      "取込媒体",
+      display["取込媒体"] || ""
+    );
+
+    setAiSelectByMaster(
+      document.getElementById(
+        "analysisAnalysisSystemLabel"
+      ),
+      "専門解析先",
+      display["専門解析先"] || ""
+    );
+
+    setAnalysisValue(
+      "analysisAiConfidence",
+      display["信頼度"] || ""
+    );
+
+    setAnalysisValue(
+      "analysisAiReason",
+      display["理由"] || ""
+    );
+  }
   /* HD_ORIGIN_RECORD_NAVIGATION_20260712_START */
   function updateRecordNavigationControls() {
     const total = Array.isArray(items) ? items.length : 0;
@@ -4292,7 +4409,11 @@ async function loadItems() {
   }
   /* HD_ORIGIN_RECORD_NAVIGATION_20260712_END */
   function selectItem(index) {
-    if (!Array.isArray(items) || index < 0 || index >= items.length) {
+    if (
+      !Array.isArray(items) ||
+      index < 0 ||
+      index >= items.length
+    ) {
       updateRecordNavigationControls();
       return;
     }
@@ -4302,51 +4423,55 @@ async function loadItems() {
 
     updateRecordNavigationControls();
 
-    document.querySelectorAll(".item").forEach(function(el, i) {
-      el.classList.toggle("active", i === index);
-    });
+    document.querySelectorAll(".item").forEach(
+      function(el, i) {
+        el.classList.toggle(
+          "active",
+          i === index
+        );
+      }
+    );
 
-    const ocrValue = item.ocrRawText || item.ocrTextPreview || "";
-    document.getElementById("ocrText").value = ocrValue;
+    const ocrValue =
+      item.ocrRawText ||
+      item.ocrTextPreview ||
+      "";
+
+    document.getElementById(
+      "ocrText"
+    ).value = ocrValue;
+
     resetDocumentPreviewRotation(false);
     setDocumentPreview(item);
+
     clearAnalysisFields();
     setInitialAiOnlyView();
+
     fillAnalysisFromItem(item);
-    const savedBasicAnalysis =
-      restoreSavedBasicAnalysisToItem(item);
 
-    if (savedBasicAnalysis) {
-      if (
-        typeof applyAnalysisResultToFormHardDebug ===
-        "function"
-      ) {
-        applyAnalysisResultToFormHardDebug(
-          savedBasicAnalysis
-        );
-      }
+    applyBasicAnalysisDisplayFromItem(
+      item
+    );
 
-      if (
-        typeof showVisibleFieldsOnly ===
-        "function"
-      ) {
-        showVisibleFieldsOnly(
-          item.__visibleFieldLabels || [
-            "会計区分",
-            "専門解析先",
-            "発行日",
-            "信頼度",
-            "理由"
-          ]
-        );
-      }
+    if (
+      typeof showVisibleFieldsOnly ===
+      "function"
+    ) {
+      showVisibleFieldsOnly([
+        "書類種別",
+        "取込媒体",
+        "専門解析先",
+        "信頼度",
+        "理由"
+      ]);
     }
 
     setBottomOcrText(ocrValue);
 
-    showResult("原本画像とOCR本文を読み込みました。");
-}
-
+    showResult(
+      "原本画像とOCR本文を読み込みました。"
+    );
+  }
   function showPlanned(name) {
     const item = selectedIndex >= 0 ? items[selectedIndex] : null;
 

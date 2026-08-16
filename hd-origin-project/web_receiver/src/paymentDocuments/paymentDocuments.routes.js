@@ -7987,6 +7987,47 @@ async function handlePaymentDocumentRoutes(req, res) {
         };
       });
 
+      /* HD_ORIGIN_BASIC_ANALYSIS_DISPLAY_VIEW_20260816_START */
+      const basicAnalysisDisplayResult = await db.query(`
+        SELECT
+          payment_document_ocr_import_id,
+          "ファイル名",
+          "書類種別",
+          "取込媒体",
+          "専門解析先",
+          "信頼度",
+          "理由",
+          "解析ステータス状態"
+        FROM "表示クエリ"."基礎解析表示クエリ"
+      `);
+
+      const basicAnalysisDisplayByOcrId =
+        new Map(
+          basicAnalysisDisplayResult.rows.map(row => [
+            String(
+              row.payment_document_ocr_import_id
+            ),
+            row
+          ])
+        );
+
+      items.forEach(item => {
+        const paymentDocumentOcrImportId =
+          String(
+            item.payment_document_ocr_import_id ||
+            item.paymentDocumentOcrImportId ||
+            ""
+          );
+
+        item.payment_document_ocr_import_id =
+          paymentDocumentOcrImportId;
+
+        item.basicAnalysisDisplay =
+          basicAnalysisDisplayByOcrId.get(
+            paymentDocumentOcrImportId
+          ) || {};
+      });
+      /* HD_ORIGIN_BASIC_ANALYSIS_DISPLAY_VIEW_20260816_END */
       sendJson(res, 200, {
         ok: true,
         source:

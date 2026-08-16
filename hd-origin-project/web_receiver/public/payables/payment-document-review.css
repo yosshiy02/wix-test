@@ -1727,3 +1727,38 @@ body.hd-analyze-busy .action-ai {
 }
 /* HD_ORIGIN_RECORD_NAVIGATION_20260712_END */
 
+
+/* HD_ORIGIN_STAGE1_BASIC_FIELDS_20260816_START */
+.stage1-sorting-block .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.stage1-sorting-block .form-grid label:has(#analysisAiReason) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .stage1-sorting-block .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stage1-sorting-block .form-grid label:has(#analysisAiReason) {
+    grid-column: auto;
+  }
+}
+/* HD_ORIGIN_STAGE1_BASIC_FIELDS_20260816_END */
+
+
+/* HD_ORIGIN_SPECIALIST_COLOR_MARK_20260816_START */
+.sorting-specialist-mark {
+  display: inline-block;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1;
+}
+/* HD_ORIGIN_SPECIALIST_COLOR_MARK_20260816_END */
