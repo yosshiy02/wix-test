@@ -94,7 +94,7 @@ HD Origin Project スタート文書
 - 専門解析はStage3 specialistだけを実行する。
 - 専門解析結果のdraft、fields、visible_field_labels、warningsを保存する。
 - 共通保存APIは /api/payment-documents/specialist-analysis-results/save。
-- payment_document_ocr_imports.latest_specialist_analysis_idを更新する。
+- payment_document_ocr_imports.latest_specialist_analysis_result_idを更新する。
 - 人間修正時は画面で保持しているanalysis_system_codeを使用する。
 - 保存時に専門AI結果を固定フォーム項目だけへ丸め込まない。
 
@@ -123,7 +123,7 @@ HD Origin Project スタート文書
 - Web支払書類フローの原因説明にlegacyを持ち出さない。
 
 [生成情報]
-生成日時: 2026/8/14 22:03:46
+生成日時: 2026/8/16 13:12:05
 PC名: USER-PC
 OS: win32 10.0.19045 x64
 Node.js: v24.18.0
@@ -1010,8 +1010,6 @@ hd-origin-project\
 │  │  │  ├─ masters.routes.js
 │  │  │  ├─ masters.routes.js.bak_fix_20260626_203047
 │  │  │  └─ masters.routes.js.bak_fix_20260626_203103
-│  │  ├─ migrations\
-│  │  │  └─ migration.service.js
 │  │  ├─ payables\
 │  │  │  ├─ payables.repository.js
 │  │  │  └─ payables.routes.js
@@ -1117,13 +1115,11 @@ hd-origin-project\
 │  │  ├─ projectStatus.js.before_sorting_reference_cleanup
 │  │  ├─ response.js
 │  │  └─ static.js
-│  ├─ _apply_baseline_migration_for_gpt.js
 │  ├─ _check_account_title_id_refs_for_gpt.js
 │  ├─ _check_account_titles_id_and_code_for_gpt.js
 │  ├─ _check_db_connection_fixed_for_gpt.js
 │  ├─ _check_env_db_user_for_gpt.js
 │  ├─ _check_latest_receipt_ai_purpose_for_gpt.js
-│  ├─ _check_migration_snapshot_for_gpt.js
 │  ├─ _check_purpose_master_for_gpt_result.txt
 │  ├─ _check_purpose_master_for_gpt.js
 │  ├─ _check_purpose_master_utf8_for_gpt.js
@@ -1211,6 +1207,7 @@ hd-origin-project\
 ├─ env_initializer.py
 ├─ GPT_WORKFLOW_HANDOFF_MEMO.txt
 ├─ HD_ORIGIN_PC_RULES.txt
+├─ HD_ORIGIN_RESTART_IN_PROGRESS.json
 ├─ HD_ORIGIN_RUNTIME_PATHS.txt
 ├─ MASTER_DATA_COMPLETE_LIST.txt
 ├─ MASTER_DATA_LIST.txt

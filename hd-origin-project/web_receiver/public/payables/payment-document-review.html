@@ -169,12 +169,10 @@
             </label>
             <label>
               取込媒体
-              <select class="analysis-field master-select"
-                      id="analysisPaymentSourceType"
-                      data-master-type="payment_source_types"
-                      data-master-label="取込媒体">
-                <option value="">マスタ読込中.</option>
-              </select>
+              <input class="analysis-field"
+                     type="text"
+                     id="analysisPaymentSourceType"
+                     readonly>
             </label>
 
             <label hidden aria-hidden="true" data-internal-field="payment-destination">
@@ -4326,21 +4324,86 @@ async function loadItems() {
       display["書類種別"] || ""
     );
 
-    setAiSelectByMaster(
-      document.getElementById(
-        "analysisPaymentSourceType"
-      ),
-      "取込媒体",
+    setAnalysisValue(
+      "analysisPaymentSourceType",
       display["取込媒体"] || ""
     );
 
-    setAiSelectByMaster(
+    const analysisSystemSelect =
       document.getElementById(
         "analysisAnalysisSystemLabel"
-      ),
-      "専門解析先",
-      display["専門解析先"] || ""
-    );
+      );
+
+    if (analysisSystemSelect) {
+      const analysisSystemLabel =
+        String(
+          display["専門解析先"] || ""
+        ).trim();
+
+      Array.from(
+        analysisSystemSelect.options || []
+      ).forEach(option => {
+        if (
+          option &&
+          option.dataset &&
+          option.dataset.basicAnalysisDisplayView === "1"
+        ) {
+          option.remove();
+        }
+      });
+
+      if (!analysisSystemLabel) {
+        analysisSystemSelect.value = "";
+      } else {
+        const normalizedLabel =
+          analysisSystemLabel
+            .replace(/[　\s]+/g, "")
+            .toLowerCase();
+
+        const matchedOption =
+          Array.from(
+            analysisSystemSelect.options || []
+          ).find(option => {
+            const values = [
+              option.value,
+              option.textContent,
+              option.dataset && option.dataset.name,
+              option.dataset && option.dataset.code
+            ];
+
+            return values.some(value =>
+              String(value || "")
+                .replace(/[　\s]+/g, "")
+                .toLowerCase() ===
+              normalizedLabel
+            );
+          });
+
+        if (matchedOption) {
+          analysisSystemSelect.value =
+            matchedOption.value;
+        } else {
+          const displayOption =
+            document.createElement("option");
+
+          displayOption.value =
+            analysisSystemLabel;
+
+          displayOption.textContent =
+            analysisSystemLabel;
+
+          displayOption.dataset.basicAnalysisDisplayView =
+            "1";
+
+          analysisSystemSelect.appendChild(
+            displayOption
+          );
+
+          analysisSystemSelect.value =
+            analysisSystemLabel;
+        }
+      }
+    }
 
     setAnalysisValue(
       "analysisAiConfidence",
