@@ -232,6 +232,16 @@ set "DB_PORT=5432"
 set "DB_NAME=hd_origin_project"
 set "DB_USER=postgres"
 
+set "VPN_DDNS_HOST=vpn393944390.softether.net"
+set "VPN_PORT=443"
+set "VPN_HUB=DEFAULT"
+set "VPN_USER=hdorigin_vpn01"
+set "VPN_ACCOUNT=HDORIGIN_REMOTE"
+set "VPN_SERVER_IP=10.250.0.1"
+set "VPN_CLIENT_IP=10.250.0.2"
+set "VPNCMD_PATH="
+set "VPN_SERVER_CERT_PATH="
+
 set "BACKUP_KEEP_NORMAL=10"
 set "BACKUP_KEEP_BEFORE_RESTORE=3"
 set "PROJECT_BACKUP_KEEP=5"
@@ -279,6 +289,12 @@ if not defined HDDBTEST_ROOT (
 )
 
 set "HD_ORIGIN_ENV_PATH=%HDDBTEST_ROOT%\HDDB_PROJECT\ORIGIN\.env"
+
+set "VPN_SERVER_CERT_PATH=%HDDBTEST_ROOT%\HDDB_PROJECT\ORIGIN\VPN\HDORIGIN-VPN-Server-Public.cer"
+
+if exist "%PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=%PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe"
+if not defined VPNCMD_PATH if exist "C:\Program Files\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=C:\Program Files\SoftEther VPN Client\vpncmd.exe"
+if not defined VPNCMD_PATH if exist "C:\Program Files (x86)\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=C:\Program Files (x86)\SoftEther VPN Client\vpncmd.exe"
 set "DROPBOX_PATH=%DROPBOX_ROOT%"
 
 rem --------------------------------
@@ -513,6 +529,18 @@ if not exist "%WEB_DIR%\node_modules" (
     )
 )
 
+if /I "%HD_ORIGIN_LAUNCH_MODE%"=="NORMAL" (
+    call :ENSURE_NORMAL_VPN_DB
+    if errorlevel 1 (
+        echo.
+        echo ERROR: NORMAL mode could not reach PostgreSQL through VPN.
+        echo DB_HOST=%DB_HOST%
+        echo DB_PORT=%DB_PORT%
+        echo.
+        exit /b 1
+    )
+)
+
 echo Starting server.js...
 echo URL: http://localhost:%PORT%
 echo.
@@ -590,6 +618,15 @@ exit /b 0
 >> "%RUNTIME_PATHS_FILE%" echo DB_PORT=!DB_PORT!
 >> "%RUNTIME_PATHS_FILE%" echo DB_NAME=!DB_NAME!
 >> "%RUNTIME_PATHS_FILE%" echo DB_USER=!DB_USER!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_DDNS_HOST=!VPN_DDNS_HOST!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_PORT=!VPN_PORT!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_HUB=!VPN_HUB!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_USER=!VPN_USER!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_ACCOUNT=!VPN_ACCOUNT!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_SERVER_IP=!VPN_SERVER_IP!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_CLIENT_IP=!VPN_CLIENT_IP!
+>> "%RUNTIME_PATHS_FILE%" echo VPNCMD_PATH=!VPNCMD_PATH!
+>> "%RUNTIME_PATHS_FILE%" echo VPN_SERVER_CERT_PATH=!VPN_SERVER_CERT_PATH!
 >> "%RUNTIME_PATHS_FILE%" echo PG_BIN_PATH=!PG_BIN_PATH!
 >> "%RUNTIME_PATHS_FILE%" echo BACKUP_DIR=!BACKUP_DIR!
 >> "%RUNTIME_PATHS_FILE%" echo BACKUP_KEEP_NORMAL=!BACKUP_KEEP_NORMAL!
@@ -782,6 +819,57 @@ for /f "delims=" %%N in ('where npm.cmd 2^>nul') do (
     if not defined NPM_PATH set "NPM_PATH=%%N"
 )
 
+exit /b 0
+
+
+:ENSURE_NORMAL_VPN_DB
+if /I not "%HD_ORIGIN_LAUNCH_MODE%"=="NORMAL" exit /b 0
+
+echo.
+echo Checking NORMAL mode PostgreSQL connection...
+echo TARGET=%DB_HOST%:%DB_PORT%
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$c=New-Object System.Net.Sockets.TcpClient;try{$a=$c.BeginConnect('%DB_HOST%',%DB_PORT%,$null,$null);if(-not $a.AsyncWaitHandle.WaitOne(800,$false)){exit 1};$c.EndConnect($a);exit 0}catch{exit 1}finally{$c.Close()}"
+
+if not errorlevel 1 (
+    echo PostgreSQL connection = OK
+    exit /b 0
+)
+
+echo PostgreSQL connection = NOT REACHABLE
+echo SoftEther VPN connection will be attempted.
+
+if not defined VPNCMD_PATH (
+    echo ERROR: VPNCMD_PATH was not found.
+    exit /b 1
+)
+
+if not exist "%VPNCMD_PATH%" (
+    echo ERROR: vpncmd.exe was not found.
+    echo VPNCMD_PATH=%VPNCMD_PATH%
+    exit /b 1
+)
+
+echo VPN_ACCOUNT=%VPN_ACCOUNT%
+echo VPN_SERVER=%VPN_DDNS_HOST%:%VPN_PORT%
+
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountConnect "%VPN_ACCOUNT%"
+
+if errorlevel 1 (
+    echo ERROR: SoftEther AccountConnect failed.
+    echo VPN_ACCOUNT=%VPN_ACCOUNT%
+    exit /b 1
+)
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false;for($i=0;$i -lt 6;$i++){$c=New-Object System.Net.Sockets.TcpClient;try{$a=$c.BeginConnect('%DB_HOST%',%DB_PORT%,$null,$null);if($a.AsyncWaitHandle.WaitOne(800,$false)){try{$c.EndConnect($a);$ok=$true}catch{}}}catch{}finally{$c.Close()};if($ok){break};Start-Sleep -Milliseconds 500};if($ok){exit 0}else{exit 1}"
+
+if errorlevel 1 (
+    echo ERROR: VPN command completed, but PostgreSQL is still unreachable.
+    echo TARGET=%DB_HOST%:%DB_PORT%
+    exit /b 1
+)
+
+echo PostgreSQL connection through VPN = OK
 exit /b 0
 
 
