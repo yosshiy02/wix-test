@@ -236,9 +236,9 @@ set "VPN_DDNS_HOST=vpn393944390.softether.net"
 set "VPN_PORT=443"
 set "VPN_HUB=DEFAULT"
 set "VPN_USER=hdorigin_vpn01"
-set "VPN_ACCOUNT=HDORIGIN_REMOTE"
+set "VPN_ACCOUNT=HDORIGIN_REMOTE_TEST"
 set "VPN_SERVER_IP=10.250.0.1"
-set "VPN_CLIENT_IP=10.250.0.2"
+set "VPN_CLIENT_IP="
 set "VPNCMD_PATH="
 set "VPN_SERVER_CERT_PATH="
 
@@ -291,11 +291,20 @@ if not defined HDDBTEST_ROOT (
 set "HD_ORIGIN_ENV_PATH=%HDDBTEST_ROOT%\HDDB_PROJECT\ORIGIN\.env"
 
 set "VPN_SERVER_CERT_PATH=%HDDBTEST_ROOT%\HDDB_PROJECT\ORIGIN\VPN\HDORIGIN-VPN-Server-Public.cer"
+set "VPN_IP_REGISTRY_PATH=%HDDBTEST_ROOT%\HDDB_PROJECT\ORIGIN\VPN\HD_ORIGIN_VPN_CLIENT_IPS.txt"
 
-if exist "%PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=%PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe"
+if exist "%TEMP_PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=%TEMP_PROJECT_DRIVE%\SoftEther VPN Client\vpncmd.exe"
 if not defined VPNCMD_PATH if exist "C:\Program Files\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=C:\Program Files\SoftEther VPN Client\vpncmd.exe"
 if not defined VPNCMD_PATH if exist "C:\Program Files (x86)\SoftEther VPN Client\vpncmd.exe" set "VPNCMD_PATH=C:\Program Files (x86)\SoftEther VPN Client\vpncmd.exe"
 set "DROPBOX_PATH=%DROPBOX_ROOT%"
+
+if /I "%HD_ORIGIN_LAUNCH_MODE%"=="NORMAL" (
+    call :RESOLVE_NORMAL_VPN_CLIENT_IP
+    if errorlevel 1 (
+        echo ERROR: VPN_CLIENT_IP could not be resolved from PC rules.
+        exit /b 1
+    )
+)
 
 rem --------------------------------
 rem 5. Finalize project paths
@@ -436,11 +445,11 @@ if not defined DB_PASSWORD (
     exit /b 1
 )
 
-powershell -NoProfile -Command "$p = Read-Host 'サーバー起動パスワード' -AsSecureString; $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($p); try { $v = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b); if ($v -ceq $env:DB_PASSWORD) { exit 0 } else { exit 1 } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b) }"
+powershell -NoProfile -Command "$p = Read-Host '?T?[?o?[?N???p?X???[?h' -AsSecureString; $b = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($p); try { $v = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b); if ($v -ceq $env:DB_PASSWORD) { exit 0 } else { exit 1 } } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b) }"
 
 if errorlevel 1 (
     echo.
-    echo ERROR: パスワードが違います。
+    echo ERROR: ?p?X???[?h????????B
     echo.
     pause
     exit /b 1
@@ -449,13 +458,13 @@ if errorlevel 1 (
 :HD_ORIGIN_SELECT_SERVER_MODE
 echo.
 echo ============================================================
-echo サーバー起動モード
+echo ?T?[?o?[?N?????[?h
 echo ============================================================
-echo [1] サーバーモード
-echo [2] サーバー引っ越し起動
+echo [1] ?T?[?o?[???[?h
+echo [2] ?T?[?o?[?????z???N??
 echo.
 set "HD_ORIGIN_SERVER_CHOICE="
-set /p "HD_ORIGIN_SERVER_CHOICE=選択してください [1-2]: "
+set /p "HD_ORIGIN_SERVER_CHOICE=?I???????????? [1-2]: "
 
 if "%HD_ORIGIN_SERVER_CHOICE%"=="1" (
     set "HD_ORIGIN_SERVER_MODE=SERVER"
@@ -468,7 +477,7 @@ if "%HD_ORIGIN_SERVER_CHOICE%"=="2" (
 )
 
 echo.
-echo ERROR: 1 または 2 を入力してください。
+echo ERROR: 1 ????? 2 ????????????????B
 goto HD_ORIGIN_SELECT_SERVER_MODE
 
 :HD_ORIGIN_SERVER_MODE_DONE
@@ -824,55 +833,77 @@ exit /b 0
 
 :ENSURE_NORMAL_VPN_DB
 if /I not "%HD_ORIGIN_LAUNCH_MODE%"=="NORMAL" exit /b 0
-
+call :ENSURE_NORMAL_VPN_CLIENT
+if errorlevel 1 exit /b 1
+call :ENSURE_VPN2_IPV4
+if errorlevel 1 exit /b 1
 echo.
 echo Checking NORMAL mode PostgreSQL connection...
 echo TARGET=%DB_HOST%:%DB_PORT%
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$c=New-Object System.Net.Sockets.TcpClient;try{$a=$c.BeginConnect('%DB_HOST%',%DB_PORT%,$null,$null);if(-not $a.AsyncWaitHandle.WaitOne(800,$false)){exit 1};$c.EndConnect($a);exit 0}catch{exit 1}finally{$c.Close()}"
-
-if not errorlevel 1 (
-    echo PostgreSQL connection = OK
-    exit /b 0
-)
-
+call :TEST_NORMAL_VPN_DB
+if not errorlevel 1 (echo PostgreSQL connection = OK&exit /b 0)
 echo PostgreSQL connection = NOT REACHABLE
 echo SoftEther VPN connection will be attempted.
-
-if not defined VPNCMD_PATH (
-    echo ERROR: VPNCMD_PATH was not found.
-    exit /b 1
-)
-
-if not exist "%VPNCMD_PATH%" (
-    echo ERROR: vpncmd.exe was not found.
-    echo VPNCMD_PATH=%VPNCMD_PATH%
-    exit /b 1
-)
-
 echo VPN_ACCOUNT=%VPN_ACCOUNT%
 echo VPN_SERVER=%VPN_DDNS_HOST%:%VPN_PORT%
-
 "%VPNCMD_PATH%" localhost /CLIENT /CMD AccountConnect "%VPN_ACCOUNT%"
-
-if errorlevel 1 (
-    echo ERROR: SoftEther AccountConnect failed.
-    echo VPN_ACCOUNT=%VPN_ACCOUNT%
-    exit /b 1
-)
-
+if errorlevel 1 (echo ERROR: SoftEther AccountConnect failed.&echo VPN_ACCOUNT=%VPN_ACCOUNT%&exit /b 1)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false;for($i=0;$i -lt 6;$i++){$c=New-Object System.Net.Sockets.TcpClient;try{$a=$c.BeginConnect('%DB_HOST%',%DB_PORT%,$null,$null);if($a.AsyncWaitHandle.WaitOne(800,$false)){try{$c.EndConnect($a);$ok=$true}catch{}}}catch{}finally{$c.Close()};if($ok){break};Start-Sleep -Milliseconds 500};if($ok){exit 0}else{exit 1}"
-
-if errorlevel 1 (
-    echo ERROR: VPN command completed, but PostgreSQL is still unreachable.
-    echo TARGET=%DB_HOST%:%DB_PORT%
-    exit /b 1
-)
-
+if errorlevel 1 (echo ERROR: VPN command completed, but PostgreSQL is still unreachable.&echo TARGET=%DB_HOST%:%DB_PORT%&exit /b 1)
 echo PostgreSQL connection through VPN = OK
 exit /b 0
 
+:TEST_NORMAL_VPN_DB
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$c=New-Object System.Net.Sockets.TcpClient;try{$a=$c.BeginConnect('%DB_HOST%',%DB_PORT%,$null,$null);if(-not $a.AsyncWaitHandle.WaitOne(800,$false)){exit 1};$c.EndConnect($a);exit 0}catch{exit 1}finally{$c.Close()}"
+exit /b %ERRORLEVEL%
 
+:ENSURE_NORMAL_VPN_CLIENT
+sc query "sevpnclient" >nul 2>nul
+if errorlevel 1 (echo ERROR: SoftEther VPN Client サービスが見つかりません。&echo NORMAL起動には SoftEther VPN Client のインストールが必要です。&exit /b 1)
+if not defined VPNCMD_PATH (echo ERROR: VPNCMD_PATH was not found.&exit /b 1)
+if not exist "%VPNCMD_PATH%" (echo ERROR: vpncmd.exe was not found.&echo VPNCMD_PATH=%VPNCMD_PATH%&exit /b 1)
+"%VPNCMD_PATH%" localhost /CLIENT /CMD NicGetSetting VPN2 >nul 2>nul
+if errorlevel 1 (
+ echo Creating SoftEther virtual LAN card: VPN2
+ "%VPNCMD_PATH%" localhost /CLIENT /CMD NicCreate VPN2
+ if errorlevel 1 (echo ERROR: SoftEther virtual LAN card VPN2 could not be created.&exit /b 1)
+)
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountGet "%VPN_ACCOUNT%" >nul 2>nul
+if not errorlevel 1 exit /b 0
+if not exist "%VPN_SERVER_CERT_PATH%" (echo ERROR: VPN server public certificate was not found.&echo VPN_SERVER_CERT_PATH=%VPN_SERVER_CERT_PATH%&exit /b 1)
+set "VPN_CERT_SHA1="
+for /f "delims=" %%H in ('powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "(New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($env:VPN_SERVER_CERT_PATH)).Thumbprint"') do set "VPN_CERT_SHA1=%%H"
+if /I not "%VPN_CERT_SHA1%"=="3D9419248C89796365654A26589ADD51823A5230" (echo ERROR: VPN server public certificate SHA1 did not match the confirmed value.&exit /b 1)
+echo Creating SoftEther account: %VPN_ACCOUNT%
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountCreate "%VPN_ACCOUNT%" /SERVER:"%VPN_DDNS_HOST%:%VPN_PORT%" /HUB:"%VPN_HUB%" /USERNAME:"%VPN_USER%" /NICNAME:VPN2
+if errorlevel 1 exit /b 1
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountEncryptEnable "%VPN_ACCOUNT%"
+if errorlevel 1 exit /b 1
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountServerCertEnable "%VPN_ACCOUNT%"
+if errorlevel 1 exit /b 1
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountServerCertSet "%VPN_ACCOUNT%" /LOADCERT:"%VPN_SERVER_CERT_PATH%"
+if errorlevel 1 exit /b 1
+echo.
+echo VPNユーザーのパスワードを入力してください。
+echo 入力値は表示・ログ・プロジェクトファイルへ保存されません。
+"%VPNCMD_PATH%" localhost /CLIENT /CMD AccountPasswordSet "%VPN_ACCOUNT%" /TYPE:standard
+if errorlevel 1 (echo ERROR: VPN password was not accepted by SoftEther Client.&exit /b 1)
+exit /b 0
+
+:ENSURE_VPN2_IPV4
+call :FIND_CURRENT_VPN2_CLIENT_IP
+if /I "%TEMP_CURRENT_VPN2_CLIENT_IP%"=="%VPN_CLIENT_IP%" (
+ netsh interface ipv4 show addresses name="VPN2 - VPN Client" | findstr /C:"/24" >nul
+ if not errorlevel 1 exit /b 0
+)
+if defined TEMP_CURRENT_VPN2_CLIENT_IP (
+ echo %TEMP_CURRENT_VPN2_CLIENT_IP% | findstr /R /C:"^169\.254\." >nul
+ if errorlevel 1 (echo ERROR: VPN2 has an unexpected IPv4 address: %TEMP_CURRENT_VPN2_CLIENT_IP%&echo It was not changed to protect the existing network configuration.&exit /b 1)
+)
+echo Configuring VPN2 IPv4 address: %VPN_CLIENT_IP%/24
+netsh interface ipv4 set address name="VPN2 - VPN Client" source=static address=%VPN_CLIENT_IP% mask=255.255.255.0 gateway=none store=persistent
+if errorlevel 1 (echo ERROR: VPN2 IPv4 configuration failed.&exit /b 1)
+exit /b 0
 :FIND_PG_BIN_PATH
 for /f "delims=" %%P in ('where psql.exe 2^>nul') do (
     if not defined PG_BIN_PATH (
