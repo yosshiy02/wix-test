@@ -30,14 +30,7 @@ const MASTER_DEFS = {
     nameColumn: "tax_name",
     extraColumns: ["tax_category_code", "tax_rate"]
   },
-  vendors: {
-    type: "vendors",
-    label: "支払先",
-    table: "expenses.vendors",
-    idColumn: "vendor_id",
-    nameColumn: "vendor_name",
-    extraColumns: []
-  },
+
   target_people: {
     type: "target_people",
     label: "対象者",
@@ -135,14 +128,7 @@ const MASTER_DEFS = {
       "destination_url"
     ]
   },
-  accounting_categories: {
-    type: "accounting_categories",
-    label: "会計区分",
-    table: "\"マスターテーブル\".accounting_categories",
-    idColumn: "accounting_category_id",
-    nameColumn: "accounting_category_name",
-    extraColumns: ["accounting_category_code"]
-  },
+
   payable_kinds: {
     type: "payable_kinds",
     label: "未払種別",
@@ -268,6 +254,7 @@ function quoteIdent(value) {
 function quoteTable(tableName) {
   return String(tableName)
     .split(".")
+    .map(part => String(part).replace(/^"(.*)"$/, "$1"))
     .map(quoteIdent)
     .join(".");
 }

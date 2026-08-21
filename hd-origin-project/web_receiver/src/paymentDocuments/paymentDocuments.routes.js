@@ -7860,8 +7860,8 @@ async function handlePaymentDocumentRoutes(req, res) {
              o.latest_specialist_analysis_result_id
          AND s.is_current = TRUE
          AND (
-           ::boolean = FALSE
-           OR s.analysis_system_code = 
+           $1::boolean = FALSE
+           OR s.analysis_system_code = $3
          )
 
         WHERE

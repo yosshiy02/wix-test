@@ -1,4 +1,4 @@
-﻿# HD Origin Project PC Rules
+# HD Origin Project PC Rules
 # This file is used by start_hd_origin.bat.
 # One section per PC.
 #
@@ -14,6 +14,7 @@ EXCLUDE_DROPBOX_ROOT=E:\Dropbox
 [USER-PC]
 # New PC. Add rules here if needed.
 
+VPN_CLIENT_IP=10.250.0.2
 [2FLABO]
 # New PC. Add rules here if needed.
 
@@ -21,51 +22,51 @@ EXCLUDE_DROPBOX_ROOT=E:\Dropbox
 # New PC. Add rules here if needed.
 
 ============================================================
-[GPT作業用一時フォルダ運用ルール]
+[GPT��Ɨp�ꎞ�t�H���_�^�p���[��]
 ============================================================
 
-フォルダ名:
-GPTが使う一時ファイルフォルダ
+�t�H���_��:
+GPT���g���ꎞ�t�@�C���t�H���_
 
-目的:
-このフォルダは、GPTが確認するだけの場所ではなく、
-修正前確認、修正版作成、反映、UNDOまで管理するための一時作業場所とする。
+�ړI:
+���̃t�H���_�́AGPT���m�F���邾���̏ꏊ�ł͂Ȃ��A
+�C���O�m�F�A�C���ō쐬�A���f�AUNDO�܂ŊǗ����邽�߂̈ꎞ��Əꏊ�Ƃ���B
 
-基本構成:
-- before : 本体修正前のコピー
-- after  : 修正版ファイル
-- apply  : 本体へ反映するための手順・スクリプト
-- undo   : 修正前へ戻すための手順・スクリプト
-- memo   : 修正内容、確認結果、注意点のメモ
+��{�\��:
+- before : �{�̏C���O�̃R�s�[
+- after  : �C���Ńt�@�C��
+- apply  : �{�̂֔��f���邽�߂̎菇�E�X�N���v�g
+- undo   : �C���O�֖߂����߂̎菇�E�X�N���v�g
+- memo   : �C�����e�A�m�F���ʁA���ӓ_�̃���
 
-今後の修正手順:
-1. 本体ファイルを直接修正しない。
-2. まず対象ファイルを before にコピーする。
-3. after に修正版を作る。
-4. after 側で構文チェック・確認を行う。
-5. memo に修正内容、対象ファイル、確認結果を書く。
-6. GO が出た場合のみ apply の手順で本体へ反映する。
-7. 問題が出た場合は undo の手順で before から本体へ戻す。
+����̏C���菇:
+1. �{�̃t�@�C���𒼐ڏC�����Ȃ��B
+2. �܂��Ώۃt�@�C���� before �ɃR�s�[����B
+3. after �ɏC���ł����B
+4. after ���ō\���`�F�b�N�E�m�F���s���B
+5. memo �ɏC�����e�A�Ώۃt�@�C���A�m�F���ʂ������B
+6. GO ���o���ꍇ�̂� apply �̎菇�Ŗ{�̂֔��f����B
+7. ��肪�o���ꍇ�� undo �̎菇�� before ����{�֖̂߂��B
 
-注意:
-- DB、画像、実バックアップ、.env、秘密情報はこの運用でも勝手に削除・移動しない。
-- .env は収集対象にしない。
-- 本体反映前に、どのファイルをどう変えるかを明記する。
-- まとめて多数ファイルを直接上書きしない。
-- 1ファイルずつ、または小さな単位で確認する。
+����:
+- DB�A�摜�A���o�b�N�A�b�v�A.env�A�閧���͂��̉^�p�ł�����ɍ폜�E�ړ����Ȃ��B
+- .env �͎��W�Ώۂɂ��Ȃ��B
+- �{�̔��f�O�ɁA�ǂ̃t�@�C�����ǂ��ς��邩�𖾋L����B
+- �܂Ƃ߂đ����t�@�C���𒼐ڏ㏑�����Ȃ��B
+- 1�t�@�C�����A�܂��͏����ȒP�ʂŊm�F����B
 
 
-[GPTが使う一時ファイルフォルダ運用]
-- 使用フォルダ: GPTが使う一時ファイルフォルダ
-- before : 本体修正前のコピー
-- after  : GPTが作った修正版
-- apply  : 本体へ反映するPowerShellや手順
-- undo   : 修正前へ戻すPowerShellや手順
-- memo   : 確認結果・作業メモ・引継ぎメモ
-- 今後は本体へいきなり直接修正しない。
-- まず before に元ファイルをコピーし、after に修正版を作り、確認後に apply で本体反映する。
-- 問題が出た場合は undo の手順で before から本体へ戻す。
-- .env、秘密情報、DB、画像、実バックアップは勝手に削除・移動しない。
-【固定パス禁止ルール】
-PCは動的に変わる前提で扱う。PROJECT_ROOT、Dropbox、証憑、バックアップ、Node、PostgreSQL、Chrome 等のパスは固定パスで絶対に書かない。必ず HD_ORIGIN_RUNTIME_PATHS.txt、config.js、.env_path.txt、環境変数、または起動時に検出した値から動的に解決する。
+[GPT���g���ꎞ�t�@�C���t�H���_�^�p]
+- �g�p�t�H���_: GPT���g���ꎞ�t�@�C���t�H���_
+- before : �{�̏C���O�̃R�s�[
+- after  : GPT��������C����
+- apply  : �{�̂֔��f����PowerShell��菇
+- undo   : �C���O�֖߂�PowerShell��菇
+- memo   : �m�F���ʁE��ƃ����E���p������
+- ����͖{�̂ւ����Ȃ蒼�ڏC�����Ȃ��B
+- �܂� before �Ɍ��t�@�C�����R�s�[���Aafter �ɏC���ł����A�m�F��� apply �Ŗ{�̔��f����B
+- ��肪�o���ꍇ�� undo �̎菇�� before ����{�֖̂߂��B
+- .env�A�閧���ADB�A�摜�A���o�b�N�A�b�v�͏���ɍ폜�E�ړ����Ȃ��B
+�y�Œ�p�X�֎~���[���z
+PC�͓��I�ɕς��O��ň����BPROJECT_ROOT�ADropbox�A�؜߁A�o�b�N�A�b�v�ANode�APostgreSQL�AChrome ���̃p�X�͌Œ�p�X�Ő�΂ɏ����Ȃ��B�K�� HD_ORIGIN_RUNTIME_PATHS.txt�Aconfig.js�A.env_path.txt�A���ϐ��A�܂��͋N�����Ɍ��o�����l���瓮�I�ɉ�������B
 

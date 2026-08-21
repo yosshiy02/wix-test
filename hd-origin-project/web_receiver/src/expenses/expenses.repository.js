@@ -44,10 +44,14 @@ async function getMasters() {
       ORDER BY sort_order, tax_category_id
     `),
     pool.query(`
-      SELECT vendor_id, vendor_name
-      FROM expenses.vendors
-      WHERE is_active = TRUE
-      ORDER BY vendor_name
+      SELECT
+        "仕入先ID" AS vendor_id,
+        "仕入先名" AS vendor_name
+      FROM "マスターテーブル"."仕入先マスターテーブル"
+      WHERE "仕入先有効" = TRUE
+      ORDER BY
+        "仕入先表示順",
+        "仕入先ID"
       LIMIT 300
     `),
     pool.query(`
