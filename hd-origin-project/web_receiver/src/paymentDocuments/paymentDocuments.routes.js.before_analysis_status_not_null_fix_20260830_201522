@@ -1737,11 +1737,6 @@ async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileN
     const savedFileName = textOrEmpty(meta.savedFileName || fallbackFileName);
     const sha256 = textOrEmpty(meta.sha256 || meta.fileSha256 || meta.contentHash);
 
-    const paymentDocumentStatusFlow =
-      await getActivePaymentDocumentStatusFlow(client);
-    const analysisStatusId =
-      paymentDocumentStatusFlow.BASIC_ANALYSIS_WAITING;
-
     const result = await client.query(`
       INSERT INTO accounting.payment_document_ocr_imports (
         document_key,
@@ -1772,12 +1767,11 @@ async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileN
         saved_relative_path,
         saved_meta_relative_path,
         saved_at,
-        saved_by_page,
-        "解析ステータスID"
+        saved_by_page
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
         $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-        $21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+        $21,$22,$23,$24,$25,$26,$27,$28,$29
       )
       ON CONFLICT (document_key)
       DO UPDATE SET
@@ -1840,8 +1834,7 @@ async function upsertPaymentDocumentOcrImportWithTransaction(meta, fallbackFileN
       textOrEmpty(meta.savedRelativePath),
       textOrEmpty(meta.savedMetaRelativePath),
       dateOrNull(meta.savedAt),
-      textOrEmpty(meta.savedByPage),
-      analysisStatusId
+      textOrEmpty(meta.savedByPage)
     ]);
 
     await client.query("COMMIT");
