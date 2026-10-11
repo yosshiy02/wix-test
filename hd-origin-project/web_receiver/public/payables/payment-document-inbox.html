@@ -404,6 +404,21 @@
 
 
   async function preparePaymentDocumentImageForUpload(file) {
+    /* PAYMENT_DOCUMENT_PDF_UPLOAD_PASSTHROUGH_20260830 */
+    const isPdf =
+      String(file.type || "").toLowerCase() === "application/pdf" ||
+      /\.pdf$/i.test(String(file.name || ""));
+
+    if (isPdf) {
+      return {
+        dataUrl: await readFileAsDataUrl(file),
+        fileName: file.name,
+        mimeType: file.type || "application/pdf",
+        originalBytes: file.size,
+        uploadBytes: file.size,
+        compressed: false
+      };
+    }
     if (file.size <= PAYMENT_DOCUMENT_UPLOAD_MAX_BYTES) {
       return {
         dataUrl: await readFileAsDataUrl(file),

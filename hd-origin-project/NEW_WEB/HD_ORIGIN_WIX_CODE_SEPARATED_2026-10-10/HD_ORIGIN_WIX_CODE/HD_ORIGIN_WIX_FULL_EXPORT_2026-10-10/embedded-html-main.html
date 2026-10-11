@@ -1,0 +1,2469 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HD ORIGIN | Brand Shop</title>
+<style>
+html,body {
+  margin:0;
+  min-height:100%;
+  background:#f4f4f4;
+}
+</style>
+</head>
+<body>
+
+<hd-brand-shop></hd-brand-shop>
+
+<script>
+class HdBrandShop extends HTMLElement {
+
+  constructor() {
+    super();
+    this.attachShadow({mode:"open"});
+
+    // ========================================
+    // ブランド設定
+    // ========================================
+    this.brands = [
+      {
+        id:"sungenova",
+        name:"SUNGENOVA",
+        short:"NATURAL COMFORT",
+        background:"#eee7da",
+        accent:"#76634a",
+        colors:["#d3b58e","#ae875a","#e8dcca"],
+        description:"自然体で、心地よい毎日を。"
+      },
+      {
+        id:"lunafit",
+        name:"LUNA FIT",
+        short:"ACTIVE MOVEMENT",
+        background:"#0960d5",
+        accent:"#0877ef",
+        colors:["#82e6fa","#236be9","#152947"],
+        description:"自由な一歩を、もっと軽快に。"
+      },
+      {
+        id:"reina",
+        name:"REINA",
+        short:"TIMELESS ELEGANCE",
+        background:"#472638",
+        accent:"#95536f",
+        colors:["#dfb3c4","#79394f","#e7d9d4"],
+        description:"日常に、優雅さを。"
+      },
+      {
+        id:"moca",
+        name:"MOCA WALK",
+        short:"SLOW LIVING",
+        background:"#d6d0b9",
+        accent:"#66704c",
+        colors:["#bba67e","#6c7650","#ebe1c6"],
+        description:"自然体で楽しむ、日々の暮らし。"
+      },
+      {
+        id:"urban",
+        name:"URBAN STEP",
+        short:"CITY CULTURE",
+        background:"#171717",
+        accent:"#f26441",
+        colors:["#e3e3e3","#585858","#fc6a43"],
+        description:"都市を、自分のスタイルで。"
+      }
+    ];
+
+    // ========================================
+    // 模擬商品データ
+    // ========================================
+    const names = {
+      sungenova:[
+        "Natural Comfort",
+        "Daily Soft",
+        "Relax Walk"
+      ],
+      lunafit:[
+        "Motion Air",
+        "Velocity",
+        "Active Flex"
+      ],
+      reina:[
+        "Grace",
+        "Elegant Mary Jane",
+        "Royal Classic"
+      ],
+      moca:[
+        "Craft Walker",
+        "Soft Loafer",
+        "Natural Step"
+      ],
+      urban:[
+        "City Motion",
+        "Mono Runner",
+        "Street Form"
+      ]
+    };
+
+    this.products = [];
+
+    this.brands.forEach((brand,bi)=>{
+      Array.from({length:20},(_,i)=>{
+  const name=names[brand.id][i%names[brand.id].length]+" "+String(i+1).padStart(2,"0");
+        this.products.push({
+          id:String((bi+1)*100+i+1),
+          brand:brand.id,
+          name:name,
+          category:[
+            "コンフォート",
+            "カジュアル",
+            "ウォーキング"
+          ][i%3],
+          price:5900+bi*550+i*400,
+          colors:[
+            "ブラック",
+            "キャメル",
+            "ライトグレー"
+          ],
+          sizes:[
+            "22.5","23.0","23.5",
+            "24.0","24.5"
+          ],
+          shape:i,
+          description:
+            `${name}は、${brand.description}`+
+            "毎日の装いに合わせやすいデザインを"+
+            "イメージした模擬商品です。",
+          material:"未設定（模擬商品）",
+          origin:"未設定（模擬商品）",
+          care:"素材に応じたお手入れ方法を掲載予定です。"
+        });
+      });
+    });
+
+    // ========================================
+    // 状態管理
+    // ========================================
+    this.current = "sungenova";
+
+    this.category = "すべて";
+    this.filterColor = "すべて";
+    this.filterSize = "すべて";
+
+    this.cart = [];
+    this.activeProduct = null;
+
+    this.selectedColor = 0;
+    this.selectedSize = "23.5";
+    this.quantity = 1;
+
+    // 購入・商品説明タブ
+    this.detailTab = "buy";
+
+    this.menuOpen = false;
+    this.modalOpen = false;
+  }
+
+  connectedCallback() {
+    this.render();
+
+    this.keyHandler = e => {
+      if(e.key==="Escape" && this.modalOpen) {
+        this.closeModal();
+      }
+    };
+
+    document.addEventListener(
+      "keydown",this.keyHandler
+    );
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener(
+      "keydown",this.keyHandler
+    );
+  }
+
+  get brand() {
+    return this.brands.find(
+      b=>b.id===this.current
+    );
+  }
+
+  money(value) {
+    return "¥"+value.toLocaleString("ja-JP");
+  }
+
+  colorCode(color) {
+    return {
+      "ブラック":"#292929",
+      "キャメル":"#bd8953",
+      "ライトグレー":"#b8b8b8"
+    }[color] || "#888";
+  }
+
+  // ========================================
+  // 模擬商品画像SVG
+  // ========================================
+  shoe(color,shape=0) {
+    const c=this.colorCode(color);
+    const sole=shape===1?"#fff":"#e7e0d7";
+
+    const svg=`
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 600 400">
+      <rect width="600" height="400"
+            fill="#f2f0ed"/>
+      <ellipse cx="300" cy="326"
+               rx="220" ry="15"
+               fill="#d8d4cd"/>
+      <path d="
+        M70 267
+        Q110 218 177 220
+        L242 135
+        Q272 111 315 145
+        L391 219
+        Q447 249 512 270
+        Q544 283 524 310
+        L115 323
+        Q66 315 70 267Z"
+        fill="${c}"
+        stroke="#666"
+        stroke-width="3"/>
+      <path d="M77 306 Q281 346 525 298"
+        fill="none"
+        stroke="${sole}"
+        stroke-width="${shape===1?23:15}"/>
+      <path d="M217 223 L389 223"
+        stroke="#ddd"
+        stroke-width="7"/>
+      <path d="M251 152 L363 219"
+        stroke="#ddd"
+        stroke-width="5"/>
+    </svg>`;
+
+    return "data:image/svg+xml;charset=utf-8,"+
+      encodeURIComponent(svg);
+  }
+
+  // ========================================
+  // ブランドバナー画像
+  // ========================================
+  bannerArt(brand,index) {
+    const [a,c,d]=brand.colors;
+
+    const patterns=[
+      `<circle cx="260" cy="105" r="115"
+        fill="${d}" opacity=".8"/>
+       <path d="M30 270 Q130 80 350 210"
+        stroke="${c}" stroke-width="20"
+        fill="none" opacity=".35"/>`,
+
+      `<path d="M-80 290 L260 -50
+        L430 30 L90 370Z"
+        fill="${a}" opacity=".8"/>
+       <path d="M130 350 L440 40"
+        stroke="white" stroke-width="28"
+        opacity=".25"/>`,
+
+      `<circle cx="180" cy="170" r="125"
+        fill="none" stroke="${a}"
+        stroke-width="2"/>
+       <path d="M60 265 Q190 10 340 260"
+        fill="none" stroke="${a}"
+        stroke-width="3"/>`,
+
+      `<path d="M0 270 L350 60
+        L350 350 L0 350Z"
+        fill="${d}" opacity=".6"/>
+       <circle cx="260" cy="95" r="70"
+        fill="${a}" opacity=".6"/>`,
+
+      `<path d="M0 0 L120 0
+        L350 350 L230 350Z"
+        fill="${c}"/>
+       <path d="M260 0 L350 0
+        L90 350 L0 350Z"
+        fill="${d}" opacity=".7"/>`
+    ];
+
+    const svg=`
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 350 350">
+      <rect width="350" height="350"
+        fill="${brand.background}"/>
+      ${patterns[index]}
+      <text x="175" y="190"
+        text-anchor="middle"
+        fill="${index===1||index===4
+          ?"white":brand.accent}"
+        font-family="Arial"
+        font-size="35"
+        font-weight="bold"
+        opacity=".4">
+        ${String(index+1).padStart(2,"0")}
+      </text>
+    </svg>`;
+
+    return "data:image/svg+xml;charset=utf-8,"+
+      encodeURIComponent(svg);
+  }
+
+  // ========================================
+  // 商品絞り込み
+  // ========================================
+  filtered() {
+    return this.products.filter(p=>
+      p.brand===this.current &&
+      (
+        this.category==="すべて" ||
+        p.category===this.category
+      ) &&
+      (
+        this.filterColor==="すべて" ||
+        p.colors.includes(this.filterColor)
+      ) &&
+      (
+        this.filterSize==="すべて" ||
+        p.sizes.includes(this.filterSize)
+      )
+    );
+  }
+
+  // ========================================
+  // 商品一覧カード
+  // ========================================
+  productCards() {
+    return this.filtered().map(p=>`
+      <button class="product-card"
+              data-product="${p.id}">
+        <div class="product-photo">
+          <img
+            src="${this.shoe(p.colors[0],p.shape)}"
+            alt="${p.name}">
+        </div>
+
+        <div class="product-text">
+          <small>NO. ${p.id}</small>
+          <h3>${p.name}</h3>
+          <p>${this.money(p.price)}</p>
+          <span>VIEW PRODUCT →</span>
+        </div>
+      </button>
+    `).join("") ||
+    `<p class="empty">
+       該当する商品はありません。
+     </p>`;
+  }
+
+  // ========================================
+  // ブランドごとのデザイン
+  // ========================================
+  brandPage() {
+    const cards=this.productCards();
+
+    switch(this.current) {
+
+      // SUNGENOVA
+      case "sungenova":
+        return `
+        <div class="world natural">
+          <section class="natural-hero">
+            <div>
+              <small>THE COMFORT COLLECTION</small>
+              <h1>Natural<br>Comfort.</h1>
+              <p>心地よさを、日常に。</p>
+              <div class="line"></div>
+              <span>
+                静かに、やさしく、
+                毎日に寄り添う。
+              </span>
+            </div>
+
+            <div class="natural-feature">
+              <div class="natural-sun"></div>
+              <img src="${this.shoe("キャメル")}">
+            </div>
+          </section>
+
+          <section class="catalog">
+            <div class="natural-heading">
+              <small>01 / OUR COLLECTION</small>
+              <h2>Everyday Essentials</h2>
+            </div>
+            <div class="product-grid">
+              ${cards}
+            </div>
+          </section>
+        </div>`;
+
+      // LUNA FIT
+      case "lunafit":
+        return `
+        <div class="world sport">
+          <section class="sport-hero">
+            <div class="speed-lines"></div>
+            <small>
+              PERFORMANCE / COLLECTION 026
+            </small>
+            <h1>MOVE<br><em>BEYOND.</em></h1>
+            <img class="sport-shoe"
+              src="${this.shoe("ライトグレー",1)}">
+            <strong>
+              YOUR NEXT STEP STARTS HERE →
+            </strong>
+          </section>
+
+          <section class="catalog">
+            <h2>GEAR / 01</h2>
+            <div class="product-grid">
+              ${cards}
+            </div>
+          </section>
+        </div>`;
+
+      // REINA
+      case "reina":
+        return `
+        <div class="world elegant">
+          <section class="elegant-hero">
+            <small>
+              MAISON REINA — 2026 COLLECTION
+            </small>
+
+            <div class="elegant-frame">
+              <div class="ornament">✦</div>
+              <h1>REINA</h1>
+              <p>Elegance is timeless.</p>
+              <img src="${this.shoe("ブラック")}">
+            </div>
+
+            <span>
+              A quiet expression of beauty
+            </span>
+          </section>
+
+          <section class="catalog">
+            <div class="elegant-heading">
+              <small>THE EDITION</small>
+              <h2>Objects of Desire</h2>
+              <div class="fine-line"></div>
+            </div>
+            <div class="product-grid">
+              ${cards}
+            </div>
+          </section>
+        </div>`;
+
+      // MOCA WALK
+      case "moca":
+        return `
+        <div class="world craft">
+          <section class="craft-hero">
+            <div class="craft-stamp">
+              NATURAL GOODS<br>EST. 2026
+            </div>
+
+            <div class="craft-title">
+              <small>
+                THE DAILY GOODS / MOCA WALK
+              </small>
+              <h1>
+                Slow down.<br>Walk more.
+              </h1>
+              <p>歩くことを、楽しむ。</p>
+            </div>
+
+            <div class="craft-photo">
+              <img src="${this.shoe("キャメル")}">
+            </div>
+          </section>
+
+          <section class="catalog">
+            <h2>Our favorite things.</h2>
+            <p>
+              日常に溶け込む、
+              自然体のシューズ。
+            </p>
+            <div class="product-grid">
+              ${cards}
+            </div>
+          </section>
+        </div>`;
+
+      // URBAN STEP
+      default:
+        return `
+        <div class="world urban">
+          <section class="urban-hero">
+            <div class="urban-meta">
+              <span>URBAN STEP®</span>
+              <span>TOKYO / 2026</span>
+            </div>
+
+            <h1>
+              NO<br>LIMITS<span>.</span>
+            </h1>
+
+            <div class="urban-graphic">
+              <img src="${this.shoe("ブラック",1)}">
+            </div>
+
+            <div class="urban-caption">
+              <strong>THE CITY EDIT</strong>
+              <small>
+                FORM FOLLOWS MOVEMENT.
+              </small>
+            </div>
+          </section>
+
+          <section class="catalog">
+            <h2>01 / SELECTED OBJECTS</h2>
+            <div class="product-grid">
+              ${cards}
+            </div>
+          </section>
+        </div>`;
+    }
+  }
+
+  // ========================================
+  // メイン描画
+  // ========================================
+  render() {
+    const cartCount=this.cart.reduce(
+      (sum,p)=>sum+p.qty,0
+    );
+
+    this.shadowRoot.innerHTML=`
+    <style>
+      * { box-sizing:border-box; }
+
+      :host {
+        display:block;
+        width:100%;
+        font-family:Arial,"Noto Sans JP",sans-serif;
+        color:#222;
+      }
+
+      button,input,select { font:inherit; }
+      button { cursor:pointer; }
+      img { max-width:100%; }
+
+      [hidden] { display:none!important; }
+
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline:3px solid #478ada;
+        outline-offset:3px;
+      }
+
+      /* ====================================
+         ヘッダー
+      ==================================== */
+      .topbar {
+        height:72px;
+position:sticky;
+top:0;
+z-index:102;
+        background:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:0 4%;
+        border-bottom:1px solid #ddd;
+      }
+
+      .logo {
+        font-size:22px;
+        letter-spacing:4px;
+        font-weight:bold;
+      }
+
+      .head-actions {
+        display:flex;
+        gap:10px;
+      }
+
+      .outline {
+        border:1px solid #ddd;
+        background:white;
+        padding:10px 16px;
+      }
+
+      #menuToggle { display:none; }
+
+      /* ====================================
+         ブランドバナーメニュー
+      ==================================== */
+      .banner-menu {
+  position:sticky;
+  top:0;
+  z-index:100;
+        display:grid;
+        grid-template-columns:
+          repeat(5,minmax(0,1fr));
+        gap:3px;
+        background:#171717;
+        padding:3px;
+      }
+
+      .banner {
+        position:relative;
+        min-width:0;
+        height:70px;
+        overflow:hidden;
+        border:0;
+        padding:0;
+        background:#222;
+        color:white;
+        isolation:isolate;
+      }
+
+      .banner img {
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        display:block;
+        transition:
+          transform .6s ease,
+          filter .5s;
+        filter:brightness(.78);
+      }
+
+      .banner:hover img {
+        transform:scale(1.15);
+        filter:brightness(.55);
+      }
+
+      .banner:after {
+        content:"";
+        position:absolute;
+        inset:0;
+        background:linear-gradient(
+          transparent 20%,#0009
+        );
+        pointer-events:none;
+      }
+
+      .banner-label {
+        position:absolute;
+        bottom:18px;
+        left:10px;
+        right:10px;
+        z-index:1;
+        text-align:center;
+        font-size:clamp(10px,1.4vw,18px);
+        font-weight:bold;
+        letter-spacing:2px;
+        text-shadow:0 2px 8px #0008;
+      }
+
+      .banner-label small {
+        display:block;
+        font-size:9px;
+        letter-spacing:1px;
+        margin-top:7px;
+      }
+
+      .banner.active {
+        outline:4px solid #fff;
+        outline-offset:-4px;
+      }
+
+      .banner.active:before {
+        content:"";
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        height:5px;
+        background:#fff;
+        z-index:2;
+      }
+
+      /* ====================================
+         全体レイアウト
+      ==================================== */
+      .layout {
+        display:grid;
+        grid-template-columns:
+          225px minmax(0,1fr);
+        align-items:start;
+      }
+
+      .sidebar {
+        background:#fafafa;
+        border-right:1px solid #ddd;
+        height:calc(100vh - 76px);
+        overflow-y:scroll;
+        padding:32px 19px;
+        position:sticky;
+        top:0;
+      }
+
+      .sidebar-title {
+        font-size:12px;
+        letter-spacing:2px;
+        font-weight:bold;
+        margin:0 0 20px;
+      }
+
+      .category {
+        display:block;
+        width:100%;
+        text-align:left;
+        border:0;
+        background:none;
+        padding:13px 7px;
+        border-left:3px solid transparent;
+        font-size:13px;
+        color:#666;
+      }
+
+      .category.active {
+        border-left-color:#222;
+        color:#222;
+        background:#ececec;
+        font-weight:bold;
+      }
+
+      .filter-section {
+        margin-top:30px;
+        padding-top:25px;
+        border-top:1px solid #ddd;
+      }
+
+      .filter-section label {
+        display:block;
+        font-size:12px;
+        margin:15px 0 8px;
+      }
+
+      .filter-section select {
+        width:100%;
+        padding:11px;
+        background:#fff;
+        border:1px solid #ccc;
+      }
+
+      .side-note {
+        font-size:10px;
+        line-height:2;
+        color:#999;
+        margin-top:40px;
+      }
+
+.stage {
+        min-width:0;
+        height:100%;
+        overflow-y:auto;
+        overflow-x:hidden;
+      }
+
+      .world {
+        animation:worldIn .45s ease both;
+      }
+
+      @keyframes worldIn {
+        from {
+          opacity:0;
+          transform:translateY(12px);
+        }
+        to {
+          opacity:1;
+          transform:translateY(0);
+        }
+      }
+
+      /* ====================================
+         共通商品カード
+      ==================================== */
+      .catalog {
+        padding:55px 5%;
+        min-height:350px;
+      }
+
+      .product-grid {
+        display:grid;
+        grid-template-columns:
+          repeat(4,minmax(0,1fr));
+        gap:22px;
+        margin-top:30px;
+      }
+
+      .product-card {
+        border:0;
+        padding:0;
+        background:#fff;
+        text-align:left;
+        min-width:0;
+        width:100%;
+        transition:
+          transform .25s,
+          box-shadow .25s;
+      }
+
+      .product-card:hover {
+        transform:translateY(-5px);
+        box-shadow:0 10px 25px #0002;
+      }
+
+      .product-photo { overflow:hidden; }
+
+      .product-photo img {
+        display:block;
+        width:100%;
+        transition:transform .35s;
+      }
+
+      .product-card:hover img {
+        transform:scale(1.045);
+      }
+
+      .product-text { padding:17px; }
+
+      .product-text small {
+        font-size:10px;
+        letter-spacing:1px;
+      }
+
+      .product-text h3 {
+        font-size:16px;
+        font-weight:500;
+        margin:10px 0;
+      }
+
+      .product-text p { font-size:14px; }
+
+      .product-text span {
+        font-size:10px;
+        letter-spacing:1px;
+      }
+
+      .empty { grid-column:1/-1; }
+
+      /* ====================================
+         SUNGENOVA
+      ==================================== */
+      .natural {
+        background:#f3eee6;
+        color:#534533;
+        font-family:Georgia,"Yu Mincho",serif;
+      }
+
+      .natural-hero {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:30px;
+        align-items:center;
+        padding:70px 7%;
+        min-height:520px;
+      }
+
+      .natural-hero small {
+        letter-spacing:3px;
+        font-size:11px;
+      }
+
+      .natural-hero h1 {
+        font-size:clamp(45px,6vw,90px);
+        font-weight:400;
+        line-height:1.07;
+        margin:32px 0;
+      }
+
+      .natural-hero p { font-size:20px; }
+      .natural-hero span { font-size:12px; }
+
+      .line {
+        width:90px;
+        height:1px;
+        background:#aa9981;
+        margin:30px 0;
+      }
+
+      .natural-feature {
+        position:relative;
+        overflow:hidden;
+        background:#d6c6ad;
+        aspect-ratio:4/5;
+        display:grid;
+        place-items:center;
+      }
+
+      .natural-sun {
+        position:absolute;
+        width:55%;
+        aspect-ratio:1;
+        background:#f5e7cc;
+        border-radius:50%;
+        right:10%;
+        top:10%;
+      }
+
+      .natural-feature img {
+        position:relative;
+        transform:rotate(-10deg);
+      }
+
+      .natural-heading { text-align:center; }
+
+      .natural-heading small {
+        letter-spacing:3px;
+        font-size:11px;
+      }
+
+      .natural-heading h2 {
+        font-size:39px;
+        font-weight:400;
+      }
+
+      .natural .product-card {
+        background:#faf8f5;
+      }
+
+      .natural .product-text {
+        text-align:center;
+      }
+
+      /* ====================================
+         LUNA FIT
+      ==================================== */
+      .sport {
+        background:#d9eefb;
+        color:#102b4b;
+        font-family:Arial,sans-serif;
+      }
+
+      .sport-hero {
+        position:relative;
+        overflow:hidden;
+        min-height:540px;
+        padding:55px 6%;
+        color:white;
+        background:linear-gradient(
+          125deg,
+          #092b6b,
+          #166cef 65%,
+          #32d6f3
+        );
+      }
+
+      .sport-hero small { letter-spacing:3px; }
+
+      .sport-hero h1 {
+        position:relative;
+        z-index:2;
+        font-size:clamp(62px,10vw,155px);
+        font-weight:900;
+        font-style:italic;
+        line-height:.85;
+        letter-spacing:-6px;
+        margin:90px 0 40px;
+      }
+
+      .sport-hero h1 em {
+        font-style:inherit;
+        color:#8af3ff;
+      }
+
+      .sport-hero strong {
+        position:relative;
+        z-index:2;
+      }
+
+      .sport-shoe {
+        position:absolute;
+        width:68%;
+        top:17%;
+        right:-17%;
+        transform:rotate(-18deg);
+        filter:drop-shadow(
+          0 20px 20px #0018
+        );
+      }
+
+      .speed-lines {
+        position:absolute;
+        top:-30%;
+        left:60%;
+        width:140px;
+        height:160%;
+        background:#fff2;
+        transform:rotate(30deg);
+      }
+
+      .sport .catalog h2 {
+        font-size:32px;
+        font-weight:900;
+      }
+
+      .sport .product-grid { gap:14px; }
+
+      .sport .product-card {
+        border:2px solid #193b63;
+        box-shadow:7px 7px 0 #193b63;
+      }
+
+      .sport .product-text h3 {
+        font-weight:900;
+        text-transform:uppercase;
+      }
+
+      /* ====================================
+         REINA
+      ==================================== */
+      .elegant {
+        background:#f5eeec;
+        color:#4b2c3b;
+        font-family:Georgia,"Yu Mincho",serif;
+      }
+
+      .elegant-hero {
+        padding:45px 8% 60px;
+        background:#3d2432;
+        color:#f3e4de;
+        text-align:center;
+      }
+
+      .elegant-hero>small {
+        font-size:10px;
+        letter-spacing:4px;
+      }
+
+      .elegant-frame {
+        max-width:780px;
+        margin:40px auto 25px;
+        padding:40px 8% 15px;
+        border:1px solid #ad8497;
+      }
+
+      .ornament {
+        font-size:30px;
+        color:#d3a9bd;
+      }
+
+      .elegant-frame h1 {
+        font-size:clamp(65px,11vw,145px);
+        font-weight:400;
+        letter-spacing:9px;
+        margin:15px 0;
+      }
+
+      .elegant-frame p {
+        font-style:italic;
+        letter-spacing:3px;
+      }
+
+      .elegant-frame img {
+        width:75%;
+        max-width:470px;
+        margin-top:25px;
+      }
+
+      .elegant-hero>span {
+        font-size:12px;
+        font-style:italic;
+      }
+
+      .elegant-heading { text-align:center; }
+
+      .elegant-heading small {
+        letter-spacing:4px;
+      }
+
+      .elegant-heading h2 {
+        font-size:45px;
+        font-weight:400;
+        font-style:italic;
+      }
+
+      .fine-line {
+        width:110px;
+        height:1px;
+        background:#ac8499;
+        margin:auto;
+      }
+
+      .elegant .product-card {
+        background:transparent;
+        border-bottom:1px solid #b99ca8;
+      }
+
+      .elegant .product-text {
+        text-align:center;
+      }
+
+      /* ====================================
+         MOCA WALK
+      ==================================== */
+      .craft {
+        background:#e7dfca;
+        color:#505a3b;
+        font-family:Georgia,"Yu Mincho",serif;
+      }
+
+      .craft-hero {
+        position:relative;
+        overflow:hidden;
+        min-height:510px;
+        padding:65px 7%;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:30px;
+        align-items:center;
+        background:repeating-linear-gradient(
+          0deg,
+          #e8e0cc,
+          #e8e0cc 3px,
+          #e5dcc6 4px
+        );
+      }
+
+      .craft-stamp {
+        position:absolute;
+        right:30px;
+        top:24px;
+        width:105px;
+        height:105px;
+        border:2px dashed #65704e;
+        border-radius:50%;
+        display:grid;
+        place-items:center;
+        text-align:center;
+        font:10px Arial;
+        transform:rotate(15deg);
+      }
+
+      .craft-title small {
+        font:11px Arial;
+        letter-spacing:2px;
+      }
+
+      .craft-title h1 {
+        font-size:clamp(42px,6vw,80px);
+        line-height:1.12;
+        transform:rotate(-2deg);
+      }
+
+      .craft-title p { font-size:20px; }
+
+      .craft-photo {
+        padding:18px;
+        background:#d0c5aa;
+        border:12px solid #faf4e6;
+        transform:rotate(4deg);
+        box-shadow:13px 13px 0 #c3b59a;
+      }
+
+      .craft .catalog h2 {
+        font-size:42px;
+        font-weight:400;
+      }
+
+      .craft .product-card {
+        background:#f8f1df;
+      }
+
+      .craft .product-card:nth-child(2) {
+        transform:rotate(2deg);
+      }
+
+      .craft .product-card:nth-child(3) {
+        transform:rotate(-2deg);
+      }
+
+      .craft .product-card:hover {
+        transform:translateY(-5px) rotate(0);
+      }
+
+      /* ====================================
+         URBAN STEP
+      ==================================== */
+      .urban {
+        background:#111;
+        color:#fff;
+        font-family:Arial,sans-serif;
+      }
+
+      .urban-hero {
+        position:relative;
+        min-height:620px;
+        padding:40px 5%;
+        overflow:hidden;
+      }
+
+      .urban-meta {
+        display:flex;
+        justify-content:space-between;
+        font-size:11px;
+        letter-spacing:3px;
+        gap:15px;
+      }
+
+      .urban-hero h1 {
+        position:relative;
+        z-index:2;
+        font-size:clamp(95px,17vw,250px);
+        font-weight:900;
+        line-height:.74;
+        letter-spacing:-11px;
+        margin:95px 0 0;
+      }
+
+      .urban-hero h1 span {
+        color:#f26441;
+      }
+
+      .urban-graphic {
+        position:absolute;
+        width:55%;
+        right:-7%;
+        top:21%;
+        transform:rotate(-15deg);
+      }
+
+      .urban-graphic img {
+        filter:grayscale(1) contrast(1.1);
+      }
+
+      .urban-caption {
+        position:relative;
+        z-index:2;
+        display:flex;
+        justify-content:space-between;
+        margin-top:75px;
+        gap:15px;
+      }
+
+      .urban-caption strong {
+        font-size:29px;
+        color:#f26441;
+      }
+
+      .urban-caption small {
+        letter-spacing:2px;
+      }
+
+      .urban .catalog {
+        background:#eee;
+        color:#111;
+      }
+
+      .urban .catalog h2 {
+        font-size:31px;
+        font-weight:900;
+        padding-bottom:15px;
+        border-bottom:5px solid #111;
+      }
+
+      .urban .product-grid { gap:8px; }
+
+      .urban .product-card {
+        border:2px solid #111;
+      }
+
+      .urban .product-text h3 {
+        font-weight:900;
+        text-transform:uppercase;
+      }
+
+      /* ====================================
+         商品詳細・カート共通モーダル
+      ==================================== */
+      .overlay {
+        position:fixed;
+        inset:0;
+        z-index:99999;
+        background:#000a;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:15px;
+      }
+
+      .modal {
+        position:relative;
+        width:min(940px,100%);
+        max-height:92vh;
+        overflow:auto;
+        background:white;
+        color:#222;
+        padding:30px;
+        font-family:Arial,"Noto Sans JP",sans-serif;
+      }
+
+      .modal-close {
+        position:absolute;
+        right:13px;
+        top:10px;
+        border:0;
+        background:none;
+        font-size:32px;
+        z-index:2;
+      }
+
+      /* ====================================
+         商品詳細タブ
+      ==================================== */
+      .detail-tabs {
+        display:flex;
+        border-bottom:1px solid #ddd;
+        margin:0 35px 20px 0;
+      }
+
+      .detail-tabs button {
+        flex:1;
+        padding:16px 10px;
+        border:0;
+        border-bottom:3px solid transparent;
+        background:transparent;
+        color:#777;
+        cursor:pointer;
+        transition:.2s;
+      }
+
+      .detail-tabs button:hover {
+        color:#222;
+        background:#f8f8f8;
+      }
+
+      .detail-tabs button.active {
+        border-bottom-color:#222;
+        color:#222;
+        font-weight:bold;
+      }
+
+      .detail-grid {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:35px;
+        margin-top:25px;
+      }
+
+      .detail-image {
+        width:100%;
+        display:block;
+      }
+
+      .detail-info h2 {
+        font-size:26px;
+        font-weight:500;
+      }
+
+      .detail-price {
+        font-size:23px;
+        margin:24px 0;
+      }
+
+      .detail-info label {
+        display:block;
+        font-size:13px;
+        margin:18px 0 9px;
+      }
+
+      .swatches {
+        display:flex;
+        gap:13px;
+        flex-wrap:wrap;
+      }
+
+      .swatch {
+        width:35px;
+        height:35px;
+        border-radius:50%;
+        border:2px solid #ccc;
+      }
+
+      .swatch.active {
+        outline:2px solid #333;
+        outline-offset:3px;
+      }
+
+      .detail-info select,
+      .detail-info input {
+        width:100%;
+        padding:13px;
+        border:1px solid #ccc;
+      }
+
+      .primary {
+        width:100%;
+        padding:16px;
+        background:#222;
+        color:white;
+        border:0;
+        margin-top:22px;
+      }
+
+      /* ====================================
+         商品説明モード
+      ==================================== */
+      .description-content {
+        padding:12px 0;
+        line-height:1.9;
+      }
+
+      .description-content h3 {
+        font-size:20px;
+        font-weight:500;
+        margin:0 0 18px;
+      }
+
+      .description-content h4 {
+        font-size:13px;
+        border-bottom:1px solid #ddd;
+        padding-bottom:9px;
+        margin:25px 0 10px;
+      }
+
+      .description-content p {
+        font-size:14px;
+        color:#555;
+        white-space:pre-line;
+      }
+
+      .description-brand {
+        font-size:11px;
+        letter-spacing:2px;
+        color:#888;
+        margin-bottom:15px;
+      }
+
+      .description-note {
+        padding:15px;
+        margin-top:22px;
+        background:#f6f6f6;
+        color:#777;
+        font-size:12px;
+      }
+
+      /* ====================================
+         カート
+      ==================================== */
+      .cart-line {
+        padding:18px 0;
+        border-bottom:1px solid #ddd;
+        display:flex;
+        justify-content:space-between;
+        gap:20px;
+      }
+
+      .remove {
+        border:0;
+        background:none;
+        text-decoration:underline;
+      }
+
+      .cart-total {
+        text-align:right;
+        font-size:22px;
+        margin:30px 0;
+      }
+
+      /* ====================================
+         レスポンシブ
+      ==================================== */
+      @media(max-width:1100px) {
+        .layout {
+          grid-template-columns:
+            185px minmax(0,1fr);
+        }
+
+        .product-grid {
+          grid-template-columns:
+            repeat(2,minmax(0,1fr));
+        }
+
+        .banner { height:70px; }
+      }
+
+      @media(max-width:700px) {
+        .topbar {
+          height:62px;
+          padding:0 13px;
+        }
+
+        .logo { font-size:17px; }
+        #menuToggle { display:block; }
+
+        .banner-menu {
+  position:sticky;
+  top:0;
+  z-index:100;
+          display:flex;
+          overflow-x:auto;
+          scroll-snap-type:x mandatory;
+        }
+
+        .banner {
+          flex:0 0 45%;
+          height:65px;
+          scroll-snap-align:start;
+        }
+
+        .banner-label { font-size:12px; }
+
+        .layout { display:block; }
+
+        .sidebar {
+          display:none;
+          min-height:0;
+          position:static;
+        }
+
+        .sidebar.show { display:block; }
+
+        .natural-hero,
+        .craft-hero {
+          grid-template-columns:1fr;
+          min-height:0;
+          padding:40px 6%;
+        }
+
+        .natural-feature {
+          aspect-ratio:5/3;
+        }
+
+        .sport-hero {
+          min-height:400px;
+        }
+
+        .sport-hero h1 {
+          letter-spacing:-3px;
+        }
+
+        .sport-shoe {
+          width:82%;
+          top:29%;
+          right:-26%;
+        }
+
+        .elegant-frame h1 {
+          letter-spacing:3px;
+        }
+
+        .urban-hero {
+          min-height:400px;
+        }
+
+        .urban-hero h1 {
+          letter-spacing:-6px;
+          margin-top:85px;
+        }
+
+        .urban-graphic {
+          width:65%;
+          top:28%;
+          right:-12%;
+        }
+
+        .catalog {
+          padding:35px 12px;
+        }
+
+        .product-grid { gap:12px; }
+        .product-text { padding:11px; }
+
+        .product-text h3 {
+          font-size:14px;
+        }
+
+        .detail-grid {
+          grid-template-columns:1fr;
+          gap:12px;
+        }
+
+        .modal {
+          padding:20px;
+        }
+
+        .detail-tabs button {
+          padding:13px 8px;
+          font-size:13px;
+        }
+      }
+
+      :host {
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar {
+  height:50px;
+  flex:0 0 50px;
+  position:relative;
+  top:auto;
+  z-index:102;
+}
+
+.banner-menu {
+  flex:0 0 76px;
+  position:relative;
+  top:auto;
+  z-index:100;
+}
+
+.layout {
+  flex:1;
+  min-height:0;
+  height:auto;
+  overflow:hidden;
+  align-items:stretch;
+}
+
+.sidebar {
+  height:100%;
+  min-height:0;
+  position:relative;
+  top:auto;
+  overflow-y:scroll;
+}
+
+.stage {
+  height:100%;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.natural-hero,
+.sport-hero,
+.elegant-hero,
+.craft-hero,
+.urban-hero {
+  display:none;
+}
+
+.natural-hero,
+.sport-hero,
+.elegant-hero,
+.craft-hero,
+.urban-hero {
+  display:none;
+}
+
+@media(max-width:700px) {
+  .topbar {
+    flex:0 0 62px;
+  }
+
+  .banner-menu {
+    flex:0 0 71px;
+    position:relative;
+    top:auto;
+  }
+
+  .layout {
+    display:flex;
+    flex-direction:column;
+  }
+
+  .sidebar {
+    height:auto;
+    max-height:40vh;
+    flex-shrink:0;
+    overflow-y:scroll;
+  }
+
+  .stage {
+    flex:1;
+    height:auto;
+    min-height:0;
+  }
+}
+
+/* 商品詳細モーダル：左右固定レイアウト */
+.modal:has(.detail-grid) {
+  width:min(1100px,96vw);
+  height:min(760px,92dvh);
+  max-height:92dvh;
+  padding:20px;
+  overflow:hidden;
+}
+
+.modal:has(.detail-grid) #modalBody {
+  height:100%;
+  min-height:0;
+}
+
+.modal:has(.detail-grid) .detail-tabs {
+  display:none;
+}
+
+.modal:has(.detail-grid) .detail-grid {
+  display:grid;
+  grid-template-columns:minmax(0,42%) minmax(0,58%);
+  gap:0;
+  height:100%;
+  min-height:0;
+  margin-top:0;
+}
+
+.modal:has(.detail-grid) .detail-grid > div:first-child {
+  height:100%;
+  min-height:0;
+  padding:8px 22px 8px 4px;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  border-right:1px solid #ddd;
+}
+
+.modal:has(.detail-grid) .detail-image {
+  width:100%;
+  max-height:32%;
+  min-height:0;
+  object-fit:contain;
+  flex-shrink:1;
+}
+
+.modal:has(.detail-grid) #purchasePanel {
+  display:block;
+  flex-shrink:0;
+}
+
+.modal:has(.detail-grid) .detail-price {
+  font-size:20px;
+  margin:10px 0;
+}
+
+.modal:has(.detail-grid) #purchasePanel label {
+  margin:9px 0 5px;
+  font-size:12px;
+}
+
+.modal:has(.detail-grid) .swatch {
+  width:28px;
+  height:28px;
+}
+
+.modal:has(.detail-grid) .swatches {
+  gap:9px;
+}
+
+.modal:has(.detail-grid) #detailSize,
+.modal:has(.detail-grid) #detailQty {
+  padding:8px;
+}
+
+.modal:has(.detail-grid) #addCart {
+  margin-top:12px;
+  padding:12px;
+}
+
+.modal:has(.detail-grid) .detail-info {
+  height:100%;
+  min-height:0;
+  padding:10px 18px 15px 26px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+.modal:has(.detail-grid) .detail-info h2 {
+  margin:10px 0 20px;
+}
+
+.modal:has(.detail-grid) #descriptionPanel {
+  display:block;
+}
+
+/* スマホでは上下配置 */
+@media(max-width:700px) {
+  .modal:has(.detail-grid) {
+    width:100%;
+    height:94dvh;
+    max-height:94dvh;
+    padding:12px;
+  }
+
+  .modal:has(.detail-grid) .detail-grid {
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(0,56%) minmax(0,44%);
+  }
+
+  .modal:has(.detail-grid) .detail-grid > div:first-child {
+    padding:4px 8px;
+    border-right:0;
+    border-bottom:1px solid #ddd;
+  }
+
+  .modal:has(.detail-grid) .detail-image {
+    max-height:25%;
+  }
+
+  .modal:has(.detail-grid) .detail-info {
+    padding:14px 8px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+        .world,
+        .banner img,
+        .product-card,
+        .product-photo img {
+          animation:none;
+          transition:none;
+        }
+      }
+    </style>
+
+    <!-- ヘッダー -->
+    <header class="topbar">
+      <div class="logo">HD ORIGIN</div>
+
+      <div class="head-actions">
+        <button class="outline"
+                id="menuToggle">
+          ☰ MENU
+        </button>
+
+        <button class="outline"
+                id="cartButton">
+          CART (${cartCount})
+        </button>
+      </div>
+    </header>
+
+    <!-- ブランドバナーメニュー -->
+    <nav class="banner-menu"
+         aria-label="ブランドを選ぶ">
+
+      ${this.brands.map((b,i)=>`
+        <button
+          class="banner
+          ${b.id===this.current?"active":""}"
+          data-brand="${b.id}"
+          aria-pressed="${b.id===this.current}">
+
+          <img src="${this.bannerArt(b,i)}"
+               alt="">
+
+          <div class="banner-label">
+            ${b.name}
+            <small>${b.short}</small>
+          </div>
+        </button>
+      `).join("")}
+    </nav>
+
+    <!-- メイン画面 -->
+    <div class="layout">
+
+      <!-- 左サブメニュー -->
+      <aside
+        class="sidebar
+        ${this.menuOpen?"show":""}"
+        id="sidebar">
+
+        <div class="sidebar-title">
+          CATEGORY
+        </div>
+
+        ${[
+          "すべて",
+          "コンフォート",
+          "カジュアル",
+          "ウォーキング"
+        ].map(c=>`
+          <button
+            class="category
+            ${this.category===c?"active":""}"
+            data-category="${c}">
+            ${c==="すべて"
+              ?"すべての商品":c}
+          </button>
+        `).join("")}
+
+        <div class="filter-section">
+          <div class="sidebar-title">
+            FILTER
+          </div>
+
+          <label>COLOR</label>
+          <select id="filterColor">
+            ${[
+              "すべて",
+              "ブラック",
+              "キャメル",
+              "ライトグレー"
+            ].map(c=>`
+              <option
+                ${c===this.filterColor
+                  ?"selected":""}>
+                ${c}
+              </option>
+            `).join("")}
+          </select>
+
+          <label>SIZE</label>
+          <select id="filterSize">
+            ${[
+              "すべて","22.5",
+              "23.0","23.5",
+              "24.0","24.5"
+            ].map(s=>`
+              <option
+                ${s===this.filterSize
+                  ?"selected":""}>
+                ${s}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+
+        <div class="side-note">
+          HD ORIGIN<br>
+          MULTI BRAND COLLECTION<br>
+          SPRING / SUMMER 2026
+        </div>
+      </aside>
+
+      <!-- ブランド別ページ -->
+      <main class="stage">
+        ${this.brandPage()}
+      </main>
+    </div>
+
+    <!-- 商品詳細・カートモーダル -->
+    <div class="overlay"
+         id="overlay" hidden>
+
+      <div class="modal"
+           role="dialog"
+           aria-modal="true"
+           aria-label="商品詳細またはカート">
+
+        <button class="modal-close"
+                id="closeModal"
+                aria-label="閉じる">
+          ×
+        </button>
+
+        <div id="modalBody"></div>
+      </div>
+    </div>
+    `;
+
+    this.bindEvents();
+  }
+
+  // ========================================
+  // メインイベント
+  // ========================================
+  bindEvents() {
+    const root=this.shadowRoot;
+
+    // ブランド切り替え
+    root.querySelectorAll(
+      "[data-brand]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.current=btn.dataset.brand;
+        this.category="すべて";
+        this.filterColor="すべて";
+        this.filterSize="すべて";
+        this.menuOpen=false;
+        this.render();
+      };
+    });
+
+    // カテゴリ選択
+    root.querySelectorAll(
+      "[data-category]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.category=btn.dataset.category;
+        this.render();
+      };
+    });
+
+    // 商品クリック
+    root.querySelectorAll(
+      "[data-product]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.openProduct(
+          btn.dataset.product
+        );
+      };
+    });
+
+    // カラー絞り込み
+    root.getElementById(
+      "filterColor"
+    ).onchange=e=>{
+      this.filterColor=e.target.value;
+      this.render();
+    };
+
+    // サイズ絞り込み
+    root.getElementById(
+      "filterSize"
+    ).onchange=e=>{
+      this.filterSize=e.target.value;
+      this.render();
+    };
+
+    // スマホメニュー
+    root.getElementById(
+      "menuToggle"
+    ).onclick=()=>{
+      this.menuOpen=!this.menuOpen;
+      root.getElementById(
+        "sidebar"
+      ).classList.toggle(
+        "show",this.menuOpen
+      );
+    };
+
+    // カート表示
+    root.getElementById(
+      "cartButton"
+    ).onclick=()=>this.openCart();
+
+    // モーダルを閉じる
+    root.getElementById(
+      "closeModal"
+    ).onclick=()=>this.closeModal();
+
+    root.getElementById(
+      "overlay"
+    ).onclick=e=>{
+      if(e.target.id==="overlay") {
+        this.closeModal();
+      }
+    };
+  }
+
+  // ========================================
+  // モーダル管理
+  // ========================================
+  openModal(html) {
+    this.shadowRoot.getElementById(
+      "modalBody"
+    ).innerHTML=html;
+
+    this.shadowRoot.getElementById(
+      "overlay"
+    ).hidden=false;
+
+    this.modalOpen=true;
+  }
+
+  closeModal() {
+    const overlay=this.shadowRoot.getElementById(
+      "overlay"
+    );
+
+    if(overlay) overlay.hidden=true;
+
+    this.modalOpen=false;
+  }
+
+  // ========================================
+  // 商品詳細を開く
+  // ========================================
+  openProduct(id) {
+    this.activeProduct=this.products.find(
+      p=>p.id===id
+    );
+
+    if(!this.activeProduct) return;
+
+    this.selectedColor=0;
+    this.selectedSize=this.activeProduct.sizes[0];
+    this.quantity=1;
+
+    // 初期表示は購入モード
+    this.detailTab="buy";
+
+    this.renderDetail();
+  }
+
+  validQty(value) {
+    return Math.max(
+      1,
+      Math.min(
+        99,
+        Math.floor(Number(value)||1)
+      )
+    );
+  }
+
+  // ========================================
+  // 商品詳細モーダル
+  // 購入・商品説明切り替え
+  // ========================================
+  renderDetail() {
+    const p=this.activeProduct;
+    const brand=this.brands.find(
+      b=>b.id===p.brand
+    );
+
+    const activeTab=this.detailTab;
+
+    this.openModal(`
+      <!-- タブ -->
+      <div class="detail-tabs"
+           role="tablist">
+
+        <button
+          id="tabBuy"
+          role="tab"
+          class="${activeTab==="buy"?"active":""}"
+          aria-selected="${activeTab==="buy"}">
+          購入・選択
+        </button>
+
+        <button
+          id="tabDescription"
+          role="tab"
+          class="${activeTab==="description"?"active":""}"
+          aria-selected="${activeTab==="description"}">
+          商品説明
+        </button>
+      </div>
+
+      <div class="detail-grid">
+
+        <!-- 商品画像 -->
+        <div>
+          <img
+            class="detail-image"
+            src="${this.shoe(
+              p.colors[this.selectedColor],
+              p.shape
+            )}"
+            alt="${p.name}">
+        </div>
+
+        <!-- 商品情報 -->
+        <div class="detail-info">
+          <small>
+            ${brand.name} / NO. ${p.id}
+          </small>
+
+          <h2>${p.name}</h2>
+
+          <!-- 購入モード -->
+          <div id="purchasePanel"
+            ${activeTab!=="buy"?"hidden":""}>
+
+            <div class="detail-price">
+              ${this.money(p.price)}
+            </div>
+
+            <label>
+              カラー：
+              ${p.colors[this.selectedColor]}
+            </label>
+
+            <div class="swatches">
+              ${p.colors.map((c,i)=>`
+                <button
+                  class="swatch
+                  ${i===this.selectedColor
+                    ?"active":""}"
+                  data-color="${i}"
+                  style="background:
+                    ${this.colorCode(c)}"
+                  aria-label="${c}">
+                </button>
+              `).join("")}
+            </div>
+
+            <label>サイズ</label>
+            <select id="detailSize">
+              ${p.sizes.map(s=>`
+                <option value="${s}"
+                  ${s===this.selectedSize
+                    ?"selected":""}>
+                  ${s} cm
+                </option>
+              `).join("")}
+            </select>
+
+            <label>数量</label>
+            <input
+              type="number"
+              id="detailQty"
+              min="1"
+              max="99"
+              value="${this.quantity}">
+
+            <button
+              class="primary"
+              id="addCart">
+              カートに入れる
+            </button>
+          </div>
+
+          <!-- 商品説明モード -->
+          <div id="descriptionPanel"
+            ${activeTab!=="description"?"hidden":""}>
+
+            <div class="description-content">
+
+              <div class="description-brand">
+                ${brand.name}
+              </div>
+
+              <h3>${p.name}</h3>
+              <p>${p.description}</p>
+
+              <h4>商品の特徴</h4>
+              <p>${brand.description}</p>
+
+              <h4>カラー展開</h4>
+              <p>${p.colors.join(" / ")}</p>
+
+              <h4>サイズ展開</h4>
+              <p>${p.sizes.join(" / ")} cm</p>
+
+              <h4>素材</h4>
+              <p>${p.material}</p>
+
+              <h4>原産国</h4>
+              <p>${p.origin}</p>
+
+              <h4>お手入れ方法</h4>
+              <p>${p.care}</p>
+
+              <h4>商品番号</h4>
+              <p>${p.id}</p>
+
+              <div class="description-note">
+                ※現在は模擬商品情報です。
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `);
+
+    const root=this.shadowRoot;
+
+    const buyTab=root.getElementById("tabBuy");
+    const descriptionTab=root.getElementById(
+      "tabDescription"
+    );
+
+    const buyPanel=root.getElementById(
+      "purchasePanel"
+    );
+
+    const descriptionPanel=root.getElementById(
+      "descriptionPanel"
+    );
+
+    // 購入モード
+    buyTab.onclick=()=>{
+      this.detailTab="buy";
+
+      buyPanel.hidden=false;
+      descriptionPanel.hidden=true;
+
+      buyTab.classList.add("active");
+      descriptionTab.classList.remove("active");
+
+      buyTab.setAttribute(
+        "aria-selected","true"
+      );
+
+      descriptionTab.setAttribute(
+        "aria-selected","false"
+      );
+    };
+
+    // 商品説明モード
+    descriptionTab.onclick=()=>{
+      this.detailTab="description";
+
+      buyPanel.hidden=true;
+      descriptionPanel.hidden=false;
+
+      descriptionTab.classList.add("active");
+      buyTab.classList.remove("active");
+
+      descriptionTab.setAttribute(
+        "aria-selected","true"
+      );
+
+      buyTab.setAttribute(
+        "aria-selected","false"
+      );
+    };
+
+    // 購入操作を画像の下へ移動
+    const imageColumn=root.querySelector(".detail-grid > div:first-child");
+
+    imageColumn.appendChild(buyPanel);
+
+const descriptionContent=descriptionPanel.querySelector(".description-content");
+const productTitle=descriptionContent.querySelector("h3");
+const productDescription=productTitle.nextElementSibling;
+
+imageColumn.insertBefore(productTitle,buyPanel);
+imageColumn.insertBefore(productDescription,buyPanel);
+
+    buyPanel.hidden=false;
+    descriptionPanel.hidden=false;
+
+    // カラー変更
+    root.querySelectorAll(
+      "[data-color]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.selectedSize=root.getElementById(
+          "detailSize"
+        ).value;
+
+        this.quantity=this.validQty(
+          root.getElementById("detailQty").value
+        );
+
+        this.selectedColor=Number(
+          btn.dataset.color
+        );
+
+        this.renderDetail();
+      };
+    });
+
+    // カートへ追加
+    root.getElementById(
+      "addCart"
+    ).onclick=()=>{
+      this.selectedSize=root.getElementById(
+        "detailSize"
+      ).value;
+
+      this.quantity=this.validQty(
+        root.getElementById("detailQty").value
+      );
+
+      this.addToCart();
+    };
+  }
+
+  // ========================================
+  // カート追加
+  // ========================================
+  addToCart() {
+    const p=this.activeProduct;
+
+    const item={
+      id:p.id,
+      brand:p.brand,
+      name:p.name,
+      price:p.price,
+      color:p.colors[this.selectedColor],
+      size:this.selectedSize,
+      qty:this.quantity
+    };
+
+    const existing=this.cart.find(x=>
+      x.id===item.id &&
+      x.color===item.color &&
+      x.size===item.size
+    );
+
+    if(existing) {
+      existing.qty+=item.qty;
+    } else {
+      this.cart.push(item);
+    }
+
+    this.render();
+    this.openCart();
+  }
+
+  // ========================================
+  // カート表示
+  // ========================================
+  openCart() {
+    const total=this.cart.reduce(
+      (sum,p)=>sum+p.price*p.qty,0
+    );
+
+    this.openModal(`
+      <h2>SHOPPING CART</h2>
+
+      ${this.cart.map((p,i)=>`
+        <div class="cart-line">
+          <div>
+            <strong>${p.name}</strong><br>
+            ${p.brand} / NO. ${p.id}<br>
+            ${p.color} / ${p.size} cm<br>
+            数量：${p.qty}
+          </div>
+
+          <div>
+            <strong>
+              ${this.money(p.price*p.qty)}
+            </strong><br>
+
+            <button
+              class="remove"
+              data-remove="${i}">
+              削除
+            </button>
+          </div>
+        </div>
+      `).join("") ||
+      "<p>カートは空です。</p>"}
+
+      <div class="cart-total">
+        合計 ${this.money(total)}
+      </div>
+
+      <button
+        class="primary"
+        id="checkout">
+        注文手続き（模擬）
+      </button>
+    `);
+
+    this.shadowRoot.querySelectorAll(
+      "[data-remove]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.cart.splice(
+          Number(btn.dataset.remove),1
+        );
+
+        this.render();
+        this.openCart();
+      };
+    });
+
+    this.shadowRoot.getElementById(
+      "checkout"
+    ).onclick=()=>{
+      alert(
+        "模擬ショップです。"+
+        "実際の注文・決済は行われません。"
+      );
+    };
+  }
+}
+
+// ==========================================
+// カスタム要素登録
+// ==========================================
+customElements.define(
+  "hd-brand-shop",
+  HdBrandShop
+);
+
+</script>
+</body>
+</html>

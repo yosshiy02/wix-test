@@ -109,7 +109,8 @@ class HdBrandShop extends HTMLElement {
     this.products = [];
 
     this.brands.forEach((brand,bi)=>{
-      names[brand.id].forEach((name,i)=>{
+      Array.from({length:20},(_,i)=>{
+  const name=names[brand.id][i%names[brand.id].length]+" "+String(i+1).padStart(2,"0");
         this.products.push({
           id:String((bi+1)*100+i+1),
           brand:brand.id,
@@ -118,7 +119,7 @@ class HdBrandShop extends HTMLElement {
             "コンフォート",
             "カジュアル",
             "ウォーキング"
-          ][i],
+          ][i%3],
           price:5900+bi*550+i*400,
           colors:[
             "ブラック",
@@ -149,6 +150,12 @@ class HdBrandShop extends HTMLElement {
     this.category = "すべて";
     this.filterColor = "すべて";
     this.filterSize = "すべて";
+    this.catalogLevel = "items";
+    this.selectedItemId = null;
+    this.catalogTransition = "";
+    this.catalogIsTransitioning = false;
+    this.catalogAnimationTimer = null;
+    this.catalogOutgoingMarkup = "";
 
     this.cart = [];
     this.activeProduct = null;
@@ -162,6 +169,8 @@ class HdBrandShop extends HTMLElement {
 
     this.menuOpen = false;
     this.modalOpen = false;
+    this.modalAnimationTimer = null;
+    this.sideCartOpen = false;
   }
 
   connectedCallback() {
@@ -330,13 +339,209 @@ class HdBrandShop extends HTMLElement {
     );
   }
 
+  selectedItem() {
+    return this.products.find(
+      p=>p.id===this.selectedItemId &&
+      p.brand===this.current
+    );
+  }
+
+  catalogNavigation() {
+    const item=this.selectedItem();
+
+    if(!item || this.catalogLevel!=="colors") return "";
+
+    return `
+      <button class="catalog-back"
+              id="catalogBack"
+              type="button">
+        ← アイテム一覧へ戻る
+      </button>
+      <p class="catalog-current-item">
+        ${item.name} / COLOR VARIATIONS
+      </p>
+    `;
+  }
+
+  catalogClass() {
+    return this.catalogTransition
+      ?`catalog ${this.catalogTransition}`
+      :"catalog";
+  }
+
+  catalogMenu() {
+    const item=this.selectedItem();
+    const items=this.filtered();
+
+    if(this.catalogLevel==="colors" && item) {
+      return `
+        <div class="catalog-menu catalog-menu-colors">
+          <div class="menu-path">${this.brand.name} / ${item.name}</div>
+          <button class="menu-back"
+                  data-catalog-menu-back
+                  type="button">← アイテム一覧</button>
+          <div class="menu-items">
+            ${item.colors.map((color,index)=>`
+              <button class="menu-item
+                ${this.selectedColor===index?"active":""}"
+                data-product="${item.id}"
+                style="--menu-index:${index}"
+                data-color-index="${index}"
+                type="button">
+                <span class="menu-swatch"
+                      style="background:${this.colorCode(color)}"></span>
+                ${color}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="catalog-menu catalog-menu-items">
+        <div class="menu-path">${this.brand.name} / ${this.category}</div>
+        <div class="menu-items">
+          ${items.map((p,index)=>`
+            <button class="menu-item"
+                    style="--menu-index:${Math.min(index,4)}"
+                    data-item="${p.id}"
+                    type="button">
+              ${p.name}
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+  mountOutgoingCatalogLayer() {
+    if(!this.catalogOutgoingMarkup) return;
+
+    const catalog=this.shadowRoot.querySelector(".catalog");
+    if(!catalog) return;
+
+    const documentRef=this.shadowRoot.ownerDocument;
+    const outgoing=documentRef.createElement("div");
+    const incoming=documentRef.createElement("div");
+
+    outgoing.className="catalog-outgoing";
+    incoming.className="catalog-incoming";
+    outgoing.innerHTML=this.catalogOutgoingMarkup;
+    outgoing.querySelectorAll(".catalog-incoming").forEach(layer=>{
+      layer.classList.remove("catalog-incoming");
+    });
+
+    while(catalog.firstChild) {
+      incoming.appendChild(catalog.firstChild);
+    }
+
+    catalog.append(outgoing,incoming);
+  }
+
+  transitionCatalog(nextLevel,itemId,trigger) {
+    if(this.catalogIsTransitioning) return;
+
+    const isReducedMotion=window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const direction=nextLevel==="colors" ?"forward":"back";
+
+    if(isReducedMotion) {
+      this.catalogLevel=nextLevel;
+      this.selectedItemId=itemId;
+      this.render();
+      return;
+    }
+
+    this.catalogIsTransitioning=true;
+    this.catalogOutgoingMarkup="";
+    if(trigger) trigger.classList.add("is-selected");
+
+    const catalog=this.shadowRoot.querySelector(".catalog");
+    if(catalog) catalog.classList.add(
+      `catalog-leave-${direction}`
+    );
+
+    window.setTimeout(()=>{
+      this.catalogOutgoingMarkup=catalog ?catalog.innerHTML:"";
+      this.catalogLevel=nextLevel;
+      this.selectedItemId=itemId;
+      this.catalogTransition=`catalog-enter-${direction}`;
+      this.render();
+      this.mountOutgoingCatalogLayer();
+
+      this.catalogAnimationTimer=window.setTimeout(()=>{
+        const activeCatalog=this.shadowRoot.querySelector(".catalog");
+
+        if(activeCatalog) {
+          const outgoing=activeCatalog.querySelector(
+            ".catalog-outgoing"
+          );
+          const incoming=activeCatalog.querySelector(
+            ".catalog-incoming"
+          );
+
+          // Keep the incoming wrapper in place so the final layout tree
+          // is identical to the animated layout. Only the old layer and
+          // animation class are removed; no reparenting or reflow is done.
+          if(outgoing) outgoing.remove();
+
+          activeCatalog.classList.remove(
+            "catalog-enter-forward","catalog-enter-back"
+          );
+        }
+
+        this.catalogTransition="";
+        this.catalogOutgoingMarkup="";
+        this.catalogIsTransitioning=false;
+      },1700);
+    },560);
+  }
+
   // ========================================
   // 商品一覧カード
   // ========================================
   productCards() {
-    return this.filtered().map(p=>`
+    const item=this.selectedItem();
+
+    if(this.catalogLevel==="colors" && item) {
+      return item.colors
+        .filter(color=>
+          this.filterColor==="すべて" ||
+          color===this.filterColor
+        )
+        .map(color=>({
+          color,
+          colorIndex:item.colors.indexOf(color)
+        }))
+        .map(({color,colorIndex},index)=>`
+          <button class="product-card"
+                  style="--catalog-card-index:${Math.min(index,3)}"
+                  data-product="${item.id}"
+                  data-color-index="${colorIndex}">
+            <div class="product-photo">
+              <img
+                src="${this.shoe(color,item.shape)}"
+                alt="${item.name} / ${color}">
+            </div>
+
+            <div class="product-text">
+              <small>NO. ${item.id} / ${color}</small>
+              <h3>${item.name}</h3>
+              <p>${this.money(item.price)}</p>
+              <span>VIEW PRODUCT →</span>
+            </div>
+          </button>
+        `).join("") ||
+        `<p class="empty">
+           該当するカラーの商品はありません。
+         </p>`;
+    }
+
+    return this.filtered().map((p,index)=>`
       <button class="product-card"
-              data-product="${p.id}">
+              style="--catalog-card-index:${Math.min(index,3)}"
+              data-item="${p.id}">
         <div class="product-photo">
           <img
             src="${this.shoe(p.colors[0],p.shape)}"
@@ -347,7 +552,7 @@ class HdBrandShop extends HTMLElement {
           <small>NO. ${p.id}</small>
           <h3>${p.name}</h3>
           <p>${this.money(p.price)}</p>
-          <span>VIEW PRODUCT →</span>
+          <span>VIEW COLORS →</span>
         </div>
       </button>
     `).join("") ||
@@ -361,6 +566,8 @@ class HdBrandShop extends HTMLElement {
   // ========================================
   brandPage() {
     const cards=this.productCards();
+    const navigation=this.catalogNavigation();
+    const catalogClass=this.catalogClass();
 
     switch(this.current) {
 
@@ -386,7 +593,8 @@ class HdBrandShop extends HTMLElement {
             </div>
           </section>
 
-          <section class="catalog">
+          <section class="${catalogClass}">
+            ${navigation}
             <div class="natural-heading">
               <small>01 / OUR COLLECTION</small>
               <h2>Everyday Essentials</h2>
@@ -414,7 +622,8 @@ class HdBrandShop extends HTMLElement {
             </strong>
           </section>
 
-          <section class="catalog">
+          <section class="${catalogClass}">
+            ${navigation}
             <h2>GEAR / 01</h2>
             <div class="product-grid">
               ${cards}
@@ -443,7 +652,8 @@ class HdBrandShop extends HTMLElement {
             </span>
           </section>
 
-          <section class="catalog">
+          <section class="${catalogClass}">
+            ${navigation}
             <div class="elegant-heading">
               <small>THE EDITION</small>
               <h2>Objects of Desire</h2>
@@ -479,7 +689,8 @@ class HdBrandShop extends HTMLElement {
             </div>
           </section>
 
-          <section class="catalog">
+          <section class="${catalogClass}">
+            ${navigation}
             <h2>Our favorite things.</h2>
             <p>
               日常に溶け込む、
@@ -517,7 +728,8 @@ class HdBrandShop extends HTMLElement {
             </div>
           </section>
 
-          <section class="catalog">
+          <section class="${catalogClass}">
+            ${navigation}
             <h2>01 / SELECTED OBJECTS</h2>
             <div class="product-grid">
               ${cards}
@@ -564,6 +776,9 @@ class HdBrandShop extends HTMLElement {
       ==================================== */
       .topbar {
         height:72px;
+position:sticky;
+top:0;
+z-index:102;
         background:#fff;
         display:flex;
         align-items:center;
@@ -595,6 +810,9 @@ class HdBrandShop extends HTMLElement {
          ブランドバナーメニュー
       ==================================== */
       .banner-menu {
+  position:sticky;
+  top:0;
+  z-index:100;
         display:grid;
         grid-template-columns:
           repeat(5,minmax(0,1fr));
@@ -606,7 +824,7 @@ class HdBrandShop extends HTMLElement {
       .banner {
         position:relative;
         min-width:0;
-        height:170px;
+        height:70px;
         overflow:hidden;
         border:0;
         padding:0;
@@ -690,7 +908,8 @@ class HdBrandShop extends HTMLElement {
       .sidebar {
         background:#fafafa;
         border-right:1px solid #ddd;
-        min-height:calc(100vh - 72px);
+        height:calc(100vh - 76px);
+        overflow-y:scroll;
         padding:32px 19px;
         position:sticky;
         top:0;
@@ -722,6 +941,75 @@ class HdBrandShop extends HTMLElement {
         font-weight:bold;
       }
 
+      .catalog-menu {
+        margin-top:25px;
+        padding-top:20px;
+        border-top:1px solid #ddd;
+      }
+
+      .menu-path {
+        margin-bottom:10px;
+        font-size:11px;
+        font-weight:bold;
+        letter-spacing:.6px;
+        color:#777;
+      }
+
+      .menu-items {
+        display:grid;
+        gap:4px;
+        max-height:260px;
+        overflow:auto;
+        scrollbar-gutter:stable;
+      }
+
+      .menu-item,
+      .menu-back {
+        display:flex;
+        align-items:center;
+        gap:7px;
+        width:100%;
+        padding:8px 7px;
+        border:0;
+        border-left:3px solid transparent;
+        background:transparent;
+        color:#666;
+        text-align:left;
+        font-size:11px;
+        opacity:0;
+        transform:translateX(-8px);
+        animation:menuItemEnter .72s cubic-bezier(.16,1,.3,1) both;
+        animation-delay:calc(70ms + (var(--menu-index,0) * 45ms));
+      }
+
+      .menu-item:hover,
+      .menu-item.active,
+      .menu-back:hover {
+        border-left-color:#222;
+        background:#ececec;
+        color:#222;
+      }
+
+      .menu-back {
+        color:inherit;
+        opacity:1;
+        transform:none;
+        animation:none;
+        margin-bottom:5px;
+      }
+
+      .menu-swatch {
+        width:12px;
+        height:12px;
+        border-radius:50%;
+        flex:0 0 12px;
+      }
+
+      @keyframes menuItemEnter {
+        from { opacity:0; transform:translateX(-8px); }
+        to { opacity:1; transform:translateX(0); }
+      }
+
       .filter-section {
         margin-top:30px;
         padding-top:25px;
@@ -748,9 +1036,12 @@ class HdBrandShop extends HTMLElement {
         margin-top:40px;
       }
 
-      .stage {
+.stage {
         min-width:0;
-        overflow:hidden;
+        height:100%;
+        overflow-y:auto;
+        overflow-x:hidden;
+        scrollbar-gutter:stable;
       }
 
       .world {
@@ -774,12 +1065,137 @@ class HdBrandShop extends HTMLElement {
       .catalog {
         padding:55px 5%;
         min-height:350px;
+        overflow-anchor:none;
+      }
+
+      .catalog-back {
+        display:inline-flex;
+        align-items:center;
+        margin:0 0 10px;
+        padding:9px 0;
+        border:0;
+        border-bottom:1px solid currentColor;
+        background:transparent;
+        color:inherit;
+        font-size:13px;
+        font-weight:bold;
+      }
+
+      .catalog-current-item {
+        margin:0 0 22px;
+        font-size:12px;
+        letter-spacing:1.4px;
+        opacity:.7;
+      }
+
+      .catalog-leave-forward,
+      .catalog-leave-back {
+        pointer-events:none;
+      }
+
+      .catalog-leave-forward > * {
+        animation:catalogLeaveForward .7s cubic-bezier(.45,0,.2,1) both;
+      }
+
+      .catalog-leave-back > * {
+        animation:catalogLeaveBack .7s cubic-bezier(.45,0,.2,1) both;
+      }
+
+      .catalog-layers {
+        position:relative;
+        isolation:isolate;
+      }
+
+      .catalog-incoming {
+        position:relative;
+        z-index:1;
+      }
+
+      .catalog-outgoing {
+        position:absolute;
+        inset:0;
+        z-index:0;
+        width:100%;
+        pointer-events:none;
+      }
+
+      .catalog-enter-forward .catalog-outgoing {
+        animation:catalogOutgoingForward .5s cubic-bezier(.4,0,.2,1) both;
+      }
+
+      .catalog-enter-forward,
+      .catalog-enter-back {
+        overflow:visible;
+      }
+
+      .catalog-enter-back .catalog-outgoing {
+        animation:catalogOutgoingBack .5s cubic-bezier(.4,0,.2,1) both;
+      }
+
+      .catalog-enter-forward .catalog-incoming > :not(.product-grid),
+      .catalog-enter-back .catalog-incoming > :not(.product-grid) {
+        animation:catalogTitleEnter .7s cubic-bezier(.16,1,.3,1) both;
+      }
+
+      .catalog-enter-forward .catalog-incoming .product-card,
+      .catalog-enter-back .catalog-incoming .product-card {
+        animation:catalogCardEnter .8s cubic-bezier(.16,1,.3,1) both;
+        animation-delay:calc(180ms + (var(--catalog-card-index,0) * 180ms));
+      }
+
+      .catalog-enter-back .catalog-incoming .product-card {
+        animation-name:catalogCardEnterBack;
+      }
+
+      .product-card.is-selected {
+        transform:scale(1.025);
+        box-shadow:0 12px 28px #0002;
+      }
+
+      @keyframes catalogLeaveForward {
+        to { opacity:0; transform:translateX(-24px); }
+      }
+
+      @keyframes catalogLeaveBack {
+        to { opacity:0; transform:translateX(24px); }
+      }
+
+      @keyframes catalogOutgoingForward {
+        from { opacity:.16; transform:translateX(-10px); }
+        to { opacity:0; transform:translateX(-28px); }
+      }
+
+      @keyframes catalogOutgoingBack {
+        from { opacity:.16; transform:translateX(10px); }
+        to { opacity:0; transform:translateX(28px); }
+      }
+
+      @keyframes catalogTitleEnter {
+        from { opacity:0; transform:translateY(16px); }
+        to { opacity:1; transform:translateY(0); }
+      }
+
+      @keyframes catalogCardEnter {
+        from { opacity:0; transform:translateY(20px); }
+        to { opacity:1; transform:translateY(0); }
+      }
+
+      @keyframes catalogCardEnterBack {
+        from { opacity:0; transform:translateX(-20px) translateY(12px); }
+        to { opacity:1; transform:translateX(0) translateY(0); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .catalog-menu *, .catalog *, .product-card {
+          animation:none !important;
+          transition:none !important;
+        }
       }
 
       .product-grid {
         display:grid;
         grid-template-columns:
-          repeat(3,minmax(0,1fr));
+          repeat(4,minmax(0,1fr));
         gap:22px;
         margin-top:30px;
       }
@@ -1275,6 +1691,17 @@ class HdBrandShop extends HTMLElement {
         padding:15px;
       }
 
+      .overlay.modal-opening { animation:modalBackdropIn 1.35s cubic-bezier(.16,1,.3,1) both; }
+      .overlay.modal-opening .modal { animation:modalExpandIn 1.35s cubic-bezier(.16,1,.3,1) both; transform-origin:center center; will-change:transform,opacity; }
+      .overlay.modal-opening #modalBody { animation:modalContentsIn .8s cubic-bezier(.16,1,.3,1) .35s both; }
+      .overlay.modal-closing { animation:modalBackdropOut .62s cubic-bezier(.7,0,.84,0) both; }
+      .overlay.modal-closing .modal { animation:modalShrinkOut .62s cubic-bezier(.7,0,.84,0) both; transform-origin:center center; will-change:transform,opacity; }
+      @keyframes modalBackdropIn { from { opacity:0; background:rgba(0,0,0,0); } to { opacity:1; background:#000a; } }
+      @keyframes modalExpandIn { from { opacity:0; transform:scale(.65); } to { opacity:1; transform:scale(1); } }
+      @keyframes modalContentsIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes modalBackdropOut { from { opacity:1; background:#000a; } to { opacity:0; background:rgba(0,0,0,0); } }
+      @keyframes modalShrinkOut { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.65); } }
+
       .modal {
         position:relative;
         width:min(940px,100%);
@@ -1337,7 +1764,27 @@ class HdBrandShop extends HTMLElement {
       .detail-image {
         width:100%;
         display:block;
+        object-fit:contain;
+        transition:opacity .5s ease, transform .5s ease;
       }
+
+      .detail-left-panel { display:flex; flex-direction:column; gap:12px; min-width:0; }
+      .detail-image-frame { width:min(100%,360px); aspect-ratio:1; margin:0 auto; display:grid; place-items:center; overflow:hidden; background:#fafafa; }
+      .detail-image-frame .detail-image { width:100%; height:100%; }
+      .detail-color-thumbnails { display:flex; gap:8px; overflow-x:auto; padding:2px 1px 5px; scrollbar-gutter:stable; }
+      .detail-color-thumb { flex:0 0 60px; padding:2px; border:1px solid #ddd; background:#fff; color:#555; text-align:center; }
+      .detail-color-thumb.active { border:2px solid #222; padding:1px; }
+      .detail-color-thumb img { display:block; width:54px; height:54px; object-fit:contain; }
+      .detail-color-thumb small { display:block; font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .detail-section-label { font-size:11px; color:#777; margin-bottom:5px; }
+      .detail-size-table { display:flex; gap:5px; overflow-x:auto; scrollbar-gutter:stable; }
+      .detail-size-cell { flex:0 0 54px; padding:6px 3px; border:1px solid #ccc; background:#fff; color:#333; }
+      .detail-size-cell strong,.detail-size-cell small { display:block; }
+      .detail-size-cell strong { font-size:11px; }
+      .detail-size-cell small { margin-top:3px; font-size:9px; color:#52734d; }
+      .detail-size-cell.selected { border:2px solid #222; padding:5px 2px; }
+      .detail-size-cell.sold-out { color:#aaa; background:#f2f2f2; }
+      .detail-size-cell.sold-out small { color:#999; }
 
       .detail-info h2 {
         font-size:26px;
@@ -1468,7 +1915,7 @@ class HdBrandShop extends HTMLElement {
             repeat(2,minmax(0,1fr));
         }
 
-        .banner { height:135px; }
+        .banner { height:70px; }
       }
 
       @media(max-width:700px) {
@@ -1481,6 +1928,9 @@ class HdBrandShop extends HTMLElement {
         #menuToggle { display:block; }
 
         .banner-menu {
+  position:sticky;
+  top:0;
+  z-index:100;
           display:flex;
           overflow-x:auto;
           scroll-snap-type:x mandatory;
@@ -1488,7 +1938,7 @@ class HdBrandShop extends HTMLElement {
 
         .banner {
           flex:0 0 45%;
-          height:120px;
+          height:65px;
           scroll-snap-align:start;
         }
 
@@ -1574,7 +2024,332 @@ class HdBrandShop extends HTMLElement {
         }
       }
 
-      @media(prefers-reduced-motion:reduce) {
+      :host {
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar {
+  height:50px;
+  flex:0 0 50px;
+  position:relative;
+  top:auto;
+  z-index:102;
+}
+
+.banner-menu {
+  flex:0 0 76px;
+  position:relative;
+  top:auto;
+  z-index:100;
+}
+
+.layout {
+  flex:1;
+  min-height:0;
+  height:auto;
+  overflow:hidden;
+  align-items:stretch;
+}
+
+.sidebar {
+  height:100%;
+  min-height:0;
+  position:relative;
+  top:auto;
+  overflow-y:scroll;
+}
+
+.stage {
+  height:100%;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.natural-hero,
+.sport-hero,
+.elegant-hero,
+.craft-hero,
+.urban-hero {
+  display:none;
+}
+
+.natural-hero,
+.sport-hero,
+.elegant-hero,
+.craft-hero,
+.urban-hero {
+  display:none;
+}
+
+@media(max-width:700px) {
+  .topbar {
+    flex:0 0 62px;
+  }
+
+  .banner-menu {
+    flex:0 0 71px;
+    position:relative;
+    top:auto;
+  }
+
+  .layout {
+    display:flex;
+    flex-direction:column;
+  }
+
+  .sidebar {
+    height:auto;
+    max-height:40vh;
+    flex-shrink:0;
+    overflow-y:scroll;
+  }
+
+  .stage {
+    flex:1;
+    height:auto;
+    min-height:0;
+  }
+}
+
+/* 商品詳細モーダル：左右固定レイアウト */
+.modal:has(.detail-grid) {
+  width:min(1100px,96vw);
+  height:min(760px,92dvh);
+  max-height:92dvh;
+  padding:20px;
+  overflow:hidden;
+}
+
+.modal:has(.detail-grid) #modalBody {
+  height:100%;
+  min-height:0;
+}
+
+.modal:has(.detail-grid) .detail-tabs {
+  display:none;
+}
+
+.modal:has(.detail-grid) .detail-grid {
+  display:grid;
+  grid-template-columns:minmax(0,42%) minmax(0,58%);
+  gap:0;
+  height:100%;
+  min-height:0;
+  margin-top:0;
+}
+
+.modal:has(.detail-grid) .detail-grid > div:first-child {
+  height:100%;
+  min-height:0;
+  padding:8px 22px 8px 4px;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  border-right:1px solid #ddd;
+}
+
+.modal:has(.detail-grid) .detail-image {
+  width:100%;
+  max-height:32%;
+  min-height:0;
+  object-fit:contain;
+  flex-shrink:1;
+}
+
+.modal:has(.detail-grid) .swatch {
+  width:28px;
+  height:28px;
+}
+
+.modal:has(.detail-grid) .swatches {
+  gap:9px;
+}
+
+.modal:has(.detail-grid) #detailSize,
+.modal:has(.detail-grid) #detailQty {
+  padding:8px;
+}
+
+.modal:has(.detail-grid) #addCart {
+  flex:0 0 52px;
+  width:52px;
+  height:36px;
+  margin:0;
+  padding:0 4px;
+  border:0;
+  background:#222;
+  color:#fff;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.modal:has(.detail-grid) .detail-info {
+  height:100%;
+  min-height:0;
+  padding:10px 18px 15px 26px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+.modal:has(.detail-grid) .detail-info h2 {
+  margin:10px 0 20px;
+}
+
+.modal:has(.detail-grid) #descriptionPanel {
+  display:block;
+}
+
+/* スマホでは上下配置 */
+@media(max-width:700px) {
+  .modal:has(.detail-grid) {
+    width:100%;
+    height:94dvh;
+    max-height:94dvh;
+    padding:12px;
+  }
+
+  .modal:has(.detail-grid) .detail-grid {
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(0,56%) minmax(0,44%);
+  }
+
+  .modal:has(.detail-grid) .detail-grid > div:first-child {
+    padding:4px 8px;
+    border-right:0;
+    border-bottom:1px solid #ddd;
+  }
+
+  .modal:has(.detail-grid) .detail-image {
+    max-height:25%;
+  }
+
+  .modal:has(.detail-grid) .detail-info {
+    padding:14px 8px;
+  }
+}
+
+/* 商品詳細モーダル：左列の画像・在庫・購入操作 */
+.modal:has(.detail-grid) .detail-left-panel { min-width:0; height:100%; padding:10px 16px 14px 6px; display:flex; flex-direction:column; align-items:stretch; gap:12px; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; box-sizing:border-box; border-right:1px solid #ddd; }
+.modal:has(.detail-grid) .detail-image-frame {
+  width:min(100%,300px,42dvh);
+  aspect-ratio:1 / 1;
+  height:auto;
+  flex:0 0 auto;
+  margin:0 auto;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:#fafafa;
+}
+.modal:has(.detail-grid) .detail-image-frame .detail-image { display:block; width:100%; height:100%; min-height:0; max-height:none; object-fit:contain; }
+.modal:has(.detail-grid) .detail-color-thumbnails { display:flex; flex:0 0 auto; align-items:flex-start; gap:8px; min-width:0; overflow-x:auto; overflow-y:hidden; padding:3px 2px 7px; }
+.modal:has(.detail-grid) .detail-color-thumb { flex:0 0 60px; width:60px; min-width:60px; padding:2px; border:1px solid #ddd; background:#fff; text-align:center; }
+.modal:has(.detail-grid) .detail-color-thumb.active { border:2px solid #222; padding:1px; }
+.modal:has(.detail-grid) .detail-color-thumb img { display:block; width:54px; height:54px; object-fit:contain; }
+.modal:has(.detail-grid) .detail-color-thumb small { display:block; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.modal:has(.detail-grid) .detail-inventory { min-width:0; flex:0 0 auto; }
+.modal:has(.detail-grid) .detail-section-label { margin-bottom:7px; font-size:11px; color:#666; }
+.modal:has(.detail-grid) .detail-size-table { display:flex; flex-wrap:nowrap; gap:5px; overflow-x:auto; overflow-y:hidden; padding:2px 1px 7px; }
+.modal:has(.detail-grid) .detail-size-cell { flex:0 0 54px; width:54px; min-width:54px; min-height:48px; padding:6px 2px; border:1px solid #ccc; background:#fff; text-align:center; }
+.modal:has(.detail-grid) .detail-size-cell.selected { border:2px solid #222; padding:5px 1px; }
+.modal:has(.detail-grid) .detail-size-cell.sold-out { background:#f3f3f3; color:#aaa; cursor:not-allowed; }
+.modal:has(.detail-grid) #purchasePanel {
+  display:block;
+  width:100%;
+  min-width:0;
+  flex:0 0 auto;
+  container-type:inline-size;
+}
+
+.modal:has(.detail-grid) .detail-purchase-group {
+  display:grid;
+  grid-template-columns:90px 70px 52px minmax(0,1fr);
+  align-items:end;
+  gap:6px;
+  width:100%;
+  min-width:0;
+}
+
+.modal:has(.detail-grid) .purchase-field {
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:5px;
+  min-width:0;
+}
+
+.modal:has(.detail-grid) #purchasePanel .purchase-field label {
+  display:block;
+  margin:0;
+  padding:0;
+  font-size:11px;
+  line-height:14px;
+  color:#666;
+}
+
+@container (max-width:350px) {
+  .modal:has(.detail-grid) .detail-purchase-group {
+    grid-template-columns:90px 70px minmax(52px,1fr);
+    row-gap:8px;
+  }
+
+  .modal:has(.detail-grid) .detail-cart-view {
+    grid-column:1 / -1;
+  }
+}
+.modal:has(.detail-grid) .purchase-size { flex:0 0 90px; width:90px; }
+.modal:has(.detail-grid) #detailSize { width:100%; height:36px; padding:4px; border:1px solid #ccc; background:#fff; font-size:12px; }
+.modal:has(.detail-grid) .purchase-quantity { flex:0 0 70px; width:70px; }
+.modal:has(.detail-grid) .detail-quantity { position:relative; width:70px; height:36px; }
+.modal:has(.detail-grid) #detailQty { width:100%; height:36px; padding:5px 22px 5px 6px; font-size:12px; border:1px solid #ccc; box-sizing:border-box; appearance:textfield; -moz-appearance:textfield; }
+.modal:has(.detail-grid) #detailQty::-webkit-inner-spin-button, .modal:has(.detail-grid) #detailQty::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+.modal:has(.detail-grid) .detail-quantity button { position:absolute; right:2px; width:18px; height:16px; padding:0; border:0; background:transparent; font-size:10px; line-height:16px; }
+.modal:has(.detail-grid) .detail-quantity button[data-qty-step="1"] { top:1px; }
+.modal:has(.detail-grid) .detail-quantity button[data-qty-step="-1"] { bottom:1px; }
+.modal:has(.detail-grid) .detail-add {
+  width:52px;
+  min-width:0;
+  height:36px;
+  margin:0;
+  padding:0 4px;
+  border:0;
+  border-radius:4px;
+  background:#222;
+  color:#fff;
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+.modal:has(.detail-grid) .detail-cart-view {
+  width:100%;
+  min-width:0;
+  height:36px;
+  margin:0;
+  padding:0 4px;
+  border:1px solid #222;
+  border-radius:4px;
+  background:#fff;
+  color:#222;
+  font-size:10px;
+  font-weight:500;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+.modal:has(.detail-grid) .detail-add:disabled {
+  background:#bbb;
+  cursor:not-allowed;
+}
+@media(max-width:700px) { .modal:has(.detail-grid) .detail-left-panel { padding:4px 8px; border-right:0; border-bottom:1px solid #ddd; } .modal:has(.detail-grid) .detail-image-frame { width:min(100%,260px); } }
+.side-cart-overlay{position:fixed;inset:0;z-index:100000;background:#0009;opacity:0;pointer-events:none;transition:opacity 350ms ease}.side-cart-overlay.is-open{opacity:1;pointer-events:auto}.side-cart{position:absolute;right:0;top:0;width:min(400px,100vw);height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;transform:translateX(100%);transition:transform 350ms cubic-bezier(.22,1,.36,1);box-shadow:-10px 0 30px #0004}.side-cart-overlay.is-open .side-cart{transform:translateX(0)}.side-cart-header{display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #ddd}.side-cart-header h2{margin:0;font-size:18px}.side-cart-header button{width:36px;height:36px;border:0;background:transparent;font-size:28px}.side-cart-items{min-height:0;overflow-y:auto;padding:0 20px}.side-cart-line{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;padding:16px 0;border-bottom:1px solid #ddd;font-size:12px}.side-cart-line img{width:72px;height:72px;object-fit:contain;background:#fafafa}.side-cart-line div{min-width:0}.side-cart-line small{display:block;color:#666;margin-top:3px}.side-cart-line>strong{white-space:nowrap}.side-cart-actions{display:flex;align-items:center;gap:6px;margin-top:6px}.side-cart-actions button:not(.remove){width:26px;height:26px;border:1px solid #ccc;background:#fff}.side-cart-actions span{min-width:20px;text-align:center}.side-cart-actions .remove{margin-left:auto;border:0;background:transparent;text-decoration:underline}.side-cart-empty{padding:24px;text-align:center;color:#666}.side-cart-footer{padding:16px 20px 20px;border-top:1px solid #ddd}.side-cart-footer>div{display:flex;justify-content:space-between;font-size:18px;margin-bottom:14px}.side-cart-footer .primary{width:100%;margin:0;padding:13px}@media(max-width:700px){.side-cart{width:100vw}.side-cart-items{padding:0 16px}.side-cart-footer{padding:14px 16px 16px}}
+@media(prefers-reduced-motion:reduce) {
         .world,
         .banner img,
         .product-card,
@@ -1652,6 +2427,8 @@ class HdBrandShop extends HTMLElement {
           </button>
         `).join("")}
 
+        ${this.catalogMenu()}
+
         <div class="filter-section">
           <div class="sidebar-title">
             FILTER
@@ -1720,6 +2497,9 @@ class HdBrandShop extends HTMLElement {
         <div id="modalBody"></div>
       </div>
     </div>
+    <div class="side-cart-overlay" id="sideCartOverlay" hidden>
+      <aside class="side-cart" id="sideCart" role="dialog" aria-modal="true" aria-label="ショッピングカート"></aside>
+    </div>
     `;
 
     this.bindEvents();
@@ -1736,10 +2516,13 @@ class HdBrandShop extends HTMLElement {
       "[data-brand]"
     ).forEach(btn=>{
       btn.onclick=()=>{
+        if(this.catalogIsTransitioning) return;
         this.current=btn.dataset.brand;
         this.category="すべて";
         this.filterColor="すべて";
         this.filterSize="すべて";
+        this.catalogLevel="items";
+        this.selectedItemId=null;
         this.menuOpen=false;
         this.render();
       };
@@ -1750,19 +2533,40 @@ class HdBrandShop extends HTMLElement {
       "[data-category]"
     ).forEach(btn=>{
       btn.onclick=()=>{
+        if(this.catalogIsTransitioning) return;
         this.category=btn.dataset.category;
         this.render();
       };
     });
 
-    // 商品クリック
+    // アイテムクリック：カラー一覧へ切り替え
+    root.querySelectorAll(
+      "[data-item]"
+    ).forEach(btn=>{
+      btn.onclick=()=>{
+        this.transitionCatalog(
+          "colors",btn.dataset.item,btn
+        );
+      };
+    });
+
+    // カラー別商品クリック：詳細モーダルを開く
     root.querySelectorAll(
       "[data-product]"
     ).forEach(btn=>{
       btn.onclick=()=>{
         this.openProduct(
-          btn.dataset.product
+          btn.dataset.product,
+          Number(btn.dataset.colorIndex)
         );
+      };
+    });
+
+    const catalogBack=root.getElementById("catalogBack");
+    const menuBacks=root.querySelectorAll("[data-catalog-menu-back]");
+    [catalogBack,...menuBacks].filter(Boolean).forEach(back=>{
+      back.onclick=()=>{
+        this.transitionCatalog("items",null,back);
       };
     });
 
@@ -1770,6 +2574,7 @@ class HdBrandShop extends HTMLElement {
     root.getElementById(
       "filterColor"
     ).onchange=e=>{
+      if(this.catalogIsTransitioning) return;
       this.filterColor=e.target.value;
       this.render();
     };
@@ -1778,6 +2583,7 @@ class HdBrandShop extends HTMLElement {
     root.getElementById(
       "filterSize"
     ).onchange=e=>{
+      if(this.catalogIsTransitioning) return;
       this.filterSize=e.target.value;
       this.render();
     };
@@ -1799,6 +2605,10 @@ class HdBrandShop extends HTMLElement {
       "cartButton"
     ).onclick=()=>this.openCart();
 
+    root.getElementById("sideCartOverlay").onclick=e=>{
+      if(e.target.id==="sideCartOverlay") this.closeCart();
+    };
+
     // モーダルを閉じる
     root.getElementById(
       "closeModal"
@@ -1817,39 +2627,53 @@ class HdBrandShop extends HTMLElement {
   // モーダル管理
   // ========================================
   openModal(html) {
-    this.shadowRoot.getElementById(
-      "modalBody"
-    ).innerHTML=html;
-
-    this.shadowRoot.getElementById(
-      "overlay"
-    ).hidden=false;
-
+    const overlay=this.shadowRoot.getElementById("overlay");
+    const modalBody=this.shadowRoot.getElementById("modalBody");
+    if(this.modalAnimationTimer) window.clearTimeout(this.modalAnimationTimer);
+    modalBody.innerHTML=html;
+    overlay.hidden=false;
+    overlay.classList.remove("modal-closing","modal-opening");
+    void overlay.offsetWidth;
+    overlay.classList.add("modal-opening");
     this.modalOpen=true;
+    this.modalAnimationTimer=window.setTimeout(()=>{
+      overlay.classList.remove("modal-opening");
+      this.modalAnimationTimer=null;
+    },1450);
   }
 
   closeModal() {
-    const overlay=this.shadowRoot.getElementById(
-      "overlay"
-    );
-
-    if(overlay) overlay.hidden=true;
-
+    const overlay=this.shadowRoot.getElementById("overlay");
+    if(!overlay || overlay.hidden) return;
+    if(this.modalAnimationTimer) window.clearTimeout(this.modalAnimationTimer);
+    overlay.classList.remove("modal-opening");
+    void overlay.offsetWidth;
+    overlay.classList.add("modal-closing");
     this.modalOpen=false;
+    this.modalAnimationTimer=window.setTimeout(()=>{
+      overlay.classList.remove("modal-closing");
+      overlay.hidden=true;
+      this.modalAnimationTimer=null;
+    },650);
   }
 
   // ========================================
   // 商品詳細を開く
   // ========================================
-  openProduct(id) {
+  openProduct(id,colorIndex=0) {
     this.activeProduct=this.products.find(
       p=>p.id===id
     );
 
     if(!this.activeProduct) return;
 
-    this.selectedColor=0;
-    this.selectedSize=this.activeProduct.sizes[0];
+    this.selectedColor=Number.isInteger(colorIndex) &&
+      colorIndex>=0 &&
+      colorIndex<this.activeProduct.colors.length
+        ?colorIndex:0;
+    this.selectedSize=this.detailSizes(this.activeProduct).find(size=>
+      this.detailStock(this.activeProduct,this.selectedColor,size)>0
+    );
     this.quantity=1;
 
     // 初期表示は購入モード
@@ -1858,7 +2682,7 @@ class HdBrandShop extends HTMLElement {
     this.renderDetail();
   }
 
-  validQty(value) {
+  validQty(value,max=99) {
     return Math.max(
       1,
       Math.min(
@@ -1866,6 +2690,18 @@ class HdBrandShop extends HTMLElement {
         Math.floor(Number(value)||1)
       )
     );
+  }
+
+  detailSizes(p) {
+    return p.sizes.some(s=>/^[A-Za-z]+$/.test(s))
+      ?p.sizes
+      :["21.5","22.0","22.5","23.0","23.5","24.0","24.5","25.0"]
+        .filter(s=>p.sizes.includes(s));
+  }
+
+  detailStock(p,colorIndex,size) {
+    const index=this.detailSizes(p).indexOf(size);
+    return (index+colorIndex)%5===0 ?0:((index+colorIndex)%3)+1;
   }
 
   // ========================================
@@ -1880,41 +2716,35 @@ class HdBrandShop extends HTMLElement {
 
     const activeTab=this.detailTab;
 
-    this.openModal(`
-      <!-- タブ -->
-      <div class="detail-tabs"
-           role="tablist">
+    const detailAlreadyOpen=
+      this.modalOpen &&
+      !!this.shadowRoot.querySelector("#modalBody .detail-grid");
 
-        <button
-          id="tabBuy"
-          role="tab"
-          class="${activeTab==="buy"?"active":""}"
-          aria-selected="${activeTab==="buy"}">
-          購入・選択
-        </button>
-
-        <button
-          id="tabDescription"
-          role="tab"
-          class="${activeTab==="description"?"active":""}"
-          aria-selected="${activeTab==="description"}">
-          商品説明
-        </button>
-      </div>
-
+    const detailHtml=`
       <div class="detail-grid">
 
-        <!-- 商品画像 -->
-        <div>
-          <img
-            class="detail-image"
-            src="${this.shoe(
-              p.colors[this.selectedColor],
-              p.shape
-            )}"
-            alt="${p.name}">
+        <!-- 左側：画像・カラーサムネイル・在庫 -->
+        <div class="detail-left-panel">
+          <div class="detail-image-frame"><img id="detailImage" class="detail-image" src="${this.shoe(p.colors[this.selectedColor],p.shape)}" alt="${p.name}"></div>
+          <div class="detail-color-thumbnails">
+            ${p.colors.map((c,i)=>`
+              <button class="detail-color-thumb ${i===this.selectedColor?"active":""}" data-color="${i}" type="button">
+                <img src="${this.shoe(c,p.shape)}" alt=""><small>${c}</small>
+              </button>
+            `).join("")}
+          </div>
+          <div class="detail-inventory"><div class="detail-section-label">サイズ別在庫（模擬）</div><div class="detail-size-table">
+            ${this.detailSizes(p).map(size=>{const stock=this.detailStock(p,this.selectedColor,size);return `<button class="detail-size-cell ${size===this.selectedSize?"selected":""} ${stock?"":"sold-out"}" data-size-choice="${size}" ${stock?"":"disabled"} type="button"><strong>${size}</strong><small>${stock?"あり":"なし"}</small></button>`;}).join("")}
+          </div></div>
+          <!-- 購入モード -->
+          <div id="purchasePanel">
+            <div class="detail-purchase-group">
+              <div class="purchase-field purchase-size"><label for="detailSize">サイズ</label><select id="detailSize">${this.detailSizes(p).filter(s=>this.detailStock(p,this.selectedColor,s)>0).map(s=>`<option value="${s}" ${s===this.selectedSize?"selected":""}>${s}</option>`).join("")}</select></div>
+              <div class="purchase-field purchase-quantity"><label for="detailQty">数量</label><div class="detail-quantity"><input type="number" id="detailQty" min="1" max="${this.detailStock(p,this.selectedColor,this.selectedSize)||1}" value="${this.quantity}"><button type="button" data-qty-step="1">▲</button><button type="button" data-qty-step="-1">▼</button></div></div>
+              <button class="detail-add" id="addCart" type="button">追加</button><button class="detail-cart-view" id="detailCartButton" type="button">🛒 カートを見る (${this.cart.reduce((sum,item)=>sum+item.qty,0)})</button>
+            </div>
+          </div>
         </div>
-
         <!-- 商品情報 -->
         <div class="detail-info">
           <small>
@@ -1923,62 +2753,13 @@ class HdBrandShop extends HTMLElement {
 
           <h2>${p.name}</h2>
 
-          <!-- 購入モード -->
-          <div id="purchasePanel"
-            ${activeTab!=="buy"?"hidden":""}>
-
-            <div class="detail-price">
-              ${this.money(p.price)}
-            </div>
-
-            <label>
-              カラー：
-              ${p.colors[this.selectedColor]}
-            </label>
-
-            <div class="swatches">
-              ${p.colors.map((c,i)=>`
-                <button
-                  class="swatch
-                  ${i===this.selectedColor
-                    ?"active":""}"
-                  data-color="${i}"
-                  style="background:
-                    ${this.colorCode(c)}"
-                  aria-label="${c}">
-                </button>
-              `).join("")}
-            </div>
-
-            <label>サイズ</label>
-            <select id="detailSize">
-              ${p.sizes.map(s=>`
-                <option value="${s}"
-                  ${s===this.selectedSize
-                    ?"selected":""}>
-                  ${s} cm
-                </option>
-              `).join("")}
-            </select>
-
-            <label>数量</label>
-            <input
-              type="number"
-              id="detailQty"
-              min="1"
-              max="99"
-              value="${this.quantity}">
-
-            <button
-              class="primary"
-              id="addCart">
-              カートに入れる
-            </button>
+          <div class="detail-price">
+            ${this.money(p.price)}
           </div>
 
           <!-- 商品説明モード -->
           <div id="descriptionPanel"
-            ${activeTab!=="description"?"hidden":""}>
+            >
 
             <div class="description-content">
 
@@ -2018,62 +2799,16 @@ class HdBrandShop extends HTMLElement {
 
         </div>
       </div>
-    `);
+    `;
+
+    if(detailAlreadyOpen) {
+      this.shadowRoot.getElementById("modalBody").innerHTML=detailHtml;
+    } else {
+      this.openModal(detailHtml);
+    }
 
     const root=this.shadowRoot;
 
-    const buyTab=root.getElementById("tabBuy");
-    const descriptionTab=root.getElementById(
-      "tabDescription"
-    );
-
-    const buyPanel=root.getElementById(
-      "purchasePanel"
-    );
-
-    const descriptionPanel=root.getElementById(
-      "descriptionPanel"
-    );
-
-    // 購入モード
-    buyTab.onclick=()=>{
-      this.detailTab="buy";
-
-      buyPanel.hidden=false;
-      descriptionPanel.hidden=true;
-
-      buyTab.classList.add("active");
-      descriptionTab.classList.remove("active");
-
-      buyTab.setAttribute(
-        "aria-selected","true"
-      );
-
-      descriptionTab.setAttribute(
-        "aria-selected","false"
-      );
-    };
-
-    // 商品説明モード
-    descriptionTab.onclick=()=>{
-      this.detailTab="description";
-
-      buyPanel.hidden=true;
-      descriptionPanel.hidden=false;
-
-      descriptionTab.classList.add("active");
-      buyTab.classList.remove("active");
-
-      descriptionTab.setAttribute(
-        "aria-selected","true"
-      );
-
-      buyTab.setAttribute(
-        "aria-selected","false"
-      );
-    };
-
-    // カラー変更
     root.querySelectorAll(
       "[data-color]"
     ).forEach(btn=>{
@@ -2083,16 +2818,33 @@ class HdBrandShop extends HTMLElement {
         ).value;
 
         this.quantity=this.validQty(
-          root.getElementById("detailQty").value
-        );
+        root.getElementById("detailQty").value,
+        this.detailStock(this.activeProduct,this.selectedColor,this.selectedSize)
+      );
 
         this.selectedColor=Number(
           btn.dataset.color
         );
 
+        if(!this.detailStock(this.activeProduct,this.selectedColor,this.selectedSize)) {
+          this.selectedSize=this.detailSizes(this.activeProduct).find(size=>
+            this.detailStock(this.activeProduct,this.selectedColor,size)>0
+          );
+          this.quantity=1;
+        } else {
+          this.quantity=this.validQty(this.quantity,this.detailStock(
+            this.activeProduct,this.selectedColor,this.selectedSize
+          ));
+        }
+
         this.renderDetail();
       };
     });
+
+    root.querySelectorAll("[data-size-choice]").forEach(btn=>{ btn.onclick=()=>{ this.selectedSize=btn.dataset.sizeChoice; this.quantity=1; this.renderDetail(); }; });
+    root.getElementById("detailSize").onchange=e=>{ this.selectedSize=e.target.value; this.quantity=1; this.renderDetail(); };
+    root.querySelectorAll("[data-qty-step]").forEach(btn=>{ btn.onclick=()=>{ const stock=this.detailStock(this.activeProduct,this.selectedColor,this.selectedSize); this.quantity=Math.max(1,Math.min(stock,this.quantity+Number(btn.dataset.qtyStep))); root.getElementById("detailQty").value=this.quantity; }; });
+    root.getElementById("detailCartButton").onclick=()=>this.openCart();
 
     // カートへ追加
     root.getElementById(
@@ -2103,7 +2855,8 @@ class HdBrandShop extends HTMLElement {
       ).value;
 
       this.quantity=this.validQty(
-        root.getElementById("detailQty").value
+        root.getElementById("detailQty").value,
+        this.detailStock(this.activeProduct,this.selectedColor,this.selectedSize)
       );
 
       this.addToCart();
@@ -2138,80 +2891,32 @@ class HdBrandShop extends HTMLElement {
       this.cart.push(item);
     }
 
-    this.render();
-    this.openCart();
+    this.refreshCartCount();
   }
 
   // ========================================
   // カート表示
   // ========================================
+  refreshCartCount() {
+    const count=this.cart.reduce((sum,item)=>sum+item.qty,0);
+    const root=this.shadowRoot;
+    const headerCart=root.getElementById("cartButton");
+    const detailCart=root.getElementById("detailCartButton");
+    if(headerCart) headerCart.textContent=`CART (${count})`;
+    if(detailCart) detailCart.textContent=`🛒 カートを見る (${count})`;
+  }
+  cartTotal() { return this.cart.reduce((sum,item)=>sum+item.price*item.qty,0); }
+  closeCart() { const o=this.shadowRoot.getElementById("sideCartOverlay"); if(!o||o.hidden)return; o.classList.remove("is-open"); this.sideCartOpen=false; window.setTimeout(()=>{if(!this.sideCartOpen)o.hidden=true;},350); }
   openCart() {
-    const total=this.cart.reduce(
-      (sum,p)=>sum+p.price*p.qty,0
-    );
-
-    this.openModal(`
-      <h2>SHOPPING CART</h2>
-
-      ${this.cart.map((p,i)=>`
-        <div class="cart-line">
-          <div>
-            <strong>${p.name}</strong><br>
-            ${p.brand} / NO. ${p.id}<br>
-            ${p.color} / ${p.size} cm<br>
-            数量：${p.qty}
-          </div>
-
-          <div>
-            <strong>
-              ${this.money(p.price*p.qty)}
-            </strong><br>
-
-            <button
-              class="remove"
-              data-remove="${i}">
-              削除
-            </button>
-          </div>
-        </div>
-      `).join("") ||
-      "<p>カートは空です。</p>"}
-
-      <div class="cart-total">
-        合計 ${this.money(total)}
-      </div>
-
-      <button
-        class="primary"
-        id="checkout">
-        注文手続き（模擬）
-      </button>
-    `);
-
-    this.shadowRoot.querySelectorAll(
-      "[data-remove]"
-    ).forEach(btn=>{
-      btn.onclick=()=>{
-        this.cart.splice(
-          Number(btn.dataset.remove),1
-        );
-
-        this.render();
-        this.openCart();
-      };
-    });
-
-    this.shadowRoot.getElementById(
-      "checkout"
-    ).onclick=()=>{
-      alert(
-        "模擬ショップです。"+
-        "実際の注文・決済は行われません。"
-      );
-    };
+    const o=this.shadowRoot.getElementById("sideCartOverlay"), panel=this.shadowRoot.getElementById("sideCart"); if(!o||!panel)return;
+    panel.innerHTML=`<header class="side-cart-header"><h2>SHOPPING CART</h2><button id="closeCart" type="button">×</button></header><div class="side-cart-items">${this.cart.map((item,i)=>{const product=this.products.find(p=>p.id===item.id);return `<article class="side-cart-line"><img src="${product?this.shoe(item.color,product.shape):""}" alt="${item.name}"><div><strong>${item.name}</strong><small>${item.color} / ${item.size} cm</small><small>単価 ${this.money(item.price)}</small><div class="side-cart-actions"><button data-qty="-1" data-index="${i}" type="button">−</button><span>${item.qty}</span><button data-qty="1" data-index="${i}" type="button">＋</button><button class="remove" data-remove="${i}" type="button">削除</button></div></div><strong>${this.money(item.price*item.qty)}</strong></article>`;}).join("")||'<p class="side-cart-empty">カートは空です。</p>'}</div><footer class="side-cart-footer"><div>合計 <strong>${this.money(this.cartTotal())}</strong></div><button class="primary" id="checkout" type="button">購入手続きへ</button></footer>`;
+    o.hidden=false; void o.offsetWidth; o.classList.add("is-open"); this.sideCartOpen=true;
+    panel.querySelector("#closeCart").onclick=()=>this.closeCart();
+    panel.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{this.cart.splice(Number(b.dataset.remove),1);this.refreshCartCount();this.openCart();});
+    panel.querySelectorAll("[data-qty]").forEach(b=>b.onclick=()=>{const item=this.cart[Number(b.dataset.index)];if(!item)return;item.qty=Math.max(1,item.qty+Number(b.dataset.qty));this.refreshCartCount();this.openCart();});
+    panel.querySelector("#checkout").onclick=()=>alert("購入手続きへ進む機能はデモです。");
   }
 }
-
 // ==========================================
 // カスタム要素登録
 // ==========================================

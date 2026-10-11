@@ -1,0 +1,113 @@
+// backend/squareCheckout.jsw
+import { fetch } from 'wix-fetch';
+import { getSecret } from 'wix-secrets-backend';
+import wixData from 'wix-data';
+
+const SQUARE_VERSION = '2026-01-22';
+const SQUARE_BASE_URL = 'https://connect.squareup.com';
+
+let __cachedLocationId = null;
+let __locationFetchPromise = null;
+
+async function getSquareLocationId(accessToken) {
+  if (__cachedLocationId) return __cachedLocationId;
+  if (__locationFetchPromise) return __locationFetchPromise;
+
+  __locationFetchPromise = (async () => {
+    const res = await fetch(`${SQUARE_BASE_URL}/v2/locations`, {
+      method: 'get',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Square-Version': SQUARE_VERSION,
+      },
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(`Square ListLocations 失敗: ${res.status} ${JSON.stringify(json)}`);
+    }
+
+    const locations = Array.isArray(json?.locations) ? json.locations : [];
+    const active = locations.find(l => String(l?.status || '').toUpperCase() === 'ACTIVE');
+    const picked = active || locations[0];
+
+    if (!picked?.id) {
+      throw new Error(`Square locations の id が取得できません: ${JSON.stringify(json)}`);
+    }
+
+    __cachedLocationId = picked.id;
+    return __cachedLocationId;
+  })();
+
+  try {
+    return await __locationFetchPromise;
+  } finally {
+    __locationFetchPromise = null;
+  }
+}
+
+// cartItems の要素に以下を含める前提で保存します：
+// { name, quantity, unitAmount, wixProductId, size }
+export async function createSquarePaymentLink({ cartItems, internalOrderId, redirectUrl, wixCartId }) {
+  const accessToken = await getSecret('SQUARE_ACCESS_TOKEN');
+  if (!accessToken) throw new Error('SQUARE_ACCESS_TOKEN が未設定です。');
+
+  const locationId = await getSquareLocationId(accessToken);
+
+  const body = {
+    idempotency_key: `${Date.now()}-${Math.random()}`,
+    order: {
+      location_id: locationId,
+      reference_id: internalOrderId,
+      line_items: (cartItems || []).map(it => ({
+        name: it.name,
+        quantity: String(it.quantity),
+        base_price_money: { amount: it.unitAmount, currency: 'JPY' },
+      })),
+    },
+    checkout_options: {
+      ask_for_shipping_address: true,
+      redirect_url: String(redirectUrl || "").trim() || undefined,
+    },
+  };
+
+  const res = await fetch(`${SQUARE_BASE_URL}/v2/online-checkout/payment-links`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      'Square-Version': SQUARE_VERSION,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(`Square CreatePaymentLink 失敗: ${res.status} ${JSON.stringify(json)}`);
+
+  const paymentLinkId = json?.payment_link?.id;
+  const squareOrderId = json?.payment_link?.order_id;
+
+  // 在庫減算に必要なメタ情報だけ保存（個人情報なし）
+  const itemsForStock = (cartItems || []).map(it => ({
+    wixProductId: String(it?.wixProductId || ""),
+    size: String(it?.size || ""),
+    quantity: Number(it?.quantity || 0),
+  })).filter(x => x.wixProductId && x.size && x.quantity > 0);
+
+  await wixData.insert("SquareOrders", {
+    internalOrderId: String(internalOrderId || ""),
+    wixCartId: String(wixCartId || ""),
+    paymentLinkId: String(paymentLinkId || ""),
+    squareOrderId: String(squareOrderId || ""),
+    status: "INIT",
+    itemsForStock,
+    createdAt: new Date()
+  });
+
+  return {
+    paymentLinkId,
+    checkoutUrl: json?.payment_link?.url || json?.payment_link?.long_url,
+    squareOrderId,
+    internalOrderId,
+  };
+}

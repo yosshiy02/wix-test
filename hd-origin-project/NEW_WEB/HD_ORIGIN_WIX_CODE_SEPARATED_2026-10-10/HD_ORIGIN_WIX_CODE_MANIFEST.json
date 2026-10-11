@@ -1,0 +1,90 @@
+{
+  "capturedAt": "2026-10-10",
+  "site": {
+    "name": "HATODAIYA",
+    "domain": "www.hatodaiya.com",
+    "pageName": "HDオリジンオンラインストア",
+    "pageSlug": "hd-origin-shop"
+  },
+  "frontend": {
+    "wixVirtualPath": "file:///public/pages/jsj63.js",
+    "lineCount": 4964,
+    "characterCount": 158161,
+    "imports": [
+      "wix-data",
+      "wix-window",
+      "wix-stores-frontend",
+      "wix-storage",
+      "wix-location",
+      "backend/squareCheckout.jsw",
+      "backend/products.jsw",
+      "backend/shop_back/menuService.jsw",
+      "backend/shop_back/mobileBannerService",
+      "public/cartHtmlBridge",
+      "wix-seo-frontend"
+    ]
+  },
+  "backendDependencies": [
+    {
+      "path": "backend/squareCheckout.jsw",
+      "exportsUsed": ["createSquarePaymentLink"],
+      "role": "Square 決済リンク生成"
+    },
+    {
+      "path": "backend/products.jsw",
+      "exportsUsed": ["getInitialPageData"],
+      "role": "初期ページデータ取得"
+    },
+    {
+      "path": "backend/shop_back/menuService.jsw",
+      "exportsUsed": ["getHelmettyBrandBoxHtml", "getHatodaiyaBrandBoxHtml"],
+      "role": "ブランドメニュー HTML"
+    },
+    {
+      "path": "backend/shop_back/mobileBannerService",
+      "exportsUsed": ["getMobileBannerHtml"],
+      "role": "モバイルバナー HTML"
+    }
+  ],
+  "publicDependencies": [
+    {
+      "path": "public/cartHtmlBridge",
+      "exportsUsed": ["initCartHtmlBridge"],
+      "role": "Wix カートと埋め込み UI の橋渡し"
+    }
+  ],
+  "wixDataCollections": [
+    "BrandSettings",
+    "Import307",
+    "SalesPoint",
+    "SoleNameTable",
+    "ProductSalesTexts",
+    "Stores/Products",
+    "Stores/Variants"
+  ],
+  "htmlComponentMessageTypes": [
+    "setBrandBoxHtml",
+    "setPurchaseUi",
+    "catalogInfo",
+    "brandBoxHtml",
+    "setGalleryItems",
+    "setOtherProductsButtonDisabled",
+    "productInfo",
+    "requestCombinedHeight",
+    "setProductScreenActive",
+    "resetG1G2Scroll",
+    "setMobileMenuState",
+    "closeMenu",
+    "g1",
+    "setCategories",
+    "setActiveCategory",
+    "setMenuData",
+    "g2",
+    "stockTableUpdate"
+  ],
+  "editorState": {
+    "wasSavedOrPublished": false,
+    "notice": "別のブラウザで変更が加えられました。ページを再読み込みして、最新の状態にしてください。",
+    "note": "通知を保護するため、再読み込み・保存・公開を実行していない。"
+  }
+}

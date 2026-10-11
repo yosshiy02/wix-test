@@ -1,0 +1,68 @@
+// backend/products.jsw
+import wixData from 'wix-data';
+
+/**
+ * 初期表示に必要なデータを一括取得・加工して返す
+ */
+export async function getInitialPageData(categoryKey, brandKey, shopKey, isAll) {
+    try {
+        // 1. 商品とブランド設定を同時に取得（Promise.allで並列化）
+        const normalizedCategoryKey = String(categoryKey || "").toLowerCase().trim();
+
+        const productsPromise = normalizedCategoryKey
+            ? wixData.query("Stores/Products")
+                .startsWith("slug", `${normalizedCategoryKey}-`)
+                .ascending("name")
+               
+                .find()
+            : Promise.resolve({ items: [] });
+
+        const logoPromise = wixData.query("BrandSettings")
+            .eq("brand", isAll === "true" ? "DEFAULT" : (shopKey || brandKey))
+            .limit(1)
+            .find();
+
+        const [productsRes, logoRes] = await Promise.all([productsPromise, logoPromise]);
+
+        // 2. データをフロントエンドが「そのまま使える形式」に加工
+        const items = productsRes.items.map(product => {
+            const mainImg = convertWixImage(product.mainMedia);
+            const hoverImg = product.mediaItems && product.mediaItems[1]
+                ? convertWixImage(product.mediaItems[1].src || product.mediaItems[1])
+                : mainImg;
+
+       return {
+    _id: product._id,
+    title: product.name,
+    src: mainImg,
+    hoverImage: hoverImg,
+    priceTaxIn: Math.floor(Number(product.price || 0) * 1.1),
+    slug: product.slug,
+    productId: product._id,
+    brand: product.brand
+};
+        });
+
+        const logoSrc = logoRes.items[0] ? convertWixImage(logoRes.items[0].brandLogo) : "";
+
+        return {
+            items,
+            logoSrc,
+            success: true
+        };
+    } catch (err) {
+        console.error("Backend Error:", err);
+        return { success: false, error: err.message };
+    }
+}
+
+// 画像URL変換ヘルパー（バックエンドで実行）
+function convertWixImage(v) {
+    if (!v) return "";
+    let src = typeof v === "string" ? v : (v.image?.url || v.url || v.src || "");
+    if (src.startsWith("wix:image://v1/")) {
+        const m = src.match(/^wix:image:\/\/v1\/([^\/]+)\//);
+        return m ? `https://static.wixstatic.com/media/${m[1]}` : src;
+    }
+    return src;
+}
